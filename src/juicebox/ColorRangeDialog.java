@@ -51,6 +51,8 @@ public class ColorRangeDialog extends JDialog {
 
     // Let's try this again
 
+    // more testing
+
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
         super(owner);
         initComponents(isObserved);
