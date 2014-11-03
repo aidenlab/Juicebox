@@ -49,6 +49,8 @@ public class ColorRangeDialog extends JDialog {
     // - does what for O/E?  some kind of adjustment of that "5" factor?
     // Here is where we'll add a model
 
+    // Let's try this again
+
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
         super(owner);
         initComponents(isObserved);
