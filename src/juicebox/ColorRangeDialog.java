@@ -47,6 +47,7 @@ public class ColorRangeDialog extends JDialog {
     // - whether we're in Observed or O/E mode
     // - saves last min/max for Observed
     // - does what for O/E?  some kind of adjustment of that "5" factor?
+    // Here is where we'll add a model
 
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
         super(owner);
