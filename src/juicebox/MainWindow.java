@@ -84,6 +84,7 @@ public class MainWindow extends JFrame {
 
     private static String DEFAULT_LOAD_MENU = "http://www.broadinstitute.org/igvdata/hic/files/hicAlpha.properties";
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
+    
 
     private ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     // The "model" object containing the state for this instance.
