@@ -330,12 +330,6 @@ public class MainWindow extends JFrame {
                             hic.setDataset(dataset);
 
                             setChromosomes(dataset.getChromosomes());
-                            int j=0;
-                            String[] chrStrings = new String[hic.getChromosomes().size()];
-                            for (Chromosome chr: hic.getChromosomes()) {
-                                chrStrings[j] = chr.getName();
-                                j++;
-                            }
 
                             chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
@@ -396,6 +390,9 @@ public class MainWindow extends JFrame {
 
                         updateThumbnail();
 
+                    } catch (Exception error) {
+                        error.printStackTrace();
+
                     }
                 }
             };
@@ -434,7 +431,7 @@ public class MainWindow extends JFrame {
 
         normalizationComboBox.setEnabled(!wholeGenome);
         // Actually we'd like to enable
-        displayOptionComboBox.setEnabled(!wholeGenome);
+        displayOptionComboBox.setEnabled(true);
 
         refresh();
 

@@ -332,13 +332,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
         }
 
-        if (reset) {
+/*        if (reset) {
             try {
                 graphs = readGraphs(null);
             } catch (IOException e) {
                 graphs = null;
             }
-        }
+        }*/
         return graphs;
 
     }
