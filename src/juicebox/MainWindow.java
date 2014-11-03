@@ -83,7 +83,6 @@ public class MainWindow extends JFrame {
     private static Logger log = Logger.getLogger(MainWindow.class);
 
     private static String DEFAULT_LOAD_MENU = "http://www.broadinstitute.org/igvdata/hic/files/hicAlpha.properties";
-    //    private static String DEFAULT_LOAD_MENU = "http://iwww.broadinstitute.org/igvdata/hic/files/hicInternalMenu.properties";
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
     private ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
