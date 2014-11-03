@@ -23,9 +23,9 @@ Use IntelliJ IDEA (Community edition - free)
     included as a file to be copied over to the class files.
 
 * Go to `Run` -> `Edit Configurations`.
-* Add with `+` sign, Application.
+* Add with `+` sign, `Application`.
 * You'll create two of these, one for the GUI (call it Juicebox GUI or whatever you want, really) and one for the CLT.
-* The GUI's main class is `MainWindow` - click the little `...` button next to the text box for main class, and type `MainWindow`, should find it.
+* The GUI's main class is `MainWindow` - click the little `...` button next to the text box for main class, and type `MainWindow`.
 * The CLT's main class is `HiCTools`.  
 * For the GUI under VM Options: `-Xmx2000m -Djnlp.loadMenu="http://hicfiles.econpy.org/juicebox.properties"`
 * For the CLT I use  `-Xmx2000m`
