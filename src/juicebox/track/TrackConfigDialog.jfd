@@ -1,0 +1,180 @@
+JFDML JFormDesigner: "5.1.1.0.120" Java: "1.6.0_51" encoding: "UTF-8"
+
+new FormModel {
+	contentType: "form/swing"
+	root: new FormRoot {
+		add( new FormWindow( "javax.swing.JDialog", new FormLayoutManager( class java.awt.BorderLayout ) ) {
+			name: "this"
+			"$sizePolicy": 1
+			"modalityType": enum java.awt.Dialog$ModalityType APPLICATION_MODAL
+			"defaultCloseOperation": 2
+			"alwaysOnTop": true
+			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.BorderLayout ) ) {
+				name: "dialogPane"
+				"border": new javax.swing.border.EmptyBorder( 12, 12, 12, 12 )
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.jformdesigner.runtime.NullLayout ) ) {
+					name: "contentPanel"
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.jformdesigner.runtime.NullLayout ) ) {
+						name: "panel4"
+						"border": new javax.swing.border.TitledBorder( "Track Name" )
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "nameField"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"width": 500
+							"x": 20
+							"y": 25
+						} )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+						"width": 535
+						"height": 67
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.jformdesigner.runtime.NullLayout ) ) {
+						name: "panel1"
+						"border": new javax.swing.border.TitledBorder( "Y Axis" )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label2"
+							"text": "Min"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 30
+							"y": 30
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label3"
+							"text": "Max"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 30
+							"y": 70
+						} )
+						add( new FormComponent( "javax.swing.JCheckBox" ) {
+							name: "logScaleCB"
+							"text": "Log scale"
+							"enabled": false
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 30
+							"y": 110
+						} )
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "minYField"
+							addEvent( new FormEvent( "java.awt.event.FocusListener", "focusLost", "minYFieldFocusLost", true ) )
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 100
+							"y": 24
+							"width": 170
+						} )
+						add( new FormComponent( "javax.swing.JTextField" ) {
+							name: "maxYField"
+							addEvent( new FormEvent( "java.awt.event.FocusListener", "focusLost", "maxYFieldFocusLost", true ) )
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"width": 170
+							"height": 28
+							"x": 100
+							"y": 64
+						} )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+						"y": 69
+						"width": 535
+						"height": 167
+						"x": 0
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class com.jformdesigner.runtime.NullLayout ) ) {
+						name: "panel2"
+						"border": new javax.swing.border.TitledBorder( "Colors" )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label4"
+							"text": "Positive values"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 25
+							"y": 30
+						} )
+						add( new FormComponent( "javax.swing.JLabel" ) {
+							name: "label5"
+							"text": "Negative values"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"width": 105
+							"height": 16
+							"x": 25
+							"y": 60
+						} )
+						add( new FormComponent( "org.broad.igv.ui.color.ColorChooserPanel" ) {
+							name: "posColorChooser"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 160
+							"y": 27
+							"width": 55
+						} )
+						add( new FormComponent( "org.broad.igv.ui.color.ColorChooserPanel" ) {
+							name: "altColorChooser"
+						}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+							"x": 160
+							"y": 57
+						} )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+						"y": 235
+						"width": 535
+						"height": 95
+						"x": 0
+					} )
+					add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.FlowLayout ) {
+						"alignment": 0
+					} ) {
+						name: "panel3"
+						"border": new javax.swing.border.TitledBorder( "Data Reduction Function" )
+						"alignmentX": 0.0f
+						add( new FormComponent( "javax.swing.JRadioButton" ) {
+							name: "meanRB"
+							"text": "Mean"
+							"$buttonGroup": new FormReference( "dataReductionGroup" )
+						} )
+						add( new FormComponent( "javax.swing.JRadioButton" ) {
+							name: "maxRB"
+							"text": "Max"
+							"$buttonGroup": new FormReference( "dataReductionGroup" )
+						} )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.NullConstraints ) {
+						"x": 0
+						"y": 335
+						"width": 535
+						"height": 89
+					} )
+				}, new FormLayoutConstraints( class java.lang.String ) {
+					"value": "Center"
+				} )
+				add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.GridBagLayout ) {
+					"$columnSpecs": "0:1.0, 80, 80"
+					"$hGap": 5
+					"$vGap": 5
+					"$rowSpecs": "0"
+				} ) {
+					name: "buttonBar"
+					"border": new javax.swing.border.EmptyBorder( 12, 0, 0, 0 )
+					add( new FormComponent( "javax.swing.JButton" ) {
+						name: "okButton"
+						"text": "OK"
+						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "okButtonActionPerformed", true ) )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
+						"gridx": 1
+					} )
+					add( new FormComponent( "javax.swing.JButton" ) {
+						name: "cancelButton"
+						"text": "Cancel"
+						addEvent( new FormEvent( "java.awt.event.ActionListener", "actionPerformed", "cancelButtonActionPerformed", true ) )
+					}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
+						"gridx": 2
+					} )
+				}, new FormLayoutConstraints( class java.lang.String ) {
+					"value": "South"
+				} )
+			}, new FormLayoutConstraints( class java.lang.String ) {
+				"value": "Center"
+			} )
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 0 )
+			"size": new java.awt.Dimension( 565, 510 )
+		} )
+		add( new FormNonVisual( "javax.swing.ButtonGroup" ) {
+			name: "dataReductionGroup"
+		}, new FormLayoutConstraints( null ) {
+			"location": new java.awt.Point( 0, 520 )
+		} )
+	}
+}

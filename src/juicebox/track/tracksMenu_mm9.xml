@@ -1,0 +1,30 @@
+<Global name="Cell-type-specific 1D features">
+<Category name="Genes">
+    <Resource name="RefSeq Genes"
+              path="http://hgdownload.cse.ucsc.edu/goldenPath/mm9/database/refGene.txt.gz"/>
+</Category>
+<Category name="RepeatMasker">
+        <Resource name="Unknown"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_Unknown.bed"/>
+        <Resource name="Satellite"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_Satellite.bed"/>
+        <Resource name="SINE"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_SINE.bed"/>
+        <Resource name="DNA"
+        path="http://igv.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_DNA.bed.gz"/>
+        <Resource name="RNA"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_RNA.bed"/>
+        <Resource name="Low Complexity"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_Low_complexity.bed"/>
+        <Resource name="LINE"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_LINE.bed"/>
+        <Resource name="Simple"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_Simple_repeat.bed"/>
+        <Resource name="LTR"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_LTR.bed"/>
+        <Resource name="Other"
+        path="http://igvdata.broadinstitute.org/annotations/mm9/variation/repeat_masker/mm9_repmask_Other.bed"/>
+</Category>
+<Category name="CH12-LX B-lymphoblasts">
+</Category>
+</Global>
