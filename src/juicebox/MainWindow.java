@@ -39,6 +39,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import juicebox.slider.RangeSlider;
+import juicebox.slider.ColorRangeModel;
 
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
@@ -106,7 +107,7 @@ public class MainWindow extends JFrame {
     private JComboBox<Chromosome> chrBox1;
     private JComboBox<Chromosome> chrBox2;
     private JideButton refreshButton;
-    private JComboBox<NormalizationType> normalizationComboBox;
+    private JComboBox<String> normalizationComboBox;
     private JComboBox<MatrixType> displayOptionComboBox;
     private JideButton plusButton;
     private JideButton minusButton;
@@ -340,17 +341,17 @@ public class MainWindow extends JFrame {
 
                             chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
-                            NormalizationType[] normalizationOptions;
+                            String[] normalizationOptions;
                             if (dataset.getVersion() < 6) {
-                                normalizationOptions = new NormalizationType[]{NormalizationType.NONE};
+                                normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
                             } else {
-                                ArrayList<NormalizationType> tmp = new ArrayList<NormalizationType>();
-                                tmp.add(NormalizationType.NONE);
+                                ArrayList<String> tmp = new ArrayList<String>();
+                                tmp.add(NormalizationType.NONE.getLabel());
                                 for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                                    tmp.add(t);
+                                    tmp.add(t.getLabel());
                                 }
 
-                                normalizationOptions = tmp.toArray(new NormalizationType[tmp.size()]);
+                                normalizationOptions = tmp.toArray(new String[tmp.size()]);
                                 //tmp.add(NormalizationType.LOADED.getLabel());
 
                             }
@@ -358,7 +359,7 @@ public class MainWindow extends JFrame {
                             if (normalizationOptions.length == 1) {
                                 normalizationComboBox.setEnabled(false);
                             } else {
-                                normalizationComboBox.setModel(new DefaultComboBoxModel<NormalizationType>(normalizationOptions));
+                                normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
                                 normalizationComboBox.setSelectedIndex(0);
                                 normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
                             }
@@ -597,10 +598,10 @@ public class MainWindow extends JFrame {
         double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
         heatmapPanel.setObservedRange(min, max);
-
+/*
         if (hic.getDisplayOption() == MatrixType.OE) {
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue() / 8);
-        }
+        }*/
     }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
@@ -618,6 +619,10 @@ public class MainWindow extends JFrame {
     private void displayOptionComboBoxActionPerformed(ActionEvent e) {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
+        ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
+        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
+        plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
+        minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         if (option == MatrixType.PEARSON) {
             if (hic.isWholeGenome()) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for whole-genome view.");
@@ -643,7 +648,15 @@ public class MainWindow extends JFrame {
     }
 
     private void normalizationComboBoxActionPerformed(ActionEvent e) {
-        hic.setNormalizationType((NormalizationType)normalizationComboBox.getSelectedItem());
+        String value = (String)normalizationComboBox.getSelectedItem();
+        NormalizationType chosen = null;
+        for (NormalizationType type:NormalizationType.values()) {
+            if (type.getLabel().equals(value)) {
+                chosen = type;
+                break;
+            }
+        }
+        hic.setNormalizationType(chosen);
         refresh();
 
 
@@ -892,8 +905,8 @@ public class MainWindow extends JFrame {
         JPanel normalizationButtonPanel = new JPanel();
         normalizationButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
         normalizationButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        normalizationComboBox = new JComboBox<NormalizationType>();
-        normalizationComboBox.setModel(new DefaultComboBoxModel<NormalizationType>(new NormalizationType[]{NormalizationType.NONE}));
+        normalizationComboBox = new JComboBox<String>();
+        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(new String[]{NormalizationType.NONE.getLabel()}));
         normalizationComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 normalizationComboBoxActionPerformed(e);
@@ -942,6 +955,7 @@ public class MainWindow extends JFrame {
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
 
         colorRangeSlider = new RangeSlider();
+        colorRangeSlider.setModel(new ColorRangeModel());
         colorRangeSlider.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {

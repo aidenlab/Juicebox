@@ -12,19 +12,36 @@ import java.awt.*;
 public class OEColorScale implements ColorScale {
 
     private double max;
-    private double min;
 
     public OEColorScale() {
         super();
-        max = 5;
-        min = 1/max;
+        double m = 5;
+        max = Math.log(m);
     }
 
     public Color getColor(float score) {
-
+/*
         int R = (int) (255 * Math.min(score/max, 1));
         int G = 0;
         int B = (int) (255 * Math.min(min * (1.0/score), 1));
+  */
+        double value = Math.log(score);
+        int R,G,B;
+        if (value > 0) {
+            R = 255;
+            value = Math.min(value, max);
+            G = (int) (255 * (max-value)/max);
+            B = (int) (255 * (max-value)/max);
+        }
+        else {
+            value = -value;
+            value = Math.min(value, max);
+            B = 255;
+            R = (int) (255 * (max-value)/max);
+            G = (int) (255 * (max-value)/max);
+
+        }
+
         return new Color(R, G, B);
 
     }
@@ -46,7 +63,6 @@ public class OEColorScale implements ColorScale {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
     public void setMax(double max) {
-        this.max = max;
-        this.min = 1/max;
+        this.max = Math.log(max);
     }
 }

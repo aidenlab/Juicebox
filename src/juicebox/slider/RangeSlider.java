@@ -17,8 +17,6 @@ import java.io.Serializable;
  */
 public class RangeSlider extends JSlider implements Serializable {
 
-
-
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
      * and 100.

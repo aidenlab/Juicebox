@@ -18,8 +18,6 @@
 
 package juicebox;
 
-import org.broad.igv.renderer.ContinuousColorScale;
-
 import java.awt.*;
 
 /**

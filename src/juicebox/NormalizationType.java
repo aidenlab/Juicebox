@@ -21,7 +21,7 @@ public enum NormalizationType {
         this.label = label;
     }
 
-    public String toString() {
+    public String getLabel() {
         return label;
     }
 
