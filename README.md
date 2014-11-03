@@ -19,8 +19,8 @@ Use IntelliJ IDEA (Community edition - free)
 
 * Then go to VCS -> checkout from version control.
 
-    The one other thing you'll need to do is be sure *.sizes is
-    included as a file to be copied over to the class files.
+        The one other thing you'll need to do is be sure *.sizes is
+        included as a file to be copied over to the class files.
 
 * Go to `Run` -> `Edit Configurations`.
 * Add with `+` sign, `Application`.
@@ -30,6 +30,6 @@ Use IntelliJ IDEA (Community edition - free)
 * For the GUI under VM Options: `-Xmx2000m -Djnlp.loadMenu="http://hicfiles.econpy.org/juicebox.properties"`
 * For the CLT I use  `-Xmx2000m`
 
-    Note that that's 2GB RAM, depending on your computer you might want more or less.
-    Some CLT things will break if there's not enough memory and the file is too large
-    but don't worry about that for development; I've found 2GB is fine.
+        Note that that's 2GB RAM, depending on your computer you might want more or less.
+        Some CLT things will break if there's not enough memory and the file is too large
+        but don't worry about that for development; I've found 2GB is fine.
