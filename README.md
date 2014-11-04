@@ -37,3 +37,6 @@ Use IntelliJ IDEA (Community edition - free)
         Note that that's 2GB RAM, depending on your computer you might want more or less.
         Some CLT things will break if there's not enough memory and the file is too large
         but don't worry about that for development; I've found 2GB is fine.
+
+* One last note: be sure to "Commit and Push" when you commit files, it's hidden in the dropdown menu button in the
+commit window.
