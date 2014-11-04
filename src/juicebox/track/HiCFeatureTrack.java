@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.broad.igv.feature.*;
 import juicebox.Context;
 import juicebox.HiC;
-import org.broad.igv.track.FeatureCollectionSource;
 import org.broad.igv.track.FeatureSource;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.BrowserLauncher;
@@ -32,13 +31,13 @@ public class HiCFeatureTrack extends HiCTrack {
     public Font font;
 
     HiC hic;
-    FeatureSource featureSource;
+    FeatureSource<?> featureSource;
     private String name;
 
     private static final int ARROW_SPACING = 10;
 
 
-    public HiCFeatureTrack(HiC hic, ResourceLocator locator, FeatureSource featureSource) {
+    public HiCFeatureTrack(HiC hic, ResourceLocator locator, FeatureSource<?> featureSource) {
         super(locator);
         this.hic = hic;
         this.featureSource = featureSource;
@@ -63,11 +62,9 @@ public class HiCFeatureTrack extends HiCTrack {
 
         int fh = Math.min(height - 2, BLOCK_HEIGHT);
         int fy = y + (height - fh) / 2;
-        int fUTRy = y + (height - THIN_BLOCK_HEIGHT) / 2;
         int fCenter = y + height / 2;
 
         g2d.setFont(font);
-        FontMetrics fm = g2d.getFontMetrics();
         g2d.setColor(color);
 
         Graphics strGraphics = g2d.create();
@@ -205,10 +202,6 @@ public class HiCFeatureTrack extends HiCTrack {
     @Override
     public Color getPosColor() {
         return color;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public Color getNegColor() {
-        return altColor;
     }
 
     @Override

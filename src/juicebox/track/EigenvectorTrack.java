@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * @author Jim Robinson
- * @date 4/13/12
+ * @since 4/13/12
  */
 public class EigenvectorTrack extends HiCTrack {
 
@@ -166,7 +166,7 @@ public class EigenvectorTrack extends HiCTrack {
         return name;
     }
 
-    public Renderer getRenderer() {
+    public Renderer<?> getRenderer() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

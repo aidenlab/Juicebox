@@ -1,13 +1,18 @@
 package juicebox;
 
 import org.apache.commons.math.stat.StatUtils;
-import juicebox.data.*;
+import juicebox.data.MatrixZoomData;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.Block;
+import juicebox.data.ContactRecord;
 import juicebox.matrix.BasicMatrix;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Color;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -229,7 +234,7 @@ public class HeatmapRenderer {
      * @param g          graphics to render matrix into
      */
     private void renderMatrix(BasicMatrix rm, int originX, int originY, int width, int height,
-                              ColorScale colorScale, Graphics g) {
+                              ColorScale colorScale, Graphics2D g) {
 
 
         int endX = Math.min(originX + width, rm.getColumnDimension());

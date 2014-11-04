@@ -6,7 +6,6 @@ import juicebox.matrix.SparseVector;
 import juicebox.matrix.SymmetricMatrix;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -66,7 +65,7 @@ public class Pearsons {
     public static double computePearsons(BasicMatrix matrix, int col1, int col2) {
 
         double length = matrix.getRowDimension();
-        double result = 0;
+        double result;
         double sum_sq_x = 0;
         double sum_sq_y = 0;
         double sum_coproduct = 0;
@@ -122,7 +121,7 @@ public class Pearsons {
 //        for (int i=0; i<length; i++) numerator += scores1[i]*scores2[i]; // dot product
 //        return (numerator - (sumx*sumy/length))/Math.sqrt(denominator);
 
-        double result = 0;
+        double result;
         double sum_sq_x = 0;
         double sum_sq_y = 0;
         double sum_coproduct = 0;
@@ -141,8 +140,8 @@ public class Pearsons {
             mean_x += delta_x / (i + 1);
             mean_y += delta_y / (i + 1);
         }
-        double pop_sd_x = (double) Math.sqrt(sum_sq_x / scores1.length);
-        double pop_sd_y = (double) Math.sqrt(sum_sq_y / scores1.length);
+        double pop_sd_x = Math.sqrt(sum_sq_x / scores1.length);
+        double pop_sd_y = Math.sqrt(sum_sq_y / scores1.length);
         double cov_x_y = sum_coproduct / scores1.length;
         result = cov_x_y / (pop_sd_x * pop_sd_y);
         return result;
@@ -211,7 +210,7 @@ public class Pearsons {
             throw new IllegalArgumentException("Vectors must be same size");
         }
 
-        double result = 0;
+        double result;
         double sum_sq_x = 0;
         double sum_sq_y = 0;
         double sum_coproduct = 0;
@@ -230,8 +229,8 @@ public class Pearsons {
             mean_x += delta_x / (i + 1);
             mean_y += delta_y / (i + 1);
         }
-        double pop_sd_x = (double) Math.sqrt(sum_sq_x / size);
-        double pop_sd_y = (double) Math.sqrt(sum_sq_y / size);
+        double pop_sd_x = Math.sqrt(sum_sq_x / size);
+        double pop_sd_y = Math.sqrt(sum_sq_y / size);
         double cov_x_y = sum_coproduct / size;
         result = cov_x_y / (pop_sd_x * pop_sd_y);
         return result;

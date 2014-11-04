@@ -149,7 +149,7 @@ public class UCSCEncodeUtils {
         pw.close();
     }
 
-    static HashSet knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
+    static HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
     public static void parseFilesDotTxt(String url, List<EncodeFileRecord> fileRecords) throws IOException {
 

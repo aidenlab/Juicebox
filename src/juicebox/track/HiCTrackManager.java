@@ -134,7 +134,7 @@ public class HiCTrackManager {
         } else {
             FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
             if (codec != null) {
-                AbstractFeatureReader bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
+                AbstractFeatureReader<?,?> bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
 
                 try {
                     htsjdk.tribble.CloseableTribbleIterator<?> iter = bfs.iterator(); // CloseableTribbleIterator extends java.lang.Iterator

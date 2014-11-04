@@ -35,7 +35,7 @@ public class BAMPairIterator implements PairIterator {
     AlignmentPair nextPair = null;
     AlignmentPair preNext = null;
     CloseableIterator<?> iterator;
-    private AlignmentReader reader;
+    private AlignmentReader<?> reader;
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
 

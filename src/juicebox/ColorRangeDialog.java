@@ -4,7 +4,7 @@
 
 package juicebox;
 
-import juicebox.slider.RangeSlider;
+import slider.RangeSlider;
 
 import java.awt.Frame;
 import java.awt.Container;

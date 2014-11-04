@@ -306,7 +306,7 @@ public class MatrixZoomData {
             if (bitSet.get(i)) nonCentromereColumns[count++]=i;
         }
 
-        RealMatrix subMatrix = new Array2DRowRealMatrix((double[][])data).getSubMatrix(nonCentromereColumns, nonCentromereColumns);
+        RealMatrix subMatrix = new Array2DRowRealMatrix(data).getSubMatrix(nonCentromereColumns, nonCentromereColumns);
         RealVector rv = (new EigenDecompositionImpl(subMatrix, 0)).getEigenvector(which);
 
         double[] ev = rv.toArray();

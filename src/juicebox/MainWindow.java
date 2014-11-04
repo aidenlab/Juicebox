@@ -38,8 +38,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import juicebox.slider.RangeSlider;
-import juicebox.slider.ColorRangeModel;
+import slider.RangeSlider;
 
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
@@ -82,8 +81,8 @@ import java.util.concurrent.Future;
 public class MainWindow extends JFrame {
 
     private static Logger log = Logger.getLogger(MainWindow.class);
+    private static final long serialVersionUID = 42L;
 
-    private static String DEFAULT_LOAD_MENU = "http://www.broadinstitute.org/igvdata/hic/files/hicAlpha.properties";
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
 
@@ -555,7 +554,7 @@ public class MainWindow extends JFrame {
             try {
                 String url = System.getProperty("jnlp.loadMenu");
                 if (url == null) {
-                    url = DEFAULT_LOAD_MENU;
+                    url = "http://hicfiles.econpy.org/juicebox.properties";
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
                 properties  = new Properties();
@@ -617,7 +616,7 @@ public class MainWindow extends JFrame {
     private void displayOptionComboBoxActionPerformed(ActionEvent e) {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
-        ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
+       // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
@@ -668,7 +667,7 @@ public class MainWindow extends JFrame {
      * @return thread
      */
 
-    public Future executeLongRunningTask(final Runnable runnable) {
+    public Future<?> executeLongRunningTask(final Runnable runnable) {
 
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
@@ -954,7 +953,7 @@ public class MainWindow extends JFrame {
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
 
         colorRangeSlider = new RangeSlider();
-        colorRangeSlider.setModel(new ColorRangeModel());
+        //colorRangeSlider.setModel(new ColorRangeModel());
         colorRangeSlider.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {
@@ -1270,6 +1269,7 @@ public class MainWindow extends JFrame {
 
         JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {
+            private static final long serialVersionUID = 42L;
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1397,6 +1397,7 @@ public class MainWindow extends JFrame {
                 1873817423, 2310129700l, 2848035868l, 3511191734l, 4328761281l, 5336699231l, 6579332247l, 8111308308l,
                 10000000000l};
 
+        static final long serialVersionUID = 42L;
 
         public QCDialog(Dataset dataset) {
             super(MainWindow.this);
@@ -1656,6 +1657,7 @@ public class MainWindow extends JFrame {
     private class DumpDialog extends JFileChooser {
         JComboBox<String> box;
 
+        static final long serialVersionUID = 42L;
         public DumpDialog() {
             super();
             int result = showSaveDialog(MainWindow.this);
@@ -1758,7 +1760,7 @@ public class MainWindow extends JFrame {
         JTextField width;
         JTextField height;
 
-
+        static final long serialVersionUID = 42L;
         public SaveImageDialog() {
             super();
             if (saveImagePath != null) {
@@ -1898,7 +1900,7 @@ public class MainWindow extends JFrame {
         private JMenuItem open30;
         private boolean success;
         private boolean control;
-
+        static final long serialVersionUID = 42L;
         public LoadDialog(Properties properties) {
             super(MainWindow.this, "Select file(s) to open");
 
@@ -2129,7 +2131,7 @@ public class MainWindow extends JFrame {
     }
 
     private class ResolutionControl extends JPanel {
-
+        static final long serialVersionUID = 42L;
         private final ImageIcon lockOpenIcon;
         private final ImageIcon lockIcon;
 

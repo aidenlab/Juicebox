@@ -24,7 +24,7 @@ import java.util.List;
 public class LoadEncodeAction extends AbstractAction {
 
     private static Logger log = Logger.getLogger(LoadEncodeAction.class);
-
+    private static final long serialVersionUID = 42L;
     Component owner;
     HiC hic;
     String genome;

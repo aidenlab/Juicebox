@@ -1,11 +1,9 @@
 package juicebox.data;
 
-import org.broad.igv.feature.Chromosome;
 import juicebox.HiC;
 import juicebox.HiCZoom;
 import juicebox.NormalizationType;
 import juicebox.matrix.BasicMatrix;
-import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -59,7 +57,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     /**
      * @param key -- string identifier for matrix, concatenation of chromosome names
-     * @return
+     * @return Merged matrices read in
      * @throws IOException
      */
     @Override
@@ -108,8 +106,8 @@ public class CombinedDatasetReader implements DatasetReader {
     /**
      * Return the block numbers of all occupied blocks.
      *
-     * @param matrixZoomData
-     * @return
+     * @param matrixZoomData    Matrix
+     * @return   block numbers
      */
     @Override
 
@@ -152,8 +150,8 @@ public class CombinedDatasetReader implements DatasetReader {
     /**
      * Return a dataset that is an "intersection" of the supplied datasets.
      *
-     * @param datasetList
-     * @return
+     * @param datasetList   List of datasets to merge
+     * @return      new dataset
      */
     private Dataset mergeDatasets(List<Dataset> datasetList) {
 
@@ -246,7 +244,7 @@ public class CombinedDatasetReader implements DatasetReader {
         attributes.put("graphs", mergeGraphs(graphsList));
         dataset.setAttributes(attributes);
 
-        Iterator it = reList.iterator();
+        Iterator<?> it = reList.iterator();
         String newRestrictionEnzyme = "";
         while (it.hasNext()) newRestrictionEnzyme += it.next() + " ";
         dataset.restrictionEnzyme = newRestrictionEnzyme;
@@ -462,8 +460,8 @@ public class CombinedDatasetReader implements DatasetReader {
      * Merge the contact records from multiple blocks to create a new block.  Contact records are sorted in row then
      * column order.
      *
-     * @param blockList
-     * @return
+     * @param blockList    Blocks to merge
+     * @return    new Block
      */
     Block mergeBlocks(List<Block> blockList) {
         // First combine contact records for all blocks

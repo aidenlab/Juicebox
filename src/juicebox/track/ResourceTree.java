@@ -23,13 +23,45 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JDialog;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.JPopupMenu;
+import javax.swing.JPanel;
+import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+import javax.swing.AbstractCellEditor;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreeCellEditor;
+
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.FileDialog;
+import java.awt.BorderLayout;
+import java.awt.Font;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Enumeration;
+import java.util.EventObject;
 
 import static org.broad.igv.util.ResourceLocator.AttributeType.*;
 
@@ -495,7 +527,7 @@ public class ResourceTree {
 
     public void remove(ResourceLocator locator) {
         loadedLocators.remove(locator);
-        Enumeration enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
+        Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
         while (enumeration.hasMoreElements()){
@@ -510,7 +542,7 @@ public class ResourceTree {
     }
 
     public void addBack(ResourceLocator locator) {
-        Enumeration enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
+        Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
         while (enumeration.hasMoreElements()){
@@ -645,6 +677,7 @@ public class ResourceTree {
 
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
+        private static final long serialVersionUID = 42L;
 
         public ResourceEditor(JTree tree) {
             this.tree = tree;
@@ -814,7 +847,7 @@ public class ResourceTree {
             if (currentTreeNodeResource != null) {
 
                 // Set all enabled children to the checked state of their parent
-                Enumeration children = currentNode.children();
+                Enumeration<?> children = currentNode.children();
                 while (children.hasMoreElements()) {
 
                     TreeNode childNode = (TreeNode) children.nextElement();
@@ -845,7 +878,7 @@ public class ResourceTree {
 
         public boolean hasLockedDescendants(TreeNode treeNode) {
 
-            Enumeration children = treeNode.children();
+            Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
 
                 TreeNode childNode = (TreeNode) children.nextElement();
@@ -872,7 +905,7 @@ public class ResourceTree {
 
         static public boolean hasSelectedDescendants(TreeNode treeNode) {
 
-            Enumeration children = treeNode.children();
+            Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
 
                 TreeNode childNode = (TreeNode) children.nextElement();
@@ -899,7 +932,7 @@ public class ResourceTree {
 
         static public boolean hasSelectedChildren(TreeNode treeNode) {
 
-            Enumeration children = treeNode.children();
+            Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
 
                 TreeNode childNode = (TreeNode) children.nextElement();
@@ -995,7 +1028,7 @@ public class ResourceTree {
 
             boolean hasSelected = false;
             boolean hasSelectedAndDisabled = false;
-            Enumeration children = treeNode.children();
+            Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
 
                 TreeNode childNode = (TreeNode) children.nextElement();
@@ -1181,7 +1214,7 @@ public class ResourceTree {
         TreeNode root = (TreeNode) dialogTree.getModel().getRoot();
         TreePath rootPath = new TreePath(root);
         TreeNode node = (TreeNode) rootPath.getLastPathComponent();
-        for (Enumeration e = node.children(); e.hasMoreElements(); ) {
+        for (Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
             TreePath childPath = rootPath.pathByAddingChild(e.nextElement());
             if (!dialogTree.isExpanded(childPath)) {
                 dialogTree.expandPath(childPath);
