@@ -20,7 +20,7 @@ import java.util.List;
  * This is the "model" class for the HiC viewer.
  *
  * @author Jim Robinson
- * @date 4/8/12
+ * @since 4/8/12
  */
 public class HiC {
 
@@ -194,17 +194,23 @@ public class HiC {
         if (matrix == null || zoom == null) {
             return null;
         } else {
-            return getMatrix().getZoomData(zoom);
+            return matrix.getZoomData(zoom);
         }
     }
 
     public MatrixZoomData getControlZd() {
+        Matrix matrix = getControlMatrix();
+        if (matrix == null || zoom == null) {
+            return null;
+        } else {
+            return matrix.getZoomData(zoom);
+        }
+    }
 
+    public Matrix getControlMatrix() {
         if (controlDataset == null || xContext == null || zoom == null) return null;
 
-        Matrix matrix = controlDataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
-        return matrix.getZoomData(zoom);
-
+        return controlDataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
     }
 
     public Context getXContext() {
@@ -276,8 +282,6 @@ public class HiC {
         final Chromosome chrY = yContext.getChromosome();
 
         // Verify that all datasets have this zoom level
-        HiCGridAxis xGridAxis = null;
-        HiCGridAxis yGridAxis = null;
 
         Matrix matrix = dataset.getMatrix(chrX, chrY);
         if (matrix == null) return false;
@@ -293,12 +297,9 @@ public class HiC {
             return false;
         }
 
-        if (xGridAxis == null) {
-            // Assumption is all datasets share the same grid axis
-            xGridAxis = newZD.getXGridAxis();
-            yGridAxis = newZD.getYGridAxis();
-        }
-
+        // Assumption is all datasets share the same grid axis
+        HiCGridAxis xGridAxis = newZD.getXGridAxis();
+        HiCGridAxis yGridAxis = newZD.getYGridAxis();
 
         zoom = newZoom;
 
@@ -356,8 +357,8 @@ public class HiC {
 
         final MatrixZoomData newZD = matrix.getZoomData(newZoom);
 
-        int binX0 = newZD.getXGridAxis().getBinNumberForGenomicPosition((int) xBP0);
-        int binY0 = newZD.getYGridAxis().getBinNumberForGenomicPosition((int) yBP0);
+        int binX0 = newZD.getXGridAxis().getBinNumberForGenomicPosition(xBP0);
+        int binY0 = newZD.getYGridAxis().getBinNumberForGenomicPosition(yBP0);
 
         final double scaleFactor = newZD.getBinSize() / targetBinSize;
 
@@ -412,8 +413,8 @@ public class HiC {
     /**
      * Center the bins in view at the current resolution.
      *
-     * @param binX
-     * @param binY
+     * @param binX center X
+     * @param binY center Y
      */
     public void center(double binX, double binY) {
 
@@ -438,10 +439,10 @@ public class HiC {
     }
 
     /**
-     * Move to the specfied origin (in bins)
+     * Move to the specified origin (in bins)
      *
-     * @param newBinX
-     * @param newBinY
+     * @param newBinX new location X
+     * @param newBinY new location Y
      */
     private void moveTo(double newBinX, double newBinY) {
 
@@ -491,9 +492,8 @@ public class HiC {
         if (dataset == null) return null;
 
         Chromosome chr = chromosomes.get(chrIdx);
-        double[] returnValue = dataset.getEigenvector(chr, zoom, n, normalizationType);
-        return returnValue;
-        //  return null;
+        return dataset.getEigenvector(chr, zoom, n, normalizationType);
+
     }
 
     public ExpectedValueFunction getExpectedValues() {

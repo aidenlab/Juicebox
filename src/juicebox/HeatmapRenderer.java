@@ -15,12 +15,12 @@ import java.util.Map;
 
 /**
  * @author jrobinso
- * @date Aug 11, 2010
+ * @since Aug 11, 2010
  */
 public class HeatmapRenderer {
 
     // TODO -- introduce a "model" in lieu of MainWindow pointer
-    HiC hic;
+
     MainWindow mainWindow;
 
     private ContinuousColorScale observedColorScale;
@@ -31,7 +31,6 @@ public class HeatmapRenderer {
 
     public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
-        this.hic = hic;
 
         oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();
@@ -42,7 +41,10 @@ public class HeatmapRenderer {
                           int width,
                           int height,
                           final MatrixZoomData zd,
-                          MainWindow.MatrixType displayOption,
+                          final MatrixZoomData controlZD,
+                          final MainWindow.MatrixType displayOption,
+                          final NormalizationType normalizationType,
+                          final ExpectedValueFunction df,
                           Graphics2D g) {
 
 
@@ -73,7 +75,7 @@ public class HeatmapRenderer {
 
         if (displayOption == MainWindow.MatrixType.PEARSON) {
 
-            BasicMatrix bm = zd.getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType()));
+            BasicMatrix bm = zd.getPearsons(df);
 
             ((HiCColorScale) pearsonColorScale).setMin(bm.getLowerValue());
             ((HiCColorScale) pearsonColorScale).setMax(bm.getUpperValue());
@@ -82,16 +84,15 @@ public class HeatmapRenderer {
         } else {
             // Iterate through blocks overlapping visible region
 
-            List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, hic.getNormalizationType());
+            List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
             if (blocks == null) {
                 return false;
             }
 
-            MatrixZoomData controlZD = hic.getControlZd();
-            boolean hasControl = controlZD != null;
+            boolean hasControl = controlZD != null && (displayOption == MainWindow.MatrixType.CONTROL || displayOption == MainWindow.MatrixType.RATIO);
             Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
             if (hasControl) {
-                List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, hic.getNormalizationType());
+                List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                 for (Block b : ctrls) {
                     controlBlocks.put(b.getNumber(), b);
                 }
@@ -99,11 +100,6 @@ public class HeatmapRenderer {
 
 
             ColorScale cs = getColorScale(zd, displayOption, isWholeGenome, blocks);
-
-            ExpectedValueFunction df = null;
-            if (sameChr && (displayOption == MainWindow.MatrixType.OE || displayOption == MainWindow.MatrixType.EXPECTED)) {
-                df = hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType());
-            }
 
             double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
             double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -124,7 +120,6 @@ public class HeatmapRenderer {
 
                     for (ContactRecord rec : recs) {
                         double score = Double.NaN;
-                        double expectedValue = averageCount; // Will get overriden for intra
                         if (displayOption == MainWindow.MatrixType.OE || displayOption == MainWindow.MatrixType.EXPECTED) {
                             double expected = 0;
                             if (chr1 == chr2) {
@@ -135,7 +130,7 @@ public class HeatmapRenderer {
                                     expected = df.getExpectedValue(chr1, dist);
                                 }
                             } else {
-                                expected = (expectedValue > 0 ? expectedValue : 1);
+                                expected = (averageCount > 0 ? averageCount : 1);
                             }
 
                             if (displayOption == MainWindow.MatrixType.OE) {
@@ -227,11 +222,11 @@ public class HeatmapRenderer {
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
      * per pixel, scaling happens elsewhere.
      *
-     * @param rm
+     * @param rm         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
-     * @param colorScale
-     * @param g
+     * @param colorScale color scale to apply
+     * @param g          graphics to render matrix into
      */
     private void renderMatrix(BasicMatrix rm, int originX, int originY, int width, int height,
                               ColorScale colorScale, Graphics g) {
@@ -249,16 +244,16 @@ public class HeatmapRenderer {
                 if (Float.isNaN(score)) {
                     color = Color.gray;
                 } else {
-                    color = score == 0 ? Color.black : colorScale.getColor((float) score);
+                    color = score == 0 ? Color.black : colorScale.getColor(score);
                 }
-                int px = (int) ((col - originX));
-                int py = (int) ((row - originY));
+                int px =  col - originX;
+                int py =  row - originY;
                 g.setColor(color);
                 g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
                 // Assuming same chromosome
                 if (col != row) {
-                    px = (int) ((row - originX));
-                    py = (int) ((col - originY));
+                    px = row - originX;
+                    py = col - originY;
                     g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
                 }
             }

@@ -272,7 +272,7 @@ public class MainWindow extends JFrame {
     /**
      * Chromosome "0" is whole genome
      *
-     * @param chromosomes
+     * @param chromosomes list of chromosomes
      */
     public void setChromosomes(List<Chromosome> chromosomes) {
         hic.setChromosomes(chromosomes);
@@ -450,8 +450,11 @@ public class MainWindow extends JFrame {
             //   MatrixZoomData zd0 = initialZoom == null ? hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit()) :
             //           hic.getMatrix().getZoomData(initialZoom);
             MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
+            MatrixZoomData zdControl = null;
+            if (hic.getControlMatrix() != null) zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
             Image thumbnail = heatmapPanel.getThumbnailImage(
                     zd0,
+                    zdControl,
                     thumbnailPanel.getWidth(),
                     thumbnailPanel.getHeight(),
                     hic.getDisplayOption());
@@ -548,16 +551,14 @@ public class MainWindow extends JFrame {
     private void loadFromListActionPerformed(boolean control) {
 
         if (loadDialog == null) {
-            InputStream is = null;
-            Properties properties = null;
-
+            Properties properties;
             try {
                 String url = System.getProperty("jnlp.loadMenu");
                 if (url == null) {
                     url = DEFAULT_LOAD_MENU;
                 }
-                is = ParsingUtils.openInputStream(url);
-                properties = new Properties();
+                InputStream is = ParsingUtils.openInputStream(url);
+                properties  = new Properties();
                 properties.load(is);
             } catch (Exception error) {
                 JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
@@ -663,8 +664,8 @@ public class MainWindow extends JFrame {
      * Utility function to execute a task in a worker thread.  The method is on MainWindow because the glassPane
      * is used to display a wait cursor and block events.
      *
-     * @param runnable
-     * @return
+     * @param runnable Thread
+     * @return thread
      */
 
     public Future executeLongRunningTask(final Runnable runnable) {
@@ -773,13 +774,14 @@ public class MainWindow extends JFrame {
                 load(paths, false);
 
             } catch (Exception e) {
-                String obj = null;
+                String obj;
                 try {
                     obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
                     if (HttpUtils.isRemoteURL(obj)) {
                         load(Arrays.asList(obj), false);
                     }
                 } catch (Exception e1) {
+                    e1.printStackTrace();
                 }
 
             }
@@ -1129,7 +1131,7 @@ public class MainWindow extends JFrame {
         rightSidePanel.setPreferredSize(new Dimension(200, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
         rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        LayoutManager lm = new FlowLayout(FlowLayout.LEFT, 10, 20);
+        //LayoutManager lm = new FlowLayout(FlowLayout.LEFT, 10, 20);
         //rightSidePanel.setLayout(lm);
         //rightSidePanel.setLayout(null);
 
@@ -1720,7 +1722,7 @@ public class MainWindow extends JFrame {
                             }
                             pw.flush();
                         } else {
-                            HiCTools.dumpVector(new PrintWriter(getSelectedFile()), ((ExpectedValueFunctionImpl) df).getExpectedValues(), false);
+                            HiCTools.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
                         }
                     } else if (box.getSelectedItem().equals("Eigenvector")) {
                         int chrIdx = hic.getZd().getChr1Idx();

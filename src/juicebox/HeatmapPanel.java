@@ -1,7 +1,6 @@
 package juicebox;
 
 import com.jidesoft.swing.JidePopupMenu;
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import juicebox.track.Feature2D;
@@ -18,7 +17,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.NumberFormat;
@@ -27,27 +25,21 @@ import java.util.List;
 
 /**
  * @author jrobinso
- * @date Aug 2, 2010
+ * @since Aug 2, 2010
  */
 public class HeatmapPanel extends JComponent implements Serializable {
 
-    private static Logger log = Logger.getLogger(HeatmapPanel.class);
-
     private NumberFormat formatter = NumberFormat.getInstance();
-    private static int maxScaleFactor = 50;
 
     enum DragMode {NONE, PAN, ZOOM, SELECT}
 
     private MainWindow mainWindow;
     private HiC hic;
-    private Point lastCursorPoint;
 
     /**
      * Image tile width in pixels
      */
     private int imageTileWidth = 500;
-
-    private int scaleFactor = 1;
 
     private ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
     private Rectangle zoomRectangle;
@@ -90,10 +82,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     }
 
-    public void setScaleFactor(int scaleFactor) {
-        this.scaleFactor = Math.min(maxScaleFactor, scaleFactor);
-    }
-
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
     }
@@ -114,7 +102,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         // Are we ready to draw?
         final MatrixZoomData zd = hic.getZd();
-        if (hic == null || zd == null || hic.getXContext() == null) return;
+        if (zd == null || hic.getXContext() == null) return;
 
         if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON) {
             // Possibly force asynchronous computation of pearsons
@@ -319,7 +307,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        }
     }
 
-    public Image getThumbnailImage(MatrixZoomData zd0, int tw, int th, MainWindow.MatrixType displayOption) {
+    public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MainWindow.MatrixType displayOption) {
 
         if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON &&
                 zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType())) == null) {
@@ -334,7 +322,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();
-        boolean success = renderer.render(0, 0, maxBinCountX, maxBinCountY, zd0, displayOption, g);
+        boolean success = renderer.render(0,
+                                          0,
+                                          maxBinCountX,
+                                          maxBinCountY,
+                                          zd0,
+                                          ctrl0,
+                                          displayOption,
+                                          hic.getNormalizationType(),
+                                          hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType()),
+                                          g);
+
         if (!success) return null;
 
         return image.getScaledInstance(tw, th, Image.SCALE_REPLICATE);
@@ -344,10 +342,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     /**
      * Return the specified image tile, scaled by scaleFactor
      *
-     * @param zd
+     * @param zd         Matrix of tile
      * @param tileRow    row index of tile
      * @param tileColumn column index of tile
-     * @return
+     * @return image tile
      */
     private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MainWindow.MatrixType displayOption) {
 
@@ -370,7 +368,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
-            renderer.render(bx0, by0, imageWidth, imageHeight, hic.getZd(), displayOption, g2D);
+            renderer.render(bx0,
+                            by0,
+                            imageWidth,
+                            imageHeight,
+                            hic.getZd(),
+                            hic.getControlZd(),
+                            displayOption,
+                            hic.getNormalizationType(),
+                            hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType()),
+                            g2D);
 
             //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
             tile = new ImageTile(image, bx0, by0);
@@ -417,7 +424,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
-            lastCursorPoint = null;
             if (straightEdgeEnabled) {
                 mainWindow.trackPanelX.repaint();
                 mainWindow.trackPanelY.repaint();
@@ -437,7 +443,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.ZOOM;
             } else {
                 dragMode = DragMode.PAN;
-                setCursor(mainWindow.fistCursor);
+                setCursor(MainWindow.fistCursor);
             }
 
 
@@ -462,10 +468,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 final MatrixZoomData currentZD = hic.getZd();
                 int xBP0 = currentZD.getXGridAxis().getGenomicStart(binX);
-                int xBP1 = currentZD.getXGridAxis().getGenomicEnd(binX + wBins);
 
                 int yBP0 = currentZD.getYGridAxis().getGenomicEnd(binY);
-                int yBP1 = currentZD.getYGridAxis().getGenomicEnd(binY + hBins);
 
                 double newXBinSize = wBins * currentZD.getBinSize() / getWidth();
                 double newYBinSize = hBins * currentZD.getBinSize() / getHeight();
@@ -478,7 +482,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             lastMousePoint = null;
             zoomRectangle = null;
             setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
-            //repaint();
         }
 
 
@@ -515,7 +518,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     int x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
                     int y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
-                    zoomRectangle = new Rectangle(x, y, (int) Math.abs(deltaX), (int) Math.abs(deltaY));
+                    zoomRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
                     Rectangle damageRect = lastRectangle == null ? zoomRectangle : zoomRectangle.union(lastRectangle);
                     damageRect.x--;
@@ -597,7 +600,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 } else {
 
-                    if (hic == null || hic.getXContext() == null) return;
+                    if (hic.getXContext() == null) return;
 
                     int binX = (int) (hic.getXContext().getBinOrigin() + e.getX() / hic.getScaleFactor());
                     int binY = (int) (hic.getYContext().getBinOrigin() + e.getY() / hic.getScaleFactor());
@@ -606,7 +609,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     repaint();
 
                     //If IGV is running open on loci
-                    if (e.isShiftDown()) {
+//                    if (e.isShiftDown()) {
 
 //                        String chr1 = hic.xContext.getChromosome().getName();
 //                        int leftX = (int) hic.xContext.getChromosomePosition(0);
@@ -622,7 +625,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                        String locus2 = "chr" + chr2 + ":" + leftY + "-" + rightY;
 //
 //                        IGVUtils.sendToIGV(locus1, locus2);
-                    }
+//                    }
                 }
 
             }
@@ -663,8 +666,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         repaint();
                         mainWindow.trackPanelX.repaint();
                         mainWindow.trackPanelY.repaint();
-
-                        lastCursorPoint = e.getPoint();
                     }
 
                 }
@@ -691,7 +692,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 } else {
                     straightEdgeEnabled = false;
-                    lastCursorPoint = null;
                     hic.setCursorPoint(null);
                     setCursor(Cursor.getDefaultCursor());
                     repaint();
@@ -804,21 +804,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
 
 
-                    int xChromPos = (int) ((xGenomeStart - leftBoundaryX) * 1000);
-                    int yChromPos = (int) ((yGenomeStart - leftBoundaryY) * 1000);
+                    int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
+                    int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
-                    StringBuffer txt = new StringBuffer();
-                    txt.append("<html>");
-                    txt.append(xChrom.getName());
-                    txt.append(":");
-                    txt.append(String.valueOf(xChromPos));
-                    txt.append("<br>");
+                    String txt = "";
+                    txt += "<html>";
+                    txt += xChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(xChromPos);
+                    txt += "<br>";
 
-                    txt.append(yChrom.getName());
-                    txt.append(":");
-                    txt.append(String.valueOf(yChromPos));
+                    txt += yChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(yChromPos);
 
-                    return txt.toString();
+                    return txt;
 
                 }
             }
@@ -828,7 +828,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
-            StringBuffer txt = new StringBuffer();
+            StringBuilder txt = new StringBuilder();
             txt.append("<html>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
@@ -846,8 +846,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int rightFragment = ((binX + 1) * binSize) - 1;
                     fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
                 }
-                String len = formatter.format(xGenomeEnd - xGenomeStart);
-                txt.append("  (" + fragNumbers + "  len=" + len + ")");
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(xGenomeEnd - xGenomeStart));
+                txt.append(")");
             }
 
             txt.append("<br>");
@@ -867,16 +870,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int rightFragment = ((binY + 1) * binSize) - 1;
                     fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
                 }
-                String len = formatter.format(yGenomeEnd - yGenomeStart);
-                txt.append("  (" + fragNumbers + "  len=" + len + ")");
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(yGenomeEnd - yGenomeStart));
+                txt.append(")");
             }
 
             if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
-                if(!Float.isNaN(value))  txt.append("<br>value = " + value);
+                if(!Float.isNaN(value)) {
+                    txt.append("<br>value = ");
+                    txt.append(value);
+                }
             } else {
                 float value = hic.getNormalizedObservedValue(binX, binY);
-                if(!Float.isNaN(value)) txt.append("<br>observed value = " + getFloatString(value));
+                if(!Float.isNaN(value)) {
+                    txt.append("<br>observed value = ");
+                    txt.append(getFloatString(value));
+                }
 
                 int c1 = hic.getXContext().getChromosome().getIndex();
                 int c2 = hic.getYContext().getChromosome().getIndex();
@@ -890,15 +902,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else {
                     ev = zd.getAverageCount();
                 }
-                /* if (hic.getNormalizationOption() != MainWindow.NormalizationOption.NONE) {
-                    double normSumRatio = hic.getNormSumRatio();
-                    ev = ev*normSumRatio;
-                }*/
 
                 String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-                txt.append("<br>expected value = " + evString);
+                txt.append("<br>expected value = ");
+                txt.append(evString);
                 if (ev > 0 && !Float.isNaN(value)) {
-                    txt.append("<br>O/E            = " + formatter.format(value / ev));
+                    txt.append("<br>O/E            = ");
+                    txt.append(formatter.format(value / ev));
                 } else {
                     txt.append("<br>O/E            = NaN");
                 }
@@ -906,17 +916,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 MatrixZoomData controlZD = hic.getControlZd();
                 if (controlZD != null) {
                     float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
-                    txt.append("<br><br>control value = " + getFloatString(controlValue));
+                    txt.append("<br><br>control value = ");
+                    txt.append(getFloatString(controlValue));
 
                     double obsValue = (value / zd.getAverageCount());
-                    txt.append("<br>observed/average = " + getFloatString((float) obsValue));
+                    txt.append("<br>observed/average = ");
+                    txt.append(getFloatString((float) obsValue));
 
                     double ctlValue = (float) (controlValue / controlZD.getAverageCount());
-                    txt.append("<br>control/average = " + getFloatString((float) ctlValue));
+                    txt.append("<br>control/average = ");
+                    txt.append(getFloatString((float) ctlValue));
 
                     if (value > 0 && controlValue > 0) {
                         double ratio = obsValue / ctlValue;
-                        txt.append("<br>O'/C' = " + getFloatString((float) ratio));
+                        txt.append("<br>O'/C' = ");
+                        txt.append(getFloatString((float) ratio));
 
                     }
 
