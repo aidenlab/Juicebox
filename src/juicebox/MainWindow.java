@@ -82,6 +82,7 @@ public class MainWindow extends JFrame {
 
     private static Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 42L;
+    private static final boolean isRestricted = true;
 
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
@@ -217,11 +218,6 @@ public class MainWindow extends JFrame {
 
     public static MainWindow createMainWindow() throws IOException {
         return new MainWindow();
-    }
-
-
-    public static boolean isRestricted() {
-        return System.getProperty("jnlp.restricted") != null && System.getProperty("jnlp.restricted").equals("true");
     }
 
     public boolean isResolutionLocked() {
@@ -1241,15 +1237,16 @@ public class MainWindow extends JFrame {
         newLoadMI.setAction(new LoadAction("Load Basic Annotations...", this, hic));
         annotationsMenu.add(newLoadMI);
 
+        /*
         JMenuItem loadSpecificMI = new JMenuItem();
         loadSpecificMI.setAction(new LoadEncodeAction("Load Tracks by Cell Type...", this, hic, "hic"));
         annotationsMenu.add(loadSpecificMI);
+        */
 
-        if (!isRestricted()) {
-            JMenuItem loadEncodeMI = new JMenuItem();
-            loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
-            annotationsMenu.add(loadEncodeMI);
-        }
+        JMenuItem loadEncodeMI = new JMenuItem();
+        loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
+        annotationsMenu.add(loadEncodeMI);
+
 
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
 
@@ -1318,7 +1315,7 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveToImage);
 
 
-        if (!isRestricted()) {
+        if (!isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
                 @Override
@@ -1971,7 +1968,7 @@ public class MainWindow extends JFrame {
             cancelButton.setPreferredSize(new Dimension((int)cancelButton.getPreferredSize().getWidth(), (int)openButton.getPreferredSize().getHeight()));
 
             buttonPanel.add(openButton);
-            if (!isRestricted()) {
+            if (!isRestricted) {
                 buttonPanel.add(localButton);
             }
             buttonPanel.add(cancelButton);
@@ -2042,6 +2039,11 @@ public class MainWindow extends JFrame {
 
             if (node.isLeaf()) {
                 openButton.setEnabled(true);
+                open30.setEnabled(true);
+            }
+            else {
+                openButton.setEnabled(false);
+                open30.setEnabled(false);
             }
         }
 
@@ -3066,7 +3068,7 @@ public class MainWindow extends JFrame {
             if (comp == popupButton) {
                 Insets mainButtonInsets = mainButton.getInsets();
                 int width = mainButton.getWidth();
-                return new Point(-splitGap-width-mainButtonInsets.left-mainButtonInsets.right, height);
+                return new Point(-splitGap-width-mainButtonInsets.left-mainButtonInsets.right-30, height);
             } else {
                 Insets mainButtonInsets = mainButton.getInsets();
                 int width = mainButton.getWidth() + mainButtonInsets.left +
