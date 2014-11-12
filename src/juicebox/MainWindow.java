@@ -955,8 +955,11 @@ public class MainWindow extends JFrame {
             public void mouseEntered(MouseEvent mouseEvent) {
                 super.mouseEntered(mouseEvent);
                 if (hic.getDisplayOption() == MatrixType.OBSERVED) {
-                    colorRangeSlider.setToolTipText("Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
-                            + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor));
+                    colorRangeSlider.setToolTipText("<html>Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
+                            + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor) + "<br>Showing: "+
+                            (int) (colorRangeSlider.getLowerValue() / colorRangeScaleFactor) + " "
+                            + (int) (colorRangeSlider.getUpperValue() / colorRangeScaleFactor)
+                            +"</html>" );
                 } else if (hic.getDisplayOption() == MatrixType.OE) {
                     double mymaximum = colorRangeSlider.getMaximum() / 8;
                     colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
