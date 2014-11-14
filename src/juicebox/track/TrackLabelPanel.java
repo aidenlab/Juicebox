@@ -3,8 +3,11 @@ package juicebox.track;
 import juicebox.Context;
 import juicebox.HiC;
 import org.broad.igv.renderer.GraphicUtils;
+import org.broad.igv.ui.FontManager;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 /**
@@ -20,6 +23,8 @@ public class TrackLabelPanel extends JComponent {
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;
     }
+
+
 
 
     @Override
@@ -48,9 +53,11 @@ public class TrackLabelPanel extends JComponent {
                 int h = hicTrack.getHeight();
 
                 // write track name in upper left hand corner
-                graphics.setFont(new Font("default", Font.BOLD, 10));
+                graphics.setFont(FontManager.getFont(Font.BOLD, 8));
                 graphics.setColor(Color.black);
-                GraphicUtils.drawRightJustifiedText(hicTrack.getName(), rect.width - 10, y + 20, graphics);
+                graphics.drawString(hicTrack.getName(), rect.x + 10, y + 20);
+                //GraphicUtils.drawRightJustifiedText(hicTrack.getName(), rect.width - 10, y + 20, graphics);
+                verifyTextWillFitInPanel(hicTrack.getName(), graphics);
 
                 Context context = hic.getXContext();
                 if (context != null) {
@@ -58,5 +65,15 @@ public class TrackLabelPanel extends JComponent {
                 }
             }
         }
+    }
+
+    private void verifyTextWillFitInPanel(String name, Graphics2D graphics){
+
+        FontMetrics fontMetrics = graphics.getFontMetrics();
+        Rectangle2D textBounds = fontMetrics.getStringBounds(name, graphics);
+        int labelTextSize = (int) textBounds.getWidth();
+
+        if(this.getSize().width < labelTextSize)
+            this.setSize(labelTextSize, this.getSize().height);
     }
 }
