@@ -55,6 +55,12 @@ public class CombinedDatasetReader implements DatasetReader {
         return null;
     }
 
+    @Override
+    public String readStats() {
+        // again we need to somehow combine from constituent datasets
+        return null;
+    }
+
     /**
      * @param key -- string identifier for matrix, concatenation of chromosome names
      * @return Merged matrices read in

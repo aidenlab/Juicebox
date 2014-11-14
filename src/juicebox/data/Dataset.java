@@ -4,13 +4,15 @@ import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import juicebox.HiC;
 import juicebox.HiCZoom;
-import juicebox.MainWindow;
 import juicebox.NormalizationType;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
 
 import java.io.*;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -219,10 +221,332 @@ public class Dataset {
 
 
     public String getStatistics() {
-        if (attributes == null) return null;
-        else return attributes.get("statistics");
+        String stats = null;
+        if (attributes != null) stats = attributes.get("statistics");
+        if ((stats == null) || stats.contains("current")) {
+            try {
+                attributes.put("statistics", reader.readStats());
+            }
+            catch (IOException error) {
+                if (stats != null) {
+                    attributes.put("statistics", convertStats(stats));
+                }
+                else return null;
+            }
+        }
+       /*
+        if (attributes.get("graphs") == null && FileUtils.resourceExists(location + "_hists.m")) {
+            attributes.put("graphs", readGraphs(location + "_hists.m"));
+        }
+        String graphs = checkGraphs(attributes.get("graphs"));
+        attributes.put("graphs", graphs);*/
+        return attributes.get("statistics");
     }
 
+    private String convertStats(String oldStats) {
+        HashMap<String, String> statsMap = new HashMap<String, String>();
+        StringTokenizer lines = new StringTokenizer(oldStats, "\n");
+        DecimalFormat decimalFormat = new DecimalFormat("0.00%");
+        while (lines.hasMoreTokens()) {
+            String current = lines.nextToken();
+            StringTokenizer colon = new StringTokenizer(current, ":");
+            if (colon.countTokens() != 2) {
+                log.error("Incorrect form in original statistics attribute. Offending line:");
+                log.error(current);
+            } else { // Appears to be correct format, convert files as appropriate
+                String label = colon.nextToken();
+                String value = colon.nextToken();
+                statsMap.put(label, value);
+            }
+        }
+        String newStats = "";
+        int sequenced = -1;
+        int unique = -1;
+        if (statsMap.containsKey("Total")) {
+            newStats += "<tr><th colspan=2>Sequencing</th></tr>";
+            newStats += "<tr><td>Sequenced Reads:</td>";
+            try {
+                String value = statsMap.get("Total").trim();
+                sequenced = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            }
+            catch (ParseException error) {
+                sequenced = -1;
+            }
+            newStats += "<td>" + statsMap.get("Total") + "</td></tr>";
+            // TODO: add in Total Bases
+        }
+        if (statsMap.containsKey(" Regular")) {
+            newStats += "<tr></tr>";
+            newStats += "<tr><th colspan=2>Alignment (% Sequenced Reads)</th></tr>";
+            newStats += "<tr><td>Normal Paired:</td>";
+            newStats += "<td>" + statsMap.get(" Regular") + "</td></tr>";
+        }
+        if (statsMap.containsKey(" Normal chimeric")) {
+            newStats += "<tr><td>Chimeric Paired:</td>";
+            newStats += "<td>" + statsMap.get(" Normal chimeric") + "</td></tr>";
+        }
+        if (statsMap.containsKey(" Abnormal chimeric")) {
+            newStats += "<tr><td>Chimeric Ambiguous:</td>";
+            newStats += "<td>" + statsMap.get(" Abnormal chimeric") + "</td></tr>";
+        }
+        if (statsMap.containsKey(" Unmapped")) {
+            newStats += "<tr><td>Unmapped:</td>";
+            newStats += "<td>" + statsMap.get(" Unmapped") + "</td></tr>";
+        }
+        newStats += "<tr></tr>";
+        newStats += "<tr><th colspan=2>Duplication and Complexity (% Sequenced Reads)</td></tr>";
+        if (statsMap.containsKey(" Total alignable reads")) {
+            newStats += "<tr><td>Alignable (Normal+Chimeric Paired):</td>";
+            newStats += "<td>" + statsMap.get(" Total alignable reads" ) + "</td></tr>";
+        }
+        if (statsMap.containsKey("Total reads after duplication removal")) {
+            newStats += "<tr><td>Unique Reads:</td>";
+            try {
+                String value = statsMap.get("Total reads after duplication removal").trim();
+                unique = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                unique = -1;
+            }
+
+            newStats += "<td>" + statsMap.get("Total reads after duplication removal");
+
+            if (sequenced != -1) {
+                newStats += " (" + decimalFormat.format(unique / (float) sequenced) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Duplicate reads")) {
+            newStats += "<tr><td>PCR Duplicates:</td>";
+            newStats += "<td>" + statsMap.get("Duplicate reads");
+            int num;
+            try {
+                String value = statsMap.get("Duplicate reads").trim();
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1) {
+                newStats += " (" + decimalFormat.format(num  / (float) sequenced) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Optical duplicates")) {
+            newStats += "<tr><td>Optical Duplicates:</td>";
+            newStats += "<td>" + statsMap.get("Optical duplicates");
+            int num;
+            try {
+                String value = statsMap.get("Optical duplicates").trim();
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Library complexity (new)")) {
+            newStats += "<tr><td><b>Library Complexity Estimate:</b></td>";
+            newStats += "<td><b>" + statsMap.get("Library complexity (new)" ) + "</b></td></tr>";
+        }
+        newStats += "<tr></tr>";
+        newStats += "<tr><th colspan=2>Analysis of Unique Reads (% Sequenced Reads / % Unique Reads)</td></tr>";
+        if (statsMap.containsKey("Intra-fragment Reads")) {
+            newStats += "<tr><td>Intra-fragment Reads:</td>";
+            newStats += "<td>" + statsMap.get("Intra-fragment Reads");
+            int num;
+            try {
+                String value = statsMap.get("Intra-fragment Reads").trim();
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                            " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Non-uniquely Aligning Reads")) {
+            newStats += "<tr><td>Below MAPQ Threshold:</td>";
+            newStats += "<td>" + statsMap.get("Non-uniquely Aligning Reads");
+            int num;
+            try {
+                String value = statsMap.get("Non-uniquely Aligning Reads").trim();
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Total reads in current file")) {
+            newStats += "<tr><td><b>Hi-C Contacts:</b></td>";
+            newStats += "<td><b>" + statsMap.get("Total reads in current file");
+            int num;
+            try {
+                String value = statsMap.get("Total reads in current file").trim();
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</b></td></tr>";
+            // Error checking
+            if (statsMap.containsKey("HiC Contacts")) {
+                int num2;
+                try {
+                    num2 = NumberFormat.getNumberInstance(java.util.Locale.US).parse(statsMap.get("HiC Contacts").trim()).intValue();
+                } catch (ParseException error) {
+                    num2 = -1;
+                }
+                if (num != num2) {
+                    System.err.println("Check files -- \"HiC Contacts\" should be the same as \"Total reads in current file\"");
+                }
+            }
+        }
+        if (statsMap.containsKey("Ligations")) {
+            newStats += "<tr><td>&nbsp;&nbsp;Ligation Motif Present:</td>";
+            String value = statsMap.get("Ligations");
+            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Five prime") && statsMap.containsKey("Three prime")) {
+            newStats += "<tr><td>&nbsp;&nbsp;3' Bias (Long Range):</td>";
+            String value = statsMap.get("Five prime");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num1 = Math.round(Float.valueOf(value));
+
+            value = statsMap.get("Three prime");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num2 = Math.round(Float.valueOf(value));
+
+            newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
+        }
+        if (statsMap.containsKey("Inner") && statsMap.containsKey("Outer") &&
+                statsMap.containsKey("Left")  && statsMap.containsKey("Right") ) {
+            newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
+            String value = statsMap.get("Left");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num1 = Math.round(Float.valueOf(value));
+
+            value = statsMap.get("Inner");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num2 = Math.round(Float.valueOf(value));
+
+            value = statsMap.get("Outer");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num3 = Math.round(Float.valueOf(value));
+
+            value = statsMap.get("Right");
+            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(0, value.indexOf('%'));
+            int num4 = Math.round(Float.valueOf(value));
+            newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
+
+        }
+        newStats += "<tr></tr>";
+        newStats += "<tr><th colspan=2>Analysis of Hi-C Contacts (% Sequenced Reads / % Unique Reads)</th></tr>";
+        if (statsMap.containsKey("Inter")) {
+            newStats += "<tr><td>Inter-chromosomal:</td>";
+            String value = statsMap.get("Inter");
+            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Intra")) {
+            newStats += "<tr><td>Intra-chromosomal:</td>";
+            String value = statsMap.get("Intra");
+            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Small")) {
+            newStats += "<tr><td>&nbsp;&nbsp;Short Range (<20Kb):</td>";
+            String value = statsMap.get("Small");
+            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</td></tr>";
+        }
+        if (statsMap.containsKey("Large")) {
+            newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (>20Kb):</b></td>";
+            String value = statsMap.get("Large");
+            newStats += "<td><b>" + value.substring(0,value.indexOf('('));
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (sequenced != -1 && num != -1 && unique != -1) {
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) +
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
+            }
+            newStats += "</b></td></tr>";
+        }
+        // Error checking
+        if (statsMap.containsKey("Unique Reads")) {
+            int num;
+            try {
+                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(statsMap.get("Unique Reads").trim()).intValue();
+            } catch (ParseException error) {
+                num = -1;
+            }
+            if (num != unique) {
+                System.err.println("Check files -- \"Unique Reads\" should be the same as \"Total reads after duplication removal\"");
+            }
+        }
+
+        return newStats;
+    }
 
     public String getGraphs() {
         if (attributes == null) return null;

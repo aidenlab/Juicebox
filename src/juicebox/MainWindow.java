@@ -45,6 +45,11 @@ import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.SimpleAttributeSet;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -1404,18 +1409,45 @@ public class MainWindow extends JFrame {
             super(MainWindow.this);
 
             String text = dataset.getStatistics();
+            String textDescription = null;
+            String textStatistics = null;
             String graphs = dataset.getGraphs();
-            String header = "HiC file version: " + dataset.getVersion() + "\n" +
-                    "Genome: " + dataset.getGenomeId() + "\n";
-            if (dataset.getRestrictionEnzyme() != null) {
-                header += "Restriction enzyme: " + dataset.getRestrictionEnzyme() + "\n";
-            }
-            String mapq = "MapQ filter threshold: ";
-
+            JTextPane description = null;
             JTabbedPane tabbedPane = new JTabbedPane();
-            JTextArea textArea = new JTextArea();
-            textArea.setEditable(false);
-            tabbedPane.addTab("Statistics", textArea);
+            HTMLEditorKit kit = new HTMLEditorKit();
+
+
+            StyleSheet styleSheet = kit.getStyleSheet();
+            styleSheet.addRule("table { border-collapse: collapse;}");
+            styleSheet.addRule("body {font-family: Sans-Serif; font-size: 12;}");
+            styleSheet.addRule("td { padding: 2px; }");
+            styleSheet.addRule("th {border-bottom: 1px solid #000; text-align: left; background-color: #D8D8D8; font-weight: normal;}");
+
+
+            if (text.contains("Protocol")) {
+                int split = text.indexOf("</table>") + 8;
+                textDescription = text.substring(0,split);
+                textStatistics = text.substring(split);
+                description = new JTextPane();
+                description.setEditable(false);
+                description.setContentType("text/html");
+                description.setEditorKit(kit);
+                description.setText(textDescription);
+                tabbedPane.addTab("About Library", description);
+            }
+            else {
+                textStatistics = text;
+            }
+
+            JTextPane textPane = new JTextPane();
+            textPane.setEditable(false);
+            textPane.setContentType("text/html");
+
+            textPane.setEditorKit(kit);
+            textPane.setText(textStatistics);
+            JScrollPane pane = new JScrollPane(textPane);
+            tabbedPane.addTab("Statistics", pane);
+
 
             if (graphs != null) {
 
@@ -1449,13 +1481,6 @@ public class MainWindow extends JFrame {
                         mapq2[idx] = scanner.nextInt();
                         mapq3[idx] = scanner.nextInt();
 
-                    }
-                    if (mapq1[0] == 0 && mapq1[1] == 0) {
-                        mapq += "30\n";
-                    } else if (mapq1[0] == 0) {
-                        mapq += "1\n";
-                    } else {
-                        mapq += "All\n";
                     }
 
                     for (int idx = 199; idx >= 0; idx--) {
@@ -1596,14 +1621,13 @@ public class MainWindow extends JFrame {
                 final ChartPanel chartPanel4 = new ChartPanel(mapqChart);
 
 
-                tabbedPane.addTab("Read Type", chartPanel);
-                tabbedPane.addTab("RE", chartPanel2);
-                tabbedPane.addTab("Intra Count", chartPanel3);
+                tabbedPane.addTab("Pair Type", chartPanel);
+                tabbedPane.addTab("Restriction", chartPanel2);
+                tabbedPane.addTab("Intra vs Distance", chartPanel3);
                 tabbedPane.addTab("MapQ", chartPanel4);
 
-            } else {
-                mapq += "Unknown\n";
             }
+
             final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZoom(),
                     hic.getNormalizationType());
             if (df != null) {
@@ -1625,7 +1649,6 @@ public class MainWindow extends JFrame {
                         true,
                         false
                 );
-
                 final XYPlot readTypePlot = readTypeChart.getXYPlot();
 
                 readTypePlot.setDomainAxis(new LogarithmicAxis("Distance between reads (log)"));
@@ -1639,13 +1662,6 @@ public class MainWindow extends JFrame {
 
                 tabbedPane.addTab("Expected", chartPanel5);
             }
-
-
-
-            if (text == null) {
-                text = header + mapq;
-            } else text = header + mapq + text;
-            textArea.setText(text);
 
             getContentPane().add(tabbedPane);
             pack();

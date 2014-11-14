@@ -104,5 +104,9 @@ public abstract class AbstractDatasetReader implements DatasetReader {
         return null;  // Override as necessary
     }
 
+    @Override
+    public String readStats() throws IOException {
+        return null; // Override for Combined Dataset Reader
+    }
 
 }

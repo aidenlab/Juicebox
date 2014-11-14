@@ -44,4 +44,6 @@ public interface DatasetReader {
 
     public String getPath();
 
+    public String readStats() throws IOException;
+
 }

@@ -164,17 +164,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 }
             }
 
-            String location = path.substring(0, path.lastIndexOf('.'));
-
-            if (attributes.get("statistics") == null && FileUtils.resourceExists(location + ".txt")) {
-                attributes.put("statistics", readStats(location + ".txt"));
-            }
-            if (attributes.get("graphs") == null && FileUtils.resourceExists(location + "_hists.m")) {
-                attributes.put("graphs", readGraphs(location + "_hists.m"));
-            }
-            String graphs = checkGraphs(attributes.get("graphs"));
-            attributes.put("graphs", graphs);
-
             dataset.setAttributes(attributes);
 
             // Read chromosome dictionary
@@ -254,7 +243,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
 
-    private String readStats(String statsFileName) throws IOException {
+    public String readStats() throws IOException {
+        String statsFileName = path.substring(0, path.lastIndexOf('.')) +"_stats.html";
         String stats = null;
         BufferedReader reader = null;
         try {
@@ -266,10 +256,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 stats += nextLine + "\n";
                 count++;
             }
-        } catch (FileNotFoundException error) {
-            stats = null;
-        } catch (HttpResponseException error) {
-            stats = null;
         } finally {
             if (reader != null) {
                 reader.close();
