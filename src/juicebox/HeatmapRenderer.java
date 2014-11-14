@@ -212,7 +212,7 @@ public class HeatmapRenderer {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale != null) {
-                mainWindow.updateColorSlider(observedColorScale.getMinimum(), observedColorScale.getMaximum() * 2, observedColorScale.getMaximum());
+                mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum()*2);
             }
         }
     }

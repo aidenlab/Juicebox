@@ -247,6 +247,22 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setUpperValue(iValue);
     }
 
+    public void updateColorSlider(double min, double lower, double upper, double max) {
+        // We need to scale min and max to integers for the slider to work.  Scale such that there are
+        // 100 divisions between max and 0
+
+        colorRangeScaleFactor = 100.0 / max;
+
+        int iMin = (int) (colorRangeScaleFactor * min);
+        int iMax = (int) (colorRangeScaleFactor * max);
+        int lValue = (int) (colorRangeScaleFactor * lower);
+        int uValue = (int) (colorRangeScaleFactor * upper);
+        colorRangeSlider.setMinimum(iMin);
+        colorRangeSlider.setMaximum(iMax);
+        colorRangeSlider.setLowerValue(lValue);
+        colorRangeSlider.setUpperValue(uValue);
+    }
+
     public void createCursors() {
         BufferedImage handImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
 
