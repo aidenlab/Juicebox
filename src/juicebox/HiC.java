@@ -56,6 +56,8 @@ public class HiC {
 
     private boolean linkedMode;
 
+    private boolean m_zoomChanged;
+
 
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -320,6 +322,10 @@ public class HiC {
 
         center(binX, binY);
 
+        //Notify Heatmap panel render that the zoom has been changed. In that case,
+        //Render should update zoom slider (only once) with previous map range values
+        setZoomChanged();
+
         if (linkedMode) {
             broadcastState();
         }
@@ -327,6 +333,21 @@ public class HiC {
         return true;
     }
 
+    private void setZoomChanged()
+    {
+        m_zoomChanged = true;
+    }
+
+    //Check zoom change value and reset.
+    synchronized boolean testZoomChanged()
+    {
+        if (m_zoomChanged)
+        {
+            m_zoomChanged = false;
+            return true;
+        }
+        return false;
+    }
 
     // Called from alt-drag
     public void zoomTo(final int xBP0, final int yBP0, double targetBinSize) {
@@ -634,6 +655,18 @@ public class HiC {
     }
 
     public void broadcastState() {
+        String command = "setstate " +
+                xContext.getChromosome().getName() + " " +
+                yContext.getChromosome().getName() + " " +
+                zoom.getUnit().toString() + " " +
+                zoom.getBinSize() + " " +
+                xContext.getBinOrigin() + " " +
+                yContext.getBinOrigin() + " " +
+                getScaleFactor();
+
+        CommandBroadcaster.broadcast(command);
+    }
+    public void saveState() {
         String command = "setstate " +
                 xContext.getChromosome().getName() + " " +
                 yContext.getChromosome().getName() + " " +

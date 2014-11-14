@@ -187,7 +187,7 @@ public class HeatmapRenderer {
         if (displayOption == MainWindow.MatrixType.OBSERVED || displayOption == MainWindow.MatrixType.EXPECTED ||
                 displayOption == MainWindow.MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
-            observedColorScale = observedColorScaleMap.get(key);
+                observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
                 double percentile = wholeGenome ? 99 : 95;
                 float max = computePercentile(blocks, percentile);
@@ -195,12 +195,26 @@ public class HeatmapRenderer {
                 observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                 observedColorScaleMap.put(key, observedColorScale);
                 mainWindow.updateColorSlider(0, 2 * max, max);
+
             }
+
             cs = observedColorScale;
         } else {
             cs = oeColorScale;
         }
         return cs;
+    }
+
+    public void updateColorSliderFromColorScale(MatrixZoomData zd, MainWindow.MatrixType displayOption)
+    {
+        if (displayOption == MainWindow.MatrixType.OBSERVED || displayOption == MainWindow.MatrixType.EXPECTED ||
+        displayOption == MainWindow.MatrixType.CONTROL) {
+            String key = zd.getKey() + displayOption;
+            observedColorScale = observedColorScaleMap.get(key);
+            if (observedColorScale != null) {
+                mainWindow.updateColorSlider(observedColorScale.getMinimum(), observedColorScale.getMaximum() * 2, observedColorScale.getMaximum());
+            }
+        }
     }
 
     private float computePercentile(List<Block> blocks, double p) {

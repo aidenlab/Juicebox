@@ -129,10 +129,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int tTop = (int) (binOriginY / imageTileWidth);
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
+        MainWindow.MatrixType displayOption = hic.getDisplayOption();
+
         for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
             for (int tileColumn = tLeft; tileColumn <= tRight; tileColumn++) {
 
-                ImageTile tile = getImageTile(zd, tileRow, tileColumn, hic.getDisplayOption());
+                ImageTile tile = getImageTile(zd, tileRow, tileColumn, displayOption);
                 if (tile != null) {
 
                     int imageWidth = tile.image.getWidth(null);
@@ -181,6 +183,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 }
             }
+
+            if (hic.testZoomChanged())
+            {
+                //In case tender is called as a result of zoom change event, check if
+                //We need to update slider with map range:
+                renderer.updateColorSliderFromColorScale(zd,displayOption);
+            }
+
 
 
             // Uncomment to draw bin grid (for debugging)
