@@ -79,6 +79,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
  * @author James Robinson
@@ -88,6 +90,7 @@ public class MainWindow extends JFrame {
     private static Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 42L;
     private static final boolean isRestricted = true;
+    private static RecentMenu recentMenu;
 
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
@@ -532,6 +535,22 @@ public class MainWindow extends JFrame {
         }
     }
 
+    private void loadFromRecentActionPerformed(String url, String title, boolean control) {
+
+        if (url != null) {
+            try {
+                load(Arrays.asList(url), control);
+
+                String path = (new URL(url)).getPath();
+                if (control) controlTitle = title;
+                else datasetTitle = title;
+                updateTitle();
+            } catch (IOException e1) {
+                JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     private void loadFromURLActionPerformed(boolean control) {
         String url = JOptionPane.showInputDialog("Enter URL: ");
         if (url != null) {
@@ -580,6 +599,16 @@ public class MainWindow extends JFrame {
         String newTitle = datasetTitle;
         if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
         setTitle(newTitle);
+    }
+
+    private void clearActionPerformed() {
+        String HIC_RECENT = "hicRecent";
+        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+        try {
+            prefs.clear();
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -824,7 +853,12 @@ public class MainWindow extends JFrame {
         splitPanel.setBackground(Color.darkGray);
         mainPanel.add(splitPanel, BorderLayout.CENTER);
 
-        JMenuBar menuBar = createMenuBar();
+        JMenuBar menuBar = null;
+        try {
+            menuBar = createMenuBar();
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
         contentPane.add(menuBar, BorderLayout.NORTH);
 
 
@@ -1210,13 +1244,14 @@ public class MainWindow extends JFrame {
     }
 
 
-    private JMenuBar createMenuBar() {
+    private JMenuBar createMenuBar() throws BackingStoreException {
 
 
         JMenuBar menuBar = new JMenuBar();
 
         //======== fileMenu ========
         JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic('F');
 
         //---- openMenuItem ----
         JMenuItem openItem = new JMenuItem("Open...");
@@ -1236,6 +1271,39 @@ public class MainWindow extends JFrame {
             }
         });
         fileMenu.add(loadControlFromList);
+
+        fileMenu.addSeparator();
+        //---- recent positions ----
+        try {
+            recentMenu=new RecentMenu(3){
+                public void onSelectPosition(String mapPath){
+
+                    //TBD - Prepare call to setstate.
+                    //hic.setState(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor);
+                    String delimiter = "@@";
+                    String[] temp;
+                    temp = mapPath.split(delimiter);
+
+                    loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
+                }
+            };
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
+
+        fileMenu.add(recentMenu);
+
+        //---- Clear Recent ----
+        JMenuItem clear = new JMenuItem();
+        clear.setText("Clear Recent maps list");
+        clear.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                clearActionPerformed();
+                //clear the existing items
+                recentMenu.removeAll();
+            }
+        });
+        fileMenu.add(clear);
 
 
         fileMenu.addSeparator();
@@ -2087,7 +2155,15 @@ public class MainWindow extends JFrame {
                 dispose();
             }
         }
+        private void loadFiles(String path, String title, boolean control) {
+            List<String> paths = new ArrayList<String>();
+            paths.add(path);
+            load(paths, control);
 
+            if (control) controlTitle = title;
+            else datasetTitle = title;
+            updateTitle();
+        }
         private void loadFiles(TreePath[] paths, String ext) {
             ArrayList<ItemInfo> filesToLoad = new ArrayList<ItemInfo>();
             String title = "";
@@ -2116,6 +2192,8 @@ public class MainWindow extends JFrame {
                 urls.add(toadd);
             }
 
+            //code to add a recent file to the menu
+            recentMenu.addEntry(title+"@@"+urls.get(0), true);
             load(urls, control);
 
             if (control) controlTitle = title;
@@ -2400,6 +2478,126 @@ public class MainWindow extends JFrame {
         }
     }
 
+    abstract class RecentMenu extends JMenu
+    {
+        final private static String HIC_RECENT = "hicRecent";
+        private String defaultText = "";
+        private String[] recentEntries;
+        private int m_maxItems;
+        private boolean b_isEnabled = false;
+        private Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+        private List<String> m_items = new ArrayList<String>();
+
+        public RecentMenu(int count) throws BackingStoreException {
+            super();
+            this.setText("Recent");
+            this.setMnemonic('R');
+            this.m_maxItems=count;
+            //initialize default entries
+            this.recentEntries=new String[count];
+            for(int index=0;index<this.m_maxItems;index++){
+                this.recentEntries[index]=defaultText;
+            }
+
+            // load recent positions from properties
+            for (int i = 0; i < this.m_maxItems; i++)
+            {
+                String val = prefs.get(HIC_RECENT+i, "");
+                if (!val.equals(""))
+                {
+                    addEntry(val,false);
+                }
+                else
+                {
+                    if (i ==0) {
+                        // No items.
+                        this.setEnabled(false);
+                    }
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Add new recent entry, update file and menu
+         * @param savedMap url and title of map.
+         * @param updateFile also save to file, Constructor call with false - no need to re-write.
+         */
+        private void addEntry(String savedMap,boolean updateFile){
+            //check if this is disabled
+            if(!this.isEnabled()){
+                this.setEnabled(true);
+            }
+
+            //clear the existing items
+            this.removeAll();
+
+            //Add item, remove previous existing duplicate:
+            m_items.remove(savedMap);
+            m_items.add(0, savedMap);
+
+            //Chop last item if list is over size:
+            if (this.m_items.size() > this.m_maxItems)
+            {
+                this.m_items.remove(this.m_items.size() - 1);
+            }
+
+            //add items back to the menu
+            for(int index=0;index<this.m_items.size();index++){
+                JMenuItem menuItem=new JMenuItem();
+
+                String delimiter = "@@";
+                String[] temp;
+                temp = this.m_items.get(index).split(delimiter);
+
+                menuItem.setText(temp[0]);
+                if(temp[0].equals(defaultText)){
+                    menuItem.setVisible(false);
+                } else{
+                    menuItem.setVisible(true);
+                    menuItem.setToolTipText(temp[0]);
+                    menuItem.setActionCommand(this.m_items.get(index));
+                    menuItem.addActionListener(new ActionListener(){
+                        public void actionPerformed(ActionEvent actionEvent){
+                            onSelectPosition(actionEvent.getActionCommand());
+                        }
+                    });
+                }
+                this.add(menuItem);
+            }
+            //update the file
+            if(updateFile){
+                try{
+                    for (int i = 0; i < this.m_maxItems; i++)
+                    {
+                        if (i < this.m_items.size())
+                        {
+                            prefs.put(HIC_RECENT+i, this.m_items.get(i));
+                        }
+                        else
+                        {
+                            prefs.remove(HIC_RECENT+i);
+                        }
+                    }
+                } catch(Exception x){
+                    x.printStackTrace();
+                }
+            }
+        }
+
+        public boolean isEnabled() {
+            return this.b_isEnabled;
+        }
+        public void setEnabled(boolean b_newState) {
+            this.b_isEnabled = b_newState;
+        }
+
+        /**
+         * Abstract event, fires when recent map is selected.
+         * @param mapPath The file that was selected.
+         */
+        public abstract void onSelectPosition(String mapPath);
+    }
     /**
      * A split button. The user can either click the text, which executes an
      * action, or click the icon, which opens a popup menu.
@@ -3097,7 +3295,5 @@ public class MainWindow extends JFrame {
                 return new Point(width, height);
             }
         }
-
-
     }
 }
