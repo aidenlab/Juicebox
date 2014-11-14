@@ -2,7 +2,7 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
-
+import org.broad.igv.renderer.GraphicUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -21,6 +21,7 @@ public class TrackLabelPanel extends JComponent {
         this.hic = hic;
     }
 
+
     @Override
     protected void paintComponent(Graphics g) {
 
@@ -31,15 +32,14 @@ public class TrackLabelPanel extends JComponent {
         Graphics2D graphics = (Graphics2D) g;
 
         Rectangle rect = getBounds();
+
         graphics.setColor(getBackground());
         graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-        int rectBottom = rect.y + rect.height;
         int y = rect.y;
 
-        HiCGridAxis gridAxis = hic.getZd().getXGridAxis();
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
-        if ((tracks == null || tracks.isEmpty()) && eigenvectorTrack == null) {
+        if (tracks.isEmpty() && eigenvectorTrack == null) {
             return;
         }
 
@@ -47,28 +47,16 @@ public class TrackLabelPanel extends JComponent {
             if (hicTrack.getHeight() > 0) {
                 int h = hicTrack.getHeight();
 
-                Rectangle trackRectangle;
-                trackRectangle = new Rectangle(rect.x, y, rect.width, h);
-
-                graphics.drawString(hicTrack.getName(), 10, y);
+                // write track name in upper left hand corner
+                graphics.setFont(new Font("default", Font.BOLD, 10));
+                graphics.setColor(Color.black);
+                GraphicUtils.drawRightJustifiedText(hicTrack.getName(), rect.width - 10, y + 20, graphics);
 
                 Context context = hic.getXContext();
                 if (context != null) {
                     y += h;
                 }
-
-
             }
         }
-        if (eigenvectorTrack != null) {
-            int h = rectBottom - y;
-            Rectangle trackRectangle;
-            trackRectangle = new Rectangle(rect.x, y, rect.width, h);
-            graphics.drawString("Eigenvector", 10, y);
-        }
-    }
-
-    public void setEigenvectorTrack(HiCTrack eigenvectorTrack) {
-        this.eigenvectorTrack = eigenvectorTrack;
     }
 }

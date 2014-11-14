@@ -1073,6 +1073,7 @@ public class MainWindow extends JFrame {
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(hic);
         trackLabelPanel.setVisible(false);
+        trackLabelPanel.setBackground(new Color(0f,0f,0f,0f));
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
         trackPanelX = new TrackPanel(this, hic, TrackPanel.Orientation.X);

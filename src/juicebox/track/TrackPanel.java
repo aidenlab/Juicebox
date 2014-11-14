@@ -3,8 +3,6 @@ package juicebox.track;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.MainWindow;
-import org.broad.igv.renderer.GraphicUtils;
-import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
@@ -44,7 +42,7 @@ public class TrackPanel extends JPanel {
         setBackground(Color.white);
         addMouseAdapter();
 
-        //setToolTipText("");   // Has side affaect of turning on tt text
+        //setToolTipText("");   // Has side affect of turning on tt text
     }
 
     public void removeTrack(HiCTrack track) {
@@ -208,7 +206,7 @@ public class TrackPanel extends JPanel {
         graphics.setColor(getBackground());
         graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-        int rectBottom = orientation == Orientation.X ? rect.y + rect.height : rect.x + rect.width;
+        //int rectBottom = orientation == Orientation.X ? rect.y + rect.height : rect.x + rect.width;
         int y = orientation == Orientation.X ? rect.y : rect.x;
 
         HiCGridAxis gridAxis = orientation == Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
@@ -227,7 +225,6 @@ public class TrackPanel extends JPanel {
                 if (getContext() != null) {
 
                     hicTrack.render(graphics, getContext(), trackRectangle, orientation, gridAxis);
-                    renderName(hicTrack.getName(), trackRectangle, graphics);
                     y += h;
 
                     trackRectangles.add(new Pair<Rectangle,HiCTrack>(trackRectangle, hicTrack));
@@ -278,16 +275,4 @@ public class TrackPanel extends JPanel {
         }
         return null;
     }
-
-    private void renderName(String name, Rectangle rect, Graphics graphics) {
-
-        if (orientation == Orientation.Y) return;
-
-        Font font = FontManager.getFont(8);
-        graphics.setFont(font);
-        graphics.setColor(Color.black);
-        GraphicUtils.drawRightJustifiedText(name, rect.x + rect.width - 10, rect.y + 15, graphics);
-    }
-
-
 }
