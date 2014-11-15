@@ -173,7 +173,6 @@ public class HiCTrackManager {
             coverageTracks.remove(key);
         }
         mainWindow.updateTrackPanel();
-
     }
 
     public void removeTrack(ResourceLocator locator) {
@@ -196,7 +195,7 @@ public class HiCTrackManager {
         if(key != null) {
             coverageTracks.remove(key);
         }
-        mainWindow.updateTrackPanel();
+
     }
 
 
