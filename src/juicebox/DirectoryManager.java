@@ -79,7 +79,7 @@ public class DirectoryManager {
             // If still null, try the default place
             if (HIC_DIRECTORY == null) {
                 File rootDir = getUserHome();
-                HIC_DIRECTORY = new File(rootDir, "hic");
+                HIC_DIRECTORY = new File(rootDir, "juicebox");
 
                 if (!HIC_DIRECTORY.exists()) {
                     try {
@@ -89,7 +89,7 @@ public class DirectoryManager {
                             HIC_DIRECTORY = null;
                         }
                     } catch (Exception e) {
-                        log.error("Error creating hic directory", e);
+                        log.error("Error creating juicebox directory", e);
                     }
                 }
             }
@@ -158,7 +158,7 @@ public class DirectoryManager {
 
     public static synchronized File getLogFile() throws IOException {
 
-        File logFile = new File(getHiCDirectory(), "hic.log");
+        File logFile = new File(getHiCDirectory(), "juicebox.log");
         if (!logFile.exists()) {
             logFile.createNewFile();
         }
