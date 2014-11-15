@@ -761,7 +761,7 @@ public class MainWindow extends JFrame {
             }
         }
         trackLabelPanel.removeAll();
-        trackLabelPanel.setLayout(new GridLayout(hic.getLoadedTracks().size()+1,1));
+        trackLabelPanel.setLayout(new GridLayout(hic.getLoadedTracks().size()+2,1));
         if (hasTracks) {
             for (HiCTrack hicTrack : hic.getLoadedTracks()) {
                 JLabel label = new JLabel(hicTrack.getName());
@@ -771,6 +771,10 @@ public class MainWindow extends JFrame {
             JLabel label = new JLabel("");
             label.setFont(FontManager.getFont(Font.BOLD, 10));
             trackLabelPanel.add(label);
+            label = new JLabel("");
+            label.setFont(FontManager.getFont(Font.BOLD, 10));
+            trackLabelPanel.add(label);
+            //trackLabelPanel.setPreferredSize(new Dimension(trackPanelY.getWidth(), trackPanelX.getHeight()));
         }
 
         trackLabelPanel.setVisible(true);
@@ -779,7 +783,7 @@ public class MainWindow extends JFrame {
         trackPanelY.invalidate();
         getContentPane().invalidate();
         repaint();
-        trackLabelPanel.setPreferredSize(new Dimension(trackPanelY.getWidth(), trackPanelX.getHeight()));
+
     }
 
 

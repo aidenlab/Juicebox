@@ -172,6 +172,7 @@ public class HiCTrackManager {
         if(key != null) {
             coverageTracks.remove(key);
         }
+        mainWindow.updateTrackPanel();
 
     }
 
@@ -195,7 +196,7 @@ public class HiCTrackManager {
         if(key != null) {
             coverageTracks.remove(key);
         }
-
+        mainWindow.updateTrackPanel();
     }
 
 
