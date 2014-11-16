@@ -74,7 +74,7 @@ public class HiCTrackManager {
         if(coverageTracks.containsKey(no)) return; // Already loaded
 
         HiCDataSource source = new HiCCoverageDataSource(hic, no);
-        ResourceLocator locator = new ResourceLocator(no.toString());
+        ResourceLocator locator = new ResourceLocator(no.getLabel());
         HiCDataTrack track = new HiCDataTrack(hic, locator, source);
         coverageTracks.put(no, track);
         loadedTracks.add(track);

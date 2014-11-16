@@ -29,7 +29,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
     NormalizationType normalizationType;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no) {
-        this.name = no.toString();
+        this.name = no.getLabel();
         this.hic = hic;
         this.normalizationType = no;
     }

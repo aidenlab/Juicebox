@@ -340,9 +340,8 @@ public class ResourceTree {
 
 
         if (hic.getDataset().getVersion() >= 6) {
-            DefaultMutableTreeNode normNode = null;
             if (hic.getDataset().getNormalizationTypes().size() > 0) {
-                normNode = new DefaultMutableTreeNode("Coverage normalizations");
+                DefaultMutableTreeNode normNode = new DefaultMutableTreeNode("Coverage normalizations");
                 oneDFeatureRoot.add(normNode);
                 locator = new ResourceLocator("Coverage normalizations");
                 locator.setName("Coverage normalizations");
@@ -351,22 +350,21 @@ public class ResourceTree {
                 normNode.setUserObject(resource);
                 normNode.setAllowsChildren(true);
 
-            }
+                for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
 
-            for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
+                    String label = t.getLabel();
+                    locator = new ResourceLocator(label);
+                    locator.setType("norm");
+                    locator.setName(label);
+                    resource = new CheckableResource(label, false, locator);
 
-                String label = t.toString();
-                locator = new ResourceLocator(label);
-                locator.setType("norm");
-                locator.setName(label);
-                resource = new CheckableResource(label, false, locator);
-
-                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(label);
-                normNode.add(treeNode);
-                treeNode.setUserObject(resource);
-                resource.setEnabled(resourceTree.dialogTree.isEnabled());
-                treeNode.setAllowsChildren(false);
-                leafResources.add(resource);
+                    DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(label);
+                    normNode.add(treeNode);
+                    treeNode.setUserObject(resource);
+                    resource.setEnabled(resourceTree.dialogTree.isEnabled());
+                    treeNode.setAllowsChildren(false);
+                    leafResources.add(resource);
+                }
             }
         }
 

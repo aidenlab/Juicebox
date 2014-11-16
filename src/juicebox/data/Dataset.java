@@ -501,7 +501,7 @@ public class Dataset {
             newStats += "</td></tr>";
         }
         if (statsMap.containsKey("Small")) {
-            newStats += "<tr><td>&nbsp;&nbsp;Short Range (<20Kb):</td>";
+            newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
             String value = statsMap.get("Small");
             newStats += "<td>" + value.substring(0,value.indexOf('('));
             int num;
@@ -517,7 +517,7 @@ public class Dataset {
             newStats += "</td></tr>";
         }
         if (statsMap.containsKey("Large")) {
-            newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (>20Kb):</b></td>";
+            newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
             String value = statsMap.get("Large");
             newStats += "<td><b>" + value.substring(0,value.indexOf('('));
             int num;

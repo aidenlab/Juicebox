@@ -99,7 +99,7 @@ public class LoadAction extends AbstractAction {
                     if (locator.getType() != null && locator.getType().equals("norm")) {
                         NormalizationType option = null;
                         for (NormalizationType no : NormalizationType.values()) {
-                            if (locator.getPath().equals(no.toString())) {
+                            if (locator.getPath().equals(no.getLabel())) {
                                 option = no;
                                 break;
                             }
