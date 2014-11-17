@@ -614,7 +614,9 @@ public class HiC {
             String[] headers = Globals.tabPattern.split(nextLine);
 
             int errorCount = 0;
+            int lineNum = 1;
             while ((nextLine = br.readLine()) != null) {
+                lineNum++;
                 String[] tokens = Globals.tabPattern.split(nextLine);
                 if (tokens.length > headers.length) {
                     throw new IOException("Improperly formatted file");
@@ -622,13 +624,23 @@ public class HiC {
                 if (tokens.length < 6) {
                     continue;
                 }
-                String chr1Name = tokens[0];
-                int start1 = Integer.parseInt(tokens[1]);
-                int end1 = Integer.parseInt(tokens[2]);
 
-                String chr2Name = tokens[3];
-                int start2 = Integer.parseInt(tokens[4]);
-                int end2 = Integer.parseInt(tokens[5]);
+                String chr1Name, chr2Name;
+                int start1, end1, start2, end2;
+                try {
+                    chr1Name = tokens[0];
+                    start1 = Integer.parseInt(tokens[1]);
+                    end1 = Integer.parseInt(tokens[2]);
+
+                    chr2Name = tokens[3];
+                    start2 = Integer.parseInt(tokens[4]);
+                    end2 = Integer.parseInt(tokens[5]);
+                } catch (Exception e) {
+                    throw new IOException("Line "+lineNum+" improperly formatted in <br>" +
+                            path+ "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
+                }
+
+
 
                 Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
 

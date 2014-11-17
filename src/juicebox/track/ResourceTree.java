@@ -55,13 +55,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Enumeration;
-import java.util.EventObject;
+import java.util.*;
 
 import static org.broad.igv.util.ResourceLocator.AttributeType.*;
 
@@ -524,7 +518,11 @@ public class ResourceTree {
     }
 
     public void remove(ResourceLocator locator) {
+        //locator.
         loadedLocators.remove(locator);
+        newLocators.remove(locator);
+        System.out.println("Tried to remove from tree!!!");
+
         Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
