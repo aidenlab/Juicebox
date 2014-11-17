@@ -175,6 +175,8 @@ public class HiCTrackManager {
         mainWindow.updateTrackPanel();
     }
 
+
+
     public void removeTrack(ResourceLocator locator) {
         HiCTrack track = null;
         for (HiCTrack tmp: loadedTracks){
@@ -183,19 +185,7 @@ public class HiCTrackManager {
                 break;
             }
         }
-        loadedTracks.remove(track);
-
-        NormalizationType key = null;
-        for(Map.Entry<NormalizationType, HiCTrack> entry : coverageTracks.entrySet()) {
-            if(entry.getValue() == track) {
-                key = entry.getKey();
-            }
-        }
-
-        if(key != null) {
-            coverageTracks.remove(key);
-        }
-
+        removeTrack(track);
     }
 
 
