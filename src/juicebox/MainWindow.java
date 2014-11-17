@@ -137,6 +137,8 @@ public class MainWindow extends JFrame {
     private HiCZoom initialZoom;
     private String saveImagePath;
 
+    private static int recentListMaxItems = 3;
+
     public void updateToolTipText(String s) {
         mouseHoverTextPanel.setText(s);
     }
@@ -620,11 +622,10 @@ public class MainWindow extends JFrame {
     private void clearActionPerformed() {
         String HIC_RECENT = "hicRecent";
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        try {
-            prefs.clear();
-        } catch (BackingStoreException e) {
-            e.printStackTrace();
-        }
+            for (int i = 0; i < recentListMaxItems; i++)
+            {
+                prefs.remove(HIC_RECENT+i);
+            }
     }
 
 
@@ -1307,7 +1308,7 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
         //---- recent positions ----
         try {
-            recentMenu=new RecentMenu(3){
+            recentMenu=new RecentMenu(recentListMaxItems){
                 public void onSelectPosition(String mapPath){
 
                     //TBD - Prepare call to setstate.
@@ -1330,6 +1331,7 @@ public class MainWindow extends JFrame {
         clear.setText("Clear Recent maps list");
         clear.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                //Clear all items from preferences:
                 clearActionPerformed();
                 //clear the existing items
                 recentMenu.removeAll();
