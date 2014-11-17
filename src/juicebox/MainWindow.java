@@ -762,7 +762,7 @@ public class MainWindow extends JFrame {
             }
         }
         trackLabelPanel.removeAll();
-        trackLabelPanel.setLayout(new GridLayout(hic.getLoadedTracks().size()+2,1));
+        trackLabelPanel.setLayout(new GridLayout(hic.getLoadedTracks().size() + 2, 1));
         if (hasTracks) {
             for (HiCTrack hicTrack : hic.getLoadedTracks()) {
                 JLabel label = new JLabel(hicTrack.getName());
@@ -1316,8 +1316,9 @@ public class MainWindow extends JFrame {
                     String delimiter = "@@";
                     String[] temp;
                     temp = mapPath.split(delimiter);
-
+                    showGlassPane();
                     loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
+                    //hideGlassPane();
                 }
             };
         } catch (BackingStoreException e) {
