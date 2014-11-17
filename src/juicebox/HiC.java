@@ -59,12 +59,17 @@ public class HiC {
     private boolean linkedMode;
 
     private boolean m_zoomChanged;
+    private boolean m_displayOptionChanged;
+    private boolean m_normalizationTypeChanged;
 
 
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
         this.trackManager = new HiCTrackManager(mainWindow, this);
         this.loopLists = new HashMap<String, Feature2DList>();
+        this.m_zoomChanged = false;
+        this.m_displayOptionChanged = false;
+        this.m_normalizationTypeChanged = false;
     }
 
     public void reset() {
@@ -512,14 +517,48 @@ public class HiC {
 
 
     public void setDisplayOption(MainWindow.MatrixType newDisplay) {
-
         if (this.displayOption != newDisplay) {
             this.displayOption = newDisplay;
+            setDisplayOptionChanged();
         }
     }
 
+    private void setDisplayOptionChanged()
+    {
+        m_displayOptionChanged = true;
+    }
+
+    //Check zoom change value and reset.
+    synchronized boolean testDisplayOptionChanged()
+    {
+        if (m_displayOptionChanged)
+        {
+            m_displayOptionChanged = false;
+            return true;
+        }
+        return false;
+    }
     public void setNormalizationType(NormalizationType option) {
-        this.normalizationType = option;
+        if (this.normalizationType != option) {
+            this.normalizationType = option;
+            setNormalizationTypeChanged();
+        }
+    }
+
+    private void setNormalizationTypeChanged()
+    {
+        m_normalizationTypeChanged = true;
+    }
+
+    //Check zoom change value and reset.
+    synchronized boolean testNormalizationTypeChanged()
+    {
+        if (m_normalizationTypeChanged)
+        {
+            m_normalizationTypeChanged = false;
+            return true;
+        }
+        return false;
     }
 
     public NormalizationType getNormalizationType() {

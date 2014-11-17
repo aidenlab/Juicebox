@@ -187,7 +187,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             }
 
-            if (hic.testZoomChanged())
+            //In case of change to map settings, get map color limits and update slider:
+            //TBD: || might not catch all changed at once, if more then one parameter changed...
+            if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged())
             {
                 //In case tender is called as a result of zoom change event, check if
                 //We need to update slider with map range:
@@ -856,9 +858,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt += ":";
                     txt += String.valueOf(yChromPos);
 
-                    hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
-                    hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
-
+                    if(xChrom.getName().toLowerCase().contains("chr"))
+                    {
+                        hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    }
+                    else
+                    {
+                        hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    }
+                    if(yChrom.getName().toLowerCase().contains("chr")) {
+                        hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    }
+                    else
+                    {
+                        hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    }
                     return txt;
 
                 }
@@ -867,8 +881,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
         } else {
 
             //Update Position in hic. Used for clipboard copy:
-            hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
-            hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            if(hic.getXContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setXPosition(hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            }
+            else
+            {
+                hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            }
+            if(hic.getYContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setYPosition(hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            }
+            else
+            {
+                hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            }
 
             //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
