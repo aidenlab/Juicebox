@@ -2225,7 +2225,7 @@ public class MainWindow extends JFrame {
             }
 
             //code to add a recent file to the menu
-            recentMenu.addEntry(title+"@@"+urls.get(0), true);
+            recentMenu.addEntry(title.trim()+"@@"+urls.get(0), true);
             load(urls, control);
 
             if (control) controlTitle = title;

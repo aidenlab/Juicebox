@@ -22,6 +22,9 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
+import java.awt.datatransfer.*;
+import static java.awt.Toolkit.getDefaultToolkit;
+
 
 /**
  * @author jrobinso
@@ -741,6 +744,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+
         final JMenuItem mi3 = new JMenuItem("Sync");
         mi3.addActionListener(new ActionListener() {
             @Override
@@ -762,12 +766,37 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+
+        final JCheckBoxMenuItem mi5 = new JCheckBoxMenuItem("Copy top position to clipboard");
+        mi5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringBuilder txt = new StringBuilder();
+                StringSelection stringSelection = new StringSelection(hic.getXPosition());
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+
+            }
+        });
+
+        final JCheckBoxMenuItem mi6 = new JCheckBoxMenuItem("Copy left position to clipboard");
+        mi6.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection stringSelection = new StringSelection(hic.getYPosition());
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+
+            }
+        });
+
         if (hic != null) {
             menu.add(mi2);
             menu.add(mi3);
-
             mi4.setSelected(hic.isLinkedMode());
             menu.add(mi4);
+            menu.add(mi5);
+            menu.add(mi6);
         }
 
 
@@ -823,10 +852,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt += ":";
                     txt += String.valueOf(xChromPos);
                     txt += "<br>";
-
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
+
+                    hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
 
                     return txt;
 
@@ -835,6 +866,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         } else {
 
+            //Update Position in hic. Used for clipboard copy:
+            hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
 
             //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());

@@ -27,6 +27,8 @@ public class HiC {
     private static Logger log = Logger.getLogger(HiC.class);
 
     private double scaleFactor;
+    private String xPosition;
+    private String yPosition;
 
     public enum Unit {BP, FRAG}
 
@@ -232,9 +234,25 @@ public class HiC {
         this.cursorPoint = point;
 
     }
-
+    
     public Point getCursorPoint() {
         return cursorPoint;
+    }
+    
+    public void setXPosition(String txt) {
+        this.xPosition = txt;
+    }
+
+    public String getXPosition() {
+        return xPosition;
+    }
+
+    public void setYPosition(String txt) {
+        this.yPosition = txt;
+    }
+    
+    public String getYPosition() {
+        return yPosition;
     }
 
     public Matrix getMatrix() {
