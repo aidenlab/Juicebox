@@ -124,7 +124,7 @@ public class MainWindow extends JFrame {
     private boolean resolutionLocked = false;
 
     TrackPanel trackPanelX;
-    JPanel trackLabelPanel;
+    TrackLabelPanel trackLabelPanel;
     private HiCRulerPanel rulerPanelX;
     private HeatmapPanel heatmapPanel;
     TrackPanel trackPanelY;
@@ -745,9 +745,13 @@ public class MainWindow extends JFrame {
 
     public void updateTrackPanel() {
         boolean hasTracks = hic.getLoadedTracks().size() > 0;
+
+        trackLabelPanel.updateLabels();
+
         if (hasTracks) {
             if (!trackPanelX.isVisible()) {
                 trackPanelX.setVisible(true);
+                trackLabelPanel.setVisible(true);
             }
             if (!trackPanelY.isVisible()) {
                 trackPanelY.setVisible(true);
@@ -761,24 +765,8 @@ public class MainWindow extends JFrame {
                 trackPanelY.setVisible(false);
             }
         }
-        trackLabelPanel.removeAll();
-        trackLabelPanel.setLayout(new GridLayout(hic.getLoadedTracks().size() + 2, 1));
-        if (hasTracks) {
-            for (HiCTrack hicTrack : hic.getLoadedTracks()) {
-                JLabel label = new JLabel(hicTrack.getName());
-                label.setFont(FontManager.getFont(Font.BOLD, 10));
-                trackLabelPanel.add(label);
-            }
-            JLabel label = new JLabel("");
-            label.setFont(FontManager.getFont(Font.BOLD, 10));
-            trackLabelPanel.add(label);
-            label = new JLabel("");
-            label.setFont(FontManager.getFont(Font.BOLD, 10));
-            trackLabelPanel.add(label);
-            //trackLabelPanel.setPreferredSize(new Dimension(trackPanelY.getWidth(), trackPanelX.getHeight()));
-        }
 
-        trackLabelPanel.setVisible(true);
+
         trackPanelX.invalidate();
         trackLabelPanel.invalidate();
         trackPanelY.invalidate();
@@ -1144,7 +1132,7 @@ public class MainWindow extends JFrame {
         topPanel.setBackground(Color.white);
         topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
-        trackLabelPanel = new JPanel();
+        trackLabelPanel = new TrackLabelPanel(hic);
         trackLabelPanel.setBackground(Color.white);
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
@@ -1318,7 +1306,6 @@ public class MainWindow extends JFrame {
                     temp = mapPath.split(delimiter);
                     showGlassPane();
                     loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-                    //hideGlassPane();
                 }
             };
         } catch (BackingStoreException e) {

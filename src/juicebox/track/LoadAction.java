@@ -71,14 +71,14 @@ public class LoadAction extends AbstractAction {
         String xmlURL = "tracksMenu_" + genome + ".xml";
 
         List<ResourceLocator> locators = loadNodes(xmlURL);
-        if (locators != null) {
+        if (locators != null && !locators.isEmpty()) {
              hic.loadHostedTracks(locators);
         }
 
     }
 
     private List<ResourceLocator> loadNodes(String xmlFile) {
-        try {
+        try{
           /**
              * Resource Tree
              */
@@ -96,35 +96,56 @@ public class LoadAction extends AbstractAction {
             boolean repaint = false;
             if (selectedLocators != null) {
                 for (ResourceLocator locator : selectedLocators) {
-                    if (locator.getType() != null && locator.getType().equals("norm")) {
-                        NormalizationType option = null;
-                        for (NormalizationType no : NormalizationType.values()) {
-                            if (locator.getPath().equals(no.getLabel())) {
-                                option = no;
-                                break;
+                    try {
+
+                        if (locator.getType() != null && locator.getType().equals("norm")) {
+                            NormalizationType option = null;
+                            for (NormalizationType no : NormalizationType.values()) {
+                                if (locator.getPath().equals(no.getLabel())) {
+                                    option = no;
+                                    break;
+                                }
                             }
-                        }
-                        hic.loadCoverageTrack(option);
-                    }
-                    else if (locator.getType() != null && locator.getType().equals("loop")) {
-                        hic.loadLoopList(locator.getPath());
-                        repaint = true;
+                            hic.loadCoverageTrack(option);
+                        } else if (locator.getType() != null && locator.getType().equals("loop")) {
+                            try {
+                                hic.loadLoopList(locator.getPath());
+                                repaint = true;
+                            }
+                            catch (Exception e) {
+                                log.error("Could not load selected loop locator", e);
+                                MessageUtils.showMessage("Could not load loop selection: " + e.getMessage());
+                                deselectedLocators.add(locator);
+                            }
+
+                        } else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
+                            hic.loadEigenvectorTrack();
+
+                        } else newLoadList.add(locator);
 
                     }
-                    else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
-                        hic.loadEigenvectorTrack();
-
+                    catch(Exception e){
+                        log.error("Could not load selected locator", e);
+                        MessageUtils.showMessage("Could not load selection: " + e.getMessage());
+                        deselectedLocators.add(locator);
                     }
-                    else newLoadList.add(locator);
                 }
             }
             if (deselectedLocators != null) {
                 for (ResourceLocator locator : deselectedLocators) {
                     hic.removeTrack(locator);
+                    resourceTree.remove(locator);
 
                     if (locator.getType() != null && locator.getType().equals("loop")) {
-                        hic.setLoopsInvisible(locator.getPath());
-                        repaint = true;
+                        try {
+                            hic.setLoopsInvisible(locator.getPath());
+                            repaint = true;
+                        }
+                        catch (Exception e){
+                            log.error("Error while making loops invisible ", e);
+                            MessageUtils.showMessage("Error while removing loops: " + e.getMessage());
+                            deselectedLocators.add(locator);
+                        }
                     }
                 }
             }

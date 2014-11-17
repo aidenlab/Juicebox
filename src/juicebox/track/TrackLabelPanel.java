@@ -2,6 +2,9 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
 
@@ -15,65 +18,54 @@ import java.util.ArrayList;
  *         Date: 8/3/13
  *         Time: 9:36 PM
  */
-public class TrackLabelPanel extends JComponent {
+public class TrackLabelPanel extends JPanel {
 
     HiC hic;
     HiCTrack eigenvectorTrack;
+    private int numExtraBufferLinesSpaces = 2;
+    private java.util.List<HiCTrack> tracks;
+    JLabel textLabel;
+
+    String multiLineText = "";
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;
+        setLayout(new GridLayout(0, 1));
     }
 
+    public void updateLabels(){
 
+        removeAll();
 
+        if(hic.getDataset() == null){
+            return;
+        }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-
-        if(hic.getDataset() == null) return;
-
-        super.paintComponent(g);
-
-        Graphics2D graphics = (Graphics2D) g;
-
-        Rectangle rect = getBounds();
-
-        graphics.setColor(getBackground());
-        graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
-
-        int y = rect.y;
-
-        java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
+        tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
         if (tracks.isEmpty() && eigenvectorTrack == null) {
             return;
         }
 
+        multiLineText="";
+
         for (HiCTrack hicTrack : tracks) {
-            if (hicTrack.getHeight() > 0) {
-                int h = hicTrack.getHeight();
-
-                // write track name in upper left hand corner
-                graphics.setFont(FontManager.getFont(Font.BOLD, 8));
-                graphics.setColor(Color.black);
-                graphics.drawString(hicTrack.getName(), rect.x + 10, y + 20);
-                //GraphicUtils.drawRightJustifiedText(hicTrack.getName(), rect.width - 10, y + 20, graphics);
-                verifyTextWillFitInPanel(hicTrack.getName(), graphics);
-
-                Context context = hic.getXContext();
-                if (context != null) {
-                    y += h;
-                }
-            }
+            multiLineText += hicTrack.getName() + "<br><br>";
         }
+
+        multiLineText = "<html>"+multiLineText+"</html>";
+        //System.out.println(multiLineText);
+
+        textLabel = getTrackLabel(multiLineText, false);
+        add(textLabel);
+
     }
 
-    private void verifyTextWillFitInPanel(String name, Graphics2D graphics){
-
-        FontMetrics fontMetrics = graphics.getFontMetrics();
-        Rectangle2D textBounds = fontMetrics.getStringBounds(name, graphics);
-        int labelTextSize = (int) textBounds.getWidth();
-
-        if(this.getSize().width < labelTextSize)
-            this.setSize(labelTextSize, this.getSize().height);
+    private JLabel getTrackLabel(String name, boolean addToolTip){
+        JLabel label = new JLabel(name, SwingConstants.RIGHT);
+        label.setVerticalAlignment(SwingConstants.TOP);
+        label.setFont(FontManager.getFont(Font.BOLD, 10));
+        if(addToolTip)
+            label.setToolTipText(name);
+        return label;
     }
 }
