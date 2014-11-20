@@ -1538,7 +1538,7 @@ public class MainWindow extends JFrame {
             JScrollPane pane = new JScrollPane(textPane);
             tabbedPane.addTab("Statistics", pane);
 
-
+            boolean success = true;
             if (graphs != null) {
 
                 long[] A = new long[2000];
@@ -1600,122 +1600,122 @@ public class MainWindow extends JFrame {
                     }
                 } catch (NoSuchElementException exception) {
                     JOptionPane.showMessageDialog(getParent(), "Graphing file improperly formatted", "Error", JOptionPane.ERROR_MESSAGE);
-                    dispose();
-                    return;
+                    success = false;
                 }
 
-                final XYSeriesCollection readTypeCollection = new XYSeriesCollection();
-                readTypeCollection.addSeries(innerRead);
-                readTypeCollection.addSeries(outerRead);
-                readTypeCollection.addSeries(leftRead);
-                readTypeCollection.addSeries(rightRead);
+                if (success) {
+                    final XYSeriesCollection readTypeCollection = new XYSeriesCollection();
+                    readTypeCollection.addSeries(innerRead);
+                    readTypeCollection.addSeries(outerRead);
+                    readTypeCollection.addSeries(leftRead);
+                    readTypeCollection.addSeries(rightRead);
 
-                final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
-                        "Types of reads vs distance",          // chart title
-                        "Distance (log)",               // domain axis label
-                        "Binned Reads (log)",                  // range axis label
-                        readTypeCollection,                  // data
-                        PlotOrientation.VERTICAL,
-                        true,                     // include legend
-                        true,
-                        false
-                );
+                    final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
+                            "Types of reads vs distance",          // chart title
+                            "Distance (log)",               // domain axis label
+                            "Binned Reads (log)",                  // range axis label
+                            readTypeCollection,                  // data
+                            PlotOrientation.VERTICAL,
+                            true,                     // include legend
+                            true,
+                            false
+                    );
 
-                final XYPlot readTypePlot = readTypeChart.getXYPlot();
+                    final XYPlot readTypePlot = readTypeChart.getXYPlot();
 
-                readTypePlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
-                readTypePlot.setRangeAxis(new LogarithmicAxis("Binned Reads (log)"));
-                readTypePlot.setBackgroundPaint(Color.white);
-                readTypePlot.setRangeGridlinePaint(Color.lightGray);
-                readTypePlot.setDomainGridlinePaint(Color.lightGray);
-                readTypeChart.setBackgroundPaint(Color.white);
-                readTypePlot.setOutlinePaint(Color.black);
-                final ChartPanel chartPanel = new ChartPanel(readTypeChart);
+                    readTypePlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
+                    readTypePlot.setRangeAxis(new LogarithmicAxis("Binned Reads (log)"));
+                    readTypePlot.setBackgroundPaint(Color.white);
+                    readTypePlot.setRangeGridlinePaint(Color.lightGray);
+                    readTypePlot.setDomainGridlinePaint(Color.lightGray);
+                    readTypeChart.setBackgroundPaint(Color.white);
+                    readTypePlot.setOutlinePaint(Color.black);
+                    final ChartPanel chartPanel = new ChartPanel(readTypeChart);
 
-                final XYSeriesCollection reCollection = new XYSeriesCollection();
-                final XYSeries reDistance = new XYSeries("Distance");
+                    final XYSeriesCollection reCollection = new XYSeriesCollection();
+                    final XYSeries reDistance = new XYSeries("Distance");
 
-                for (int i = 0; i < A.length; i++) {
-                    if (A[i] != 0) reDistance.add(i, A[i] / (float) sumA);
+                    for (int i = 0; i < A.length; i++) {
+                        if (A[i] != 0) reDistance.add(i, A[i] / (float) sumA);
+                    }
+                    reCollection.addSeries(reDistance);
+
+                    final JFreeChart reChart = ChartFactory.createXYLineChart(
+                            "Distance from closest RE site",          // chart title
+                            "Distance (bp)",               // domain axis label
+                            "Fraction of Reads (log)",                  // range axis label
+                            reCollection,                  // data
+                            PlotOrientation.VERTICAL,
+                            true,                     // include legend
+                            true,
+                            false
+                    );
+
+                    final XYPlot rePlot = reChart.getXYPlot();
+                    rePlot.setDomainAxis(new NumberAxis("Distance (bp)"));
+                    rePlot.setRangeAxis(new LogarithmicAxis("Fraction of Reads (log)"));
+                    rePlot.setBackgroundPaint(Color.white);
+                    rePlot.setRangeGridlinePaint(Color.lightGray);
+                    rePlot.setDomainGridlinePaint(Color.lightGray);
+                    reChart.setBackgroundPaint(Color.white);
+                    rePlot.setOutlinePaint(Color.black);
+                    final ChartPanel chartPanel2 = new ChartPanel(reChart);
+
+                    final XYSeriesCollection intraCollection = new XYSeriesCollection();
+
+                    intraCollection.addSeries(intra);
+
+                    final JFreeChart intraChart = ChartFactory.createXYLineChart(
+                            "Intra reads vs distance",          // chart title
+                            "Distance (log)",               // domain axis label
+                            "Cumulative Sum of Binned Reads (log)",                  // range axis label
+                            intraCollection,                  // data
+                            PlotOrientation.VERTICAL,
+                            true,                     // include legend
+                            true,
+                            false
+                    );
+
+                    final XYPlot intraPlot = intraChart.getXYPlot();
+                    intraPlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
+                    intraPlot.setRangeAxis(new NumberAxis("Cumulative Sum of Binned Reads (log)"));
+                    intraPlot.setBackgroundPaint(Color.white);
+                    intraPlot.setRangeGridlinePaint(Color.lightGray);
+                    intraPlot.setDomainGridlinePaint(Color.lightGray);
+                    intraChart.setBackgroundPaint(Color.white);
+                    intraPlot.setOutlinePaint(Color.black);
+                    final ChartPanel chartPanel3 = new ChartPanel(intraChart);
+
+                    final XYSeriesCollection mapqCollection = new XYSeriesCollection();
+                    mapqCollection.addSeries(allMapq);
+                    mapqCollection.addSeries(intraMapq);
+                    mapqCollection.addSeries(interMapq);
+
+                    final JFreeChart mapqChart = ChartFactory.createXYLineChart(
+                            "MapQ Threshold Count",          // chart title
+                            "MapQ threshold",               // domain axis label
+                            "Count",                  // range axis label
+                            mapqCollection,                  // data
+                            PlotOrientation.VERTICAL,
+                            true,                     // include legend
+                            true,                     // include tooltips
+                            false
+                    );
+
+                    final XYPlot mapqPlot = mapqChart.getXYPlot();
+                    mapqPlot.setBackgroundPaint(Color.white);
+                    mapqPlot.setRangeGridlinePaint(Color.lightGray);
+                    mapqPlot.setDomainGridlinePaint(Color.lightGray);
+                    mapqChart.setBackgroundPaint(Color.white);
+                    mapqPlot.setOutlinePaint(Color.black);
+                    final ChartPanel chartPanel4 = new ChartPanel(mapqChart);
+
+
+                    tabbedPane.addTab("Pair Type", chartPanel);
+                    tabbedPane.addTab("Restriction", chartPanel2);
+                    tabbedPane.addTab("Intra vs Distance", chartPanel3);
+                    tabbedPane.addTab("MapQ", chartPanel4);
                 }
-                reCollection.addSeries(reDistance);
-
-                final JFreeChart reChart = ChartFactory.createXYLineChart(
-                        "Distance from closest RE site",          // chart title
-                        "Distance (bp)",               // domain axis label
-                        "Fraction of Reads (log)",                  // range axis label
-                        reCollection,                  // data
-                        PlotOrientation.VERTICAL,
-                        true,                     // include legend
-                        true,
-                        false
-                );
-
-                final XYPlot rePlot = reChart.getXYPlot();
-                rePlot.setDomainAxis(new NumberAxis("Distance (bp)"));
-                rePlot.setRangeAxis(new LogarithmicAxis("Fraction of Reads (log)"));
-                rePlot.setBackgroundPaint(Color.white);
-                rePlot.setRangeGridlinePaint(Color.lightGray);
-                rePlot.setDomainGridlinePaint(Color.lightGray);
-                reChart.setBackgroundPaint(Color.white);
-                rePlot.setOutlinePaint(Color.black);
-                final ChartPanel chartPanel2 = new ChartPanel(reChart);
-
-                final XYSeriesCollection intraCollection = new XYSeriesCollection();
-
-                intraCollection.addSeries(intra);
-
-                final JFreeChart intraChart = ChartFactory.createXYLineChart(
-                        "Intra reads vs distance",          // chart title
-                        "Distance (log)",               // domain axis label
-                        "Cumulative Sum of Binned Reads (log)",                  // range axis label
-                        intraCollection,                  // data
-                        PlotOrientation.VERTICAL,
-                        true,                     // include legend
-                        true,
-                        false
-                );
-
-                final XYPlot intraPlot = intraChart.getXYPlot();
-                intraPlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
-                intraPlot.setRangeAxis(new NumberAxis("Cumulative Sum of Binned Reads (log)"));
-                intraPlot.setBackgroundPaint(Color.white);
-                intraPlot.setRangeGridlinePaint(Color.lightGray);
-                intraPlot.setDomainGridlinePaint(Color.lightGray);
-                intraChart.setBackgroundPaint(Color.white);
-                intraPlot.setOutlinePaint(Color.black);
-                final ChartPanel chartPanel3 = new ChartPanel(intraChart);
-
-                final XYSeriesCollection mapqCollection = new XYSeriesCollection();
-                mapqCollection.addSeries(allMapq);
-                mapqCollection.addSeries(intraMapq);
-                mapqCollection.addSeries(interMapq);
-
-                final JFreeChart mapqChart = ChartFactory.createXYLineChart(
-                        "MapQ Threshold Count",          // chart title
-                        "MapQ threshold",               // domain axis label
-                        "Count",                  // range axis label
-                        mapqCollection,                  // data
-                        PlotOrientation.VERTICAL,
-                        true,                     // include legend
-                        true,                     // include tooltips
-                        false
-                );
-
-                final XYPlot mapqPlot = mapqChart.getXYPlot();
-                mapqPlot.setBackgroundPaint(Color.white);
-                mapqPlot.setRangeGridlinePaint(Color.lightGray);
-                mapqPlot.setDomainGridlinePaint(Color.lightGray);
-                mapqChart.setBackgroundPaint(Color.white);
-                mapqPlot.setOutlinePaint(Color.black);
-                final ChartPanel chartPanel4 = new ChartPanel(mapqChart);
-
-
-                tabbedPane.addTab("Pair Type", chartPanel);
-                tabbedPane.addTab("Restriction", chartPanel2);
-                tabbedPane.addTab("Intra vs Distance", chartPanel3);
-                tabbedPane.addTab("MapQ", chartPanel4);
-
             }
 
             final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZoom(),

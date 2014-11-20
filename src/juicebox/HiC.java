@@ -433,10 +433,16 @@ public class HiC {
             MatrixZoomData zd = getMatrix().getZoomData(zoom);
             HiCGridAxis xAxis = zd.getXGridAxis();
             HiCGridAxis yAxis = zd.getYGridAxis();
-
-            int binX = xAxis.getBinNumberForFragment(fragmentX);
-            int binY = yAxis.getBinNumberForFragment(fragmentY);
-            center(binX, binY);
+            int binX;
+            int binY;
+            try {
+                binX = xAxis.getBinNumberForFragment(fragmentX);
+                binY = yAxis.getBinNumberForFragment(fragmentY);
+                center(binX, binY);
+            }
+            catch (RuntimeException error) {
+                JOptionPane.showMessageDialog(mainWindow, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
 
         }
     }
