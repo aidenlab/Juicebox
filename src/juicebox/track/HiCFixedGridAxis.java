@@ -53,7 +53,7 @@ public class HiCFixedGridAxis implements HiCGridAxis {
     @Override
     public int getBinNumberForFragment(int fragment) {
 
-        if (fragment < sites.length) {
+        if (fragment < sites.length && fragment >= 0) {
             int genomicPosition = sites[fragment];
             return getBinNumberForGenomicPosition(genomicPosition);
         }
