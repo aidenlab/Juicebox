@@ -1013,19 +1013,13 @@ public class MainWindow extends JFrame {
         //colorRangeSlider.setModel(new ColorRangeModel());
         colorRangeSlider.addMouseListener(new MouseAdapter() {
             @Override
+            //public void mouseExited(MouseEvent e) {
+                //TBD.
+            //}
+            @Override
             public void mouseEntered(MouseEvent mouseEvent) {
                 super.mouseEntered(mouseEvent);
-                if (hic.getDisplayOption() == MatrixType.OBSERVED) {
-                    colorRangeSlider.setToolTipText("<html>Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
-                            + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor) + "<br>Showing: "+
-                            (int) (colorRangeSlider.getLowerValue() / colorRangeScaleFactor) + " "
-                            + (int) (colorRangeSlider.getUpperValue() / colorRangeScaleFactor)
-                            +"</html>" );
-                } else if (hic.getDisplayOption() == MatrixType.OE) {
-                    double mymaximum = colorRangeSlider.getMaximum() / 8;
-                    colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
-                            + new DecimalFormat("##.##").format(mymaximum));
-                }
+                colorRangeSliderUpdateToolTip();
             }
         });
         colorRangeSlider.setEnabled(false);
@@ -1069,31 +1063,37 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setMaximum(2000);
         colorRangeSlider.setLowerValue(0);
         colorRangeSlider.setUpperValue(500);
+
         colorRangeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 colorRangeSliderStateChanged(e);
+                colorRangeSliderUpdateToolTip();
             }
         });
         sliderPanel.add(colorRangeSlider);
         JPanel plusMinusPanel = new JPanel();
         plusMinusPanel.setLayout(new BoxLayout(plusMinusPanel, BoxLayout.Y_AXIS));
-        plusButton = new JideButton();
 
+        plusButton = new JideButton();
         plusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-plus.png")));
         plusButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
+                colorRangeSliderUpdateToolTip();
             }
         });
 
         minusButton = new JideButton();
-
         minusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-minus.png")));
         minusButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
+                //Set limit to maximum range:
+                if(colorRangeSlider.getMaximum() > 2) {
+                    colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
+                }
+                colorRangeSliderUpdateToolTip();
             }
         });
 
@@ -1264,6 +1264,19 @@ public class MainWindow extends JFrame {
 
     }
 
+    private void colorRangeSliderUpdateToolTip() {
+        if (hic.getDisplayOption() == MatrixType.OBSERVED) {
+            colorRangeSlider.setToolTipText("<html>Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
+                    + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor) + "<br>Showing: " +
+                    (int) (colorRangeSlider.getLowerValue() / colorRangeScaleFactor) + " "
+                    + (int) (colorRangeSlider.getUpperValue() / colorRangeScaleFactor)
+                    + "</html>");
+        } else if (hic.getDisplayOption() == MatrixType.OE) {
+            double mymaximum = colorRangeSlider.getMaximum() / 8;
+            colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
+                    + new DecimalFormat("##.##").format(mymaximum));
+        }
+    }
 
     private JMenuBar createMenuBar() throws BackingStoreException {
 
@@ -1298,13 +1311,12 @@ public class MainWindow extends JFrame {
         try {
             recentMenu=new RecentMenu(recentListMaxItems){
                 public void onSelectPosition(String mapPath){
-
+                    showGlassPane();
                     //TBD - Prepare call to setstate.
                     //hic.setState(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor);
                     String delimiter = "@@";
                     String[] temp;
                     temp = mapPath.split(delimiter);
-                    showGlassPane();
                     loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
                 }
             };
