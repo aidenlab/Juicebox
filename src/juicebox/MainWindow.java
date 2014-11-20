@@ -91,6 +91,7 @@ public class MainWindow extends JFrame {
     private static final long serialVersionUID = 42L;
     private static final boolean isRestricted = true;
     private static RecentMenu recentMenu;
+    private String currentlyLoadedFile = "";
 
     public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
@@ -326,6 +327,14 @@ public class MainWindow extends JFrame {
     private void load(final List<String> files, final boolean control) {
 
         String file = files.get(0);
+        
+        if(file.equals(currentlyLoadedFile)){
+            JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
+            return;
+        }
+        else{
+            currentlyLoadedFile = file;
+        }
 
         if (file.endsWith("hic")) {
             Runnable runnable = new Runnable() {
