@@ -1022,10 +1022,6 @@ public class MainWindow extends JFrame {
         colorRangeSlider = new RangeSlider();
         //colorRangeSlider.setModel(new ColorRangeModel());
         colorRangeSlider.addMouseListener(new MouseAdapter() {
-            //@Override
-            //public void mouseExited(MouseEvent e) {
-                //TBD.
-            //}
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {
                 super.mouseEntered(mouseEvent);
@@ -1275,7 +1271,7 @@ public class MainWindow extends JFrame {
     }
 
     private void colorRangeSliderUpdateToolTip() {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED) {
+        if (hic.getDisplayOption() == MatrixType.OBSERVED || hic.getDisplayOption() == MatrixType.CONTROL) {
             colorRangeSlider.setToolTipText("<html>Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
                     + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor) + "<br>Showing: " +
                     (int) (colorRangeSlider.getLowerValue() / colorRangeScaleFactor) + " "
