@@ -520,8 +520,6 @@ public class ResourceTree {
     public void remove(ResourceLocator locator) {
         //locator.
         loadedLocators.remove(locator);
-        newLocators.remove(locator);
-        System.out.println("Tried to remove from tree!!!");
 
         Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
