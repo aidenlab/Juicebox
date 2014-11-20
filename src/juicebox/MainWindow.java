@@ -1022,7 +1022,7 @@ public class MainWindow extends JFrame {
         colorRangeSlider = new RangeSlider();
         //colorRangeSlider.setModel(new ColorRangeModel());
         colorRangeSlider.addMouseListener(new MouseAdapter() {
-            @Override
+            //@Override
             //public void mouseExited(MouseEvent e) {
                 //TBD.
             //}
@@ -1663,7 +1663,7 @@ public class MainWindow extends JFrame {
                     reCollection.addSeries(reDistance);
 
                     final JFreeChart reChart = ChartFactory.createXYLineChart(
-                            "Distance from closest RE site",          // chart title
+                            "Distance from closest restriction enzyme site",          // chart title
                             "Distance (bp)",               // domain axis label
                             "Fraction of Reads (log)",                  // range axis label
                             reCollection,                  // data
