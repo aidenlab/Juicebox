@@ -404,6 +404,7 @@ public class MainWindow extends JFrame {
                         plusButton.setEnabled(true);
                         minusButton.setEnabled(true);
                         annotationsMenu.setEnabled(true);
+                        refresh(); // an additional refresh seems to remove the upper left black corner
                     } catch (IOException error) {
                         log.error("Error loading hic file", error);
                         JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
