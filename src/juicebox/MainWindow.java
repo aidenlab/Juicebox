@@ -2066,8 +2066,8 @@ public class MainWindow extends JFrame {
             //Create the scroll pane and add the tree to it.
             JScrollPane treeView = new JScrollPane(tree);
             treeView.setPreferredSize(new Dimension(400, 400));
-            JPanel centerPanel = new JPanel();
-            centerPanel.add(treeView);
+            JPanel centerPanel = new JPanel(new BorderLayout());
+            centerPanel.add(treeView, BorderLayout.CENTER);
             add(centerPanel, BorderLayout.CENTER);
 
             JPanel buttonPanel = new JPanel();
