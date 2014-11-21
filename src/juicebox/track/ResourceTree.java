@@ -95,6 +95,7 @@ public class ResourceTree {
         }
 
         createTreeFromDataset(hic, this);
+        addExternal(this);
         expandTree();
         hic.setResourceTree(this);
         dialogTree.setRootVisible(false);
@@ -392,6 +393,7 @@ public class ResourceTree {
 
         }
 
+
         locator = new ResourceLocator("Eigenvector");
         locator.setType("eigenvector");
         locator.setName("Eigenvector");
@@ -406,6 +408,77 @@ public class ResourceTree {
 
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
+    }
+
+    private void addExternal(ResourceTree resourceTree) {
+        DefaultMutableTreeNode externalFeatureRoot = new DefaultMutableTreeNode("External Features");
+        ResourceLocator locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-GM12878.txt");
+        locator.setName("ENCODE 5C GM12878");
+        locator.setType("loop");
+        CheckableResource resource = new CheckableResource("ENCODE 5C GM12878", false, locator);
+        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("ENCODE 5C GM12878");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-HeLa.txt");
+        locator.setName("ENCODE 5C HeLa");
+        locator.setType("loop");
+        resource = new CheckableResource("ENCODE 5C HeLa", false, locator);
+        treeNode = new DefaultMutableTreeNode("ENCODE 5C HeLa");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-K562.txt");
+        locator.setName("ENCODE 5C K562");
+        locator.setType("loop");
+        resource = new CheckableResource("ENCODE 5C K562", false, locator);
+        treeNode = new DefaultMutableTreeNode("ENCODE 5C K562");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/JinRenAllLoops.txt");
+        locator.setName("Jin Ren IMR90 loops");
+        locator.setType("loop");
+        resource = new CheckableResource("Jin Ren IMR90 loops", false, locator);
+        treeNode = new DefaultMutableTreeNode("Jin Ren IMR90 loops");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562.txt");
+        locator.setName("Li Ruan K562 CHiA-PET loops");
+        locator.setType("loop");
+        resource = new CheckableResource("Li Ruan K562 CHiA-PET loops", false, locator);
+        treeNode = new DefaultMutableTreeNode("Li Ruan K562 CHiA-PET loops");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/TADS_IMR90_hg19_looplist.txt");
+        locator.setName("Jin Ren IMR90 TADs");
+        locator.setType("loop");
+        resource = new CheckableResource("Jin Ren IMR90 TADs", false, locator);
+        treeNode = new DefaultMutableTreeNode("Jin Ren IMR90 TADs");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(externalFeatureRoot);
     }
 
     private DefaultMutableTreeNode createTreeFromDOM(Document document) {

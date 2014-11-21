@@ -101,6 +101,7 @@ public class LoadAction extends AbstractAction {
         boolean repaint = false;
 
         if(selectedLocators != null) {
+            ((MainWindow)owner).showGlassPane();
             for (ResourceLocator locator : selectedLocators) {
                 try {
 
@@ -153,7 +154,7 @@ public class LoadAction extends AbstractAction {
                 }
             }
         }
-
+        ((MainWindow)owner).hideGlassPane();
         if (repaint) owner.repaint();
         return newLoadList;
     }
