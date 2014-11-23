@@ -138,7 +138,7 @@ public class MainWindow extends JFrame {
     private HiCZoom initialZoom;
     private String saveImagePath;
 
-    private static int recentListMaxItems = 3;
+    private static int recentListMaxItems = 20;
 
     public void updateToolTipText(String s) {
         mouseHoverTextPanel.setText(s);
@@ -712,8 +712,6 @@ public class MainWindow extends JFrame {
         }
         hic.setNormalizationType(chosen);
         refresh();
-
-
     }
 
     /**
@@ -728,12 +726,15 @@ public class MainWindow extends JFrame {
 
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                final Component glassPane = showGlassPane();
+                showGlassPane();
+                //Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+                //glassPane.setEnabled(true);
                 try {
                     runnable.run();
                     return "done";
                 } finally {
-                    glassPane.setVisible(false);
+                    hideGlassPane();
+                    //glassPane.setVisible(false);
                 }
 
             }
@@ -743,14 +744,16 @@ public class MainWindow extends JFrame {
     }
 
     public Component showGlassPane() {
-        final Component glassPane = getGlassPane();
+        final Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         glassPane.setVisible(true);
         return glassPane;
     }
 
     public void hideGlassPane() {
-        getGlassPane().setVisible(false);
+        final Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        glassPane.setVisible(false);
     }
 
     public void updateTrackPanel() {
@@ -1317,9 +1320,6 @@ public class MainWindow extends JFrame {
         try {
             recentMenu=new RecentMenu(recentListMaxItems){
                 public void onSelectPosition(String mapPath){
-                    showGlassPane();
-                    //TBD - Prepare call to setstate.
-                    //hic.setState(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor);
                     String delimiter = "@@";
                     String[] temp;
                     temp = mapPath.split(delimiter);
@@ -2379,7 +2379,7 @@ public class MainWindow extends JFrame {
 
                         int idx = resolutionSlider.getValue();
 
-                        HiCZoom zoom = idxZoomMap.get(idx);
+                        final HiCZoom zoom = idxZoomMap.get(idx);
                         if (zoom == null) return;
 
                         if (hic.getXContext() != null) {
@@ -2389,19 +2389,26 @@ public class MainWindow extends JFrame {
 
                             double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
                             double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                            int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                            int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+                            final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+                            final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                            if (hic.getZd() == null) {
-                                hic.setZoom(zoom, 0, 0);
-                            } else {
+                            Runnable runnable = new Runnable() {
+                                public void run() {
 
-                                if (hic.setZoom(zoom, xGenome, yGenome)) {
-                                    lastValue = resolutionSlider.getValue();
-                                } else {
-                                    resolutionSlider.setValue(lastValue);
+                                    if (hic.getZd() == null) {
+                                        hic.setZoom(zoom, 0, 0);
+                                    } else {
+
+                                        if (hic.setZoom(zoom, xGenome, yGenome)) {
+                                            lastValue = resolutionSlider.getValue();
+                                        } else {
+                                            resolutionSlider.setValue(lastValue);
+                                        }
+                                    }
+
                                 }
-                            }
+                            };
+                            executeLongRunningTask(runnable);
                         }
 
                     }

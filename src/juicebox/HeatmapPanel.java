@@ -590,7 +590,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     // Double click,  zoom and center on click location
                     final HiCZoom currentZoom = hic.getZd().getZoom();
-                    HiCZoom newZoom = mainWindow.isResolutionLocked() ? currentZoom :
+                    final HiCZoom newZoom = mainWindow.isResolutionLocked() ? currentZoom :
                             hic.getDataset().getNextZoom(currentZoom, !e.isAltDown());
 
                     // If newZoom == currentZoom adjust scale factor (no change in resolution)
@@ -606,11 +606,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         mainWindow.repaint();
                     } else {
 
-                        int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                        int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+                        final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+                        final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                        hic.setZoom(newZoom, xGenome, yGenome);
-                        mainWindow.updateZoom(newZoom);
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                hic.setZoom(newZoom, xGenome, yGenome);
+                                mainWindow.updateZoom(newZoom);
+                            }
+                        };
+                        mainWindow.executeLongRunningTask(runnable);
                     }
 
                 } else {
