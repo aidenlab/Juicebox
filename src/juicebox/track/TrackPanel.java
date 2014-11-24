@@ -22,6 +22,7 @@ import java.util.Collection;
  */
 public class TrackPanel extends JPanel {
 
+    private static final long serialVersionUID = -1195744055137430563L;
     private MouseAdapter mouseAdapter;
 
     public enum Orientation {X, Y}

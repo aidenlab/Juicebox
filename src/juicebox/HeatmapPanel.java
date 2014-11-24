@@ -32,6 +32,7 @@ import static java.awt.Toolkit.getDefaultToolkit;
  */
 public class HeatmapPanel extends JComponent implements Serializable {
 
+    private static final long serialVersionUID = -8017012290342597941L;
     private NumberFormat formatter = NumberFormat.getInstance();
 
     enum DragMode {NONE, PAN, ZOOM, SELECT}

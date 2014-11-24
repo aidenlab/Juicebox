@@ -29,6 +29,7 @@ import java.util.List;
  */
 public class HiCLoadDialog extends JDialog {
 
+    private static final long serialVersionUID = -7529973146086845915L;
     private boolean canceled = false;
     private Collection<String> selectedTracks = new HashSet<String>();
 

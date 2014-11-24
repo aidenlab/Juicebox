@@ -20,6 +20,7 @@ import java.util.ArrayList;
  */
 public class TrackLabelPanel extends JPanel {
 
+    private static final long serialVersionUID = 1627813915602134471L;
     HiC hic;
     HiCTrack eigenvectorTrack;
     private int numExtraBufferLinesSpaces = 2;

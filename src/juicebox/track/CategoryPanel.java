@@ -38,6 +38,7 @@ import java.util.Set;
  */
 public class CategoryPanel extends JPanel {
 
+    private static final long serialVersionUID = -729150966236965013L;
     boolean expanded;
     JideButton toggleButton;
     int nColumns = 5;

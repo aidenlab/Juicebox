@@ -18,6 +18,7 @@ import org.broad.igv.ui.color.*;
  */
 public class TrackConfigDialog extends JDialog {
 
+    private static final long serialVersionUID = -1778029293180119209L;
     boolean canceled = false;
     HiCTrack track;
 

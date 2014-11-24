@@ -8,6 +8,7 @@ import java.awt.*;
  */
 public class HiCLayout implements LayoutManager2,
         java.io.Serializable {
+    private static final long serialVersionUID = 8260394496861063124L;
     int hgap;
     int vgap;
 

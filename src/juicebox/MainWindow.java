@@ -88,7 +88,7 @@ import java.util.prefs.Preferences;
 public class MainWindow extends JFrame {
 
     private static Logger log = Logger.getLogger(MainWindow.class);
-    private static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = 1428522656885950466L;
     private static final boolean isRestricted = true;
     private static RecentMenu recentMenu;
     private String currentlyLoadedFile = "";
@@ -241,13 +241,40 @@ public class MainWindow extends JFrame {
 
         colorRangeScaleFactor = 100.0 / max;
 
+        colorRangeSlider.setSnapToTicks(true);
+        colorRangeSlider.setPaintLabels(true);
+
         int iMin = (int) (colorRangeScaleFactor * min);
         int iMax = (int) (colorRangeScaleFactor * max);
-        int iValue = (int) (colorRangeScaleFactor * value);
-        colorRangeSlider.setMinimum(iMin);
-        colorRangeSlider.setMaximum(iMax);
+        int uValue = (int) (colorRangeScaleFactor * value);
+
         colorRangeSlider.setLowerValue(0);
-        colorRangeSlider.setUpperValue(iValue);
+        colorRangeSlider.setMinimum(iMin);
+        colorRangeSlider.setUpperValue(uValue);
+        colorRangeSlider.setMaximum(iMax);
+
+
+        //Change slider lables to reflect change:
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+
+        Font f = FontManager.getFont(8);
+
+        final JLabel minTickLabel = new JLabel(String.valueOf((int)min));
+        minTickLabel.setFont(f);
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int)max));
+        maxTickLabel.setFont(f);
+        final JLabel LoTickLabel = new JLabel(String.valueOf(0));
+        LoTickLabel.setFont(f);
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int)value));
+        UpTickLabel.setFont(f);
+
+        labelTable.put(0, LoTickLabel);
+        labelTable.put(iMin, minTickLabel);
+        labelTable.put(uValue, UpTickLabel);
+        labelTable.put(iMax, maxTickLabel);
+
+
+        colorRangeSlider.setLabelTable(labelTable);
     }
 
     public void updateColorSlider(double min, double lower, double upper, double max) {
@@ -256,14 +283,38 @@ public class MainWindow extends JFrame {
 
         colorRangeScaleFactor = 100.0 / max;
 
+        colorRangeSlider.setPaintTicks(true);
+        colorRangeSlider.setSnapToTicks(true);
+
         int iMin = (int) (colorRangeScaleFactor * min);
         int iMax = (int) (colorRangeScaleFactor * max);
         int lValue = (int) (colorRangeScaleFactor * lower);
         int uValue = (int) (colorRangeScaleFactor * upper);
+
         colorRangeSlider.setMinimum(iMin);
-        colorRangeSlider.setMaximum(iMax);
         colorRangeSlider.setLowerValue(lValue);
         colorRangeSlider.setUpperValue(uValue);
+        colorRangeSlider.setMaximum(iMax);
+
+        Font f = FontManager.getFont(8);
+
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+
+        final JLabel minTickLabel = new JLabel(String.valueOf((int)min));
+        minTickLabel.setFont(f);
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int)max));
+        maxTickLabel.setFont(f);
+        final JLabel LoTickLabel = new JLabel(String.valueOf((int)lower));
+        LoTickLabel.setFont(f);
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int)upper));
+        UpTickLabel.setFont(f);
+
+        labelTable.put(iMin, minTickLabel);
+        labelTable.put(iMax, maxTickLabel);
+        labelTable.put(lValue, LoTickLabel);
+        labelTable.put(uValue, UpTickLabel);
+
+        colorRangeSlider.setLabelTable(labelTable);
     }
 
     public void createCursors() {
@@ -327,7 +378,7 @@ public class MainWindow extends JFrame {
     private void load(final List<String> files, final boolean control) {
 
         String file = files.get(0);
-        
+
         if(file.equals(currentlyLoadedFile)){
             JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
             return;
@@ -726,15 +777,15 @@ public class MainWindow extends JFrame {
 
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                showGlassPane();
-                //Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
-                //glassPane.setEnabled(true);
+                //showGlassPane();
+                Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+                glassPane.setEnabled(true);
                 try {
                     runnable.run();
                     return "done";
                 } finally {
-                    hideGlassPane();
-                    //glassPane.setVisible(false);
+                    //hideGlassPane();
+                    glassPane.setVisible(false);
                 }
 
             }
@@ -1268,6 +1319,9 @@ public class MainWindow extends JFrame {
 
         // setup the glass pane to display a wait cursor when visible, and to grab all mouse events
         rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        final PopupMenu testPopUp = new PopupMenu();
+        testPopUp.setLabel("Please wait");
+        rootPane.getGlassPane().add(testPopUp);
         rootPane.getGlassPane().addMouseListener(new MouseAdapter() {
         });
 
@@ -1275,16 +1329,45 @@ public class MainWindow extends JFrame {
 
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED || hic.getDisplayOption() == MatrixType.CONTROL) {
-            colorRangeSlider.setToolTipText("<html>Range: " + (int) (colorRangeSlider.getMinimum() / colorRangeScaleFactor) + " "
-                    + (int) (colorRangeSlider.getMaximum() / colorRangeScaleFactor) + "<br>Showing: " +
-                    (int) (colorRangeSlider.getLowerValue() / colorRangeScaleFactor) + " "
-                    + (int) (colorRangeSlider.getUpperValue() / colorRangeScaleFactor)
+
+
+            int iMin = colorRangeSlider.getMinimum();
+            int lValue = colorRangeSlider.getLowerValue();
+            int uValue = colorRangeSlider.getUpperValue();
+            int iMax = colorRangeSlider.getMaximum();
+
+            colorRangeSlider.setToolTipText("<html>Range: " + (int) (iMin / colorRangeScaleFactor) + " "
+                    + (int) (iMax / colorRangeScaleFactor) + "<br>Showing: " +
+                    (int) (lValue / colorRangeScaleFactor) + " "
+                    + (int) (uValue / colorRangeScaleFactor)
                     + "</html>");
+
+            Font f = FontManager.getFont(8);
+
+            Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+
+            final JLabel minTickLabel = new JLabel(String.valueOf((int)(iMin/ colorRangeScaleFactor)));
+            minTickLabel.setFont(f);
+            final JLabel LoTickLabel = new JLabel(String.valueOf((int)(lValue/ colorRangeScaleFactor)));
+            LoTickLabel.setFont(f);
+            final JLabel UpTickLabel = new JLabel(String.valueOf((int)(uValue/ colorRangeScaleFactor)));
+            UpTickLabel.setFont(f);
+            final JLabel maxTickLabel = new JLabel(String.valueOf((int)(iMax/ colorRangeScaleFactor)));
+            maxTickLabel.setFont(f);
+
+            labelTable.put(iMin, minTickLabel);
+            labelTable.put(lValue, LoTickLabel);
+            labelTable.put(uValue, UpTickLabel);
+            labelTable.put(iMax, maxTickLabel);
+
+            colorRangeSlider.setLabelTable(labelTable);
+
         } else if (hic.getDisplayOption() == MatrixType.OE) {
             double mymaximum = colorRangeSlider.getMaximum() / 8;
             colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
                     + new DecimalFormat("##.##").format(mymaximum));
         }
+
     }
 
     private JMenuBar createMenuBar() throws BackingStoreException {
@@ -2528,6 +2611,7 @@ public class MainWindow extends JFrame {
     abstract class RecentMenu extends JMenu
     {
         final private static String HIC_RECENT = "hicRecent";
+        private static final long serialVersionUID = 4685393080959162312L;
         private String defaultText = "";
         private String[] recentEntries;
         private int m_maxItems;

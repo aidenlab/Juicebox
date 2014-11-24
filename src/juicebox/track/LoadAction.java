@@ -45,6 +45,7 @@ import java.util.List;
  */
 public class LoadAction extends AbstractAction {
 
+    private static final long serialVersionUID = -1122795124141741145L;
     static Logger log = Logger.getLogger(LoadAction.class);
 
     private JFrame owner;

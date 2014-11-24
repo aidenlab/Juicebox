@@ -15,6 +15,7 @@ import java.io.Serializable;
 public class ThumbnailPanel extends JComponent implements Serializable {
 
 
+    private static final long serialVersionUID = -3856114428388478494L;
     private MainWindow mainWindow;
     private HiC hic;
 

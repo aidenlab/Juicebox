@@ -36,6 +36,7 @@ import javax.swing.border.EmptyBorder;
  */
 public class ColorRangeDialog extends JDialog {
 
+    private static final long serialVersionUID = -2570891809264626823L;
     private RangeSlider colorSlider;
     private double colorRangeFactor;
     private DecimalFormat df1;

@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  */
 public class EncodeFileBrowser extends JDialog {
 
+    private static final long serialVersionUID = 3049287764412827292L;
     private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
 
     private static Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
