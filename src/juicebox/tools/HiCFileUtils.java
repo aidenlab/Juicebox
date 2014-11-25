@@ -69,7 +69,7 @@ public class HiCFileUtils {
 
             ExpectedValueFunctionImpl ev = (ExpectedValueFunctionImpl) entry.getValue();
 
-            if (ev.getUnit().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().equals(type)) {
+            if (ev.getUnit().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().getLabel().equals(type)) {
                 String label = ev.getNormalizationType() + "\t" + ev.getUnit() + "\t" + ev.getBinSize();
 
                 System.out.println("Norm factors: " + label);

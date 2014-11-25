@@ -21,16 +21,16 @@ import java.util.*;
  */
 public class Dataset {
 
-    private static Logger log = Logger.getLogger(Dataset.class);
+    private static final Logger log = Logger.getLogger(Dataset.class);
 
    // private boolean caching = true;
 
     //Chromosome lookup table
     public List<Chromosome> chromosomes;
 
-    Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
+    final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
 
-    private DatasetReader reader;
+    private final DatasetReader reader;
 
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
 
@@ -42,8 +42,8 @@ public class Dataset {
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
 
-    LRUCache<String, double[]> eigenvectorCache;
-    LRUCache<String, NormalizationVector> normalizationVectorCache;
+    final LRUCache<String, double[]> eigenvectorCache;
+    final LRUCache<String, NormalizationVector> normalizationVectorCache;
     Map<String, NormalizationVector> loadedNormalizationVectors;
     private List<NormalizationType> normalizationTypes;
 
@@ -201,11 +201,8 @@ public class Dataset {
 //        }
 
         this.bpZooms = new ArrayList<HiCZoom>(n);
-        /*for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSizes[i]));
-        }*/
-        for (int binSize : bpBinSizes) {
-            bpZooms.add(new HiCZoom(HiC.Unit.BP, binSize));
         }
 
     }
@@ -217,15 +214,9 @@ public class Dataset {
 //        if (MainWindow.isRestricted()) return;
 
         this.fragZooms = new ArrayList<HiCZoom>(fragBinSizes.length);
-
-        for(int binSize : fragBinSizes){
-            fragZooms.add(new HiCZoom(HiC.Unit.FRAG, binSize));
-        }
-        /*
         for (int i = 0; i < fragBinSizes.length; i++) {
             fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSizes[i]));
         }
-        */
     }
 
 

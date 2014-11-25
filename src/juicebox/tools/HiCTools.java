@@ -756,17 +756,27 @@ public class HiCTools {
         double sum = 0;
         if (center) {
             int count = 0;
+            /*
             for (int idx = 0; idx < vector.length; idx++) {
                 if (!Double.isNaN(vector[idx])) {
                     sum += vector[idx];
                     count++;
                 }
             }
+            */
+
+            for(double element : vector){
+                if (!Double.isNaN(element)) {
+                    sum += element;
+                    count++;
+                }
+            }
+
             sum = sum / count; // sum is now mean
         }
         // print out vector
-        for (int idx = 0; idx < vector.length; idx++) {
-            pw.println(vector[idx] - sum);
+        for (double element : vector) {
+            pw.println(element - sum);
         }
         pw.flush();
         pw.close();
@@ -969,11 +979,11 @@ public class HiCTools {
 
     static class BedLikeFeature implements LocusScore {
 
-        String chr;
+        final String chr;
         int start;
         int end;
         String name;
-        String line;
+        final String line;
 
         BedLikeFeature(String line) {
             this.line = line;

@@ -245,8 +245,8 @@ public class Preprocessor {
         //BP resolution levels
         int nBpRes = bpBinSizes.length;
         los.writeInt(nBpRes);
-        for (int i = 0; i < nBpRes; i++) {
-            los.writeInt(bpBinSizes[i]);
+        for (int bpBinSize : bpBinSizes) {
+            los.writeInt(bpBinSize);
         }
 
         //fragment resolutions
@@ -482,8 +482,8 @@ public class Preprocessor {
             // The density values
             double[] expectedValues = ev.getDensityAvg();
             buffer.putInt(expectedValues.length);
-            for (int i = 0; i < expectedValues.length; i++) {
-                buffer.putDouble(expectedValues[i]);
+            for (double expectedValue : expectedValues) {
+                buffer.putDouble(expectedValue);
             }
 
             // Map of chromosome index -> normalization factor

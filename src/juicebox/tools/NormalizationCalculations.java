@@ -270,8 +270,8 @@ public class NormalizationCalculations {
             rk[i] = 1 - v[i];
         }
         double rho_km1 = 0;
-        for (int i = 0; i < rk.length; i++) {
-            rho_km1 += rk[i] * rk[i];
+        for (double aRk : rk) {
+            rho_km1 += aRk * aRk;
         }
         double rout = rho_km1;
         double rold = rout;

@@ -37,7 +37,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 //import java.io.InputStreamReader;
-import java.util.List;
+//import java.util.List;
 import java.util.*;
 
 
@@ -47,10 +47,10 @@ import java.util.*;
 public class LoadAction extends AbstractAction {
 
     private static final long serialVersionUID = -1122795124141741145L;
-    static Logger log = Logger.getLogger(LoadAction.class);
+    static final Logger log = Logger.getLogger(LoadAction.class);
 
-    private JFrame owner;
-    private HiC hic;
+    private final JFrame owner;
+    private final HiC hic;
 
 
     public LoadAction(String s, JFrame owner, HiC hic) {

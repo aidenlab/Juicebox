@@ -14,8 +14,8 @@ import java.util.Arrays;
 public class InMemoryMatrix implements BasicMatrix {
 
 
-    int dim;
-    float[] data;
+    final int dim;
+    final float[] data;
     float lowerValue = Float.NaN;
     float upperValue = Float.NaN;
 
@@ -86,8 +86,8 @@ public class InMemoryMatrix implements BasicMatrix {
 
     private void computeBounds() {
         DoubleArrayList tmpList = new DoubleArrayList(data.length);
-        for (int i = 0; i < data.length; i++) {
-            if(!Float.isNaN(data[i])) tmpList.add(data[i]);
+        for (float datum : data) {
+            if (!Float.isNaN(datum)) tmpList.add(datum);
         }
         double [] tmp = tmpList.toArray();
         lowerValue = (float) StatUtils.percentile(tmp, 5);

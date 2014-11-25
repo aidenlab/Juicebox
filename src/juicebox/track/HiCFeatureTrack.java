@@ -22,16 +22,16 @@ import java.util.List;
  */
 public class HiCFeatureTrack extends HiCTrack {
 
-    private static Logger log = Logger.getLogger(HiCFeatureTrack.class);
+    private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
 
     static final int BLOCK_HEIGHT = 14;
     static final int THIN_BLOCK_HEIGHT = 6;
     public Color color = Color.blue.darker();
     public Color altColor = Color.blue.brighter();
-    public Font font;
+    public final Font font;
 
-    HiC hic;
-    FeatureSource<?> featureSource;
+    final HiC hic;
+    final FeatureSource<?> featureSource;
     private String name;
 
     private static final int ARROW_SPACING = 10;

@@ -15,16 +15,16 @@ import java.util.Map;
  */
 public class Feature2D {
 
-    NumberFormat formatter = NumberFormat.getInstance();
+    final NumberFormat formatter = NumberFormat.getInstance();
 
-    String chr1;
-    int start1;
-    int end1;
-    String chr2;
-    int start2;
-    int end2;
-    Color color;
-    Map<String, String> attributes;
+    final String chr1;
+    final int start1;
+    final int end1;
+    final String chr2;
+    final int start2;
+    final int end2;
+    final Color color;
+    final Map<String, String> attributes;
 
 
     public Feature2D(String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,

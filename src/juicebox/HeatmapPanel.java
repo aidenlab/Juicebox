@@ -33,29 +33,29 @@ import static java.awt.Toolkit.getDefaultToolkit;
 public class HeatmapPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -8017012290342597941L;
-    private NumberFormat formatter = NumberFormat.getInstance();
+    private final NumberFormat formatter = NumberFormat.getInstance();
 
     enum DragMode {NONE, PAN, ZOOM, SELECT}
 
-    private MainWindow mainWindow;
-    private HiC hic;
+    private final MainWindow mainWindow;
+    private final HiC hic;
 
     /**
      * Image tile width in pixels
      */
-    private int imageTileWidth = 500;
+    private final int imageTileWidth = 500;
 
-    private ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
+    private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
     private Rectangle zoomRectangle;
 
-    private transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
+    private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
 
     /**
      * Chromosome boundaries in kbases for whole genome view.
      */
     private int[] chromosomeBoundaries;
 
-    HeatmapRenderer renderer;
+    final HeatmapRenderer renderer;
 
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
@@ -410,9 +410,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
     static class ImageTile {
-        int bLeft;
-        int bTop;
-        Image image;
+        final int bLeft;
+        final int bTop;
+        final Image image;
 
         ImageTile(Image image, int bLeft, int py0) {
             this.bLeft = bLeft;

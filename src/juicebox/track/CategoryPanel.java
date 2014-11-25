@@ -40,10 +40,10 @@ public class CategoryPanel extends JPanel {
 
     private static final long serialVersionUID = -729150966236965013L;
     boolean expanded;
-    JideButton toggleButton;
+    final JideButton toggleButton;
     int nColumns = 5;
-    private JPanel listPanel;
-    private JPanel labelBar;
+    private final JPanel listPanel;
+    private final JPanel labelBar;
 
     public CategoryPanel(String name, List<ResourceLocator> locatorList, Set<String> loadedTrackNames) {
 

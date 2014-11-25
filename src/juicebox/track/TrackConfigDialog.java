@@ -20,7 +20,7 @@ public class TrackConfigDialog extends JDialog {
 
     private static final long serialVersionUID = -1778029293180119209L;
     boolean canceled = false;
-    HiCTrack track;
+    final HiCTrack track;
 
     public TrackConfigDialog(Frame owner, HiCTrack track) {
         super(owner);

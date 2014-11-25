@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
-    private static Logger log = Logger.getLogger(DatasetReaderV2.class);
+    private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
 
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
@@ -40,7 +40,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     /**
      * Cache of chromosome name -> array of restriction sites
      */
-    private Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
+    private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
 
     private Map<String, FragIndexEntry> fragmentSitesIndex;
     private final CompressionUtils compressionUtils;
@@ -704,8 +704,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     static class FragIndexEntry {
-        long position;
-        int nSites;
+        final long position;
+        final int nSites;
 
         FragIndexEntry(long position, int nSites) {
             this.position = position;

@@ -18,14 +18,14 @@ package juicebox;
 
 import org.apache.log4j.Logger;
 import org.broad.igv.util.*;
-import java.util.List;
+//import java.util.List;
 import java.util.*;
 
 
 public class CommandExecutor {
 
-    private static Logger log = Logger.getLogger(CommandExecutor.class);
-    HiC hic;
+    private static final Logger log = Logger.getLogger(CommandExecutor.class);
+    final HiC hic;
 
     public CommandExecutor(HiC hic) {
         this.hic = hic;

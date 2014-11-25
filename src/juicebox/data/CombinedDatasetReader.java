@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 
-import java.util.List;
+//import java.util.List;
 import java.util.*;
 
 /**
@@ -21,7 +21,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     private boolean hasFrags;
 
-    private List<DatasetReaderV2> readers;
+    private final List<DatasetReaderV2> readers;
     private int version;
 
     public CombinedDatasetReader(List<DatasetReaderV2> readers) {
@@ -374,13 +374,19 @@ public class CombinedDatasetReader implements DatasetReader {
             }
             Scanner scanner = new Scanner(graphs);
             try {
-                while (!scanner.next().equals("[")) ;
+                while(true){
+                    if(scanner.next().equals("[")) break;
+                }
+                //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 2000; idx++) {
                     A[idx] += scanner.nextLong();
 
                 }
 
-                while (!scanner.next().equals("[")) ;
+                while(true){
+                    if(scanner.next().equals("[")) break;
+                }
+                //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 201; idx++) {
                     mapq1[idx] += scanner.nextInt();
                     mapq2[idx] += scanner.nextInt();
@@ -388,7 +394,10 @@ public class CombinedDatasetReader implements DatasetReader {
 
                 }
 
-                while (!scanner.next().equals("[")) ;
+                while(true){
+                    if(scanner.next().equals("[")) break;
+                }
+                //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 100; idx++) {
                     inner[idx] += scanner.nextInt();
                     outer[idx] += scanner.nextInt();

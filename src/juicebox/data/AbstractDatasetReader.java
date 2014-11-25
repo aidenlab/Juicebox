@@ -21,9 +21,9 @@ import java.io.IOException;
  */
 public abstract class AbstractDatasetReader implements DatasetReader {
 
-    private static Logger log = Logger.getLogger(AbstractDatasetReader.class);
+    private static final Logger log = Logger.getLogger(AbstractDatasetReader.class);
 
-    protected String path;
+    protected final String path;
 
     public AbstractDatasetReader(String path) {
         this.path = path;

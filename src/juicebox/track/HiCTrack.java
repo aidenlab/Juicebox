@@ -18,8 +18,8 @@ import java.awt.event.ActionListener;
  */
 public abstract class HiCTrack {
 
-    protected int height = 25;
-    protected ResourceLocator locator;
+    protected final int height = 25;
+    protected final ResourceLocator locator;
 
     public HiCTrack(ResourceLocator locator) {
         this.locator = locator;

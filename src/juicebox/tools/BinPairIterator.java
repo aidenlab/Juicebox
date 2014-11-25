@@ -11,9 +11,9 @@ import java.util.Map;
  */
 public class BinPairIterator implements PairIterator {
 
-    LittleEndianInputStream is;
-    AlignmentPair next;
-    AlignmentPair preNext;
+    private LittleEndianInputStream is;
+    private AlignmentPair next;
+    private AlignmentPair preNext;
 
     /**
      * TODO -- chromosomeIndexes is ignored for now, but should be used to map the chromosome stored in the

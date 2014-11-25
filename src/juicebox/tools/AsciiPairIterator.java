@@ -39,16 +39,16 @@ public class AsciiPairIterator implements PairIterator {
 
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
-    AlignmentPair nextPair = null;
-    AlignmentPair preNext = null;
-    BufferedReader reader;
-    Format format = null;
+    private AlignmentPair nextPair = null;
+    private AlignmentPair preNext = null;
+    private BufferedReader reader;
+    private Format format = null;
 
     /**
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
      * in perm space, which is rather limited and can cause us to run out of memory.
      */
-    Map<String, String> stringInternPool = new HashMap<String, String>();
+    private final Map<String, String> stringInternPool = new HashMap<String, String>();
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
         this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);

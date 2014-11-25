@@ -23,10 +23,10 @@ import java.util.List;
  */
 public class LoadEncodeAction extends AbstractAction {
 
-    private static Logger log = Logger.getLogger(LoadEncodeAction.class);
+    private static final Logger log = Logger.getLogger(LoadEncodeAction.class);
     private static final long serialVersionUID = 42L;
-    Component owner;
-    HiC hic;
+    final Component owner;
+    final HiC hic;
     String genome;
     HashSet<ResourceLocator> loadedLocators;
 
@@ -129,7 +129,7 @@ public class LoadEncodeAction extends AbstractAction {
     }
 
 
-    private static Map<String, Color> colors;
+    private static final Map<String, Color> colors;
 
     static {
         colors = new HashMap<String, Color>();

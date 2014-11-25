@@ -16,7 +16,7 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 
 
 //import javax.swing.*;
-import java.util.List;
+//import java.util.List;
 import java.io.*;
 import java.util.*;
 
@@ -27,28 +27,28 @@ import java.util.*;
  */
 public class MatrixZoomData {
 
-    private static Logger log = Logger.getLogger(MatrixZoomData.class);
+    private static final Logger log = Logger.getLogger(MatrixZoomData.class);
 
     DatasetReader reader;
 
-    private Chromosome chr1;  // Chromosome on the X axis
-    private Chromosome chr2;  // Chromosome on the Y axis
-    private HiCZoom zoom;    // Unit and bin size
+    private final Chromosome chr1;  // Chromosome on the X axis
+    private final Chromosome chr2;  // Chromosome on the Y axis
+    private final HiCZoom zoom;    // Unit and bin size
 
-    HiCGridAxis xGridAxis;
-    HiCGridAxis yGridAxis;
+    final HiCGridAxis xGridAxis;
+    final HiCGridAxis yGridAxis;
 
     // Observed values are ogranized into sub-matrices ("blocks")
-    private int blockBinCount;   // block size in bins
-    private int blockColumnCount;     // number of block columns
+    private final int blockBinCount;   // block size in bins
+    private final int blockColumnCount;     // number of block columns
 
-    HashMap<NormalizationType, BasicMatrix> pearsonsMap;
-    HashSet<NormalizationType> missingPearsonFiles;
+    final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
+    final HashSet<NormalizationType> missingPearsonFiles;
     private double averageCount = -1;
 
-    boolean useCache = true;
+    final boolean useCache = true;
     // Cache the last 20 blocks loaded
-    LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
+    final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
 
 
 //    float sumCounts;
@@ -497,10 +497,9 @@ public class MatrixZoomData {
     private double getVectorMean(double[] vector) {
         double sum = 0;
         int count = 0;
-        int size = vector.length;
-        for (int i = 0; i < size; i++) {
-            if (!Double.isNaN(vector[i])) {
-                sum += vector[i];
+        for (double aVector : vector) {
+            if (!Double.isNaN(aVector)) {
+                sum += aVector;
                 count++;
             }
         }
@@ -702,7 +701,7 @@ public class MatrixZoomData {
     public class ContactRecordIterator implements Iterator<ContactRecord> {
 
         int blockIdx;
-        List<Integer> blockNumbers;
+        final List<Integer> blockNumbers;
         Iterator<ContactRecord> currentBlockIterator;
 
         public ContactRecordIterator() {

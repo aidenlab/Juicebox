@@ -9,12 +9,12 @@ public class ContactRecord implements Comparable<ContactRecord> {
     /**
      * Bin number in x coordinate
      */
-    private int binX;
+    private final int binX;
 
     /**
      * Bin number in y coordinate
      */
-    private int binY;
+    private final int binY;
 
     /**
      * Total number of counts, or cumulative score

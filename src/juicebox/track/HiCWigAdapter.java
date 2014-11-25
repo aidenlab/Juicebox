@@ -23,7 +23,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
 
     WiggleDataset dataset;
     String trackName;
-    Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
+    final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
     private Color color;
     private Color altColor;
     DataRange dataRange;

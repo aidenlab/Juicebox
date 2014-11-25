@@ -37,22 +37,15 @@ public class EncodeFileBrowser extends JDialog {
     private static final long serialVersionUID = 3049287764412827292L;
     private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
 
-    private static Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
-    private static NumberFormatter numberFormatter = new NumberFormatter();
+    private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
+    private static final NumberFormatter numberFormatter = new NumberFormatter();
 
-    private JButton cancelButton;
-    private JPanel dialogPane;
-    private JPanel contentPanel;
-    private JScrollPane scrollPane1;
+
     private JTable table;
-    private JPanel filterPanel;
-    private JLabel filterLabel;
     private JTextField filterTextField;
     private JLabel rowCountLabel;
-    private JPanel buttonBar;
-    private JButton okButton;
 
-    EncodeTableModel model;
+    final EncodeTableModel model;
     private boolean canceled;
 
 
@@ -88,7 +81,7 @@ public class EncodeFileBrowser extends JDialog {
     }
 
 
-    static HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
+    static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
     public static boolean genomeSupported(String genomeId) {
           return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
     }
@@ -353,17 +346,17 @@ public class EncodeFileBrowser extends JDialog {
 
     private void initComponents() {
 
-        dialogPane = new JPanel();
-        contentPanel = new JPanel();
-        scrollPane1 = new JScrollPane();
+        JPanel dialogPane = new JPanel();
+        JPanel contentPanel = new JPanel();
+        JScrollPane scrollPane1 = new JScrollPane();
         table = new JTable();
-        filterPanel = new JPanel();
-        filterLabel = new JLabel();
+        JPanel filterPanel = new JPanel();
+        JLabel filterLabel = new JLabel();
         filterTextField = new JTextField();
         rowCountLabel = new JLabel();
-        buttonBar = new JPanel();
-        okButton = new JButton();
-        cancelButton = new JButton();
+        JPanel buttonBar = new JPanel();
+        JButton okButton = new JButton();
+        JButton cancelButton = new JButton();
 
         getRootPane().setDefaultButton(okButton);
 

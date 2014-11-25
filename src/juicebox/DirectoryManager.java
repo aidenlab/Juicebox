@@ -28,7 +28,7 @@ import java.util.prefs.Preferences;
  */
 public class DirectoryManager {
 
-    private static Logger log = Logger.getLogger(DirectoryManager.class);
+    private static final Logger log = Logger.getLogger(DirectoryManager.class);
 
     private static File USER_HOME;
     private static File USER_DIRECTORY;    // FileSystemView.getFileSystemView().getDefaultDirectory();

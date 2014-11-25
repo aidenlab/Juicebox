@@ -15,7 +15,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
     IntArrayList rows2 = null;
     IntArrayList cols2 = null;
     FloatArrayList values2 = null;
-    int totSize;
+    final int totSize;
 
 
     public SparseSymmetricMatrix(int totSize) {

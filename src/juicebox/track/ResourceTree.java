@@ -116,7 +116,7 @@ public class ResourceTree {
                             menuItem.addActionListener(new ActionListener() {
                                 @Override
                                 public void actionPerformed(ActionEvent e) {
-                                    removeFeature((DefaultMutableTreeNode)selPath.getLastPathComponent());
+                                    removeFeature((DefaultMutableTreeNode) selPath.getLastPathComponent());
                                 }
                             });
                             menu.add(menuItem);
@@ -598,11 +598,16 @@ public class ResourceTree {
         // skip root
         enumeration.nextElement();
         while (enumeration.hasMoreElements()){
-            DefaultMutableTreeNode node  = (DefaultMutableTreeNode)enumeration.nextElement();
-            CheckableResource resource = (CheckableResource)node.getUserObject();
-            if (locator.equals(resource.getResourceLocator())) {
-                resource.setSelected(false);
-                ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
+            try {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
+                CheckableResource resource = (CheckableResource) node.getUserObject();
+                if (locator.equals(resource.getResourceLocator())) {
+                    resource.setSelected(false);
+                    ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
+                }
+            }
+            catch (Exception e){
+                System.out.println("There appears to be an invalid node in the resource tree");
             }
         }
 

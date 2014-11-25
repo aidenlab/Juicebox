@@ -44,7 +44,7 @@ import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
 import javax.imageio.ImageIO;
-import javax.swing.JTree;
+//import javax.swing.JTree;
 import javax.swing.*;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -88,18 +88,18 @@ import java.util.prefs.Preferences;
  */
 public class MainWindow extends JFrame {
 
-    private static Logger log = Logger.getLogger(MainWindow.class);
+    private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
     private static final boolean isRestricted = true;
     private static RecentMenu recentMenu;
     private String currentlyLoadedFile = "";
 
-    public static Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
+    public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
 
 
-    private ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
+    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     // The "model" object containing the state for this instance.
-    private HiC hic;
+    private final HiC hic;
 
     private String datasetTitle = "";
     private String controlTitle;
@@ -139,7 +139,7 @@ public class MainWindow extends JFrame {
     private HiCZoom initialZoom;
     private String saveImagePath;
 
-    private static int recentListMaxItems = 20;
+    private static final int recentListMaxItems = 20;
 
     public void updateToolTipText(String s) {
         mouseHoverTextPanel.setText(s);
@@ -153,7 +153,7 @@ public class MainWindow extends JFrame {
         EXPECTED("Expected"),
         RATIO("Observed / Control"),
         CONTROL("Control");
-        private String value;
+        private final String value;
 
         MatrixType(String value) {
             this.value = value;
@@ -2107,7 +2107,7 @@ public class MainWindow extends JFrame {
         private JSplitButton localButton;
         private JMenuItem openURL;
         private JMenuItem open30;
-        private boolean success;
+        private final boolean success;
         private boolean control;
         static final long serialVersionUID = 42L;
         public LoadDialog(Properties properties) {
@@ -2329,10 +2329,10 @@ public class MainWindow extends JFrame {
 
 
         private class ItemInfo {
-            public String uid;
-            public String itemName;
+            public final String uid;
+            public final String itemName;
             public String itemURL;
-            public String parentKey;
+            public final String parentKey;
 
             public ItemInfo(String uid, String parentKey, String itemName, String itemURL) {
                 this.uid = uid;
@@ -2360,10 +2360,10 @@ public class MainWindow extends JFrame {
         private final ImageIcon lockIcon;
 
         JSlider resolutionSlider;
-        JideButton lockButton;
+        final JideButton lockButton;
         final JLabel resolutionLabel;
-        Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
-        Map<Integer, String> bpLabelMap;
+        final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
+        final Map<Integer, String> bpLabelMap;
         private int lastValue = 0;
         HiC.Unit unit = HiC.Unit.BP;
 
@@ -2613,12 +2613,12 @@ public class MainWindow extends JFrame {
     {
         final private static String HIC_RECENT = "hicRecent";
         private static final long serialVersionUID = 4685393080959162312L;
-        private String defaultText = "";
-        private String[] recentEntries;
-        private int m_maxItems;
+        private final String defaultText = "";
+        private final String[] recentEntries;
+        private final int m_maxItems;
         private boolean b_isEnabled = false;
-        private Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        private List<String> m_items = new ArrayList<String>();
+        private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+        private final List<String> m_items = new ArrayList<String>();
 
         public RecentMenu(int count) throws BackingStoreException {
             super();
@@ -2675,22 +2675,22 @@ public class MainWindow extends JFrame {
             }
 
             //add items back to the menu
-            for(int index=0;index<this.m_items.size();index++){
-                JMenuItem menuItem=new JMenuItem();
+            for (String m_item : this.m_items) {
+                JMenuItem menuItem = new JMenuItem();
 
                 String delimiter = "@@";
                 String[] temp;
-                temp = this.m_items.get(index).split(delimiter);
+                temp = m_item.split(delimiter);
 
                 menuItem.setText(temp[0]);
-                if(temp[0].equals(defaultText)){
+                if (temp[0].equals(defaultText)) {
                     menuItem.setVisible(false);
-                } else{
+                } else {
                     menuItem.setVisible(true);
                     menuItem.setToolTipText(temp[0]);
-                    menuItem.setActionCommand(this.m_items.get(index));
-                    menuItem.addActionListener(new ActionListener(){
-                        public void actionPerformed(ActionEvent actionEvent){
+                    menuItem.setActionCommand(m_item);
+                    menuItem.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent actionEvent) {
                             onSelectPosition(actionEvent.getActionCommand());
                         }
                     });
@@ -2755,7 +2755,7 @@ public class MainWindow extends JFrame {
 
         private class PopupAction implements ActionListener {
 
-            private JPopupMenu popupMenu;
+            private final JPopupMenu popupMenu;
 
             public PopupAction(JPopupMenu popupMenu) {
                 this.popupMenu = popupMenu;
@@ -2813,7 +2813,8 @@ public class MainWindow extends JFrame {
 
         private PopupAction popupAction;
 
-        private JButton mainButton, popupButton;
+        private final JButton mainButton;
+        private final JButton popupButton;
 
         private boolean alwaysShowPopup;
 

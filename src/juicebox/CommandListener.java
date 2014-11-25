@@ -27,16 +27,16 @@ import java.net.Socket;
 
 public class CommandListener implements Runnable {
 
-    private static Logger log = Logger.getLogger(CommandListener.class);
+    private static final Logger log = Logger.getLogger(CommandListener.class);
 
     private static CommandListener listener;
 
     private int port = -1;
     private ServerSocket serverSocket = null;
     private Socket clientSocket = null;
-    private Thread listenerThread;
+    private final Thread listenerThread;
     boolean halt = false;
-    HiC hic;
+    final HiC hic;
 
     public static synchronized void start(HiC hic) {
 
