@@ -173,6 +173,8 @@ public class HiC {
     }
 
     public void removeTrack(ResourceLocator locator) {
+        if (resourceTree != null) resourceTree.remove(locator);
+        if (encodeAction != null) encodeAction.remove(locator);
         trackManager.removeTrack(locator);
     }
 

@@ -27,6 +27,7 @@ import org.broad.igv.track.DataTrack;
 import org.broad.igv.track.FeatureCollectionSource;
 import org.broad.igv.track.Track;
 import org.broad.igv.track.TrackLoader;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.JOptionPane;
@@ -87,7 +88,23 @@ public class HiCTrackManager {
         Runnable runnable = new Runnable() {
             public void run() {
                 for (ResourceLocator locator : locators) {
-                    loadTrack(locator);
+                    try {
+                        loadTrack(locator);
+                    }catch (Exception e){
+                        MessageUtils.showMessage("Could not load resource:<br>"+e.getMessage());
+                        System.out.println("Removing " + locator.getName());
+                        hic.removeTrack(locator);
+                        
+                        if (locator.getType() != null && locator.getType().equals("loop")) {
+                            try {
+                                hic.setLoopsInvisible(locator.getPath());
+                            } catch (Exception e2) {
+                                log.error("Error while making loops invisible ", e2);
+                                MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
+                            }
+                        }
+
+                    }
                 }
 
                 mainWindow.updateTrackPanel();

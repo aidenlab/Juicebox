@@ -31,6 +31,7 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
+import org.broad.igv.util.ResourceLocator;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -801,13 +802,6 @@ public class MainWindow extends JFrame {
                     //hideGlassPane();
                     glassPane.setVisible(false);
                 }
-                /* TODO hela annotation files not found, causing error
-                catch (Exception e) {
-                    MessageUtils.showMessage(e.getMessage());
-                    throw new Exception(e.getMessage());
-                }
-                 */
-
             }
         };
 
