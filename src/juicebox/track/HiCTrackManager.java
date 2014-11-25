@@ -94,7 +94,7 @@ public class HiCTrackManager {
                         MessageUtils.showMessage("Could not load resource:<br>"+e.getMessage());
                         System.out.println("Removing " + locator.getName());
                         hic.removeTrack(locator);
-                        
+
                         if (locator.getType() != null && locator.getType().equals("loop")) {
                             try {
                                 hic.setLoopsInvisible(locator.getPath());

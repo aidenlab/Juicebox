@@ -1287,35 +1287,26 @@ public class MainWindow extends JFrame {
         //========= Positioning panel ======
 
         positionPanel = new JPanel();
-        JPanel positionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JPanel positionTopPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JPanel positionLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        positionPanel.setLayout(new GridLayout(0,1));
 
-        JLabel positionLabel = new JLabel("Jump To:");
+        JLabel positionLabel = new JLabel(" Jump To:");
         positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-
-        positionLabelPanel.add(positionLabel);
 
         positionChrTop = new JTextField();
         positionChrTop.setPreferredSize(new Dimension(180,25));
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
-        positionTopPanel.add(positionChrTop);
-
         positionChrLeft = new JTextField();
         positionChrLeft.setPreferredSize(new Dimension(180,25));
         positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
 
-        positionLeftPanel.add(positionChrLeft);
+        positionLabel.setPreferredSize(new Dimension(200,25));
+        positionChrTop.setPreferredSize(new Dimension(200,30));
+        positionChrLeft.setPreferredSize(new Dimension(200,30));
 
-        positionLabelPanel.setPreferredSize(new Dimension(200,25));
-        positionTopPanel.setPreferredSize(new Dimension(200,30));
-        positionLeftPanel.setPreferredSize(new Dimension(200,30));
-
-        positionPanel.add(positionLabelPanel);
-        positionPanel.add(positionTopPanel);
-        positionPanel.add(positionLeftPanel);
-
+        positionPanel.add(positionLabel);
+        positionPanel.add(positionChrTop);
+        positionPanel.add(positionChrLeft);
 
         positionPanel.setBackground(Color.white);
         positionPanel.setBorder(LineBorder.createBlackLineBorder());
