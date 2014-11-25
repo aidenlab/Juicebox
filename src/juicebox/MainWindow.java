@@ -131,7 +131,10 @@ public class MainWindow extends JFrame {
     TrackPanel trackPanelY;
     private HiCRulerPanel rulerPanelY;
     private ThumbnailPanel thumbnailPanel;
+    private JPanel positionPanel;
     private JLabel mouseHoverTextPanel;
+    private JTextField positionChrLeft;
+    private JTextField positionChrTop;
 
     private JPanel hiCPanel;
     private JMenu annotationsMenu;
@@ -1243,9 +1246,9 @@ public class MainWindow extends JFrame {
         hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
 
 
-        //======== panel8 ========
+        //======== Right side panel ========
 
-        JPanel rightSidePanel = new JPanel(new BorderLayout());
+        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(200, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
@@ -1253,6 +1256,8 @@ public class MainWindow extends JFrame {
         //LayoutManager lm = new FlowLayout(FlowLayout.LEFT, 10, 20);
         //rightSidePanel.setLayout(lm);
         //rightSidePanel.setLayout(null);
+
+        //======== Bird's view mini map ========
 
         JPanel thumbPanel = new JPanel();
         //thumbPanel.setLayout(null);
@@ -1264,10 +1269,51 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
         thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-        thumbnailPanel.setBounds(new Rectangle(new Point(20, 0), thumbnailPanel.getPreferredSize()));
+        thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
         thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
+        rightSidePanel.add(thumbPanel, BorderLayout.PAGE_START);
+
+        //========= Positioning panel ======
+
+        positionPanel = new JPanel();
+        JPanel positionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel positionTopPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel positionLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        JLabel positionLabel = new JLabel("Jump To:");
+        positionLabel.setFont(new Font("Arial", 2, 14));
+
+        positionLabelPanel.add(positionLabel);
+
+        positionChrTop = new JTextField();
+        positionChrTop.setPreferredSize(new Dimension(180,25));
+        positionChrTop.setFont(new Font("Arial", 2, 10));
+
+        positionTopPanel.add(positionChrTop);
+
+        positionChrLeft = new JTextField();
+        positionChrLeft.setPreferredSize(new Dimension(180,25));
+        positionChrLeft.setFont(new Font("Arial", 2, 10));
+
+        positionLeftPanel.add(positionChrLeft);
+
+        positionLabelPanel.setPreferredSize(new Dimension(200,25));
+        positionTopPanel.setPreferredSize(new Dimension(200,30));
+        positionLeftPanel.setPreferredSize(new Dimension(200,30));
+
+        positionPanel.add(positionLabelPanel);
+        positionPanel.add(positionTopPanel);
+        positionPanel.add(positionLeftPanel);
+
+
+        positionPanel.setBackground(Color.white);
+        positionPanel.setBorder(LineBorder.createBlackLineBorder());
+        int positionPanelY = thumbnailPanel.getBounds().y + thumbnailPanel.getBounds().height + 10;
+        Dimension positionPanelSize = new Dimension(180, 40);
+        positionPanel.setBounds(new Rectangle(new Point(0, positionPanelY), positionPanelSize));
+        positionPanel.setPreferredSize(positionPanelSize);
+        rightSidePanel.add(positionPanel,BorderLayout.CENTER);
 
         //========= mouse hover text ======
 
@@ -1276,10 +1322,12 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
         mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.LEFT);
         mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
-        int mouseTextY = thumbnailPanel.getBounds().y + thumbnailPanel.getBounds().height + 20;
-        Dimension prefSize = new Dimension(200, 500);
+        int mouseTextY = positionPanel.getBounds().y + positionPanel.getBounds().height + 20;
+
+        Dimension prefSize = new Dimension(180, 400);
+        mouseHoverTextPanel.setPreferredSize(prefSize);
         mouseHoverTextPanel.setBounds(new Rectangle(new Point(20, mouseTextY), prefSize));
-        rightSidePanel.add(mouseHoverTextPanel);
+        rightSidePanel.add(mouseHoverTextPanel,BorderLayout.PAGE_END);
 
         //======== xPlotPanel ========
 //
@@ -1319,12 +1367,21 @@ public class MainWindow extends JFrame {
 
         // setup the glass pane to display a wait cursor when visible, and to grab all mouse events
         rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        final PopupMenu testPopUp = new PopupMenu();
-        testPopUp.setLabel("Please wait");
-        rootPane.getGlassPane().add(testPopUp);
+//        final PopupMenu testPopUp = new PopupMenu();
+//        testPopUp.setLabel("Please wait");
+//        rootPane.getGlassPane().add(testPopUp);
         rootPane.getGlassPane().addMouseListener(new MouseAdapter() {
         });
 
+    }
+
+    public void setPositionChrLeft(String newPositionDate){
+        this.positionChrLeft.setText(newPositionDate);
+    }
+
+
+    public void setPositionChrTop(String newPositionDate){
+        this.positionChrTop.setText(newPositionDate);
     }
 
     private void colorRangeSliderUpdateToolTip() {
