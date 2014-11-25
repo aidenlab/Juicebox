@@ -7,8 +7,8 @@ package juicebox;
  */
 public class HiCZoom {
 
-    private HiC.Unit unit;
-    private int binSize;
+    private final HiC.Unit unit;
+    private final int binSize;
 
     public HiCZoom(HiC.Unit unit, int binSize) {
         this.unit = unit;

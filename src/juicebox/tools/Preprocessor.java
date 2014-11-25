@@ -30,16 +30,16 @@ public class Preprocessor {
     private static final int VERSION = 8;
     public static final int BLOCK_SIZE = 1000;
 
-    private List<Chromosome> chromosomes;
+    private final List<Chromosome> chromosomes;
 
     // Map of name -> index
-    private Map<String, Integer> chromosomeIndexes;
+    private final Map<String, Integer> chromosomeIndexes;
 
-    private File outputFile;
+    private final File outputFile;
     private LittleEndianOutputStream los;
 
     private long masterIndexPosition;
-    private Map<String, IndexEntry> matrixPositions;
+    private final Map<String, IndexEntry> matrixPositions;
 
     private int countThreshold = 0;
     private int mapqThreshold = 0;
@@ -49,7 +49,7 @@ public class Preprocessor {
     private String graphFileName = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
-    private String genomeId;
+    private final String genomeId;
 
     /**
      * The position of the field containing the masterIndex position
@@ -749,8 +749,8 @@ public class Preprocessor {
 
     public static class IndexEntry {
         int id;
-        public long position;
-        public int size;
+        public final long position;
+        public final int size;
 
         IndexEntry(int id, long position, int size) {
             this.id = id;
@@ -770,9 +770,9 @@ public class Preprocessor {
      */
     class MatrixPP {
 
-        private int chr1Idx;
-        private int chr2Idx;
-        private MatrixZoomDataPP[] zoomData;
+        private final int chr1Idx;
+        private final int chr2Idx;
+        private final MatrixZoomDataPP[] zoomData;
 
 
         /**
@@ -886,27 +886,27 @@ public class Preprocessor {
      */
     class MatrixZoomDataPP {
 
-        private Chromosome chr1;  // Redundant, but convenient    BinDatasetReader
-        private Chromosome chr2;  // Redundant, but convenient
+        private final Chromosome chr1;  // Redundant, but convenient    BinDatasetReader
+        private final Chromosome chr2;  // Redundant, but convenient
 
         private double sum = 0;
         private double cellCount = 0;
         private double percent5;
         private double percent95;
 
-        private int zoom;
-        private int binSize;              // bin size in bp
-        private int blockBinCount;        // block size in bins
-        private int blockColumnCount;     // number of block columns
+        private final int zoom;
+        private final int binSize;              // bin size in bp
+        private final int blockBinCount;        // block size in bins
+        private final int blockColumnCount;     // number of block columns
 
-        boolean isFrag;
+        final boolean isFrag;
 
-        private LinkedHashMap<Integer, BlockPP> blocks;
+        private final LinkedHashMap<Integer, BlockPP> blocks;
 
 
-        Set<Integer> blockNumbers;  // The only reason for this is to get a count
+        final Set<Integer> blockNumbers;  // The only reason for this is to get a count
 
-        List<File> tmpFiles;
+        final List<File> tmpFiles;
         public long blockIndexPosition;
 
         /**
@@ -1266,7 +1266,7 @@ public class Preprocessor {
 
     static class BlockQueueFB implements BlockQueue {
 
-        File file;
+        final File file;
         BlockPP block;
         long filePosition;
 
@@ -1345,7 +1345,7 @@ public class Preprocessor {
 
     static class BlockQueueMem implements BlockQueue {
 
-        List<BlockPP> blocks;
+        final List<BlockPP> blocks;
         int idx = 0;
 
         BlockQueueMem(Collection<BlockPP> blockCollection) {
@@ -1378,10 +1378,10 @@ public class Preprocessor {
      */
     static class BlockPP {
 
-        private int number;
+        private final int number;
 
         // Key to the map is a Point representing the x,y coordinate for the cell.
-        private Map<Point, ContactCount> contactRecordMap;
+        private final Map<Point, ContactCount> contactRecordMap;
 
 
         BlockPP(int number) {

@@ -23,8 +23,8 @@ import java.util.concurrent.*;
  */
 public class IGVUtils {
 
-    private static Logger log = Logger.getLogger(IGVUtils.class) ;
-    private static ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
+    private static final Logger log = Logger.getLogger(IGVUtils.class) ;
+    private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
 
     static SocketHelper helper = null;
 

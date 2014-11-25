@@ -15,7 +15,7 @@ public enum NormalizationType {
     GW_VC("Genome-wide coverage"),
     INTER_VC("Inter coverage"),
     LOADED("Loaded");
-    private String label;
+    private final String label;
 
     NormalizationType(String label) {
         this.label = label;

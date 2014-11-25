@@ -26,6 +26,7 @@ import juicebox.track.*;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
@@ -39,6 +40,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import slider.RangeSlider;
+//import sun.misc.MessageUtils;
 
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
@@ -784,7 +786,12 @@ public class MainWindow extends JFrame {
                 try {
                     runnable.run();
                     return "done";
-                } finally {
+                }
+                catch (Exception e){
+                    MessageUtils.showMessage(e.getMessage());
+                    throw new Exception(e.getMessage());
+                }
+                finally {
                     //hideGlassPane();
                     glassPane.setVisible(false);
                 }
