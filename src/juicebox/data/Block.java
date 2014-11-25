@@ -1,8 +1,9 @@
 package juicebox.data;
 
-import java.awt.*;
-import java.util.*;
+//import java.awt.*;
 import java.util.List;
+import java.util.*;
+
 
 /**
  * @author jrobinso

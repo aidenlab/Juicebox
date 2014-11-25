@@ -49,8 +49,13 @@ public class HiCFileUtils {
                 " resolution = " + binSize + " " + unitName;
         System.out.println(label);
         double [] data = nv.getData();
+        /*
         for(int i=0; i<data.length; i++) {
             System.out.println(data[i]);
+        }
+        */
+        for(double datum : data){
+            System.out.println(datum);
         }
 
     }
@@ -64,8 +69,8 @@ public class HiCFileUtils {
 
             ExpectedValueFunctionImpl ev = (ExpectedValueFunctionImpl) entry.getValue();
 
-            if (ev.getUnit().toString().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().equals(type)) {
-                String label = ev.getNormalizationType() + "\t" + ev.getUnit().toString() + "\t" + ev.getBinSize();
+            if (ev.getUnit().equals(unit) && ev.getBinSize() == binSize && ev.getNormalizationType().equals(type)) {
+                String label = ev.getNormalizationType() + "\t" + ev.getUnit() + "\t" + ev.getBinSize();
 
                 System.out.println("Norm factors: " + label);
                 for (Map.Entry<Integer, Double> nf : ev.getNormFactors().entrySet()) {
@@ -74,8 +79,13 @@ public class HiCFileUtils {
 
                 System.out.println("Expected values: " + label);
                 double[] values = ev.getExpectedValues();
+                /*
                 for (int i = 0; i < values.length; i++) {
                     System.out.println(values[i]);
+                }
+                */
+                for(double datum : values){
+                    System.out.println(datum);
                 }
 
                 System.out.println("End expected values: " + label);

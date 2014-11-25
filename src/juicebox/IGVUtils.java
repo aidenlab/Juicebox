@@ -2,18 +2,18 @@ package juicebox;
 
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
-import org.broad.igv.lists.GeneList;
+//import org.broad.igv.lists.GeneList;
 import org.broad.igv.ui.IGV;
-import org.broad.igv.ui.WaitCursorManager;
-import org.broad.igv.util.LongRunningTask;
-import org.broad.igv.util.NamedRunnable;
+//import org.broad.igv.ui.WaitCursorManager;
+//import org.broad.igv.util.LongRunningTask;
+//import org.broad.igv.util.NamedRunnable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
+//import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.concurrent.*;
 

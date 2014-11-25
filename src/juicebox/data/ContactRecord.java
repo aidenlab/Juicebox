@@ -55,7 +55,7 @@ public class ContactRecord implements Comparable<ContactRecord> {
     }
 
     public String toString() {
-        return new String(binX + " " + binY + " " + counts);
+        return "" + binX + " " + binY + " " + counts;
     }
 
     public String getKey() {

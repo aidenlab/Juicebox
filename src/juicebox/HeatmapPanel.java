@@ -658,6 +658,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 mainWindow.updateToolTipText(toolTipText(e.getX(), e.getY()));
 
+
                 if (straightEdgeEnabled) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
@@ -819,7 +820,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //    }
 
-    private String toolTipText(int x, int y) {
+    private String toolTipText(int x, int y){
         // Update popup text
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return "";

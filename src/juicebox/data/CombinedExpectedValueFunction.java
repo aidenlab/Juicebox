@@ -4,7 +4,7 @@ import juicebox.NormalizationType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+//import java.util.Map;
 
 /**
  * @author jrobinso
@@ -39,13 +39,13 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
     public double[] getExpectedValues() {
         if (expectedValues != null) return expectedValues;
         int length = 0;
-        for (ExpectedValueFunction df : densityFunctions) {
-            if (((ExpectedValueFunctionImpl)df).getExpectedValues().length > length)
-                length = ((ExpectedValueFunctionImpl)df).getExpectedValues().length;
+        for (ExpectedValueFunction df : densityFunctions) { // Removed cast to ExpectedValueFunctionImpl; change back if errors
+            length = Math.max(length, df.getExpectedValues().length);
         }
         expectedValues = new double[length];
         for (ExpectedValueFunction df : densityFunctions) {
-            double[] current = ((ExpectedValueFunctionImpl)df).getExpectedValues();
+
+            double[] current = df.getExpectedValues();
             for (int i=0; i<current.length; i++) {
                 expectedValues[i] += current[i];
             }

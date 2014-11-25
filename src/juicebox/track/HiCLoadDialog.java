@@ -12,7 +12,7 @@
 
 package juicebox.track;
 
-import org.broad.igv.track.Track;
+//import org.broad.igv.track.Track;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;

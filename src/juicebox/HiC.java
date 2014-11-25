@@ -591,7 +591,7 @@ public class HiC {
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
-    public float getNormalizedObservedValue(int binX, int binY) {
+    public float getNormalizedObservedValue(int binX, int binY){
 
         return getZd().getObservedValue(binX, binY, normalizationType);
 

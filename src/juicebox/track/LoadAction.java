@@ -17,12 +17,12 @@ package juicebox.track;
 //~--- non-JDK imports --------------------------------------------------------
 
 import org.apache.log4j.Logger;
-import org.broad.igv.PreferenceManager;
+//import org.broad.igv.PreferenceManager;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.NormalizationType;
 import org.broad.igv.ui.util.MessageUtils;
-import org.broad.igv.util.ParsingUtils;
+//import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
@@ -31,14 +31,15 @@ import org.xml.sax.SAXException;
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.awt.*;
+//import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
+//import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.*;
+//import java.io.InputStreamReader;
 import java.util.List;
+import java.util.*;
+
 
 /**
  * @author jrobinso
@@ -205,7 +206,7 @@ public class LoadAction extends AbstractAction {
             log.error("Connection time out", e);
             errors.append(url + "<br><i>Connection time out");
         } catch (IOException e) {
-            log.error("Error accessing " + url.toString(), e);
+            log.error("Error accessing " + url, e);
             errors.append(url + "<br><i>" + e.getMessage());
         } catch (ParserConfigurationException e) {
             log.error("Parser configuration error for:" + url, e);

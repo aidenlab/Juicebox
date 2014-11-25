@@ -38,10 +38,7 @@ public class HiCZoom {
 
         HiCZoom hiCZoom = (HiCZoom) o;
 
-        if (binSize != hiCZoom.binSize) return false;
-        if (unit != hiCZoom.unit) return false;
-
-        return true;
+        return (binSize == hiCZoom.binSize) && (unit == hiCZoom.unit);
     }
 
     @Override

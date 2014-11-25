@@ -162,7 +162,7 @@ public class EncodeFileBrowser extends JDialog {
         try {
             rowCountLabel.setText(numberFormatter.valueToString(table.getRowCount()) + " rows");
         } catch (ParseException e) {
-
+            e.printStackTrace();
         }
 
         table.setRowSelectionAllowed(false);

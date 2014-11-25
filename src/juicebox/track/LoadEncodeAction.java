@@ -124,7 +124,7 @@ public class LoadEncodeAction extends AbstractAction {
             browser.remove(locator);
         }
         catch (IOException e) {
-
+            e.printStackTrace();
         }
     }
 

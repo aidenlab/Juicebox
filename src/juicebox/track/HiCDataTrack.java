@@ -94,9 +94,10 @@ public class HiCDataTrack extends HiCTrack {
             baseY = y + (height - TRACK_MARGIN);
         }
 
-        for (int i = 0; i < data.length; i++) {
+        //for (int i = 0; i < data.length; i++) {
+        for (HiCDataPoint d : data) {
 
-            HiCDataPoint d = data[i];
+            //HiCDataPoint d = data[i];
             if (d == null) continue;
 
             double bin = d.getBinNumber() - startBin;

@@ -12,7 +12,7 @@ import org.broad.igv.track.WindowFunction;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+//import java.util.Collections;
 
 /**
  * @author jrobinso

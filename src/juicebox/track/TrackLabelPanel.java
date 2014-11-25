@@ -1,16 +1,16 @@
 package juicebox.track;
 
-import juicebox.Context;
+//import juicebox.Context;
 import juicebox.HiC;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.broad.igv.renderer.GraphicUtils;
+//import java.util.HashMap;
+//import java.util.Map;
+//import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
+//import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 /**
@@ -24,7 +24,7 @@ public class TrackLabelPanel extends JPanel {
     HiC hic;
     HiCTrack eigenvectorTrack;
     private int numExtraBufferLinesSpaces = 2;
-    private java.util.List<HiCTrack> tracks;
+    //private java.util.List<HiCTrack> tracks;
     JLabel textLabel;
 
     String multiLineText = "";
@@ -42,7 +42,7 @@ public class TrackLabelPanel extends JPanel {
             return;
         }
 
-        tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
+        java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
         if (tracks.isEmpty() && eigenvectorTrack == null) {
             return;
         }

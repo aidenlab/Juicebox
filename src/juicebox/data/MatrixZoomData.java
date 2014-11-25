@@ -10,13 +10,16 @@ import juicebox.matrix.*;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.LRUCache;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 
 
+//import javax.swing.*;
+import java.util.List;
 import java.io.*;
 import java.util.*;
-import java.util.List;
+
 
 /**
  * @author jrobinso
@@ -175,6 +178,8 @@ public class MatrixZoomData {
             }
         }
 
+        final List<String> errorStrings = new ArrayList<String>();
+
         List<Thread> threads = new ArrayList<Thread>();
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
@@ -192,6 +197,7 @@ public class MatrixZoomData {
                         blockList.add(b);
                     } catch (IOException e) {
                         e.printStackTrace();
+                        MessageUtils.showMessage(e.getMessage());
                     }
                 }
             };

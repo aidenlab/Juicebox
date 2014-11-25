@@ -26,14 +26,14 @@ import juicebox.HiC;
 import juicebox.HiCZoom;
 import juicebox.NormalizationType;
 import juicebox.data.*;
-import org.broad.igv.sam.Alignment;
-import org.broad.igv.sam.ReadMate;
-import org.broad.igv.sam.reader.AlignmentReader;
-import org.broad.igv.sam.reader.AlignmentReaderFactory;
+//import org.broad.igv.sam.Alignment;
+//import org.broad.igv.sam.ReadMate;
+//import org.broad.igv.sam.reader.AlignmentReader;
+//import org.broad.igv.sam.reader.AlignmentReaderFactory;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ParsingUtils;
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import htsjdk.samtools.util.CloseableIterator;
+//import htsjdk.samtools.util.CloseableIterator;
 
 import java.io.*;
 import java.sql.SQLException;
@@ -428,8 +428,8 @@ public class HiCTools {
                         System.exit(-1);
                     }
                     int length = df.getLength();
-                    if (chr1.equals("All")) {
-                        dumpVector(pw, ((ExpectedValueFunctionImpl) df).getExpectedValues(), false);
+                    if (chr1.equals("All")) { // removed cast to ExpectedValueFunctionImpl
+                        dumpVector(pw, df.getExpectedValues(), false);
                     } else {
                         Chromosome c = chromosomeMap.get(chr1);
                         for (int i = 0; i < length; i++) {
@@ -982,7 +982,7 @@ public class HiCTools {
             this.start = Integer.parseInt(tokens[1]);
             this.end = Integer.parseInt(tokens[2]);
             if (tokens.length > 3) {
-                this.name = name;
+                this.name = name; // TODO - is this supposed to be this.name = tokens[x]? otherwise a redundant line
             }
 
         }

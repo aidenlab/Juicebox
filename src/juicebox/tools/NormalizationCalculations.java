@@ -289,7 +289,7 @@ public class NormalizationCalculations {
             double beta;
             double gamma;
             double rho_km2 = rho_km1;
-            for (int i = 0; i < y.length; i++) y[i] = e[i];
+            System.arraycopy(e, 0, y, 0, y.length);
 
             double innertol = Math.max(Math.pow(eta, 2) * rout, rt);
             while (rho_km1 > innertol) {   // Inner iteration by CG

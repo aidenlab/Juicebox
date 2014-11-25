@@ -18,9 +18,8 @@
 
 package juicebox.tools;
 
-import htsjdk.tribble.util.LittleEndianOutputStream;
-
-import java.io.IOException;
+//import htsjdk.tribble.util.LittleEndianOutputStream;
+//import java.io.IOException;
 
 /**
  * @author Jim Robinson

@@ -8,8 +8,9 @@ import juicebox.matrix.BasicMatrix;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.*;
+
 import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso

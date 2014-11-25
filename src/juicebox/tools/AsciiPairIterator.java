@@ -22,12 +22,12 @@ package juicebox.tools;
 import org.broad.igv.Globals;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+//import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
+//import java.util.regex.Pattern;
 
 /**
  * @author Jim Robinson
@@ -131,7 +131,7 @@ public class AsciiPairIterator implements PairIterator {
     private String getInternedString(String aString) {
         String s = stringInternPool.get(aString);
         if (s == null) {
-            s = new String(aString); // THe "new" will break any dependency on larger strings if this is a "substring"
+            s = new String(aString); // The "new" will break any dependency on larger strings if this is a "substring"
             stringInternPool.put(aString, s);
         }
         return s;

@@ -34,7 +34,7 @@ public class NormalizationVector {
 
 
     public static String getKey(NormalizationType type, int chrIdx, String unit, int resolution) {
-        return type + "_"  + chrIdx + "_" + unit.toString() + "_" + resolution;
+        return type + "_"  + chrIdx + "_" + unit + "_" + resolution;
     }
 
 

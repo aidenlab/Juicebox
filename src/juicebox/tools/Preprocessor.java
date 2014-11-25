@@ -1250,8 +1250,7 @@ public class Preprocessor {
             e.printStackTrace();
         }
 
-        byte[] compressedData = bos.toByteArray();
-        return compressedData;
+        return bos.toByteArray();
     }
 
 

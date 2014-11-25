@@ -2,7 +2,7 @@ package juicebox.data;
 
 import juicebox.NormalizationType;
 
-import java.util.Map;
+//import java.util.Map;
 
 /**
  * @author jrobinso
