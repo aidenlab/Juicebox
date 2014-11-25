@@ -191,7 +191,7 @@ class RangeSliderUI extends BasicSliderUI {
 
             // parameters for recolored track
             int subTrackWidth = upperThumbRect.x - thumbRect.x;
-            int leftArrowX = thumbRect.x - trackBounds.x;
+            int leftArrowX = thumbRect.x;
             int rightArrowX = leftArrowX + subTrackWidth;
             int leftArrowY = trackRect.y + trackRect.height/4;
             int redTrackWidth = trackRect.x + trackRect.width - rightArrowX;
@@ -201,7 +201,7 @@ class RangeSliderUI extends BasicSliderUI {
             Rectangle redSide = new Rectangle(rightArrowX, leftArrowY, redTrackWidth, subRect.height);
 
             Point startP = new Point(subRect.x, subRect.y);
-            Point endP = new Point(subRect.x + subRect.width,subRect.y + subRect.height);
+            Point endP = new Point(subRect.x + subRect.width, subRect.y + subRect.height);
             LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
 
             drawSubTrackRectangles((Graphics2D)g, gradient, subRect, whiteSide, redSide);
