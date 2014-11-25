@@ -108,8 +108,9 @@ public class ResourceTree {
                 if(selRow != -1 && selPath != null) {
                     if (SwingUtilities.isRightMouseButton(e)) {
 
+                        // removing (DefaultMutableTreeNode) cast to selpath.getlast... (revert if error)
                         if (addedNodes != null &&
-                                addedNodes.contains((DefaultMutableTreeNode)selPath.getLastPathComponent())){
+                                addedNodes.contains(selPath.getLastPathComponent())){
                             JPopupMenu menu = new JPopupMenu("popup");
 
                             JMenuItem menuItem = new JMenuItem("Remove feature");

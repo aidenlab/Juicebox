@@ -17,6 +17,7 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
+import juicebox.rangeslider.RangeSlider;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -39,7 +40,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import slider.RangeSlider;
 //import sun.misc.MessageUtils;
 
 import javax.accessibility.Accessible;
@@ -48,6 +48,7 @@ import javax.accessibility.AccessibleRole;
 import javax.imageio.ImageIO;
 //import javax.swing.JTree;
 import javax.swing.*;
+
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 //import javax.swing.text.StyleConstants;
@@ -92,7 +93,6 @@ public class MainWindow extends JFrame {
 
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
-    private static final boolean isRestricted = true;
     private static RecentMenu recentMenu;
     private String currentlyLoadedFile = "";
 
@@ -265,13 +265,13 @@ public class MainWindow extends JFrame {
 
         Font f = FontManager.getFont(8);
 
-        final JLabel minTickLabel = new JLabel(String.valueOf((int)min));
+        final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
         minTickLabel.setFont(f);
-        final JLabel maxTickLabel = new JLabel(String.valueOf((int)max));
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
         maxTickLabel.setFont(f);
         final JLabel LoTickLabel = new JLabel(String.valueOf(0));
         LoTickLabel.setFont(f);
-        final JLabel UpTickLabel = new JLabel(String.valueOf((int)value));
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int) value));
         UpTickLabel.setFont(f);
 
         labelTable.put(0, LoTickLabel);
@@ -306,13 +306,13 @@ public class MainWindow extends JFrame {
 
         Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
-        final JLabel minTickLabel = new JLabel(String.valueOf((int)min));
+        final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
         minTickLabel.setFont(f);
-        final JLabel maxTickLabel = new JLabel(String.valueOf((int)max));
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
         maxTickLabel.setFont(f);
-        final JLabel LoTickLabel = new JLabel(String.valueOf((int)lower));
+        final JLabel LoTickLabel = new JLabel(String.valueOf((int) lower));
         LoTickLabel.setFont(f);
-        final JLabel UpTickLabel = new JLabel(String.valueOf((int)upper));
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int) upper));
         UpTickLabel.setFont(f);
 
         labelTable.put(iMin, minTickLabel);
@@ -385,11 +385,10 @@ public class MainWindow extends JFrame {
 
         String file = files.get(0);
 
-        if(file.equals(currentlyLoadedFile)){
+        if (file.equals(currentlyLoadedFile)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
             return;
-        }
-        else{
+        } else {
             currentlyLoadedFile = file;
         }
 
@@ -448,8 +447,7 @@ public class MainWindow extends JFrame {
                             if (hic.isControlLoaded()) {
                                 options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
                                         MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                            }
-                            else {
+                            } else {
                                 options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
                             }
 
@@ -539,7 +537,8 @@ public class MainWindow extends JFrame {
             //           hic.getMatrix().getZoomData(initialZoom);
             MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
             MatrixZoomData zdControl = null;
-            if (hic.getControlMatrix() != null) zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
+            if (hic.getControlMatrix() != null)
+                zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
             Image thumbnail = heatmapPanel.getThumbnailImage(
                     zd0,
                     zdControl,
@@ -662,7 +661,7 @@ public class MainWindow extends JFrame {
                     url = "http://hicfiles.econpy.org/juicebox.properties";
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
-                properties  = new Properties();
+                properties = new Properties();
                 properties.load(is);
             } catch (Exception error) {
                 JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
@@ -689,10 +688,9 @@ public class MainWindow extends JFrame {
     private void clearActionPerformed() {
         String HIC_RECENT = "hicRecent";
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-            for (int i = 0; i < recentListMaxItems; i++)
-            {
-                prefs.remove(HIC_RECENT+i);
-            }
+        for (int i = 0; i < recentListMaxItems; i++) {
+            prefs.remove(HIC_RECENT + i);
+        }
     }
 
 
@@ -701,7 +699,6 @@ public class MainWindow extends JFrame {
         dispose();
         System.exit(0);
     }
-
 
 
     private void colorRangeSliderStateChanged(ChangeEvent e) {
@@ -730,7 +727,7 @@ public class MainWindow extends JFrame {
     private void displayOptionComboBoxActionPerformed(ActionEvent e) {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
-       // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
+        // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
@@ -759,9 +756,9 @@ public class MainWindow extends JFrame {
     }
 
     private void normalizationComboBoxActionPerformed(ActionEvent e) {
-        String value = (String)normalizationComboBox.getSelectedItem();
+        String value = (String) normalizationComboBox.getSelectedItem();
         NormalizationType chosen = null;
-        for (NormalizationType type:NormalizationType.values()) {
+        for (NormalizationType type : NormalizationType.values()) {
             if (type.getLabel().equals(value)) {
                 chosen = type;
                 break;
@@ -784,17 +781,15 @@ public class MainWindow extends JFrame {
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
                 //showGlassPane();
-                Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+                Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
                 glassPane.setEnabled(true);
                 try {
                     runnable.run();
                     return "done";
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     MessageUtils.showMessage(e.getMessage());
                     throw new Exception(e.getMessage());
-                }
-                finally {
+                } finally {
                     //hideGlassPane();
                     glassPane.setVisible(false);
                 }
@@ -806,14 +801,14 @@ public class MainWindow extends JFrame {
     }
 
     public Component showGlassPane() {
-        final Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+        final Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         glassPane.setVisible(true);
         return glassPane;
     }
 
     public void hideGlassPane() {
-        final Component glassPane = ((RootPaneContainer)hiCPanel.getTopLevelAncestor()).getGlassPane();
+        final Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         glassPane.setVisible(false);
     }
@@ -892,7 +887,7 @@ public class MainWindow extends JFrame {
 
             try {
                 @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to retunr a File List.
-                java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
+                        java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
                 List<String> paths = new ArrayList<String>();
                 for (File f : files) {
                     paths.add(f.getAbsolutePath());
@@ -982,7 +977,7 @@ public class MainWindow extends JFrame {
 
         //---- chrBox1 ----
         chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{ new Chromosome(0,"All",0)}));
+        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox1ActionPerformed(e);
@@ -992,7 +987,7 @@ public class MainWindow extends JFrame {
 
         //---- chrBox2 ----
         chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{ new Chromosome(0,"All",0)}));
+        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox2ActionPerformed(e);
@@ -1085,7 +1080,7 @@ public class MainWindow extends JFrame {
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
 
         colorRangeSlider = new RangeSlider();
-        //colorRangeSlider.setModel(new ColorRangeModel());
+
         colorRangeSlider.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {
@@ -1161,7 +1156,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Set limit to maximum range:
-                if(colorRangeSlider.getMaximum() > 2) {
+                if (colorRangeSlider.getMaximum() > 2) {
                     colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
                 }
                 colorRangeSliderUpdateToolTip();
@@ -1181,7 +1176,6 @@ public class MainWindow extends JFrame {
         colorRangePanel.setPreferredSize(new Dimension(202, 70));
         colorRangePanel.setMaximumSize(new Dimension(32769, 70));
         toolbarPanel.add(colorRangePanel);
-
 
 
         // Resolution  panel
@@ -1411,13 +1405,13 @@ public class MainWindow extends JFrame {
 
             Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
-            final JLabel minTickLabel = new JLabel(String.valueOf((int)(iMin/ colorRangeScaleFactor)));
+            final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
             minTickLabel.setFont(f);
-            final JLabel LoTickLabel = new JLabel(String.valueOf((int)(lValue/ colorRangeScaleFactor)));
+            final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
             LoTickLabel.setFont(f);
-            final JLabel UpTickLabel = new JLabel(String.valueOf((int)(uValue/ colorRangeScaleFactor)));
+            final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
             UpTickLabel.setFont(f);
-            final JLabel maxTickLabel = new JLabel(String.valueOf((int)(iMax/ colorRangeScaleFactor)));
+            final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
             maxTickLabel.setFont(f);
 
             labelTable.put(iMin, minTickLabel);
@@ -1466,8 +1460,8 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
         //---- recent positions ----
         try {
-            recentMenu=new RecentMenu(recentListMaxItems){
-                public void onSelectPosition(String mapPath){
+            recentMenu = new RecentMenu(recentListMaxItems) {
+                public void onSelectPosition(String mapPath) {
                     String delimiter = "@@";
                     String[] temp;
                     temp = mapPath.split(delimiter);
@@ -1580,7 +1574,7 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveToImage);
 
 
-        if (!isRestricted) {
+        if (!HiCGlobals.isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
                 @Override
@@ -1682,7 +1676,7 @@ public class MainWindow extends JFrame {
 
             if (text.contains("Protocol")) {
                 int split = text.indexOf("</table>") + 8;
-                textDescription = text.substring(0,split);
+                textDescription = text.substring(0, split);
                 textStatistics = text.substring(split);
                 description = new JTextPane();
                 description.setEditable(false);
@@ -1690,8 +1684,7 @@ public class MainWindow extends JFrame {
                 description.setEditorKit(kit);
                 description.setText(textDescription);
                 tabbedPane.addTab("About Library", description);
-            }
-            else {
+            } else {
                 textStatistics = text;
             }
 
@@ -1931,6 +1924,7 @@ public class MainWindow extends JFrame {
         JComboBox<String> box;
 
         static final long serialVersionUID = 42L;
+
         public DumpDialog() {
             super();
             int result = showSaveDialog(MainWindow.this);
@@ -2034,12 +2028,12 @@ public class MainWindow extends JFrame {
         JTextField height;
 
         static final long serialVersionUID = 42L;
+
         public SaveImageDialog() {
             super();
             if (saveImagePath != null) {
                 setSelectedFile(new File(saveImagePath));
-            }
-            else {
+            } else {
                 setSelectedFile(new File("image.png"));
             }
             int actionDialog = showSaveDialog(MainWindow.getInstance());
@@ -2174,6 +2168,7 @@ public class MainWindow extends JFrame {
         private final boolean success;
         private boolean control;
         static final long serialVersionUID = 42L;
+
         public LoadDialog(Properties properties) {
             super(MainWindow.this, "Select file(s) to open");
 
@@ -2241,10 +2236,10 @@ public class MainWindow extends JFrame {
 
             cancelButton = new JButton("Cancel");
             cancelButton.addActionListener(this);
-            cancelButton.setPreferredSize(new Dimension((int)cancelButton.getPreferredSize().getWidth(), (int)openButton.getPreferredSize().getHeight()));
+            cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
             buttonPanel.add(openButton);
-            if (!isRestricted) {
+            if (!HiCGlobals.isRestricted) {
                 buttonPanel.add(localButton);
             }
             buttonPanel.add(cancelButton);
@@ -2266,11 +2261,11 @@ public class MainWindow extends JFrame {
         }
 
         private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
-           // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
+            // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
             // TreeSet is sorted, so properties file is implemented in order
             TreeSet<String> keys = new TreeSet<String>(properties.stringPropertyNames());
             HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<String, DefaultMutableTreeNode>();
-            hashMap.put(((ItemInfo)top.getUserObject()).uid, top);
+            hashMap.put(((ItemInfo) top.getUserObject()).uid, top);
 
             for (String key : keys) {
                 String value = properties.getProperty(key);
@@ -2289,15 +2284,14 @@ public class MainWindow extends JFrame {
             }
             for (String key : keys) {
                 DefaultMutableTreeNode node = hashMap.get(key);
-                DefaultMutableTreeNode parent = hashMap.get(((ItemInfo)node.getUserObject()).parentKey);
+                DefaultMutableTreeNode parent = hashMap.get(((ItemInfo) node.getUserObject()).parentKey);
 
                 if (parent == null) {
                     JOptionPane.showMessageDialog(this, "Improperly formatted properties file; unable to find parent menu "
-                            + ((ItemInfo)hashMap.get(key).getUserObject()).parentKey + " for " +
+                            + ((ItemInfo) hashMap.get(key).getUserObject()).parentKey + " for " +
                             key, "Error", JOptionPane.ERROR_MESSAGE);
                     return false;
-                }
-                else {
+                } else {
                     parent.add(node);
                 }
             }
@@ -2316,8 +2310,7 @@ public class MainWindow extends JFrame {
             if (node.isLeaf()) {
                 openButton.setEnabled(true);
                 open30.setEnabled(true);
-            }
-            else {
+            } else {
                 openButton.setEnabled(false);
                 open30.setEnabled(false);
             }
@@ -2326,23 +2319,21 @@ public class MainWindow extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == openButton) {
                 loadFiles(tree.getSelectionPaths(), null);
-            }
-            else if (e.getSource() == open30) {
+            } else if (e.getSource() == open30) {
                 loadFiles(tree.getSelectionPaths(), "30");
             }
             if (e.getSource() == localButton) {
                 loadMenuItemActionPerformed(control);
                 setVisible(false);
-            }
-            else if (e.getSource() == openURL) {
+            } else if (e.getSource() == openURL) {
                 loadFromURLActionPerformed(control);
                 setVisible(false);
-            }
-            else if (e.getSource() == cancelButton) {
+            } else if (e.getSource() == cancelButton) {
                 setVisible(false);
                 dispose();
             }
         }
+
         private void loadFiles(String path, String title, boolean control) {
             List<String> paths = new ArrayList<String>();
             paths.add(path);
@@ -2352,6 +2343,7 @@ public class MainWindow extends JFrame {
             else datasetTitle = title;
             updateTitle();
         }
+
         private void loadFiles(TreePath[] paths, String ext) {
             ArrayList<ItemInfo> filesToLoad = new ArrayList<ItemInfo>();
             String title = "";
@@ -2381,7 +2373,7 @@ public class MainWindow extends JFrame {
             }
 
             //code to add a recent file to the menu
-            recentMenu.addEntry(title.trim()+"@@"+urls.get(0), true);
+            recentMenu.addEntry(title.trim() + "@@" + urls.get(0), true);
             load(urls, control);
 
             if (control) controlTitle = title;
@@ -2673,8 +2665,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    abstract class RecentMenu extends JMenu
-    {
+    abstract class RecentMenu extends JMenu {
         final private static String HIC_RECENT = "hicRecent";
         private static final long serialVersionUID = 4685393080959162312L;
         private final String defaultText = "";
@@ -2688,24 +2679,20 @@ public class MainWindow extends JFrame {
             super();
             this.setText("Recent");
             this.setMnemonic('R');
-            this.m_maxItems=count;
+            this.m_maxItems = count;
             //initialize default entries
-            this.recentEntries=new String[count];
-            for(int index=0;index<this.m_maxItems;index++){
-                this.recentEntries[index]=defaultText;
+            this.recentEntries = new String[count];
+            for (int index = 0; index < this.m_maxItems; index++) {
+                this.recentEntries[index] = defaultText;
             }
 
             // load recent positions from properties
-            for (int i = 0; i < this.m_maxItems; i++)
-            {
-                String val = prefs.get(HIC_RECENT+i, "");
-                if (!val.equals(""))
-                {
-                    addEntry(val,false);
-                }
-                else
-                {
-                    if (i ==0) {
+            for (int i = 0; i < this.m_maxItems; i++) {
+                String val = prefs.get(HIC_RECENT + i, "");
+                if (!val.equals("")) {
+                    addEntry(val, false);
+                } else {
+                    if (i == 0) {
                         // No items.
                         this.setEnabled(false);
                     }
@@ -2716,12 +2703,13 @@ public class MainWindow extends JFrame {
 
         /**
          * Add new recent entry, update file and menu
-         * @param savedMap url and title of map.
+         *
+         * @param savedMap   url and title of map.
          * @param updateFile also save to file, Constructor call with false - no need to re-write.
          */
-        private void addEntry(String savedMap,boolean updateFile){
+        private void addEntry(String savedMap, boolean updateFile) {
             //check if this is disabled
-            if(!this.isEnabled()){
+            if (!this.isEnabled()) {
                 this.setEnabled(true);
             }
 
@@ -2733,8 +2721,7 @@ public class MainWindow extends JFrame {
             m_items.add(0, savedMap);
 
             //Chop last item if list is over size:
-            if (this.m_items.size() > this.m_maxItems)
-            {
+            if (this.m_items.size() > this.m_maxItems) {
                 this.m_items.remove(this.m_items.size() - 1);
             }
 
@@ -2762,20 +2749,16 @@ public class MainWindow extends JFrame {
                 this.add(menuItem);
             }
             //update the file
-            if(updateFile){
-                try{
-                    for (int i = 0; i < this.m_maxItems; i++)
-                    {
-                        if (i < this.m_items.size())
-                        {
-                            prefs.put(HIC_RECENT+i, this.m_items.get(i));
-                        }
-                        else
-                        {
-                            prefs.remove(HIC_RECENT+i);
+            if (updateFile) {
+                try {
+                    for (int i = 0; i < this.m_maxItems; i++) {
+                        if (i < this.m_items.size()) {
+                            prefs.put(HIC_RECENT + i, this.m_items.get(i));
+                        } else {
+                            prefs.remove(HIC_RECENT + i);
                         }
                     }
-                } catch(Exception x){
+                } catch (Exception x) {
                     x.printStackTrace();
                 }
             }
@@ -2784,16 +2767,19 @@ public class MainWindow extends JFrame {
         public boolean isEnabled() {
             return this.b_isEnabled;
         }
+
         public void setEnabled(boolean b_newState) {
             this.b_isEnabled = b_newState;
         }
 
         /**
          * Abstract event, fires when recent map is selected.
+         *
          * @param mapPath The file that was selected.
          */
         public abstract void onSelectPosition(String mapPath);
     }
+
     /**
      * A split button. The user can either click the text, which executes an
      * action, or click the icon, which opens a popup menu.
@@ -2899,12 +2885,12 @@ public class MainWindow extends JFrame {
         public JSplitButton(String text) {
             mainButton = new JButton(text);
             popupButton = new JButton(createDefaultPopupIcon());
-         //   popupButton.setPreferredSize(new Dimension((int)popupButton.getPreferredSize().getWidth()+10,(int)popupButton.getPreferredSize().getHeight()));
+            //   popupButton.setPreferredSize(new Dimension((int)popupButton.getPreferredSize().getWidth()+10,(int)popupButton.getPreferredSize().getHeight()));
 
             setModel(new DefaultButtonModel());
 
             mainButton.setBorder(BorderFactory.createEmptyBorder());
-           // popupButton.setBorder(BorderFactory.createEmptyBorder());
+            // popupButton.setBorder(BorderFactory.createEmptyBorder());
 
             mainButton.setContentAreaFilled(false);
 
@@ -3483,7 +3469,7 @@ public class MainWindow extends JFrame {
             if (comp == popupButton) {
                 Insets mainButtonInsets = mainButton.getInsets();
                 int width = mainButton.getWidth();
-                return new Point(-splitGap-width-mainButtonInsets.left-mainButtonInsets.right-30, height);
+                return new Point(-splitGap - width - mainButtonInsets.left - mainButtonInsets.right - 30, height);
             } else {
                 Insets mainButtonInsets = mainButton.getInsets();
                 int width = mainButton.getWidth() + mainButtonInsets.left +

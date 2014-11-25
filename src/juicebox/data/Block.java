@@ -13,7 +13,7 @@ public class Block {
 
     private final int number;
 
-    final List<ContactRecord> records;
+    private final List<ContactRecord> records;
 
     public Block(int number) {
         this.number = number;

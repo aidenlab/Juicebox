@@ -1,5 +1,6 @@
 package juicebox.data;
 
+import juicebox.HiCGlobals;
 import org.apache.commons.math.linear.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -46,7 +47,7 @@ public class MatrixZoomData {
     final HashSet<NormalizationType> missingPearsonFiles;
     private double averageCount = -1;
 
-    final boolean useCache = true;
+
     // Cache the last 20 blocks loaded
     final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
 
@@ -169,7 +170,7 @@ public class MatrixZoomData {
 
                 String key = getKey() + "_" + blockNumber + "_" + no;
                 Block b;
-                if (useCache && blockCache.containsKey(key)) {
+                if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                     b = blockCache.get(key);
                     blockList.add(b);
                 } else {
@@ -191,7 +192,7 @@ public class MatrixZoomData {
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
                         }
-                        if (useCache) {
+                        if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
                         }
                         blockList.add(b);
@@ -723,7 +724,7 @@ public class MatrixZoomData {
                         // Optionally check the cache
                         String key = getKey() + "_" + blockNumber + "_" + NormalizationType.NONE;
                         Block nextBlock;
-                        if (useCache && blockCache.containsKey(key)) {
+                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             nextBlock = blockCache.get(key);
                         } else {
                             nextBlock = reader.readBlock(blockNumber, MatrixZoomData.this);

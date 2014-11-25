@@ -201,8 +201,8 @@ public class Dataset {
 //        }
 
         this.bpZooms = new ArrayList<HiCZoom>(n);
-        for (int i = 0; i < n; i++) {
-            bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSizes[i]));
+        for (int bpBinSize : bpBinSizes) {
+            bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
 
     }
@@ -214,8 +214,8 @@ public class Dataset {
 //        if (MainWindow.isRestricted()) return;
 
         this.fragZooms = new ArrayList<HiCZoom>(fragBinSizes.length);
-        for (int i = 0; i < fragBinSizes.length; i++) {
-            fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSizes[i]));
+        for (int fragBinSize : fragBinSizes) {
+            fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSize));
         }
     }
 

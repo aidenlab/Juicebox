@@ -4,7 +4,7 @@
 
 package juicebox;
 
-import slider.RangeSlider;
+import juicebox.rangeslider.RangeSlider;
 
 import java.awt.Frame;
 import java.awt.Container;
@@ -41,7 +41,7 @@ public class ColorRangeDialog extends JDialog {
     private final double colorRangeFactor;
     private final DecimalFormat df1;
     private final DecimalFormat df2;
-    final boolean isObserved;
+    private final boolean isObserved;
     private JTextField minimumField;
     private JTextField maximumField;
 

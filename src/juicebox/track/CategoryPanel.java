@@ -39,8 +39,8 @@ import java.util.Set;
 public class CategoryPanel extends JPanel {
 
     private static final long serialVersionUID = -729150966236965013L;
-    boolean expanded;
-    final JideButton toggleButton;
+    private boolean expanded;
+    private final JideButton toggleButton;
     int nColumns = 5;
     private final JPanel listPanel;
     private final JPanel labelBar;

@@ -25,7 +25,7 @@ import java.util.*;
 public class CommandExecutor {
 
     private static final Logger log = Logger.getLogger(CommandExecutor.class);
-    final HiC hic;
+    private final HiC hic;
 
     public CommandExecutor(HiC hic) {
         this.hic = hic;
