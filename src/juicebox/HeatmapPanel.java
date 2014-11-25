@@ -55,7 +55,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      */
     private int[] chromosomeBoundaries;
 
-    final HeatmapRenderer renderer;
+    private final HeatmapRenderer renderer;
 
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
@@ -698,7 +698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
 
-    boolean straightEdgeEnabled = false;
+    private boolean straightEdgeEnabled = false;
 
     JidePopupMenu getPopupMenu() {
 

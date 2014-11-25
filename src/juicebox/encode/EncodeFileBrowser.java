@@ -45,7 +45,7 @@ public class EncodeFileBrowser extends JDialog {
     private JTextField filterTextField;
     private JLabel rowCountLabel;
 
-    final EncodeTableModel model;
+    private final EncodeTableModel model;
     private boolean canceled;
 
 
@@ -81,7 +81,7 @@ public class EncodeFileBrowser extends JDialog {
     }
 
 
-    static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
+    private static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
     public static boolean genomeSupported(String genomeId) {
           return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
     }
@@ -234,7 +234,7 @@ public class EncodeFileBrowser extends JDialog {
      * @return the list of VISIBLE selected records.  Filtered records are not returned even if record.selected == true
      * @throws java.io.IOException
      */
-    public List<EncodeFileRecord> getSelectedRecords() throws IOException {
+    public List<EncodeFileRecord> getSelectedRecords() {
 
         List<EncodeFileRecord> selectedRecords = new ArrayList<EncodeFileRecord>();
         List<EncodeFileRecord> allRecords = model.getRecords();

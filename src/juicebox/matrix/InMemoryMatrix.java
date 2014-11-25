@@ -14,10 +14,10 @@ import java.util.Arrays;
 public class InMemoryMatrix implements BasicMatrix {
 
 
-    final int dim;
-    final float[] data;
-    float lowerValue = Float.NaN;
-    float upperValue = Float.NaN;
+    private final int dim;
+    private final float[] data;
+    private float lowerValue = Float.NaN;
+    private float upperValue = Float.NaN;
 
 
     public InMemoryMatrix(int dim) {

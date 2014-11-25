@@ -33,7 +33,7 @@ public class DirectoryManager {
     private static File USER_HOME;
     private static File USER_DIRECTORY;    // FileSystemView.getFileSystemView().getDefaultDirectory();
     private static File HIC_DIRECTORY;     // The HIC application directory
-    final public static String HIC_DIR_USERPREF = "hicDir";
+    private final static String HIC_DIR_USERPREF = "hicDir";
 
 
     private static File getUserHome() {
@@ -61,7 +61,7 @@ public class DirectoryManager {
     }
 
 
-    public static File getHiCDirectory() {
+    private static File getHiCDirectory() {
 
         if (HIC_DIRECTORY == null) {
 
@@ -156,7 +156,7 @@ public class DirectoryManager {
     }
 
 
-    public static synchronized File getLogFile() throws IOException {
+    private static synchronized File getLogFile() throws IOException {
 
         File logFile = new File(getHiCDirectory(), "juicebox.log");
         if (!logFile.exists()) {

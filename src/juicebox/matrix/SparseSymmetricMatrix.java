@@ -9,13 +9,13 @@ import java.util.Arrays;
 
 public class SparseSymmetricMatrix implements BasicMatrix {
 
-    IntArrayList rows1 = null;
-    IntArrayList cols1 = null;
-    FloatArrayList values1 = null;
-    IntArrayList rows2 = null;
-    IntArrayList cols2 = null;
-    FloatArrayList values2 = null;
-    final int totSize;
+    private IntArrayList rows1 = null;
+    private IntArrayList cols1 = null;
+    private FloatArrayList values1 = null;
+    private IntArrayList rows2 = null;
+    private IntArrayList cols2 = null;
+    private FloatArrayList values2 = null;
+    private final int totSize;
 
 
     public SparseSymmetricMatrix(int totSize) {

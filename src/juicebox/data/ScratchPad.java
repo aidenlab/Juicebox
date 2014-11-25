@@ -154,7 +154,7 @@ public class ScratchPad {
 
     }
 
-    public static void readSparse(File file, SparseSymmetricMatrix A) throws IOException {
+    private static void readSparse(File file, SparseSymmetricMatrix A) throws IOException {
 
         Scanner scanner = new Scanner(file);
         String line;

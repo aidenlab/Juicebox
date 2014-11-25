@@ -41,7 +41,7 @@ public class Pearsons {
         return pearsons;
     }
 
-    public static double computePearsons1(BasicMatrix matrix, int col1, int col2) {
+    private static double computePearsons1(BasicMatrix matrix, int col1, int col2) {
         // sum of col1 * col2 (dot product)  - sum(X)sum(Y)/n      divided by
         // square root of   ((sum x^2)-(sumx)^2/n)  ((sum y^2)-(sumy)^2/n)
         double length = matrix.getRowDimension();
@@ -105,7 +105,7 @@ public class Pearsons {
     }
 
 
-    public static double computePearsons(double[] scores1, double[] scores2) {
+    private static double computePearsons(double[] scores1, double[] scores2) {
 
 //        double length = scores1.length;
 //        double sum_xsq = 0;
@@ -203,7 +203,7 @@ public class Pearsons {
         return pearsons;
     }
 
-    public static double computePearsons(SparseVector scores1, SparseVector scores2) {
+    private static double computePearsons(SparseVector scores1, SparseVector scores2) {
 
         int size = scores1.getLength();
         if (size != scores2.getLength()) {

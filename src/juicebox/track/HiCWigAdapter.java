@@ -21,12 +21,12 @@ import java.util.List;
  */
 public class HiCWigAdapter extends HiCDataAdapter {
 
-    WiggleDataset dataset;
-    String trackName;
-    final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
+    private WiggleDataset dataset;
+    private String trackName;
+    private final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
     private Color color;
     private Color altColor;
-    DataRange dataRange;
+    private DataRange dataRange;
 
     public HiCWigAdapter(HiC hic, String path) {
         super(hic);

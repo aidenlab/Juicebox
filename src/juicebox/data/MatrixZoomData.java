@@ -36,20 +36,20 @@ public class MatrixZoomData {
     private final Chromosome chr2;  // Chromosome on the Y axis
     private final HiCZoom zoom;    // Unit and bin size
 
-    final HiCGridAxis xGridAxis;
-    final HiCGridAxis yGridAxis;
+    private final HiCGridAxis xGridAxis;
+    private final HiCGridAxis yGridAxis;
 
     // Observed values are ogranized into sub-matrices ("blocks")
     private final int blockBinCount;   // block size in bins
     private final int blockColumnCount;     // number of block columns
 
-    final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
-    final HashSet<NormalizationType> missingPearsonFiles;
+    private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
+    private final HashSet<NormalizationType> missingPearsonFiles;
     private double averageCount = -1;
 
 
     // Cache the last 20 blocks loaded
-    final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
+    private final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
 
 
 //    float sumCounts;
@@ -66,7 +66,7 @@ public class MatrixZoomData {
      * @throws IOException
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
-                          int[] chr1Sites, int[] chr2Sites, DatasetReader reader) throws IOException {
+                          int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
 
         this.reader = reader;
 

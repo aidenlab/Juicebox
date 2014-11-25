@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class HiCIGVDataAdapter extends HiCDataAdapter {
 
-    final DataTrack igvTrack;
+    private final DataTrack igvTrack;
 
 
     public HiCIGVDataAdapter(HiC hic, DataTrack igvTrack) {

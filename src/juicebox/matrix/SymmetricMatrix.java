@@ -15,11 +15,11 @@ import java.util.Set;
  */
 public class SymmetricMatrix implements BasicMatrix {
 
-    final int dim;
-    final float[] data;
-    float lowerValue = Float.NaN;
-    float upperValue = Float.NaN;
-    final Set<Integer> nullColumns;
+    private final int dim;
+    private final float[] data;
+    private float lowerValue = Float.NaN;
+    private float upperValue = Float.NaN;
+    private final Set<Integer> nullColumns;
 
     public SymmetricMatrix(int dim) {
         this.dim = dim;

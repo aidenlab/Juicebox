@@ -462,12 +462,12 @@ public class NormalizationVectorUpdater {
     }
 
 
-    static void update(String hicfile,
-                       int version,
-                       final long filePosition,
-                       List<ExpectedValueCalculation> expectedValueCalculations,
-                       List<NormalizationVectorIndexEntry> normVectorIndex,
-                       byte[] normVectorBuffer) throws IOException {
+    private static void update(String hicfile,
+                               int version,
+                               final long filePosition,
+                               List<ExpectedValueCalculation> expectedValueCalculations,
+                               List<NormalizationVectorIndexEntry> normVectorIndex,
+                               byte[] normVectorBuffer) throws IOException {
 
         RandomAccessFile raf = null;
         try {
@@ -514,12 +514,12 @@ public class NormalizationVectorUpdater {
         }
     }
 
-    static void update(String hicfile,
-                       int version,
-                       final long filePosition,
-                       Map<String, ExpectedValueFunction> expectedValueFunctionMap,
-                       List<NormalizationVectorIndexEntry> normVectorIndex,
-                       byte[] normVectorBuffer) throws IOException {
+    private static void update(String hicfile,
+                               int version,
+                               final long filePosition,
+                               Map<String, ExpectedValueFunction> expectedValueFunctionMap,
+                               List<NormalizationVectorIndexEntry> normVectorIndex,
+                               byte[] normVectorBuffer) throws IOException {
 
         RandomAccessFile raf = null;
         try {
@@ -651,9 +651,9 @@ public class NormalizationVectorUpdater {
      * Compute the whole-genome normalization and expected value vectors and return as a pair (normalization vector first)
      */
 
-    static Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> getWGVectors(Dataset dataset,
-                                                                                             HiCZoom zoom,
-                                                                                             NormalizationType norm) {
+    private static Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> getWGVectors(Dataset dataset,
+                                                                                                     HiCZoom zoom,
+                                                                                                     NormalizationType norm) {
 
         boolean includeIntra = false;
         if (norm == NormalizationType.GW_KR || norm == NormalizationType.GW_VC) {

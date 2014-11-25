@@ -23,8 +23,8 @@ import java.util.Map;
 
 public class HiCFileUtils {
 
-    DatasetReaderV2 reader;
-    Dataset dataset;
+    private DatasetReaderV2 reader;
+    private Dataset dataset;
 
     public static void main(String[] args) throws IOException {
         HiCFileUtils utils = new HiCFileUtils(args[0]);
@@ -32,7 +32,7 @@ public class HiCFileUtils {
         utils.dumpExpectedVectors("KR", "BP", 1000000);
     }
 
-    public HiCFileUtils(String hicfile) throws IOException {
+    private HiCFileUtils(String hicfile) throws IOException {
         reader = new DatasetReaderV2(hicfile);
         dataset = reader.read();
     }
@@ -60,7 +60,7 @@ public class HiCFileUtils {
 
     }
 
-    public void dumpExpectedVectors(String type, String unit, int binSize) throws IOException {
+    public void dumpExpectedVectors(String type, String unit, int binSize) {
 
 
         Map<String, ExpectedValueFunction> expValFunMap = dataset.getExpectedValueFunctionMap();

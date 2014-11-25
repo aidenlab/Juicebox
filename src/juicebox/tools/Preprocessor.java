@@ -28,7 +28,7 @@ public class Preprocessor {
     // Fragment resolutions
     private static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
     private static final int VERSION = 8;
-    public static final int BLOCK_SIZE = 1000;
+    private static final int BLOCK_SIZE = 1000;
 
     private final List<Chromosome> chromosomes;
 
@@ -59,7 +59,7 @@ public class Preprocessor {
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private final Deflater compressor;
 
-    File tmpDir;
+    private File tmpDir;
 
     public Preprocessor(File outputFile, String genomeId, List<Chromosome> chromosomes) {
         this.genomeId = genomeId;
@@ -1411,9 +1411,12 @@ public class Preprocessor {
             }
         }
 
+        /*
+         useless at present
         public void parsingComplete() {
 
         }
+        */
 
         public Map<Point, ContactCount> getContractRecordMap() {
             return contactRecordMap;

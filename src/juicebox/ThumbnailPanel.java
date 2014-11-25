@@ -19,10 +19,10 @@ public class ThumbnailPanel extends JComponent implements Serializable {
     private final MainWindow mainWindow;
     private final HiC hic;
 
-    Image image;
+    private Image image;
 
-    public static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
-    Point lastPoint = null;
+    private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
+    private Point lastPoint = null;
 
     private Rectangle innerRectangle;
 

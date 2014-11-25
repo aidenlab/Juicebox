@@ -11,10 +11,10 @@ import java.util.Map;
  */
 public class EncodeFileRecord {
 
-    boolean selected = false;
-    final String path;
-    final Map<String, String> attributes;
-    String trackName;
+    private boolean selected = false;
+    private final String path;
+    private final Map<String, String> attributes;
+    private String trackName;
 
     public EncodeFileRecord(String path, Map<String, String> attributes) {
         this.path = path;

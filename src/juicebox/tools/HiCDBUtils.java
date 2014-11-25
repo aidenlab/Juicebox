@@ -40,7 +40,7 @@ public class HiCDBUtils {
     }
 
 
-    public static void insertAnnotationList(String annotListFile) throws IOException, SQLException {
+    private static void insertAnnotationList(String annotListFile) throws IOException, SQLException {
 
         BufferedReader reader = null;
 
@@ -140,7 +140,7 @@ public class HiCDBUtils {
     }
 
 
-    public static void insertFragments(String fragmentFile) throws IOException, SQLException {
+    private static void insertFragments(String fragmentFile) throws IOException, SQLException {
 
         Connection dbConnection = null;
 
@@ -197,7 +197,7 @@ public class HiCDBUtils {
     }
 
 
-    public static void updateFragmentAnnotations() throws SQLException {
+    private static void updateFragmentAnnotations() throws SQLException {
 
         String selectLastSQL = "SELECT MAX(ANNOTATION_ID) FROM FRAGMENT_ANNOTATION";
         String selectAnnotationSql = "SELECT ID, CHR, BEG, END FROM ANNOTATION WHERE ID > ? ORDER BY ID";

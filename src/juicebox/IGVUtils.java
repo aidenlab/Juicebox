@@ -26,7 +26,7 @@ public class IGVUtils {
     private static final Logger log = Logger.getLogger(IGVUtils.class) ;
     private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
 
-    static SocketHelper helper = null;
+    private static SocketHelper helper = null;
 
     static class SocketHelper {
         Socket socket = null;

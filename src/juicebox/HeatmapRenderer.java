@@ -26,13 +26,13 @@ public class HeatmapRenderer {
 
     // TODO -- introduce a "model" in lieu of MainWindow pointer
 
-    final MainWindow mainWindow;
+    private final MainWindow mainWindow;
 
     private ContinuousColorScale observedColorScale;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
 
-    final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
+    private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
 
     public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;

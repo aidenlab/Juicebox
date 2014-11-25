@@ -21,13 +21,13 @@ import java.util.ArrayList;
 public class TrackLabelPanel extends JPanel {
 
     private static final long serialVersionUID = 1627813915602134471L;
-    final HiC hic;
-    HiCTrack eigenvectorTrack;
+    private final HiC hic;
+    private HiCTrack eigenvectorTrack;
     private int numExtraBufferLinesSpaces = 2;
     //private java.util.List<HiCTrack> tracks;
-    JLabel textLabel;
+    private JLabel textLabel;
 
-    String multiLineText = "";
+    private String multiLineText = "";
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;

@@ -17,10 +17,10 @@ import java.util.List;
  */
 public abstract class HiCDataAdapter implements HiCDataSource {
 
-    public static final double log2 = Math.log(2);
-    final HiC hic;
+    private static final double log2 = Math.log(2);
+    private final HiC hic;
 
-    LoadedDataInterval loadedDataInterval;
+    private LoadedDataInterval loadedDataInterval;
 
     protected HiCDataAdapter(HiC hic) {
         this.hic = hic;

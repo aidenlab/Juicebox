@@ -47,7 +47,7 @@ import java.util.*;
 public class LoadAction extends AbstractAction {
 
     private static final long serialVersionUID = -1122795124141741145L;
-    static final Logger log = Logger.getLogger(LoadAction.class);
+    private static final Logger log = Logger.getLogger(LoadAction.class);
 
     private final JFrame owner;
     private final HiC hic;
@@ -162,7 +162,7 @@ public class LoadAction extends AbstractAction {
     }
 
 
-    public static Document createMasterDocument(String xmlUrl) throws ParserConfigurationException {
+    private static Document createMasterDocument(String xmlUrl) throws ParserConfigurationException {
 
         StringBuffer buffer = new StringBuffer();
 

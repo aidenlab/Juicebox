@@ -24,14 +24,14 @@ public class HiCFeatureTrack extends HiCTrack {
 
     private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
 
-    static final int BLOCK_HEIGHT = 14;
+    private static final int BLOCK_HEIGHT = 14;
     static final int THIN_BLOCK_HEIGHT = 6;
-    public Color color = Color.blue.darker();
-    public Color altColor = Color.blue.brighter();
-    public final Font font;
+    private Color color = Color.blue.darker();
+    private Color altColor = Color.blue.brighter();
+    private final Font font;
 
-    final HiC hic;
-    final FeatureSource<?> featureSource;
+    private final HiC hic;
+    private final FeatureSource<?> featureSource;
     private String name;
 
     private static final int ARROW_SPACING = 10;

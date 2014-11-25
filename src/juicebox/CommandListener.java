@@ -35,8 +35,8 @@ public class CommandListener implements Runnable {
     private ServerSocket serverSocket = null;
     private Socket clientSocket = null;
     private final Thread listenerThread;
-    boolean halt = false;
-    final HiC hic;
+    private boolean halt = false;
+    private final HiC hic;
 
     public static synchronized void start(HiC hic) {
 

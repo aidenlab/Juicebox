@@ -28,7 +28,7 @@ public class Dataset {
     //Chromosome lookup table
     public List<Chromosome> chromosomes;
 
-    final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
+    private final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
 
     private final DatasetReader reader;
 
@@ -42,9 +42,9 @@ public class Dataset {
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
 
-    final LRUCache<String, double[]> eigenvectorCache;
-    final LRUCache<String, NormalizationVector> normalizationVectorCache;
-    Map<String, NormalizationVector> loadedNormalizationVectors;
+    private final LRUCache<String, double[]> eigenvectorCache;
+    private final LRUCache<String, NormalizationVector> normalizationVectorCache;
+    private Map<String, NormalizationVector> loadedNormalizationVectors;
     private List<NormalizationType> normalizationTypes;
 
     public Dataset(DatasetReader reader) {

@@ -23,14 +23,14 @@ import java.util.Comparator;
  */
 public class HiCDataTrack extends HiCTrack {
 
-    static final int TRACK_MARGIN = 2;
-    final HiC hic;
-    final HiCDataSource dataSource;
-    boolean logScale = false;
+    private static final int TRACK_MARGIN = 2;
+    private final HiC hic;
+    private final HiCDataSource dataSource;
+    private boolean logScale = false;
     private HiCDataPoint[] data;
-    final NumberFormat formatter = NumberFormat.getInstance();
-    final float[] dash = {8.0f};
-    final BasicStroke dashedStroke = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.0f, dash, 0.0f);
+    private final NumberFormat formatter = NumberFormat.getInstance();
+    private final float[] dash = {8.0f};
+    private final BasicStroke dashedStroke = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.0f, dash, 0.0f);
     private final Color dashColor = new Color(120, 120, 120);
     private WindowFunction windowFunction = WindowFunction.mean;
 
@@ -237,10 +237,13 @@ public class HiCDataTrack extends HiCTrack {
         dataSource.setAltColor(selectedColor);
     }
 
+    /*
+     useless at present
     @Override
     public void mouseClicked(int x, int y, Context context, TrackPanel.Orientation orientation) {
 
     }
+    */
 
     public JPopupMenu getPopupMenu(final TrackPanel trackPanel) {
 

@@ -83,7 +83,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.prefs.BackingStoreException;
+//import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -112,7 +112,7 @@ public class MainWindow extends JFrame {
 
     private static MainWindow theInstance;
 
-    double colorRangeScaleFactor = 1;
+    private double colorRangeScaleFactor = 1;
 
     private LoadDialog loadDialog = null;
 
@@ -128,7 +128,7 @@ public class MainWindow extends JFrame {
     private boolean resolutionLocked = false;
 
     TrackPanel trackPanelX;
-    TrackLabelPanel trackLabelPanel;
+    private TrackLabelPanel trackLabelPanel;
     private HiCRulerPanel rulerPanelX;
     private HeatmapPanel heatmapPanel;
     TrackPanel trackPanelY;
@@ -206,14 +206,14 @@ public class MainWindow extends JFrame {
         if (theInstance == null) {
             try {
                 theInstance = createMainWindow();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Error creating main window", e);
             }
         }
         return theInstance;
     }
 
-    private MainWindow() throws IOException {
+    private MainWindow() {
 
         hic = new HiC(this);
 
@@ -233,7 +233,7 @@ public class MainWindow extends JFrame {
 
     }
 
-    public static MainWindow createMainWindow() throws IOException {
+    private static MainWindow createMainWindow() {
         return new MainWindow();
     }
 
@@ -948,7 +948,7 @@ public class MainWindow extends JFrame {
         JMenuBar menuBar = null;
         try {
             menuBar = createMenuBar();
-        } catch (BackingStoreException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         contentPane.add(menuBar, BorderLayout.NORTH);
@@ -1429,7 +1429,7 @@ public class MainWindow extends JFrame {
 
     }
 
-    private JMenuBar createMenuBar() throws BackingStoreException {
+    private JMenuBar createMenuBar() {
 
 
         JMenuBar menuBar = new JMenuBar();
@@ -1468,7 +1468,7 @@ public class MainWindow extends JFrame {
                     loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
                 }
             };
-        } catch (BackingStoreException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -2640,7 +2640,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    public class HiCKeyDispatcher implements KeyEventDispatcher {
+    private class HiCKeyDispatcher implements KeyEventDispatcher {
 
         @Override
         public boolean dispatchKeyEvent(KeyEvent e) {
@@ -2675,7 +2675,7 @@ public class MainWindow extends JFrame {
         private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
         private final List<String> m_items = new ArrayList<String>();
 
-        public RecentMenu(int count) throws BackingStoreException {
+        public RecentMenu(int count) {
             super();
             this.setText("Recent");
             this.setMnemonic('R');

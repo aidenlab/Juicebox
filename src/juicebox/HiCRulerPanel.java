@@ -49,12 +49,12 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
 
 
-    Context context;
+    private Context context;
 
     /**
      * Empty constructor for form builder
      */
-    public HiCRulerPanel() {
+    private HiCRulerPanel() {
     }
 
     public HiCRulerPanel(HiC hic) {
@@ -219,7 +219,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
     }
 
-    public static String formatNumber(double position) {
+    private static String formatNumber(double position) {
 
         //NumberFormatter f = new NumberFormatter();
         DecimalFormat formatter = new DecimalFormat();
@@ -228,7 +228,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     }
 
-    public static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
+    private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
 
         if (maxValue < 10) {
             return new TickSpacing(1, "bp", 1);

@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  */
 public class HiCTools {
 
-    public static void usage() {
+    private static void usage() {
         System.out.println("Usage: juicebox pairsToBin <infile> <outfile> <genomeID>");
         System.out.println("       juicebox binToPairs <infile> <outfile>");
         System.out.println("       juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [binary outfile]");
@@ -487,7 +487,7 @@ public class HiCTools {
      * @return Chromosome lengths
      * @throws IOException if chromosome length file not found
      */
-    public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
+    private static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 
         InputStream is = null;
 
@@ -541,7 +541,7 @@ public class HiCTools {
     }
 
 
-    public static void bpToFrag(String fragmentFile, String inputFile, String outputDir) throws IOException {
+    private static void bpToFrag(String fragmentFile, String inputFile, String outputDir) throws IOException {
         BufferedReader fragmentReader = null;
         Pattern pattern = Pattern.compile("\\s");
         Map<String, int[]> fragmentMap = new HashMap<String, int[]>();  // Map of chr -> site positions
@@ -602,7 +602,7 @@ public class HiCTools {
      * @throws IOException
      */
 
-    static void annotateWithSites(Map<String, int[]> fragmentMap, String bedFile, File outputBedFile) throws IOException {
+    private static void annotateWithSites(Map<String, int[]> fragmentMap, String bedFile, File outputBedFile) throws IOException {
 
 
         BufferedReader bedReader = null;
@@ -662,7 +662,7 @@ public class HiCTools {
      * @param filename fragment site file
      * @throws IOException
      */
-    public static void fragmentToBed(String filename) throws IOException {
+    private static void fragmentToBed(String filename) throws IOException {
         BufferedReader reader = null;
         PrintWriter writer = null;
         try {
@@ -752,7 +752,7 @@ public class HiCTools {
      * @param center Mean centers if true
      * @throws IOException
      */
-    static public void dumpVector(PrintWriter pw, double[] vector, boolean center) throws IOException {
+    static public void dumpVector(PrintWriter pw, double[] vector, boolean center) {
         double sum = 0;
         if (center) {
             int count = 0;

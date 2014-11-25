@@ -9,22 +9,22 @@ import java.awt.*;
 public class HiCLayout implements LayoutManager2,
         java.io.Serializable {
     private static final long serialVersionUID = 8260394496861063124L;
-    int hgap;
-    int vgap;
+    private int hgap;
+    private int vgap;
 
-    Component north;
-    Component west;
-    Component east;
-    Component south;
-    Component center;
-    Component northwest;
+    private Component north;
+    private Component west;
+    private Component east;
+    private Component south;
+    private Component center;
+    private Component northwest;
 
 
-    public static final String NORTH = "North";
-    public static final String SOUTH = "South";
-    public static final String EAST = "East";
-    public static final String WEST = "West";
-    public static final String CENTER = "Center";
+    private static final String NORTH = "North";
+    private static final String SOUTH = "South";
+    private static final String EAST = "East";
+    private static final String WEST = "West";
+    private static final String CENTER = "Center";
     public static final String NORTH_WEST = "Northwest";
 
 
@@ -45,7 +45,7 @@ public class HiCLayout implements LayoutManager2,
      * @param hgap the horizontal gap.
      * @param vgap the vertical gap.
      */
-    public HiCLayout(int hgap, int vgap) {
+    private HiCLayout(int hgap, int vgap) {
         this.hgap = hgap;
         this.vgap = vgap;
     }

@@ -15,12 +15,12 @@ import java.util.*;
  */
 public class UCSCEncodeUtils {
 
-    static final HashSet<String> labs = new HashSet<String>();
-    static final HashSet<String> dataTypes = new HashSet<String>();
-    static final HashSet<String> cells = new HashSet<String>();
-    static final HashSet<String> antibodies = new HashSet<String>();
-    static final HashSet<String> fileTypes = new HashSet<String>();
-    static final HashSet<String> allHeaders = new LinkedHashSet<String>();
+    private static final HashSet<String> labs = new HashSet<String>();
+    private static final HashSet<String> dataTypes = new HashSet<String>();
+    private static final HashSet<String> cells = new HashSet<String>();
+    private static final HashSet<String> antibodies = new HashSet<String>();
+    private static final HashSet<String> fileTypes = new HashSet<String>();
+    private static final HashSet<String> allHeaders = new LinkedHashSet<String>();
 
     private static final List<String> rnaChipQualifiers = Arrays.asList("CellTotal", "Longnonpolya", "Longpolya",
             "NucleolusTotal", "ChromatinTotal", "ChromatinTotal", "NucleoplasmTotal");
@@ -83,7 +83,7 @@ public class UCSCEncodeUtils {
         return records;
     }
 
-    static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
+    private static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
 
     private static void updateEncodeTableFile(String inputFile, String outputFile) throws IOException {
 
@@ -149,9 +149,9 @@ public class UCSCEncodeUtils {
         pw.close();
     }
 
-    static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
+    private static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
-    public static void parseFilesDotTxt(String url, List<EncodeFileRecord> fileRecords) throws IOException {
+    private static void parseFilesDotTxt(String url, List<EncodeFileRecord> fileRecords) throws IOException {
 
 
         BufferedReader reader = null;

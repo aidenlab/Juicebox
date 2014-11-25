@@ -25,10 +25,10 @@ public class LoadEncodeAction extends AbstractAction {
 
     private static final Logger log = Logger.getLogger(LoadEncodeAction.class);
     private static final long serialVersionUID = 42L;
-    final Component owner;
-    final HiC hic;
-    String genome;
-    HashSet<ResourceLocator> loadedLocators;
+    private final Component owner;
+    private final HiC hic;
+    private String genome;
+    private HashSet<ResourceLocator> loadedLocators;
 
     public LoadEncodeAction(String s, Component owner, HiC hic) {
         super(s);
@@ -38,7 +38,7 @@ public class LoadEncodeAction extends AbstractAction {
 
     }
 
-    public LoadEncodeAction(String s, Component owner, HiC hic, String genome) {
+    private LoadEncodeAction(String s, Component owner, HiC hic, String genome) {
         super(s);
         this.owner = owner;
         this.hic = hic;

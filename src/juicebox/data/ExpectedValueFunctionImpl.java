@@ -13,13 +13,13 @@ import java.util.Map;
  */
 public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 
-    final int binSize;
-    final NormalizationType type;
-    final String unit;
+    private final int binSize;
+    private final NormalizationType type;
+    private final String unit;
 
-    public final Map<Integer, Double> normFactors;
+    private final Map<Integer, Double> normFactors;
 
-    final double[] expectedValues;
+    private final double[] expectedValues;
 
     public ExpectedValueFunctionImpl(NormalizationType type, String unit, int binSize, double[] expectedValues, Map<Integer, Double> normFactors) {
         this.type = type;

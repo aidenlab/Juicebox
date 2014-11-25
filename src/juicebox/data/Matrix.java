@@ -11,8 +11,8 @@ import java.util.*;
  */
 public class Matrix {
 
-     final int chr1;
-     final int chr2;
+     private final int chr1;
+     private final int chr2;
      List<MatrixZoomData> bpZoomData;
      List<MatrixZoomData> fragZoomData;
 

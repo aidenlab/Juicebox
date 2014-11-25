@@ -22,11 +22,11 @@ public class EigenvectorTrack extends HiCTrack {
 
     private Color color = Color.blue.darker();
     private Color altColor = Color.red.darker();
-    final Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
+    private final Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
     private final Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
     private final Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
-    final HiC hic;
-    int currentZoom = -1;
+    private final HiC hic;
+    private int currentZoom = -1;
     private String name = "eigenvector";
 
     public EigenvectorTrack(String id, String name, HiC hic) {
@@ -179,7 +179,7 @@ public class EigenvectorTrack extends HiCTrack {
     }
 
     public Renderer<?> getRenderer() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;  //TODO change body of implemented methods use File | Settings | File Templates.
     }
 
     public void forceRefresh() {

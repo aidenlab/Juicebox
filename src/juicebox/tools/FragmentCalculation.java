@@ -13,7 +13,7 @@ public class FragmentCalculation {
 
     private Map<String, int[]> sitesMap = null;
 
-    public static FragmentCalculation readFragments(InputStream is) throws IOException {
+    private static FragmentCalculation readFragments(InputStream is) throws IOException {
         Pattern pattern = Pattern.compile("\\s");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String nextLine;
@@ -49,7 +49,7 @@ public class FragmentCalculation {
 
     }
 
-    public FragmentCalculation(Map<String, int[]> sitesMap) {
+    private FragmentCalculation(Map<String, int[]> sitesMap) {
         this.sitesMap = sitesMap;
     }
 

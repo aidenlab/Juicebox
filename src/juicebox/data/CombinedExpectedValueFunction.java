@@ -13,8 +13,8 @@ import java.util.List;
  */
 public class CombinedExpectedValueFunction implements ExpectedValueFunction {
 
-    final List<ExpectedValueFunction> densityFunctions;
-    double[] expectedValues = null;
+    private final List<ExpectedValueFunction> densityFunctions;
+    private double[] expectedValues = null;
 
     public CombinedExpectedValueFunction(ExpectedValueFunction densityFunction) {
         this.densityFunctions = new ArrayList<ExpectedValueFunction>();

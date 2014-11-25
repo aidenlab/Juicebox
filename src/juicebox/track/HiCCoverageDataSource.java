@@ -20,13 +20,13 @@ import java.util.Collection;
  *         Time: 7:53 PM
  */
 public class HiCCoverageDataSource implements HiCDataSource {
-    String name;
-    Color color = new Color(97, 184, 209);
-    Color altcolor = color;
-    DataRange dataRange;
-    final HiC hic;
+    private String name;
+    private Color color = new Color(97, 184, 209);
+    private Color altcolor = color;
+    private DataRange dataRange;
+    private final HiC hic;
 
-    final NormalizationType normalizationType;
+    private final NormalizationType normalizationType;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no) {
         this.name = no.getLabel();

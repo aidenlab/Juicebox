@@ -27,11 +27,11 @@ public class TrackPanel extends JPanel {
 
     public enum Orientation {X, Y}
 
-    final HiC hic;
-    final Orientation orientation;
+    private final HiC hic;
+    private final Orientation orientation;
    // HiCTrack eigenvectorTrack;
-   final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
-    final MainWindow mainWindow;
+   private final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
+    private final MainWindow mainWindow;
 
     public TrackPanel(MainWindow mainWindow, HiC hiC, Orientation orientation) {
         this.mainWindow = mainWindow;
