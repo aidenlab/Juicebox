@@ -437,6 +437,7 @@ public class HiC {
             int binY;
             try {
                 binX = xAxis.getBinNumberForFragment(fragmentX);
+                //noinspection SuspiciousNameCombination
                 binY = yAxis.getBinNumberForFragment(fragmentY);
                 center(binX, binY);
             }

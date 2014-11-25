@@ -601,8 +601,18 @@ public class MainWindow extends JFrame {
     }
 
     private void loadMenuItemActionPerformed(boolean control) {
-        // TODO: make this a real file filter so can filter by .hic
-        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", DirectoryManager.getUserDirectory(), null);
+        FilenameFilter hicFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                String lowercaseName = name.toLowerCase();
+                if (lowercaseName.endsWith(".hic")) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", DirectoryManager.getUserDirectory(), hicFilter);
         if (files != null && files.length > 0) {
             List<String> fileNames = new ArrayList<String>();
             String str = "";
@@ -786,13 +796,17 @@ public class MainWindow extends JFrame {
                 try {
                     runnable.run();
                     return "done";
-                } catch (Exception e) {
-                    MessageUtils.showMessage(e.getMessage());
-                    throw new Exception(e.getMessage());
-                } finally {
+                }
+                finally {
                     //hideGlassPane();
                     glassPane.setVisible(false);
                 }
+                /* TODO hela annotation files not found, causing error
+                catch (Exception e) {
+                    MessageUtils.showMessage(e.getMessage());
+                    throw new Exception(e.getMessage());
+                }
+                 */
 
             }
         };
@@ -1284,19 +1298,19 @@ public class MainWindow extends JFrame {
         JPanel positionLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         JLabel positionLabel = new JLabel("Jump To:");
-        positionLabel.setFont(new Font("Arial", 2, 14));
+        positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
         positionLabelPanel.add(positionLabel);
 
         positionChrTop = new JTextField();
         positionChrTop.setPreferredSize(new Dimension(180,25));
-        positionChrTop.setFont(new Font("Arial", 2, 10));
+        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionTopPanel.add(positionChrTop);
 
         positionChrLeft = new JTextField();
         positionChrLeft.setPreferredSize(new Dimension(180,25));
-        positionChrLeft.setFont(new Font("Arial", 2, 10));
+        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionLeftPanel.add(positionChrLeft);
 

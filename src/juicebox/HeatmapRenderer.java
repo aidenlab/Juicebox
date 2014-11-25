@@ -67,6 +67,7 @@ public class HeatmapRenderer {
         if (sameChr) {
             // Data is transposable, transpose if necessary.  Convention is to use lower diagonal
             if (x > y) {
+                //noinspection SuspiciousNameCombination
                 x = originY;
                 y = originX;
                 int tmp = width;
@@ -268,6 +269,7 @@ public class HeatmapRenderer {
                 int px =  col - originX;
                 int py =  row - originY;
                 g.setColor(color);
+                //noinspection SuspiciousNameCombination
                 g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
                 // Assuming same chromosome
                 if (col != row) {

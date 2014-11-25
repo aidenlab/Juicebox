@@ -109,6 +109,7 @@ public class ResourceTree {
                     if (SwingUtilities.isRightMouseButton(e)) {
 
                         // removing (DefaultMutableTreeNode) cast to selpath.getlast... (revert if error)
+                        //noinspection SuspiciousMethodCalls
                         if (addedNodes != null &&
                                 addedNodes.contains(selPath.getLastPathComponent())){
                             JPopupMenu menu = new JPopupMenu("popup");

@@ -220,6 +220,7 @@ public class TrackPanel extends JPanel {
                 if (orientation == Orientation.X) {
                     trackRectangle = new Rectangle(rect.x, y, rect.width, h);
                 } else {
+                    //noinspection SuspiciousNameCombination
                     trackRectangle = new Rectangle(y, rect.y, h, rect.height);
                 }
 

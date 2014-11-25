@@ -416,20 +416,20 @@ public class HiCLayout implements LayoutManager2,
     private Component getChild(String key, boolean ltr) {
         Component result = null;
 
-        if (key == NORTH) {
+        if (key.equals(NORTH)) {
             result = north;
-        } else if (key == SOUTH) {
+        } else if (key.equals(SOUTH)) {
             result = south;
-        } else if (key == WEST) {
+        } else if (key.equals(WEST)) {
 
             result = west;
 
-        } else if (key == EAST) {
+        } else if (key.equals(EAST)) {
             result = east;
 
-        } else if (key == CENTER) {
+        } else if (key.equals(CENTER)) {
             result = center;
-        }   else if(key == NORTH_WEST) {
+        }   else if(key.equals(NORTH_WEST)) {
             result = northwest;
         }
         if (result != null && !result.isVisible()) {

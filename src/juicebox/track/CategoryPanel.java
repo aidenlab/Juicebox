@@ -158,6 +158,7 @@ public class CategoryPanel extends JPanel {
         labelBar.setBounds(0, y, w, 30);
         y += 30;
 
+        //noinspection SuspiciousNameCombination
         listPanel.setBounds(y, 33, w, d.height);
 
     }

@@ -233,6 +233,7 @@ public class MatrixZoomData {
         if (chr1 == chr2) {
             if (binX > binY) {
                 int tmp = binX;
+                //noinspection SuspiciousNameCombination
                 binX = binY;
                 binY = tmp;
 
