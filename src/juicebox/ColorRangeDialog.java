@@ -37,11 +37,11 @@ import javax.swing.border.EmptyBorder;
 public class ColorRangeDialog extends JDialog {
 
     private static final long serialVersionUID = -2570891809264626823L;
-    private RangeSlider colorSlider;
-    private double colorRangeFactor;
-    private DecimalFormat df1;
-    private DecimalFormat df2;
-    boolean isObserved;
+    private final RangeSlider colorSlider;
+    private final double colorRangeFactor;
+    private final DecimalFormat df1;
+    private final DecimalFormat df2;
+    final boolean isObserved;
     private JTextField minimumField;
     private JTextField maximumField;
 

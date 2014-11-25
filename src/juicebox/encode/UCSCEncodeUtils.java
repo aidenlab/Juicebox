@@ -15,14 +15,14 @@ import java.util.*;
  */
 public class UCSCEncodeUtils {
 
-    static HashSet<String> labs = new HashSet<String>();
-    static HashSet<String> dataTypes = new HashSet<String>();
-    static HashSet<String> cells = new HashSet<String>();
-    static HashSet<String> antibodies = new HashSet<String>();
-    static HashSet<String> fileTypes = new HashSet<String>();
-    static HashSet<String> allHeaders = new LinkedHashSet<String>();
+    static final HashSet<String> labs = new HashSet<String>();
+    static final HashSet<String> dataTypes = new HashSet<String>();
+    static final HashSet<String> cells = new HashSet<String>();
+    static final HashSet<String> antibodies = new HashSet<String>();
+    static final HashSet<String> fileTypes = new HashSet<String>();
+    static final HashSet<String> allHeaders = new LinkedHashSet<String>();
 
-    private static List<String> rnaChipQualifiers = Arrays.asList("CellTotal", "Longnonpolya", "Longpolya",
+    private static final List<String> rnaChipQualifiers = Arrays.asList("CellTotal", "Longnonpolya", "Longpolya",
             "NucleolusTotal", "ChromatinTotal", "ChromatinTotal", "NucleoplasmTotal");
 
     public static void main(String[] args) throws IOException {
@@ -83,7 +83,7 @@ public class UCSCEncodeUtils {
         return records;
     }
 
-    static String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
+    static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
 
     private static void updateEncodeTableFile(String inputFile, String outputFile) throws IOException {
 
@@ -149,7 +149,7 @@ public class UCSCEncodeUtils {
         pw.close();
     }
 
-    static HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
+    static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
     public static void parseFilesDotTxt(String url, List<EncodeFileRecord> fileRecords) throws IOException {
 

@@ -12,7 +12,7 @@ import org.broad.igv.track.WindowFunction;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+//import java.util.Collections;
 
 /**
  * @author jrobinso
@@ -24,9 +24,9 @@ public class HiCCoverageDataSource implements HiCDataSource {
     Color color = new Color(97, 184, 209);
     Color altcolor = color;
     DataRange dataRange;
-    HiC hic;
+    final HiC hic;
 
-    NormalizationType normalizationType;
+    final NormalizationType normalizationType;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no) {
         this.name = no.getLabel();
@@ -110,10 +110,10 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     public static class CoverageDataPoint implements HiCDataPoint {
 
-        int binNumber;
-        int genomicStart;
-        int genomicEnd;
-        double value;
+        final int binNumber;
+        final int genomicStart;
+        final int genomicEnd;
+        final double value;
 
 
         public CoverageDataPoint(int binNumber, int genomicStart, int genomicEnd, double value) {

@@ -18,7 +18,7 @@ import java.util.List;
 public abstract class HiCDataAdapter implements HiCDataSource {
 
     public static final double log2 = Math.log(2);
-    HiC hic;
+    final HiC hic;
 
     LoadedDataInterval loadedDataInterval;
 
@@ -133,7 +133,7 @@ public abstract class HiCDataAdapter implements HiCDataSource {
 
     public static class DataAccumulator implements HiCDataPoint {
 
-        double binNumber;
+        final double binNumber;
         double width = 1;
         int nPts = 0;
         double weightedSum = 0;
@@ -197,14 +197,14 @@ public abstract class HiCDataAdapter implements HiCDataSource {
 
     class LoadedDataInterval {
 
-        String zoom;
-        int scaleFactor;
-        String axisType;
-        WindowFunction windowFunction;
-        String chr;
-        int startBin;
-        int endBin;
-        DataAccumulator[] data;
+        final String zoom;
+        final int scaleFactor;
+        final String axisType;
+        final WindowFunction windowFunction;
+        final String chr;
+        final int startBin;
+        final int endBin;
+        final DataAccumulator[] data;
 
         LoadedDataInterval(String zoom, int scaleFactor, String axisType, WindowFunction windowFunction,
                            String chr, int startBin, int endBin, DataAccumulator[] data) {

@@ -15,11 +15,11 @@ import java.util.Set;
  */
 public class SymmetricMatrix implements BasicMatrix {
 
-    int dim;
-    float[] data;
+    final int dim;
+    final float[] data;
     float lowerValue = Float.NaN;
     float upperValue = Float.NaN;
-    Set<Integer> nullColumns;
+    final Set<Integer> nullColumns;
 
     public SymmetricMatrix(int dim) {
         this.dim = dim;
@@ -118,8 +118,7 @@ public class SymmetricMatrix implements BasicMatrix {
         // Statistics, other attributes
         DoubleArrayList flattenedDataList = new DoubleArrayList(data.length);
 
-        for (int i = 0; i < data.length; i++) {
-            float value = data[i];
+        for (float value : data) {
             if (!Float.isNaN(value) && value != 1) {
                 flattenedDataList.add(value);
             }

@@ -18,14 +18,14 @@ package juicebox;
 
 import org.apache.log4j.Logger;
 import org.broad.igv.util.*;
-
+//import java.util.List;
 import java.util.*;
-import java.util.List;
+
 
 public class CommandExecutor {
 
-    private static Logger log = Logger.getLogger(CommandExecutor.class);
-    HiC hic;
+    private static final Logger log = Logger.getLogger(CommandExecutor.class);
+    final HiC hic;
 
     public CommandExecutor(HiC hic) {
         this.hic = hic;
@@ -43,7 +43,8 @@ public class CommandExecutor {
 
     public String execute(String command) {
 
-        List<String> args = getArgs(StringUtils.breakQuotedString(command, ' ').toArray(new String[]{}));
+        List<String> commandString = StringUtils.breakQuotedString(command, ' ');
+        List<String> args = getArgs(commandString.toArray(new String[commandString.size()]));
 
         String result = "OK";
         log.debug("Executing: " + command);

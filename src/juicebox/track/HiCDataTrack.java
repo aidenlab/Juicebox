@@ -23,15 +23,15 @@ import java.util.Comparator;
  */
 public class HiCDataTrack extends HiCTrack {
 
-    static int TRACK_MARGIN = 2;
-    HiC hic;
-    HiCDataSource dataSource;
+    static final int TRACK_MARGIN = 2;
+    final HiC hic;
+    final HiCDataSource dataSource;
     boolean logScale = false;
     private HiCDataPoint[] data;
-    NumberFormat formatter = NumberFormat.getInstance();
-    float dash[] = {8.0f};
-    BasicStroke dashedStroke = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.0f, dash, 0.0f);
-    private Color dashColor = new Color(120, 120, 120);
+    final NumberFormat formatter = NumberFormat.getInstance();
+    final float[] dash = {8.0f};
+    final BasicStroke dashedStroke = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.0f, dash, 0.0f);
+    private final Color dashColor = new Color(120, 120, 120);
     private WindowFunction windowFunction = WindowFunction.mean;
 
 
@@ -94,9 +94,10 @@ public class HiCDataTrack extends HiCTrack {
             baseY = y + (height - TRACK_MARGIN);
         }
 
-        for (int i = 0; i < data.length; i++) {
+        //for (int i = 0; i < data.length; i++) {
+        for (HiCDataPoint d : data) {
 
-            HiCDataPoint d = data[i];
+            //HiCDataPoint d = data[i];
             if (d == null) continue;
 
             double bin = d.getBinNumber() - startBin;

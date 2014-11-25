@@ -32,9 +32,9 @@ import java.util.Map;
  */
 public class BAMPairIterator implements PairIterator {
 
-    AlignmentPair nextPair = null;
-    AlignmentPair preNext = null;
-    CloseableIterator<?> iterator;
+    private AlignmentPair nextPair = null;
+    private AlignmentPair preNext = null;
+    private CloseableIterator<?> iterator;
     private AlignmentReader<?> reader;
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;

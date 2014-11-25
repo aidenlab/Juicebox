@@ -24,7 +24,7 @@ public class AffineTransformDemo {
     }
 
 
-    static class AffinePanel extends JComponent {
+    private static class AffinePanel extends JComponent {
 
         private static final long serialVersionUID = 2359945734983494428L;
 

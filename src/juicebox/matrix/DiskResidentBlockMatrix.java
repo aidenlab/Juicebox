@@ -32,9 +32,9 @@ import java.io.*;
  */
 public class DiskResidentBlockMatrix implements BasicMatrix {
 
-    private static Logger log = Logger.getLogger(DiskResidentBlockMatrix.class);
+    private static final Logger log = Logger.getLogger(DiskResidentBlockMatrix.class);
 
-    String path;
+    final String path;
     private String genome;
     private String chr1;
     private String chr2;
@@ -48,7 +48,7 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
     int arrayStartPosition;
     boolean isLoading = false;
 
-    ObjectCache<String, float[][]> blockDataCache = new ObjectCache<String, float[][]>(200);
+    final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<String, float[][]>(200);
     private int nFullBlocks;
 
     public DiskResidentBlockMatrix(String path) throws IOException {

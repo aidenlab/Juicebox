@@ -13,7 +13,7 @@ import java.util.*;
 public class Feature2DList {
 
     /** List of 2D features stored by chromosome */
-    private Map<String, List<Feature2D>> featureList;
+    private final Map<String, List<Feature2D>> featureList;
 
     /** Visibility as set by user */
     private boolean isVisible;

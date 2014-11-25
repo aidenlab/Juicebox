@@ -20,10 +20,10 @@ import org.broad.igv.Globals;
  */
 public class HiCFragmentAxis implements HiCGridAxis {
 
-    int binSize;  // bin size in fragments
-    int igvZoom;
-    int[] sites;
-    int chrLength;
+    final int binSize;  // bin size in fragments
+    final int igvZoom;
+    final int[] sites;
+    final int chrLength;
 
 
     /**

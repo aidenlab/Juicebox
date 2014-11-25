@@ -22,27 +22,39 @@ public class EigenvectorTrack extends HiCTrack {
 
     private Color color = Color.blue.darker();
     private Color altColor = Color.red.darker();
-    Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
-    private Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
-    private Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
-    HiC hic;
+    final Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
+    private final Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
+    private final Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
+    final HiC hic;
     int currentZoom = -1;
     private String name = "eigenvector";
 
     public EigenvectorTrack(String id, String name, HiC hic) {
         super(new ResourceLocator(id));
         this.hic = hic;
+        this.name = name;
+
     }
 
     private void setData(int chrIdx, double[] data) {
 
         if (data != null && data.length > 0) {
             DoubleArrayList tmp = new DoubleArrayList(data.length);
+
+            for (double datum : data) {
+                if (!Double.isNaN(datum)) {
+                    tmp.add(datum);
+                }
+            }
+
+
+            /*
             for (int i = 0; i < data.length; i++) {
                 if (!Double.isNaN(data[i])) {
                     tmp.add(data[i]);
                 }
             }
+            */
             double[] tmpArray = tmp.toArray();
             medianCache.put(chrIdx, StatUtils.percentile(tmpArray, 50));
             double max = 0;

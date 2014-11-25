@@ -18,9 +18,8 @@
 
 package juicebox.tools;
 
-import htsjdk.tribble.util.LittleEndianOutputStream;
-
-import java.io.IOException;
+//import htsjdk.tribble.util.LittleEndianOutputStream;
+//import java.io.IOException;
 
 /**
  * @author Jim Robinson
@@ -28,16 +27,16 @@ import java.io.IOException;
  */
 public class AlignmentPair {
 
-    private boolean strand1;  // true if forward strand
-    private boolean strand2;
-    private int frag1;
-    private int frag2;
-    private int chr1;
-    private int pos1;
-    private int chr2;
-    private int pos2;
-    private int mapq1;
-    private int mapq2;
+    private final boolean strand1;  // true if forward strand
+    private final boolean strand2;
+    private final int frag1;
+    private final int frag2;
+    private final int chr1;
+    private final int pos1;
+    private final int chr2;
+    private final int pos2;
+    private final int mapq1;
+    private final int mapq2;
     private float score = 1.0f;  // The score (or count)
     private boolean isContigPair = false;
 

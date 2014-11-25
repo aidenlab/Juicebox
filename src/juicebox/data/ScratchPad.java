@@ -1,25 +1,25 @@
 package juicebox.data;
 
-import org.apache.commons.math.stat.StatUtils;
-import juicebox.HiC;
+//import org.apache.commons.math.stat.StatUtils;
+//import juicebox.HiC;
 
-import org.broad.igv.feature.Chromosome;
+//import org.broad.igv.feature.Chromosome;
 import juicebox.matrix.*;
-import juicebox.tools.HiCTools;
-import juicebox.tools.NormalizationCalculations;
+//import juicebox.tools.HiCTools;
+//import juicebox.tools.NormalizationCalculations;
 import org.broad.igv.util.ParsingUtils;
-import org.broad.igv.util.collections.DoubleArrayList;
-import org.broad.igv.util.collections.DownsampledDoubleArrayList;
-import org.broad.igv.util.collections.FloatArrayList;
-import org.broad.igv.util.collections.IntArrayList;
+//import org.broad.igv.util.collections.DoubleArrayList;
+//import org.broad.igv.util.collections.DownsampledDoubleArrayList;
+//import org.broad.igv.util.collections.FloatArrayList;
+//import org.broad.igv.util.collections.IntArrayList;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
+//import org.jfree.chart.ChartFactory;
+//import org.jfree.chart.JFreeChart;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.*;
+//import javax.swing.*;
+//import java.awt.*;
+//import java.awt.image.*;
 import java.io.*;
 import java.util.*;
 

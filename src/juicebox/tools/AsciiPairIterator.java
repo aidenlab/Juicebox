@@ -22,12 +22,12 @@ package juicebox.tools;
 import org.broad.igv.Globals;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+//import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+//import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
+//import java.util.regex.Pattern;
 
 /**
  * @author Jim Robinson
@@ -39,16 +39,16 @@ public class AsciiPairIterator implements PairIterator {
 
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
-    AlignmentPair nextPair = null;
-    AlignmentPair preNext = null;
-    BufferedReader reader;
-    Format format = null;
+    private AlignmentPair nextPair = null;
+    private AlignmentPair preNext = null;
+    private BufferedReader reader;
+    private Format format = null;
 
     /**
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
      * in perm space, which is rather limited and can cause us to run out of memory.
      */
-    Map<String, String> stringInternPool = new HashMap<String, String>();
+    private final Map<String, String> stringInternPool = new HashMap<String, String>();
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
         this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
@@ -131,7 +131,7 @@ public class AsciiPairIterator implements PairIterator {
     private String getInternedString(String aString) {
         String s = stringInternPool.get(aString);
         if (s == null) {
-            s = new String(aString); // THe "new" will break any dependency on larger strings if this is a "substring"
+            s = new String(aString); // The "new" will break any dependency on larger strings if this is a "substring"
             stringInternPool.put(aString, s);
         }
         return s;

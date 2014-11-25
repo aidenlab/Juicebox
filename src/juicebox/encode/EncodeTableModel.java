@@ -35,8 +35,8 @@ import java.util.List;
 public class EncodeTableModel extends AbstractTableModel {
 
     private static final long serialVersionUID = 7743873079853677860L;
-    private String[] columnHeadings;
-    private List<EncodeFileRecord> records;
+    private final String[] columnHeadings;
+    private final List<EncodeFileRecord> records;
     private final TableRowSorter<EncodeTableModel> sorter;
 
     public EncodeTableModel(String [] headings, List<EncodeFileRecord> records) {

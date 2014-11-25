@@ -11,7 +11,7 @@ import org.broad.igv.feature.Chromosome;
 public class Context {
 
 
-    private Chromosome chromosome;
+    private final Chromosome chromosome;
     private HiCZoom zoom;
 
      private double binOrigin = 0;

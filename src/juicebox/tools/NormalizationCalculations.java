@@ -270,8 +270,8 @@ public class NormalizationCalculations {
             rk[i] = 1 - v[i];
         }
         double rho_km1 = 0;
-        for (int i = 0; i < rk.length; i++) {
-            rho_km1 += rk[i] * rk[i];
+        for (double aRk : rk) {
+            rho_km1 += aRk * aRk;
         }
         double rout = rho_km1;
         double rold = rout;
@@ -289,7 +289,7 @@ public class NormalizationCalculations {
             double beta;
             double gamma;
             double rho_km2 = rho_km1;
-            for (int i = 0; i < y.length; i++) y[i] = e[i];
+            System.arraycopy(e, 0, y, 0, y.length);
 
             double innertol = Math.max(Math.pow(eta, 2) * rout, rt);
             while (rho_km1 > innertol) {   // Inner iteration by CG

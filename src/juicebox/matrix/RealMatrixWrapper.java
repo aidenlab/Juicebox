@@ -13,7 +13,7 @@ import org.broad.igv.util.collections.DoubleArrayList;
  */
 public class RealMatrixWrapper implements BasicMatrix {
 
-    RealMatrix matrix;
+    final RealMatrix matrix;
     float lowerValue = -1;
     float upperValue = 1;
 

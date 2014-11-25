@@ -9,10 +9,10 @@ import org.broad.igv.Globals;
  */
 public class HiCFixedGridAxis implements HiCGridAxis {
 
-    int binCount;
-    int binSize;
-    int igvZoom;
-    int[] sites;
+    final int binCount;
+    final int binSize;
+    final int igvZoom;
+    final int[] sites;
 
     public HiCFixedGridAxis(int binCount, int binSize, int [] sites) {
 

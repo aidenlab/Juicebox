@@ -26,8 +26,8 @@ import java.util.HashMap;
  */
 public class SparseVector {
 
-    int length;
-    HashMap<Integer, Double> values;
+    final int length;
+    final HashMap<Integer, Double> values;
 
     public SparseVector(int length) {
         this.length = length;

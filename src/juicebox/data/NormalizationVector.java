@@ -10,11 +10,11 @@ import juicebox.NormalizationType;
  */
 public class NormalizationVector {
 
-    NormalizationType type;
-    int chrIdx;
-    HiC.Unit unit;
-    int resolution;
-    double [] data;
+    final NormalizationType type;
+    final int chrIdx;
+    final HiC.Unit unit;
+    final int resolution;
+    final double [] data;
 
     public NormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int resolution, double[] data) {
         this.type = type;
@@ -34,7 +34,7 @@ public class NormalizationVector {
 
 
     public static String getKey(NormalizationType type, int chrIdx, String unit, int resolution) {
-        return type + "_"  + chrIdx + "_" + unit.toString() + "_" + resolution;
+        return type + "_"  + chrIdx + "_" + unit + "_" + resolution;
     }
 
 

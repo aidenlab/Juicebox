@@ -1,8 +1,9 @@
 package juicebox.data;
 
-import java.awt.*;
+//import java.awt.*;
+//import java.util.List;
 import java.util.*;
-import java.util.List;
+
 
 /**
  * @author jrobinso
@@ -10,9 +11,9 @@ import java.util.List;
  */
 public class Block {
 
-    private int number;
+    private final int number;
 
-    List<ContactRecord> records;
+    final List<ContactRecord> records;
 
     public Block(int number) {
         this.number = number;

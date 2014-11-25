@@ -2,14 +2,14 @@ package juicebox.data;
 
 
 import org.apache.log4j.Logger;
-import org.broad.igv.exceptions.HttpResponseException;
+//import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
 import juicebox.HiC;
 import juicebox.HiCZoom;
 import juicebox.NormalizationType;
 import juicebox.tools.Preprocessor;
 import org.broad.igv.util.CompressionUtils;
-import org.broad.igv.util.FileUtils;
+//import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 import htsjdk.tribble.util.LittleEndianInputStream;
@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
-    private static Logger log = Logger.getLogger(DatasetReaderV2.class);
+    private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
 
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
@@ -40,7 +40,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     /**
      * Cache of chromosome name -> array of restriction sites
      */
-    private Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
+    private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
 
     private Map<String, FragIndexEntry> fragmentSitesIndex;
     private final CompressionUtils compressionUtils;
@@ -513,8 +513,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             zdList.add(zd);
         }
 
-        Matrix m = new Matrix(c1, c2, zdList);
-        return m;
+        return new Matrix(c1, c2, zdList);
     }
 
     public int getFragCount(Chromosome chromosome) {
@@ -695,8 +694,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             values[i] = dis.readDouble();
         }
 
-        NormalizationVector nv = new NormalizationVector(type, chrIdx, unit, binSize, values);
-        return nv;
+        return new NormalizationVector(type, chrIdx, unit, binSize, values);
 
 
     }
@@ -706,8 +704,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     static class FragIndexEntry {
-        long position;
-        int nSites;
+        final long position;
+        final int nSites;
 
         FragIndexEntry(long position, int nSites) {
             this.position = position;

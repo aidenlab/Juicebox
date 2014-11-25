@@ -643,8 +643,7 @@ public class NormalizationVectorUpdater {
 
     private static void writeNormalizationVector(BufferedByteWriter buffer, double[] values) throws IOException {
         buffer.putInt(values.length);
-        for (int i = 0; i < values.length; i++)
-            buffer.putDouble(values[i]);
+        for (double value : values) buffer.putDouble(value);
     }
 
 
@@ -757,12 +756,12 @@ public class NormalizationVectorUpdater {
 
 
     static class NormalizationVectorIndexEntry {
-        String type;
-        int chrIdx;
-        String unit;
-        int resolution;
+        final String type;
+        final int chrIdx;
+        final String unit;
+        final int resolution;
         long position;
-        int sizeInBytes;
+        final int sizeInBytes;
 
         NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
             this.type = type;
@@ -780,12 +779,12 @@ public class NormalizationVectorUpdater {
     }
 
     static class NormalizedSum {
-        String type;
-        int chr1Idx;
-        int chr2Idx;
-        String unit;
-        int resolution;
-        double value;
+        final String type;
+        final int chr1Idx;
+        final int chr2Idx;
+        final String unit;
+        final int resolution;
+        final double value;
 
         NormalizedSum(String type, int chr1Idx, int chr2Idx, String unit, int resolution, double value) {
             this.type = type;

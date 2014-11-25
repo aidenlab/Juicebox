@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class HiC {
 
-    private static Logger log = Logger.getLogger(HiC.class);
+    private static final Logger log = Logger.getLogger(HiC.class);
 
     private double scaleFactor;
     private String xPosition;
@@ -32,7 +32,7 @@ public class HiC {
 
     public enum Unit {BP, FRAG}
 
-    private MainWindow mainWindow;
+    private final MainWindow mainWindow;
     private MainWindow.MatrixType displayOption;
     private NormalizationType normalizationType;
     private java.util.List<Chromosome> chromosomes;
@@ -44,12 +44,12 @@ public class HiC {
     private Context xContext;
     private Context yContext;
 
-    private Map<String, Feature2DList> loopLists;
+    private final Map<String, Feature2DList> loopLists;
     private boolean showLoops;
 
     private EigenvectorTrack eigenvectorTrack;
 
-    private HiCTrackManager trackManager;
+    private final HiCTrackManager trackManager;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
 
@@ -591,7 +591,7 @@ public class HiC {
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
-    public float getNormalizedObservedValue(int binX, int binY) {
+    public float getNormalizedObservedValue(int binX, int binY){
 
         return getZd().getObservedValue(binX, binY, normalizationType);
 

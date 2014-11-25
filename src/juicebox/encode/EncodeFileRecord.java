@@ -12,8 +12,8 @@ import java.util.Map;
 public class EncodeFileRecord {
 
     boolean selected = false;
-    String path;
-    Map<String, String> attributes;
+    final String path;
+    final Map<String, String> attributes;
     String trackName;
 
     public EncodeFileRecord(String path, Map<String, String> attributes) {

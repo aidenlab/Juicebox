@@ -20,7 +20,7 @@ public class TrackConfigDialog extends JDialog {
 
     private static final long serialVersionUID = -1778029293180119209L;
     boolean canceled = false;
-    HiCTrack track;
+    final HiCTrack track;
 
     public TrackConfigDialog(Frame owner, HiCTrack track) {
         super(owner);
@@ -117,27 +117,29 @@ public class TrackConfigDialog extends JDialog {
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
         // Generated using JFormDesigner non-commercial license
-        dialogPane = new JPanel();
-        contentPanel = new JPanel();
-        panel4 = new JPanel();
+
         nameField = new JTextField();
-        panel1 = new JPanel();
-        label2 = new JLabel();
-        label3 = new JLabel();
         logScaleCB = new JCheckBox();
         minYField = new JTextField();
         maxYField = new JTextField();
-        panel2 = new JPanel();
-        label4 = new JLabel();
-        label5 = new JLabel();
         posColorChooser = new ColorChooserPanel();
         altColorChooser = new ColorChooserPanel();
-        panel3 = new JPanel();
         meanRB = new JRadioButton();
         maxRB = new JRadioButton();
-        buttonBar = new JPanel();
-        okButton = new JButton();
-        cancelButton = new JButton();
+
+        JPanel dialogPane = new JPanel();
+        JPanel contentPanel = new JPanel();
+        JPanel panel4 = new JPanel();
+        JPanel panel1 = new JPanel();
+        JLabel label2 = new JLabel();
+        JLabel label3 = new JLabel();
+        JPanel panel2 = new JPanel();
+        JLabel label4 = new JLabel();
+        JLabel label5 = new JLabel();
+        JPanel panel3 = new JPanel();
+        JPanel buttonBar = new JPanel();
+        JButton okButton = new JButton();
+        JButton cancelButton = new JButton();
 
         //======== this ========
         setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
@@ -362,28 +364,31 @@ public class TrackConfigDialog extends JDialog {
     }
 
 
-    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-    // Generated using JFormDesigner non-commercial license
-    private JPanel dialogPane;
-    private JPanel contentPanel;
-    private JPanel panel4;
-    private JTextField nameField;
-    private JPanel panel1;
-    private JLabel label2;
-    private JLabel label3;
+    private ColorChooserPanel posColorChooser;
+    private ColorChooserPanel altColorChooser;
     private JCheckBox logScaleCB;
     private JTextField minYField;
     private JTextField maxYField;
+    private JRadioButton meanRB;
+    private JRadioButton maxRB;
+    private JTextField nameField;
+
+    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
+    // Generated using JFormDesigner non-commercial license
+    /*
+    private JPanel dialogPane;
+    private JPanel contentPanel;
+    private JPanel panel4;
+    private JPanel panel1;
+    private JLabel label2;
+    private JLabel label3;
     private JPanel panel2;
     private JLabel label4;
     private JLabel label5;
-    private ColorChooserPanel posColorChooser;
-    private ColorChooserPanel altColorChooser;
     private JPanel panel3;
-    private JRadioButton meanRB;
-    private JRadioButton maxRB;
     private JPanel buttonBar;
     private JButton okButton;
     private JButton cancelButton;
+    */
     // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

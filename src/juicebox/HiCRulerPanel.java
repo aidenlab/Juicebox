@@ -45,8 +45,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private HiC hic;
     private Orientation orientation;
 
-    private Font tickFont = FontManager.getFont(Font.BOLD, 9);
-    private Font spanFont = FontManager.getFont(Font.BOLD, 12);
+    private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
+    private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
 
 
     Context context;
@@ -262,8 +262,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     public static class TickSpacing {
 
-        private double majorTick;
-        private double minorTick;
+        private final double majorTick;
+        private final double minorTick;
         private String majorUnit = "";
         private int unitMultiplier = 1;
 
@@ -303,9 +303,9 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     class ClickLink {
 
-        Rectangle region;
-        String value;
-        String tooltipText;
+        final Rectangle region;
+        final String value;
+        final String tooltipText;
 
         ClickLink(Rectangle region, String value, String tooltipText) {
             this.region = region;

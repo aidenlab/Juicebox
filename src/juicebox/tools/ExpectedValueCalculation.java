@@ -23,9 +23,9 @@ import java.util.*;
  */
 public class ExpectedValueCalculation {
 
-    private int gridSize;
+    private final int gridSize;
 
-    private int numberOfBins;
+    private final int numberOfBins;
     /**
      * Genome wide count of binned reads at a given distance
      */
@@ -43,13 +43,13 @@ public class ExpectedValueCalculation {
     /**
      * Map of chromosome index -> total count for that chromosome
      */
-    private Map<Integer, Double> chromosomeCounts;
+    private final Map<Integer, Double> chromosomeCounts;
 
     /**
      * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
      * the "expected total"  == observed total
      */
-    private LinkedHashMap<Integer, Double> chrScaleFactors;
+    private final LinkedHashMap<Integer, Double> chrScaleFactors;
 
     /**
      * Stores restriction site fragment information for fragment maps
@@ -59,7 +59,7 @@ public class ExpectedValueCalculation {
     // A little redundant, for clarity
     boolean isFrag = false;
 
-    private NormalizationType type;
+    private final NormalizationType type;
 
     /**
      * Instantiate a DensityCalculation.  This constructor is used to compute the "expected" density from pair data.
@@ -175,7 +175,7 @@ public class ExpectedValueCalculation {
         for (Chromosome chr : chromosomes.values()) {
 
             // didn't see anything at all from a chromosome, then don't include it in possDists.
-            if (chr == null || chromosomeCounts.containsKey(chr.getIndex()) == false) continue;
+            if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
 
             // use correct units (bp or fragments)
             int len = isFrag ? fragmentCountMap.get(chr.getName()) : chr.getLength();

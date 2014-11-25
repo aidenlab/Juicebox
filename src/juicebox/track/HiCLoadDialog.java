@@ -12,7 +12,7 @@
 
 package juicebox.track;
 
-import org.broad.igv.track.Track;
+//import org.broad.igv.track.Track;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -31,7 +31,7 @@ public class HiCLoadDialog extends JDialog {
 
     private static final long serialVersionUID = -7529973146086845915L;
     private boolean canceled = false;
-    private Collection<String> selectedTracks = new HashSet<String>();
+    private final Collection<String> selectedTracks = new HashSet<String>();
 
 
     public HiCLoadDialog(Frame parent, Map<String, List<ResourceLocator>> locators, List<HiCTrack> tracks) {
