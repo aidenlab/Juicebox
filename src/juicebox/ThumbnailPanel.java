@@ -37,9 +37,16 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
-                int xBP = (int) (mouseEvent.getX() * xScale());
-                int yBP = (int) (mouseEvent.getY() * yScale());
-                hic.center(xBP, yBP);
+                try {
+                    int xBP = (int) (mouseEvent.getX() * xScale());
+                    int yBP = (int) (mouseEvent.getY() * yScale());
+
+                    hic.center(xBP, yBP);
+                }
+                catch(Exception e){
+                    System.out.println("Error when thumbnail clicked");
+                    e.printStackTrace();
+                }
             }
 
             @Override

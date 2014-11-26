@@ -441,8 +441,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
             if (straightEdgeEnabled) {
-                mainWindow.trackPanelX.repaint();
-                mainWindow.trackPanelY.repaint();
+                mainWindow.repaintTrackPanels();
             }
         }
 
@@ -686,8 +685,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                        mainWindow.trackPanelY.paintImmediately(damageRectY);
 
                         repaint();
-                        mainWindow.trackPanelX.repaint();
-                        mainWindow.trackPanelY.repaint();
+                        mainWindow.repaintTrackPanels();
                     }
 
                 }
@@ -717,7 +715,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.setCursorPoint(null);
                     setCursor(Cursor.getDefaultCursor());
                     repaint();
-                    mainWindow.trackPanelX.repaint();
+                    mainWindow.repaintTrackPanels();
                 }
 
             }

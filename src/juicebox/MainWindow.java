@@ -27,11 +27,9 @@ import juicebox.track.*;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
-import org.broad.igv.util.ResourceLocator;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -41,27 +39,18 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-//import sun.misc.MessageUtils;
 
-import javax.accessibility.Accessible;
-import javax.accessibility.AccessibleContext;
-import javax.accessibility.AccessibleRole;
 import javax.imageio.ImageIO;
-//import javax.swing.JTree;
 import javax.swing.*;
 
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
-//import javax.swing.text.StyleConstants;
-//import javax.swing.text.StyledDocument;
-//import javax.swing.text.SimpleAttributeSet;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionListener;
 
-import javax.swing.plaf.ButtonUI;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
@@ -84,7 +73,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-//import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -126,13 +114,13 @@ public class MainWindow extends JFrame {
     private JideButton minusButton;
     private RangeSlider colorRangeSlider;
     private ResolutionControl resolutionSlider;
-    private boolean resolutionLocked = false;
 
-    TrackPanel trackPanelX;
+
+    private TrackPanel trackPanelX;
+    private TrackPanel trackPanelY;
     private TrackLabelPanel trackLabelPanel;
     private HiCRulerPanel rulerPanelX;
     private HeatmapPanel heatmapPanel;
-    TrackPanel trackPanelY;
     private HiCRulerPanel rulerPanelY;
     private ThumbnailPanel thumbnailPanel;
     private JPanel positionPanel;
@@ -239,7 +227,7 @@ public class MainWindow extends JFrame {
     }
 
     public boolean isResolutionLocked() {
-        return resolutionLocked;
+        return resolutionSlider.isResolutionLocked();
     }
 
     public void updateColorSlider(double min, double max, double value) {
@@ -525,7 +513,12 @@ public class MainWindow extends JFrame {
 
     }
 
-    void refresh() {
+    public void repaintTrackPanels(){
+        trackPanelX.repaint();
+        trackPanelY.repaint();
+    }
+
+    public void refresh() {
         getHeatmapPanel().clearTileCache();
         repaint();
         updateThumbnail();
@@ -634,12 +627,14 @@ public class MainWindow extends JFrame {
 
         if (url != null) {
             try {
+                showGlassPane();
                 load(Arrays.asList(url), control);
 
                 String path = (new URL(url)).getPath();
-                if (control) controlTitle = title;
+                if (control) controlTitle = title;// TODO should the other one be set to empty/null
                 else datasetTitle = title;
                 updateTitle();
+                hideGlassPane();
             } catch (IOException e1) {
                 JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -791,16 +786,15 @@ public class MainWindow extends JFrame {
 
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                //showGlassPane();
-                Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
-                glassPane.setEnabled(true);
+                showGlassPane();
+                //Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
+                //glassPane.setEnabled(true);
                 try {
                     runnable.run();
                     return "done";
-                }
-                finally {
-                    //hideGlassPane();
-                    glassPane.setVisible(false);
+                } finally {
+                    hideGlassPane();
+                    //glassPane.setVisible(false);
                 }
             }
         };
@@ -808,15 +802,30 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    public Component showGlassPane() {
-        final Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
+    public void showGlassPane() {
+        Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         glassPane.setVisible(true);
-        return glassPane;
+
+        glassPane = this.getGlassPane();
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        glassPane.setVisible(true);
+
+        glassPane = rootPane.getGlassPane();
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        glassPane.setVisible(true);
     }
 
     public void hideGlassPane() {
-        final Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
+        Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        glassPane.setVisible(false);
+
+        glassPane = this.getGlassPane();
+        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        glassPane.setVisible(false);
+
+        glassPane = rootPane.getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         glassPane.setVisible(false);
     }
@@ -1186,13 +1195,6 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(colorRangePanel);
 
 
-        // Resolution  panel
-        resolutionSlider = new ResolutionControl();
-        toolbarPanel.add(resolutionSlider);
-
-
-        toolbarPanel.setEnabled(false);
-
         //======== hiCPanel ========
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
@@ -1256,6 +1258,13 @@ public class MainWindow extends JFrame {
         hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
 
 
+        // needs to be created after heatmap panel
+        // Resolution  panel
+        resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
+        toolbarPanel.add(resolutionSlider);
+        toolbarPanel.setEnabled(false);
+
+
         //======== Right side panel ========
 
         JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
@@ -1287,22 +1296,22 @@ public class MainWindow extends JFrame {
         //========= Positioning panel ======
 
         positionPanel = new JPanel();
-        positionPanel.setLayout(new GridLayout(0,1));
+        positionPanel.setLayout(new GridLayout(0, 1));
 
         JLabel positionLabel = new JLabel(" Jump To:");
         positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
         positionChrTop = new JTextField();
-        positionChrTop.setPreferredSize(new Dimension(180,25));
+        positionChrTop.setPreferredSize(new Dimension(180, 25));
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionChrLeft = new JTextField();
-        positionChrLeft.setPreferredSize(new Dimension(180,25));
+        positionChrLeft.setPreferredSize(new Dimension(180, 25));
         positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
 
-        positionLabel.setPreferredSize(new Dimension(200,25));
-        positionChrTop.setPreferredSize(new Dimension(200,30));
-        positionChrLeft.setPreferredSize(new Dimension(200,30));
+        positionLabel.setPreferredSize(new Dimension(200, 25));
+        positionChrTop.setPreferredSize(new Dimension(200, 30));
+        positionChrLeft.setPreferredSize(new Dimension(200, 30));
 
         positionPanel.add(positionLabel);
         positionPanel.add(positionChrTop);
@@ -1314,7 +1323,7 @@ public class MainWindow extends JFrame {
         Dimension positionPanelSize = new Dimension(180, 40);
         positionPanel.setBounds(new Rectangle(new Point(0, positionPanelY), positionPanelSize));
         positionPanel.setPreferredSize(positionPanelSize);
-        rightSidePanel.add(positionPanel,BorderLayout.CENTER);
+        rightSidePanel.add(positionPanel, BorderLayout.CENTER);
 
         //========= mouse hover text ======
 
@@ -1328,7 +1337,7 @@ public class MainWindow extends JFrame {
         Dimension prefSize = new Dimension(180, 400);
         mouseHoverTextPanel.setPreferredSize(prefSize);
         mouseHoverTextPanel.setBounds(new Rectangle(new Point(20, mouseTextY), prefSize));
-        rightSidePanel.add(mouseHoverTextPanel,BorderLayout.PAGE_END);
+        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.PAGE_END);
 
         //======== xPlotPanel ========
 //
@@ -1376,12 +1385,12 @@ public class MainWindow extends JFrame {
 
     }
 
-    public void setPositionChrLeft(String newPositionDate){
+    public void setPositionChrLeft(String newPositionDate) {
         this.positionChrLeft.setText(newPositionDate);
     }
 
 
-    public void setPositionChrTop(String newPositionDate){
+    public void setPositionChrTop(String newPositionDate) {
         this.positionChrTop.setText(newPositionDate);
     }
 
@@ -1457,20 +1466,24 @@ public class MainWindow extends JFrame {
         fileMenu.add(loadControlFromList);
 
         fileMenu.addSeparator();
-        //---- recent positions ----
-        try {
-            recentMenu = new RecentMenu(recentListMaxItems) {
-                public void onSelectPosition(String mapPath) {
-                    String delimiter = "@@";
-                    String[] temp;
-                    temp = mapPath.split(delimiter);
-                    loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-                }
-            };
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+
+        recentMenu = new RecentMenu(recentListMaxItems) {
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+
+
+                //JFrame frame = (JFrame) SwingUtilities.getRoot(this.getComponent());
+                //System.out.println("Got - "+this.getComponent().get);
+
+                //System.out.println("Got - "+frame.getGlassPane());
+                loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
+
+            }
+        };
+        recentMenu.setText("Open Recent");
         fileMenu.add(recentMenu);
 
         //---- Clear Recent ----
@@ -2409,235 +2422,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private class ResolutionControl extends JPanel {
-        static final long serialVersionUID = 42L;
-        private final ImageIcon lockOpenIcon;
-        private final ImageIcon lockIcon;
 
-        JSlider resolutionSlider;
-        final JideButton lockButton;
-        final JLabel resolutionLabel;
-        final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
-        final Map<Integer, String> bpLabelMap;
-        private int lastValue = 0;
-        HiC.Unit unit = HiC.Unit.BP;
-
-        {
-            bpLabelMap = new Hashtable<Integer, String>();
-            bpLabelMap.put(2500000, "2.5 MB");
-            bpLabelMap.put(1000000, "1 MB");
-            bpLabelMap.put(500000, "500 KB");
-            bpLabelMap.put(250000, "250 KB");
-            bpLabelMap.put(100000, "100 KB");
-            bpLabelMap.put(50000, "50 KB");
-            bpLabelMap.put(25000, "25 KB");
-            bpLabelMap.put(10000, "10 KB");
-            bpLabelMap.put(5000, "5 KB");
-
-        }
-
-        private String getUnitLabel() {
-            return unit == HiC.Unit.FRAG ? "Resolution (Frag)" : "Resolution (BP)";
-        }
-
-        public void setEnabled(boolean enabled) {
-            resolutionSlider.setEnabled(enabled);
-            lockButton.setEnabled(enabled);
-        }
-
-        private ResolutionControl() {
-
-            this.setBorder(LineBorder.createGrayLineBorder());
-            this.setLayout(new BorderLayout());
-
-            resolutionLabel = new JLabel(getUnitLabel());
-            resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            resolutionLabel.setBackground(new Color(204, 204, 204));
-
-            JPanel resolutionLabelPanel = new JPanel();
-            resolutionLabelPanel.setBackground(new Color(204, 204, 204));
-            resolutionLabelPanel.setLayout(new BorderLayout());
-            resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
-            resolutionLabelPanel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    if (resolutionSlider.isEnabled() && hic != null && hic.getDataset() != null) {
-                        if (hic.getDataset().hasFrags()) {
-                            unit = (unit == HiC.Unit.FRAG ? HiC.Unit.BP : HiC.Unit.FRAG);
-                            resolutionLabel.setText(getUnitLabel());
-                            reset();
-                            refresh();
-                        }
-                    }
-                }
-            });
-
-
-            this.add(resolutionLabelPanel, BorderLayout.PAGE_START);
-
-
-            JPanel resolutionButtonPanel = new JPanel();
-            resolutionButtonPanel.setLayout(new BoxLayout(resolutionButtonPanel, BoxLayout.X_AXIS));
-
-            //---- resolutionSlider ----
-            JPanel sliderPanel = new JPanel();
-            sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
-            resolutionSlider = new JSlider();
-            sliderPanel.add(resolutionSlider);
-
-            lockButton = new JideButton();
-
-            lockIcon = new ImageIcon(getClass().getResource("/images/lock.png"));
-            lockOpenIcon = new ImageIcon(getClass().getResource("/images/lock_open.png"));
-            resolutionLocked = false;
-            lockButton.setIcon(lockOpenIcon);
-            lockButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    resolutionLocked = !resolutionLocked;
-                    lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
-                }
-            });
-            sliderPanel.add(lockButton);
-
-
-            resolutionButtonPanel.add(sliderPanel);
-            this.add(resolutionButtonPanel, BorderLayout.CENTER);
-
-
-            // Setting the zoom should always be done by calling resolutionSlider.setValue() so work isn't done twice.
-            resolutionSlider.addChangeListener(new ChangeListener() {
-                // Change zoom level while staying centered on current location.
-                // Centering is relative to the bounds of the data, which might not be the bounds of the window
-
-                public void stateChanged(ChangeEvent e) {
-
-                    if (hic == null || hic.getMatrix() == null || hic.getZd() == null) return;
-
-                    if (!resolutionSlider.getValueIsAdjusting()) {
-
-                        int idx = resolutionSlider.getValue();
-
-                        final HiCZoom zoom = idxZoomMap.get(idx);
-                        if (zoom == null) return;
-
-                        if (hic.getXContext() != null) {
-
-                            hic.setScaleFactor(1.0);
-                            hic.setScaleFactor(1.0);
-
-                            double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
-                            double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                            final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                            final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
-
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-
-                                    if (hic.getZd() == null) {
-                                        hic.setZoom(zoom, 0, 0);
-                                    } else {
-
-                                        if (hic.setZoom(zoom, xGenome, yGenome)) {
-                                            lastValue = resolutionSlider.getValue();
-                                        } else {
-                                            resolutionSlider.setValue(lastValue);
-                                        }
-                                    }
-
-                                }
-                            };
-                            executeLongRunningTask(runnable);
-                        }
-
-                    }
-                }
-            });
-            setEnabled(false);
-        }
-
-        /**
-         * Called when a new dataset is loaded, or when units are switched bp<->frag
-         */
-        private void reset() {
-            if (hic == null || hic.getDataset() == null) return;
-
-            heatmapPanel.reset();
-
-            int currentIdx = resolutionSlider.getValue();
-
-            List<HiCZoom> binSizes =
-                    unit == HiC.Unit.BP ? hic.getDataset().getBpZooms() : hic.getDataset().getFragZooms();
-            idxZoomMap.clear();
-            for (int i = 0; i < binSizes.size(); i++) {
-                HiCZoom zoom = binSizes.get(i);
-                idxZoomMap.put(i, zoom);
-            }
-
-            int maxIdx = binSizes.size() - 1;
-            resolutionSlider.setMaximum(maxIdx);
-            resolutionSlider.setMajorTickSpacing(1);
-            resolutionSlider.setPaintTicks(true);
-            resolutionSlider.setSnapToTicks(true);
-            resolutionSlider.setPaintLabels(true);
-            resolutionSlider.setMinorTickSpacing(1);
-
-            // Create labels
-            Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();
-            Font f = FontManager.getFont(8);
-            int skip = maxIdx > 6 ? 2 : 1;   // Skip every other if more than 6 levels
-            for (int i = 0; i <= maxIdx; i++) {
-                if (i % skip == 0) {
-                    String label = sizeToLabel(binSizes.get(i).getBinSize());
-                    final JLabel tickLabel = new JLabel(label);
-                    tickLabel.setFont(f);
-                    resolutionLabels.put(i, tickLabel);
-                }
-                HiCZoom zoom = binSizes.get(i);
-                idxZoomMap.put(i, zoom);
-            }
-
-            resolutionSlider.setLabelTable(resolutionLabels);
-
-            // Really we should find the closest matching resolution
-            int newIdx = Math.min(currentIdx, maxIdx);
-            HiCZoom newZoom = idxZoomMap.get(newIdx);
-            setZoom(newZoom);
-
-        }
-
-
-        String sizeToLabel(int binSize) {
-
-            if (unit == HiC.Unit.FRAG) {
-                return binSize + " f";
-            }
-
-            if (bpLabelMap.containsKey(binSize)) {
-                return bpLabelMap.get(binSize);
-            }
-
-            if (binSize >= 1000000) {
-                return ((float) binSize / 1000000) + " MB";
-            } else if (binSize >= 1000) {
-                return ((float) binSize / 1000) + " KB";
-            } else {
-                return binSize + " BP";
-            }
-
-        }
-
-
-        public void setZoom(HiCZoom newZoom) {
-            unit = newZoom.getUnit();
-            resolutionLabel.setText(getUnitLabel());
-            for (Map.Entry<Integer, HiCZoom> entry : idxZoomMap.entrySet()) {
-                if (entry.getValue().equals(newZoom)) {
-                    resolutionSlider.setValue(entry.getKey());
-                }
-            }
-        }
-    }
 
     private class HiCKeyDispatcher implements KeyEventDispatcher {
 
@@ -2663,819 +2448,8 @@ public class MainWindow extends JFrame {
             }
         }
     }
-
-    abstract class RecentMenu extends JMenu {
-        final private static String HIC_RECENT = "hicRecent";
-        private static final long serialVersionUID = 4685393080959162312L;
-        private final String defaultText = "";
-        private final String[] recentEntries;
-        private final int m_maxItems;
-        private boolean b_isEnabled = false;
-        private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        private final List<String> m_items = new ArrayList<String>();
-
-        public RecentMenu(int count) {
-            super();
-            this.setText("Recent");
-            this.setMnemonic('R');
-            this.m_maxItems = count;
-            //initialize default entries
-            this.recentEntries = new String[count];
-            for (int index = 0; index < this.m_maxItems; index++) {
-                this.recentEntries[index] = defaultText;
-            }
-
-            // load recent positions from properties
-            for (int i = 0; i < this.m_maxItems; i++) {
-                String val = prefs.get(HIC_RECENT + i, "");
-                if (!val.equals("")) {
-                    addEntry(val, false);
-                } else {
-                    if (i == 0) {
-                        // No items.
-                        this.setEnabled(false);
-                    }
-                    break;
-                }
-            }
-        }
-
-        /**
-         * Add new recent entry, update file and menu
-         *
-         * @param savedMap   url and title of map.
-         * @param updateFile also save to file, Constructor call with false - no need to re-write.
-         */
-        private void addEntry(String savedMap, boolean updateFile) {
-            //check if this is disabled
-            if (!this.isEnabled()) {
-                this.setEnabled(true);
-            }
-
-            //clear the existing items
-            this.removeAll();
-
-            //Add item, remove previous existing duplicate:
-            m_items.remove(savedMap);
-            m_items.add(0, savedMap);
-
-            //Chop last item if list is over size:
-            if (this.m_items.size() > this.m_maxItems) {
-                this.m_items.remove(this.m_items.size() - 1);
-            }
-
-            //add items back to the menu
-            for (String m_item : this.m_items) {
-                JMenuItem menuItem = new JMenuItem();
-
-                String delimiter = "@@";
-                String[] temp;
-                temp = m_item.split(delimiter);
-
-                menuItem.setText(temp[0]);
-                if (temp[0].equals(defaultText)) {
-                    menuItem.setVisible(false);
-                } else {
-                    menuItem.setVisible(true);
-                    menuItem.setToolTipText(temp[0]);
-                    menuItem.setActionCommand(m_item);
-                    menuItem.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent actionEvent) {
-                            onSelectPosition(actionEvent.getActionCommand());
-                        }
-                    });
-                }
-                this.add(menuItem);
-            }
-            //update the file
-            if (updateFile) {
-                try {
-                    for (int i = 0; i < this.m_maxItems; i++) {
-                        if (i < this.m_items.size()) {
-                            prefs.put(HIC_RECENT + i, this.m_items.get(i));
-                        } else {
-                            prefs.remove(HIC_RECENT + i);
-                        }
-                    }
-                } catch (Exception x) {
-                    x.printStackTrace();
-                }
-            }
-        }
-
-        public boolean isEnabled() {
-            return this.b_isEnabled;
-        }
-
-        public void setEnabled(boolean b_newState) {
-            this.b_isEnabled = b_newState;
-        }
-
-        /**
-         * Abstract event, fires when recent map is selected.
-         *
-         * @param mapPath The file that was selected.
-         */
-        public abstract void onSelectPosition(String mapPath);
-    }
-
-    /**
-     * A split button. The user can either click the text, which executes an
-     * action, or click the icon, which opens a popup menu.
-     *
-     * @author eoogbe
-     */
-    public class JSplitButton extends AbstractButton implements Accessible {
-
-        protected class AccessibleJSplitButton extends AccessibleAbstractButton {
-
-            private static final long serialVersionUID = 1L;
-
-            /* (non-Javadoc)
-             * @see javax.swing.JComponent.
-             * AccessibleJComponent#getAccessibleRole()
-             */
-            @Override
-            public AccessibleRole getAccessibleRole() {
-                return AccessibleRole.PUSH_BUTTON;
-            }
-
-        }
-
-        private class PopupAction implements ActionListener {
-
-            private final JPopupMenu popupMenu;
-
-            public PopupAction(JPopupMenu popupMenu) {
-                this.popupMenu = popupMenu;
-            }
-
-            /* (non-Javadoc)
-             * @see java.awt.event.ActionListener#actionPerformed(
-             * java.awt.event.ActionEvent)
-             */
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Component comp = (Component) e.getSource();
-                Point popupLocation = getPopupLocationRelativeTo(comp);
-                popupMenu.show(comp, popupLocation.x, popupLocation.y);
-            }
-
-            public JPopupMenu getPopupMenu() {
-                return popupMenu;
-            }
-
-        }
-
-        private static final long serialVersionUID = 1L;
-
-        private static final String uiClassID = "ButtonUI";
-
-        private static final int DEFAULT_POPUP_ICON_LENGTH = 10;
-
-        private static final String ALWAYS_SHOWS_POPUP_CHANGED_PROPERTY =
-                "alwaysShowPopup";
-
-        private static final String SPLIT_GAP_CHANGED_PROPERTY = "splitGap";
-
-        private static final String POPUP_ICON_CHANGED_PROPERTY = "popupIcon";
-
-        private static final String DISABLED_POPUP_ICON_CHANGED_PROPERTY =
-                "disabledPopupIcon";
-
-        private static final String
-                DISABLED_SELECTED_POPUP_ICON_CHANGED_PROPERTY = "disabledSelectedPopupIcon";
-
-        private static final String PRESSED_POPUP_ICON_CHANGED_PROPERTY =
-                "pressedPopupIcon";
-
-        private static final String ROLLOVER_POPUP_ICON_CHANGED_PROPERTY =
-                "rolloverPopupIcon";
-
-        private static final String
-                ROLLOVER_SELECTED_POPUP_ICON_CHANGED_PROPERTY = "rolloverSelectedPopupIcon";
-
-        private static final String SELECTED_POPUP_ICON_CHANGED_PROPERTY =
-                "selectedPopupIcon";
-
-        private static final String MAIN_TEXT_CHANGED_PROPERTY = "mainText";
-
-        private PopupAction popupAction;
-
-        private final JButton mainButton;
-        private final JButton popupButton;
-
-        private boolean alwaysShowPopup;
-
-        private int splitGap = 5;
-
-        /**
-         * Creates a new JSplitButton with no set text.
-         */
-        public JSplitButton() {
-            this("");
-        }
-
-        /**
-         * Creates a new JSplitButton with initial text.
-         *
-         * @param text the text displayed on this JSplitButton
-         */
-        public JSplitButton(String text) {
-            mainButton = new JButton(text);
-            popupButton = new JButton(createDefaultPopupIcon());
-            //   popupButton.setPreferredSize(new Dimension((int)popupButton.getPreferredSize().getWidth()+10,(int)popupButton.getPreferredSize().getHeight()));
-
-            setModel(new DefaultButtonModel());
-
-            mainButton.setBorder(BorderFactory.createEmptyBorder());
-            // popupButton.setBorder(BorderFactory.createEmptyBorder());
-
-            mainButton.setContentAreaFilled(false);
-
-            mainButton.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    doClick();
-                }
-
-            });
-
-            mainButton.addMouseListener(new MouseAdapter() {
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    if (isRolloverEnabled()) model.setRollover(true);
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    model.setRollover(false);
-                }
-
-            });
-
-            setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-            resetComponents();
-
-            init(null, null);
-        }
-
-        /**
-         * Creates a new JSplitButton with properties taken from the Action
-         * supplied.
-         *
-         * @param action used to specify the properties of this JSplitButton
-         */
-        public JSplitButton(Action action) {
-            this();
-            setAction(action);
-        }
-
-        private Icon createDefaultPopupIcon() {
-            Image image = new BufferedImage(DEFAULT_POPUP_ICON_LENGTH,
-                    DEFAULT_POPUP_ICON_LENGTH, BufferedImage.TYPE_INT_ARGB);
-            Graphics g = image.getGraphics();
-
-            g.setColor(new Color(255, 255, 255, 0));
-            g.fillRect(0, 0, DEFAULT_POPUP_ICON_LENGTH,
-                    DEFAULT_POPUP_ICON_LENGTH);
-
-            g.setColor(Color.BLACK);
-            Polygon traingle = new Polygon(
-                    new int[]{0, DEFAULT_POPUP_ICON_LENGTH,
-                            DEFAULT_POPUP_ICON_LENGTH / 2, 0},
-                    new int[]{0, 0, DEFAULT_POPUP_ICON_LENGTH, 0}, 4
-            );
-            g.fillPolygon(traingle);
-
-            g.dispose();
-            return new ImageIcon(image);
-        }
-
-        private void resetComponents() {
-            removeAll();
-            add(mainButton);
-            add(Box.createRigidArea(new Dimension(splitGap, 0)));
-            add(new JSeparator(VERTICAL));
-            add(Box.createRigidArea(new Dimension(splitGap, 0)));
-            add(popupButton);
-            revalidate();
-        }
-
-        /**
-         * Returns true if this JSplitButton shows the popup menu for every
-         * click.
-         *
-         * @return true if this JSplitButton shows the popup menu for every
-         * click
-         * @see JSplitButton#setAlwaysShowPopup(boolean)
-         */
-        public boolean isAlwaysShowPopup() {
-            return alwaysShowPopup;
-        }
-
-        /**
-         * Sets whether this JSplitButton shows the popup menu for every click.
-         *
-         * @param alwaysShowPopup true if this JSplitButton shows the popup menu
-         *                        for every click
-         * @see JSplitButton#isAlwaysShowPopup()
-         */
-        public void setAlwaysShowPopup(boolean alwaysShowPopup) {
-            boolean oldValue = this.alwaysShowPopup;
-            this.alwaysShowPopup = alwaysShowPopup;
-            firePropertyChange(ALWAYS_SHOWS_POPUP_CHANGED_PROPERTY, oldValue,
-                    alwaysShowPopup);
-
-            if (popupAction != null && oldValue != alwaysShowPopup) {
-                setComponentPopupMenu(popupAction.getPopupMenu());
-            }
-        }
-
-        /**
-         * Returns the gap between the separator and the labels on each side
-         *
-         * @return the gap between the separator and the labels on each side
-         * @see JSplitButton#setSplitGap(int)
-         */
-        public int getSplitGap() {
-            return splitGap;
-        }
-
-        /**
-         * Sets the gap between the separator and the labels on each side.
-         *
-         * @param splitGap the gap set
-         * @see JSplitButton#getSplitGap()
-         */
-        public void setSplitGap(int splitGap) {
-            int oldValue = this.splitGap;
-            this.splitGap = splitGap;
-            firePropertyChange(SPLIT_GAP_CHANGED_PROPERTY, oldValue, splitGap);
-
-            if (oldValue != splitGap) {
-                resetComponents();
-            }
-        }
-
-        /**
-         * Returns the Icon used on the popup side. This Icon is also used as the
-         * "pressed" and "disabled" Icon if they are not explicitly set.
-         *
-         * @return the popupIcon property
-         * @see AbstractButton#getIcon()
-         * @see JSplitButton#setPopupIcon(Icon)
-         */
-        public Icon getPopupIcon() {
-            return popupButton.getIcon();
-        }
-
-        /**
-         * Sets the Icon used on the popup side. If null, the Icon will be set to
-         * a default value. This Icon is also used as the "pressed" and "disabled"
-         * Icon if they are not explicitly set.
-         *
-         * @param icon the Icon set
-         * @see AbstractButton#setIcon(Icon)
-         * @see JSplitButton#getPopupIcon()
-         */
-        public void setPopupIcon(Icon icon) {
-            Icon oldValue = getPopupIcon();
-            if (icon == null) icon = createDefaultPopupIcon();
-            firePropertyChange(POPUP_ICON_CHANGED_PROPERTY, oldValue, icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the icon used on the popup side when this JSplitButton is
-         * disabled. If no disabled icon has been set this will forward the call
-         * to the look and feel to construct an appropriate disabled Icon. Some
-         * look and feels might not render the disabled Icon, in which case they
-         * will ignore this.
-         *
-         * @return the disabledPopupIcon property
-         * @see AbstractButton#getDisabledIcon()
-         * @see JSplitButton#setDisabledPopupIcon(Icon)
-         */
-        public Icon getDisabledPopupIcon() {
-            return popupButton.getDisabledIcon();
-        }
-
-        /**
-         * Sets the icon used on the popup side when this JSplitButton is
-         * disabled. Some look and feels might not render the disabled Icon, in
-         * which case they will ignore this.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setDisabledIcon(Icon)
-         * @see JSplitButton#getDisabledPopupIcon()
-         */
-        public void setDisabledPopupIcon(Icon icon) {
-            Icon oldValue = getDisabledPopupIcon();
-            firePropertyChange(DISABLED_POPUP_ICON_CHANGED_PROPERTY, oldValue,
-                    icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setDisabledIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the icon used on the popup side when this JSplitButton is
-         * disabled and selected. If no disabled selected Icon has been set, this
-         * will forward the call to the LookAndFeel to construct an appropriate
-         * disabled Icon from the selection icon if it has been set and to
-         * getDisabledPopupIcon() otherwise.
-         *
-         * @return the disabledSelctedPopupIcon property
-         * @see AbstractButton#getDisabledSelectedIcon()
-         * @see JSplitButton#setDisabledSelectedPopupIcon(Icon)
-         */
-        public Icon getDisabledSelectedPopupIcon() {
-            return popupButton.getDisabledSelectedIcon();
-        }
-
-        /**
-         * Sets the icon used on the popup side when this JSplitButton is
-         * disabled and selected.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setDisabledSelectedIcon(Icon)
-         * @see JSplitButton#getDisabledSelectedPopupIcon()
-         */
-        public void setDisabledSelectedPopupIcon(Icon icon) {
-            Icon oldValue = getDisabledSelectedPopupIcon();
-            firePropertyChange(DISABLED_SELECTED_POPUP_ICON_CHANGED_PROPERTY,
-                    oldValue, icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setDisabledSelectedIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the icon used on the popup side when this JSpitButton is
-         * pressed.
-         *
-         * @return the pressedPopupIcon property
-         * @see AbstractButton#getPressedIcon()
-         * @see JSplitButton#setPressedPopupIcon(Icon)
-         */
-        public Icon getPressedPopupIcon() {
-            return popupButton.getPressedIcon();
-        }
-
-        /**
-         * Sets the icon used on the popup side when this JSplitButton is pressed.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setPressedIcon(Icon)
-         * @see JSplitButton#getPressedPopupIcon()
-         */
-        public void setPressedPopupIcon(Icon icon) {
-            Icon oldValue = getPressedPopupIcon();
-            firePropertyChange(PRESSED_POPUP_ICON_CHANGED_PROPERTY, oldValue,
-                    icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setPressedIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the rollover icon used on the popup side.
-         *
-         * @return the rolloverPopupIcon property
-         * @see AbstractButton#getRolloverIcon()
-         * @see JSplitButton#setRolloverPopupIcon(Icon)
-         */
-        public Icon getRolloverPopupIcon() {
-            return popupButton.getRolloverIcon();
-        }
-
-        /**
-         * Sets the rollover icon used on the popup side.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setRolloverIcon(Icon)
-         * @see JSplitButton#getRolloverPopupIcon()
-         */
-        public void setRolloverPopupIcon(Icon icon) {
-            Icon oldValue = getRolloverPopupIcon();
-            firePropertyChange(ROLLOVER_POPUP_ICON_CHANGED_PROPERTY, oldValue,
-                    icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setRolloverIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the rollover selection icon used on the popup side.
-         *
-         * @return the rolloverSelectedPopupIcon property
-         * @see AbstractButton#getRolloverSelectedIcon()
-         * @see JSplitButton#setRolloverSelectedPopupIcon(Icon)
-         */
-        public Icon getRolloverSelectedPopupIcon() {
-            return popupButton.getRolloverSelectedIcon();
-        }
-
-        /**
-         * Sets the rollover selection icon used on the popup side.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setRolloverSelectedIcon(Icon)
-         * @see JSplitButton#getRolloverSelectedPopupIcon()
-         */
-        public void setRolloverSelectedPopupIcon(Icon icon) {
-            Icon oldValue = getRolloverSelectedPopupIcon();
-            firePropertyChange(ROLLOVER_SELECTED_POPUP_ICON_CHANGED_PROPERTY,
-                    oldValue, icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setRolloverSelectedIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the selected icon used on the popup side.
-         *
-         * @return the selectedPopupIcon property
-         * @see AbstractButton#getSelectedIcon()
-         * @see JSplitButton#setSelectedPopupIcon(Icon)
-         */
-        public Icon getSelectedPopupIcon() {
-            return popupButton.getSelectedIcon();
-        }
-
-        /**
-         * Sets the selected icon used on the popup side.
-         *
-         * @param icon the icon set
-         * @see AbstractButton#setSelectedIcon(Icon)
-         * @see JSplitButton#getSelectedPopupIcon()
-         */
-        public void setSelectedPopupIcon(Icon icon) {
-            Icon oldValue = getSelectedPopupIcon();
-            firePropertyChange(SELECTED_POPUP_ICON_CHANGED_PROPERTY, oldValue,
-                    icon);
-
-            if (!oldValue.equals(icon)) {
-                popupButton.setSelectedIcon(icon);
-            }
-        }
-
-        /**
-         * Returns the text of the main part of this JSplitButton. Use this
-         * method instead of {@link AbstractButton#getText()}.
-         *
-         * @return the text of the main part of this JSplitButton
-         * @see AbstractButton#getText()
-         * @see JSplitButton#setMainText(String)
-         */
-        public String getMainText() {
-            return mainButton.getText();
-        }
-
-        /**
-         * Sets the text of the main part of this JSplitButton. Use this method
-         * instead of {@link AbstractButton#setText(String)}.
-         *
-         * @param text the text set
-         */
-        public void setMainText(String text) {
-            String oldValue = getMainText();
-            firePropertyChange(MAIN_TEXT_CHANGED_PROPERTY, oldValue, text);
-
-            if (!oldValue.equals(text)) {
-                mainButton.setText(text);
-            }
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#addActionListener(java.awt.event.ActionListener)
-         */
-        @Override
-        public void addActionListener(ActionListener listener) {
-            mainButton.addActionListener(listener);
-            super.addActionListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#removeActionListener(java.awt.event.ActionListener)
-         */
-        @Override
-        public void removeActionListener(ActionListener listener) {
-            mainButton.removeActionListener(listener);
-            super.removeActionListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#addChangeListener(javax.swing.event.ChangeListener)
-         */
-        @Override
-        public void addChangeListener(ChangeListener listener) {
-            mainButton.addChangeListener(listener);
-            super.addChangeListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#removeChangeListener(javax.swing.event.ChangeListener)
-         */
-        @Override
-        public void removeChangeListener(ChangeListener listener) {
-            mainButton.removeChangeListener(listener);
-            super.removeChangeListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#addItemListener(java.awt.event.ItemListener)
-         */
-        @Override
-        public void addItemListener(ItemListener listener) {
-            mainButton.addItemListener(listener);
-            super.addItemListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#removeItemListener(java.awt.event.ItemListener)
-         */
-        @Override
-        public void removeItemListener(ItemListener listener) {
-            mainButton.removeItemListener(listener);
-            super.removeItemListener(listener);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#getAction()
-         */
-        @Override
-        public Action getAction() {
-            return mainButton.getAction();
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#setAction(javax.swing.Action)
-         */
-        @Override
-        public void setAction(Action action) {
-            Action oldValue = getAction();
-            firePropertyChange("action", oldValue, action);
-            mainButton.setAction(action);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent#getAccessibleContext()
-         */
-        @Override
-        public AccessibleContext getAccessibleContext() {
-            if (accessibleContext == null) {
-                accessibleContext = new AccessibleJSplitButton();
-            }
-
-            return accessibleContext;
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent#getComponentPopupMenu()
-         */
-        @Override
-        public JPopupMenu getComponentPopupMenu() {
-            return (popupAction == null) ? null : popupAction.getPopupMenu();
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent#setComponentPopupMenu(javax.swing.JPopupMenu)
-         */
-        @Override
-        public void setComponentPopupMenu(JPopupMenu popupMenu) {
-            if (popupAction != null) {
-                super.removeActionListener(popupAction);
-                mainButton.removeActionListener(popupAction);
-                popupButton.removeActionListener(popupAction);
-                popupAction = null;
-            }
-
-            if (popupMenu != null) {
-                popupAction = new PopupAction(popupMenu);
-                popupButton.addActionListener(popupAction);
-
-                if (alwaysShowPopup) {
-                    super.addActionListener(popupAction);
-                    mainButton.addActionListener(popupAction);
-                }
-            }
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent#getPopupLocation(java.awt.event.MouseEvent)
-         */
-        @Override
-        public Point getPopupLocation(MouseEvent event) {
-            return getPopupLocationRelativeTo(event.getComponent());
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#getSelectedObjects()
-         */
-        @Override
-        public Object[] getSelectedObjects() {
-            Object[] result = new Object[1];
-
-            if (mainButton.isSelected()) {
-                result[0] = mainButton;
-            } else if (popupButton.isSelected()) {
-                result[0] = popupButton;
-            } else {
-                return null;
-            }
-
-            return result;
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#getMnemonic()
-         */
-        @Override
-        public int getMnemonic() {
-            return mainButton.getMnemonic();
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#setMnemonic(int)
-         */
-        @Override
-        public void setMnemonic(int mnemonic) {
-            int oldValue = getMnemonic();
-            firePropertyChange(MNEMONIC_CHANGED_PROPERTY, oldValue, mnemonic);
-            mainButton.setMnemonic(mnemonic);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#getDisplayedMnemonicIndex()
-         */
-        @Override
-        public int getDisplayedMnemonicIndex() {
-            return mainButton.getDisplayedMnemonicIndex();
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#setDisplayedMnemonicIndex(int)
-         */
-        @Override
-        public void setDisplayedMnemonicIndex(int index)
-                throws IllegalArgumentException {
-            int oldValue = getDisplayedMnemonicIndex();
-            mainButton.setDisplayedMnemonicIndex(index);
-            firePropertyChange("displayedMnemonicIndex", oldValue, index);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#setHideActionText(boolean)
-         */
-        @Override
-        public void setHideActionText(boolean hideActionText) {
-            mainButton.setHideActionText(hideActionText);
-            super.setHideActionText(hideActionText);
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent#getUIClassID()
-         */
-        @Override
-        public String getUIClassID() {
-            return uiClassID;
-        }
-
-        /* (non-Javadoc)
-         * @see javax.swing.AbstractButton#updateUI()
-         */
-        @Override
-        public void updateUI() {
-            setUI((ButtonUI) UIManager.getUI(this));
-        }
-
-        private Point getPopupLocationRelativeTo(Component comp) {
-            Insets insets = getInsets();
-            int height = getHeight();
-
-            if (comp == popupButton) {
-                Insets mainButtonInsets = mainButton.getInsets();
-                int width = mainButton.getWidth();
-                return new Point(-splitGap - width - mainButtonInsets.left - mainButtonInsets.right - 30, height);
-            } else {
-                Insets mainButtonInsets = mainButton.getInsets();
-                int width = mainButton.getWidth() + mainButtonInsets.left +
-                        mainButtonInsets.right + splitGap;
-                if (comp == this) width += insets.left;
-                return new Point(width, height);
-            }
-        }
-    }
 }
+
+
+
+
