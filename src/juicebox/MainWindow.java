@@ -173,7 +173,7 @@ public class MainWindow extends JFrame {
         createCursors();
         pack();
 
-        DropTarget target = new DropTarget(this, new FileDropTargetListener());
+        DropTarget target = new DropTarget(this, new FileDropTargetListener(this));
         setDropTarget(target);
 
         colorRangeSlider.setUpperValue(1200);
@@ -181,8 +181,7 @@ public class MainWindow extends JFrame {
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher());
-
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
     }
 
     private static MainWindow createMainWindow() {
@@ -1474,8 +1473,7 @@ public class MainWindow extends JFrame {
         saveToImage.setText("Export Image...");
         saveToImage.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new SaveImageDialog();
-
+                new SaveImageDialog(null, hic, hiCPanel);
             }
         });
         fileMenu.add(saveToImage);
@@ -1552,246 +1550,15 @@ public class MainWindow extends JFrame {
 
 
 
-    private class SaveImageDialog extends JFileChooser {
-        JTextField width;
-        JTextField height;
-
-        static final long serialVersionUID = 42L;
-
-        public SaveImageDialog() {
-            super();
-            if (saveImagePath != null) {
-                setSelectedFile(new File(saveImagePath));
-            } else {
-                setSelectedFile(new File("image.png"));
-            }
-            int actionDialog = showSaveDialog(MainWindow.getInstance());
-            if (actionDialog == JFileChooser.APPROVE_OPTION) {
-                File file = getSelectedFile();
-                saveImagePath = file.getPath();
-                if (file.exists()) {
-                    actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
-                    if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
-                        return;
-                }
-                try {
-                    int w = Integer.valueOf(width.getText());
-                    int h = Integer.valueOf(height.getText());
-                    saveImage(file, w, h);
-                } catch (IOException error) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while saving file:\n" + error, "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (NumberFormatException error) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "Width and Height must be integers", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
-
-        protected JDialog createDialog(Component parent) {
-            JDialog myDialog = super.createDialog(parent);
-            JLabel wLabel = new JLabel("Width");
-            JLabel hLabel = new JLabel("Height");
-            width = new JTextField("" + MainWindow.getInstance().getWidth());
-            width.setColumns(6);
-            height = new JTextField("" + MainWindow.getInstance().getHeight());
-            height.setColumns(6);
-            JPanel panel = new JPanel();
-            panel.add(wLabel);
-            panel.add(width);
-            panel.add(hLabel);
-            panel.add(height);
-            myDialog.add(panel, BorderLayout.NORTH);
-            return myDialog;
-        }
-
-        private void saveImage(File file, final int w, final int h) throws IOException {
-
-            // default if they give no format or invalid format
-            String fmt = "jpg";
-            int ind = file.getName().indexOf(".");
-            if (ind != -1) {
-                String ext = file.getName().substring(ind + 1);
-                String[] strs = ImageIO.getWriterFormatNames();
-                for (String aStr : strs)
-                    if (ext.equals(aStr))
-                        fmt = ext;
-            }
-            BufferedImage image = (BufferedImage) MainWindow.getInstance().createImage(w, h);
-            Graphics g = image.createGraphics();
-
-            Dimension size = MainWindow.getInstance().getSize();
-
-            if (w == MainWindow.getInstance().getWidth() && h == MainWindow.getInstance().getHeight()) {
-                hiCPanel.paint(g);
-            } else {
-                JDialog waitDialog = new JDialog();
-                JPanel panel1 = new JPanel();
-                panel1.add(new JLabel("  Creating and saving " + w + " by " + h + " image  "));
-                //panel1.setPreferredSize(new Dimension(250,50));
-                waitDialog.add(panel1);
-                waitDialog.setTitle("Please wait...");
-                waitDialog.pack();
-                waitDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-                waitDialog.setLocation(100, 100);
-                waitDialog.setVisible(true);
-                MainWindow.getInstance().setVisible(false);
-
-                Dimension minSize = MainWindow.getInstance().getMinimumSize();
-                Dimension prefSize = MainWindow.getInstance().getPreferredSize();
-
-                hic.centerBP(0, 0);
-                MainWindow.getInstance().setMinimumSize(new Dimension(w, h));
-                MainWindow.getInstance().setPreferredSize(new Dimension(w, h));
-                MainWindow.getInstance().pack();
-
-                MainWindow.getInstance().setState(Frame.ICONIFIED);
-                MainWindow.getInstance().setState(Frame.NORMAL);
-                MainWindow.getInstance().setVisible(true);
-                MainWindow.getInstance().setVisible(false);
-
-                final Runnable painter = new Runnable() {
-                    public void run() {
-                        hiCPanel.paintImmediately(0, 0, w, h);
-                    }
-                };
-
-                Thread thread = new Thread(painter) {
-                    public void run() {
-
-                        try {
-                            SwingUtilities.invokeAndWait(painter);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                };
-
-                thread.start();
-
-                hiCPanel.paint(g);
-                MainWindow.getInstance().setPreferredSize(prefSize);
-                MainWindow.getInstance().setMinimumSize(minSize);
-                MainWindow.getInstance().setSize(size);
-                waitDialog.setVisible(false);
-                waitDialog.dispose();
-                MainWindow.getInstance().setVisible(true);
-            }
-
-            ImageIO.write(image.getSubimage(0, 0, w, h), fmt, file);
-            g.dispose();
-        }
-
-    }
 
 
 
 
 
-    private class HiCKeyDispatcher implements KeyEventDispatcher {
-
-        @Override
-        public boolean dispatchKeyEvent(KeyEvent e) {
-
-            if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F1) {
-
-                if (hic.getControlZd() != null) {
-                    MatrixType displayOption = (MatrixType) displayOptionComboBox.getSelectedItem();
-                    if (displayOption == MatrixType.CONTROL) {
-                        displayOptionComboBox.setSelectedItem(MatrixType.OBSERVED);
-
-                    } else if (displayOption == MatrixType.OBSERVED) {
-                        displayOptionComboBox.setSelectedItem(MatrixType.CONTROL);
-                    }
-
-                }
-                return true;
-            } else {
-
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Listener for drag&drop actions
-     */
-    private class FileDropTargetListener implements DropTargetListener {
 
 
-        public FileDropTargetListener() {
-        }
-
-        public void dragEnter(DropTargetDragEvent event) {
-
-            if (!isDragAcceptable(event)) {
-                event.rejectDrag();
-            }
-        }
-
-        public void dragExit(DropTargetEvent event) {
-        }
-
-        public void dragOver(DropTargetDragEvent event) {
-            // you can provide visual feedback here
-        }
-
-        public void dropActionChanged(DropTargetDragEvent event) {
-            if (!isDragAcceptable(event)) {
-                event.rejectDrag();
-            }
-        }
-
-        public void drop(DropTargetDropEvent event) {
-            if (!isDropAcceptable(event)) {
-                event.rejectDrop();
-                return;
-            }
-
-            event.acceptDrop(DnDConstants.ACTION_COPY);
-
-            Transferable transferable = event.getTransferable();
-
-            try {
-                @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to retunr a File List.
-                        java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                List<String> paths = new ArrayList<String>();
-                for (File f : files) {
-                    paths.add(f.getAbsolutePath());
-                }
-                load(paths, false);
-
-            } catch (Exception e) {
-                String obj;
-                try {
-                    obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
-                    if (HttpUtils.isRemoteURL(obj)) {
-                        load(Arrays.asList(obj), false);
-                    }
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-
-            }
-            repaint();
-            event.dropComplete(true);
-        }
 
 
-        public boolean isDragAcceptable(DropTargetDragEvent event) {
-            //  Check the  available data flavors here
-            //  Currently accepting all flavors
-            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-        }
-
-        public boolean isDropAcceptable(DropTargetDropEvent event) {
-            //  Check the  available data flavors here
-            //  Currently accepting all flavors
-            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-        }
-    }
 }
 
 
