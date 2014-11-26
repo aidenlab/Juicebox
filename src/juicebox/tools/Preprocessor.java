@@ -4,7 +4,7 @@ package juicebox.tools;
 
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import juicebox.data.ContactRecord;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;

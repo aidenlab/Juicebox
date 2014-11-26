@@ -1,9 +1,7 @@
-package juicebox;
+package juicebox.windowui;
 
 /**
-* @author jrobinso
-*         Date: 8/31/13
-*         Time: 9:47 PM
+* @author jrobinso Date: 8/31/13  9:47 PM
 */
 public enum NormalizationType {
     NONE("None"),

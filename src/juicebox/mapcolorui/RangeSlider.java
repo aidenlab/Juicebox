@@ -1,4 +1,4 @@
-package juicebox.rangeslider;
+package juicebox.mapcolorui;
 
 import javax.swing.JSlider;
 import java.io.Serializable;

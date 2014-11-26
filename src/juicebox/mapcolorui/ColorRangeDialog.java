@@ -2,9 +2,9 @@
  * Created by JFormDesigner on Tue Jan 03 22:58:44 EST 2012
  */
 
-package juicebox;
+package juicebox.mapcolorui;
 
-import juicebox.rangeslider.RangeSlider;
+import juicebox.mapcolorui.RangeSlider;
 
 import java.awt.Frame;
 import java.awt.Container;

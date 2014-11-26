@@ -16,7 +16,7 @@ import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureCodec;
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;

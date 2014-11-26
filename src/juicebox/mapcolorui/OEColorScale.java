@@ -1,4 +1,4 @@
-package juicebox;
+package juicebox.mapcolorui;
 
 import org.broad.igv.renderer.ColorScale;
 

@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 //import org.broad.igv.PreferenceManager;
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.ui.util.MessageUtils;
 //import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;

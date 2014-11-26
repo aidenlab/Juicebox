@@ -16,8 +16,10 @@
  * SHALL KNOW OF THE POSSIBILITY OF THE FOREGOING.
  */
 
-package juicebox;
+package juicebox.windowui;
 
+import juicebox.Context;
+import juicebox.HiC;
 import org.apache.log4j.Logger;
 
 import org.broad.igv.feature.Chromosome;
@@ -39,7 +41,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
 
-    enum Orientation {HORIZONTAL, VERTICAL}
+    public enum Orientation {HORIZONTAL, VERTICAL}
 
 
     private HiC hic;

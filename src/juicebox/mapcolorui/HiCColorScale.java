@@ -16,7 +16,7 @@
  * SHALL KNOW OF THE POSSIBILITY OF THE FOREGOING.
  */
 
-package juicebox;
+package juicebox.mapcolorui;
 
 import java.awt.*;
 

@@ -3,9 +3,9 @@ package juicebox.tools;
 import juicebox.data.*;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.HiCZoom;
+import juicebox.windowui.HiCZoom;
 import juicebox.HiC;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;

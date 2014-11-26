@@ -1,7 +1,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 
 /**
  * @author jrobinso

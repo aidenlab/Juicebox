@@ -1,6 +1,6 @@
 package juicebox.data;
 
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 
 //import java.util.Map;
 

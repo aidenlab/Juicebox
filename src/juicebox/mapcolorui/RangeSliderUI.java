@@ -1,4 +1,4 @@
-package juicebox.rangeslider;
+package juicebox.mapcolorui;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;

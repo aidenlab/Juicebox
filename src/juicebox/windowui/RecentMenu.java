@@ -1,4 +1,4 @@
-package juicebox;
+package juicebox.windowui;
 
 import org.broad.igv.Globals;
 
@@ -13,7 +13,7 @@ import java.util.prefs.Preferences;
  * @author Ido Machol
  * @modified Muhammad S Shamim
  */
-abstract class RecentMenu extends JMenu {
+public abstract class RecentMenu extends JMenu {
     final private static String HIC_RECENT = "hicRecent";
     private static final long serialVersionUID = 4685393080959162312L;
     private final String defaultText = "";

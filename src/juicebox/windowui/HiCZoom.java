@@ -1,4 +1,6 @@
-package juicebox;
+package juicebox.windowui;
+
+import juicebox.HiC;
 
 /**
  * @author jrobinso

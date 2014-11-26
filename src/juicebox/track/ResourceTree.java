@@ -13,7 +13,7 @@ package juicebox.track;
 
 import org.apache.log4j.Logger;
 import juicebox.HiC;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.LinkCheckBox;

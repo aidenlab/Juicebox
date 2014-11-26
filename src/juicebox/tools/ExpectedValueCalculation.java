@@ -2,7 +2,7 @@ package juicebox.tools;
 
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import juicebox.data.ExpectedValueFunctionImpl;
 
 import java.util.*;

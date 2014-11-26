@@ -1,4 +1,7 @@
-package juicebox;
+package juicebox.mapcolorui;
+
+import juicebox.HiC;
+import juicebox.MainWindow;
 
 import javax.swing.*;
 import java.awt.*;

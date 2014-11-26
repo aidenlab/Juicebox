@@ -1,5 +1,9 @@
-package juicebox;
+package juicebox.mapcolorui;
 
+import juicebox.HiC;
+import juicebox.MainWindow;
+import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.ExpectedValueFunction;
@@ -47,7 +51,7 @@ public class HeatmapRenderer {
                           int height,
                           final MatrixZoomData zd,
                           final MatrixZoomData controlZD,
-                          final MainWindow.MatrixType displayOption,
+                          final MatrixType displayOption,
                           final NormalizationType normalizationType,
                           final ExpectedValueFunction df,
                           Graphics2D g) {
@@ -79,7 +83,7 @@ public class HeatmapRenderer {
         int maxX = x + width - 1;
         int maxY = y + height - 1;
 
-        if (displayOption == MainWindow.MatrixType.PEARSON) {
+        if (displayOption == MatrixType.PEARSON) {
 
             BasicMatrix bm = zd.getPearsons(df);
 
@@ -95,7 +99,7 @@ public class HeatmapRenderer {
                 return false;
             }
 
-            boolean hasControl = controlZD != null && (displayOption == MainWindow.MatrixType.CONTROL || displayOption == MainWindow.MatrixType.RATIO);
+            boolean hasControl = controlZD != null && (displayOption == MatrixType.CONTROL || displayOption == MatrixType.RATIO);
             Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
             if (hasControl) {
                 List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
@@ -126,7 +130,7 @@ public class HeatmapRenderer {
 
                     for (ContactRecord rec : recs) {
                         double score = Double.NaN;
-                        if (displayOption == MainWindow.MatrixType.OE || displayOption == MainWindow.MatrixType.EXPECTED) {
+                        if (displayOption == MatrixType.OE || displayOption == MatrixType.EXPECTED) {
                             double expected = 0;
                             if (chr1 == chr2) {
                                 if (df != null) {
@@ -139,15 +143,15 @@ public class HeatmapRenderer {
                                 expected = (averageCount > 0 ? averageCount : 1);
                             }
 
-                            if (displayOption == MainWindow.MatrixType.OE) {
+                            if (displayOption == MatrixType.OE) {
                                 score = rec.getCounts() / expected;
                             } else {
                                 score = expected;
                             }
-                        } else if (displayOption == MainWindow.MatrixType.CONTROL && hasControl) {
+                        } else if (displayOption == MatrixType.CONTROL && hasControl) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
                             if (ctrlRecord != null) score = ctrlRecord.getCounts();
-                        } else if (displayOption == MainWindow.MatrixType.RATIO && hasControl) {
+                        } else if (displayOption == MatrixType.RATIO && hasControl) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
                             if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                 double num = rec.getCounts() / averageCount;
@@ -183,10 +187,10 @@ public class HeatmapRenderer {
         return true;
     }
 
-    private ColorScale getColorScale(MatrixZoomData zd, MainWindow.MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
+    private ColorScale getColorScale(MatrixZoomData zd, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
         ColorScale cs;
-        if (displayOption == MainWindow.MatrixType.OBSERVED || displayOption == MainWindow.MatrixType.EXPECTED ||
-                displayOption == MainWindow.MatrixType.CONTROL) {
+        if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
+                displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
                 observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
@@ -206,10 +210,10 @@ public class HeatmapRenderer {
         return cs;
     }
 
-    public void updateColorSliderFromColorScale(MatrixZoomData zd, MainWindow.MatrixType displayOption)
+    public void updateColorSliderFromColorScale(MatrixZoomData zd, MatrixType displayOption)
     {
-        if (displayOption == MainWindow.MatrixType.OBSERVED || displayOption == MainWindow.MatrixType.EXPECTED ||
-        displayOption == MainWindow.MatrixType.CONTROL) {
+        if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
+        displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale != null) {

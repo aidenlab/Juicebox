@@ -1,7 +1,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
-import juicebox.HiCZoom;
+import juicebox.windowui.HiCZoom;
 
 import java.util.*;
 

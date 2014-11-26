@@ -2,8 +2,8 @@ package juicebox.data;
 
 import org.apache.log4j.Logger;
 import juicebox.HiC;
-import juicebox.HiCZoom;
-import juicebox.NormalizationType;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import juicebox.matrix.BasicMatrix;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;

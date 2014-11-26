@@ -1,4 +1,4 @@
-package juicebox;
+package juicebox.windowui;
 
 import java.awt.*;
 

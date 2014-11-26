@@ -1,6 +1,10 @@
-package juicebox;
+package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JidePopupMenu;
+import juicebox.HiC;
+import juicebox.MainWindow;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.MatrixType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import juicebox.track.Feature2D;
@@ -108,7 +112,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null || hic.getXContext() == null) return;
 
-        if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON) {
+        if (hic.getDisplayOption() == MatrixType.PEARSON) {
             // Possibly force asynchronous computation of pearsons
             if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
                 JOptionPane.showMessageDialog(this,"Pearson's matrix is not available at this resolution");
@@ -133,7 +137,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int tTop = (int) (binOriginY / imageTileWidth);
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
-        MainWindow.MatrixType displayOption = hic.getDisplayOption();
+        MatrixType displayOption = hic.getDisplayOption();
 
         for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
             for (int tileColumn = tLeft; tileColumn <= tRight; tileColumn++) {
@@ -323,9 +327,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        }
     }
 
-    public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MainWindow.MatrixType displayOption) {
+    public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption) {
 
-        if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON &&
+        if (hic.getDisplayOption() == MatrixType.PEARSON &&
                 zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType())) == null) {
                 JOptionPane.showMessageDialog(this ,"Pearson's matrix is not available at this resolution");
                 return null;
@@ -363,7 +367,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * @param tileColumn column index of tile
      * @return image tile
      */
-    private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MainWindow.MatrixType displayOption) {
+    private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MatrixType displayOption) {
 
         String key = zd.getKey() + "_" + tileRow + "_" + tileColumn + "_ " + displayOption;
         ImageTile tile = tileCache.get(key);
@@ -955,7 +959,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            if (hic.getDisplayOption() == MainWindow.MatrixType.PEARSON) {
+            if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
                 if(!Float.isNaN(value)) {
                     txt.append("<br>value = ");

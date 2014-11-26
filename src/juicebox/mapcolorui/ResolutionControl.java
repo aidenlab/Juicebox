@@ -1,6 +1,10 @@
-package juicebox;
+package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JideButton;
+import juicebox.HiC;
+import juicebox.MainWindow;
+import juicebox.mapcolorui.HeatmapPanel;
+import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
@@ -29,7 +33,7 @@ public class ResolutionControl extends JPanel {
     private final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
     private int lastValue = 0;
-    HiC.Unit unit = HiC.Unit.BP;
+    public HiC.Unit unit = HiC.Unit.BP;
 
     {
         bpLabelMap = new Hashtable<Integer, String>();

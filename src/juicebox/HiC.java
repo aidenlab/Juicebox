@@ -1,5 +1,8 @@
 package juicebox;
 
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -33,7 +36,7 @@ public class HiC {
     public enum Unit {BP, FRAG}
 
     private final MainWindow mainWindow;
-    private MainWindow.MatrixType displayOption;
+    private MatrixType displayOption;
     private NormalizationType normalizationType;
     private java.util.List<Chromosome> chromosomes;
 
@@ -275,7 +278,7 @@ public class HiC {
         }
     }
 
-    public MainWindow.MatrixType getDisplayOption() {
+    public MatrixType getDisplayOption() {
         return displayOption;
     }
 
@@ -364,7 +367,7 @@ public class HiC {
     }
 
     //Check zoom change value and reset.
-    synchronized boolean testZoomChanged()
+    public synchronized boolean testZoomChanged()
     {
         if (m_zoomChanged)
         {
@@ -525,7 +528,7 @@ public class HiC {
     }
 
 
-    public void setDisplayOption(MainWindow.MatrixType newDisplay) {
+    public void setDisplayOption(MatrixType newDisplay) {
         if (this.displayOption != newDisplay) {
             this.displayOption = newDisplay;
             setDisplayOptionChanged();
@@ -538,7 +541,7 @@ public class HiC {
     }
 
     //Check zoom change value and reset.
-    synchronized boolean testDisplayOptionChanged()
+    public synchronized boolean testDisplayOptionChanged()
     {
         if (m_displayOptionChanged)
         {
@@ -560,7 +563,7 @@ public class HiC {
     }
 
     //Check zoom change value and reset.
-    synchronized boolean testNormalizationTypeChanged()
+    public synchronized boolean testNormalizationTypeChanged()
     {
         if (m_normalizationTypeChanged)
         {

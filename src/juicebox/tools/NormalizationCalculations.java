@@ -2,7 +2,7 @@ package juicebox.tools;
 
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
-import juicebox.NormalizationType;
+import juicebox.windowui.NormalizationType;
 import juicebox.data.*;
 import org.broad.igv.util.collections.FloatArrayList;
 import org.broad.igv.util.collections.IntArrayList;

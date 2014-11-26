@@ -17,12 +17,12 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
-import juicebox.rangeslider.RangeSlider;
+import juicebox.mapcolorui.*;
+import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import juicebox.data.*;
-import juicebox.tools.HiCTools;
 import juicebox.track.*;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -30,31 +30,14 @@ import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.LogarithmicAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TreeSelectionListener;
-
-import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -137,26 +120,6 @@ public class MainWindow extends JFrame {
 
     public void updateToolTipText(String s) {
         mouseHoverTextPanel.setText(s);
-    }
-
-
-    enum MatrixType {
-        OBSERVED("Observed"),
-        OE("OE"),
-        PEARSON("Pearson"),
-        EXPECTED("Expected"),
-        RATIO("Observed / Control"),
-        CONTROL("Control");
-        private final String value;
-
-        MatrixType(String value) {
-            this.value = value;
-        }
-
-        public String toString() {
-            return value;
-        }
-
     }
 
 
@@ -370,7 +333,7 @@ public class MainWindow extends JFrame {
         initialZoom = null;
     }
 
-    private void load(final List<String> files, final boolean control) {
+    public void load(final List<String> files, final boolean control) {
 
         String file = files.get(0);
 
@@ -594,7 +557,7 @@ public class MainWindow extends JFrame {
         refreshChromosomes();
     }
 
-    private void loadMenuItemActionPerformed(boolean control) {
+    public void loadMenuItemActionPerformed(boolean control) {
         FilenameFilter hicFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 String lowercaseName = name.toLowerCase();
@@ -641,7 +604,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void loadFromURLActionPerformed(boolean control) {
+    public void loadFromURLActionPerformed(boolean control) {
         String url = JOptionPane.showInputDialog("Enter URL: ");
         if (url != null) {
             try {
@@ -673,7 +636,7 @@ public class MainWindow extends JFrame {
                 JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            loadDialog = new LoadDialog(properties);
+            loadDialog = new LoadDialog(this, properties);
             if (!loadDialog.getSuccess()) {
                 loadDialog = null;
                 return;
@@ -684,6 +647,11 @@ public class MainWindow extends JFrame {
 
     }
 
+    public void updateTitle(boolean control, String title){
+        if (control) controlTitle = title;
+        else datasetTitle = title;
+        updateTitle();
+    }
 
     private void updateTitle() {
         String newTitle = datasetTitle;
@@ -802,6 +770,10 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
+    public RecentMenu getRecentMenu(){
+        return recentMenu;
+    }
+
     public void showGlassPane() {
         Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
         glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -863,83 +835,7 @@ public class MainWindow extends JFrame {
     }
 
 
-    /**
-     * Listener for drag&drop actions
-     */
-    class FileDropTargetListener implements DropTargetListener {
 
-
-        public FileDropTargetListener() {
-        }
-
-        public void dragEnter(DropTargetDragEvent event) {
-
-            if (!isDragAcceptable(event)) {
-                event.rejectDrag();
-            }
-        }
-
-        public void dragExit(DropTargetEvent event) {
-        }
-
-        public void dragOver(DropTargetDragEvent event) {
-            // you can provide visual feedback here
-        }
-
-        public void dropActionChanged(DropTargetDragEvent event) {
-            if (!isDragAcceptable(event)) {
-                event.rejectDrag();
-            }
-        }
-
-        public void drop(DropTargetDropEvent event) {
-            if (!isDropAcceptable(event)) {
-                event.rejectDrop();
-                return;
-            }
-
-            event.acceptDrop(DnDConstants.ACTION_COPY);
-
-            Transferable transferable = event.getTransferable();
-
-            try {
-                @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to retunr a File List.
-                        java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                List<String> paths = new ArrayList<String>();
-                for (File f : files) {
-                    paths.add(f.getAbsolutePath());
-                }
-                load(paths, false);
-
-            } catch (Exception e) {
-                String obj;
-                try {
-                    obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
-                    if (HttpUtils.isRemoteURL(obj)) {
-                        load(Arrays.asList(obj), false);
-                    }
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-
-            }
-            repaint();
-            event.dropComplete(true);
-        }
-
-
-        public boolean isDragAcceptable(DropTargetDragEvent event) {
-            //  Check the  available data flavors here
-            //  Currently accepting all flavors
-            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-        }
-
-        public boolean isDropAcceptable(DropTargetDropEvent event) {
-            //  Check the  available data flavors here
-            //  Currently accepting all flavors
-            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-        }
-    }
 
     private void initComponents() {
 
@@ -1563,10 +1459,9 @@ public class MainWindow extends JFrame {
                 if (hic.getDataset() == null) {
                     JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    JDialog qcDialog = new QCDialog(hic.getDataset());
+                    JDialog qcDialog = new QCDialog(MainWindow.this, hic);
                     qcDialog.setTitle(MainWindow.this.getTitle() + " info");
                     qcDialog.setVisible(true);
-
                 }
             }
         });
@@ -1594,7 +1489,7 @@ public class MainWindow extends JFrame {
                     if (hic.getDataset() == null) {
                         JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        new DumpDialog();
+                        new DumpDialog(MainWindow.this, hic);
                     }
 
                 }
@@ -1653,387 +1548,9 @@ public class MainWindow extends JFrame {
 
     }
 
-    private class QCDialog extends JDialog {
-        private final long[] logXAxis = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231,
-                285, 351, 433, 534, 658, 811, 1000, 1233,
-                1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112,
-                43288, 53367, 65793, 81113, 100000, 123285, 151991, 187382, 231013, 284804, 351119, 432876, 533670,
-                657933, 811131, 1000000, 1232847, 1519911, 1873817, 2310130, 2848036, 3511192, 4328761, 5336699,
-                6579332, 8111308, 10000000, 12328467, 15199111, 18738174, 23101297, 28480359, 35111917, 43287613,
-                53366992, 65793322, 81113083, 100000000, 123284674, 151991108, 187381742, 231012970, 284803587,
-                351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083,
-                1873817423, 2310129700l, 2848035868l, 3511191734l, 4328761281l, 5336699231l, 6579332247l, 8111308308l,
-                10000000000l};
-
-        static final long serialVersionUID = 42L;
-
-        public QCDialog(Dataset dataset) {
-            super(MainWindow.this);
-
-            String text = dataset.getStatistics();
-            String textDescription = null;
-            String textStatistics = null;
-            String graphs = dataset.getGraphs();
-            JTextPane description = null;
-            JTabbedPane tabbedPane = new JTabbedPane();
-            HTMLEditorKit kit = new HTMLEditorKit();
 
 
-            StyleSheet styleSheet = kit.getStyleSheet();
-            styleSheet.addRule("table { border-collapse: collapse;}");
-            styleSheet.addRule("body {font-family: Sans-Serif; font-size: 12;}");
-            styleSheet.addRule("td { padding: 2px; }");
-            styleSheet.addRule("th {border-bottom: 1px solid #000; text-align: left; background-color: #D8D8D8; font-weight: normal;}");
 
-
-            if (text.contains("Protocol")) {
-                int split = text.indexOf("</table>") + 8;
-                textDescription = text.substring(0, split);
-                textStatistics = text.substring(split);
-                description = new JTextPane();
-                description.setEditable(false);
-                description.setContentType("text/html");
-                description.setEditorKit(kit);
-                description.setText(textDescription);
-                tabbedPane.addTab("About Library", description);
-            } else {
-                textStatistics = text;
-            }
-
-            JTextPane textPane = new JTextPane();
-            textPane.setEditable(false);
-            textPane.setContentType("text/html");
-
-            textPane.setEditorKit(kit);
-            textPane.setText(textStatistics);
-            JScrollPane pane = new JScrollPane(textPane);
-            tabbedPane.addTab("Statistics", pane);
-
-            boolean success = true;
-            if (graphs != null) {
-
-                long[] A = new long[2000];
-                long sumA = 0;
-                long[] mapq1 = new long[201];
-                long[] mapq2 = new long[201];
-                long[] mapq3 = new long[201];
-                long[] intraCount = new long[100];
-                final XYSeries intra = new XYSeries("Intra Count");
-                final XYSeries leftRead = new XYSeries("Left");
-                final XYSeries rightRead = new XYSeries("Right");
-                final XYSeries innerRead = new XYSeries("Inner");
-                final XYSeries outerRead = new XYSeries("Outer");
-                final XYSeries allMapq = new XYSeries("All MapQ");
-                final XYSeries intraMapq = new XYSeries("Intra MapQ");
-                final XYSeries interMapq = new XYSeries("Inter MapQ");
-
-                Scanner scanner = new Scanner(graphs);
-                try {
-                    while (!scanner.next().equals("[")) ;
-
-                    for (int idx = 0; idx < 2000; idx++) {
-                        A[idx] = scanner.nextLong();
-                        sumA += A[idx];
-                    }
-
-                    while (!scanner.next().equals("[")) ;
-                    for (int idx = 0; idx < 201; idx++) {
-                        mapq1[idx] = scanner.nextInt();
-                        mapq2[idx] = scanner.nextInt();
-                        mapq3[idx] = scanner.nextInt();
-
-                    }
-
-                    for (int idx = 199; idx >= 0; idx--) {
-                        mapq1[idx] = mapq1[idx] + mapq1[idx + 1];
-                        mapq2[idx] = mapq2[idx] + mapq2[idx + 1];
-                        mapq3[idx] = mapq3[idx] + mapq3[idx + 1];
-                        allMapq.add(idx, mapq1[idx]);
-                        intraMapq.add(idx, mapq2[idx]);
-                        interMapq.add(idx, mapq3[idx]);
-                    }
-                    while (!scanner.next().equals("[")) ;
-                    for (int idx = 0; idx < 100; idx++) {
-                        int tmp = scanner.nextInt();
-                        if (tmp != 0) innerRead.add(logXAxis[idx], tmp);
-                        intraCount[idx] = tmp;
-                        tmp = scanner.nextInt();
-                        if (tmp != 0) outerRead.add(logXAxis[idx], tmp);
-                        intraCount[idx] += tmp;
-                        tmp = scanner.nextInt();
-                        if (tmp != 0) rightRead.add(logXAxis[idx], tmp);
-                        intraCount[idx] += tmp;
-                        tmp = scanner.nextInt();
-                        if (tmp != 0) leftRead.add(logXAxis[idx], tmp);
-                        intraCount[idx] += tmp;
-                        if (idx > 0) intraCount[idx] += intraCount[idx - 1];
-                        if (intraCount[idx] != 0) intra.add(logXAxis[idx], intraCount[idx]);
-                    }
-                } catch (NoSuchElementException exception) {
-                    JOptionPane.showMessageDialog(getParent(), "Graphing file improperly formatted", "Error", JOptionPane.ERROR_MESSAGE);
-                    success = false;
-                }
-
-                if (success) {
-                    final XYSeriesCollection readTypeCollection = new XYSeriesCollection();
-                    readTypeCollection.addSeries(innerRead);
-                    readTypeCollection.addSeries(outerRead);
-                    readTypeCollection.addSeries(leftRead);
-                    readTypeCollection.addSeries(rightRead);
-
-                    final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
-                            "Types of reads vs distance",          // chart title
-                            "Distance (log)",               // domain axis label
-                            "Binned Reads (log)",                  // range axis label
-                            readTypeCollection,                  // data
-                            PlotOrientation.VERTICAL,
-                            true,                     // include legend
-                            true,
-                            false
-                    );
-
-                    final XYPlot readTypePlot = readTypeChart.getXYPlot();
-
-                    readTypePlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
-                    readTypePlot.setRangeAxis(new LogarithmicAxis("Binned Reads (log)"));
-                    readTypePlot.setBackgroundPaint(Color.white);
-                    readTypePlot.setRangeGridlinePaint(Color.lightGray);
-                    readTypePlot.setDomainGridlinePaint(Color.lightGray);
-                    readTypeChart.setBackgroundPaint(Color.white);
-                    readTypePlot.setOutlinePaint(Color.black);
-                    final ChartPanel chartPanel = new ChartPanel(readTypeChart);
-
-                    final XYSeriesCollection reCollection = new XYSeriesCollection();
-                    final XYSeries reDistance = new XYSeries("Distance");
-
-                    for (int i = 0; i < A.length; i++) {
-                        if (A[i] != 0) reDistance.add(i, A[i] / (float) sumA);
-                    }
-                    reCollection.addSeries(reDistance);
-
-                    final JFreeChart reChart = ChartFactory.createXYLineChart(
-                            "Distance from closest restriction enzyme site",          // chart title
-                            "Distance (bp)",               // domain axis label
-                            "Fraction of Reads (log)",                  // range axis label
-                            reCollection,                  // data
-                            PlotOrientation.VERTICAL,
-                            true,                     // include legend
-                            true,
-                            false
-                    );
-
-                    final XYPlot rePlot = reChart.getXYPlot();
-                    rePlot.setDomainAxis(new NumberAxis("Distance (bp)"));
-                    rePlot.setRangeAxis(new LogarithmicAxis("Fraction of Reads (log)"));
-                    rePlot.setBackgroundPaint(Color.white);
-                    rePlot.setRangeGridlinePaint(Color.lightGray);
-                    rePlot.setDomainGridlinePaint(Color.lightGray);
-                    reChart.setBackgroundPaint(Color.white);
-                    rePlot.setOutlinePaint(Color.black);
-                    final ChartPanel chartPanel2 = new ChartPanel(reChart);
-
-                    final XYSeriesCollection intraCollection = new XYSeriesCollection();
-
-                    intraCollection.addSeries(intra);
-
-                    final JFreeChart intraChart = ChartFactory.createXYLineChart(
-                            "Intra reads vs distance",          // chart title
-                            "Distance (log)",               // domain axis label
-                            "Cumulative Sum of Binned Reads (log)",                  // range axis label
-                            intraCollection,                  // data
-                            PlotOrientation.VERTICAL,
-                            true,                     // include legend
-                            true,
-                            false
-                    );
-
-                    final XYPlot intraPlot = intraChart.getXYPlot();
-                    intraPlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
-                    intraPlot.setRangeAxis(new NumberAxis("Cumulative Sum of Binned Reads (log)"));
-                    intraPlot.setBackgroundPaint(Color.white);
-                    intraPlot.setRangeGridlinePaint(Color.lightGray);
-                    intraPlot.setDomainGridlinePaint(Color.lightGray);
-                    intraChart.setBackgroundPaint(Color.white);
-                    intraPlot.setOutlinePaint(Color.black);
-                    final ChartPanel chartPanel3 = new ChartPanel(intraChart);
-
-                    final XYSeriesCollection mapqCollection = new XYSeriesCollection();
-                    mapqCollection.addSeries(allMapq);
-                    mapqCollection.addSeries(intraMapq);
-                    mapqCollection.addSeries(interMapq);
-
-                    final JFreeChart mapqChart = ChartFactory.createXYLineChart(
-                            "MapQ Threshold Count",          // chart title
-                            "MapQ threshold",               // domain axis label
-                            "Count",                  // range axis label
-                            mapqCollection,                  // data
-                            PlotOrientation.VERTICAL,
-                            true,                     // include legend
-                            true,                     // include tooltips
-                            false
-                    );
-
-                    final XYPlot mapqPlot = mapqChart.getXYPlot();
-                    mapqPlot.setBackgroundPaint(Color.white);
-                    mapqPlot.setRangeGridlinePaint(Color.lightGray);
-                    mapqPlot.setDomainGridlinePaint(Color.lightGray);
-                    mapqChart.setBackgroundPaint(Color.white);
-                    mapqPlot.setOutlinePaint(Color.black);
-                    final ChartPanel chartPanel4 = new ChartPanel(mapqChart);
-
-
-                    tabbedPane.addTab("Pair Type", chartPanel);
-                    tabbedPane.addTab("Restriction", chartPanel2);
-                    tabbedPane.addTab("Intra vs Distance", chartPanel3);
-                    tabbedPane.addTab("MapQ", chartPanel4);
-                }
-            }
-
-            final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZoom(),
-                    hic.getNormalizationType());
-            if (df != null) {
-                double[] expected = df.getExpectedValues();
-                final XYSeriesCollection collection = new XYSeriesCollection();
-                final XYSeries expectedValues = new XYSeries("Expected");
-                for (int i = 0; i < expected.length; i++) {
-                    if (expected[i] > 0) expectedValues.add(i + 1, expected[i]);
-                }
-                collection.addSeries(expectedValues);
-                String title = "Expected at " + hic.getZoom() + " norm " + hic.getNormalizationType();
-                final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
-                        title,          // chart title
-                        "Distance between reads (log)",               // domain axis label
-                        "Genome-wide expected (log)",                  // range axis label
-                        collection,                  // data
-                        PlotOrientation.VERTICAL,
-                        false,                     // include legend
-                        true,
-                        false
-                );
-                final XYPlot readTypePlot = readTypeChart.getXYPlot();
-
-                readTypePlot.setDomainAxis(new LogarithmicAxis("Distance between reads (log)"));
-                readTypePlot.setRangeAxis(new LogarithmicAxis("Genome-wide expected (log)"));
-                readTypePlot.setBackgroundPaint(Color.white);
-                readTypePlot.setRangeGridlinePaint(Color.lightGray);
-                readTypePlot.setDomainGridlinePaint(Color.lightGray);
-                readTypeChart.setBackgroundPaint(Color.white);
-                readTypePlot.setOutlinePaint(Color.black);
-                final ChartPanel chartPanel5 = new ChartPanel(readTypeChart);
-
-                tabbedPane.addTab("Expected", chartPanel5);
-            }
-
-            getContentPane().add(tabbedPane);
-            pack();
-            setModal(false);
-            setLocation(100, 100);
-
-        }
-    }
-
-    private class DumpDialog extends JFileChooser {
-        JComboBox<String> box;
-
-        static final long serialVersionUID = 42L;
-
-        public DumpDialog() {
-            super();
-            int result = showSaveDialog(MainWindow.this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                try {
-                    if (box.getSelectedItem().equals("Matrix")) {
-                        if (hic.getDisplayOption() == MatrixType.OBSERVED) {
-                            double[] nv1 = null;
-                            double[] nv2 = null;
-                            if (!(hic.getNormalizationType() == NormalizationType.NONE)) {
-                                NormalizationVector nv = hic.getNormalizationVector(hic.getZd().getChr1Idx());
-                                nv1 = nv.getData();
-                                if (hic.getZd().getChr1Idx() != hic.getZd().getChr2Idx()) {
-                                    nv = hic.getNormalizationVector(hic.getZd().getChr2Idx());
-                                    nv2 = nv.getData();
-                                } else {
-                                    nv2 = nv1;
-                                }
-                            }
-                            hic.getZd().dump(new PrintWriter(getSelectedFile()), nv1, nv2);
-
-                        } else if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.PEARSON) {
-                            final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZd().getZoom(),
-                                    hic.getNormalizationType());
-                            if (df == null) {
-                                JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                return;
-                            }
-                            if (hic.getDisplayOption() == MatrixType.OE) {
-                                hic.getZd().dumpOE(df, "oe",
-                                        hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                            } else {
-                                hic.getZd().dumpOE(df, "pearson",
-                                        hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                            }
-                        }
-
-                    } else if (box.getSelectedItem().equals("Norm vector")) {
-
-                        if (hic.getNormalizationType() == NormalizationType.NONE) {
-                            JOptionPane.showMessageDialog(this, "Selected normalization is None, nothing to write",
-                                    "Error", JOptionPane.ERROR_MESSAGE);
-                        } else {
-                            NormalizationVector nv = hic.getNormalizationVector(hic.getZd().getChr1Idx());
-                            HiCTools.dumpVector(new PrintWriter(getSelectedFile()), nv.getData(), false);
-                        }
-                    } else if (box.getSelectedItem().toString().contains("Expected")) {
-
-                        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZd().getZoom(),
-                                hic.getNormalizationType());
-                        if (df == null) {
-                            JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-
-                        if (box.getSelectedItem().equals("Expected vector")) {
-                            int length = df.getLength();
-                            int c = hic.getZd().getChr1Idx();
-                            PrintWriter pw = new PrintWriter(getSelectedFile());
-                            for (int i = 0; i < length; i++) {
-                                pw.println((float) df.getExpectedValue(c, i));
-                            }
-                            pw.flush();
-                        } else {
-                            HiCTools.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
-                        }
-                    } else if (box.getSelectedItem().equals("Eigenvector")) {
-                        int chrIdx = hic.getZd().getChr1Idx();
-                        double[] eigenvector = hic.getEigenvector(chrIdx, 0);
-
-                        if (eigenvector != null) {
-                            HiCTools.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);
-                        }
-                    }
-                } catch (IOException error) {
-                    JOptionPane.showMessageDialog(this, "Error while writing:\n" + error, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
-
-        protected JDialog createDialog(Component component) throws HeadlessException {
-            JDialog dialog = super.createDialog(component);
-            JPanel panel1 = new JPanel();
-            JLabel label = new JLabel("Dump ");
-            box = new JComboBox<String>(new String[]{"Matrix", "Norm vector", "Expected vector", "Expected genome-wide vector", "Eigenvector"});
-            panel1.add(label);
-            panel1.add(box);
-            dialog.add(panel1, BorderLayout.NORTH);
-            setCurrentDirectory(DirectoryManager.getUserDirectory());
-            setDialogTitle("Choose location for dump of matrix or vector");
-            setFileSelectionMode(JFileChooser.FILES_ONLY);
-            return dialog;
-        }
-
-    }
 
     private class SaveImageDialog extends JFileChooser {
         JTextField width;
@@ -2169,258 +1686,7 @@ public class MainWindow extends JFrame {
 
     }
 
-    private class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
-        private JTree tree;
-        private JButton cancelButton;
-        private JSplitButton openButton;
-        private JSplitButton localButton;
-        private JMenuItem openURL;
-        private JMenuItem open30;
-        private final boolean success;
-        private boolean control;
-        static final long serialVersionUID = 42L;
-
-        public LoadDialog(Properties properties) {
-            super(MainWindow.this, "Select file(s) to open");
-
-            //Create the nodes.
-            DefaultMutableTreeNode top =
-                    new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
-            if (!createNodes(top, properties)) {
-                dispose();
-                success = false;
-                return;
-            }
-
-            //Create a tree that allows one selection at a time.
-            tree = new JTree(top);
-            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-
-            //Listen for when the selection changes.
-            tree.addTreeSelectionListener(this);
-            tree.setRootVisible(false);
-            tree.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent mouseEvent) {
-                    TreePath selPath = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-                    if (selPath != null) {
-                        if (mouseEvent.getClickCount() == 2) {
-                            DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath.getLastPathComponent();
-                            if (node != null && node.isLeaf()) {
-                                TreePath[] paths = new TreePath[1];
-                                paths[0] = selPath;
-                                loadFiles(paths, null);
-                            }
-
-                        }
-                    }
-                }
-            });
-
-            //Create the scroll pane and add the tree to it.
-            JScrollPane treeView = new JScrollPane(tree);
-            treeView.setPreferredSize(new Dimension(400, 400));
-            JPanel centerPanel = new JPanel(new BorderLayout());
-            centerPanel.add(treeView, BorderLayout.CENTER);
-            add(centerPanel, BorderLayout.CENTER);
-
-            JPanel buttonPanel = new JPanel();
-
-            openButton = new JSplitButton("Open MAPQ > 0");
-            openButton.addActionListener(this);
-            openButton.setEnabled(false);
-
-            JPopupMenu popupMenu = new JPopupMenu("Popup Menu");
-            open30 = new JMenuItem("Open MAPQ \u2265 30");
-            open30.addActionListener(this);
-            popupMenu.add(open30);
-            openButton.setComponentPopupMenu(popupMenu);
-
-            localButton = new JSplitButton("Load Local...");
-            localButton.addActionListener(this);
-
-            JPopupMenu popupMenu1 = new JPopupMenu("Popup1");
-            openURL = new JMenuItem("Load URL...");
-            openURL.addActionListener(this);
-            popupMenu1.add(openURL);
-            localButton.setComponentPopupMenu(popupMenu1);
-
-            cancelButton = new JButton("Cancel");
-            cancelButton.addActionListener(this);
-            cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
-
-            buttonPanel.add(openButton);
-            if (!HiCGlobals.isRestricted) {
-                buttonPanel.add(localButton);
-            }
-            buttonPanel.add(cancelButton);
-
-            add(buttonPanel, BorderLayout.SOUTH);
-            Dimension minimumSize = new Dimension(400, 400);
-            setMinimumSize(minimumSize);
-            setLocation(100, 100);
-            pack();
-            success = true;
-        }
-
-        private void setControl(boolean control) {
-            this.control = control;
-        }
-
-        public boolean getSuccess() {
-            return success;
-        }
-
-        private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
-            // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
-            // TreeSet is sorted, so properties file is implemented in order
-            TreeSet<String> keys = new TreeSet<String>(properties.stringPropertyNames());
-            HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<String, DefaultMutableTreeNode>();
-            hashMap.put(((ItemInfo) top.getUserObject()).uid, top);
-
-            for (String key : keys) {
-                String value = properties.getProperty(key);
-                DefaultMutableTreeNode node;
-                final String[] values = value.split(",");
-                if (values.length != 3 && values.length != 2) {
-                    JOptionPane.showMessageDialog(this, "Improperly formatted properties file; incorrect # of fields", "Error", JOptionPane.ERROR_MESSAGE);
-                    return false;
-                }
-                if (values.length == 2) {
-                    node = new DefaultMutableTreeNode(new ItemInfo(key, values[0], values[1]));
-                } else {
-                    node = new DefaultMutableTreeNode(new ItemInfo(key, values[0], values[1], values[2]));
-                }
-                hashMap.put(key, node);
-            }
-            for (String key : keys) {
-                DefaultMutableTreeNode node = hashMap.get(key);
-                DefaultMutableTreeNode parent = hashMap.get(((ItemInfo) node.getUserObject()).parentKey);
-
-                if (parent == null) {
-                    JOptionPane.showMessageDialog(this, "Improperly formatted properties file; unable to find parent menu "
-                            + ((ItemInfo) hashMap.get(key).getUserObject()).parentKey + " for " +
-                            key, "Error", JOptionPane.ERROR_MESSAGE);
-                    return false;
-                } else {
-                    parent.add(node);
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Required by TreeSelectionListener interface.
-         */
-        public void valueChanged(TreeSelectionEvent e) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-                    tree.getLastSelectedPathComponent();
-
-            if (node == null) return;
-
-            if (node.isLeaf()) {
-                openButton.setEnabled(true);
-                open30.setEnabled(true);
-            } else {
-                openButton.setEnabled(false);
-                open30.setEnabled(false);
-            }
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == openButton) {
-                loadFiles(tree.getSelectionPaths(), null);
-            } else if (e.getSource() == open30) {
-                loadFiles(tree.getSelectionPaths(), "30");
-            }
-            if (e.getSource() == localButton) {
-                loadMenuItemActionPerformed(control);
-                setVisible(false);
-            } else if (e.getSource() == openURL) {
-                loadFromURLActionPerformed(control);
-                setVisible(false);
-            } else if (e.getSource() == cancelButton) {
-                setVisible(false);
-                dispose();
-            }
-        }
-
-        private void loadFiles(String path, String title, boolean control) {
-            List<String> paths = new ArrayList<String>();
-            paths.add(path);
-            load(paths, control);
-
-            if (control) controlTitle = title;
-            else datasetTitle = title;
-            updateTitle();
-        }
-
-        private void loadFiles(TreePath[] paths, String ext) {
-            ArrayList<ItemInfo> filesToLoad = new ArrayList<ItemInfo>();
-            String title = "";
-
-            for (TreePath path : paths) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                if (node != null && node.isLeaf()) {
-                    filesToLoad.add((ItemInfo) node.getUserObject());
-                    title += path.toString().replace("[", "").replace("]", "").replace(",", "");
-                    if (ext != null) title += " MAPQ \u2265 " + ext;
-                }
-            }
-
-
-            setVisible(false);
-            List<String> urls = new ArrayList<String>();
-            for (ItemInfo info : filesToLoad) {
-                if (info.itemURL == null || !info.itemURL.endsWith(".hic")) {
-                    JOptionPane.showMessageDialog(this, info.itemName + " is not a hic file, or the path to the file is not specified.");
-                    continue;
-                }
-                String toadd = info.itemURL;
-                if (ext != null) {
-                    toadd = toadd.replace(".hic", "_" + ext + ".hic");
-                }
-                urls.add(toadd);
-            }
-
-            //code to add a recent file to the menu
-            recentMenu.addEntry(title.trim() + "@@" + urls.get(0), true);
-            load(urls, control);
-
-            if (control) controlTitle = title;
-            else datasetTitle = title;
-            updateTitle();
-
-
-        }
-
-
-        private class ItemInfo {
-            public final String uid;
-            public final String itemName;
-            public String itemURL;
-            public final String parentKey;
-
-            public ItemInfo(String uid, String parentKey, String itemName, String itemURL) {
-                this.uid = uid;
-                this.parentKey = parentKey;
-                this.itemName = itemName.trim();
-                this.itemURL = itemURL.trim();
-            }
-
-            public ItemInfo(String uid, String parentKey, String itemName) {
-                this.parentKey = parentKey;
-                this.itemName = itemName;
-                this.uid = uid;
-            }
-
-            public String toString() {
-                return itemName;
-            }
-
-        }
-    }
 
 
 
@@ -2433,11 +1699,11 @@ public class MainWindow extends JFrame {
 
                 if (hic.getControlZd() != null) {
                     MatrixType displayOption = (MatrixType) displayOptionComboBox.getSelectedItem();
-                    if (displayOption == MainWindow.MatrixType.CONTROL) {
-                        displayOptionComboBox.setSelectedItem(MainWindow.MatrixType.OBSERVED);
+                    if (displayOption == MatrixType.CONTROL) {
+                        displayOptionComboBox.setSelectedItem(MatrixType.OBSERVED);
 
-                    } else if (displayOption == MainWindow.MatrixType.OBSERVED) {
-                        displayOptionComboBox.setSelectedItem(MainWindow.MatrixType.CONTROL);
+                    } else if (displayOption == MatrixType.OBSERVED) {
+                        displayOptionComboBox.setSelectedItem(MatrixType.CONTROL);
                     }
 
                 }
@@ -2446,6 +1712,84 @@ public class MainWindow extends JFrame {
 
                 return false;
             }
+        }
+    }
+
+    /**
+     * Listener for drag&drop actions
+     */
+    private class FileDropTargetListener implements DropTargetListener {
+
+
+        public FileDropTargetListener() {
+        }
+
+        public void dragEnter(DropTargetDragEvent event) {
+
+            if (!isDragAcceptable(event)) {
+                event.rejectDrag();
+            }
+        }
+
+        public void dragExit(DropTargetEvent event) {
+        }
+
+        public void dragOver(DropTargetDragEvent event) {
+            // you can provide visual feedback here
+        }
+
+        public void dropActionChanged(DropTargetDragEvent event) {
+            if (!isDragAcceptable(event)) {
+                event.rejectDrag();
+            }
+        }
+
+        public void drop(DropTargetDropEvent event) {
+            if (!isDropAcceptable(event)) {
+                event.rejectDrop();
+                return;
+            }
+
+            event.acceptDrop(DnDConstants.ACTION_COPY);
+
+            Transferable transferable = event.getTransferable();
+
+            try {
+                @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to retunr a File List.
+                        java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
+                List<String> paths = new ArrayList<String>();
+                for (File f : files) {
+                    paths.add(f.getAbsolutePath());
+                }
+                load(paths, false);
+
+            } catch (Exception e) {
+                String obj;
+                try {
+                    obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
+                    if (HttpUtils.isRemoteURL(obj)) {
+                        load(Arrays.asList(obj), false);
+                    }
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+            repaint();
+            event.dropComplete(true);
+        }
+
+
+        public boolean isDragAcceptable(DropTargetDragEvent event) {
+            //  Check the  available data flavors here
+            //  Currently accepting all flavors
+            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
+        }
+
+        public boolean isDropAcceptable(DropTargetDropEvent event) {
+            //  Check the  available data flavors here
+            //  Currently accepting all flavors
+            return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
         }
     }
 }
