@@ -17,7 +17,6 @@ public abstract class RecentMenu extends JMenu {
     final private static String HIC_RECENT = "hicRecent";
     private static final long serialVersionUID = 4685393080959162312L;
     private final String defaultText = "";
-    private final String[] recentEntries;
     private final int m_maxItems;
     private boolean b_isEnabled = false;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
@@ -29,9 +28,9 @@ public abstract class RecentMenu extends JMenu {
         this.setMnemonic('R');
         this.m_maxItems = count;
         //initialize default entries
-        this.recentEntries = new String[count];
+        String[] recentEntries = new String[count];
         for (int index = 0; index < this.m_maxItems; index++) {
-            this.recentEntries[index] = defaultText;
+            recentEntries[index] = defaultText;
         }
 
         // load recent positions from properties

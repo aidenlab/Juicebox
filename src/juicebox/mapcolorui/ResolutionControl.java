@@ -24,7 +24,6 @@ public class ResolutionControl extends JPanel {
     private final ImageIcon lockIcon;
     private final HiC hic;
     private boolean resolutionLocked = false;
-    private final MainWindow mainWindow;
     private final HeatmapPanel heatmapPanel;
 
     private JSlider resolutionSlider;
@@ -61,7 +60,6 @@ public class ResolutionControl extends JPanel {
     public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel ) {
 
         this.hic = hic;
-        this.mainWindow = mainWindow;
         this.heatmapPanel = heatmapPanel;
 
         this.setBorder(LineBorder.createGrayLineBorder());

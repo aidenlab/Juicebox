@@ -23,7 +23,6 @@ import java.util.Map;
 
 public class HiCFileUtils {
 
-    private DatasetReaderV2 reader;
     private Dataset dataset;
 
     public static void main(String[] args) throws IOException {
@@ -33,7 +32,7 @@ public class HiCFileUtils {
     }
 
     private HiCFileUtils(String hicfile) throws IOException {
-        reader = new DatasetReaderV2(hicfile);
+        DatasetReaderV2 reader = new DatasetReaderV2(hicfile);
         dataset = reader.read();
     }
 

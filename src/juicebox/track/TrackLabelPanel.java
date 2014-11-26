@@ -24,10 +24,6 @@ public class TrackLabelPanel extends JPanel {
     private final HiC hic;
     private HiCTrack eigenvectorTrack;
     private int numExtraBufferLinesSpaces = 2;
-    //private java.util.List<HiCTrack> tracks;
-    private JLabel textLabel;
-
-    private String multiLineText = "";
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;
@@ -47,16 +43,16 @@ public class TrackLabelPanel extends JPanel {
             return;
         }
 
-        multiLineText="";
+        String multiLineText = "";
 
         for (HiCTrack hicTrack : tracks) {
             multiLineText += hicTrack.getName() + "<br><br>";
         }
 
-        multiLineText = "<html>"+multiLineText+"</html>";
+        multiLineText = "<html>"+ multiLineText +"</html>";
         //System.out.println(multiLineText);
 
-        textLabel = getTrackLabel(multiLineText, false);
+        JLabel textLabel = getTrackLabel(multiLineText, false);
         add(textLabel);
 
     }

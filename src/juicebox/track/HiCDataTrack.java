@@ -211,9 +211,9 @@ public class HiCDataTrack extends HiCTrack {
         HiCDataPoint ws = data[idx];
         if (ws == null) return null;
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("<html>");
-        sb.append(formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()));
+        sb.append(formatter.format(ws.getGenomicStart())).append("-").append(formatter.format(ws.getGenomicEnd()));
         sb.append("<br>bin: ");
         sb.append(formatter.format(ws.getBinNumber()));
         sb.append("<br>value: ");

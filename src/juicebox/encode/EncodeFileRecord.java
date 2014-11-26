@@ -68,12 +68,12 @@ public class EncodeFileRecord {
     public String getTrackName() {
 
         if (trackName == null) {
-            StringBuffer sb = new StringBuffer();
-            if(attributes.containsKey("cell")) sb.append(attributes.get("cell") + " ");
-            if(attributes.containsKey("antibody")) sb.append(attributes.get("antibody") + " ");
-            if(attributes.containsKey("dataType")) sb.append(attributes.get("dataType") + " ");
-            if(attributes.containsKey("view")) sb.append(attributes.get("view") + " ");
-            if(attributes.containsKey("replicate")) sb.append("rep " + attributes.get("replicate"));
+            StringBuilder sb = new StringBuilder();
+            if(attributes.containsKey("cell")) sb.append(attributes.get("cell")).append(" ");
+            if(attributes.containsKey("antibody")) sb.append(attributes.get("antibody")).append(" ");
+            if(attributes.containsKey("dataType")) sb.append(attributes.get("dataType")).append(" ");
+            if(attributes.containsKey("view")) sb.append(attributes.get("view")).append(" ");
+            if(attributes.containsKey("replicate")) sb.append("rep ").append(attributes.get("replicate"));
 
             trackName = sb.toString().trim();
             if(sb.length() == 0) trackName = (new File(path)).getName();

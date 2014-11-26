@@ -201,16 +201,16 @@ public class LoadAction extends AbstractAction {
 
         } catch (SAXException e) {
             log.error("Invalid XML resource: " + url, e);
-            errors.append(url + "<br><i>" + e.getMessage());
+            errors.append(url).append("<br><i>").append(e.getMessage());
         } catch (java.net.SocketTimeoutException e) {
             log.error("Connection time out", e);
-            errors.append(url + "<br><i>Connection time out");
+            errors.append(url).append("<br><i>Connection time out");
         } catch (IOException e) {
             log.error("Error accessing " + url, e);
-            errors.append(url + "<br><i>" + e.getMessage());
+            errors.append(url).append("<br><i>").append(e.getMessage());
         } catch (ParserConfigurationException e) {
             log.error("Parser configuration error for:" + url, e);
-            errors.append(url + "<br><i>" + e.getMessage());
+            errors.append(url).append("<br><i>").append(e.getMessage());
         } finally {
             if (is != null) {
                 try {

@@ -70,18 +70,18 @@ public class Feature2D {
 
     public String tooltipText() {
 
-        StringBuffer txt = new StringBuffer();
+        StringBuilder txt = new StringBuilder();
         txt.append("Feature<br>");
 
-        txt.append(chr1 + ":" + formatter.format(start1 + 1));
+        txt.append(chr1).append(":").append(formatter.format(start1 + 1));
         if ((end1 - start1) > 1) {
-            txt.append("-" + formatter.format(end1));
+            txt.append("-").append(formatter.format(end1));
         }
         txt.append("<br>");
 
-        txt.append(chr2 + ":" + formatter.format(start2 + 1));
+        txt.append(chr2).append(":").append(formatter.format(start2 + 1));
         if ((end2 - start2) > 1) {
-            txt.append("-" + formatter.format(end2));
+            txt.append("-").append(formatter.format(end2));
         }
 
 

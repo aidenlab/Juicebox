@@ -40,7 +40,6 @@ public class CategoryPanel extends JPanel {
 
     private static final long serialVersionUID = -729150966236965013L;
     private boolean expanded;
-    private final JideButton toggleButton;
     int nColumns = 5;
     private final JPanel listPanel;
     private final JPanel labelBar;
@@ -58,7 +57,7 @@ public class CategoryPanel extends JPanel {
         labelBar.setLayout(new BoxLayout(labelBar, BoxLayout.X_AXIS));
         labelBar.setBorder(BorderFactory.createRaisedBevelBorder()); //  new LabelBorder(Color.black));
         labelBar.setAlignmentX(LEFT_ALIGNMENT);
-        toggleButton = new JideButton(expanded ? " - " : " + ");
+        JideButton toggleButton = new JideButton(expanded ? " - " : " + ");
         toggleButton.setButtonStyle(ButtonStyle.HYPERLINK_STYLE);
         labelBar.add(toggleButton);
 

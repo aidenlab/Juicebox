@@ -28,10 +28,7 @@ import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
-import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
-
-import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import javax.swing.border.EmptyBorder;
@@ -40,8 +37,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
@@ -106,7 +101,6 @@ public class MainWindow extends JFrame {
     private HeatmapPanel heatmapPanel;
     private HiCRulerPanel rulerPanelY;
     private ThumbnailPanel thumbnailPanel;
-    private JPanel positionPanel;
     private JLabel mouseHoverTextPanel;
     private JTextField positionChrLeft;
     private JTextField positionChrTop;
@@ -1190,7 +1184,7 @@ public class MainWindow extends JFrame {
 
         //========= Positioning panel ======
 
-        positionPanel = new JPanel();
+        JPanel positionPanel = new JPanel();
         positionPanel.setLayout(new GridLayout(0, 1));
 
         JLabel positionLabel = new JLabel(" Jump To:");

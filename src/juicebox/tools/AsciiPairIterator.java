@@ -131,6 +131,7 @@ public class AsciiPairIterator implements PairIterator {
     private String getInternedString(String aString) {
         String s = stringInternPool.get(aString);
         if (s == null) {
+            //noinspection RedundantStringConstructorCall
             s = new String(aString); // The "new" will break any dependency on larger strings if this is a "substring"
             stringInternPool.put(aString, s);
         }

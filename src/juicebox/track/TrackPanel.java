@@ -198,7 +198,7 @@ public class TrackPanel extends JPanel {
 
         trackRectangles.clear();
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
-        if (tracks == null || tracks.isEmpty())  {
+        if (tracks.isEmpty())  {
             return;
         }
 
