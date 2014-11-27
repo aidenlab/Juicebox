@@ -17,6 +17,7 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
+import htsjdk.samtools.util.WholeGenomeReferenceSequenceMask;
 import juicebox.mapcolorui.*;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -62,6 +63,8 @@ public class MainWindow extends JFrame {
     private static final long serialVersionUID = 1428522656885950466L;
     private static RecentMenu recentMapMenu;
     private static RecentMenu recentStateMenu;
+    private static JMenuItem saveStateList;
+    private static JMenuItem clearStateList;
     private String currentlyLoadedFile = "";
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
@@ -417,6 +420,14 @@ public class MainWindow extends JFrame {
                         plusButton.setEnabled(true);
                         minusButton.setEnabled(true);
                         annotationsMenu.setEnabled(true);
+
+                        saveStateList.setEnabled(true);
+                        recentStateMenu.setEnabled(true);
+                        clearStateList.setEnabled(true);
+
+                        positionChrTop.setEnabled(true);
+                        positionChrLeft.setEnabled(true);
+
                         refresh(); // an additional refresh seems to remove the upper left black corner
                     } catch (IOException error) {
                         log.error("Error loading hic file", error);
@@ -449,10 +460,25 @@ public class MainWindow extends JFrame {
         Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
 
+        setNormalizationDisplayState();
+
         hic.setSelectedChromosomes(chrX, chrY);
         rulerPanelX.setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
         rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
         setInitialZoom();
+
+        refresh();
+
+
+    }
+
+    public void setNormalizationDisplayState(){
+
+        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+
+        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
+        Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
 
         // Test for new dataset ("All"),  or change in chromosome
         final boolean wholeGenome = chrY.getName().equals("All");
@@ -467,10 +493,6 @@ public class MainWindow extends JFrame {
         normalizationComboBox.setEnabled(!wholeGenome);
         // Actually we'd like to enable
         displayOptionComboBox.setEnabled(true);
-
-        refresh();
-
-
     }
 
     public void repaintTrackPanels(){
@@ -1203,6 +1225,7 @@ public class MainWindow extends JFrame {
         positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
         positionChrTop = new JTextField();
+        positionChrTop.setEnabled(false);
         positionChrTop.addActionListener(new ActionListener(){
 
             public void actionPerformed(ActionEvent e){
@@ -1216,6 +1239,7 @@ public class MainWindow extends JFrame {
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionChrLeft = new JTextField();
+        positionChrLeft.setEnabled(false);
         positionChrLeft.addActionListener(new ActionListener(){
 
             public void actionPerformed(ActionEvent e){
@@ -1457,7 +1481,7 @@ public class MainWindow extends JFrame {
         {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
         }
-        //refreshChromosomes();
+        setNormalizationDisplayState();
     }
 
 
@@ -1565,7 +1589,7 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
 
         //---- Save Recent ----
-        JMenuItem saveStateList = new JMenuItem();
+        saveStateList = new JMenuItem();
         saveStateList.setText("Save current sate");
         saveStateList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1579,6 +1603,7 @@ public class MainWindow extends JFrame {
                 }
             }
         });
+        saveStateList.setEnabled(false);
         fileMenu.add(saveStateList);
 
 
@@ -1588,16 +1613,17 @@ public class MainWindow extends JFrame {
                 String[] temp;
                 temp = mapPath.split(delimiter);
 
-                //TBD: Make sure map is open.
                 hic.restoreState(temp[1]);
 
+                setNormalizationDisplayState();
             }
         };
         recentStateMenu.setText("Restore saved State");
+        recentStateMenu.setEnabled(false);
         fileMenu.add(recentStateMenu);
 
         //---- Clear Recent state ----
-        JMenuItem clearStateList = new JMenuItem();
+        clearStateList = new JMenuItem();
         clearStateList.setText("Clear saved states list");
         clearStateList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1607,6 +1633,8 @@ public class MainWindow extends JFrame {
                 recentStateMenu.removeAll();
             }
         });
+
+        clearStateList.setEnabled(false);
         fileMenu.add(clearStateList);
 
         fileMenu.addSeparator();

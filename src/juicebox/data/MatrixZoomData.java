@@ -198,7 +198,7 @@ public class MatrixZoomData {
                         blockList.add(b);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        MessageUtils.showMessage(e.getMessage());
+                        //MessageUtils.showMessage(e.getMessage());
                     }
                 }
             };
