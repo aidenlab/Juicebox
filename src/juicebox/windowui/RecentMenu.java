@@ -14,19 +14,20 @@ import java.util.prefs.Preferences;
  * @modified Muhammad S Shamim
  */
 public abstract class RecentMenu extends JMenu {
-    final private static String HIC_RECENT = "hicRecent";
     private static final long serialVersionUID = 4685393080959162312L;
     private final String defaultText = "";
     private final int m_maxItems;
+    private final String m_entry;
     private boolean b_isEnabled = false;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private final List<String> m_items = new ArrayList<String>();
 
-    public RecentMenu(int count) {
+    public RecentMenu(int count,String prefEntry) {
         super();
         this.setText("Recent");
         this.setMnemonic('R');
         this.m_maxItems = count;
+        this.m_entry = prefEntry;
         //initialize default entries
         String[] recentEntries = new String[count];
         for (int index = 0; index < this.m_maxItems; index++) {
@@ -35,7 +36,7 @@ public abstract class RecentMenu extends JMenu {
 
         // load recent positions from properties
         for (int i = 0; i < this.m_maxItems; i++) {
-            String val = prefs.get(HIC_RECENT + i, "");
+            String val = prefs.get(this.m_entry + i, "");
             if (!val.equals("")) {
                 addEntry(val, false);
             } else {
@@ -51,10 +52,10 @@ public abstract class RecentMenu extends JMenu {
     /**
      * Add new recent entry, update file and menu
      *
-     * @param savedMap   url and title of map.
+     * @param savedEntry   Name and Value of entry.
      * @param updateFile also save to file, Constructor call with false - no need to re-write.
      */
-    public void addEntry(String savedMap, boolean updateFile) {
+    public void addEntry(String savedEntry, boolean updateFile) {
         //check if this is disabled
         if (!this.isEnabled()) {
             this.setEnabled(true);
@@ -64,8 +65,8 @@ public abstract class RecentMenu extends JMenu {
         this.removeAll();
 
         //Add item, remove previous existing duplicate:
-        m_items.remove(savedMap);
-        m_items.add(0, savedMap);
+        m_items.remove(savedEntry);
+        m_items.add(0, savedEntry);
 
         //Chop last item if list is over size:
         if (this.m_items.size() > this.m_maxItems) {
@@ -100,9 +101,9 @@ public abstract class RecentMenu extends JMenu {
             try {
                 for (int i = 0; i < this.m_maxItems; i++) {
                     if (i < this.m_items.size()) {
-                        prefs.put(HIC_RECENT + i, this.m_items.get(i));
+                        prefs.put(this.m_entry + i, this.m_items.get(i));
                     } else {
-                        prefs.remove(HIC_RECENT + i);
+                        prefs.remove(this.m_entry + i);
                     }
                 }
             } catch (Exception x) {

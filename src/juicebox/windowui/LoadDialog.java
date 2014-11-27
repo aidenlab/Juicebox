@@ -233,7 +233,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         }
 
         //code to add a recent file to the menu
-        mainWindow.getRecentMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
+        mainWindow.getRecentMapMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
         mainWindow.load(urls, control);
 
         mainWindow.updateTitle(control, title);

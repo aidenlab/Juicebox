@@ -417,7 +417,6 @@ public class HiC {
         mainWindow.updateZoom(zoom);
 
         setScaleFactor(scaleFactor);
-        setScaleFactor(scaleFactor);
 
         xContext.setBinOrigin(binX0);
         yContext.setBinOrigin(binY0);
@@ -726,7 +725,7 @@ public class HiC {
             mainWindow.updateZoom(newZoom);
         }
 
-        setScaleFactor(scalefactor);
+        //setScaleFactor(scalefactor);
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);
         yContext.setBinOrigin(yOrigin);
@@ -747,7 +746,7 @@ public class HiC {
 
         CommandBroadcaster.broadcast(command);
     }
-    public void saveState() {
+    public String saveState() {
         String command = "setstate " +
                 xContext.getChromosome().getName() + " " +
                 yContext.getChromosome().getName() + " " +
@@ -757,6 +756,26 @@ public class HiC {
                 yContext.getBinOrigin() + " " +
                 getScaleFactor();
 
-        CommandBroadcaster.broadcast(command);
+        return command;
+        // CommandBroadcaster.broadcast(command);
+    }
+
+    public String getStateDescription() {
+        String command = "Chr" +
+                xContext.getChromosome().getName() + "@" +
+                (long)(xContext.getBinOrigin()*zoom.getBinSize()) + "_Chr" +
+                yContext.getChromosome().getName() + "@" +
+                (long)(yContext.getBinOrigin()*zoom.getBinSize());
+
+        return command;
+        // CommandBroadcaster.broadcast(command);
+    }
+
+    public void restoreState(String cmd) {
+        CommandExecutor cmdExe = new CommandExecutor(this);
+        cmdExe.execute(cmd);
+        if (linkedMode) {
+            broadcastState();
+        }
     }
 }

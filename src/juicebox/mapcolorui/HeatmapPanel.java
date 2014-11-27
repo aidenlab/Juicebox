@@ -783,11 +783,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 StringSelection stringSelection = new StringSelection(hic.getXPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition());
-                mainWindow.setPositionChrLeft(hic.getYPosition());
+                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
                 Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
                 clpbrd.setContents(stringSelection, null);
-
             }
         });
 
@@ -796,11 +795,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 StringSelection stringSelection = new StringSelection(hic.getYPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition());
-                mainWindow.setPositionChrLeft(hic.getYPosition());
+                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
                 Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
                 clpbrd.setContents(stringSelection, null);
-
             }
         });
 

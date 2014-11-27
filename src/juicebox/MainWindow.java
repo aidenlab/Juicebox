@@ -60,7 +60,8 @@ public class MainWindow extends JFrame {
 
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
-    private static RecentMenu recentMenu;
+    private static RecentMenu recentMapMenu;
+    private static RecentMenu recentStateMenu;
     private String currentlyLoadedFile = "";
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
@@ -110,7 +111,10 @@ public class MainWindow extends JFrame {
     private HiCZoom initialZoom;
     private String saveImagePath;
 
-    private static final int recentListMaxItems = 20;
+    private static final int recentMapListMaxItems = 20;
+    private static final int recentStateMaxItems = 20;
+    private static final String recentMapEntityNode = "hicMapRecent";
+    private static final String recentStateEntityNode = "hicStateRecent";
 
     public void updateToolTipText(String s) {
         mouseHoverTextPanel.setText(s);
@@ -637,7 +641,6 @@ public class MainWindow extends JFrame {
         }
         loadDialog.setControl(control);
         loadDialog.setVisible(true);
-
     }
 
     public void updateTitle(boolean control, String title){
@@ -652,14 +655,19 @@ public class MainWindow extends JFrame {
         setTitle(newTitle);
     }
 
-    private void clearActionPerformed() {
-        String HIC_RECENT = "hicRecent";
+    private void clearMapActionPerformed() {
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        for (int i = 0; i < recentListMaxItems; i++) {
-            prefs.remove(HIC_RECENT + i);
+        for (int i = 0; i < recentMapListMaxItems; i++) {
+            prefs.remove(recentMapEntityNode + i);
         }
     }
 
+    private void clearStateActionPerformed() {
+        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+        for (int i = 0; i < recentStateMaxItems; i++) {
+            prefs.remove(recentStateEntityNode + i);
+        }
+    }
 
     private void exitActionPerformed() {
         setVisible(false);
@@ -763,8 +771,12 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    public RecentMenu getRecentMenu(){
-        return recentMenu;
+    public RecentMenu getRecentMapMenu(){
+        return recentMapMenu;
+    }
+
+    public RecentMenu getRecentStateMenu(){
+        return recentStateMenu;
     }
 
     public void showGlassPane() {
@@ -1191,10 +1203,27 @@ public class MainWindow extends JFrame {
         positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
         positionChrTop = new JTextField();
+        positionChrTop.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e){
+
+                parsePositionText();
+
+            }});
+
+        positionChrTop.setPreferredSize(new Dimension(180,25));
         positionChrTop.setPreferredSize(new Dimension(180, 25));
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionChrLeft = new JTextField();
+        positionChrLeft.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e){
+
+                parsePositionText();
+
+            }});
+        positionChrLeft.setPreferredSize(new Dimension(180, 25));
         positionChrLeft.setPreferredSize(new Dimension(180, 25));
         positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
 
@@ -1283,6 +1312,155 @@ public class MainWindow extends JFrame {
         this.positionChrTop.setText(newPositionDate);
     }
 
+
+
+    public void parsePositionText() {
+        //Expected format: <chr>:<start>-<end>:<resolution>
+
+        String delimiters = "\\s+|:\\s*|\\-\\s*";
+        Integer outBinSize = 0;
+        Long outBinLeft = 0L;
+        Long outBinTop = 0L;
+        Long topStart = 0L;
+        Long topEnd = 0L;
+        Long leftStart = 0L;
+        Long leftEnd = 0L;
+
+        String[] leftChrTokens = this.positionChrLeft.getText().split(delimiters);
+        String[] topChrTokens = this.positionChrTop.getText().split(delimiters);
+
+
+        String LeftChrName = "";
+        String TopChrName = "";
+        int LeftChrInt = 0;
+        int TopChrInt = 0;
+
+        //Read Chromosomes:
+        //First chromosome:
+        if (topChrTokens.length > 0) {
+            if (topChrTokens[0].toLowerCase().contains("chr")) {
+                TopChrName = topChrTokens[0].substring(3);
+            }
+            else {
+                TopChrName = topChrTokens[0].toLowerCase();
+            }
+        }
+        else
+        {
+            this.positionChrTop.setBackground(Color.yellow);
+            return;
+        }
+        try {
+            TopChrInt = Integer.parseInt(TopChrName);
+            //TBD - replace with actual chromosome range
+            if (TopChrInt > 22)
+            {
+                this.positionChrTop.setBackground(Color.yellow);
+                return;
+            }
+
+        }
+        catch( Exception e ) {
+            if(TopChrName.toLowerCase().equals("x")){
+                TopChrName = "X";
+            }
+            else if(TopChrName.toLowerCase().equals("y")){
+                TopChrName = "Y";
+            }
+            else if(TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")){
+                TopChrName = "MT";
+            }
+            else{
+                this.positionChrTop.setBackground(Color.yellow);
+                return;
+            }
+        }
+
+        //Second chromosome:
+        if (leftChrTokens.length > 0) {
+            if (leftChrTokens[0].toLowerCase().contains("chr")) {
+                LeftChrName = leftChrTokens[0].substring(3);
+            }
+            else {
+                LeftChrName = leftChrTokens[0].toLowerCase();
+            }
+        }
+        else
+        {
+            this.positionChrLeft.setBackground(Color.yellow);
+            return;
+        }
+        try {
+            LeftChrInt = Integer.parseInt(LeftChrName);
+
+            //TBD - replace with actual chromosome range
+            if (LeftChrInt > 22)
+            {
+                this.positionChrLeft.setBackground(Color.yellow);
+                return;
+            }
+        }
+        catch( Exception e ) {
+            if(LeftChrName.toLowerCase().equals("x")){
+                LeftChrName = "X";
+            }
+            else if(LeftChrName.toLowerCase().equals("y")){
+                LeftChrName = "Y";
+            }
+            else if(LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")){
+                LeftChrName = "MT";
+            }
+            else{
+                this.positionChrLeft.setBackground(Color.yellow);
+                return;
+            }
+        }
+
+        //Read positions:
+        if (topChrTokens.length > 2) {
+            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "").toString()),Long.valueOf(topChrTokens[2].replaceAll(",", "").toString()));
+            topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "").toString()), Long.valueOf(topChrTokens[2].replaceAll(",", "").toString()));
+            outBinTop = topStart+((topEnd-topStart)/2);
+
+        }
+        else if (topChrTokens.length > 1){
+            outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", "").toString());
+        }
+
+
+        if (leftChrTokens.length > 2) {
+            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString()),Long.valueOf(leftChrTokens[2].replaceAll(",", "").toString()));
+            leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString()), Long.valueOf(leftChrTokens[2].replaceAll(",", "").toString()));
+            outBinLeft = leftStart+((leftEnd-leftStart)/2);
+        }
+        else if (topChrTokens.length > 1){
+            outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString());
+        }
+
+        //Read resolution:
+        if (topChrTokens.length > 3) {
+            outBinSize = Integer.parseInt(topChrTokens[3]);
+        }
+        else if (leftChrTokens.length > 3) {
+            outBinSize = Integer.parseInt(leftChrTokens[3]);
+        }
+        else if (hic.getZoom().getBinSize() != 0)
+        {
+            outBinSize = hic.getZoom().getBinSize();
+        }
+
+        this.positionChrTop.setBackground(Color.white);
+        this.positionChrLeft.setBackground(Color.white);
+
+        hic.setState(TopChrName,LeftChrName,"BP", outBinSize, 0, 0, hic.getScaleFactor());
+        if (outBinTop > 0 && outBinLeft > 0)
+        {
+            hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
+        }
+        //refreshChromosomes();
+    }
+
+
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED || hic.getDisplayOption() == MatrixType.CONTROL) {
 
@@ -1357,37 +1535,79 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
 
 
-        recentMenu = new RecentMenu(recentListMaxItems) {
+        recentMapMenu = new RecentMenu(recentMapListMaxItems,recentMapEntityNode ) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
 
-
-                //JFrame frame = (JFrame) SwingUtilities.getRoot(this.getComponent());
-                //System.out.println("Got - "+this.getComponent().get);
-
-                //System.out.println("Got - "+frame.getGlassPane());
                 loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
 
             }
         };
-        recentMenu.setText("Open Recent");
-        fileMenu.add(recentMenu);
+        recentMapMenu.setText("Open recently used map");
+        fileMenu.add(recentMapMenu);
 
         //---- Clear Recent ----
-        JMenuItem clear = new JMenuItem();
-        clear.setText("Clear Recent maps list");
-        clear.addActionListener(new ActionListener() {
+        JMenuItem clearMapList = new JMenuItem();
+        clearMapList.setText("Clear recently used maps list");
+        clearMapList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //Clear all items from preferences:
-                clearActionPerformed();
+                clearMapActionPerformed();
                 //clear the existing items
-                recentMenu.removeAll();
+                recentMapMenu.removeAll();
             }
         });
-        fileMenu.add(clear);
+        fileMenu.add(clearMapList);
 
+        //Recent saved states
+        fileMenu.addSeparator();
+
+        //---- Save Recent ----
+        JMenuItem saveStateList = new JMenuItem();
+        saveStateList.setText("Save current sate");
+        saveStateList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent file to the menu
+                String stateString = hic.saveState();
+                String stateDescriptionString = hic.getStateDescription();
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved state:",stateDescriptionString);
+                if(null != stateDescription) {
+                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
+                }
+            }
+        });
+        fileMenu.add(saveStateList);
+
+
+        recentStateMenu = new RecentMenu(recentStateMaxItems,recentStateEntityNode) {
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+
+                //TBD: Make sure map is open.
+                hic.restoreState(temp[1]);
+
+            }
+        };
+        recentStateMenu.setText("Restore saved State");
+        fileMenu.add(recentStateMenu);
+
+        //---- Clear Recent state ----
+        JMenuItem clearStateList = new JMenuItem();
+        clearStateList.setText("Clear saved states list");
+        clearStateList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //Clear all items from preferences:
+                clearStateActionPerformed();
+                //clear the existing items
+                recentStateMenu.removeAll();
+            }
+        });
+        fileMenu.add(clearStateList);
 
         fileMenu.addSeparator();
 
