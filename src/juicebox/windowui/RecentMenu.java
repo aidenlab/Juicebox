@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.Preferences;
 
@@ -15,24 +16,18 @@ import java.util.prefs.Preferences;
  */
 public abstract class RecentMenu extends JMenu {
     private static final long serialVersionUID = 4685393080959162312L;
-    private final String defaultText = "";
     private final int m_maxItems;
     private final String m_entry;
-    private boolean b_isEnabled = false;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private final List<String> m_items = new ArrayList<String>();
 
-    public RecentMenu(int count,String prefEntry) {
-        super();
-        this.setText("Recent");
-        this.setMnemonic('R');
+    public RecentMenu(String name, int count,String prefEntry) {
+        super(name);
+
         this.m_maxItems = count;
         this.m_entry = prefEntry;
-        //initialize default entries
         String[] recentEntries = new String[count];
-        for (int index = 0; index < this.m_maxItems; index++) {
-            recentEntries[index] = defaultText;
-        }
+        Arrays.fill(recentEntries, "");
 
         // load recent positions from properties
         for (int i = 0; i < this.m_maxItems; i++) {
@@ -40,10 +35,7 @@ public abstract class RecentMenu extends JMenu {
             if (!val.equals("")) {
                 addEntry(val, false);
             } else {
-                if (i == 0) {
-                    // No items.
-                    this.setEnabled(false);
-                }
+                if (i == 0) this.setEnabled(false);
                 break;
             }
         }
@@ -75,26 +67,24 @@ public abstract class RecentMenu extends JMenu {
 
         //add items back to the menu
         for (String m_item : this.m_items) {
-            JMenuItem menuItem = new JMenuItem();
-
             String delimiter = "@@";
             String[] temp;
             temp = m_item.split(delimiter);
 
-            menuItem.setText(temp[0]);
-            if (temp[0].equals(defaultText)) {
-                menuItem.setVisible(false);
-            } else {
+            if (!temp[0].equals("")) {
+                JMenuItem menuItem = new JMenuItem(temp[0]);
                 menuItem.setVisible(true);
                 menuItem.setToolTipText(temp[0]);
                 menuItem.setActionCommand(m_item);
+                //menuItem.setActionMap();
                 menuItem.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent actionEvent) {
                         onSelectPosition(actionEvent.getActionCommand());
                     }
                 });
+                this.add(menuItem);
             }
-            this.add(menuItem);
+
         }
         //update the file
         if (updateFile) {
@@ -112,18 +102,11 @@ public abstract class RecentMenu extends JMenu {
         }
     }
 
-    public boolean isEnabled() {
-        return this.b_isEnabled;
-    }
-
-    public void setEnabled(boolean b_newState) {
-        this.b_isEnabled = b_newState;
-    }
-
     /**
      * Abstract event, fires when recent map is selected.
      *
      * @param mapPath The file that was selected.
      */
     public abstract void onSelectPosition(String mapPath);
+
 }
