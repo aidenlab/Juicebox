@@ -528,7 +528,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     @Override
-    public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
+    synchronized public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
 
         Block b = null;
         Map<Integer, Preprocessor.IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
