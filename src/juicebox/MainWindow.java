@@ -1461,6 +1461,8 @@ public class MainWindow extends JFrame {
         {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
         }
+
+        //We might end with ALL->All view, make sure normalization state is updates acordingly...
         setNormalizationDisplayState();
     }
 

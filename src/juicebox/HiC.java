@@ -693,7 +693,7 @@ public class HiC {
 
     private Chromosome getChromosomeNamed(String token) {
         for (Chromosome chr : chromosomes) {
-            if (token.equals(chr.getName())) return chr;
+            if (token.equals(chr.getName()) || String.valueOf("chr").concat(token).equals(chr.getName())) return chr;
         }
         return null;
     }
@@ -718,7 +718,7 @@ public class HiC {
         }
 
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom)) {
+        if (!newZoom.equals(zoom) ||(xContext.getZoom()== null)  ||(yContext.getZoom() == null) ) {
             zoom = newZoom;
             xContext.setZoom(zoom);
             yContext.setZoom(zoom);
