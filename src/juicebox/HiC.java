@@ -718,7 +718,7 @@ public class HiC {
         }
 
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom)) {
+        if (!newZoom.equals(zoom) ||(xContext.getZoom()== null)  ||(yContext.getZoom() == null) ) {
             zoom = newZoom;
             xContext.setZoom(zoom);
             yContext.setZoom(zoom);
