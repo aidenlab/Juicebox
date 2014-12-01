@@ -693,7 +693,7 @@ public class HiC {
 
     private Chromosome getChromosomeNamed(String token) {
         for (Chromosome chr : chromosomes) {
-            if (token.equals(chr.getName())) return chr;
+            if (token.equals(chr.getName()) || String.valueOf("chr").concat(token).equals(chr.getName())) return chr;
         }
         return null;
     }
