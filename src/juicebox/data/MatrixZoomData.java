@@ -14,12 +14,9 @@ import juicebox.track.HiCGridAxis;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.LRUCache;
 import htsjdk.tribble.util.LittleEndianOutputStream;
-
-
-//import javax.swing.*;
-//import java.util.List;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -179,7 +176,9 @@ public class MatrixZoomData {
             }
         }
 
+
         final List<String> errorStrings = new ArrayList<String>();
+        final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<Thread>();
         for (final int blockNumber : blocksToLoad) {
@@ -199,6 +198,7 @@ public class MatrixZoomData {
                     } catch (IOException e) {
                         e.printStackTrace();
                         //MessageUtils.showMessage(e.getMessage());
+                        errorCounter.incrementAndGet();
                     }
                 }
             };
@@ -214,6 +214,11 @@ public class MatrixZoomData {
                 t.join();
             } catch (InterruptedException ignore) {
             }
+        }
+
+        // untested since files got fixed :P - MSS
+        if(errorCounter.get() > 0){
+            MessageUtils.showMessage("Normalizations could not be loaded at this resolution");
         }
 
         return blockList;
@@ -298,9 +303,9 @@ public class MatrixZoomData {
         int dim = pearsons.getRowDimension();
         double[][] data = new double[dim][dim];
         BitSet bitSet = new BitSet(dim);
-        for (int i=0; i<dim; i++) {
-            for (int j=0; j<dim; j++) {
-                float tmp = pearsons.getEntry(i,j);
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                float tmp = pearsons.getEntry(i, j);
                 data[i][j] = tmp;
                 if (data[i][j] != 0 && !Float.isNaN(tmp)) {
                     bitSet.set(i);
@@ -309,9 +314,9 @@ public class MatrixZoomData {
         }
 
         int[] nonCentromereColumns = new int[bitSet.cardinality()];
-        int count=0;
-        for (int i=0; i<dim; i++) {
-            if (bitSet.get(i)) nonCentromereColumns[count++]=i;
+        int count = 0;
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) nonCentromereColumns[count++] = i;
         }
 
         RealMatrix subMatrix = new Array2DRowRealMatrix(data).getSubMatrix(nonCentromereColumns, nonCentromereColumns);
@@ -636,9 +641,9 @@ public class MatrixZoomData {
                             double normCounts = observed / expected;
                             // The apache library doesn't seem to play nice with NaNs
                             if (!Double.isNaN(normCounts)) {
-                                matrix.setEntry(x, y, (float)normCounts);
+                                matrix.setEntry(x, y, (float) normCounts);
                                 if (x != y) {
-                                    matrix.setEntry(y, x, (float)normCounts);
+                                    matrix.setEntry(y, x, (float) normCounts);
                                 }
                                 bitSet.set(x);
                                 bitSet.set(y);
@@ -653,12 +658,11 @@ public class MatrixZoomData {
             if (les != null) les.writeInt(nBins);
 
             for (int i = 0; i < nBins; i++) {
-                for (int j=0; j < nBins; j++) {
+                for (int j = 0; j < nBins; j++) {
                     float output;
                     if (!bitSet.get(i) && !bitSet.get(j)) {
                         output = Float.NaN;
-                    }
-                    else output = matrix.getEntry(i,j);
+                    } else output = matrix.getEntry(i, j);
                     if (les != null) les.writeFloat(output);
                     else pw.print(output + " ");
                 }
@@ -672,17 +676,16 @@ public class MatrixZoomData {
             BasicMatrix pearsons = getPearsons(df);
             if (pearsons != null) {
                 int dim = pearsons.getRowDimension();
-                for (int i=0; i<dim; i++) {
-                    for (int j=0; j<dim; j++) {
-                        float output = pearsons.getEntry(i,j);
+                for (int i = 0; i < dim; i++) {
+                    for (int j = 0; j < dim; j++) {
+                        float output = pearsons.getEntry(i, j);
                         if (les != null) les.writeFloat(output);
                         else pw.print(output + " ");
                     }
                     if (les == null) pw.println();
                 }
                 pw.flush();
-            }
-            else {
+            } else {
                 log.error("Pearson's not available at zoom " + zoom);
             }
         }

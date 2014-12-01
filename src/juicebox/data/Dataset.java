@@ -138,7 +138,7 @@ public class Dataset {
 
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
-        if (expectedValueFunctionMap == null) return null;
+        if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
         String key = zoom.getKey() + "_" + type.toString(); // getUnit() + "_" + zoom.getBinSize();
         return expectedValueFunctionMap.get(key);
     }
