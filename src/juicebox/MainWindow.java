@@ -17,7 +17,6 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
-import htsjdk.samtools.util.WholeGenomeReferenceSequenceMask;
 import juicebox.mapcolorui.*;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -31,12 +30,10 @@ import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 import javax.swing.*;
-
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.event.*;
@@ -579,12 +576,7 @@ public class MainWindow extends JFrame {
     public void loadMenuItemActionPerformed(boolean control) {
         FilenameFilter hicFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                String lowercaseName = name.toLowerCase();
-                if (lowercaseName.endsWith(".hic")) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return name.toLowerCase().endsWith(".hic");
             }
         };
 
@@ -608,15 +600,13 @@ public class MainWindow extends JFrame {
     private void loadFromRecentActionPerformed(String url, String title, boolean control) {
 
         if (url != null) {
-            try {
-                showGlassPane();
+            try {//TODO S7 - MSS
                 load(Arrays.asList(url), control);
 
                 String path = (new URL(url)).getPath();
                 if (control) controlTitle = title;// TODO should the other one be set to empty/null
                 else datasetTitle = title;
                 updateTitle();
-                hideGlassPane();
             } catch (IOException e1) {
                 JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -774,18 +764,15 @@ public class MainWindow extends JFrame {
      */
 
     public Future<?> executeLongRunningTask(final Runnable runnable) {
-
+        // TODO S7 - MSS
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                showGlassPane();
-                //Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
-                //glassPane.setEnabled(true);
+                MainWindow.this.showGlassPane();
                 try {
                     runnable.run();
                     return "done";
                 } finally {
-                    hideGlassPane();
-                    //glassPane.setVisible(false);
+                    MainWindow.this.hideGlassPane();
                 }
             }
         };
@@ -802,31 +789,24 @@ public class MainWindow extends JFrame {
     }
 
     public void showGlassPane() {
-        Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        glassPane.setVisible(true);
-
-        glassPane = this.getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        glassPane.setVisible(true);
-
-        glassPane = rootPane.getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        glassPane.setVisible(true);
+        setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
     }
 
     public void hideGlassPane() {
-        Component glassPane = ((RootPaneContainer) hiCPanel.getTopLevelAncestor()).getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        glassPane.setVisible(false);
+        setGlassPaneVisibility(this.getGlassPane(), Cursor.DEFAULT_CURSOR, false);
+    }
 
-        glassPane = this.getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        glassPane.setVisible(false);
+    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible){
+        glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
+        glassPane.setVisible(isVisible);
+        setWaitingStatus(cursorState);
+    }
 
-        glassPane = rootPane.getGlassPane();
-        glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        glassPane.setVisible(false);
+    public void setWaitingStatus(int cursorState){
+        rootPane.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
+        rootPane.setCursor(Cursor.getPredefinedCursor(cursorState));
+        hiCPanel.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
+        hiCPanel.setCursor(Cursor.getPredefinedCursor(cursorState));
     }
 
     public void updateTrackPanel() {
@@ -1442,23 +1422,23 @@ public class MainWindow extends JFrame {
 
         //Read positions:
         if (topChrTokens.length > 2) {
-            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "").toString()),Long.valueOf(topChrTokens[2].replaceAll(",", "").toString()));
-            topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "").toString()), Long.valueOf(topChrTokens[2].replaceAll(",", "").toString()));
+            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")),Long.valueOf(topChrTokens[2].replaceAll(",", "")));
+            topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             outBinTop = topStart+((topEnd-topStart)/2);
 
         }
         else if (topChrTokens.length > 1){
-            outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", "").toString());
+            outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", ""));
         }
 
 
         if (leftChrTokens.length > 2) {
-            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString()),Long.valueOf(leftChrTokens[2].replaceAll(",", "").toString()));
-            leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString()), Long.valueOf(leftChrTokens[2].replaceAll(",", "").toString()));
+            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")),Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
+            leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             outBinLeft = leftStart+((leftEnd-leftStart)/2);
         }
         else if (topChrTokens.length > 1){
-            outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", "").toString());
+            outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", ""));
         }
 
         //Read resolution:
@@ -1558,18 +1538,16 @@ public class MainWindow extends JFrame {
 
         fileMenu.addSeparator();
 
-
-        recentMapMenu = new RecentMenu(recentMapListMaxItems,recentMapEntityNode ) {
+        //TODO S7 - MSS
+        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems,recentMapEntityNode ) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-
                 loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-
             }
         };
-        recentMapMenu.setText("Open recently used map");
+        recentMapMenu.setMnemonic('R');
         fileMenu.add(recentMapMenu);
 
         //---- Clear Recent ----
@@ -1607,18 +1585,16 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveStateList);
 
 
-        recentStateMenu = new RecentMenu(recentStateMaxItems,recentStateEntityNode) {
+        recentStateMenu = new RecentMenu("Restore saved State", recentStateMaxItems,recentStateEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-
-                hic.restoreState(temp[1]);
-
+                hic.restoreState(temp[1]);//temp[1]
                 setNormalizationDisplayState();
             }
         };
-        recentStateMenu.setText("Restore saved State");
+        recentStateMenu.setMnemonic('S');
         recentStateMenu.setEnabled(false);
         fileMenu.add(recentStateMenu);
 
