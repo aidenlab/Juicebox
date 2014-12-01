@@ -1570,14 +1570,14 @@ public class MainWindow extends JFrame {
 
         //---- Save Recent ----
         saveStateList = new JMenuItem();
-        saveStateList.setText("Save current sate");
+        saveStateList.setText("Save current location");
         saveStateList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent file to the menu
                 String stateString = hic.saveState();
                 String stateDescriptionString = hic.getStateDescription();
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved state:",stateDescriptionString);
+                        "Enter description for saved location:",stateDescriptionString);
                 if(null != stateDescription) {
                     getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
                 }
@@ -1587,7 +1587,7 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveStateList);
 
 
-        recentStateMenu = new RecentMenu("Restore saved State", recentStateMaxItems,recentStateEntityNode) {
+        recentStateMenu = new RecentMenu("Restore saved location", recentStateMaxItems,recentStateEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1602,7 +1602,7 @@ public class MainWindow extends JFrame {
 
         //---- Clear Recent state ----
         clearStateList = new JMenuItem();
-        clearStateList.setText("Clear saved states list");
+        clearStateList.setText("Clear saved locations list");
         clearStateList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //Clear all items from preferences:
