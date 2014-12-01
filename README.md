@@ -33,7 +33,7 @@ Use IntelliJ IDEA (Community edition - free)
 * You'll create two of these, one for the GUI (call it Juicebox GUI or whatever you want, really) and one for the CLT.
 * The GUI's main class is `MainWindow` - click the little `...` button next to the text box for main class, and type `MainWindow`.
 * The CLT's main class is `HiCTools`.  
-* For the GUI under VM Options: `-Xmx2000m -Djnlp.loadMenu="http://hicfiles.econpy.org/juicebox.properties"`
+* For the GUI under VM Options: `-Xmx2000m -Djnlp.loadMenu="http://hicfiles.tc4ga.com/juicebox.properties"`
 * For the CLT I use  `-Xmx2000m`
 
         Note that that's 2GB RAM, depending on your computer you might want more or less.

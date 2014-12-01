@@ -646,7 +646,7 @@ public class MainWindow extends JFrame {
             try {
                 String url = System.getProperty("jnlp.loadMenu");
                 if (url == null) {
-                    url = "http://hicfiles.econpy.org/juicebox.properties";
+                    url = "http://hicfiles.tc4ga.com/juicebox.properties";
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
                 properties = new Properties();
