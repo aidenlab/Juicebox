@@ -223,7 +223,7 @@ public class Dataset {
     public String getStatistics() {
         String stats = null;
         if (attributes != null) stats = attributes.get("statistics");
-        if ((stats == null) || stats.contains("current")) {
+        if ((stats == null) || !stats.contains("<table>")) {
             try {
                 attributes.put("statistics", reader.readStats());
             }
