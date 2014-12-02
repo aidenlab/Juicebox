@@ -633,7 +633,15 @@ public class MainWindow extends JFrame {
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
                 properties = new Properties();
-                properties.load(is);
+                if (is == null)
+                {
+                    //No slection made:
+                    return;
+                }
+                else
+                {
+                    properties.load(is);
+                }
             } catch (Exception error) {
                 JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1364,6 +1372,21 @@ public class MainWindow extends JFrame {
 
         //Read positions:
         if (topChrTokens.length > 2) {
+            //Make sure values are numerical:
+            try {
+                Long.parseLong(topChrTokens[1].replaceAll(",", ""));
+            }
+            catch( Exception e ) {
+                this.positionChrTop.setBackground(Color.yellow);
+                return;
+            }
+            try {
+                Long.parseLong(topChrTokens[2].replaceAll(",", ""));
+            }
+            catch( Exception e ) {
+                this.positionChrLeft.setBackground(Color.yellow);
+                return;
+            }
             topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")),Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             outBinTop = topStart+((topEnd-topStart)/2);
@@ -1380,14 +1403,38 @@ public class MainWindow extends JFrame {
             outBinLeft = leftStart+((leftEnd-leftStart)/2);
         }
         else if (topChrTokens.length > 1){
+            //Make sure values are numerical:
+            try {
+                Long.parseLong(topChrTokens[1].replaceAll(",", ""));
+            }
+            catch( Exception e ) {
+                this.positionChrTop.setBackground(Color.yellow);
+                return;
+            }
             outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", ""));
         }
 
         //Read resolution:
         if (topChrTokens.length > 3) {
+            //Make sure value is numeric:
+            try {
+                Integer.parseInt(topChrTokens[3]);
+            }
+            catch( Exception e ) {
+                this.positionChrTop.setBackground(Color.yellow);
+                return;
+            }
             outBinSize = Integer.parseInt(topChrTokens[3]);
         }
         else if (leftChrTokens.length > 3) {
+            //Make sure value is numeric:
+            try {
+                Integer.parseInt(leftChrTokens[3]);
+            }
+            catch( Exception e ) {
+                this.positionChrLeft.setBackground(Color.yellow);
+                return;
+        }
             outBinSize = Integer.parseInt(leftChrTokens[3]);
         }
         else if (hic.getZoom().getBinSize() != 0)
