@@ -334,6 +334,8 @@ public class MainWindow extends JFrame {
             currentlyLoadedFile = file;
         }
 
+        hic.setNormalizationType(NormalizationType.NONE);
+
         if (file.endsWith("hic")) {
             Runnable runnable = new Runnable() {
                 public void run() {
@@ -424,7 +426,7 @@ public class MainWindow extends JFrame {
                         JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
                         hic.reset();
 
-                        updateThumbnail();
+                            updateThumbnail();
 
                     } catch (Exception error) {
                         error.printStackTrace();
@@ -457,7 +459,7 @@ public class MainWindow extends JFrame {
         rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
         setInitialZoom();
 
-        refresh();
+            refresh();
 
 
     }
@@ -716,7 +718,8 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
+        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.OE);
+        colorRangeSlider.setDisplayToOE(option == MatrixType.OE);
         plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
         if (option == MatrixType.PEARSON) {
@@ -768,6 +771,7 @@ public class MainWindow extends JFrame {
         // TODO S7 - MSS
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
+                //System.out.println("Glassify : " + rootPane);
                 MainWindow.this.showGlassPane();
                 try {
                     runnable.run();
@@ -1457,8 +1461,9 @@ public class MainWindow extends JFrame {
 
 
     private void colorRangeSliderUpdateToolTip() {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED || hic.getDisplayOption() == MatrixType.CONTROL) {
-
+        if (hic.getDisplayOption() == MatrixType.OBSERVED ||
+                hic.getDisplayOption() == MatrixType.CONTROL ||
+                hic.getDisplayOption() == MatrixType.OE) {
 
             int iMin = colorRangeSlider.getMinimum();
             int lValue = colorRangeSlider.getLowerValue();
@@ -1491,10 +1496,6 @@ public class MainWindow extends JFrame {
 
             colorRangeSlider.setLabelTable(labelTable);
 
-        } else if (hic.getDisplayOption() == MatrixType.OE) {
-            double mymaximum = colorRangeSlider.getMaximum() / 8;
-            colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
-                    + new DecimalFormat("##.##").format(mymaximum));
         }
 
     }
@@ -1796,5 +1797,21 @@ public class MainWindow extends JFrame {
             hic.getDataset().putLoadedNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
         }
 
+    }
+
+    private abstract class protectedGlassProcessing{
+
+        abstract void encapsulatedCommand();
+
+        public void process(){
+            try{
+                MainWindow.this.showGlassPane();
+                encapsulatedCommand();
+            }
+            finally {
+                MainWindow.this.hideGlassPane();
+            }
+
+        }
     }
 }

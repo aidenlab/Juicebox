@@ -18,6 +18,8 @@ import java.io.Serializable;
  */
 public class RangeSlider extends JSlider implements Serializable {
 
+    private RangeSliderUI rangeSliderUI;
+
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
      * and 100.
@@ -48,7 +50,8 @@ public class RangeSlider extends JSlider implements Serializable {
      */
     @Override
     public void updateUI() {
-        setUI(new RangeSliderUI(this));
+        rangeSliderUI = new RangeSliderUI(this);
+        setUI(rangeSliderUI);
         // Update UI for slider labels.  This must be called after updating the
         // UI of the slider.  Refer to JSlider.updateUI().
         updateLabelUIs();
@@ -102,4 +105,9 @@ public class RangeSlider extends JSlider implements Serializable {
         // Set extent to set upper value.
         setExtent(newExtent);
     }
+
+    public void setDisplayToOE(boolean isOE){
+        rangeSliderUI.setDisplayToOE(isOE);
+    }
+
 }

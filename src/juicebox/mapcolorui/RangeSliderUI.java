@@ -19,8 +19,13 @@ class RangeSliderUI extends BasicSliderUI {
      * Color of selected range.
      */
     private final Color rangeColor = Color.RED;
-    private final Color[] gradientColors = { new Color(255,255,255),  new Color(255,0,0)};
+    private final Color[] gradientColors = { Color.WHITE,  Color.RED};
     private final float[] fractions = {0.0f, 1.0f};
+
+    private final Color[] gradientColorsOE = { Color.BLUE, Color.WHITE, Color.RED};
+    private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
+
+    private boolean colorIsOE = false;
 
     /**
      * Location and size of thumb for upper value.
@@ -191,18 +196,25 @@ class RangeSliderUI extends BasicSliderUI {
             int subTrackWidth = upperThumbRect.x - thumbRect.x;
             int leftArrowX = thumbRect.x;
             int rightArrowX = leftArrowX + subTrackWidth;
-            int leftArrowY = trackRect.y + trackRect.height/4;
+            int leftArrowY = trackRect.y + trackRect.height / 4;
             int redTrackWidth = trackRect.x + trackRect.width - rightArrowX;
 
-            Rectangle subRect = new Rectangle(leftArrowX, leftArrowY , subTrackWidth, trackRect.height/2);
-            Rectangle whiteSide = new Rectangle(trackRect.x, leftArrowY, leftArrowX - trackRect.x, subRect.height);
-            Rectangle redSide = new Rectangle(rightArrowX, leftArrowY, redTrackWidth, subRect.height);
+            Rectangle subRect = new Rectangle(leftArrowX, leftArrowY, subTrackWidth, trackRect.height / 2);
+            Rectangle leftSide = new Rectangle(trackRect.x, leftArrowY, leftArrowX - trackRect.x, subRect.height);
+            Rectangle rightSide = new Rectangle(rightArrowX, leftArrowY, redTrackWidth, subRect.height);
 
             Point startP = new Point(subRect.x, subRect.y);
             Point endP = new Point(subRect.x + subRect.width, subRect.y + subRect.height);
-            LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
 
-            drawSubTrackRectangles((Graphics2D)g, gradient, subRect, whiteSide, redSide);
+            if (colorIsOE) {
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
+            }
+            else{
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, Color.RED, rightSide);
+            }
+
 
             g.setColor(oldColor);
 
@@ -232,16 +244,17 @@ class RangeSliderUI extends BasicSliderUI {
         }
     }
 
-    private void drawSubTrackRectangles(Graphics2D g, LinearGradientPaint gradientColor,
-                                        Rectangle gradRect, Rectangle whiteRect, Rectangle redRect){
+    private void drawSubTrackRectangles(Graphics2D g, LinearGradientPaint gradientColor, Rectangle gradientRect,
+                                        Paint leftColor, Rectangle leftRect,
+                                        Paint rightColor, Rectangle rightRect){
         g.setPaint(gradientColor);
-        g.fill(gradRect);
+        g.fill(gradientRect);
 
-        g.setPaint(Color.WHITE);
-        g.fill(whiteRect);
+        g.setPaint(leftColor);
+        g.fill(leftRect);
 
-        g.setPaint(Color.RED);
-        g.fill(redRect);
+        g.setPaint(rightColor);
+        g.fill(rightRect);
     }
 
     /**
@@ -561,5 +574,9 @@ class RangeSliderUI extends BasicSliderUI {
                 default:
             }
         }
+    }
+
+    public void setDisplayToOE(boolean isOE){
+        this.colorIsOE = isOE;
     }
 }

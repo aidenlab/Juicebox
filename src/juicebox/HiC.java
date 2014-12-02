@@ -426,7 +426,12 @@ public class HiC {
             broadcastState();
         }
 
-        mainWindow.refresh();
+        try{
+            mainWindow.refresh();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
 
     }
@@ -739,7 +744,12 @@ public class HiC {
         xContext.setBinOrigin(xOrigin);
         yContext.setBinOrigin(yOrigin);
 
-        mainWindow.refresh();
+        try {
+            mainWindow.refresh();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 

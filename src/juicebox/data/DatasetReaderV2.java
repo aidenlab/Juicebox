@@ -626,7 +626,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
 
-        if (no == NormalizationType.NONE) {
+        if(no == null){
+            throw new IOException("Normalization type is null");
+        }
+        else if (no == NormalizationType.NONE) {
             return readBlock(blockNumber, zd);
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
