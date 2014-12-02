@@ -1,8 +1,8 @@
 package juicebox.track;
 
-import org.apache.commons.math.stat.StatUtils;
 import juicebox.Context;
 import juicebox.HiC;
+import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
 import org.broad.igv.ui.FontManager;

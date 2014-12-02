@@ -4,14 +4,18 @@
 
 package juicebox.track;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
-
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
-import org.broad.igv.ui.color.*;
+import org.broad.igv.ui.color.ColorChooserPanel;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 /**
  * @author Jim Robinson

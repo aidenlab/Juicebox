@@ -20,10 +20,9 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
-import org.apache.log4j.Logger;
-
-import org.broad.igv.feature.Chromosome;
 import juicebox.track.HiCGridAxis;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;

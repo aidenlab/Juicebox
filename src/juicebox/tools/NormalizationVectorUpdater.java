@@ -1,12 +1,11 @@
 package juicebox.tools;
 
+import juicebox.HiC;
 import juicebox.data.*;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.windowui.HiCZoom;
-import juicebox.HiC;
-import juicebox.windowui.NormalizationType;
-
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
 

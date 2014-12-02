@@ -1,17 +1,17 @@
 package juicebox.data;
 
-import org.apache.log4j.Logger;
-import org.broad.igv.feature.Chromosome;
 import juicebox.HiC;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
-import java.text.NumberFormat;
-import java.text.DecimalFormat;
 
-import java.io.*;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
 

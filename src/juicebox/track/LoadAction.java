@@ -16,13 +16,11 @@ package juicebox.track;
 
 //~--- non-JDK imports --------------------------------------------------------
 
-import org.apache.log4j.Logger;
-//import org.broad.igv.PreferenceManager;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
-//import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
@@ -31,14 +29,19 @@ import org.xml.sax.SAXException;
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-//import java.awt.*;
 import java.awt.event.ActionEvent;
-//import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+//import org.broad.igv.PreferenceManager;
+//import org.broad.igv.util.ParsingUtils;
+//import java.awt.*;
+//import java.io.BufferedReader;
 //import java.io.InputStreamReader;
 //import java.util.List;
-import java.util.*;
 
 
 /**

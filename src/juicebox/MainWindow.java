@@ -17,25 +17,32 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
+import juicebox.data.Dataset;
+import juicebox.data.DatasetReader;
+import juicebox.data.DatasetReaderFactory;
+import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.track.LoadAction;
+import juicebox.track.LoadEncodeAction;
+import juicebox.track.TrackLabelPanel;
+import juicebox.track.TrackPanel;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.data.*;
-import juicebox.track.*;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.dnd.*;
+import java.awt.dnd.DropTarget;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -56,31 +63,28 @@ import java.util.prefs.Preferences;
  */
 public class MainWindow extends JFrame {
 
+    public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
+    public static final int BIN_PIXEL_WIDTH = 1;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
+    private static final int recentMapListMaxItems = 20;
+    private static final int recentStateMaxItems = 20;
+    private static final String recentMapEntityNode = "hicMapRecent";
+    private static final String recentStateEntityNode = "hicStateRecent";
+    public static Cursor fistCursor;
     private static RecentMenu recentMapMenu;
-    private String currentlyLoadedFile = "";
-
-    public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
-
-
+    private static MainWindow theInstance;
+    private static RecentMenu recentLocationMenu;
+    private static JMenuItem saveLocationList;
+    private static JMenuItem clearLocationList;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     // The "model" object containing the state for this instance.
     private final HiC hic;
-
+    private String currentlyLoadedFile = "";
     private String datasetTitle = "";
     private String controlTitle;
-
-    public static Cursor fistCursor;
-
-    public static final int BIN_PIXEL_WIDTH = 1;
-
-    private static MainWindow theInstance;
-
     private double colorRangeScaleFactor = 1;
-
     private LoadDialog loadDialog = null;
-
     private JComboBox<Chromosome> chrBox1;
     private JComboBox<Chromosome> chrBox2;
     private JideButton refreshButton;
@@ -90,8 +94,6 @@ public class MainWindow extends JFrame {
     private JideButton minusButton;
     private RangeSlider colorRangeSlider;
     private ResolutionControl resolutionSlider;
-
-
     private TrackPanel trackPanelX;
     private TrackPanel trackPanelY;
     private TrackLabelPanel trackLabelPanel;
@@ -102,29 +104,30 @@ public class MainWindow extends JFrame {
     private JLabel mouseHoverTextPanel;
     private JTextField positionChrLeft;
     private JTextField positionChrTop;
-
     private JPanel hiCPanel;
     private JMenu annotationsMenu;
-
-
     private JMenu bookmarksMenu;
-    private static RecentMenu recentLocationMenu;
-    private static JMenuItem saveLocationList;
-    private static JMenuItem clearLocationList;
-
-
     private HiCZoom initialZoom;
     private String saveImagePath;
 
-    private static final int recentMapListMaxItems = 20;
-    private static final int recentStateMaxItems = 20;
-    private static final String recentMapEntityNode = "hicMapRecent";
-    private static final String recentStateEntityNode = "hicStateRecent";
+    private MainWindow() {
 
-    public void updateToolTipText(String s) {
-        mouseHoverTextPanel.setText(s);
+        hic = new HiC(this);
+
+        initComponents();
+        createCursors();
+        pack();
+
+        DropTarget target = new DropTarget(this, new FileDropTargetListener(this));
+        setDropTarget(target);
+
+        colorRangeSlider.setUpperValue(1200);
+
+        // Tooltip settings
+        ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
     }
-
 
     public static void main(String[] args) throws IOException, InvocationTargetException, InterruptedException {
         initApplication();
@@ -168,27 +171,12 @@ public class MainWindow extends JFrame {
         return theInstance;
     }
 
-    private MainWindow() {
-
-        hic = new HiC(this);
-
-        initComponents();
-        createCursors();
-        pack();
-
-        DropTarget target = new DropTarget(this, new FileDropTargetListener(this));
-        setDropTarget(target);
-
-        colorRangeSlider.setUpperValue(1200);
-
-        // Tooltip settings
-        ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
-
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
-    }
-
     private static MainWindow createMainWindow() {
         return new MainWindow();
+    }
+
+    public void updateToolTipText(String s) {
+        mouseHoverTextPanel.setText(s);
     }
 
     public boolean isResolutionLocked() {
@@ -1201,57 +1189,6 @@ public class MainWindow extends JFrame {
         thumbPanel.setBackground(Color.white);
         rightSidePanel.add(thumbPanel, BorderLayout.PAGE_START);
 
-        //========= Positioning panel ======
-
-        JPanel positionPanel = new JPanel();
-        positionPanel.setLayout(new GridLayout(0, 1));
-
-        JLabel positionLabel = new JLabel(" Jump To:");
-        positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-
-        positionChrTop = new JTextField();
-        positionChrTop.setEnabled(false);
-        positionChrTop.addActionListener(new ActionListener(){
-
-            public void actionPerformed(ActionEvent e){
-
-                parsePositionText();
-
-            }});
-
-        positionChrTop.setPreferredSize(new Dimension(180,25));
-        positionChrTop.setPreferredSize(new Dimension(180, 25));
-        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionChrLeft = new JTextField();
-        positionChrLeft.setEnabled(false);
-        positionChrLeft.addActionListener(new ActionListener(){
-
-            public void actionPerformed(ActionEvent e){
-
-                parsePositionText();
-
-            }});
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionLabel.setPreferredSize(new Dimension(200, 25));
-        positionChrTop.setPreferredSize(new Dimension(200, 30));
-        positionChrLeft.setPreferredSize(new Dimension(200, 30));
-
-        positionPanel.add(positionLabel);
-        positionPanel.add(positionChrTop);
-        positionPanel.add(positionChrLeft);
-
-        positionPanel.setBackground(Color.white);
-        positionPanel.setBorder(LineBorder.createBlackLineBorder());
-        int positionPanelY = thumbnailPanel.getBounds().y + thumbnailPanel.getBounds().height + 10;
-        Dimension positionPanelSize = new Dimension(180, 40);
-        positionPanel.setBounds(new Rectangle(new Point(0, positionPanelY), positionPanelSize));
-        positionPanel.setPreferredSize(positionPanelSize);
-        rightSidePanel.add(positionPanel, BorderLayout.CENTER);
-
         //========= mouse hover text ======
 
         mouseHoverTextPanel = new JLabel();
@@ -1259,9 +1196,9 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
         mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.LEFT);
         mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
-        int mouseTextY = positionPanel.getBounds().y + positionPanel.getBounds().height + 20;
+        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height + 20;
 
-        Dimension prefSize = new Dimension(180, 400);
+        Dimension prefSize = new Dimension(180, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
         mouseHoverTextPanel.setBounds(new Rectangle(new Point(20, mouseTextY), prefSize));
         rightSidePanel.add(mouseHoverTextPanel, BorderLayout.PAGE_END);
@@ -1680,10 +1617,7 @@ public class MainWindow extends JFrame {
         });
 
         bookmarksMenu = new JMenu("Bookmarks");
-        //Recent saved states
-        bookmarksMenu.addSeparator();
-
-        //---- Save Recent ----
+        //---- Save location ----
         saveLocationList = new JMenuItem();
         saveLocationList.setText("Save current location");
         saveLocationList.addActionListener(new ActionListener() {
@@ -1729,7 +1663,51 @@ public class MainWindow extends JFrame {
 
         clearLocationList.setEnabled(false);
         bookmarksMenu.add(clearLocationList);
+        bookmarksMenu.addSeparator();
 
+
+        //========= Positioning panel ======
+
+        JLabel positionLabel = new JLabel("Jump To:");
+        //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+
+        positionChrTop = new JTextField();
+        positionChrTop.setEnabled(false);
+        positionChrTop.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e){
+
+                parsePositionText();
+
+            }});
+
+        positionChrTop.setPreferredSize(new Dimension(180,25));
+        positionChrTop.setPreferredSize(new Dimension(180, 25));
+        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
+
+        positionChrLeft = new JTextField();
+        positionChrLeft.setEnabled(false);
+        positionChrLeft.addActionListener(new ActionListener(){
+
+            public void actionPerformed(ActionEvent e){
+
+                parsePositionText();
+
+            }});
+        positionChrLeft.setPreferredSize(new Dimension(180, 25));
+        positionChrLeft.setPreferredSize(new Dimension(180, 25));
+        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
+
+        positionLabel.setPreferredSize(new Dimension(200, 25));
+        positionChrTop.setPreferredSize(new Dimension(200, 30));
+        positionChrLeft.setPreferredSize(new Dimension(200, 30));
+
+        bookmarksMenu.add(positionLabel);
+        bookmarksMenu.add(positionChrTop);
+        bookmarksMenu.add(positionChrLeft);
+
+        bookmarksMenu.setBackground(Color.white);
+        bookmarksMenu.setBorder(LineBorder.createBlackLineBorder());
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
@@ -1772,22 +1750,4 @@ public class MainWindow extends JFrame {
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-

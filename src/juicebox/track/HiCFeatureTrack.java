@@ -1,14 +1,17 @@
 package juicebox.track;
 
-import org.apache.log4j.Logger;
-import org.broad.igv.feature.*;
+import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Exon;
+import org.broad.igv.feature.FeatureUtils;
+import org.broad.igv.feature.IGVFeature;
+import org.broad.igv.feature.Strand;
 import org.broad.igv.track.FeatureSource;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.BrowserLauncher;
 import org.broad.igv.util.ResourceLocator;
-import htsjdk.tribble.Feature;
 
 import java.awt.*;
 import java.io.IOException;

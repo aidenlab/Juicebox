@@ -18,27 +18,28 @@
 
 package juicebox.tools;
 
+import htsjdk.tribble.util.LittleEndianOutputStream;
 import jargs.gnu.CmdLineParser;
+import juicebox.HiC;
+import juicebox.data.*;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.LocusScore;
-import juicebox.HiC;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
-import juicebox.data.*;
-//import org.broad.igv.sam.Alignment;
-//import org.broad.igv.sam.ReadMate;
-//import org.broad.igv.sam.reader.AlignmentReader;
-//import org.broad.igv.sam.reader.AlignmentReaderFactory;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ParsingUtils;
-import htsjdk.tribble.util.LittleEndianOutputStream;
-//import htsjdk.samtools.util.CloseableIterator;
 
 import java.io.*;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
+
+//import org.broad.igv.sam.Alignment;
+//import org.broad.igv.sam.ReadMate;
+//import org.broad.igv.sam.reader.AlignmentReader;
+//import org.broad.igv.sam.reader.AlignmentReaderFactory;
+//import htsjdk.samtools.util.CloseableIterator;
 
 /**
  * @author Jim Robinson

@@ -2,14 +2,14 @@ package juicebox.tools;
 
 //import juicebox.MainWindow;
 
-import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
-import juicebox.windowui.NormalizationType;
-import juicebox.data.ContactRecord;
-import org.broad.igv.tdf.BufferedByteWriter;
-import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import juicebox.data.ContactRecord;
+import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.stat.StatUtils;
+import org.broad.igv.feature.Chromosome;
+import org.broad.igv.tdf.BufferedByteWriter;
+import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;

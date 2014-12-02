@@ -1,8 +1,8 @@
 package juicebox.track;
 
+import juicebox.HiC;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.feature.LocusScore;
-import juicebox.HiC;
 import org.broad.igv.track.WindowFunction;
 
 import java.util.List;

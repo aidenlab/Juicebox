@@ -1,15 +1,16 @@
 package juicebox.track;
 
 import juicebox.Context;
-//import juicebox.MainWindow;
-//import org.broad.igv.renderer.DataRange;
-//import org.broad.igv.track.RenderContext;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+//import juicebox.MainWindow;
+//import org.broad.igv.renderer.DataRange;
+//import org.broad.igv.track.RenderContext;
 
 /**
  * @author jrobinso

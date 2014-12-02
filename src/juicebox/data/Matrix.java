@@ -3,7 +3,10 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.windowui.HiCZoom;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * @author jrobinso

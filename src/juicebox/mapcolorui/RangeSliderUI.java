@@ -1,13 +1,11 @@
 package juicebox.mapcolorui;
 
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import javax.swing.JComponent;
-import javax.swing.JSlider;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 
 /**
  * UI delegate for the RangeSlider component.  RangeSliderUI paints two thumbs,

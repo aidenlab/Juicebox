@@ -1,13 +1,13 @@
 package juicebox.track;
 
-import org.apache.log4j.Logger;
 import juicebox.HiC;
 import juicebox.data.Dataset;
+import juicebox.encode.EncodeFileBrowser;
+import juicebox.encode.EncodeFileRecord;
+import org.apache.log4j.Logger;
 import org.broad.igv.track.AttributeManager;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
-import juicebox.encode.EncodeFileBrowser;
-import juicebox.encode.EncodeFileRecord;
 
 import javax.swing.*;
 import java.awt.*;

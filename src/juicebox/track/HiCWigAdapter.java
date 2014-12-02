@@ -1,10 +1,10 @@
 package juicebox.track;
 
+import juicebox.HiC;
 import org.broad.igv.data.BasicScore;
 import org.broad.igv.data.WiggleDataset;
 import org.broad.igv.data.WiggleParser;
 import org.broad.igv.feature.LocusScore;
-import juicebox.HiC;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.TrackProperties;
 import org.broad.igv.track.WindowFunction;

@@ -1,16 +1,18 @@
 package juicebox.tools;
 
+import juicebox.data.ContactRecord;
+import juicebox.data.MatrixZoomData;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
-import juicebox.windowui.NormalizationType;
-import juicebox.data.*;
 import org.broad.igv.util.collections.FloatArrayList;
 import org.broad.igv.util.collections.IntArrayList;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
 
 /**

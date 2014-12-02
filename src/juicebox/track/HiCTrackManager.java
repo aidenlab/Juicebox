@@ -30,7 +30,7 @@ import org.broad.igv.track.TrackLoader;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

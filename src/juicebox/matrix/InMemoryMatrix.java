@@ -2,6 +2,7 @@ package juicebox.matrix;
 
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.util.collections.DoubleArrayList;
+
 import java.util.Arrays;
 
 /**

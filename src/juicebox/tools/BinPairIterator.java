@@ -1,7 +1,11 @@
 package juicebox.tools;
 
 import htsjdk.tribble.util.LittleEndianInputStream;
-import java.io.*;
+
+import java.io.BufferedInputStream;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Map;
 //import java.util.zip.GZIPInputStream;
 

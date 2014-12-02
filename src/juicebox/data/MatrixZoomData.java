@@ -1,20 +1,23 @@
 package juicebox.data;
 
-import juicebox.HiCGlobals;
-import org.apache.commons.math.linear.*;
-import org.apache.log4j.Logger;
-import org.broad.igv.feature.Chromosome;
+import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
-import juicebox.matrix.*;
+import juicebox.HiCGlobals;
+import juicebox.matrix.BasicMatrix;
+import juicebox.matrix.InMemoryMatrix;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.*;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.LRUCache;
-import htsjdk.tribble.util.LittleEndianOutputStream;
-import java.io.*;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 

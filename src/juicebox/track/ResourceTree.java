@@ -11,9 +11,9 @@
 
 package juicebox.track;
 
-import org.apache.log4j.Logger;
 import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.LinkCheckBox;
@@ -23,39 +23,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.swing.JDialog;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-import javax.swing.JPopupMenu;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-import javax.swing.AbstractCellEditor;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreeCellEditor;
-
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Color;
-import java.awt.FileDialog;
-import java.awt.BorderLayout;
-import java.awt.Font;
-
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import javax.swing.*;
+import javax.swing.tree.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 import static org.broad.igv.util.ResourceLocator.AttributeType.*;
 

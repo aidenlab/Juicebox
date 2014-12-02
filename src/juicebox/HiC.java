@@ -1,5 +1,7 @@
 package juicebox;
 
+import juicebox.data.*;
+import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -9,8 +11,6 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
-import juicebox.data.*;
-import juicebox.track.*;
 
 import javax.swing.*;
 import java.awt.*;

@@ -3,7 +3,9 @@ package juicebox.tools;
 import org.broad.igv.Globals;
 import org.broad.igv.util.ParsingUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 import java.util.regex.Pattern;
 

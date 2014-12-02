@@ -1,9 +1,9 @@
 package juicebox.tools;
 
+import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.windowui.NormalizationType;
-import juicebox.data.ExpectedValueFunctionImpl;
 
 import java.util.*;
 

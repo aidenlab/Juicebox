@@ -1,6 +1,7 @@
 package juicebox.windowui;
 
 import juicebox.HiC;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;

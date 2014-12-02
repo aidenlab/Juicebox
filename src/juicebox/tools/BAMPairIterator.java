@@ -18,11 +18,12 @@
 
 package juicebox.tools;
 
+import htsjdk.samtools.util.CloseableIterator;
 import org.broad.igv.sam.Alignment;
 import org.broad.igv.sam.ReadMate;
 import org.broad.igv.sam.reader.AlignmentReader;
 import org.broad.igv.sam.reader.AlignmentReaderFactory;
-import htsjdk.samtools.util.CloseableIterator;
+
 import java.io.IOException;
 import java.util.Map;
 

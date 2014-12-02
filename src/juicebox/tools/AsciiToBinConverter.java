@@ -1,14 +1,9 @@
 package juicebox.tools;
 
-import org.broad.igv.feature.Chromosome;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import org.broad.igv.feature.Chromosome;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -1,13 +1,16 @@
 package juicebox.matrix;
 
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.samtools.seekablestream.SeekableStreamFactory;
+import htsjdk.tribble.util.LittleEndianInputStream;
 import org.apache.log4j.Logger;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.ParsingUtils;
-import htsjdk.tribble.util.LittleEndianInputStream;
-import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Matrix class backed by a file layed out in "block" format.

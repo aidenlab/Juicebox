@@ -4,24 +4,29 @@ package juicebox.data;
 //import juicebox.HiC;
 
 //import org.broad.igv.feature.Chromosome;
-import juicebox.matrix.*;
+
+import htsjdk.tribble.util.LittleEndianInputStream;
+import htsjdk.tribble.util.LittleEndianOutputStream;
+import juicebox.matrix.BasicMatrix;
+import juicebox.matrix.DiskResidentBlockMatrix;
+import juicebox.matrix.SparseSymmetricMatrix;
+import org.broad.igv.util.ParsingUtils;
+
+import java.io.*;
+import java.util.Scanner;
+import java.util.StringTokenizer;
+
 //import juicebox.tools.HiCTools;
 //import juicebox.tools.NormalizationCalculations;
-import org.broad.igv.util.ParsingUtils;
 //import org.broad.igv.util.collections.DoubleArrayList;
 //import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 //import org.broad.igv.util.collections.FloatArrayList;
 //import org.broad.igv.util.collections.IntArrayList;
-import htsjdk.tribble.util.LittleEndianInputStream;
-import htsjdk.tribble.util.LittleEndianOutputStream;
 //import org.jfree.chart.ChartFactory;
 //import org.jfree.chart.JFreeChart;
-
 //import javax.swing.*;
 //import java.awt.*;
 //import java.awt.image.*;
-import java.io.*;
-import java.util.*;
 
 /**
  * @author jrobinso

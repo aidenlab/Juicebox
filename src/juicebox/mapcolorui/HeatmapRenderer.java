@@ -2,21 +2,19 @@ package juicebox.mapcolorui;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.Block;
+import juicebox.data.ContactRecord;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.MatrixZoomData;
+import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
-import juicebox.data.MatrixZoomData;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.Block;
-import juicebox.data.ContactRecord;
-import juicebox.matrix.BasicMatrix;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Color;
+import java.awt.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;

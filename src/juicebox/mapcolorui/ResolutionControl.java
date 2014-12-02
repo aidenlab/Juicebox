@@ -3,7 +3,6 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
 
@@ -16,7 +15,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class ResolutionControl extends JPanel {
     static final long serialVersionUID = 42L;

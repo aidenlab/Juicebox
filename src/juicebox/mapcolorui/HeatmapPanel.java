@@ -3,30 +3,32 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.MatrixZoomData;
+import juicebox.track.Feature2D;
+import juicebox.track.HiCFragmentAxis;
+import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import juicebox.track.Feature2D;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.MatrixZoomData;
-import juicebox.track.HiCFragmentAxis;
-import juicebox.track.HiCGridAxis;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.awt.datatransfer.*;
+
 import static java.awt.Toolkit.getDefaultToolkit;
 
 

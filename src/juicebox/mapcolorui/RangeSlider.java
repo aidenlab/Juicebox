@@ -1,6 +1,6 @@
 package juicebox.mapcolorui;
 
-import javax.swing.JSlider;
+import javax.swing.*;
 import java.io.Serializable;
 
 /**

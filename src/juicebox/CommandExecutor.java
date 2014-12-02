@@ -17,9 +17,12 @@
 package juicebox;
 
 import org.apache.log4j.Logger;
-import org.broad.igv.util.*;
+import org.broad.igv.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 //import java.util.List;
-import java.util.*;
 
 
 public class CommandExecutor {

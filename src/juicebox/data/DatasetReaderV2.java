@@ -1,25 +1,26 @@
 package juicebox.data;
 
 
-import org.apache.log4j.Logger;
-//import org.broad.igv.exceptions.HttpResponseException;
-import org.broad.igv.feature.Chromosome;
-import juicebox.HiC;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
-import juicebox.tools.Preprocessor;
-import org.broad.igv.util.CompressionUtils;
-//import org.broad.igv.util.FileUtils;
-import org.broad.igv.util.ParsingUtils;
-import org.broad.igv.util.stream.IGVSeekableStreamFactory;
-import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.tribble.util.LittleEndianInputStream;
+import juicebox.HiC;
+import juicebox.tools.Preprocessor;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.CompressionUtils;
+import org.broad.igv.util.ParsingUtils;
+import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+
+//import org.broad.igv.exceptions.HttpResponseException;
+//import org.broad.igv.util.FileUtils;
 
 /**
  * @author jrobinso

@@ -1,11 +1,11 @@
 package juicebox.track;
 
-import org.apache.commons.math.stat.StatUtils;
-import org.broad.igv.feature.Chromosome;
 import juicebox.HiC;
+import juicebox.data.NormalizationVector;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import juicebox.data.NormalizationVector;
+import org.apache.commons.math.stat.StatUtils;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
 

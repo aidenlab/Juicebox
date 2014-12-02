@@ -1,17 +1,18 @@
 package juicebox.track;
 
 //import juicebox.Context;
-import juicebox.HiC;
 
-//import java.util.HashMap;
-//import java.util.Map;
-//import org.broad.igv.renderer.GraphicUtils;
+import juicebox.HiC;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
 import java.awt.*;
-//import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+
+//import java.util.HashMap;
+//import java.util.Map;
+//import org.broad.igv.renderer.GraphicUtils;
+//import java.awt.geom.Rectangle2D;
 
 /**
  * @author jrobinso

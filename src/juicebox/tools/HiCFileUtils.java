@@ -1,14 +1,10 @@
 package juicebox.tools;
 
-import org.broad.igv.feature.Chromosome;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReaderV2;
-import juicebox.windowui.NormalizationType;
 import juicebox.HiC;
+import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
-import juicebox.data.NormalizationVector;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.util.Map;

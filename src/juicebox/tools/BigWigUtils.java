@@ -1,6 +1,8 @@
 package juicebox.tools;
 
-import org.broad.igv.bbfile.*;
+import org.broad.igv.bbfile.BBFileReader;
+import org.broad.igv.bbfile.BigWigIterator;
+import org.broad.igv.bbfile.WigItem;
 
 import java.io.IOException;
 
