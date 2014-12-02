@@ -26,7 +26,7 @@ public class AsciiToBinConverter {
     public static void convert(String inputPath, String outputFile, List<Chromosome> chromosomes) throws IOException {
 
         Map<String, Integer> chromosomeOrdinals = new HashMap<String, Integer>();
-        for(Chromosome c : chromosomes) {
+        for (Chromosome c : chromosomes) {
             chromosomeOrdinals.put(c.getName(), c.getIndex());
         }
 
@@ -53,27 +53,26 @@ public class AsciiToBinConverter {
             bos.flush();
         } finally {
             if (iter != null) iter.close();
-            if(bos != null) bos.close();
+            if (bos != null) bos.close();
 
         }
 
 
     }
-    
+
     public static void convertBack(String inputPath, String outputFile) throws IOException {
         PrintWriter pw = null;
         try {
             File f = new File(outputFile);
-            FileWriter fw = new FileWriter (f);
-            pw = new PrintWriter (fw);
+            FileWriter fw = new FileWriter(f);
+            pw = new PrintWriter(fw);
             Map<String, Integer> chromosomeIndexMap = null;  // TODO
             BinPairIterator iter = new BinPairIterator(inputPath, chromosomeIndexMap);
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();
                 pw.println(pair);
             }
-        }
-        finally {
+        } finally {
             if (pw != null) {
                 pw.close();
             }

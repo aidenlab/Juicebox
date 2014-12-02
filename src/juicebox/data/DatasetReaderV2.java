@@ -29,23 +29,17 @@ import java.util.*;
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
     private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
-
-    private SeekableStream stream;
-    private Map<String, Preprocessor.IndexEntry> masterIndex;
-    private Map<String, Preprocessor.IndexEntry> normVectorIndex;
-
-    private Dataset dataset = null;
-    private int version = -1;
-
-
     /**
      * Cache of chromosome name -> array of restriction sites
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
-
-    private Map<String, FragIndexEntry> fragmentSitesIndex;
     private final CompressionUtils compressionUtils;
-
+    private SeekableStream stream;
+    private Map<String, Preprocessor.IndexEntry> masterIndex;
+    private Map<String, Preprocessor.IndexEntry> normVectorIndex;
+    private Dataset dataset = null;
+    private int version = -1;
+    private Map<String, FragIndexEntry> fragmentSitesIndex;
     private Map<String, Map<Integer, Preprocessor.IndexEntry>> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
@@ -62,6 +56,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
         compressionUtils = new CompressionUtils();
         blockIndexMap = new HashMap<String, Map<Integer, Preprocessor.IndexEntry>>();
+    }
+
+    public static String getMagicString(String path) throws IOException {
+
+        SeekableStream stream = null;
+        LittleEndianInputStream dis = null;
+
+        try {
+            stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
+            dis = new LittleEndianInputStream(new BufferedInputStream(stream));
+        } catch (MalformedURLException e) {
+            dis = new LittleEndianInputStream(new FileInputStream(path));
+        } finally {
+            if (stream != null) stream.close();
+
+        }
+        return dis.readString();
+
     }
 
     public MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
@@ -101,24 +113,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         zd.setAverageCount(avgCount);
 
         return zd;
-    }
-
-    public static String getMagicString(String path) throws IOException {
-
-        SeekableStream stream = null;
-        LittleEndianInputStream dis = null;
-
-        try {
-            stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
-            dis = new LittleEndianInputStream(new BufferedInputStream(stream));
-        } catch (MalformedURLException e) {
-            dis = new LittleEndianInputStream(new FileInputStream(path));
-        } finally {
-            if (stream != null) stream.close();
-
-        }
-        return dis.readString();
-
     }
 
     @Override
@@ -245,7 +239,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
     public String readStats() throws IOException {
-        String statsFileName = path.substring(0, path.lastIndexOf('.')) +"_stats.html";
+        String statsFileName = path.substring(0, path.lastIndexOf('.')) + "_stats.html";
         String stats = null;
         BufferedReader reader = null;
         try {
@@ -524,8 +518,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (entry != null) {
             return entry.nSites;
-        }
-        else return -1;
+        } else return -1;
     }
 
     @Override
@@ -626,10 +619,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
 
-        if(no == null){
+        if (no == null) {
             throw new IOException("Normalization type is null");
-        }
-        else if (no == NormalizationType.NONE) {
+        } else if (no == NormalizationType.NONE) {
             return readBlock(blockNumber, zd);
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);

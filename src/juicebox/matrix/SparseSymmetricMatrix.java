@@ -9,13 +9,13 @@ import java.util.Arrays;
 
 public class SparseSymmetricMatrix implements BasicMatrix {
 
+    private final int totSize;
     private IntArrayList rows1 = null;
     private IntArrayList cols1 = null;
     private FloatArrayList values1 = null;
     private IntArrayList rows2 = null;
     private IntArrayList cols2 = null;
     private FloatArrayList values2 = null;
-    private final int totSize;
 
 
     public SparseSymmetricMatrix(int totSize) {
@@ -33,8 +33,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
                     rows1.add(row);
                     cols1.add(col);
                     values1.add(v);
-                }
-                catch (NegativeArraySizeException error) {
+                } catch (NegativeArraySizeException error) {
                     rows2 = new IntArrayList();
                     cols2 = new IntArrayList();
                     values2 = new FloatArrayList();
@@ -42,8 +41,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
                     cols2.add(col);
                     values2.add(v);
                 }
-            }
-            else {
+            } else {
                 rows2.add(row);
                 cols2.add(col);
                 values2.add(v);
@@ -56,19 +54,18 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         float[] result = new float[totSize];
 
         int size = rows1.size();
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             if (rows1.get(i) == rowNum) result[cols1.get(i)] = values1.get(i);
         }
         if (rows2 != null) {
             size = rows2.size();
-            for (int i=0; i<size; i++) {
+            for (int i = 0; i < size; i++) {
                 if (rows2.get(i) == rowNum) result[cols2.get(i)] = values2.get(i);
             }
         }
         return result;
 
     }
-
 
 
     public double[] multiply(double[] vector) {
@@ -116,9 +113,9 @@ public class SparseSymmetricMatrix implements BasicMatrix {
     }
 
     public void print(PrintWriter pw) {
-        for (int i=0; i<totSize; i++) {
+        for (int i = 0; i < totSize; i++) {
             float[] row = getRow(i);
-            for (int j=0; j<totSize; j++) {
+            for (int j = 0; j < totSize; j++) {
                 pw.print(row[j] + " ");
             }
             pw.println();

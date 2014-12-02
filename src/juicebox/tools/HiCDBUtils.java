@@ -135,8 +135,8 @@ public class HiCDBUtils {
 
 
         } finally {
-            if(ps != null) ps.close();
-            if(dbConnection != null) dbConnection.close();
+            if (ps != null) ps.close();
+            if (dbConnection != null) dbConnection.close();
             if (annotationReader != null) annotationReader.close();
         }
     }
@@ -269,15 +269,15 @@ public class HiCDBUtils {
             dbConnection.commit();
 
         } finally {
-            if(annotRS != null) annotRS.close();
-            if(lastIdRS != null) lastIdRS.close();
+            if (annotRS != null) annotRS.close();
+            if (lastIdRS != null) lastIdRS.close();
             if (fragRS != null) fragRS.close();
 
-            if(lastIdPrepStat != null) lastIdPrepStat.close();
-            if(annotPrepStat != null) annotPrepStat.close();
-            if(updatePrepStat != null) updatePrepStat.close();
-            if(fragPrepStat != null) fragPrepStat.close();
-            if(dbConnection != null) dbConnection.close();
+            if (lastIdPrepStat != null) lastIdPrepStat.close();
+            if (annotPrepStat != null) annotPrepStat.close();
+            if (updatePrepStat != null) updatePrepStat.close();
+            if (fragPrepStat != null) fragPrepStat.close();
+            if (dbConnection != null) dbConnection.close();
         }
     }
 

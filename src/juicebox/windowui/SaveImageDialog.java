@@ -13,10 +13,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SaveImageDialog extends JFileChooser {
-    JTextField width;
-    JTextField height;
-
     static final long serialVersionUID = 42L;
+    private JTextField width;
+    private JTextField height;
 
     public SaveImageDialog(String saveImagePath, HiC hic, JPanel hiCPanel) {
         super();
@@ -24,7 +23,7 @@ public class SaveImageDialog extends JFileChooser {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            setSelectedFile(new File(timeStamp+".HiCImage.png"));
+            setSelectedFile(new File(timeStamp + ".HiCImage.png"));
         }
         int actionDialog = showSaveDialog(MainWindow.getInstance());
         if (actionDialog == JFileChooser.APPROVE_OPTION) {

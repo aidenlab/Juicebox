@@ -25,22 +25,10 @@ import java.util.concurrent.Executors;
  */
 public class IGVUtils {
 
-    private static final Logger log = Logger.getLogger(IGVUtils.class) ;
+    private static final Logger log = Logger.getLogger(IGVUtils.class);
     private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
 
     private static SocketHelper helper = null;
-
-    static class SocketHelper {
-        Socket socket = null;
-        PrintWriter out = null;
-        BufferedReader in = null;
-
-        SocketHelper(BufferedReader in, PrintWriter out, Socket socket) {
-            this.in = in;
-            this.out = out;
-            this.socket = socket;
-        }
-    }
 
     private static void createSocketHelper() {
         if (helper == null) {
@@ -59,7 +47,6 @@ public class IGVUtils {
 
         }
     }
-
 
     /**
      * Send instructions to IGV to open or adjust views on the 2 loci.
@@ -101,6 +88,18 @@ public class IGVUtils {
 
         threadExecutor.submit(runnable);
 
+    }
+
+    static class SocketHelper {
+        Socket socket = null;
+        PrintWriter out = null;
+        BufferedReader in = null;
+
+        SocketHelper(BufferedReader in, PrintWriter out, Socket socket) {
+            this.in = in;
+            this.out = out;
+            this.socket = socket;
+        }
     }
 
 }

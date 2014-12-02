@@ -30,13 +30,19 @@ public class CommandListener implements Runnable {
     private static final Logger log = Logger.getLogger(CommandListener.class);
 
     private static CommandListener listener;
-
+    private final Thread listenerThread;
+    private final HiC hic;
     private int port = -1;
     private ServerSocket serverSocket = null;
     private Socket clientSocket = null;
-    private final Thread listenerThread;
     private boolean halt = false;
-    private final HiC hic;
+
+    private CommandListener(int port, HiC hic) throws IOException {
+        this.port = port;
+        this.hic = hic;
+        listenerThread = new Thread(this);
+        serverSocket = new ServerSocket(port);
+    }
 
     public static synchronized void start(HiC hic) {
 
@@ -55,7 +61,6 @@ public class CommandListener implements Runnable {
         CommandBroadcaster.selfPort = port;
     }
 
-
     public static synchronized void halt() {
         if (listener != null) {
             listener.halt = true;
@@ -63,13 +68,6 @@ public class CommandListener implements Runnable {
             listener.closeSockets();
             listener = null;
         }
-    }
-
-    private CommandListener(int port, HiC hic) throws IOException {
-        this.port = port;
-        this.hic = hic;
-        listenerThread = new Thread(this);
-        serverSocket = new ServerSocket(port);
     }
 
     /**
@@ -113,7 +111,7 @@ public class CommandListener implements Runnable {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String cmd;
             while (!halt && (cmd = in.readLine()) != null) {
-                if(cmd.toLowerCase().equals("halt")) {
+                if (cmd.toLowerCase().equals("halt")) {
                     halt = true;
                     return;
                 }

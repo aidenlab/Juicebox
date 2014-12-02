@@ -23,8 +23,17 @@ import java.awt.event.FocusEvent;
 public class TrackConfigDialog extends JDialog {
 
     private static final long serialVersionUID = -1778029293180119209L;
-    private boolean canceled = false;
     private final HiCTrack track;
+    private boolean canceled = false;
+    private ColorChooserPanel posColorChooser;
+    private ColorChooserPanel altColorChooser;
+    private JCheckBox logScaleCB;
+    private JTextField minYField;
+    private JTextField maxYField;
+    private JRadioButton meanRB;
+    private JRadioButton maxRB;
+    private JTextField nameField;
+
 
     public TrackConfigDialog(Frame owner, HiCTrack track) {
         super(owner);
@@ -49,7 +58,7 @@ public class TrackConfigDialog extends JDialog {
             logScaleCB.setSelected(dataTrack.getDataRange().isLog());
             altColorChooser.setSelectedColor(dataTrack.getAltColor());
 
-            if(!dataTrack.getAvailableWindowFunctions().contains(WindowFunction.max)) {
+            if (!dataTrack.getAvailableWindowFunctions().contains(WindowFunction.max)) {
                 maxRB.setEnabled(false);
             }
 
@@ -356,7 +365,6 @@ public class TrackConfigDialog extends JDialog {
         // JFormDesigner - End of component initialization  //GEN-END:initComponents
     }
 
-
     private boolean validateNumeric(String text) {
         try {
             Double.parseDouble(text);
@@ -366,16 +374,6 @@ public class TrackConfigDialog extends JDialog {
             return false;
         }
     }
-
-
-    private ColorChooserPanel posColorChooser;
-    private ColorChooserPanel altColorChooser;
-    private JCheckBox logScaleCB;
-    private JTextField minYField;
-    private JTextField maxYField;
-    private JRadioButton meanRB;
-    private JRadioButton maxRB;
-    private JTextField nameField;
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
     // Generated using JFormDesigner non-commercial license

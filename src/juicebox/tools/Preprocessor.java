@@ -36,11 +36,11 @@ public class Preprocessor {
     private final Map<String, Integer> chromosomeIndexes;
 
     private final File outputFile;
-    private LittleEndianOutputStream los;
-
-    private long masterIndexPosition;
     private final Map<String, IndexEntry> matrixPositions;
-
+    private final String genomeId;
+    private final Deflater compressor;
+    private LittleEndianOutputStream los;
+    private long masterIndexPosition;
     private int countThreshold = 0;
     private int mapqThreshold = 0;
     private boolean diagonalsOnly = false;
@@ -49,16 +49,11 @@ public class Preprocessor {
     private String graphFileName = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
-    private final String genomeId;
-
     /**
      * The position of the field containing the masterIndex position
      */
     private long masterIndexPositionPosition;
-
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
-    private final Deflater compressor;
-
     private File tmpDir;
 
     public Preprocessor(File outputFile, String genomeId, List<Chromosome> chromosomes) {
@@ -154,7 +149,7 @@ public class Preprocessor {
             }
 
             expectedValueCalculations = new LinkedHashMap<String, ExpectedValueCalculation>();
-            for (int bBinSize: bpBinSizes) {
+            for (int bBinSize : bpBinSizes) {
                 ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, bBinSize, null, NormalizationType.NONE);
                 String key = "BP_" + bBinSize;
                 expectedValueCalculations.put(key, calc);
@@ -171,7 +166,7 @@ public class Preprocessor {
                 }
 
 
-                for (int fBinSize: fragBinSizes) {
+                for (int fBinSize : fragBinSizes) {
                     ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, fBinSize, fragmentCountMap, NormalizationType.NONE);
                     String key = "FRAG_" + fBinSize;
                     expectedValueCalculations.put(key, calc);
@@ -452,7 +447,7 @@ public class Preprocessor {
             if (raf != null) raf.close();
         }
     }
-    
+
 
     public void writeFooter() throws IOException {
 
@@ -570,7 +565,7 @@ public class Preprocessor {
      * @param sampledData Array to hold a sample of the data (to compute statistics)
      * @throws IOException
      */
-    private void  writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData) throws IOException {
+    private void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData) throws IOException {
 
         final Map<Point, ContactCount> records = block.getContractRecordMap();//   getContactRecords();
 
@@ -747,10 +742,47 @@ public class Preprocessor {
         statsFileName = statsOption;
     }
 
+    private synchronized byte[] compress(byte[] data) {
+
+        // Give the compressor the data to compress
+        compressor.reset();
+        compressor.setInput(data);
+        compressor.finish();
+
+        // Create an expandable byte array to hold the compressed data.
+        // You cannot use an array that's the same size as the orginal because
+        // there is no guarantee that the compressed data will be smaller than
+        // the uncompressed data.
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
+
+        // Compress the data
+        byte[] buf = new byte[1024];
+        while (!compressor.finished()) {
+            int count = compressor.deflate(buf);
+            bos.write(buf, 0, count);
+        }
+        try {
+            bos.close();
+        } catch (IOException e) {
+            System.err.println("Error clossing ByteArrayOutputStream");
+            e.printStackTrace();
+        }
+
+        return bos.toByteArray();
+    }
+
+    static interface BlockQueue {
+
+        void advance() throws IOException;
+
+        BlockPP getBlock();
+
+    }
+
     public static class IndexEntry {
-        int id;
         public final long position;
         public final int size;
+        int id;
 
         IndexEntry(int id, long position, int size) {
             this.id = id;
@@ -761,6 +793,200 @@ public class Preprocessor {
         public IndexEntry(long position, int size) {
             this.position = position;
             this.size = size;
+        }
+    }
+
+    static class BlockQueueFB implements BlockQueue {
+
+        final File file;
+        BlockPP block;
+        long filePosition;
+
+        BlockQueueFB(File file) {
+            this.file = file;
+            try {
+                advance();
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+
+        public void advance() throws IOException {
+
+            if (filePosition >= file.length()) {
+                block = null;
+                return;
+            }
+
+            FileInputStream fis = null;
+
+            try {
+                fis = new FileInputStream(file);
+                fis.getChannel().position(filePosition);
+
+
+                LittleEndianInputStream lis = new LittleEndianInputStream(fis);
+                int blockNumber = lis.readInt();
+                int nRecords = lis.readInt();
+
+                byte[] bytes = new byte[nRecords * 12];
+                readFully(bytes, fis);
+
+                ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+                lis = new LittleEndianInputStream(bis);
+
+
+                Map<Point, ContactCount> contactRecordMap = new HashMap<Point, ContactCount>(nRecords);
+                for (int i = 0; i < nRecords; i++) {
+                    int x = lis.readInt();
+                    int y = lis.readInt();
+                    float v = lis.readFloat();
+                    ContactCount rec = new ContactCount(v);
+                    contactRecordMap.put(new Point(x, y), rec);
+                }
+                block = new BlockPP(blockNumber, contactRecordMap);
+
+                // Update file position based on # of bytes read, for next block
+                filePosition = fis.getChannel().position();
+
+            } finally {
+                if (fis != null) fis.close();
+            }
+        }
+
+        public BlockPP getBlock() {
+            return block;
+        }
+
+        /**
+         * Read enough bytes to fill the input buffer
+         */
+        public void readFully(byte b[], InputStream is) throws IOException {
+            int len = b.length;
+            if (len < 0)
+                throw new IndexOutOfBoundsException();
+            int n = 0;
+            while (n < len) {
+                int count = is.read(b, n, len - n);
+                if (count < 0)
+                    throw new EOFException();
+                n += count;
+            }
+        }
+    }
+
+
+// class to support block merging
+
+    static class BlockQueueMem implements BlockQueue {
+
+        final List<BlockPP> blocks;
+        int idx = 0;
+
+        BlockQueueMem(Collection<BlockPP> blockCollection) {
+
+            this.blocks = new ArrayList<BlockPP>(blockCollection);
+            Collections.sort(blocks, new Comparator<BlockPP>() {
+                @Override
+                public int compare(BlockPP o1, BlockPP o2) {
+                    return o1.getNumber() - o2.getNumber();
+                }
+            });
+        }
+
+        public void advance() {
+            idx++;
+        }
+
+        public BlockPP getBlock() {
+            if (idx >= blocks.size()) {
+                return null;
+            } else {
+                return blocks.get(idx);
+            }
+        }
+    }
+
+    /**
+     * Representation of a sparse matrix block used for preprocessing.
+     */
+    static class BlockPP {
+
+        private final int number;
+
+        // Key to the map is a Point representing the x,y coordinate for the cell.
+        private final Map<Point, ContactCount> contactRecordMap;
+
+
+        BlockPP(int number) {
+            this.number = number;
+            this.contactRecordMap = new HashMap<Point, ContactCount>();
+        }
+
+        public BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
+            this.number = number;
+            this.contactRecordMap = contactRecordMap;
+        }
+
+
+        public int getNumber() {
+            return number;
+        }
+
+        public void incrementCount(int col, int row, float score) {
+            Point p = new Point(col, row);
+            ContactCount rec = contactRecordMap.get(p);
+            if (rec == null) {
+                rec = new ContactCount(1);
+                contactRecordMap.put(p, rec);
+
+            } else {
+                rec.incrementCount(score);
+            }
+        }
+
+        /*
+         useless at present
+        public void parsingComplete() {
+
+        }
+        */
+
+        public Map<Point, ContactCount> getContractRecordMap() {
+            return contactRecordMap;
+        }
+
+        public void merge(BlockPP other) {
+
+            for (Map.Entry<Point, ContactCount> entry : other.getContractRecordMap().entrySet()) {
+
+                Point point = entry.getKey();
+                ContactCount otherValue = entry.getValue();
+
+                ContactCount value = contactRecordMap.get(point);
+                if (value == null) {
+                    contactRecordMap.put(point, otherValue);
+                } else {
+                    value.incrementCount(otherValue.getCounts());
+                }
+
+            }
+        }
+    }
+
+    public static class ContactCount {
+        float value;
+
+        ContactCount(float value) {
+            this.value = value;
+        }
+
+        void incrementCount(float increment) {
+            value += increment;
+        }
+
+        public float getCounts() {
+            return value;
         }
     }
 
@@ -879,35 +1105,27 @@ public class Preprocessor {
 
     }
 
-
     /**
      * @author jrobinso
      * @since Aug 10, 2010
      */
     class MatrixZoomDataPP {
 
+        final boolean isFrag;
+        final Set<Integer> blockNumbers;  // The only reason for this is to get a count
+        final List<File> tmpFiles;
         private final Chromosome chr1;  // Redundant, but convenient    BinDatasetReader
         private final Chromosome chr2;  // Redundant, but convenient
-
-        private double sum = 0;
-        private double cellCount = 0;
-        private double percent5;
-        private double percent95;
-
         private final int zoom;
         private final int binSize;              // bin size in bp
         private final int blockBinCount;        // block size in bins
         private final int blockColumnCount;     // number of block columns
-
-        final boolean isFrag;
-
         private final LinkedHashMap<Integer, BlockPP> blocks;
-
-
-        final Set<Integer> blockNumbers;  // The only reason for this is to get a count
-
-        final List<File> tmpFiles;
         public long blockIndexPosition;
+        private double sum = 0;
+        private double cellCount = 0;
+        private double percent5;
+        private double percent95;
 
         /**
          * Representation of MatrixZoomData used for preprocessing
@@ -1101,7 +1319,7 @@ public class Preprocessor {
         // Merge and write out blocks one at a time.
         private List<IndexEntry> mergeAndWriteBlocks() throws IOException {
             if (chr1.getIndex() == 10 && chr2.getIndex() == 24) {
-                int tmp=0;
+                int tmp = 0;
             }
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
@@ -1221,239 +1439,6 @@ public class Preprocessor {
                 los.setWrittenCount(losPos);
 
             }
-        }
-    }
-
-    private synchronized byte[] compress(byte[] data) {
-
-        // Give the compressor the data to compress
-        compressor.reset();
-        compressor.setInput(data);
-        compressor.finish();
-
-        // Create an expandable byte array to hold the compressed data.
-        // You cannot use an array that's the same size as the orginal because
-        // there is no guarantee that the compressed data will be smaller than
-        // the uncompressed data.
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
-
-        // Compress the data
-        byte[] buf = new byte[1024];
-        while (!compressor.finished()) {
-            int count = compressor.deflate(buf);
-            bos.write(buf, 0, count);
-        }
-        try {
-            bos.close();
-        } catch (IOException e) {
-            System.err.println("Error clossing ByteArrayOutputStream");
-            e.printStackTrace();
-        }
-
-        return bos.toByteArray();
-    }
-
-
-// class to support block merging
-
-    static interface BlockQueue {
-
-        void advance() throws IOException;
-
-        BlockPP getBlock();
-
-    }
-
-    static class BlockQueueFB implements BlockQueue {
-
-        final File file;
-        BlockPP block;
-        long filePosition;
-
-        BlockQueueFB(File file) {
-            this.file = file;
-            try {
-                advance();
-            } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
-
-        public void advance() throws IOException {
-
-            if (filePosition >= file.length()) {
-                block = null;
-                return;
-            }
-
-            FileInputStream fis = null;
-
-            try {
-                fis = new FileInputStream(file);
-                fis.getChannel().position(filePosition);
-
-
-                LittleEndianInputStream lis = new LittleEndianInputStream(fis);
-                int blockNumber = lis.readInt();
-                int nRecords = lis.readInt();
-
-                byte[] bytes = new byte[nRecords * 12];
-                readFully(bytes, fis);
-
-                ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-                lis = new LittleEndianInputStream(bis);
-
-
-                Map<Point, ContactCount> contactRecordMap = new HashMap<Point, ContactCount>(nRecords);
-                for (int i = 0; i < nRecords; i++) {
-                    int x = lis.readInt();
-                    int y = lis.readInt();
-                    float v = lis.readFloat();
-                    ContactCount rec = new ContactCount(v);
-                    contactRecordMap.put(new Point(x, y), rec);
-                }
-                block = new BlockPP(blockNumber, contactRecordMap);
-
-                // Update file position based on # of bytes read, for next block
-                filePosition = fis.getChannel().position();
-
-            } finally {
-                if (fis != null) fis.close();
-            }
-        }
-
-        public BlockPP getBlock() {
-            return block;
-        }
-
-        /**
-         * Read enough bytes to fill the input buffer
-         */
-        public void readFully(byte b[], InputStream is) throws IOException {
-            int len = b.length;
-            if (len < 0)
-                throw new IndexOutOfBoundsException();
-            int n = 0;
-            while (n < len) {
-                int count = is.read(b, n, len - n);
-                if (count < 0)
-                    throw new EOFException();
-                n += count;
-            }
-        }
-    }
-
-    static class BlockQueueMem implements BlockQueue {
-
-        final List<BlockPP> blocks;
-        int idx = 0;
-
-        BlockQueueMem(Collection<BlockPP> blockCollection) {
-
-            this.blocks = new ArrayList<BlockPP>(blockCollection);
-            Collections.sort(blocks, new Comparator<BlockPP>() {
-                @Override
-                public int compare(BlockPP o1, BlockPP o2) {
-                    return o1.getNumber() - o2.getNumber();
-                }
-            });
-        }
-
-        public void advance() {
-            idx++;
-        }
-
-        public BlockPP getBlock() {
-            if (idx >= blocks.size()) {
-                return null;
-            } else {
-                return blocks.get(idx);
-            }
-        }
-    }
-
-
-    /**
-     * Representation of a sparse matrix block used for preprocessing.
-     */
-    static class BlockPP {
-
-        private final int number;
-
-        // Key to the map is a Point representing the x,y coordinate for the cell.
-        private final Map<Point, ContactCount> contactRecordMap;
-
-
-        BlockPP(int number) {
-            this.number = number;
-            this.contactRecordMap = new HashMap<Point, ContactCount>();
-        }
-
-        public BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
-            this.number = number;
-            this.contactRecordMap = contactRecordMap;
-        }
-
-
-        public int getNumber() {
-            return number;
-        }
-
-        public void incrementCount(int col, int row, float score) {
-            Point p = new Point(col, row);
-            ContactCount rec = contactRecordMap.get(p);
-            if (rec == null) {
-                rec = new ContactCount(1);
-                contactRecordMap.put(p, rec);
-
-            } else {
-                rec.incrementCount(score);
-            }
-        }
-
-        /*
-         useless at present
-        public void parsingComplete() {
-
-        }
-        */
-
-        public Map<Point, ContactCount> getContractRecordMap() {
-            return contactRecordMap;
-        }
-
-        public void merge(BlockPP other) {
-
-            for (Map.Entry<Point, ContactCount> entry : other.getContractRecordMap().entrySet()) {
-
-                Point point = entry.getKey();
-                ContactCount otherValue = entry.getValue();
-
-                ContactCount value = contactRecordMap.get(point);
-                if (value == null) {
-                    contactRecordMap.put(point, otherValue);
-                } else {
-                    value.incrementCount(otherValue.getCounts());
-                }
-
-            }
-        }
-    }
-
-
-    public static class ContactCount {
-        float value;
-
-        ContactCount(float value) {
-            this.value = value;
-        }
-
-        void incrementCount(float increment) {
-            value += increment;
-        }
-
-        public float getCounts() {
-            return value;
         }
     }
 

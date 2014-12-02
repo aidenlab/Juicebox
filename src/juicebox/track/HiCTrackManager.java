@@ -66,13 +66,13 @@ public class HiCTrackManager {
                 mainWindow.updateTrackPanel();
             }
         };
-       // mainWindow.executeLongRunningTask(runnable);
-         runnable.run();
+        // mainWindow.executeLongRunningTask(runnable);
+        runnable.run();
     }
 
     public void loadCoverageTrack(NormalizationType no) {
 
-        if(coverageTracks.containsKey(no)) return; // Already loaded
+        if (coverageTracks.containsKey(no)) return; // Already loaded
 
         HiCDataSource source = new HiCCoverageDataSource(hic, no);
         ResourceLocator locator = new ResourceLocator(no.getLabel());
@@ -90,8 +90,8 @@ public class HiCTrackManager {
                 for (ResourceLocator locator : locators) {
                     try {
                         loadTrack(locator);
-                    }catch (Exception e){
-                        MessageUtils.showMessage("Could not load resource:<br>"+e.getMessage());
+                    } catch (Exception e) {
+                        MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
                         System.out.println("Removing " + locator.getName());
                         hic.removeTrack(locator);
 
@@ -144,14 +144,14 @@ public class HiCTrackManager {
                 HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
                 track.setName(locator.getTrackName());
                 loadedTracks.add(track);
-            }  catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Error loading track: " + locator.getPath(), e);
                 JOptionPane.showMessageDialog(mainWindow, "Error loading track. " + e.getMessage());
             }
         } else {
             FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
             if (codec != null) {
-                AbstractFeatureReader<?,?> bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
+                AbstractFeatureReader<?, ?> bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
 
                 try {
                     htsjdk.tribble.CloseableTribbleIterator<?> iter = bfs.iterator(); // CloseableTribbleIterator extends java.lang.Iterator
@@ -159,17 +159,16 @@ public class HiCTrackManager {
                     HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
                     track.setName(locator.getTrackName());
                     loadedTracks.add(track);
-                 } catch (Exception e) {
+                } catch (Exception e) {
                     log.error("Error loading track: " + path, e);
                     JOptionPane.showMessageDialog(mainWindow, "Error loading track. " + e.getMessage());
                 }
                 //Object header = bfs.getHeader();
                 //TrackProperties trackProperties = getTrackProperties(header);
-            }
-            else {
+            } else {
                 log.error("Error loading track: " + path);
                 File file = new File(path);
-                JOptionPane.showMessageDialog(mainWindow, "Error loading " + file.getName() +".\n Does not appear to be a track file.");
+                JOptionPane.showMessageDialog(mainWindow, "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
                 hic.removeTrack(new HiCFeatureTrack(hic, locator, null));
             }
         }
@@ -180,23 +179,22 @@ public class HiCTrackManager {
         loadedTracks.remove(track);
 
         NormalizationType key = null;
-        for(Map.Entry<NormalizationType, HiCTrack> entry : coverageTracks.entrySet()) {
-              if(entry.getValue() == track) {
-                  key = entry.getKey();
-              }
+        for (Map.Entry<NormalizationType, HiCTrack> entry : coverageTracks.entrySet()) {
+            if (entry.getValue() == track) {
+                key = entry.getKey();
+            }
         }
 
-        if(key != null) {
+        if (key != null) {
             coverageTracks.remove(key);
         }
         mainWindow.updateTrackPanel();
     }
 
 
-
     public void removeTrack(ResourceLocator locator) {
         HiCTrack track = null;
-        for (HiCTrack tmp: loadedTracks){
+        for (HiCTrack tmp : loadedTracks) {
             if (tmp.getLocator().equals(locator)) {
                 track = tmp;
                 break;
@@ -204,7 +202,6 @@ public class HiCTrackManager {
         }
         removeTrack(track);
     }
-
 
 
     public List<HiCTrack> getLoadedTracks() {

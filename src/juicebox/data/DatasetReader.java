@@ -1,9 +1,9 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import juicebox.matrix.BasicMatrix;
 
 import java.io.IOException;
 import java.util.List;

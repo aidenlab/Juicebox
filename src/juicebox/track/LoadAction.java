@@ -62,109 +62,6 @@ public class LoadAction extends AbstractAction {
         this.hic = hic;
     }
 
-    @Override
-    public void actionPerformed(ActionEvent evt) {
-        if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(owner, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        String genome = hic.getDataset().getGenomeId();
-        if (genome == null) {
-            genome = "hg19";
-        }
-
-        String xmlURL = "tracksMenu_" + genome + ".xml";
-
-        List<ResourceLocator> locators = loadNodes(xmlURL);
-        if (locators != null && !locators.isEmpty()) {
-            hic.loadHostedTracks(locators);
-        }
-
-    }
-
-    private List<ResourceLocator> loadNodes(String xmlFile) {
-
-        ResourceTree resourceTree = hic.getResourceTree();
-
-        try {
-            if (resourceTree == null) {
-                Document masterDocument = createMasterDocument(xmlFile);
-                resourceTree = new ResourceTree(hic, masterDocument);
-            }
-        } catch (Exception e) {
-            log.error("Could not load from server", e);
-            MessageUtils.showMessage("Could not load from server: " + e.getMessage());
-            return null;
-        }
-
-        resourceTree.showResourceTreeDialog(owner);
-
-        LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
-        LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
-        List<ResourceLocator> newLoadList = new ArrayList<ResourceLocator>();
-
-        boolean repaint = false;
-
-        if(selectedLocators != null) {
-            ((MainWindow)owner).showGlassPane();
-            for (ResourceLocator locator : selectedLocators) {
-                try {
-
-                    if (locator.getType() != null && locator.getType().equals("norm")) {
-                        NormalizationType option = null;
-                        for (NormalizationType no : NormalizationType.values()) {
-                            if (locator.getPath().equals(no.getLabel())) {
-                                option = no;
-                                break;
-                            }
-                        }
-                        hic.loadCoverageTrack(option);
-                    } else if (locator.getType() != null && locator.getType().equals("loop")) {
-                        try {
-                            hic.loadLoopList(locator.getPath());
-                            repaint = true;
-                        } catch (Exception e) {
-                            log.error("Could not load selected loop locator", e);
-                            MessageUtils.showMessage("Could not load loop selection: " + e.getMessage());
-                            deselectedLocators.add(locator);
-                        }
-
-                    } else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
-                        hic.loadEigenvectorTrack();
-
-                    } else newLoadList.add(locator);
-
-                } catch (Exception e) {
-                    log.error("Could not load selected locator", e);
-                    MessageUtils.showMessage("Could not load selection: " + e.getMessage());
-                    deselectedLocators.add(locator);
-                }
-            }
-        }
-
-        if(deselectedLocators != null) {
-            for (ResourceLocator locator : deselectedLocators) {
-                System.out.println("Removing " + locator.getName());
-                hic.removeTrack(locator);
-                resourceTree.remove(locator);
-
-                if (locator.getType() != null && locator.getType().equals("loop")) {
-                    try {
-                        hic.setLoopsInvisible(locator.getPath());
-                        repaint = true;
-                    } catch (Exception e) {
-                        log.error("Error while making loops invisible ", e);
-                        MessageUtils.showMessage("Error while removing loops: " + e.getMessage());
-                    }
-                }
-            }
-        }
-        ((MainWindow)owner).hideGlassPane();
-        if (repaint) owner.repaint();
-        return newLoadList;
-    }
-
-
     private static Document createMasterDocument(String xmlUrl) throws ParserConfigurationException {
 
         StringBuffer buffer = new StringBuffer();
@@ -265,6 +162,108 @@ public class LoadAction extends AbstractAction {
 
         return document;
 
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent evt) {
+        if (hic.getDataset() == null) {
+            JOptionPane.showMessageDialog(owner, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        String genome = hic.getDataset().getGenomeId();
+        if (genome == null) {
+            genome = "hg19";
+        }
+
+        String xmlURL = "tracksMenu_" + genome + ".xml";
+
+        List<ResourceLocator> locators = loadNodes(xmlURL);
+        if (locators != null && !locators.isEmpty()) {
+            hic.loadHostedTracks(locators);
+        }
+
+    }
+
+    private List<ResourceLocator> loadNodes(String xmlFile) {
+
+        ResourceTree resourceTree = hic.getResourceTree();
+
+        try {
+            if (resourceTree == null) {
+                Document masterDocument = createMasterDocument(xmlFile);
+                resourceTree = new ResourceTree(hic, masterDocument);
+            }
+        } catch (Exception e) {
+            log.error("Could not load from server", e);
+            MessageUtils.showMessage("Could not load from server: " + e.getMessage());
+            return null;
+        }
+
+        resourceTree.showResourceTreeDialog(owner);
+
+        LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
+        LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
+        List<ResourceLocator> newLoadList = new ArrayList<ResourceLocator>();
+
+        boolean repaint = false;
+
+        if (selectedLocators != null) {
+            ((MainWindow) owner).showGlassPane();
+            for (ResourceLocator locator : selectedLocators) {
+                try {
+
+                    if (locator.getType() != null && locator.getType().equals("norm")) {
+                        NormalizationType option = null;
+                        for (NormalizationType no : NormalizationType.values()) {
+                            if (locator.getPath().equals(no.getLabel())) {
+                                option = no;
+                                break;
+                            }
+                        }
+                        hic.loadCoverageTrack(option);
+                    } else if (locator.getType() != null && locator.getType().equals("loop")) {
+                        try {
+                            hic.loadLoopList(locator.getPath());
+                            repaint = true;
+                        } catch (Exception e) {
+                            log.error("Could not load selected loop locator", e);
+                            MessageUtils.showMessage("Could not load loop selection: " + e.getMessage());
+                            deselectedLocators.add(locator);
+                        }
+
+                    } else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
+                        hic.loadEigenvectorTrack();
+
+                    } else newLoadList.add(locator);
+
+                } catch (Exception e) {
+                    log.error("Could not load selected locator", e);
+                    MessageUtils.showMessage("Could not load selection: " + e.getMessage());
+                    deselectedLocators.add(locator);
+                }
+            }
+        }
+
+        if (deselectedLocators != null) {
+            for (ResourceLocator locator : deselectedLocators) {
+                System.out.println("Removing " + locator.getName());
+                hic.removeTrack(locator);
+                resourceTree.remove(locator);
+
+                if (locator.getType() != null && locator.getType().equals("loop")) {
+                    try {
+                        hic.setLoopsInvisible(locator.getPath());
+                        repaint = true;
+                    } catch (Exception e) {
+                        log.error("Error while making loops invisible ", e);
+                        MessageUtils.showMessage("Error while removing loops: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        ((MainWindow) owner).hideGlassPane();
+        if (repaint) owner.repaint();
+        return newLoadList;
     }
 
 }

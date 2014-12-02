@@ -184,8 +184,8 @@ public class Pearsons {
             for (int j = 0; j < dim; j++) {
                 if (i == j) continue;
 
-                double [] v1 = columns[i];
-                double [] v2 = columns[j];
+                double[] v1 = columns[i];
+                double[] v2 = columns[j];
                 if (v1 == null || v2 == null) {
                     pearsons.setEntry(i, j, Float.NaN);
                 } else {

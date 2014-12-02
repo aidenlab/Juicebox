@@ -42,11 +42,11 @@ public class ResourceTree {
 
     private static final Logger log = Logger.getLogger(ResourceTree.class);
     private final List<CheckableResource> leafResources = new ArrayList<CheckableResource>();
-    private JDialog dialog;
     private final JTree dialogTree;
+    private final Set<ResourceLocator> loadedLocators;
+    private JDialog dialog;
     private DefaultMutableTreeNode twoDFeatureRoot;
     private DefaultMutableTreeNode oneDFeatureRoot;
-    private final Set<ResourceLocator> loadedLocators;
     private LinkedHashSet<ResourceLocator> newLocators;
     private LinkedHashSet<ResourceLocator> deselectedLocators;
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
@@ -79,13 +79,13 @@ public class ResourceTree {
             public void mousePressed(MouseEvent e) {
                 int selRow = dialogTree.getRowForLocation(e.getX(), e.getY());
                 final TreePath selPath = dialogTree.getPathForLocation(e.getX(), e.getY());
-                if(selRow != -1 && selPath != null) {
+                if (selRow != -1 && selPath != null) {
                     if (SwingUtilities.isRightMouseButton(e)) {
 
                         // removing (DefaultMutableTreeNode) cast to selpath.getlast... (revert if error)
                         //noinspection SuspiciousMethodCalls
                         if (addedNodes != null &&
-                                addedNodes.contains(selPath.getLastPathComponent())){
+                                addedNodes.contains(selPath.getLastPathComponent())) {
                             JPopupMenu menu = new JPopupMenu("popup");
 
                             JMenuItem menuItem = new JMenuItem("Remove feature");
@@ -96,7 +96,7 @@ public class ResourceTree {
                                 }
                             });
                             menu.add(menuItem);
-                            menu.show(dialogTree,e.getX(),e.getY());
+                            menu.show(dialogTree, e.getX(), e.getY());
                         }
                     }
                 }
@@ -106,9 +106,21 @@ public class ResourceTree {
 
     }
 
+    private static String getAttribute(Element element, String key) {
+
+        String value = element.getAttribute(key);
+        if (value != null) {
+            if (value.trim().equals("")) {
+                value = null;
+            }
+        }
+        return value;
+    }
+
     public LinkedHashSet<ResourceLocator> getLocators() {
         return newLocators;
     }
+
     public LinkedHashSet<ResourceLocator> getDeselectedLocators() {
         return deselectedLocators;
     }
@@ -116,7 +128,7 @@ public class ResourceTree {
     /**
      * Shows a tree of selectable resources.
      *
-     * @param parent      Parent window
+     * @param parent Parent window
      * @return the resources selected by user.
      */
     public void showResourceTreeDialog(JFrame parent) {
@@ -195,7 +207,7 @@ public class ResourceTree {
                 for (ResourceLocator locator : newLocators) {
                     loadedLocators.add(locator);
                 }
-                for  (ResourceLocator locator : deselectedLocators) {
+                for (ResourceLocator locator : deselectedLocators) {
                     loadedLocators.remove(locator);
                 }
                 dialogTree.clearSelection();
@@ -222,7 +234,7 @@ public class ResourceTree {
                         addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
                     }
                     addedNodes.add(treeNode);
-                    ((CheckableResource)twoDFeatureRoot.getUserObject()).setSelected(true);
+                    ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
                     treeNode.setUserObject(resource);
 
                     expandTree();
@@ -254,7 +266,7 @@ public class ResourceTree {
                         addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
                     }
                     addedNodes.add(treeNode);
-                    ((CheckableResource)oneDFeatureRoot.getUserObject()).setSelected(true);
+                    ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
                     treeNode.setUserObject(resource);
 
                     expandTree();
@@ -282,13 +294,13 @@ public class ResourceTree {
     }
 
     private void removeFeature(DefaultMutableTreeNode node) {
-        ((CheckableResource)node.getUserObject()).setSelected(false);
+        ((CheckableResource) node.getUserObject()).setSelected(false);
         ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
         addedNodes.remove(node);
-        DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
         parent.remove(node);
-        deselectedLocators.add(((CheckableResource)node.getUserObject()).getResourceLocator());
-        loadedLocators.remove(((CheckableResource)node.getUserObject()).getResourceLocator());
+        deselectedLocators.add(((CheckableResource) node.getUserObject()).getResourceLocator());
+        loadedLocators.remove(((CheckableResource) node.getUserObject()).getResourceLocator());
         dialogTree.updateUI();
     }
 
@@ -487,7 +499,7 @@ public class ResourceTree {
      *
      * @param treeNode
      * @param xmlNode
-    */
+     */
     private void buildLocatorTree(DefaultMutableTreeNode treeNode, Element xmlNode) {
 
         String name = getAttribute(xmlNode, NAME.getText());
@@ -570,10 +582,10 @@ public class ResourceTree {
         //locator.
         loadedLocators.remove(locator);
 
-        Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
+        Enumeration<?> enumeration = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
-        while (enumeration.hasMoreElements()){
+        while (enumeration.hasMoreElements()) {
             try {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
                 CheckableResource resource = (CheckableResource) node.getUserObject();
@@ -581,8 +593,7 @@ public class ResourceTree {
                     resource.setSelected(false);
                     ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 System.out.println("There appears to be an invalid node in the resource tree");
             }
         }
@@ -590,12 +601,12 @@ public class ResourceTree {
     }
 
     public void addBack(ResourceLocator locator) {
-        Enumeration<?> enumeration = ((DefaultMutableTreeNode)dialogTree.getModel().getRoot()).preorderEnumeration();
+        Enumeration<?> enumeration = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
-        while (enumeration.hasMoreElements()){
-            DefaultMutableTreeNode node  = (DefaultMutableTreeNode)enumeration.nextElement();
-            CheckableResource resource = (CheckableResource)node.getUserObject();
+        while (enumeration.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
+            CheckableResource resource = (CheckableResource) node.getUserObject();
             if (locator.equals(resource.getResourceLocator())) {
                 resource.setSelected(true);
                 ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
@@ -616,15 +627,48 @@ public class ResourceTree {
         return resourceLocators;
     }
 
-    private static String getAttribute(Element element, String key) {
-
-        String value = element.getAttribute(key);
-        if (value != null) {
-            if (value.trim().equals("")) {
-                value = null;
+    /**
+     * Expands tree.
+     */
+    private void expandTree() {
+        TreeNode root = (TreeNode) dialogTree.getModel().getRoot();
+        TreePath rootPath = new TreePath(root);
+        TreeNode node = (TreeNode) rootPath.getLastPathComponent();
+        for (Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
+            TreePath childPath = rootPath.pathByAddingChild(e.nextElement());
+            if (!dialogTree.isExpanded(childPath)) {
+                dialogTree.expandPath(childPath);
             }
         }
-        return value;
+        if (!dialogTree.isExpanded(rootPath)) {
+            dialogTree.expandPath(rootPath);
+        }
+    }
+
+    /**
+     *
+     */
+    static interface SelectableResource extends DataResource {
+
+        public boolean isSelected();
+
+        public void setSelected(boolean newValue);
+    }
+
+    /**
+     *
+     */
+    static interface DataResource {
+
+        public ResourceLocator getResourceLocator();
+
+        public String getText();
+
+        public void setText(String newValue);
+
+        public boolean isEnabled();
+
+        public void setEnabled(boolean value);
     }
 
     /**
@@ -723,114 +767,12 @@ public class ResourceTree {
     static class ResourceEditor extends AbstractCellEditor
             implements TreeCellEditor {
 
+        private static final long serialVersionUID = 42L;
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
-        private static final long serialVersionUID = 42L;
 
         public ResourceEditor(JTree tree) {
             this.tree = tree;
-        }
-
-        public Object getCellEditorValue() {
-
-            DataResource resource = null;
-            TreePath treePath = tree.getEditingPath();
-            if (treePath != null) {
-
-                Object node = treePath.getLastPathComponent();
-
-                if ((node != null) && (node instanceof DefaultMutableTreeNode)) {
-
-                    LinkCheckBox checkbox = renderer.getRendereringComponent();
-
-                    DefaultMutableTreeNode treeNode =
-                            (DefaultMutableTreeNode) node;
-
-                    Object userObject = treeNode.getUserObject();
-
-                    resource = (CheckableResource) userObject;
-
-                    // Don't change resource if disabled
-                    if (!resource.isEnabled()) {
-                        return resource;
-                    }
-
-                    boolean isChecked = checkbox.isSelected();
-
-                    // Check/Uncheck the selected node. This code ONLY handles
-                    // the clicked node. Not it's ancestors or decendants.
-                    if (isChecked) {
-                        ((CheckableResource) resource).setSelected(true);
-                    } else {
-
-                        // See if we are allowed to unchecking this specific 
-                        // node - if not, it won't be done. This does not 
-                        // prevent it's children from being unchecked.
-                        uncheckCurrentNodeIfAllowed((CheckableResource) resource,
-                                treeNode);
-                    }
-
-
-                    /*
-                    * Now we have to check or uncheck the descendants and
-                    * ancestors depending on what we did above.
-                    */
-
-                    boolean checkRelatives = isChecked;
-
-                    // If we found a mix of select leave and selected but
-                    // but disabled leave we must be trying to toggle off
-                    // the children
-                    if (hasSelectedAndLockedDescendants(treeNode)) {
-                        checkRelatives = false;
-                    }
-                    // If we found only locked leave we must be trying to toggle 
-                    // on the unlocked children
-                    else if (hasLockedDescendants(treeNode)) {
-                        checkRelatives = true;
-                    }
-                    // Otherwise, just use the value of the checkbox
-
-
-                    if (!treeNode.isLeaf()) { //check up and down the tree
-
-                        // If not a leaf check/uncheck children as requested
-                        checkOrUncheckChildNodesRecursively(treeNode, checkRelatives);
-
-                        // If not a leaf check/uncheck ancestors
-                        checkOrUncheckParentNodesRecursively(treeNode,
-                                ((CheckableResource) resource).isSelected());
-                    } else { // it must be a leaf - so check up the tree
-                        checkOrUncheckParentNodesRecursively(treeNode, checkRelatives);
-                    }
-                }
-                tree.treeDidChange();
-            }
-            return resource;
-        }
-
-        /*
-        * Uncheck a node unless rule prevent this behavior.
-        */
-
-        private void uncheckCurrentNodeIfAllowed(CheckableResource resource,
-                                                 TreeNode treeNode) {
-
-            // If we are unchecking a parent make sure there are
-            // no checked children
-            if (!hasSelectedChildren(treeNode)) {
-                resource.setSelected(false);
-            } else {
-
-                // If node has selected children and has disabled descendants we
-                // must not unselect
-                if (hasLockedDescendants(treeNode)) {
-                    resource.setSelected(true);
-                } else {
-                    // No disabled descendants so we can uncheck at will
-                    resource.setSelected(false);
-                }
-            }
         }
 
         /**
@@ -875,6 +817,155 @@ public class ResourceTree {
 
             checkOrUncheckParentNodesRecursively(parentNode,
                     checkParentNode);
+        }
+
+        /*
+        * Uncheck a node unless rule prevent this behavior.
+        */
+
+        static public boolean hasSelectedDescendants(TreeNode treeNode) {
+
+            Enumeration<?> children = treeNode.children();
+            while (children.hasMoreElements()) {
+
+                TreeNode childNode = (TreeNode) children.nextElement();
+
+                Object childsUserObject =
+                        ((DefaultMutableTreeNode) childNode).getUserObject();
+                if (childsUserObject instanceof CheckableResource) {
+                    CheckableResource childResource =
+                            ((CheckableResource) childsUserObject);
+
+                    // If has selected say so
+                    if (childResource.isSelected()) {
+                        return true;
+                    }
+                }
+
+                // If has selected descendant say so
+                if (hasSelectedDescendants(childNode)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static public boolean hasSelectedChildren(TreeNode treeNode) {
+
+            Enumeration<?> children = treeNode.children();
+            while (children.hasMoreElements()) {
+
+                TreeNode childNode = (TreeNode) children.nextElement();
+
+                Object childsUserObject =
+                        ((DefaultMutableTreeNode) childNode).getUserObject();
+                if (childsUserObject instanceof CheckableResource) {
+                    CheckableResource childResource =
+                            ((CheckableResource) childsUserObject);
+                    if (childResource.isSelected()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public Object getCellEditorValue() {
+
+            DataResource resource = null;
+            TreePath treePath = tree.getEditingPath();
+            if (treePath != null) {
+
+                Object node = treePath.getLastPathComponent();
+
+                if ((node != null) && (node instanceof DefaultMutableTreeNode)) {
+
+                    LinkCheckBox checkbox = renderer.getRendereringComponent();
+
+                    DefaultMutableTreeNode treeNode =
+                            (DefaultMutableTreeNode) node;
+
+                    Object userObject = treeNode.getUserObject();
+
+                    resource = (CheckableResource) userObject;
+
+                    // Don't change resource if disabled
+                    if (!resource.isEnabled()) {
+                        return resource;
+                    }
+
+                    boolean isChecked = checkbox.isSelected();
+
+                    // Check/Uncheck the selected node. This code ONLY handles
+                    // the clicked node. Not it's ancestors or decendants.
+                    if (isChecked) {
+                        ((CheckableResource) resource).setSelected(true);
+                    } else {
+
+                        // See if we are allowed to unchecking this specific
+                        // node - if not, it won't be done. This does not
+                        // prevent it's children from being unchecked.
+                        uncheckCurrentNodeIfAllowed((CheckableResource) resource,
+                                treeNode);
+                    }
+
+
+                    /*
+                    * Now we have to check or uncheck the descendants and
+                    * ancestors depending on what we did above.
+                    */
+
+                    boolean checkRelatives = isChecked;
+
+                    // If we found a mix of select leave and selected but
+                    // but disabled leave we must be trying to toggle off
+                    // the children
+                    if (hasSelectedAndLockedDescendants(treeNode)) {
+                        checkRelatives = false;
+                    }
+                    // If we found only locked leave we must be trying to toggle
+                    // on the unlocked children
+                    else if (hasLockedDescendants(treeNode)) {
+                        checkRelatives = true;
+                    }
+                    // Otherwise, just use the value of the checkbox
+
+
+                    if (!treeNode.isLeaf()) { //check up and down the tree
+
+                        // If not a leaf check/uncheck children as requested
+                        checkOrUncheckChildNodesRecursively(treeNode, checkRelatives);
+
+                        // If not a leaf check/uncheck ancestors
+                        checkOrUncheckParentNodesRecursively(treeNode,
+                                ((CheckableResource) resource).isSelected());
+                    } else { // it must be a leaf - so check up the tree
+                        checkOrUncheckParentNodesRecursively(treeNode, checkRelatives);
+                    }
+                }
+                tree.treeDidChange();
+            }
+            return resource;
+        }
+
+        private void uncheckCurrentNodeIfAllowed(CheckableResource resource,
+                                                 TreeNode treeNode) {
+
+            // If we are unchecking a parent make sure there are
+            // no checked children
+            if (!hasSelectedChildren(treeNode)) {
+                resource.setSelected(false);
+            } else {
+
+                // If node has selected children and has disabled descendants we
+                // must not unselect
+                if (hasLockedDescendants(treeNode)) {
+                    resource.setSelected(true);
+                } else {
+                    // No disabled descendants so we can uncheck at will
+                    resource.setSelected(false);
+                }
+            }
         }
 
         /**
@@ -946,53 +1037,6 @@ public class ResourceTree {
                 // If a descendant is disabled say so
                 if (hasLockedDescendants(childNode)) {
                     return true;
-                }
-            }
-            return false;
-        }
-
-        static public boolean hasSelectedDescendants(TreeNode treeNode) {
-
-            Enumeration<?> children = treeNode.children();
-            while (children.hasMoreElements()) {
-
-                TreeNode childNode = (TreeNode) children.nextElement();
-
-                Object childsUserObject =
-                        ((DefaultMutableTreeNode) childNode).getUserObject();
-                if (childsUserObject instanceof CheckableResource) {
-                    CheckableResource childResource =
-                            ((CheckableResource) childsUserObject);
-
-                    // If has selected say so
-                    if (childResource.isSelected()) {
-                        return true;
-                    }
-                }
-
-                // If has selected descendant say so
-                if (hasSelectedDescendants(childNode)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        static public boolean hasSelectedChildren(TreeNode treeNode) {
-
-            Enumeration<?> children = treeNode.children();
-            while (children.hasMoreElements()) {
-
-                TreeNode childNode = (TreeNode) children.nextElement();
-
-                Object childsUserObject =
-                        ((DefaultMutableTreeNode) childNode).getUserObject();
-                if (childsUserObject instanceof CheckableResource) {
-                    CheckableResource childResource =
-                            ((CheckableResource) childsUserObject);
-                    if (childResource.isSelected()) {
-                        return true;
-                    }
                 }
             }
             return false;
@@ -1168,9 +1212,9 @@ public class ResourceTree {
         final static Color partialSelectionColor =
                 new Color(255, 128, 128);
         final boolean isParentOfPartiallySelectedChildren = false;
+        final ResourceLocator dataResourceLocator;
         String text;
         boolean selected;
-        final ResourceLocator dataResourceLocator;
         boolean isEnabled = true;
 
         public CheckableResource(String text, boolean selected,
@@ -1225,51 +1269,6 @@ public class ResourceTree {
         @Override
         public String toString() {
             return text + ":" + selected;
-        }
-    }
-
-
-    /**
-     *
-     */
-    static interface SelectableResource extends DataResource {
-
-        public boolean isSelected();
-
-        public void setSelected(boolean newValue);
-    }
-
-    /**
-     *
-     */
-    static interface DataResource {
-
-        public ResourceLocator getResourceLocator();
-
-        public void setText(String newValue);
-
-        public String getText();
-
-        public void setEnabled(boolean value);
-
-        public boolean isEnabled();
-    }
-
-    /**
-     * Expands tree.
-     */
-    private void expandTree() {
-        TreeNode root = (TreeNode) dialogTree.getModel().getRoot();
-        TreePath rootPath = new TreePath(root);
-        TreeNode node = (TreeNode) rootPath.getLastPathComponent();
-        for (Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
-            TreePath childPath = rootPath.pathByAddingChild(e.nextElement());
-            if (!dialogTree.isExpanded(childPath)) {
-                dialogTree.expandPath(childPath);
-            }
-        }
-        if (!dialogTree.isExpanded(rootPath)) {
-            dialogTree.expandPath(rootPath);
         }
     }
 }

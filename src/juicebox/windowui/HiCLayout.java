@@ -8,24 +8,21 @@ import java.awt.*;
  */
 public class HiCLayout implements LayoutManager2,
         java.io.Serializable {
+    public static final String NORTH_WEST = "Northwest";
     private static final long serialVersionUID = 8260394496861063124L;
+    private static final String NORTH = "North";
+    private static final String SOUTH = "South";
+    private static final String EAST = "East";
+    private static final String WEST = "West";
+    private static final String CENTER = "Center";
     private int hgap;
     private int vgap;
-
     private Component north;
     private Component west;
     private Component east;
     private Component south;
     private Component center;
     private Component northwest;
-
-
-    private static final String NORTH = "North";
-    private static final String SOUTH = "South";
-    private static final String EAST = "East";
-    private static final String WEST = "West";
-    private static final String CENTER = "Center";
-    public static final String NORTH_WEST = "Northwest";
 
 
     /**
@@ -143,8 +140,7 @@ public class HiCLayout implements LayoutManager2,
                 west = comp;
             } else if (NORTH_WEST.equals(name)) {
                 northwest = comp;
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
             }
         }
@@ -172,7 +168,7 @@ public class HiCLayout implements LayoutManager2,
                 east = null;
             } else if (comp == west) {
                 west = null;
-            }  else if (comp == northwest) {
+            } else if (comp == northwest) {
                 northwest = null;
             }
 
@@ -190,7 +186,7 @@ public class HiCLayout implements LayoutManager2,
      *
      * @param target the container in which to do the layout.
      * @return the minimum dimensions needed to lay out the subcomponents
-     *         of the specified container.
+     * of the specified container.
      * @see java.awt.Container
      * @see java.awt.BorderLayout#preferredLayoutSize
      * @see java.awt.Container#getMinimumSize()
@@ -247,7 +243,7 @@ public class HiCLayout implements LayoutManager2,
      *
      * @param target the container in which to do the layout.
      * @return the preferred dimensions to lay out the subcomponents
-     *         of the specified container.
+     * of the specified container.
      * @see java.awt.Container
      * @see java.awt.BorderLayout#minimumLayoutSize
      * @see java.awt.Container#getPreferredSize()
@@ -373,13 +369,13 @@ public class HiCLayout implements LayoutManager2,
 
             // Center must be square
             //int centerDim = Math.min(dw - dx, dh - dy);
-            int centerDimX = dw-dx;
-            int centerDimY = dh-dy;
+            int centerDimX = dw - dx;
+            int centerDimY = dh - dy;
 
             if (north != null) {
                 Dimension d = north.getPreferredSize();
                 north.setBounds(left + dx, top, centerDimX, d.height);
-                if(northwest != null) {
+                if (northwest != null) {
                     northwest.setBounds(left, top, dx, d.height);
                 }
                 top += d.height + vgap;
@@ -429,7 +425,7 @@ public class HiCLayout implements LayoutManager2,
 
         } else if (key.equals(CENTER)) {
             result = center;
-        }   else if(key.equals(NORTH_WEST)) {
+        } else if (key.equals(NORTH_WEST)) {
             result = northwest;
         }
         if (result != null && !result.isVisible()) {

@@ -24,6 +24,8 @@ public class UCSCEncodeUtils {
 
     private static final List<String> rnaChipQualifiers = Arrays.asList("CellTotal", "Longnonpolya", "Longpolya",
             "NucleolusTotal", "ChromatinTotal", "ChromatinTotal", "NucleoplasmTotal");
+    private static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
+    private static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
     public static void main(String[] args) throws IOException {
 
@@ -83,8 +85,6 @@ public class UCSCEncodeUtils {
         return records;
     }
 
-    private static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
-
     private static void updateEncodeTableFile(String inputFile, String outputFile) throws IOException {
 
         List<EncodeFileRecord> records = new ArrayList<EncodeFileRecord>();
@@ -99,11 +99,10 @@ public class UCSCEncodeUtils {
         while ((nextLine = reader.readLine()) != null) {
 
             if (nextLine.startsWith("#")) {
-                if(nextLine.startsWith("#hub=")) {
+                if (nextLine.startsWith("#hub=")) {
                     hub = nextLine.substring(5);
                 }
-            }
-            else {
+            } else {
                 String dir = nextLine.equals(".") ? rootPath : rootPath + nextLine;
                 String filesDotTxt = dir + "/files.txt";
                 try {
@@ -129,7 +128,7 @@ public class UCSCEncodeUtils {
             pw.print("\t");
             pw.print(h);
         }
-        if(hub != null) {
+        if (hub != null) {
             pw.print("\thub");
         }
         pw.println();
@@ -141,15 +140,13 @@ public class UCSCEncodeUtils {
                 String value = rec.getAttributeValue(h);
                 pw.print(value == null ? "" : value);
             }
-            if(hub != null) {
+            if (hub != null) {
                 pw.print("\t" + hub);
             }
             pw.println();
         }
         pw.close();
     }
-
-    private static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
     private static void parseFilesDotTxt(String url, List<EncodeFileRecord> fileRecords) throws IOException {
 

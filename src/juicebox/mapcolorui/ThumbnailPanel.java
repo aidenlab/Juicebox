@@ -19,12 +19,10 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
 
     private static final long serialVersionUID = -3856114428388478494L;
+    private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
     private final MainWindow mainWindow;
     private final HiC hic;
-
     private Image image;
-
-    private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
     private Point lastPoint = null;
 
     private Rectangle innerRectangle;
@@ -45,8 +43,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
                     int yBP = (int) (mouseEvent.getY() * yScale());
 
                     hic.center(xBP, yBP);
-                }
-                catch(Exception e){
+                } catch (Exception e) {
                     System.out.println("Error when thumbnail clicked");
                     e.printStackTrace();
                 }

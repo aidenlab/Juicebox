@@ -90,7 +90,7 @@ public class InMemoryMatrix implements BasicMatrix {
         for (float datum : data) {
             if (!Float.isNaN(datum)) tmpList.add(datum);
         }
-        double [] tmp = tmpList.toArray();
+        double[] tmp = tmpList.toArray();
         lowerValue = (float) StatUtils.percentile(tmp, 5);
         upperValue = (float) StatUtils.percentile(tmp, 95);
     }

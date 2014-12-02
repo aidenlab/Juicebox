@@ -19,9 +19,8 @@ import java.util.*;
  */
 public class CombinedDatasetReader implements DatasetReader {
 
-    private boolean hasFrags;
-
     private final List<DatasetReaderV2> readers;
+    private boolean hasFrags;
     private int version;
 
     public CombinedDatasetReader(List<DatasetReaderV2> readers) {
@@ -113,8 +112,8 @@ public class CombinedDatasetReader implements DatasetReader {
     /**
      * Return the block numbers of all occupied blocks.
      *
-     * @param matrixZoomData    Matrix
-     * @return   block numbers
+     * @param matrixZoomData Matrix
+     * @return block numbers
      */
     @Override
 
@@ -157,8 +156,8 @@ public class CombinedDatasetReader implements DatasetReader {
     /**
      * Return a dataset that is an "intersection" of the supplied datasets.
      *
-     * @param datasetList   List of datasets to merge
-     * @return      new dataset
+     * @param datasetList List of datasets to merge
+     * @return new dataset
      */
     private Dataset mergeDatasets(List<Dataset> datasetList) {
 
@@ -374,8 +373,8 @@ public class CombinedDatasetReader implements DatasetReader {
             }
             Scanner scanner = new Scanner(graphs);
             try {
-                while(true){
-                    if(scanner.next().equals("[")) break;
+                while (true) {
+                    if (scanner.next().equals("[")) break;
                 }
                 //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 2000; idx++) {
@@ -383,8 +382,8 @@ public class CombinedDatasetReader implements DatasetReader {
 
                 }
 
-                while(true){
-                    if(scanner.next().equals("[")) break;
+                while (true) {
+                    if (scanner.next().equals("[")) break;
                 }
                 //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 201; idx++) {
@@ -394,8 +393,8 @@ public class CombinedDatasetReader implements DatasetReader {
 
                 }
 
-                while(true){
-                    if(scanner.next().equals("[")) break;
+                while (true) {
+                    if (scanner.next().equals("[")) break;
                 }
                 //while (!scanner.next().equals("[")) ;
                 for (int idx = 0; idx < 100; idx++) {
@@ -476,8 +475,8 @@ public class CombinedDatasetReader implements DatasetReader {
      * Merge the contact records from multiple blocks to create a new block.  Contact records are sorted in row then
      * column order.
      *
-     * @param blockList    Blocks to merge
-     * @return    new Block
+     * @param blockList Blocks to merge
+     * @return new Block
      */
     Block mergeBlocks(List<Block> blockList) {
         // First combine contact records for all blocks

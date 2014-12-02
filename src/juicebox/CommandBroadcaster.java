@@ -23,7 +23,7 @@ public class CommandBroadcaster {
     public static void broadcast(String command) {
         // Broadcast self port to other running instances
         for (int p = 30000; p <= 30009; p++) {
-            if(p == selfPort) continue;  // don't broadcast to self
+            if (p == selfPort) continue;  // don't broadcast to self
             try {
                 CommandBroadcaster.broadcastCommand(command, p);
             } catch (java.net.ConnectException e) {
@@ -42,10 +42,10 @@ public class CommandBroadcaster {
             out = new PrintWriter(socket.getOutputStream(), true);
             out.println(command);
 
-        }  finally {
+        } finally {
             try {
-                if(out != null) out.close();
-                if(socket != null) socket.close();
+                if (out != null) out.close();
+                if (socket != null) socket.close();
             } catch (IOException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }

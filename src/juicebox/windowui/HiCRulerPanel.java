@@ -39,18 +39,12 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
-
-    public enum Orientation {HORIZONTAL, VERTICAL}
-
-
-    private HiC hic;
-    private Orientation orientation;
-
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
-
-
+    private HiC hic;
+    private Orientation orientation;
     private Context context;
+
 
     /**
      * Empty constructor for form builder
@@ -63,11 +57,50 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         setBackground(Color.white);
     }
 
+    private static String formatNumber(double position) {
+
+        //NumberFormatter f = new NumberFormatter();
+        DecimalFormat formatter = new DecimalFormat();
+        return formatter.format((int) position);
+        //return f.valueToString(position);
+
+    }
+
+    private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
+
+        if (maxValue < 10) {
+            return new TickSpacing(1, "bp", 1);
+        }
+
+
+        // Now man zeroes?
+        int nZeroes = (int) Math.log10(maxValue);
+        String majorUnit = scaleInKB ? "kb" : "bp";
+        int unitMultiplier = 1;
+        if (nZeroes > 9) {
+            majorUnit = scaleInKB ? "tb" : "gb";
+            unitMultiplier = 1000000000;
+        }
+        if (nZeroes > 6) {
+            majorUnit = scaleInKB ? "gb" : "mb";
+            unitMultiplier = 1000000;
+        } else if (nZeroes > 3) {
+            majorUnit = scaleInKB ? "mb" : "kb";
+            unitMultiplier = 1000;
+        }
+
+        double nMajorTicks = maxValue / Math.pow(10, nZeroes - 1);
+        if (nMajorTicks < 25) {
+            return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
+        } else {
+            return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
+        }
+    }
+
     public void setContext(Context frame, Orientation orientation) {
         this.context = frame;
         this.orientation = orientation;
     }
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -128,7 +161,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private boolean isHorizontal() {
         return orientation == Orientation.HORIZONTAL;
     }
-
 
     private void drawTicks(Graphics g) {
 
@@ -220,46 +252,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
     }
 
-    private static String formatNumber(double position) {
-
-        //NumberFormatter f = new NumberFormatter();
-        DecimalFormat formatter = new DecimalFormat();
-        return formatter.format((int) position);
-        //return f.valueToString(position);
-
-    }
-
-    private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
-
-        if (maxValue < 10) {
-            return new TickSpacing(1, "bp", 1);
-        }
-
-
-        // Now man zeroes?
-        int nZeroes = (int) Math.log10(maxValue);
-        String majorUnit = scaleInKB ? "kb" : "bp";
-        int unitMultiplier = 1;
-        if (nZeroes > 9) {
-            majorUnit = scaleInKB ? "tb" : "gb";
-            unitMultiplier = 1000000000;
-        }
-        if (nZeroes > 6) {
-            majorUnit = scaleInKB ? "gb" : "mb";
-            unitMultiplier = 1000000;
-        } else if (nZeroes > 3) {
-            majorUnit = scaleInKB ? "mb" : "kb";
-            unitMultiplier = 1000;
-        }
-
-        double nMajorTicks = maxValue / Math.pow(10, nZeroes - 1);
-        if (nMajorTicks < 25) {
-            return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
-        } else {
-            return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
-        }
-    }
-
+    public enum Orientation {HORIZONTAL, VERTICAL}
 
     public static class TickSpacing {
 

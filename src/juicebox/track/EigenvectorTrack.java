@@ -20,12 +20,12 @@ import java.util.Map;
 public class EigenvectorTrack extends HiCTrack {
 
 
-    private Color color = Color.blue.darker();
-    private Color altColor = Color.red.darker();
     private final Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
     private final Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
     private final Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
     private final HiC hic;
+    private Color color = Color.blue.darker();
+    private Color altColor = Color.red.darker();
     private int currentZoom = -1;
     private String name = "eigenvector";
 
@@ -86,11 +86,6 @@ public class EigenvectorTrack extends HiCTrack {
 //
 //        return bin < data.length ? String.valueOf(data[bin]) : null;
 
-    }
-
-    @Override
-    public void setName(String text) {
-        this.name = text;
     }
 
     @Override
@@ -176,6 +171,11 @@ public class EigenvectorTrack extends HiCTrack {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setName(String text) {
+        this.name = text;
     }
 
     public Renderer<?> getRenderer() {

@@ -16,21 +16,21 @@ public interface HiCDataSource {
 
     String getName();
 
-    Color getColor();
-
-    Color getAltColor();
-
-    DataRange getDataRange();
-
-    boolean isLog();
-
-    void setDataRange(DataRange dataRange);
-
     void setName(String text);
+
+    Color getColor();
 
     void setColor(Color selectedColor);
 
+    Color getAltColor();
+
     void setAltColor(Color selectedColor);
+
+    DataRange getDataRange();
+
+    void setDataRange(DataRange dataRange);
+
+    boolean isLog();
 
     HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction);
 

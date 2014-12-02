@@ -28,44 +28,31 @@ import java.util.List;
 public class HiC {
 
     private static final Logger log = Logger.getLogger(HiC.class);
-
+    private final MainWindow mainWindow;
+    private final Map<String, Feature2DList> loopLists;
+    private final HiCTrackManager trackManager;
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
-
-    public enum Unit {BP, FRAG}
-
-    private final MainWindow mainWindow;
     private MatrixType displayOption;
     private NormalizationType normalizationType;
     private java.util.List<Chromosome> chromosomes;
-
     private Dataset dataset;
     private Dataset controlDataset;
     private HiCZoom zoom;
-
     private Context xContext;
     private Context yContext;
-
-    private final Map<String, Feature2DList> loopLists;
     private boolean showLoops;
 
     private EigenvectorTrack eigenvectorTrack;
-
-    private final HiCTrackManager trackManager;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
-
     private Point cursorPoint;
     private Point selectedBin;
-
     private boolean linkedMode;
-
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-
-
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
         this.trackManager = new HiCTrackManager(mainWindow, this);
@@ -73,6 +60,10 @@ public class HiC {
         this.m_zoomChanged = false;
         this.m_displayOptionChanged = false;
         this.m_normalizationTypeChanged = false;
+    }
+
+    public static boolean isPrivateHic(String string) {
+        return string.contains("igvdata/hic/files");
     }
 
     public void reset() {
@@ -115,9 +106,13 @@ public class HiC {
         resourceTree = rTree;
     }
 
-    public LoadEncodeAction getEncodeAction() { return encodeAction; }
+    public LoadEncodeAction getEncodeAction() {
+        return encodeAction;
+    }
 
-    public void setEncodeAction(LoadEncodeAction eAction) {encodeAction = eAction;}
+    public void setEncodeAction(LoadEncodeAction eAction) {
+        encodeAction = eAction;
+    }
 
     public List<Feature2D> getVisibleLoopList(int chrIdx1, int chrIdx2) {
         if (!showLoops) return null;
@@ -240,29 +235,29 @@ public class HiC {
         this.yContext = null;
     }
 
-    public void setCursorPoint(Point point) {
-        this.cursorPoint = point;
-
-    }
-    
     public Point getCursorPoint() {
         return cursorPoint;
     }
-    
-    public void setXPosition(String txt) {
-        this.xPosition = txt;
+
+    public void setCursorPoint(Point point) {
+        this.cursorPoint = point;
+
     }
 
     public String getXPosition() {
         return xPosition;
     }
 
-    public void setYPosition(String txt) {
-        this.yPosition = txt;
+    public void setXPosition(String txt) {
+        this.xPosition = txt;
     }
-    
+
     public String getYPosition() {
         return yPosition;
+    }
+
+    public void setYPosition(String txt) {
+        this.yPosition = txt;
     }
 
     public Matrix getMatrix() {
@@ -282,22 +277,27 @@ public class HiC {
         return displayOption;
     }
 
-    public boolean isControlLoaded() {return controlDataset != null;}
+    public void setDisplayOption(MatrixType newDisplay) {
+        if (this.displayOption != newDisplay) {
+            this.displayOption = newDisplay;
+            setDisplayOptionChanged();
+        }
+    }
+
+    public boolean isControlLoaded() {
+        return controlDataset != null;
+    }
 
     public boolean isWholeGenome() {
         return xContext != null && xContext.getChromosome().getName().equals("All");
-    }
-
-    public void setChromosomes(List<Chromosome> chromosomes) {
-        this.chromosomes = chromosomes;
     }
 
     public java.util.List<Chromosome> getChromosomes() {
         return chromosomes;
     }
 
-    public static boolean isPrivateHic(String string) {
-        return string.contains("igvdata/hic/files");
+    public void setChromosomes(List<Chromosome> chromosomes) {
+        this.chromosomes = chromosomes;
     }
 
     /**
@@ -306,7 +306,7 @@ public class HiC {
      */
     public boolean setZoom(HiCZoom newZoom, final double centerGenomeX, final double centerGenomeY) {
 
-        if(dataset == null) return false;
+        if (dataset == null) return false;
 
         final Chromosome chrX = xContext.getChromosome();
         final Chromosome chrY = yContext.getChromosome();
@@ -361,16 +361,13 @@ public class HiC {
         return true;
     }
 
-    private void setZoomChanged()
-    {
+    private void setZoomChanged() {
         m_zoomChanged = true;
     }
 
     //Check zoom change value and reset.
-    public synchronized boolean testZoomChanged()
-    {
-        if (m_zoomChanged)
-        {
+    public synchronized boolean testZoomChanged() {
+        if (m_zoomChanged) {
             m_zoomChanged = false;
             return true;
         }
@@ -426,10 +423,9 @@ public class HiC {
             broadcastState();
         }
 
-        try{
+        try {
             mainWindow.refresh();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -449,8 +445,7 @@ public class HiC {
                 //noinspection SuspiciousNameCombination
                 binY = yAxis.getBinNumberForFragment(fragmentY);
                 center(binX, binY);
-            }
-            catch (RuntimeException error) {
+            } catch (RuntimeException error) {
                 JOptionPane.showMessageDialog(mainWindow, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
 
@@ -531,46 +526,26 @@ public class HiC {
         }
     }
 
-
-    public void setDisplayOption(MatrixType newDisplay) {
-        if (this.displayOption != newDisplay) {
-            this.displayOption = newDisplay;
-            setDisplayOptionChanged();
-        }
-    }
-
-    private void setDisplayOptionChanged()
-    {
+    private void setDisplayOptionChanged() {
         m_displayOptionChanged = true;
     }
 
     //Check zoom change value and reset.
-    public synchronized boolean testDisplayOptionChanged()
-    {
-        if (m_displayOptionChanged)
-        {
+    public synchronized boolean testDisplayOptionChanged() {
+        if (m_displayOptionChanged) {
             m_displayOptionChanged = false;
             return true;
         }
         return false;
     }
-    public void setNormalizationType(NormalizationType option) {
-        if (this.normalizationType != option) {
-            this.normalizationType = option;
-            setNormalizationTypeChanged();
-        }
-    }
 
-    private void setNormalizationTypeChanged()
-    {
+    private void setNormalizationTypeChanged() {
         m_normalizationTypeChanged = true;
     }
 
     //Check zoom change value and reset.
-    public synchronized boolean testNormalizationTypeChanged()
-    {
-        if (m_normalizationTypeChanged)
-        {
+    public synchronized boolean testNormalizationTypeChanged() {
+        if (m_normalizationTypeChanged) {
             m_normalizationTypeChanged = false;
             return true;
         }
@@ -579,6 +554,13 @@ public class HiC {
 
     public NormalizationType getNormalizationType() {
         return normalizationType;
+    }
+
+    public void setNormalizationType(NormalizationType option) {
+        if (this.normalizationType != option) {
+            this.normalizationType = option;
+            setNormalizationTypeChanged();
+        }
     }
 
     public double[] getEigenvector(final int chrIdx, final int n) {
@@ -601,12 +583,11 @@ public class HiC {
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
-    public float getNormalizedObservedValue(int binX, int binY){
+    public float getNormalizedObservedValue(int binX, int binY) {
 
         return getZd().getObservedValue(binX, binY, normalizationType);
 
     }
-
 
     public void loadLoopList(String path) throws IOException {
 
@@ -652,10 +633,9 @@ public class HiC {
                     start2 = Integer.parseInt(tokens[4]);
                     end2 = Integer.parseInt(tokens[5]);
                 } catch (Exception e) {
-                    throw new IOException("Line "+lineNum+" improperly formatted in <br>" +
-                            path+ "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
+                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
+                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
                 }
-
 
 
                 Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
@@ -698,11 +678,11 @@ public class HiC {
 
     private Chromosome getChromosomeNamed(String token) {
         for (Chromosome chr : chromosomes) {
-            if (token.toLowerCase().equals(chr.getName().toLowerCase()) || String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) || token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase()))) return chr;
+            if (token.toLowerCase().equals(chr.getName().toLowerCase()) || String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) || token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
+                return chr;
         }
         return null;
     }
-
 
     /**
      * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
@@ -732,7 +712,7 @@ public class HiC {
         }
 
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom) ||(xContext.getZoom()== null)  ||(yContext.getZoom() == null) ) {
+        if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
             zoom = newZoom;
             xContext.setZoom(zoom);
             yContext.setZoom(zoom);
@@ -746,8 +726,7 @@ public class HiC {
 
         try {
             mainWindow.refresh();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -757,10 +736,10 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if(!(xChr.toLowerCase().contains("chr"))){
+        if (!(xChr.toLowerCase().contains("chr"))) {
             xChr = "chr" + xChr;
         }
-        if(!(yChr.toLowerCase().contains("chr"))){
+        if (!(yChr.toLowerCase().contains("chr"))) {
             yChr = "chr" + yChr;
         }
 
@@ -775,14 +754,15 @@ public class HiC {
 
         CommandBroadcaster.broadcast(command);
     }
+
     public String saveState() {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if(!(xChr.toLowerCase().contains("chr"))){
+        if (!(xChr.toLowerCase().contains("chr"))) {
             xChr = "chr" + xChr;
         }
-        if(!(yChr.toLowerCase().contains("chr"))){
+        if (!(yChr.toLowerCase().contains("chr"))) {
             yChr = "chr" + yChr;
         }
 
@@ -804,17 +784,17 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if(!(xChr.toLowerCase().contains("chr"))){
+        if (!(xChr.toLowerCase().contains("chr"))) {
             xChr = "chr" + xChr;
         }
-        if(!(yChr.toLowerCase().contains("chr"))){
+        if (!(yChr.toLowerCase().contains("chr"))) {
             yChr = "chr" + yChr;
         }
 
         String command = xChr + "@" +
-                (long)(xContext.getBinOrigin()*zoom.getBinSize()) + "_" +
+                (long) (xContext.getBinOrigin() * zoom.getBinSize()) + "_" +
                 yChr + "@" +
-                (long)(yContext.getBinOrigin()*zoom.getBinSize());
+                (long) (yContext.getBinOrigin() * zoom.getBinSize());
 
         return command;
         // CommandBroadcaster.broadcast(command);
@@ -827,4 +807,6 @@ public class HiC {
             broadcastState();
         }
     }
+
+    public enum Unit {BP, FRAG}
 }

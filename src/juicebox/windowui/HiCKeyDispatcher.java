@@ -8,10 +8,10 @@ import java.awt.event.KeyEvent;
 
 public class HiCKeyDispatcher implements KeyEventDispatcher {
 
-    private HiC hic;
-    private JComboBox<MatrixType> displayOptionComboBox;
+    private final HiC hic;
+    private final JComboBox<MatrixType> displayOptionComboBox;
 
-    public HiCKeyDispatcher(HiC hic, JComboBox<MatrixType> displayOptionComboBox){
+    public HiCKeyDispatcher(HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
         super();
         this.hic = hic;
         this.displayOptionComboBox = displayOptionComboBox;

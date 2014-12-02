@@ -49,7 +49,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -284,7 +283,6 @@ public class MainWindow extends JFrame {
         return heatmapPanel;
     }
 
-
     public void updateZoom(HiCZoom newZoom) {
 
         resolutionSlider.setZoom(newZoom);
@@ -426,7 +424,7 @@ public class MainWindow extends JFrame {
                         JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
                         hic.reset();
 
-                            updateThumbnail();
+                        updateThumbnail();
 
                     } catch (Exception error) {
                         error.printStackTrace();
@@ -459,12 +457,12 @@ public class MainWindow extends JFrame {
         rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
         setInitialZoom();
 
-            refresh();
+        refresh();
 
 
     }
 
-    public void setNormalizationDisplayState(){
+    public void setNormalizationDisplayState() {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
@@ -487,7 +485,7 @@ public class MainWindow extends JFrame {
         displayOptionComboBox.setEnabled(true);
     }
 
-    public void repaintTrackPanels(){
+    public void repaintTrackPanels() {
         trackPanelX.repaint();
         trackPanelY.repaint();
     }
@@ -635,13 +633,10 @@ public class MainWindow extends JFrame {
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
                 properties = new Properties();
-                if (is == null)
-                {
+                if (is == null) {
                     //No slection made:
                     return;
-                }
-                else
-                {
+                } else {
                     properties.load(is);
                 }
             } catch (Exception error) {
@@ -658,7 +653,7 @@ public class MainWindow extends JFrame {
         loadDialog.setVisible(true);
     }
 
-    public void updateTitle(boolean control, String title){
+    public void updateTitle(boolean control, String title) {
         if (control) controlTitle = title;
         else datasetTitle = title;
         updateTitle();
@@ -785,11 +780,11 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    public RecentMenu getRecentMapMenu(){
+    public RecentMenu getRecentMapMenu() {
         return recentMapMenu;
     }
 
-    public RecentMenu getRecentStateMenu(){
+    public RecentMenu getRecentStateMenu() {
         return recentLocationMenu;
     }
 
@@ -801,13 +796,13 @@ public class MainWindow extends JFrame {
         setGlassPaneVisibility(this.getGlassPane(), Cursor.DEFAULT_CURSOR, false);
     }
 
-    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible){
+    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible) {
         glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
         glassPane.setVisible(isVisible);
         setWaitingStatus(cursorState);
     }
 
-    public void setWaitingStatus(int cursorState){
+    public void setWaitingStatus(int cursorState) {
         rootPane.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
         rootPane.setCursor(Cursor.getPredefinedCursor(cursorState));
         hiCPanel.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
@@ -845,8 +840,6 @@ public class MainWindow extends JFrame {
         repaint();
 
     }
-
-
 
 
     private void initComponents() {
@@ -1271,7 +1264,6 @@ public class MainWindow extends JFrame {
     }
 
 
-
     public void parsePositionText() {
         //Expected format: <chr>:<start>-<end>:<resolution>
 
@@ -1298,37 +1290,29 @@ public class MainWindow extends JFrame {
         if (topChrTokens.length > 0) {
             if (topChrTokens[0].toLowerCase().contains("chr")) {
                 TopChrName = topChrTokens[0].substring(3);
-            }
-            else {
+            } else {
                 TopChrName = topChrTokens[0].toLowerCase();
             }
-        }
-        else
-        {
+        } else {
             this.positionChrTop.setBackground(Color.yellow);
             return;
         }
         try {
             TopChrInt = Integer.parseInt(TopChrName);
             //TBD - replace with actual chromosome range
-            if (TopChrInt > 22)
-            {
+            if (TopChrInt > 22) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
 
-        }
-        catch( Exception e ) {
-            if(TopChrName.toLowerCase().equals("x")){
+        } catch (Exception e) {
+            if (TopChrName.toLowerCase().equals("x")) {
                 TopChrName = "X";
-            }
-            else if(TopChrName.toLowerCase().equals("y")){
+            } else if (TopChrName.toLowerCase().equals("y")) {
                 TopChrName = "Y";
-            }
-            else if(TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")){
+            } else if (TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")) {
                 TopChrName = "MT";
-            }
-            else{
+            } else {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
@@ -1338,13 +1322,10 @@ public class MainWindow extends JFrame {
         if (leftChrTokens.length > 0) {
             if (leftChrTokens[0].toLowerCase().contains("chr")) {
                 LeftChrName = leftChrTokens[0].substring(3);
-            }
-            else {
+            } else {
                 LeftChrName = leftChrTokens[0].toLowerCase();
             }
-        }
-        else
-        {
+        } else {
             this.positionChrLeft.setBackground(Color.yellow);
             return;
         }
@@ -1352,23 +1333,18 @@ public class MainWindow extends JFrame {
             LeftChrInt = Integer.parseInt(LeftChrName);
 
             //TBD - replace with actual chromosome range
-            if (LeftChrInt > 22)
-            {
+            if (LeftChrInt > 22) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
-        }
-        catch( Exception e ) {
-            if(LeftChrName.toLowerCase().equals("x")){
+        } catch (Exception e) {
+            if (LeftChrName.toLowerCase().equals("x")) {
                 LeftChrName = "X";
-            }
-            else if(LeftChrName.toLowerCase().equals("y")){
+            } else if (LeftChrName.toLowerCase().equals("y")) {
                 LeftChrName = "Y";
-            }
-            else if(LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")){
+            } else if (LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")) {
                 LeftChrName = "MT";
-            }
-            else{
+            } else {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
@@ -1379,39 +1355,34 @@ public class MainWindow extends JFrame {
             //Make sure values are numerical:
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
             try {
                 Long.parseLong(topChrTokens[2].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
-            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")),Long.valueOf(topChrTokens[2].replaceAll(",", "")));
+            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
-            outBinTop = topStart+((topEnd-topStart)/2);
+            outBinTop = topStart + ((topEnd - topStart) / 2);
 
-        }
-        else if (topChrTokens.length > 1){
+        } else if (topChrTokens.length > 1) {
             outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", ""));
         }
 
 
         if (leftChrTokens.length > 2) {
-            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")),Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
+            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
-            outBinLeft = leftStart+((leftEnd-leftStart)/2);
-        }
-        else if (topChrTokens.length > 1){
+            outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
+        } else if (topChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
@@ -1423,35 +1394,29 @@ public class MainWindow extends JFrame {
             //Make sure value is numeric:
             try {
                 Integer.parseInt(topChrTokens[3]);
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
             outBinSize = Integer.parseInt(topChrTokens[3]);
-        }
-        else if (leftChrTokens.length > 3) {
+        } else if (leftChrTokens.length > 3) {
             //Make sure value is numeric:
             try {
                 Integer.parseInt(leftChrTokens[3]);
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
-        }
+            }
             outBinSize = Integer.parseInt(leftChrTokens[3]);
-        }
-        else if (hic.getZoom().getBinSize() != 0)
-        {
+        } else if (hic.getZoom().getBinSize() != 0) {
             outBinSize = hic.getZoom().getBinSize();
         }
 
         this.positionChrTop.setBackground(Color.white);
         this.positionChrLeft.setBackground(Color.white);
 
-        hic.setState(TopChrName,LeftChrName,"BP", outBinSize, 0, 0, hic.getScaleFactor());
-        if (outBinTop > 0 && outBinLeft > 0)
-        {
+        hic.setState(TopChrName, LeftChrName, "BP", outBinSize, 0, 0, hic.getScaleFactor());
+        if (outBinTop > 0 && outBinLeft > 0) {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
         }
 
@@ -1531,7 +1496,7 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
 
         //TODO S7 - MSS
-        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems,recentMapEntityNode ) {
+        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems, recentMapEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1721,27 +1686,29 @@ public class MainWindow extends JFrame {
 
         positionChrTop = new JTextField();
         positionChrTop.setEnabled(false);
-        positionChrTop.addActionListener(new ActionListener(){
+        positionChrTop.addActionListener(new ActionListener() {
 
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
 
                 parsePositionText();
 
-            }});
+            }
+        });
 
-        positionChrTop.setPreferredSize(new Dimension(180,25));
+        positionChrTop.setPreferredSize(new Dimension(180, 25));
         positionChrTop.setPreferredSize(new Dimension(180, 25));
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
 
         positionChrLeft = new JTextField();
         positionChrLeft.setEnabled(false);
-        positionChrLeft.addActionListener(new ActionListener(){
+        positionChrLeft.addActionListener(new ActionListener() {
 
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
 
                 parsePositionText();
 
-            }});
+            }
+        });
         positionChrLeft.setPreferredSize(new Dimension(180, 25));
         positionChrLeft.setPreferredSize(new Dimension(180, 25));
         positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
@@ -1799,16 +1766,15 @@ public class MainWindow extends JFrame {
 
     }
 
-    private abstract class protectedGlassProcessing{
+    private abstract class protectedGlassProcessing {
 
         abstract void encapsulatedCommand();
 
-        public void process(){
-            try{
+        public void process() {
+            try {
                 MainWindow.this.showGlassPane();
                 encapsulatedCommand();
-            }
-            finally {
+            } finally {
                 MainWindow.this.hideGlassPane();
             }
 

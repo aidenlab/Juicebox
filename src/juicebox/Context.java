@@ -11,11 +11,10 @@ import org.broad.igv.feature.Chromosome;
  */
 public class Context {
 
-
     private final Chromosome chromosome;
     private HiCZoom zoom;
 
-     private double binOrigin = 0;
+    private double binOrigin = 0;
 
     public Context(Chromosome chromosome) {
         this.chromosome = chromosome;
@@ -40,7 +39,6 @@ public class Context {
     public int getChrLength() {
         return chromosome.getLength();
     }
-
 
     public Chromosome getChromosome() {
         return chromosome;

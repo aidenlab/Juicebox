@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class QCDialog extends JDialog {
+    static final long serialVersionUID = 42L;
     private static final long[] logXAxis = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231,
             285, 351, 433, 534, 658, 811, 1000, 1233,
             1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112,
@@ -32,8 +33,6 @@ public class QCDialog extends JDialog {
             351119173, 432876128, 533669923, 657933225, 811130831, 1000000000, 1232846739, 1519911083,
             1873817423, 2310129700l, 2848035868l, 3511191734l, 4328761281l, 5336699231l, 6579332247l, 8111308308l,
             10000000000l};
-
-    static final long serialVersionUID = 42L;
 
     public QCDialog(MainWindow mainWindow, HiC hic) {
         super(mainWindow);

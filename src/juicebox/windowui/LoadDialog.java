@@ -21,16 +21,16 @@ import java.util.TreeSet;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
+    static final long serialVersionUID = 42L;
+    private final boolean success;
+    private final MainWindow mainWindow;
     private JTree tree;
     private JButton cancelButton;
     private JSplitButton openButton;
     private JSplitButton localButton;
     private JMenuItem openURL;
     private JMenuItem open30;
-    private final boolean success;
     private boolean control;
-    static final long serialVersionUID = 42L;
-    private MainWindow mainWindow;
 
     public LoadDialog(MainWindow mainWindow, Properties properties) {
         super(mainWindow, "Select file(s) to open");
@@ -246,8 +246,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private class ItemInfo {
         public final String uid;
         public final String itemName;
-        public String itemURL;
         public final String parentKey;
+        public String itemURL;
 
         public ItemInfo(String uid, String parentKey, String itemName, String itemURL) {
             this.uid = uid;

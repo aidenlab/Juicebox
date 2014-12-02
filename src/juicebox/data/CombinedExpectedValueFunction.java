@@ -29,7 +29,7 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
     @Override
     public double getExpectedValue(int chrIdx, int distance) {
         double sum = 0;
-        for(ExpectedValueFunction df : densityFunctions) {
+        for (ExpectedValueFunction df : densityFunctions) {
             sum += df.getExpectedValue(chrIdx, distance);
         }
         return sum;
@@ -46,7 +46,7 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
         for (ExpectedValueFunction df : densityFunctions) {
 
             double[] current = df.getExpectedValues();
-            for (int i=0; i<current.length; i++) {
+            for (int i = 0; i < current.length; i++) {
                 expectedValues[i] += current[i];
             }
         }

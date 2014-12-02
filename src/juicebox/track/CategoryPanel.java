@@ -40,10 +40,10 @@ import java.util.Set;
 public class CategoryPanel extends JPanel {
 
     private static final long serialVersionUID = -729150966236965013L;
-    private boolean expanded;
-    int nColumns = 5;
     private final JPanel listPanel;
     private final JPanel labelBar;
+    int nColumns = 5;
+    private boolean expanded;
 
     public CategoryPanel(String name, List<ResourceLocator> locatorList, Set<String> loadedTrackNames) {
 

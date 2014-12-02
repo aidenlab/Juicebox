@@ -27,10 +27,21 @@ public class ExpectedValueCalculation {
 
     private final int numberOfBins;
     /**
+     * Map of chromosome index -> total count for that chromosome
+     */
+    private final Map<Integer, Double> chromosomeCounts;
+    /**
+     * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
+     * the "expected total"  == observed total
+     */
+    private final LinkedHashMap<Integer, Double> chrScaleFactors;
+    private final NormalizationType type;
+    // A little redundant, for clarity
+    boolean isFrag = false;
+    /**
      * Genome wide count of binned reads at a given distance
      */
     private double[] actualDistances = null;
-
     /**
      * Expected count at a given binned distance from diagonal
      */
@@ -39,35 +50,18 @@ public class ExpectedValueCalculation {
      * Chromosome in this genome, needed for normalizations
      */
     private Map<Integer, Chromosome> chromosomes = null;
-
-    /**
-     * Map of chromosome index -> total count for that chromosome
-     */
-    private final Map<Integer, Double> chromosomeCounts;
-
-    /**
-     * Map of chromosome index -> "normalization factor", essentially a fudge factor to make
-     * the "expected total"  == observed total
-     */
-    private final LinkedHashMap<Integer, Double> chrScaleFactors;
-
     /**
      * Stores restriction site fragment information for fragment maps
      */
     private Map<String, Integer> fragmentCountMap;
 
-    // A little redundant, for clarity
-    boolean isFrag = false;
-
-    private final NormalizationType type;
-
     /**
      * Instantiate a DensityCalculation.  This constructor is used to compute the "expected" density from pair data.
      *
-     * @param chromosomeList List of chromosomes, mainly used for size
-     * @param gridSize       Grid size, used for binning appropriately
-     * @param fragmentCountMap  Optional.  Map of chromosome name -> number of fragments
-     * @param type  Identifies the observed matrix type,  either NONE (observed), VC, or KR.
+     * @param chromosomeList   List of chromosomes, mainly used for size
+     * @param gridSize         Grid size, used for binning appropriately
+     * @param fragmentCountMap Optional.  Map of chromosome name -> number of fragments
+     * @param type             Identifies the observed matrix type,  either NONE (observed), VC, or KR.
      */
     ExpectedValueCalculation(List<Chromosome> chromosomeList, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
 
@@ -130,7 +124,7 @@ public class ExpectedValueCalculation {
     public void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
 
         // Ignore NaN values    TODO -- is this the right thing to do?
-        if(Double.isNaN(weight)) return;
+        if (Double.isNaN(weight)) return;
 
         int dist;
         Chromosome chr = chromosomes.get(chrIdx);
@@ -192,11 +186,11 @@ public class ExpectedValueCalculation {
         densityAvg = new double[maxNumBins];
         // Smoothing.  Keep pointers to window size.  When read counts drops below 400 (= 5% shot noise), smooth
 
-        double numSum=actualDistances[0];
-        double denSum=possibleDistances[0];
-        int bound1=0;
-        int bound2=0;
-        for (int ii=0; ii<maxNumBins; ii++) {
+        double numSum = actualDistances[0];
+        double denSum = possibleDistances[0];
+        int bound1 = 0;
+        int bound2 = 0;
+        for (int ii = 0; ii < maxNumBins; ii++) {
             if (numSum < 400) {
                 while (numSum < 400 && bound2 < maxNumBins) {
                     // increase window size until window is big enough.  This code will only execute once;
@@ -205,8 +199,7 @@ public class ExpectedValueCalculation {
                     numSum += actualDistances[bound2];
                     denSum += possibleDistances[bound2];
                 }
-            }
-            else if (numSum >= 400 && bound2-bound1 > 0) {
+            } else if (numSum >= 400 && bound2 - bound1 > 0) {
                 while (numSum - actualDistances[bound1] - actualDistances[bound2] >= 400) {
                     numSum = numSum - actualDistances[bound1] - actualDistances[bound2];
                     denSum = denSum - possibleDistances[bound1] - possibleDistances[bound2];
@@ -214,16 +207,15 @@ public class ExpectedValueCalculation {
                     bound2--;
                 }
             }
-            densityAvg[ii] = numSum/denSum;
+            densityAvg[ii] = numSum / denSum;
             // Default case - bump the window size up by 2 to keep it centered for the next iteration
             if (bound2 + 2 < maxNumBins) {
-                numSum += actualDistances[bound2+1] + actualDistances[bound2+2];
-                denSum += possibleDistances[bound2+1] + possibleDistances[bound2+2];
+                numSum += actualDistances[bound2 + 1] + actualDistances[bound2 + 2];
+                denSum += possibleDistances[bound2 + 1] + possibleDistances[bound2 + 2];
                 bound2 += 2;
-            }
-            else if (bound2 + 1 < maxNumBins) {
-                numSum += actualDistances[bound2+1];
-                denSum += possibleDistances[bound2+1];
+            } else if (bound2 + 1 < maxNumBins) {
+                numSum += actualDistances[bound2 + 1];
+                denSum += possibleDistances[bound2 + 1];
                 bound2++;
             }
             // Otherwise, bound2 is at limit already
@@ -250,7 +242,7 @@ public class ExpectedValueCalculation {
                     // the total at the end should be the sum of the expected matrix for this chromosome
                     // i.e., for each chromosome, we calculate sum (genome-wide actual)/(genome-wide possible) == v
                     // then multiply it by the chromosome-wide possible == nChrBins - n.
-                    expectedCount +=  (nChrBins - n) * v;
+                    expectedCount += (nChrBins - n) * v;
 
                 }
             }
@@ -278,6 +270,7 @@ public class ExpectedValueCalculation {
     public double[] getDensityAvg() {
         return densityAvg;
     }
+
     /**
      * Accessor for the normalization type
      *
@@ -289,7 +282,7 @@ public class ExpectedValueCalculation {
 
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
-        return new ExpectedValueFunctionImpl(type, isFrag?"FRAG":"BP", gridSize, densityAvg, chrScaleFactors);
+        return new ExpectedValueFunctionImpl(type, isFrag ? "FRAG" : "BP", gridSize, densityAvg, chrScaleFactors);
     }
 }
 

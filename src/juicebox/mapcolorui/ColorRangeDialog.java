@@ -32,27 +32,26 @@ public class ColorRangeDialog extends JDialog {
         super(owner);
         initComponents(isObserved);
         this.colorSlider = colorSlider;
-        if (!isObserved)  colorRangeFactor = 8;
+        if (!isObserved) colorRangeFactor = 8;
         this.colorRangeFactor = colorRangeFactor;
         this.isObserved = isObserved;
 
 
-        df1 = new DecimalFormat( "#,###,###,##0" );
+        df1 = new DecimalFormat("#,###,###,##0");
         df2 = new DecimalFormat("##.##");
 
         if (isObserved) {
             minimumField.setText(df1.format(colorSlider.getMinimum() / colorRangeFactor));
             maximumField.setText(df1.format(colorSlider.getMaximum() / colorRangeFactor));
-        }
-        else {
-            minimumField.setText(df2.format(1/(colorSlider.getMaximum()/colorRangeFactor)));
-            maximumField.setText(df2.format(colorSlider.getMaximum()/colorRangeFactor));
+        } else {
+            minimumField.setText(df2.format(1 / (colorSlider.getMaximum() / colorRangeFactor)));
+            maximumField.setText(df2.format(colorSlider.getMaximum() / colorRangeFactor));
         }
         //tickSpacingField.setText(df.format(colorSlider.getMajorTickSpacing() / colorRangeFactor));
     }
 
 
-    private void okButtonActionPerformed(ActionEvent e)  {
+    private void okButtonActionPerformed(ActionEvent e) {
         double max = 0;
         double min = 0;
 
@@ -60,12 +59,10 @@ public class ColorRangeDialog extends JDialog {
             if (isObserved) {
                 max = df1.parse(maximumField.getText()).doubleValue();
                 min = df1.parse(minimumField.getText()).doubleValue();
-            }
-            else {
+            } else {
                 max = df2.parse(maximumField.getText()).doubleValue();
             }
-        }
-        catch (ParseException error) {
+        } catch (ParseException error) {
             JOptionPane.showMessageDialog(this, "Must enter a number", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -75,10 +72,9 @@ public class ColorRangeDialog extends JDialog {
         if (isObserved) {
             iMin = (int) (colorRangeFactor * min);
             iMax = (int) (colorRangeFactor * max);
-        }
-        else {
+        } else {
             iMax = (int) (max * colorRangeFactor);
-            iMin = (int) (colorRangeFactor/max);
+            iMin = (int) (colorRangeFactor / max);
         }
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
@@ -176,7 +172,7 @@ public class ColorRangeDialog extends JDialog {
                     } catch (ParseException error) {
                         return;
                     }
-                    minimumField.setText(df2.format(1/max));
+                    minimumField.setText(df2.format(1 / max));
                 }
             }
         });

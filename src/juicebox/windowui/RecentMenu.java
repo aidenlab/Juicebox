@@ -21,7 +21,7 @@ public abstract class RecentMenu extends JMenu {
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private final List<String> m_items = new ArrayList<String>();
 
-    public RecentMenu(String name, int count,String prefEntry) {
+    public RecentMenu(String name, int count, String prefEntry) {
         super(name);
 
         this.m_maxItems = count;
@@ -44,7 +44,7 @@ public abstract class RecentMenu extends JMenu {
     /**
      * Add new recent entry, update file and menu
      *
-     * @param savedEntry   Name and Value of entry.
+     * @param savedEntry Name and Value of entry.
      * @param updateFile also save to file, Constructor call with false - no need to re-write.
      */
     public void addEntry(String savedEntry, boolean updateFile) {

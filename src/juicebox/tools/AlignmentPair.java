@@ -56,7 +56,7 @@ public class AlignmentPair {
     }
 
     public AlignmentPair() {
-        this(false,-1,-1,-1,-1,false,-1,-1,-1,-1);
+        this(false, -1, -1, -1, -1, false, -1, -1, -1, -1);
         this.isContigPair = true;
     }
 
@@ -77,9 +77,13 @@ public class AlignmentPair {
         return pos2;
     }
 
-    public int getMapq1() { return mapq1; }
+    public int getMapq1() {
+        return mapq1;
+    }
 
-    public int getMapq2() { return mapq2; }
+    public int getMapq2() {
+        return mapq2;
+    }
 
     public boolean getStrand1() {
         return strand1;
@@ -105,12 +109,12 @@ public class AlignmentPair {
         return frag2;
     }
 
-    public void setScore(float score1) {
-        this.score = score1;
-    }
-
     public float getScore() {
         return score;
+    }
+
+    public void setScore(float score1) {
+        this.score = score1;
     }
 
     public String toString() {

@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 /**
  * UI delegate for the RangeSlider component.  RangeSliderUI paints two thumbs,
  * one for the lower value and one for the upper value.
+ *
  * @author Ernest Yu
  * @modified Muhammad S Shamim
  */
@@ -19,10 +20,10 @@ class RangeSliderUI extends BasicSliderUI {
      * Color of selected range.
      */
     private final Color rangeColor = Color.RED;
-    private final Color[] gradientColors = { Color.WHITE,  Color.RED};
+    private final Color[] gradientColors = {Color.WHITE, Color.RED};
     private final float[] fractions = {0.0f, 1.0f};
 
-    private final Color[] gradientColorsOE = { Color.BLUE, Color.WHITE, Color.RED};
+    private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
 
     private boolean colorIsOE = false;
@@ -209,8 +210,7 @@ class RangeSliderUI extends BasicSliderUI {
             if (colorIsOE) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
-            }
-            else{
+            } else {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, Color.RED, rightSide);
             }
@@ -246,7 +246,7 @@ class RangeSliderUI extends BasicSliderUI {
 
     private void drawSubTrackRectangles(Graphics2D g, LinearGradientPaint gradientColor, Rectangle gradientRect,
                                         Paint leftColor, Rectangle leftRect,
-                                        Paint rightColor, Rectangle rightRect){
+                                        Paint rightColor, Rectangle rightRect) {
         g.setPaint(gradientColor);
         g.fill(gradientRect);
 
@@ -284,7 +284,6 @@ class RangeSliderUI extends BasicSliderUI {
         thumbRect = tmp;
 
     }
-
 
 
     /**
@@ -341,6 +340,10 @@ class RangeSliderUI extends BasicSliderUI {
                 slider.setValue(oldValue + delta);
             }
         }
+    }
+
+    public void setDisplayToOE(boolean isOE) {
+        this.colorIsOE = isOE;
     }
 
     /**
@@ -574,9 +577,5 @@ class RangeSliderUI extends BasicSliderUI {
                 default:
             }
         }
-    }
-
-    public void setDisplayToOE(boolean isOE){
-        this.colorIsOE = isOE;
     }
 }

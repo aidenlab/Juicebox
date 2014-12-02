@@ -17,9 +17,9 @@ public class SymmetricMatrix implements BasicMatrix {
 
     private final int dim;
     private final float[] data;
+    private final Set<Integer> nullColumns;
     private float lowerValue = Float.NaN;
     private float upperValue = Float.NaN;
-    private final Set<Integer> nullColumns;
 
     public SymmetricMatrix(int dim) {
         this.dim = dim;
@@ -84,7 +84,7 @@ public class SymmetricMatrix implements BasicMatrix {
     @Override
     public float getEntry(int i, int j) {
         int idx = getIdx(i, j);
-        return idx < data.length ? data[idx]  : Float.NaN;
+        return idx < data.length ? data[idx] : Float.NaN;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class SymmetricMatrix implements BasicMatrix {
 
     @Override
     public float getLowerValue() {
-        if(Float.isNaN(lowerValue)) {
+        if (Float.isNaN(lowerValue)) {
             computePercentiles();
         }
         return lowerValue;
@@ -107,7 +107,7 @@ public class SymmetricMatrix implements BasicMatrix {
 
     @Override
     public float getUpperValue() {
-        if(Float.isNaN(upperValue)) {
+        if (Float.isNaN(upperValue)) {
             computePercentiles();
         }
         return upperValue;

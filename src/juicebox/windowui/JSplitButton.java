@@ -18,86 +18,30 @@ import java.awt.image.BufferedImage;
  */
 public class JSplitButton extends AbstractButton implements Accessible {
 
-    private class AccessibleJSplitButton extends AccessibleAbstractButton {
-
-        private static final long serialVersionUID = 1L;
-
-        /* (non-Javadoc)
-         * @see javax.swing.JComponent.
-         * AccessibleJComponent#getAccessibleRole()
-         */
-        @Override
-        public AccessibleRole getAccessibleRole() {
-            return AccessibleRole.PUSH_BUTTON;
-        }
-
-    }
-
-    private class PopupAction implements ActionListener {
-
-        private final JPopupMenu popupMenu;
-
-        public PopupAction(JPopupMenu popupMenu) {
-            this.popupMenu = popupMenu;
-        }
-
-        /* (non-Javadoc)
-         * @see java.awt.event.ActionListener#actionPerformed(
-         * java.awt.event.ActionEvent)
-         */
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            Component comp = (Component) e.getSource();
-            Point popupLocation = getPopupLocationRelativeTo(comp);
-            popupMenu.show(comp, popupLocation.x, popupLocation.y);
-        }
-
-        public JPopupMenu getPopupMenu() {
-            return popupMenu;
-        }
-
-    }
-
     private static final long serialVersionUID = 1L;
-
     private static final String uiClassID = "ButtonUI";
-
     private static final int DEFAULT_POPUP_ICON_LENGTH = 10;
-
     private static final String ALWAYS_SHOWS_POPUP_CHANGED_PROPERTY =
             "alwaysShowPopup";
-
     private static final String SPLIT_GAP_CHANGED_PROPERTY = "splitGap";
-
     private static final String POPUP_ICON_CHANGED_PROPERTY = "popupIcon";
-
     private static final String DISABLED_POPUP_ICON_CHANGED_PROPERTY =
             "disabledPopupIcon";
-
     private static final String
             DISABLED_SELECTED_POPUP_ICON_CHANGED_PROPERTY = "disabledSelectedPopupIcon";
-
     private static final String PRESSED_POPUP_ICON_CHANGED_PROPERTY =
             "pressedPopupIcon";
-
     private static final String ROLLOVER_POPUP_ICON_CHANGED_PROPERTY =
             "rolloverPopupIcon";
-
     private static final String
             ROLLOVER_SELECTED_POPUP_ICON_CHANGED_PROPERTY = "rolloverSelectedPopupIcon";
-
     private static final String SELECTED_POPUP_ICON_CHANGED_PROPERTY =
             "selectedPopupIcon";
-
     private static final String MAIN_TEXT_CHANGED_PROPERTY = "mainText";
-
-    private PopupAction popupAction;
-
     private final JButton mainButton;
     private final JButton popupButton;
-
+    private PopupAction popupAction;
     private boolean alwaysShowPopup;
-
     private int splitGap = 5;
 
     /**
@@ -707,6 +651,46 @@ public class JSplitButton extends AbstractButton implements Accessible {
             if (comp == this) width += insets.left;
             return new Point(width, height);
         }
+    }
+
+    private class AccessibleJSplitButton extends AccessibleAbstractButton {
+
+        private static final long serialVersionUID = 1L;
+
+        /* (non-Javadoc)
+         * @see javax.swing.JComponent.
+         * AccessibleJComponent#getAccessibleRole()
+         */
+        @Override
+        public AccessibleRole getAccessibleRole() {
+            return AccessibleRole.PUSH_BUTTON;
+        }
+
+    }
+
+    private class PopupAction implements ActionListener {
+
+        private final JPopupMenu popupMenu;
+
+        public PopupAction(JPopupMenu popupMenu) {
+            this.popupMenu = popupMenu;
+        }
+
+        /* (non-Javadoc)
+         * @see java.awt.event.ActionListener#actionPerformed(
+         * java.awt.event.ActionEvent)
+         */
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Component comp = (Component) e.getSource();
+            Point popupLocation = getPopupLocationRelativeTo(comp);
+            popupMenu.show(comp, popupLocation.x, popupLocation.y);
+        }
+
+        public JPopupMenu getPopupMenu() {
+            return popupMenu;
+        }
+
     }
 }
 

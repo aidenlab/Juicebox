@@ -29,27 +29,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MatrixZoomData {
 
     private static final Logger log = Logger.getLogger(MatrixZoomData.class);
-
-    DatasetReader reader;
-
     private final Chromosome chr1;  // Chromosome on the X axis
     private final Chromosome chr2;  // Chromosome on the Y axis
     private final HiCZoom zoom;    // Unit and bin size
-
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
-
     // Observed values are ogranized into sub-matrices ("blocks")
     private final int blockBinCount;   // block size in bins
     private final int blockColumnCount;     // number of block columns
-
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
-    private double averageCount = -1;
-
-
     // Cache the last 20 blocks loaded
     private final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
+    DatasetReader reader;
+    private double averageCount = -1;
 
 
 //    float sumCounts;
@@ -220,7 +213,7 @@ public class MatrixZoomData {
         }
 
         // untested since files got fixed :P - MSS
-        if(errorCounter.get() > 0){
+        if (errorCounter.get() > 0) {
             MessageUtils.showMessage("Normalizations could not be loaded at this resolution");
         }
 
@@ -694,12 +687,12 @@ public class MatrixZoomData {
         }
     }
 
-    public void setAverageCount(double averageCount) {
-        this.averageCount = averageCount;
-    }
-
     public double getAverageCount() {
         return averageCount;
+    }
+
+    public void setAverageCount(double averageCount) {
+        this.averageCount = averageCount;
     }
 
     public Iterator<ContactRecord> contactRecordIterator() {
@@ -708,8 +701,8 @@ public class MatrixZoomData {
 
     public class ContactRecordIterator implements Iterator<ContactRecord> {
 
-        int blockIdx;
         final List<Integer> blockNumbers;
+        int blockIdx;
         Iterator<ContactRecord> currentBlockIterator;
 
         public ContactRecordIterator() {

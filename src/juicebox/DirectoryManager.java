@@ -29,12 +29,10 @@ import java.util.prefs.Preferences;
 public class DirectoryManager {
 
     private static final Logger log = Logger.getLogger(DirectoryManager.class);
-
+    private final static String HIC_DIR_USERPREF = "hicDir";
     private static File USER_HOME;
     private static File USER_DIRECTORY;    // FileSystemView.getFileSystemView().getDefaultDirectory();
     private static File HIC_DIRECTORY;     // The HIC application directory
-    private final static String HIC_DIR_USERPREF = "hicDir";
-
 
     private static File getUserHome() {
         if (USER_HOME == null) {
@@ -165,8 +163,6 @@ public class DirectoryManager {
         return logFile;
 
     }
-
-
 
 
     private static boolean canWrite(File directory) {

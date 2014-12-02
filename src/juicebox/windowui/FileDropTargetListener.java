@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class FileDropTargetListener implements DropTargetListener {
 
-    private MainWindow mainWindow;
+    private final MainWindow mainWindow;
 
     public FileDropTargetListener(MainWindow mainWindow) {
         this.mainWindow = mainWindow;

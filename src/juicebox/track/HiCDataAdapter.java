@@ -62,7 +62,7 @@ public abstract class HiCDataAdapter implements HiCDataSource {
             int gStart = gridAxis.getGenomicStart(startBin);
             int gEnd = gridAxis.getGenomicEnd(endBin);
 
-            List<LocusScore> scores = getLocusScores(chr.getName(),  gStart, gEnd, igvZoom, windowFunction);
+            List<LocusScore> scores = getLocusScores(chr.getName(), gStart, gEnd, igvZoom, windowFunction);
             if (scores == null) return null;
 
             int nPts = 0;

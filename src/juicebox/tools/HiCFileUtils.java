@@ -21,15 +21,15 @@ public class HiCFileUtils {
 
     private Dataset dataset;
 
+    private HiCFileUtils(String hicfile) throws IOException {
+        DatasetReaderV2 reader = new DatasetReaderV2(hicfile);
+        dataset = reader.read();
+    }
+
     public static void main(String[] args) throws IOException {
         HiCFileUtils utils = new HiCFileUtils(args[0]);
         //utils.dumpNormalizationVectors("KR", "1", "BP", 250000);
         utils.dumpExpectedVectors("KR", "BP", 1000000);
-    }
-
-    private HiCFileUtils(String hicfile) throws IOException {
-        DatasetReaderV2 reader = new DatasetReaderV2(hicfile);
-        dataset = reader.read();
     }
 
     public void dumpNormalizationVectors(String type, String chrName, String unitName, int binSize) {
@@ -39,17 +39,17 @@ public class HiCFileUtils {
         Chromosome chromosome = findChromosome(chrName);
         HiC.Unit unit = HiC.Unit.valueOf(unitName);
         HiCZoom zoom = new HiCZoom(unit, binSize);
-        NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(),zoom, no);
+        NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, no);
         String label = "Normalization vector: type = " + type + " chr = " + chrName +
                 " resolution = " + binSize + " " + unitName;
         System.out.println(label);
-        double [] data = nv.getData();
+        double[] data = nv.getData();
         /*
         for(int i=0; i<data.length; i++) {
             System.out.println(data[i]);
         }
         */
-        for(double datum : data){
+        for (double datum : data) {
             System.out.println(datum);
         }
 
@@ -79,7 +79,7 @@ public class HiCFileUtils {
                     System.out.println(values[i]);
                 }
                 */
-                for(double datum : values){
+                for (double datum : values) {
                     System.out.println(datum);
                 }
 
@@ -94,8 +94,8 @@ public class HiCFileUtils {
 
     private Chromosome findChromosome(String name) {
 
-        for(Chromosome chr : dataset.getChromosomes()) {
-            if(chr.getName().equals(name)) return chr;
+        for (Chromosome chr : dataset.getChromosomes()) {
+            if (chr.getName().equals(name)) return chr;
         }
         return null;
     }
