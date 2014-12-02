@@ -68,9 +68,9 @@ public class MainWindow extends JFrame {
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
     private static final int recentMapListMaxItems = 20;
-    private static final int recentStateMaxItems = 20;
+    private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
-    private static final String recentStateEntityNode = "hicStateRecent";
+    private static final String recentLocationEntityNode = "hicLocationRecent";
     public static Cursor fistCursor;
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
@@ -667,10 +667,10 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void clearStateActionPerformed() {
+    private void clearLocationActionPerformed() {
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        for (int i = 0; i < recentStateMaxItems; i++) {
-            prefs.remove(recentStateEntityNode + i);
+        for (int i = 0; i < recentLocationMaxItems; i++) {
+            prefs.remove(recentLocationEntityNode + i);
         }
     }
 
@@ -1622,9 +1622,9 @@ public class MainWindow extends JFrame {
         saveLocationList.setText("Save current location");
         saveLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //code to add a recent file to the menu
+                //code to add a recent location to the menu
                 String stateString = hic.saveState();
-                String stateDescriptionString = hic.getStateDescription();
+                String stateDescriptionString = hic.getDefaultLocationDescription();
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
                         "Enter description for saved location:", stateDescriptionString);
                 if (null != stateDescription) {
@@ -1636,7 +1636,7 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(saveLocationList);
 
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentStateMaxItems,recentStateEntityNode) {
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1655,7 +1655,7 @@ public class MainWindow extends JFrame {
         clearLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //Clear all items from preferences:
-                clearStateActionPerformed();
+                clearLocationActionPerformed();
                 //clear the existing items
                 recentLocationMenu.removeAll();
             }

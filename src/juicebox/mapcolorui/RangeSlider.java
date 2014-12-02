@@ -80,6 +80,7 @@ public class RangeSlider extends JSlider implements Serializable {
     }
 
     public void setLowerValue(int value) {
+
         setValue(value);
     }
 

@@ -693,7 +693,7 @@ public class HiC {
 
     private Chromosome getChromosomeNamed(String token) {
         for (Chromosome chr : chromosomes) {
-            if (token.equals(chr.getName()) || String.valueOf("chr").concat(token).equals(chr.getName())) return chr;
+            if (token.toLowerCase().equals(chr.getName().toLowerCase()) || String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) || token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase()))) return chr;
         }
         return null;
     }
@@ -709,6 +709,15 @@ public class HiC {
 
             Chromosome chrX = getChromosomeNamed(chrXName);
             Chromosome chrY = getChromosomeNamed(chrYName);
+
+            if (chrX == null || chrY == null) {
+                //Chromosomes do not appear to exist in current map.
+                log.info("Chromosome(s) not found.");
+                log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
+                return;
+            }
+
+
             this.xContext = new Context(chrX);
             this.yContext = new Context(chrY);
             mainWindow.setSelectedChromosomesNoRefresh(chrX, chrY);
@@ -735,9 +744,19 @@ public class HiC {
     }
 
     public void broadcastState() {
+        String xChr = xContext.getChromosome().getName();
+        String yChr = yContext.getChromosome().getName();
+
+        if(!(xChr.toLowerCase().contains("chr"))){
+            xChr = "chr" + xChr;
+        }
+        if(!(yChr.toLowerCase().contains("chr"))){
+            yChr = "chr" + yChr;
+        }
+
         String command = "setstate " +
-                xContext.getChromosome().getName() + " " +
-                yContext.getChromosome().getName() + " " +
+                xChr + " " +
+                yChr + " " +
                 zoom.getUnit().toString() + " " +
                 zoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " +
@@ -747,9 +766,19 @@ public class HiC {
         CommandBroadcaster.broadcast(command);
     }
     public String saveState() {
+        String xChr = xContext.getChromosome().getName();
+        String yChr = yContext.getChromosome().getName();
+
+        if(!(xChr.toLowerCase().contains("chr"))){
+            xChr = "chr" + xChr;
+        }
+        if(!(yChr.toLowerCase().contains("chr"))){
+            yChr = "chr" + yChr;
+        }
+
         String command = "setstate " +
-                xContext.getChromosome().getName() + " " +
-                yContext.getChromosome().getName() + " " +
+                xChr + " " +
+                yChr + " " +
                 zoom.getUnit().toString() + " " +
                 zoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " +
@@ -760,11 +789,21 @@ public class HiC {
         // CommandBroadcaster.broadcast(command);
     }
 
-    public String getStateDescription() {
-        String command = "Chr" +
-                xContext.getChromosome().getName() + "@" +
-                (long)(xContext.getBinOrigin()*zoom.getBinSize()) + "_Chr" +
-                yContext.getChromosome().getName() + "@" +
+    public String getDefaultLocationDescription() {
+
+        String xChr = xContext.getChromosome().getName();
+        String yChr = yContext.getChromosome().getName();
+
+        if(!(xChr.toLowerCase().contains("chr"))){
+            xChr = "chr" + xChr;
+        }
+        if(!(yChr.toLowerCase().contains("chr"))){
+            yChr = "chr" + yChr;
+        }
+
+        String command = xChr + "@" +
+                (long)(xContext.getBinOrigin()*zoom.getBinSize()) + "_" +
+                yChr + "@" +
                 (long)(yContext.getBinOrigin()*zoom.getBinSize());
 
         return command;
