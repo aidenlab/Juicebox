@@ -59,9 +59,6 @@ public class MainWindow extends JFrame {
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
     private static RecentMenu recentMapMenu;
-    private static RecentMenu recentStateMenu;
-    private static JMenuItem saveStateList;
-    private static JMenuItem clearStateList;
     private String currentlyLoadedFile = "";
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
@@ -108,6 +105,14 @@ public class MainWindow extends JFrame {
 
     private JPanel hiCPanel;
     private JMenu annotationsMenu;
+
+
+    private JMenu bookmarksMenu;
+    private static RecentMenu recentLocationMenu;
+    private static JMenuItem saveLocationList;
+    private static JMenuItem clearLocationList;
+
+
     private HiCZoom initialZoom;
     private String saveImagePath;
 
@@ -418,9 +423,9 @@ public class MainWindow extends JFrame {
                         minusButton.setEnabled(true);
                         annotationsMenu.setEnabled(true);
 
-                        saveStateList.setEnabled(true);
-                        recentStateMenu.setEnabled(true);
-                        clearStateList.setEnabled(true);
+                        saveLocationList.setEnabled(true);
+                        recentLocationMenu.setEnabled(true);
+                        clearLocationList.setEnabled(true);
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
@@ -785,7 +790,7 @@ public class MainWindow extends JFrame {
     }
 
     public RecentMenu getRecentStateMenu(){
-        return recentStateMenu;
+        return recentLocationMenu;
     }
 
     public void showGlassPane() {
@@ -1565,111 +1570,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(clearMapList);
 
-        //Recent saved states
         fileMenu.addSeparator();
-
-        //---- Save Recent ----
-        saveStateList = new JMenuItem();
-        saveStateList.setText("Save current location");
-        saveStateList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //code to add a recent file to the menu
-                String stateString = hic.saveState();
-                String stateDescriptionString = hic.getStateDescription();
-                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved location:",stateDescriptionString);
-                if(null != stateDescription) {
-                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
-                }
-            }
-        });
-        saveStateList.setEnabled(false);
-        fileMenu.add(saveStateList);
-
-
-        recentStateMenu = new RecentMenu("Restore saved location", recentStateMaxItems,recentStateEntityNode) {
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
-                hic.restoreState(temp[1]);//temp[1]
-                setNormalizationDisplayState();
-            }
-        };
-        recentStateMenu.setMnemonic('S');
-        recentStateMenu.setEnabled(false);
-        fileMenu.add(recentStateMenu);
-
-        //---- Clear Recent state ----
-        clearStateList = new JMenuItem();
-        clearStateList.setText("Clear saved locations list");
-        clearStateList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Clear all items from preferences:
-                clearStateActionPerformed();
-                //clear the existing items
-                recentStateMenu.removeAll();
-            }
-        });
-
-        clearStateList.setEnabled(false);
-        fileMenu.add(clearStateList);
-
-        fileMenu.addSeparator();
-
-        annotationsMenu = new JMenu("Annotations");
-
-        JMenuItem newLoadMI = new JMenuItem();
-        newLoadMI.setAction(new LoadAction("Load Basic Annotations...", this, hic));
-        annotationsMenu.add(newLoadMI);
-
-        /*
-        JMenuItem loadSpecificMI = new JMenuItem();
-        loadSpecificMI.setAction(new LoadEncodeAction("Load Tracks by Cell Type...", this, hic, "hic"));
-        annotationsMenu.add(loadSpecificMI);
-        */
-
-        JMenuItem loadEncodeMI = new JMenuItem();
-        loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
-        annotationsMenu.add(loadEncodeMI);
-
-
-        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
-
-        showLoopsItem.setSelected(true);
-        showLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                hic.setShowLoops(showLoopsItem.isSelected());
-                repaint();
-            }
-        });
-        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-
-        annotationsMenu.add(showLoopsItem);
-
-        annotationsMenu.setEnabled(false);
-
-        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
-        loadFromURLItem.addActionListener(new AbstractAction() {
-            private static final long serialVersionUID = 42L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (hic.getDataset() == null) {
-                    JOptionPane.showMessageDialog(MainWindow.this, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String url = JOptionPane.showInputDialog("Enter URL: ");
-                if (url != null) {
-                    hic.loadTrack(url);
-
-                }
-
-            }
-        });
-
 
         JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
         showStats.addActionListener(new ActionListener() {
@@ -1725,8 +1626,114 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(exit);
 
+        annotationsMenu = new JMenu("Annotations");
+
+        JMenuItem newLoadMI = new JMenuItem();
+        newLoadMI.setAction(new LoadAction("Load Basic Annotations...", this, hic));
+        annotationsMenu.add(newLoadMI);
+
+        /*
+        JMenuItem loadSpecificMI = new JMenuItem();
+        loadSpecificMI.setAction(new LoadEncodeAction("Load Tracks by Cell Type...", this, hic, "hic"));
+        annotationsMenu.add(loadSpecificMI);
+        */
+
+        JMenuItem loadEncodeMI = new JMenuItem();
+        loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
+        annotationsMenu.add(loadEncodeMI);
+
+
+        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
+
+        showLoopsItem.setSelected(true);
+        showLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setShowLoops(showLoopsItem.isSelected());
+                repaint();
+            }
+        });
+        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+
+        annotationsMenu.add(showLoopsItem);
+
+        annotationsMenu.setEnabled(false);
+
+        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
+        loadFromURLItem.addActionListener(new AbstractAction() {
+            private static final long serialVersionUID = 42L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (hic.getDataset() == null) {
+                    JOptionPane.showMessageDialog(MainWindow.this, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String url = JOptionPane.showInputDialog("Enter URL: ");
+                if (url != null) {
+                    hic.loadTrack(url);
+
+                }
+
+            }
+        });
+
+        bookmarksMenu = new JMenu("Bookmarks");
+        //Recent saved states
+        bookmarksMenu.addSeparator();
+
+        //---- Save Recent ----
+        saveLocationList = new JMenuItem();
+        saveLocationList.setText("Save current location");
+        saveLocationList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent file to the menu
+                String stateString = hic.saveState();
+                String stateDescriptionString = hic.getStateDescription();
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved location:", stateDescriptionString);
+                if (null != stateDescription) {
+                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
+                }
+            }
+        });
+        saveLocationList.setEnabled(false);
+        bookmarksMenu.add(saveLocationList);
+
+
+        recentLocationMenu = new RecentMenu("Restore saved location", recentStateMaxItems,recentStateEntityNode) {
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                hic.restoreState(temp[1]);//temp[1]
+                setNormalizationDisplayState();
+            }
+        };
+        recentLocationMenu.setMnemonic('S');
+        recentLocationMenu.setEnabled(false);
+        bookmarksMenu.add(recentLocationMenu);
+
+        //---- Clear Recent state ----
+        clearLocationList = new JMenuItem();
+        clearLocationList.setText("Clear saved locations list");
+        clearLocationList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //Clear all items from preferences:
+                clearStateActionPerformed();
+                //clear the existing items
+                recentLocationMenu.removeAll();
+            }
+        });
+
+        clearLocationList.setEnabled(false);
+        bookmarksMenu.add(clearLocationList);
+
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
+        menuBar.add(bookmarksMenu);
         return menuBar;
     }
 
