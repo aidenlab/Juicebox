@@ -33,9 +33,9 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -331,6 +331,9 @@ public class MainWindow extends JFrame {
         } else {
             currentlyLoadedFile = file;
         }
+
+        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
 
         hic.setNormalizationType(NormalizationType.NONE);
 
@@ -789,6 +792,7 @@ public class MainWindow extends JFrame {
     }
 
     public void showGlassPane() {
+        MessageUtils.setStatusBarMessage("Loading Map");// .showMessage("Loading Map");
         setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
     }
 
@@ -1150,7 +1154,6 @@ public class MainWindow extends JFrame {
 
         //---- heatmapPanel ----
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         heatmapPanel.setMaximumSize(new Dimension(800, 800));
         heatmapPanel.setMinimumSize(new Dimension(800, 800));
         heatmapPanel.setPreferredSize(new Dimension(800, 800));
@@ -1188,7 +1191,7 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setMaximumSize(new Dimension(200, 200));
         thumbnailPanel.setMinimumSize(new Dimension(200, 200));
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
         thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
@@ -1199,9 +1202,9 @@ public class MainWindow extends JFrame {
 
         mouseHoverTextPanel = new JLabel();
         mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.CENTER);
+        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
         mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.CENTER);
-        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         Dimension prefSize = new Dimension(170, 490);
