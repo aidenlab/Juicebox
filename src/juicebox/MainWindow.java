@@ -33,9 +33,9 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -333,6 +333,9 @@ public class MainWindow extends JFrame {
             currentlyLoadedFile = file;
         }
 
+        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
@@ -446,6 +449,11 @@ public class MainWindow extends JFrame {
 
     public void refreshChromosomes() {
 
+        if(chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0 ){
+            chrBox1.setSelectedIndex(0);
+            chrBox2.setSelectedIndex(0);
+        }
+
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
 
@@ -475,7 +483,12 @@ public class MainWindow extends JFrame {
         // Test for new dataset ("All"),  or change in chromosome
         final boolean wholeGenome = chrY.getName().equals("All");
         final boolean intraChr = chr1.getIndex() != chr2.getIndex();
-        if (wholeGenome || intraChr) {
+        if (wholeGenome) { // for now only allow observed
+            hic.setDisplayOption(MatrixType.OBSERVED);
+            displayOptionComboBox.setSelectedIndex(0);
+            normalizationComboBox.setSelectedIndex(0);
+        }
+        else if(intraChr){
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
@@ -484,7 +497,7 @@ public class MainWindow extends JFrame {
 
         normalizationComboBox.setEnabled(!wholeGenome);
         // Actually we'd like to enable
-        displayOptionComboBox.setEnabled(true);
+        displayOptionComboBox.setEnabled(!wholeGenome); // TODO add capability to view whole genome in OE, etc
     }
 
     public void repaintTrackPanels() {
@@ -795,6 +808,7 @@ public class MainWindow extends JFrame {
     }
 
     public void showGlassPane() {
+        MessageUtils.setStatusBarMessage("Loading Map");// .showMessage("Loading Map");
         setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
     }
 
@@ -1266,7 +1280,7 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setMaximumSize(new Dimension(200, 200));
         thumbnailPanel.setMinimumSize(new Dimension(200, 200));
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
         thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
@@ -1277,9 +1291,9 @@ public class MainWindow extends JFrame {
 
         mouseHoverTextPanel = new JLabel();
         mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.CENTER);
+        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
         mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.CENTER);
-        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         Dimension prefSize = new Dimension(170, 490);
@@ -1755,7 +1769,7 @@ public class MainWindow extends JFrame {
 
         clearLocationList.setEnabled(false);
         bookmarksMenu.add(clearLocationList);
-        bookmarksMenu.addSeparator();
+        //bookmarksMenu.addSeparator();
 
 
         //========= Positioning panel ======
