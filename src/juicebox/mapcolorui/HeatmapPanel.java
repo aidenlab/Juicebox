@@ -279,7 +279,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 loopGraphics.drawRect(x, y, w, h);
                 //loopGraphics.drawLine(x,y,x,y+w);
                 //loopGraphics.drawLine(x,y+w,x+h,y+w);
-                System.out.println(binStart1 + "-" + binEnd1);
+                //System.out.println(binStart1 + "-" + binEnd1);
                 if (w > 5) {
                     // Thick line if there is room.
                     loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);

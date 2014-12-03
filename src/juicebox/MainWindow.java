@@ -86,6 +86,7 @@ public class MainWindow extends JFrame {
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static JideButton refreshButton;
+    private static JideButton goButton;
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JideButton plusButton;
@@ -417,6 +418,7 @@ public class MainWindow extends JFrame {
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
+                        goButton.setEnabled(true);
 
                         refresh(); // an additional refresh seems to remove the upper left black corner
                     } catch (IOException error) {
@@ -522,7 +524,11 @@ public class MainWindow extends JFrame {
 
     private void setInitialZoom() {
 
-        if (hic.getXContext().getChromosome().getName().equals("All")) {
+        //For now, in case of Pearson - set initial to 500KB resolution.
+        if((hic.getDisplayOption() == MatrixType.PEARSON)){
+            initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
+        }
+        else if (hic.getXContext().getChromosome().getName().equals("All")) {
             resolutionSlider.setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {
@@ -929,8 +935,35 @@ public class MainWindow extends JFrame {
         refreshButton.setEnabled(false);
         chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
 
+        //======== Display Option Panel ========
+        JPanel displayOptionPanel = new JPanel();
+        displayOptionPanel.setBackground(new Color(238, 238, 238));
+        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
+        displayOptionPanel.setLayout(new BorderLayout());
+        JPanel displayOptionLabelPanel = new JPanel();
+        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
+        displayOptionLabelPanel.setLayout(new BorderLayout());
 
-        //======== normalizationPanel ========
+        JLabel displayOptionLabel = new JLabel("Show");
+        displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
+        displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
+        JPanel displayOptionButtonPanel = new JPanel();
+        displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+        displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
+        displayOptionComboBox = new JComboBox<MatrixType>();
+        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
+        displayOptionComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                displayOptionComboBoxActionPerformed(e);
+            }
+        });
+        displayOptionButtonPanel.add(displayOptionComboBox);
+        displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
+        toolbarPanel.add(displayOptionPanel);
+        displayOptionComboBox.setEnabled(false);
+
+        //======== Normalization Panel ========
         JPanel normalizationPanel = new JPanel();
         normalizationPanel.setBackground(new Color(238, 238, 238));
         normalizationPanel.setBorder(LineBorder.createGrayLineBorder());
@@ -960,36 +993,75 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(normalizationPanel);
         normalizationComboBox.setEnabled(false);
 
+        //======== Resolution Panel ========
+        hiCPanel = new JPanel();
+        hiCPanel.setBackground(Color.white);
+        hiCPanel.setLayout(new HiCLayout());
+        splitPanel.insertPane(hiCPanel, 0);
+        splitPanel.setBackground(Color.white);
 
-        //======== displayOptionPanel ========
-        JPanel displayOptionPanel = new JPanel();
-        displayOptionPanel.setBackground(new Color(238, 238, 238));
-        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
-        displayOptionPanel.setLayout(new BorderLayout());
-        JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
-        displayOptionLabelPanel.setLayout(new BorderLayout());
+        //---- rulerPanel2 ----
+        JPanel topPanel = new JPanel();
+        topPanel.setBackground(Color.white);
+        topPanel.setLayout(new BorderLayout());
+        hiCPanel.add(topPanel, BorderLayout.NORTH);
+        trackLabelPanel = new TrackLabelPanel(hic);
+        trackLabelPanel.setBackground(Color.white);
+        hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
-        JLabel displayOptionLabel = new JLabel("Show");
-        displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
-        displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
-        JPanel displayOptionButtonPanel = new JPanel();
-        displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-        displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        displayOptionComboBox = new JComboBox<MatrixType>();
-        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
-        displayOptionComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                displayOptionComboBoxActionPerformed(e);
-            }
-        });
-        displayOptionButtonPanel.add(displayOptionComboBox);
-        displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        toolbarPanel.add(displayOptionPanel);
-        displayOptionComboBox.setEnabled(false);
+        trackPanelX = new TrackPanel(this, hic, TrackPanel.Orientation.X);
+        trackPanelX.setMaximumSize(new Dimension(4000, 50));
+        trackPanelX.setPreferredSize(new Dimension(1, 50));
+        trackPanelX.setMinimumSize(new Dimension(1, 50));
+        trackPanelX.setVisible(false);
+        topPanel.add(trackPanelX, BorderLayout.NORTH);
 
-        //======== colorRangePanel ========
+
+        rulerPanelX = new HiCRulerPanel(hic);
+        rulerPanelX.setMaximumSize(new Dimension(4000, 50));
+        rulerPanelX.setMinimumSize(new Dimension(1, 50));
+        rulerPanelX.setPreferredSize(new Dimension(1, 50));
+        rulerPanelX.setBorder(null);
+        topPanel.add(rulerPanelX, BorderLayout.SOUTH);
+
+
+        //---- rulerPanel1 ----
+        JPanel leftPanel = new JPanel();
+        leftPanel.setBackground(Color.white);
+        leftPanel.setLayout(new BorderLayout());
+        hiCPanel.add(leftPanel, BorderLayout.WEST);
+
+        trackPanelY = new TrackPanel(this, hic, TrackPanel.Orientation.Y);
+        trackPanelY.setMaximumSize(new Dimension(50, 4000));
+        trackPanelY.setPreferredSize(new Dimension(50, 1));
+        trackPanelY.setMinimumSize(new Dimension(50, 1));
+        trackPanelY.setVisible(false);
+        leftPanel.add(trackPanelY, BorderLayout.WEST);
+
+        rulerPanelY = new HiCRulerPanel(hic);
+        rulerPanelY.setMaximumSize(new Dimension(50, 4000));
+        rulerPanelY.setPreferredSize(new Dimension(50, 800));
+        rulerPanelY.setBorder(null);
+        rulerPanelY.setMinimumSize(new Dimension(50, 1));
+        leftPanel.add(rulerPanelY, BorderLayout.EAST);
+
+        //---- heatmapPanel ----
+        heatmapPanel = new HeatmapPanel(this, hic);
+        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        heatmapPanel.setMaximumSize(new Dimension(800, 800));
+        heatmapPanel.setMinimumSize(new Dimension(800, 800));
+        heatmapPanel.setPreferredSize(new Dimension(800, 800));
+        // heatmapPanel.setBackground(new Color(238, 238, 238));
+        heatmapPanel.setBackground(Color.white);
+        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
+
+
+        // needs to be created after heatmap panel
+        // Resolution  panel
+        resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
+        toolbarPanel.add(resolutionSlider);
+
+        //======== Color Range Panel ========
 
         JPanel colorRangePanel = new JPanel();
         colorRangePanel.setLayout(new BorderLayout());
@@ -1095,74 +1167,80 @@ public class MainWindow extends JFrame {
         colorRangePanel.setMaximumSize(new Dimension(32769, 70));
         toolbarPanel.add(colorRangePanel);
 
+        //======== Goto Panel ========
+        JPanel goPanel = new JPanel();
+        goPanel.setBackground(new Color(238, 238, 238));
+        goPanel.setBorder(LineBorder.createGrayLineBorder());
+        goPanel.setLayout(new BorderLayout());
+        JPanel goLabelPanel = new JPanel();
+        goLabelPanel.setBackground(new Color(204, 204, 204));
+        goLabelPanel.setLayout(new BorderLayout());
 
-        //======== hiCPanel ========
-        hiCPanel = new JPanel();
-        hiCPanel.setBackground(Color.white);
-        hiCPanel.setLayout(new HiCLayout());
-        splitPanel.insertPane(hiCPanel, 0);
-        splitPanel.setBackground(Color.white);
+        JLabel goLabel = new JLabel("Goto");
+        goLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        goLabelPanel.add(goLabel, BorderLayout.CENTER);
+        goPanel.add(goLabelPanel, BorderLayout.PAGE_START);
 
-        //---- rulerPanel2 ----
-        JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.white);
-        topPanel.setLayout(new BorderLayout());
-        hiCPanel.add(topPanel, BorderLayout.NORTH);
-        trackLabelPanel = new TrackLabelPanel(hic);
-        trackLabelPanel.setBackground(Color.white);
-        hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
-
-        trackPanelX = new TrackPanel(this, hic, TrackPanel.Orientation.X);
-        trackPanelX.setMaximumSize(new Dimension(4000, 50));
-        trackPanelX.setPreferredSize(new Dimension(1, 50));
-        trackPanelX.setMinimumSize(new Dimension(1, 50));
-        trackPanelX.setVisible(false);
-        topPanel.add(trackPanelX, BorderLayout.NORTH);
+        JPanel goButtonPanel = new JPanel();
+        goButtonPanel.setBackground(new Color(238, 238, 238));
+        goButtonPanel.setLayout(new BoxLayout(goButtonPanel, BoxLayout.X_AXIS));
 
 
-        rulerPanelX = new HiCRulerPanel(hic);
-        rulerPanelX.setMaximumSize(new Dimension(4000, 50));
-        rulerPanelX.setMinimumSize(new Dimension(1, 50));
-        rulerPanelX.setPreferredSize(new Dimension(1, 50));
-        rulerPanelX.setBorder(null);
-        topPanel.add(rulerPanelX, BorderLayout.SOUTH);
+        positionChrTop = new JTextField();
+        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
+        positionChrTop.setEnabled(false);
+        positionChrTop.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+                parsePositionText();
+
+            }
+        });
+
+        //positionChrTop.setPreferredSize(new Dimension(10, 10));
 
 
-        //---- rulerPanel1 ----
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(Color.white);
-        leftPanel.setLayout(new BorderLayout());
-        hiCPanel.add(leftPanel, BorderLayout.WEST);
+        positionChrLeft = new JTextField();
+        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
+        positionChrLeft.setEnabled(false);
+        positionChrLeft.addActionListener(new ActionListener() {
 
-        trackPanelY = new TrackPanel(this, hic, TrackPanel.Orientation.Y);
-        trackPanelY.setMaximumSize(new Dimension(50, 4000));
-        trackPanelY.setPreferredSize(new Dimension(50, 1));
-        trackPanelY.setMinimumSize(new Dimension(50, 1));
-        trackPanelY.setVisible(false);
-        leftPanel.add(trackPanelY, BorderLayout.WEST);
+            public void actionPerformed(ActionEvent e) {
 
-        rulerPanelY = new HiCRulerPanel(hic);
-        rulerPanelY.setMaximumSize(new Dimension(50, 4000));
-        rulerPanelY.setPreferredSize(new Dimension(50, 800));
-        rulerPanelY.setBorder(null);
-        rulerPanelY.setMinimumSize(new Dimension(50, 1));
-        leftPanel.add(rulerPanelY, BorderLayout.EAST);
+                parsePositionText();
 
-        //---- heatmapPanel ----
-        heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        heatmapPanel.setMaximumSize(new Dimension(800, 800));
-        heatmapPanel.setMinimumSize(new Dimension(800, 800));
-        heatmapPanel.setPreferredSize(new Dimension(800, 800));
-        // heatmapPanel.setBackground(new Color(238, 238, 238));
-        heatmapPanel.setBackground(Color.white);
-        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
+            }
+        });
+
+        //positionChrLeft.setPreferredSize(new Dimension(10, 10));
+        JPanel goPositionPanel = new JPanel();
+        goPositionPanel.setLayout(new BorderLayout());
 
 
-        // needs to be created after heatmap panel
-        // Resolution  panel
-        resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
-        toolbarPanel.add(resolutionSlider);
+        goPositionPanel.add(positionChrTop, BorderLayout.PAGE_START);
+        goPositionPanel.add(positionChrLeft, BorderLayout.PAGE_END);
+
+        goButtonPanel.add(goPositionPanel, BorderLayout.PAGE_START);
+
+        goButton = new JideButton();
+        goButton.setEnabled(false);
+        goButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
+        goButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                parsePositionText();
+            }
+        });
+
+        goButtonPanel.add(goButton);
+        goPanel.add(goButtonPanel);
+
+
+        //goPanel.setBackground(Color.white);
+        //goPanel.setBorder(LineBorder.createBlackLineBorder());
+
+
+        toolbarPanel.add(goPanel);
         toolbarPanel.setEnabled(false);
 
 
@@ -1682,48 +1760,11 @@ public class MainWindow extends JFrame {
 
         //========= Positioning panel ======
 
-        JLabel positionLabel = new JLabel("Jump To:");
+        //JLabel positionLabel = new JLabel("Go:");
+        //bookmarksMenu.add(positionLabel);
         //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
-        positionChrTop = new JTextField();
-        positionChrTop.setEnabled(false);
-        positionChrTop.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-
-                parsePositionText();
-
-            }
-        });
-
-        positionChrTop.setPreferredSize(new Dimension(180, 25));
-        positionChrTop.setPreferredSize(new Dimension(180, 25));
-        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionChrLeft = new JTextField();
-        positionChrLeft.setEnabled(false);
-        positionChrLeft.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-
-                parsePositionText();
-
-            }
-        });
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionLabel.setPreferredSize(new Dimension(200, 25));
-        positionChrTop.setPreferredSize(new Dimension(200, 30));
-        positionChrLeft.setPreferredSize(new Dimension(200, 30));
-
-        bookmarksMenu.add(positionLabel);
-        bookmarksMenu.add(positionChrTop);
-        bookmarksMenu.add(positionChrLeft);
-
-        bookmarksMenu.setBackground(Color.white);
-        bookmarksMenu.setBorder(LineBorder.createBlackLineBorder());
+        //positionLabel.setPreferredSize(new Dimension(200, 25));
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);

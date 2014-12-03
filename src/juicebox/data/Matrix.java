@@ -73,6 +73,14 @@ public class Matrix {
 
     }
 
+    public MatrixZoomData getFirstPearsonZoomData(HiC.Unit unit) {
+        if (unit == HiC.Unit.BP) {
+            return bpZoomData != null ? bpZoomData.get(2) : null;
+        } else {
+            return fragZoomData != null ? fragZoomData.get(2) : null;
+        }
+
+    }
     public MatrixZoomData getZoomData(HiCZoom zoom) {
         List<MatrixZoomData> zdList = (zoom.getUnit() == HiC.Unit.BP) ? bpZoomData : fragZoomData;
         //linear search for bin size, the lists are not large
