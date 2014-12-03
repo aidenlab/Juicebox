@@ -108,6 +108,7 @@ public class MainWindow extends JFrame {
     private static JMenu bookmarksMenu;
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
+    private int[] colorValuesToRestore = null;
 
     private MainWindow() {
 
@@ -333,9 +334,9 @@ public class MainWindow extends JFrame {
             currentlyLoadedFile = file;
         }
 
+        colorValuesToRestore = null;
         heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
@@ -582,6 +583,7 @@ public class MainWindow extends JFrame {
     }
 
     private void refreshButtonActionPerformed() {
+        colorValuesToRestore = null;
         refreshChromosomes();
     }
 
@@ -712,6 +714,7 @@ public class MainWindow extends JFrame {
         heatmapPanel.setObservedRange(min, max);
 
         if (hic.getDisplayOption() == MatrixType.OE) {
+            System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
         }
     }
@@ -875,17 +878,37 @@ public class MainWindow extends JFrame {
     }
 
     private void resetRegularColorRangeSlider(){
-        colorRangeSlider.setMinimum(0);
-        colorRangeSlider.setMaximum(2000);
-        colorRangeSlider.setLowerValue(0);
-        colorRangeSlider.setUpperValue(500);
+        if(colorValuesToRestore != null) {
+            //refreshChromosomes();
+            //setInitialZoom();
+
+            colorRangeSlider.setMinimum(colorValuesToRestore[0]);
+            colorRangeSlider.setMaximum(colorValuesToRestore[1]);
+            colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
+            colorRangeSlider.setUpperValue(colorValuesToRestore[3]);
+            colorRangeScaleFactor = colorValuesToRestore[4];
+
+            refresh();
+            colorValuesToRestore = null;
+        }
     }
 
     private void resetOEColorRangeSlider(){
+
+        if(colorValuesToRestore == null){
+            colorValuesToRestore = new int[5];
+            colorValuesToRestore[0] = colorRangeSlider.getMinimum();
+            colorValuesToRestore[1] = colorRangeSlider.getMaximum();
+            colorValuesToRestore[2] = colorRangeSlider.getLowerValue();
+            colorValuesToRestore[3] = colorRangeSlider.getUpperValue();
+            colorValuesToRestore[4] = (int)colorRangeScaleFactor;
+        }
+
         colorRangeSlider.setMinimum(-20);
         colorRangeSlider.setMaximum(20);
         colorRangeSlider.setLowerValue(-5);
         colorRangeSlider.setUpperValue(5);
+
     }
 
 
