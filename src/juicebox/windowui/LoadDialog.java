@@ -174,7 +174,12 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         if (node.isLeaf()) {
             openButton.setEnabled(true);
-            open30.setEnabled(true);
+            if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")){
+                open30.setEnabled(false);
+            }
+            else {
+                open30.setEnabled(true);
+            }
         } else {
             openButton.setEnabled(false);
             open30.setEnabled(false);
