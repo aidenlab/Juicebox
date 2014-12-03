@@ -144,13 +144,11 @@ public class HiCFragmentAxis implements HiCGridAxis {
         while (lo <= hi) {
 
             int mid = (lo + hi) >>> 1;
-            if(position >= sites[mid-1] && position < sites[mid]) {
+            if (position >= sites[mid - 1] && position < sites[mid]) {
                 return mid;
-            }
-            else if(position >= sites[mid]) {
-                lo = mid+1;
-            }
-            else  {
+            } else if (position >= sites[mid]) {
+                lo = mid + 1;
+            } else {
                 hi = mid;
             }
 

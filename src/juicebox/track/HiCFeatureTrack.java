@@ -25,19 +25,16 @@ import java.util.List;
  */
 public class HiCFeatureTrack extends HiCTrack {
 
-    private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
-
-    private static final int BLOCK_HEIGHT = 14;
     static final int THIN_BLOCK_HEIGHT = 6;
-    private Color color = Color.blue.darker();
-    private Color altColor = Color.blue.brighter();
+    private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
+    private static final int BLOCK_HEIGHT = 14;
+    private static final int ARROW_SPACING = 10;
     private final Font font;
-
     private final HiC hic;
     private final FeatureSource<?> featureSource;
+    private Color color = Color.blue.darker();
+    private Color altColor = Color.blue.brighter();
     private String name;
-
-    private static final int ARROW_SPACING = 10;
 
 
     public HiCFeatureTrack(HiC hic, ResourceLocator locator, FeatureSource<?> featureSource) {
@@ -78,8 +75,7 @@ public class HiCFeatureTrack extends HiCTrack {
         Iterator<?> iter;
         try {
             iter = featureSource.getFeatures(chr, gStart, gEnd);
-        }
-        catch (IOException error) {
+        } catch (IOException error) {
             log.error("Error getting feature source " + error);
             return;
         }
@@ -245,14 +241,13 @@ public class HiCFeatureTrack extends HiCTrack {
         Iterator<?> iter;
         try {
             iter = featureSource.getFeatures(chr, start, end);
-        }
-        catch (IOException error) {
+        } catch (IOException error) {
             log.error("Error getting feature source " + error);
             return null;
         }
         List<Feature> allFeatures = new ArrayList<Feature>();
         while (iter.hasNext()) {
-            allFeatures.add((Feature)iter.next());
+            allFeatures.add((Feature) iter.next());
         }
 
         List<Feature> featuresAtMouse = FeatureUtils.getAllFeaturesAt(middle, maxFeatureLength, buffer, allFeatures);
@@ -270,10 +265,6 @@ public class HiCFeatureTrack extends HiCTrack {
         return null;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public void setColor(Color selectedColor) {
         this.color = selectedColor;
@@ -287,6 +278,10 @@ public class HiCFeatureTrack extends HiCTrack {
     @Override
     public String getName() {
         return name;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     protected void drawStrandArrows(Strand strand, int startX, int endX, int startY, Graphics2D g2D) {

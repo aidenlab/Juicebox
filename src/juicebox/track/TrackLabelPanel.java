@@ -31,11 +31,11 @@ public class TrackLabelPanel extends JPanel {
         setLayout(new GridLayout(0, 1));
     }
 
-    public void updateLabels(){
+    public void updateLabels() {
 
         removeAll();
 
-        if(hic.getDataset() == null){
+        if (hic.getDataset() == null) {
             return;
         }
 
@@ -50,7 +50,7 @@ public class TrackLabelPanel extends JPanel {
             multiLineText += hicTrack.getName() + "<br><br>";
         }
 
-        multiLineText = "<html>"+ multiLineText +"</html>";
+        multiLineText = "<html>" + multiLineText + "</html>";
         //System.out.println(multiLineText);
 
         JLabel textLabel = getTrackLabel(multiLineText, false);
@@ -58,11 +58,11 @@ public class TrackLabelPanel extends JPanel {
 
     }
 
-    private JLabel getTrackLabel(String name, boolean addToolTip){
+    private JLabel getTrackLabel(String name, boolean addToolTip) {
         JLabel label = new JLabel(name, SwingConstants.RIGHT);
         label.setVerticalAlignment(SwingConstants.TOP);
         label.setFont(FontManager.getFont(Font.BOLD, 10));
-        if(addToolTip)
+        if (addToolTip)
             label.setToolTipText(name);
         return label;
     }

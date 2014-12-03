@@ -23,27 +23,20 @@ public class Dataset {
 
     private static final Logger log = Logger.getLogger(Dataset.class);
 
-   // private boolean caching = true;
-
+    // private boolean caching = true;
+    private final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
+    private final DatasetReader reader;
+    private final LRUCache<String, double[]> eigenvectorCache;
+    private final LRUCache<String, NormalizationVector> normalizationVectorCache;
     //Chromosome lookup table
     public List<Chromosome> chromosomes;
-
-    private final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
-
-    private final DatasetReader reader;
-
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
-
     String genomeId;
     String restrictionEnzyme = null;
-
     List<HiCZoom> bpZooms;
     List<HiCZoom> fragZooms;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
-
-    private final LRUCache<String, double[]> eigenvectorCache;
-    private final LRUCache<String, NormalizationVector> normalizationVectorCache;
     private Map<String, NormalizationVector> loadedNormalizationVectors;
     private List<NormalizationType> normalizationTypes;
 
@@ -87,8 +80,7 @@ public class Dataset {
 
         if (FileUtils.resourceExists(location)) {
             return new ResourceLocator(location);
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -103,8 +95,7 @@ public class Dataset {
 
         if (FileUtils.resourceExists(location)) {
             return new ResourceLocator(location);
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -118,13 +109,12 @@ public class Dataset {
         return normalizationTypes;
     }
 
+    public void setNormalizationTypes(List<NormalizationType> normalizationTypes) {
+        this.normalizationTypes = normalizationTypes;
+    }
 
     public void addNormalizationType(NormalizationType type) {
         if (!normalizationTypes.contains(type)) normalizationTypes.add(type);
-    }
-
-    public void setNormalizationTypes(List<NormalizationType> normalizationTypes) {
-        this.normalizationTypes = normalizationTypes;
     }
 
     public int getNumberZooms(HiC.Unit unit) {
@@ -143,16 +133,13 @@ public class Dataset {
         return expectedValueFunctionMap.get(key);
     }
 
-
-    public void setExpectedValueFunctionMap(Map<String, ExpectedValueFunction> df) {
-        this.expectedValueFunctionMap = df;
-    }
-
-
     public Map<String, ExpectedValueFunction> getExpectedValueFunctionMap() {
         return expectedValueFunctionMap;
     }
 
+    public void setExpectedValueFunctionMap(Map<String, ExpectedValueFunction> df) {
+        this.expectedValueFunctionMap = df;
+    }
 
     public List<Chromosome> getChromosomes() {
         return chromosomes;
@@ -168,57 +155,21 @@ public class Dataset {
         return reader.getVersion();
     }
 
-
-    public void setGenomeId(String genomeId) {
-        this.genomeId = genomeId;
-    }
-
-
     public String getGenomeId() {
         return genomeId;
     }
 
-    public void setRestrictionEnzyme(int nSites) {
-        restrictionEnzyme = findRestrictionEnzyme(nSites);
+    public void setGenomeId(String genomeId) {
+        this.genomeId = genomeId;
     }
 
     public String getRestrictionEnzyme() {
         return restrictionEnzyme;
     }
 
-
-    public void setBpZooms(int[] bpBinSizes) {
-
-        // Limit resolution in restricted mode
-        int n = bpBinSizes.length;
-//        if (MainWindow.isRestricted()) {
-//            for (int i = 0; i < bpBinSizes.length; i++) {
-//                if (bpBinSizes[i] < 25000) {
-//                    n = i;
-//                    break;
-//                }
-//            }
-//        }
-
-        this.bpZooms = new ArrayList<HiCZoom>(n);
-        for (int bpBinSize : bpBinSizes) {
-            bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
-        }
-
+    public void setRestrictionEnzyme(int nSites) {
+        restrictionEnzyme = findRestrictionEnzyme(nSites);
     }
-
-
-    public void setFragZooms(int[] fragBinSizes) {
-
-        // Don't show fragments in restricted mode
-//        if (MainWindow.isRestricted()) return;
-
-        this.fragZooms = new ArrayList<HiCZoom>(fragBinSizes.length);
-        for (int fragBinSize : fragBinSizes) {
-            fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSize));
-        }
-    }
-
 
     public String getStatistics() {
         String stats = null;
@@ -226,12 +177,10 @@ public class Dataset {
         if ((stats == null) || !stats.contains("<table>")) {
             try {
                 attributes.put("statistics", reader.readStats());
-            }
-            catch (IOException error) {
+            } catch (IOException error) {
                 if (stats != null) {
                     attributes.put("statistics", convertStats(stats));
-                }
-                else return null;
+                } else return null;
             }
         }
        /*
@@ -268,8 +217,7 @@ public class Dataset {
             try {
                 String value = statsMap.get("Total").trim();
                 sequenced = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
-            }
-            catch (ParseException error) {
+            } catch (ParseException error) {
                 sequenced = -1;
             }
             newStats += "<td>" + statsMap.get("Total") + "</td></tr>";
@@ -297,7 +245,7 @@ public class Dataset {
         newStats += "<tr><th colspan=2>Duplication and Complexity (% Sequenced Reads)</td></tr>";
         if (statsMap.containsKey(" Total alignable reads")) {
             newStats += "<tr><td>Alignable (Normal+Chimeric Paired):</td>";
-            newStats += "<td>" + statsMap.get(" Total alignable reads" ) + "</td></tr>";
+            newStats += "<td>" + statsMap.get(" Total alignable reads") + "</td></tr>";
         }
         if (statsMap.containsKey("Total reads after duplication removal")) {
             newStats += "<tr><td>Unique Reads:</td>";
@@ -326,7 +274,7 @@ public class Dataset {
                 num = -1;
             }
             if (sequenced != -1) {
-                newStats += " (" + decimalFormat.format(num  / (float) sequenced) + ")";
+                newStats += " (" + decimalFormat.format(num / (float) sequenced) + ")";
             }
             newStats += "</td></tr>";
         }
@@ -347,7 +295,7 @@ public class Dataset {
         }
         if (statsMap.containsKey("Library complexity (new)")) {
             newStats += "<tr><td><b>Library Complexity Estimate:</b></td>";
-            newStats += "<td><b>" + statsMap.get("Library complexity (new)" ) + "</b></td></tr>";
+            newStats += "<td><b>" + statsMap.get("Library complexity (new)") + "</b></td></tr>";
         }
         newStats += "<tr></tr>";
         newStats += "<tr><th colspan=2>Analysis of Unique Reads (% Sequenced Reads / % Unique Reads)</td></tr>";
@@ -363,7 +311,7 @@ public class Dataset {
             }
             if (sequenced != -1 && num != -1 && unique != -1) {
                 newStats += " (" + decimalFormat.format(num / (float) sequenced) +
-                            " / " + decimalFormat.format(num / (float) unique) + ")";
+                        " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
         }
@@ -414,7 +362,7 @@ public class Dataset {
         if (statsMap.containsKey("Ligations")) {
             newStats += "<tr><td>&nbsp;&nbsp;Ligation Motif Present:</td>";
             String value = statsMap.get("Ligations");
-            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
                 num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
@@ -430,37 +378,37 @@ public class Dataset {
         if (statsMap.containsKey("Five prime") && statsMap.containsKey("Three prime")) {
             newStats += "<tr><td>&nbsp;&nbsp;3' Bias (Long Range):</td>";
             String value = statsMap.get("Five prime");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num1 = Math.round(Float.valueOf(value));
 
             value = statsMap.get("Three prime");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num2 = Math.round(Float.valueOf(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
         }
         if (statsMap.containsKey("Inner") && statsMap.containsKey("Outer") &&
-                statsMap.containsKey("Left")  && statsMap.containsKey("Right") ) {
+                statsMap.containsKey("Left") && statsMap.containsKey("Right")) {
             newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
             String value = statsMap.get("Left");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num1 = Math.round(Float.valueOf(value));
 
             value = statsMap.get("Inner");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num2 = Math.round(Float.valueOf(value));
 
             value = statsMap.get("Outer");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num3 = Math.round(Float.valueOf(value));
 
             value = statsMap.get("Right");
-            value = value.substring(value.indexOf('(')+1);
+            value = value.substring(value.indexOf('(') + 1);
             value = value.substring(0, value.indexOf('%'));
             int num4 = Math.round(Float.valueOf(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
@@ -471,7 +419,7 @@ public class Dataset {
         if (statsMap.containsKey("Inter")) {
             newStats += "<tr><td>Inter-chromosomal:</td>";
             String value = statsMap.get("Inter");
-            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
                 num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
@@ -487,7 +435,7 @@ public class Dataset {
         if (statsMap.containsKey("Intra")) {
             newStats += "<tr><td>Intra-chromosomal:</td>";
             String value = statsMap.get("Intra");
-            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
                 num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
@@ -503,7 +451,7 @@ public class Dataset {
         if (statsMap.containsKey("Small")) {
             newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
             String value = statsMap.get("Small");
-            newStats += "<td>" + value.substring(0,value.indexOf('('));
+            newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
                 num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
@@ -519,7 +467,7 @@ public class Dataset {
         if (statsMap.containsKey("Large")) {
             newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
             String value = statsMap.get("Large");
-            newStats += "<td><b>" + value.substring(0,value.indexOf('('));
+            newStats += "<td><b>" + value.substring(0, value.indexOf('('));
             int num;
             try {
                 num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
@@ -557,22 +505,53 @@ public class Dataset {
         return bpZooms;
     }
 
+    public void setBpZooms(int[] bpBinSizes) {
+
+        // Limit resolution in restricted mode
+        int n = bpBinSizes.length;
+//        if (MainWindow.isRestricted()) {
+//            for (int i = 0; i < bpBinSizes.length; i++) {
+//                if (bpBinSizes[i] < 25000) {
+//                    n = i;
+//                    break;
+//                }
+//            }
+//        }
+
+        this.bpZooms = new ArrayList<HiCZoom>(n);
+        for (int bpBinSize : bpBinSizes) {
+            bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
+        }
+
+    }
 
     public List<HiCZoom> getFragZooms() {
         return fragZooms;
+    }
+
+    public void setFragZooms(int[] fragBinSizes) {
+
+        // Don't show fragments in restricted mode
+//        if (MainWindow.isRestricted()) return;
+
+        this.fragZooms = new ArrayList<HiCZoom>(fragBinSizes.length);
+        for (int fragBinSize : fragBinSizes) {
+            fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSize));
+        }
     }
 
     public boolean hasFrags() {
         return fragZooms != null && fragZooms.size() > 0;
     }
 
+    public Map<String, Integer> getFragmentCounts() {
+        return fragmentCounts;
+    }
+
     public void setFragmentCounts(Map<String, Integer> map) {
         fragmentCounts = map;
     }
 
-    public Map<String, Integer> getFragmentCounts() {
-        return fragmentCounts;
-    }
     /**
      * Return the "next" zoom level, relative to the current one, in the direction indicated
      *
@@ -669,7 +648,6 @@ public class Dataset {
     }
 
 
-
     private String findRestrictionEnzyme(int sites) {
         if (genomeId == null) return null;
 
@@ -688,7 +666,7 @@ public class Dataset {
             if (sites == 575605) return "DpnII/MboI";
             if (sites == 64338) return "HindIII";
         } else if (genomeId.equals("hg19") || genomeId.equals("hg19_contig")) {
-         // chromosome 1
+            // chromosome 1
             if (sites == 22706) return "Acc65I";
             if (sites == 4217) return "AgeI";
             if (sites == 158473) return "BseYI";

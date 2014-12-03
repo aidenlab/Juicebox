@@ -11,9 +11,9 @@ import java.util.Map;
  */
 public class EncodeFileRecord {
 
-    private boolean selected = false;
     private final String path;
     private final Map<String, String> attributes;
+    private boolean selected = false;
     private String trackName;
 
     public EncodeFileRecord(String path, Map<String, String> attributes) {
@@ -69,14 +69,14 @@ public class EncodeFileRecord {
 
         if (trackName == null) {
             StringBuilder sb = new StringBuilder();
-            if(attributes.containsKey("cell")) sb.append(attributes.get("cell")).append(" ");
-            if(attributes.containsKey("antibody")) sb.append(attributes.get("antibody")).append(" ");
-            if(attributes.containsKey("dataType")) sb.append(attributes.get("dataType")).append(" ");
-            if(attributes.containsKey("view")) sb.append(attributes.get("view")).append(" ");
-            if(attributes.containsKey("replicate")) sb.append("rep ").append(attributes.get("replicate"));
+            if (attributes.containsKey("cell")) sb.append(attributes.get("cell")).append(" ");
+            if (attributes.containsKey("antibody")) sb.append(attributes.get("antibody")).append(" ");
+            if (attributes.containsKey("dataType")) sb.append(attributes.get("dataType")).append(" ");
+            if (attributes.containsKey("view")) sb.append(attributes.get("view")).append(" ");
+            if (attributes.containsKey("replicate")) sb.append("rep ").append(attributes.get("replicate"));
 
             trackName = sb.toString().trim();
-            if(sb.length() == 0) trackName = (new File(path)).getName();
+            if (sb.length() == 0) trackName = (new File(path)).getName();
         }
 
         return trackName;
@@ -90,7 +90,7 @@ public class EncodeFileRecord {
      */
     public boolean hasMetaData() {
 
-        return  (attributes.containsKey("cell")) || (attributes.containsKey("antibody"));
+        return (attributes.containsKey("cell")) || (attributes.containsKey("antibody"));
 
     }
 }

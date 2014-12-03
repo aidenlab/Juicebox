@@ -14,7 +14,7 @@ public class HiCFixedGridAxis implements HiCGridAxis {
     private final int igvZoom;
     private final int[] sites;
 
-    public HiCFixedGridAxis(int binCount, int binSize, int [] sites) {
+    public HiCFixedGridAxis(int binCount, int binSize, int[] sites) {
 
         this.binCount = binCount;
         this.binSize = binSize;

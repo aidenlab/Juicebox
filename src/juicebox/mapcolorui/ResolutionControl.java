@@ -25,15 +25,11 @@ public class ResolutionControl extends JPanel {
     private final ImageIcon lockOpenIcon;
     private final ImageIcon lockIcon;
     private final HiC hic;
-    private boolean resolutionLocked = false;
     private final HeatmapPanel heatmapPanel;
-
-    private JSlider resolutionSlider;
     private final JideButton lockButton;
     private final JLabel resolutionLabel;
     private final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
-    private int lastValue = 0;
     public HiC.Unit unit = HiC.Unit.BP;
 
     {
@@ -50,16 +46,11 @@ public class ResolutionControl extends JPanel {
 
     }
 
-    private String getUnitLabel() {
-        return unit == HiC.Unit.FRAG ? "Resolution (Frag)" : "Resolution (BP)";
-    }
+    private boolean resolutionLocked = false;
+    private JSlider resolutionSlider;
+    private int lastValue = 0;
 
-    public void setEnabled(boolean enabled) {
-        resolutionSlider.setEnabled(enabled);
-        lockButton.setEnabled(enabled);
-    }
-
-    public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel ) {
+    public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel) {
 
         this.hic = hic;
         this.heatmapPanel = heatmapPanel;
@@ -173,13 +164,22 @@ public class ResolutionControl extends JPanel {
         setEnabled(false);
     }
 
+    private String getUnitLabel() {
+        return unit == HiC.Unit.FRAG ? "Resolution (Frag)" : "Resolution (BP)";
+    }
+
+    public void setEnabled(boolean enabled) {
+        resolutionSlider.setEnabled(enabled);
+        lockButton.setEnabled(enabled);
+    }
+
     /**
      * Called when a new dataset is loaded, or when units are switched bp<->frag
      */
     public void reset() {
         if (hic == null || hic.getDataset() == null) return;
 
-        if(heatmapPanel != null) heatmapPanel.reset();
+        if (heatmapPanel != null) heatmapPanel.reset();
 
         int currentIdx = resolutionSlider.getValue();
 

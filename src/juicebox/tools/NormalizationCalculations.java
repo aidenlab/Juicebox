@@ -29,6 +29,24 @@ public class NormalizationCalculations {
     private ArrayList<ContactRecord> list;
     private int totSize;
 
+    public NormalizationCalculations(MatrixZoomData zd) {
+        if (zd.getChr1Idx() != zd.getChr2Idx()) {
+            throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
+        }
+        this.list = new ArrayList<ContactRecord>();
+        Iterator<ContactRecord> iter = zd.contactRecordIterator();
+        while (iter.hasNext()) {
+            ContactRecord cr = iter.next();
+            list.add(cr);
+        }
+        this.totSize = zd.getXGridAxis().getBinCount();
+    }
+
+    public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
+        this.list = list;
+        this.totSize = totSize;
+    }
+
     public static void calcKR(String path) throws IOException {
 
         BufferedReader reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
@@ -52,185 +70,13 @@ public class NormalizationCalculations {
             if (binX > maxBin) maxBin = binX;
             if (binY > maxBin) maxBin = binY;
         }
-        NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin+1);
+        NormalizationCalculations nc = new NormalizationCalculations(readList, maxBin + 1);
         double[] norm = nc.getNorm(NormalizationType.KR);
-        for (double d: norm) {
+        for (double d : norm) {
             System.out.println(d);
         }
 
     }
-
-    public double[] getNorm(NormalizationType normOption) {
-        double[] norm;
-        if (normOption == NormalizationType.KR || normOption == NormalizationType.GW_KR || normOption == NormalizationType.INTER_KR) {
-            norm = computeKR();
-        }
-        else if (normOption == NormalizationType.VC || normOption == NormalizationType.GW_VC || normOption == NormalizationType.INTER_VC) {
-            norm = computeVC();
-        }
-        else {
-            System.err.println("Not supported for normalization " + normOption);
-            return null;
-        }
-
-        double factor = getSumFactor(norm);
-        for (int i=0; i<norm.length; i++) {
-            norm[i] = norm[i]*factor;
-        }
-        return norm;
-    }
-
-
-    public NormalizationCalculations(MatrixZoomData zd) {
-        if (zd.getChr1Idx() != zd.getChr2Idx()) {
-            throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
-        }
-        this.list = new ArrayList<ContactRecord>();
-        Iterator<ContactRecord> iter = zd.contactRecordIterator();
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
-            list.add(cr);
-        }
-        this.totSize = zd.getXGridAxis().getBinCount();
-    }
-
-    public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
-        this.list = list;
-        this.totSize = totSize;
-    }
-
-    /**
-     * Compute vanilla coverage norm, just the sum of the rows
-     *
-     * @return  Normalization vector
-     */
-    public double[] computeVC() {
-        double[] rowsums = new double[totSize];
-
-        for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
-
-        for (ContactRecord cr : list) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            rowsums[x] += value;
-            if (x != y) {
-                rowsums[y] += value;
-            }
-        }
-
-        return rowsums;
-
-    }
-
-    /**
-     * Get the sum of the normalized matrix
-     * @param norm   Normalization vector
-     * @return  Square root of ratio of original to normalized vector
-     */
-    public double getSumFactor(double[] norm) {
-        double matrix_sum = 0;
-        double norm_sum = 0;
-        for (ContactRecord cr : list) {
-            int x = cr.getBinX();
-            int y = cr.getBinY();
-            float value = cr.getCounts();
-            if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
-                // want total sum of matrix, not just upper triangle
-                if (x == y) {
-                    norm_sum += value / (norm[x] * norm[y]);
-                    matrix_sum += value;
-                }
-                else {
-                    norm_sum += 2*value / (norm[x] * norm[y]);
-                    matrix_sum += 2*value;
-                }
-
-            }
-        }
-        return Math.sqrt(norm_sum/matrix_sum);
-    }
-
-
-    public double[] computeKR() {
-        boolean recalculate = true;
-        int[] offset = getOffset(0);
-        double[] kr = null;
-        int iteration=1;
-        while (recalculate && iteration <= 6) {
-            // create new matrix upon every iteration, because we've thrown out rows
-            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix();
-            populateMatrix(sparseMatrix, offset);
-
-            // newSize is size of new sparse matrix (non-sparse rows)
-            int newSize = 0;
-            for (int offset1: offset) {
-                if (offset1 != -1) newSize++;
-            }
-            // initialize x0 for call the compute KR norm
-            double[] x0 = new double[newSize];
-            for (int i=0; i<x0.length; i++) x0[i] = 1;
-
-            x0 = computeKRNormVector(sparseMatrix, 0.000001, x0, 0.1);
-
-            // assume all went well and we don't need to recalculate
-            recalculate = false;
-            int rowsTossed=0;
-
-            if (x0 == null || iteration==5) {
-                // if x0 is no good, throw out some percentage of rows and reset the offset array that gives those rows
-                recalculate = true;
-                if (iteration < 5) {
-                    offset = getOffset(iteration);
-                }
-                else {
-                    offset = getOffset(10);
-                }
-                System.out.print(" " +iteration+"%");
-            }
-            else {
-                // otherwise, check to be sure there are no tiny KR values
-                // create true KR vector
-                kr = new double[totSize];
-                int krIndex = 0;
-                for (int offset1: offset) {
-                    if (offset1 == -1) {
-                        kr[krIndex++] = Double.NaN;
-                    } else {
-                        kr[krIndex++] = (1.0 / x0[offset1]);
-                    }
-                }
-                // find scaling factor
-                double mySum = getSumFactor(kr);
-
-                // if any values are too small, recalculate.  set those rows to be thrown out and reset the offset
-                // note that if no rows are thrown out, the offset should not change
-                int index=0;
-                for (int i=0; i<kr.length; i++) {
-                    if (kr[i]*mySum < 0.01) {
-                        offset[i] = -1;
-                        rowsTossed++;
-                        recalculate = true;
-                    }
-                    else {
-                        if (offset[i] != -1) offset[i] = index++;
-                    }
-                }
-                if (recalculate) System.out.print(" " +rowsTossed);
-            }
-            iteration++;
-
-        }
-        if (iteration > 6 && recalculate) {
-            kr = new double[totSize];
-            for (int i=0; i<totSize; i++) {
-                kr[i] = Double.NaN;
-            }
-        }
-        return kr;
-
-    }
-
 
     /*
     function [x,res] = bnewt(A,tol,x0,delta,fl)
@@ -362,7 +208,7 @@ public class NormalizationCalculations {
                 rk[i] = 1 - v[i];
                 rho_km1 += rk[i] * rk[i];
             }
-            if  (Math.abs(rho_km1 - rout) < 0.000001 || Double.isInfinite(rho_km1)) {
+            if (Math.abs(rho_km1 - rout) < 0.000001 || Double.isInfinite(rho_km1)) {
                 not_changing++;
             }
             rout = rho_km1;
@@ -384,6 +230,152 @@ public class NormalizationCalculations {
         return x;
     }
 
+    public double[] getNorm(NormalizationType normOption) {
+        double[] norm;
+        if (normOption == NormalizationType.KR || normOption == NormalizationType.GW_KR || normOption == NormalizationType.INTER_KR) {
+            norm = computeKR();
+        } else if (normOption == NormalizationType.VC || normOption == NormalizationType.GW_VC || normOption == NormalizationType.INTER_VC) {
+            norm = computeVC();
+        } else {
+            System.err.println("Not supported for normalization " + normOption);
+            return null;
+        }
+
+        double factor = getSumFactor(norm);
+        for (int i = 0; i < norm.length; i++) {
+            norm[i] = norm[i] * factor;
+        }
+        return norm;
+    }
+
+    /**
+     * Compute vanilla coverage norm, just the sum of the rows
+     *
+     * @return Normalization vector
+     */
+    public double[] computeVC() {
+        double[] rowsums = new double[totSize];
+
+        for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
+
+        for (ContactRecord cr : list) {
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            float value = cr.getCounts();
+            rowsums[x] += value;
+            if (x != y) {
+                rowsums[y] += value;
+            }
+        }
+
+        return rowsums;
+
+    }
+
+    /**
+     * Get the sum of the normalized matrix
+     *
+     * @param norm Normalization vector
+     * @return Square root of ratio of original to normalized vector
+     */
+    public double getSumFactor(double[] norm) {
+        double matrix_sum = 0;
+        double norm_sum = 0;
+        for (ContactRecord cr : list) {
+            int x = cr.getBinX();
+            int y = cr.getBinY();
+            float value = cr.getCounts();
+            if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
+                // want total sum of matrix, not just upper triangle
+                if (x == y) {
+                    norm_sum += value / (norm[x] * norm[y]);
+                    matrix_sum += value;
+                } else {
+                    norm_sum += 2 * value / (norm[x] * norm[y]);
+                    matrix_sum += 2 * value;
+                }
+
+            }
+        }
+        return Math.sqrt(norm_sum / matrix_sum);
+    }
+
+    public double[] computeKR() {
+        boolean recalculate = true;
+        int[] offset = getOffset(0);
+        double[] kr = null;
+        int iteration = 1;
+        while (recalculate && iteration <= 6) {
+            // create new matrix upon every iteration, because we've thrown out rows
+            SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix();
+            populateMatrix(sparseMatrix, offset);
+
+            // newSize is size of new sparse matrix (non-sparse rows)
+            int newSize = 0;
+            for (int offset1 : offset) {
+                if (offset1 != -1) newSize++;
+            }
+            // initialize x0 for call the compute KR norm
+            double[] x0 = new double[newSize];
+            for (int i = 0; i < x0.length; i++) x0[i] = 1;
+
+            x0 = computeKRNormVector(sparseMatrix, 0.000001, x0, 0.1);
+
+            // assume all went well and we don't need to recalculate
+            recalculate = false;
+            int rowsTossed = 0;
+
+            if (x0 == null || iteration == 5) {
+                // if x0 is no good, throw out some percentage of rows and reset the offset array that gives those rows
+                recalculate = true;
+                if (iteration < 5) {
+                    offset = getOffset(iteration);
+                } else {
+                    offset = getOffset(10);
+                }
+                System.out.print(" " + iteration + "%");
+            } else {
+                // otherwise, check to be sure there are no tiny KR values
+                // create true KR vector
+                kr = new double[totSize];
+                int krIndex = 0;
+                for (int offset1 : offset) {
+                    if (offset1 == -1) {
+                        kr[krIndex++] = Double.NaN;
+                    } else {
+                        kr[krIndex++] = (1.0 / x0[offset1]);
+                    }
+                }
+                // find scaling factor
+                double mySum = getSumFactor(kr);
+
+                // if any values are too small, recalculate.  set those rows to be thrown out and reset the offset
+                // note that if no rows are thrown out, the offset should not change
+                int index = 0;
+                for (int i = 0; i < kr.length; i++) {
+                    if (kr[i] * mySum < 0.01) {
+                        offset[i] = -1;
+                        rowsTossed++;
+                        recalculate = true;
+                    } else {
+                        if (offset[i] != -1) offset[i] = index++;
+                    }
+                }
+                if (recalculate) System.out.print(" " + rowsTossed);
+            }
+            iteration++;
+
+        }
+        if (iteration > 6 && recalculate) {
+            kr = new double[totSize];
+            for (int i = 0; i < totSize; i++) {
+                kr[i] = Double.NaN;
+            }
+        }
+        return kr;
+
+    }
+
     private int[] getOffset(double percent) {
         double[] rowSums = new double[totSize];
 
@@ -402,11 +394,11 @@ public class NormalizationCalculations {
         double thresh = 0;
         if (percent > 0) {
             // Get percent threshold from positive row sums (nonzero)
-            int j=0;
-            for (double sum: rowSums) if (sum != 0) j++;
+            int j = 0;
+            for (double sum : rowSums) if (sum != 0) j++;
             double[] posRowSums = new double[j];
-            j=0;
-            for (double sum: rowSums) if (sum != 0) posRowSums[j++] = sum;
+            j = 0;
+            for (double sum : rowSums) if (sum != 0) posRowSums[j++] = sum;
             thresh = StatUtils.percentile(posRowSums, percent);
         }
         int[] offset = new int[rowSums.length];
@@ -451,7 +443,6 @@ public class NormalizationCalculations {
         FloatArrayList values2 = null;
 
 
-
         public SparseSymmetricMatrix() {
             rows1 = new IntArrayList();
             cols1 = new IntArrayList();
@@ -466,8 +457,7 @@ public class NormalizationCalculations {
                         rows1.add(row);
                         cols1.add(col);
                         values1.add(v);
-                    }
-                    catch (NegativeArraySizeException error) {
+                    } catch (NegativeArraySizeException error) {
                         rows2 = new IntArrayList();
                         cols2 = new IntArrayList();
                         values2 = new FloatArrayList();
@@ -475,8 +465,7 @@ public class NormalizationCalculations {
                         cols2.add(col);
                         values2.add(v);
                     }
-                }
-                else {
+                } else {
                     rows2.add(row);
                     cols2.add(col);
                     values2.add(v);

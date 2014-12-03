@@ -36,8 +36,11 @@ import java.util.Map;
  */
 public class AsciiPairIterator implements PairIterator {
 
-    enum Format {SHORT, LONG}
-
+    /**
+     * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
+     * in perm space, which is rather limited and can cause us to run out of memory.
+     */
+    private final Map<String, String> stringInternPool = new HashMap<String, String>();
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
     private AlignmentPair nextPair = null;
@@ -45,18 +48,11 @@ public class AsciiPairIterator implements PairIterator {
     private BufferedReader reader;
     private Format format = null;
 
-    /**
-     * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
-     * in perm space, which is rather limited and can cause us to run out of memory.
-     */
-    private final Map<String, String> stringInternPool = new HashMap<String, String>();
-
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
         this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();
     }
-
 
     /**
      * Read the next record
@@ -80,10 +76,9 @@ public class AsciiPairIterator implements PairIterator {
                 if (format == null) {
                     if (nTokens == 8) {
                         format = Format.SHORT;
-                    }  else if (nTokens == 16) {
+                    } else if (nTokens == 16) {
                         format = Format.LONG;
-                    }
-                    else {
+                    } else {
                         throw new IOException("Unexpected column count.  Only 8 or 16 columns supported.  Check file format");
                     }
                 }
@@ -109,8 +104,7 @@ public class AsciiPairIterator implements PairIterator {
                     boolean strand1 = Integer.parseInt(tokens[0]) == 0;
                     boolean strand2 = Integer.parseInt(tokens[4]) == 0;
                     nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-                }
-                else {
+                } else {
                     nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
                 }
                 return;
@@ -175,5 +169,7 @@ public class AsciiPairIterator implements PairIterator {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
+
+    enum Format {SHORT, LONG}
 
 }

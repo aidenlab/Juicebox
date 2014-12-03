@@ -30,7 +30,7 @@ public class BigWigUtils {
         BBFileReader reader = new BBFileReader(path);
         boolean found = false;
         String errString = "";
-        for (String chr1 : reader.getChromosomeNames())  {
+        for (String chr1 : reader.getChromosomeNames()) {
             if (chr.equals(chr1)) found = true;
             errString += "\"" + chr1 + "\" ";
         }
@@ -84,7 +84,7 @@ public class BigWigUtils {
                     mean = 0;
                     max = 0;
                     System.out.println(chr + "\t" + wStart + "\t" + wEnd + "\t" + mean + "\t" + max);
-                   // System.out.println(datum.getChromosome() + "\t" + wStart + "\t" + wEnd + "\t" + mean + "\t" + max);
+                    // System.out.println(datum.getChromosome() + "\t" + wStart + "\t" + wEnd + "\t" + mean + "\t" + max);
                     currentBin++;
                 }
                 // Start new window
@@ -104,7 +104,7 @@ public class BigWigUtils {
 
     /**
      * Example usage
-     *
+     * <p/>
      * First argument (required): path, either file or URL.
      * http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeUwTfbs/wgEncodeUwTfbsGm12878CtcfStdRawRep1.bigWig
      * /Users/jrobinso/projects/hic/data/wgEncodeUwTfbsGm12878CtcfStdRawRep1.bigWig
@@ -129,7 +129,7 @@ public class BigWigUtils {
         } else {
             String chr = args[2];
             if (args.length == 3) {
-                computeBins(path, chr,  0, Integer.MAX_VALUE, windowSize);
+                computeBins(path, chr, 0, Integer.MAX_VALUE, windowSize);
             } else {
                 int start = Integer.parseInt(args[3]) - 1;  // Convert to "zero" based coords
                 int end = Integer.parseInt(args[4]);

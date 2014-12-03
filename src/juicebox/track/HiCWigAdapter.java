@@ -21,9 +21,9 @@ import java.util.List;
  */
 public class HiCWigAdapter extends HiCDataAdapter {
 
+    private final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
     private WiggleDataset dataset;
     private String trackName;
-    private final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
     private Color color;
     private Color altColor;
     private DataRange dataRange;
@@ -53,10 +53,10 @@ public class HiCWigAdapter extends HiCDataAdapter {
             mid = 0;
             min = dataset.getDataMin();
             max = dataset.getDataMax();
-         //   min = dataset.getPercent10();
-         //   max = dataset.getPercent90();
-            if(min > 0 && max > 0) min = 0;
-            else if(min < 0 && max < 0) max = 0;
+            //   min = dataset.getPercent10();
+            //   max = dataset.getPercent90();
+            if (min > 0 && max > 0) min = 0;
+            else if (min < 0 && max < 0) max = 0;
 
 
         } else {
@@ -78,7 +78,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
 
 
     protected java.util.List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
-        if(!chr.startsWith("chr")) chr = "chr" + chr;
+        if (!chr.startsWith("chr")) chr = "chr" + chr;
 
         List<LocusScore> scores = locusScoreMap.get(chr);
         if (scores == null) {
@@ -86,7 +86,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
             int[] endLocations = dataset.getEndLocations(chr);
             float[] values = dataset.getData(trackName, chr);
 
-            if(values == null) return null;
+            if (values == null) return null;
 
             scores = new ArrayList<LocusScore>(values.length);
             for (int i = 0; i < values.length; i++) {
@@ -105,14 +105,28 @@ public class HiCWigAdapter extends HiCDataAdapter {
     }
 
     @Override
+    public void setName(String text) {
+        this.trackName = text;
+    }
+
+    @Override
     public Color getColor() {
         return color;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    @Override
+    public void setColor(Color selectedColor) {
+        this.color = selectedColor;
+    }
 
     @Override
     public Color getAltColor() {
         return altColor;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void setAltColor(Color selectedColor) {
+        this.altColor = selectedColor;
     }
 
     @Override
@@ -123,21 +137,6 @@ public class HiCWigAdapter extends HiCDataAdapter {
     @Override
     public void setDataRange(DataRange dataRange) {
         this.dataRange = dataRange;
-    }
-
-    @Override
-    public void setName(String text) {
-        this.trackName = text;
-    }
-
-    @Override
-    public void setColor(Color selectedColor) {
-        this.color = selectedColor;
-    }
-
-    @Override
-    public void setAltColor(Color selectedColor) {
-        this.altColor = selectedColor;
     }
 
     @Override

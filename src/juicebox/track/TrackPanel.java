@@ -24,15 +24,11 @@ public class TrackPanel extends JPanel {
 
     private static final long serialVersionUID = -1195744055137430563L;
     //private MouseAdapter mouseAdapter;
-
-    public enum Orientation {X, Y}
-
     private final HiC hic;
     private final Orientation orientation;
-   // HiCTrack eigenvectorTrack;
-   private final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
+    // HiCTrack eigenvectorTrack;
+    private final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
     private final MainWindow mainWindow;
-
     public TrackPanel(MainWindow mainWindow, HiC hiC, Orientation orientation) {
         this.mainWindow = mainWindow;
         this.hic = hiC;
@@ -126,7 +122,6 @@ public class TrackPanel extends JPanel {
         this.addMouseMotionListener(mouseAdapter);
     }
 
-
     /**
      * Returns the current height of this component.
      * This method is preferable to writing
@@ -198,7 +193,7 @@ public class TrackPanel extends JPanel {
 
         trackRectangles.clear();
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
-        if (tracks.isEmpty())  {
+        if (tracks.isEmpty()) {
             return;
         }
 
@@ -229,7 +224,7 @@ public class TrackPanel extends JPanel {
                     hicTrack.render(graphics, getContext(), trackRectangle, orientation, gridAxis);
                     y += h;
 
-                    trackRectangles.add(new Pair<Rectangle,HiCTrack>(trackRectangle, hicTrack));
+                    trackRectangles.add(new Pair<Rectangle, HiCTrack>(trackRectangle, hicTrack));
                 }
 
 
@@ -249,16 +244,9 @@ public class TrackPanel extends JPanel {
 
     }
 
-
     private Context getContext() {
         return orientation == Orientation.X ? hic.getXContext() : hic.getYContext();
     }
-
-
-//    @Override
-//    public String getToolTipText(MouseEvent event) {
-//        return tooltipText(event.getX(), event.getY());
-//    }
 
     private String tooltipText(int mx, int my) {
 
@@ -271,10 +259,18 @@ public class TrackPanel extends JPanel {
         }
         for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
             Rectangle r = p.getFirst();
-            if(r.contains(mx, my)) {
+            if (r.contains(mx, my)) {
                 return p.getSecond().getToolTipText(x, y, orientation);
             }
         }
         return null;
     }
+
+
+//    @Override
+//    public String getToolTipText(MouseEvent event) {
+//        return tooltipText(event.getX(), event.getY());
+//    }
+
+    public enum Orientation {X, Y}
 }

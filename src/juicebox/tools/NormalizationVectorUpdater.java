@@ -28,9 +28,8 @@ public class NormalizationVectorUpdater {
         String path = args[0];
 
         if (args.length > 1) {
-           updateHicFile(path, Integer.valueOf(args[1]));
-        }
-        else updateHicFile(path);
+            updateHicFile(path, Integer.valueOf(args[1]));
+        } else updateHicFile(path);
 
     }
 
@@ -77,9 +76,9 @@ public class NormalizationVectorUpdater {
 
                 // do all four genome-wide normalizations
                 NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
-                                             NormalizationType.INTER_KR, NormalizationType.INTER_VC};
+                        NormalizationType.INTER_KR, NormalizationType.INTER_VC};
 
-                for (NormalizationType normType:types) {
+                for (NormalizationType normType : types) {
 
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
 
@@ -106,7 +105,8 @@ public class NormalizationVectorUpdater {
 
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
             if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
-            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution) continue;
+            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution)
+                continue;
             Set<Chromosome> failureSet = zoom.getUnit() == HiC.Unit.FRAG ? krFragFailedChromosomes : krBPFailedChromosomes;
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
@@ -248,9 +248,9 @@ public class NormalizationVectorUpdater {
         List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<NormalizationVectorIndexEntry>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
-        for(Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, ExpectedValueFunction> entry = it.next();
-            if(entry.getKey().contains("NONE")) {
+            if (entry.getKey().contains("NONE")) {
                 it.remove();
             }
         }
@@ -267,7 +267,7 @@ public class NormalizationVectorUpdater {
                 NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
                         NormalizationType.INTER_KR, NormalizationType.INTER_VC};
 
-                for (NormalizationType normType:types) {
+                for (NormalizationType normType : types) {
 
                     Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation> wgVectors = getWGVectors(ds, zoom, normType);
 
@@ -307,9 +307,9 @@ public class NormalizationVectorUpdater {
                 if (matrix == null) continue;
 
 
-                NormalizationVector vc = ds.getNormalizationVector(chr.getIndex(),zoom, NormalizationType.VC);
-                NormalizationVector vcSqrt = ds.getNormalizationVector(chr.getIndex(),zoom, NormalizationType.VC_SQRT);
-                NormalizationVector kr = ds.getNormalizationVector(chr.getIndex(),zoom, NormalizationType.KR);
+                NormalizationVector vc = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.VC);
+                NormalizationVector vcSqrt = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.VC_SQRT);
+                NormalizationVector kr = ds.getNormalizationVector(chr.getIndex(), zoom, NormalizationType.KR);
 
                 int position = normVectorBuffer.bytesWritten();
                 writeNormalizationVector(normVectorBuffer, vc.getData());
@@ -603,7 +603,7 @@ public class NormalizationVectorUpdater {
             // The density values
             double[] expectedValues = ev.getDensityAvg();
             buffer.putInt(expectedValues.length);
-            for (double d:  expectedValues) {
+            for (double d : expectedValues) {
                 buffer.putDouble(d);
             }
 
@@ -627,10 +627,10 @@ public class NormalizationVectorUpdater {
             buffer.putInt(function.getBinSize());
             double[] expectedValues = function.getExpectedValues();
             buffer.putInt(expectedValues.length);
-            for (double d:  expectedValues) {
+            for (double d : expectedValues) {
                 buffer.putDouble(d);
             }
-            Map<Integer, Double> normalizationFactors = ((ExpectedValueFunctionImpl)function).getNormFactors();
+            Map<Integer, Double> normalizationFactors = ((ExpectedValueFunctionImpl) function).getNormFactors();
             buffer.putInt(normalizationFactors.size());
             for (Map.Entry<Integer, Double> normFactor : normalizationFactors.entrySet()) {
                 buffer.putInt(normFactor.getKey());
@@ -759,8 +759,8 @@ public class NormalizationVectorUpdater {
         final int chrIdx;
         final String unit;
         final int resolution;
-        long position;
         final int sizeInBytes;
+        long position;
 
         NormalizationVectorIndexEntry(String type, int chrIdx, String unit, int resolution, long position, int sizeInBytes) {
             this.type = type;

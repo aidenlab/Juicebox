@@ -12,7 +12,7 @@ import java.awt.geom.AffineTransform;
 public class AffineTransformDemo {
 
 
-    public static void main(String [] args) {
+    public static void main(String[] args) {
 
         JFrame frame = new JFrame();
         frame.setSize(500, 500);
@@ -36,16 +36,16 @@ public class AffineTransformDemo {
             int centerX = getWidth() / 2;
             int centerY = getWidth() / 2;
 
-            g2D.fillRect(centerX, centerY-10, getWidth()/2, 10);
-            g2D.fillRect(centerX + 100, centerY-20, getWidth()/2-200, 20);
+            g2D.fillRect(centerX, centerY - 10, getWidth() / 2, 10);
+            g2D.fillRect(centerX + 100, centerY - 20, getWidth() / 2 - 200, 20);
 
             g2D.setColor(Color.blue);
             AffineTransform rotateTransform = new AffineTransform();
             rotateTransform.quadrantRotate(1);
             rotateTransform.scale(1, -1);
             g2D.transform(rotateTransform);
-            g2D.fillRect(centerX, centerY-10, getWidth()/2, 10);
-            g2D.fillRect(centerX + 100, centerY-20, getWidth()/2-200, 20);
+            g2D.fillRect(centerX, centerY - 10, getWidth() / 2, 10);
+            g2D.fillRect(centerX + 100, centerY - 20, getWidth() / 2 - 200, 20);
 
 //            g2D.setColor(Color.red);
 //            rotateTransform = new AffineTransform();

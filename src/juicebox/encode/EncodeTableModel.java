@@ -39,15 +39,15 @@ public class EncodeTableModel extends AbstractTableModel {
     private final List<EncodeFileRecord> records;
     private final TableRowSorter<EncodeTableModel> sorter;
 
-    public EncodeTableModel(String [] headings, List<EncodeFileRecord> records) {
+    public EncodeTableModel(String[] headings, List<EncodeFileRecord> records) {
 
         this.records = records;
 
         List<String> tmp = new ArrayList<String>();
         tmp.add("");  // Checkbox heading
-        for(String h : headings) {
+        for (String h : headings) {
             String heading = h.trim();
-            if(heading.length() > 0 && !"path".equals(heading)) {
+            if (heading.length() > 0 && !"path".equals(heading)) {
                 tmp.add(heading);
             }
         }
@@ -114,7 +114,7 @@ public class EncodeTableModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object value, int row, int col) {
-        if(col == 0) {
+        if (col == 0) {
             records.get(row).setSelected((Boolean) value);
         }
         fireTableCellUpdated(row, col);

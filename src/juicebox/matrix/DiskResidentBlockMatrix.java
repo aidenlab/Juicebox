@@ -38,6 +38,8 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
     private static final Logger log = Logger.getLogger(DiskResidentBlockMatrix.class);
 
     private final String path;
+    private final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<String, float[][]>(200);
+    boolean isLoading = false;
     private String genome;
     private String chr1;
     private String chr2;
@@ -47,11 +49,7 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
     private int dim;
     private int blockSize;
     private int remSize;   // Dimension of last block
-
     private int arrayStartPosition;
-    boolean isLoading = false;
-
-    private final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<String, float[][]>(200);
     private int nFullBlocks;
 
     public DiskResidentBlockMatrix(String path) throws IOException {

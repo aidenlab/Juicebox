@@ -12,4 +12,7 @@ public class HiCGlobals {
     // Changes Data Output Mode
     public static final boolean isRestricted = true;
 
+    // Enable black border
+    public static final boolean isBlackBorderActivated = false;
+
 }

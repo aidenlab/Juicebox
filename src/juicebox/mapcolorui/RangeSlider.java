@@ -7,7 +7,7 @@ import java.io.Serializable;
  * An extension of JSlider to select a range of values using two thumb controls.
  * The thumb controls are used to select the lower and upper value of a range
  * with predetermined minimum and maximum values.
- *
+ * <p/>
  * <p>Note that RangeSlider makes use of the default BoundedRangeModel, which
  * supports an inner range defined by a value and an extent.  The upper value
  * returned by RangeSlider is simply the lower value plus the extent.</p>
@@ -17,6 +17,10 @@ import java.io.Serializable;
  * @modified Muhammad S Shamim
  */
 public class RangeSlider extends JSlider implements Serializable {
+
+    private RangeSliderUI rangeSliderUI;
+
+    private boolean colorIsOE = false;
 
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
@@ -48,7 +52,8 @@ public class RangeSlider extends JSlider implements Serializable {
      */
     @Override
     public void updateUI() {
-        setUI(new RangeSliderUI(this));
+        rangeSliderUI = new RangeSliderUI(this);
+        setUI(rangeSliderUI);
         // Update UI for slider labels.  This must be called after updating the
         // UI of the slider.  Refer to JSlider.updateUI().
         updateLabelUIs();
@@ -57,6 +62,11 @@ public class RangeSlider extends JSlider implements Serializable {
 
     public int getLowerValue() {
         return getValue();
+    }
+
+    public void setLowerValue(int value) {
+
+        setValue(value);
     }
 
     /**
@@ -79,11 +89,6 @@ public class RangeSlider extends JSlider implements Serializable {
                 getMaximum(), getValueIsAdjusting());
     }
 
-    public void setLowerValue(int value) {
-
-        setValue(value);
-    }
-
     /**
      * Returns the upper value in the range.
      */
@@ -102,4 +107,10 @@ public class RangeSlider extends JSlider implements Serializable {
         // Set extent to set upper value.
         setExtent(newExtent);
     }
+
+    public void setDisplayToOE(boolean colorIsOE) {
+        this.colorIsOE = colorIsOE;
+        rangeSliderUI.setDisplayToOE(colorIsOE);
+    }
+
 }

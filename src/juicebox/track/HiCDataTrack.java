@@ -26,12 +26,12 @@ public class HiCDataTrack extends HiCTrack {
     private static final int TRACK_MARGIN = 2;
     private final HiC hic;
     private final HiCDataSource dataSource;
-    private boolean logScale = false;
-    private HiCDataPoint[] data;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final float[] dash = {8.0f};
     private final BasicStroke dashedStroke = new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.0f, dash, 0.0f);
     private final Color dashColor = new Color(120, 120, 120);
+    private boolean logScale = false;
+    private HiCDataPoint[] data;
     private WindowFunction windowFunction = WindowFunction.mean;
 
 
@@ -53,8 +53,8 @@ public class HiCDataTrack extends HiCTrack {
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
 
         Graphics2D g2d = (Graphics2D) g.create(x, y, width, height);
-        y=0;
-        x=0;
+        y = 0;
+        x = 0;
 
         String chr = context.getChromosome().getName();
         double startBin = context.getBinOrigin();
@@ -166,6 +166,11 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
+    public void setName(String text) {
+        dataSource.setName(text);
+    }
+
+    @Override
     public Color getPosColor() {
         return dataSource.getColor();
     }
@@ -223,27 +228,9 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
-    public void setName(String text) {
-        dataSource.setName(text);
-    }
-
-    @Override
     public void setColor(Color selectedColor) {
         dataSource.setColor(selectedColor);
     }
-
-    @Override
-    public void setAltColor(Color selectedColor) {
-        dataSource.setAltColor(selectedColor);
-    }
-
-    /*
-     useless at present
-    @Override
-    public void mouseClicked(int x, int y, Context context, TrackPanel.Orientation orientation) {
-
-    }
-    */
 
     public JPopupMenu getPopupMenu(final TrackPanel trackPanel) {
 
@@ -295,6 +282,14 @@ public class HiCDataTrack extends HiCTrack {
         return menu;
     }
 
+    /*
+     useless at present
+    @Override
+    public void mouseClicked(int x, int y, Context context, TrackPanel.Orientation orientation) {
+
+    }
+    */
+
     public DataRange getDataRange() {
         return dataSource.getDataRange();  //To change body of created methods use File | Settings | File Templates.
     }
@@ -307,8 +302,13 @@ public class HiCDataTrack extends HiCTrack {
         return dataSource.getAltColor();
     }
 
+    @Override
+    public void setAltColor(Color selectedColor) {
+        dataSource.setAltColor(selectedColor);
+    }
+
     public Collection<WindowFunction> getAvailableWindowFunctions() {
 
-         return dataSource.getAvailableWindowFunctions();
+        return dataSource.getAvailableWindowFunctions();
     }
 }

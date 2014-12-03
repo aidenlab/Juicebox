@@ -14,6 +14,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
+import sun.applet.Main;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,28 +41,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -8017012290342597941L;
     private final NumberFormat formatter = NumberFormat.getInstance();
-
-    enum DragMode {NONE, PAN, ZOOM, SELECT}
-
     private final MainWindow mainWindow;
     private final HiC hic;
-
     /**
      * Image tile width in pixels
      */
     private final int imageTileWidth = 500;
-
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
-    private Rectangle zoomRectangle;
-
     private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
-
+    private final HeatmapRenderer renderer;
+    private Rectangle zoomRectangle;
     /**
      * Chromosome boundaries in kbases for whole genome view.
      */
     private int[] chromosomeBoundaries;
-
-    private final HeatmapRenderer renderer;
+    private boolean straightEdgeEnabled = false;
 
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
@@ -117,7 +111,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         if (hic.getDisplayOption() == MatrixType.PEARSON) {
             // Possibly force asynchronous computation of pearsons
             if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this,"Pearson's matrix is not available at this resolution");
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
                 return;
             }
         }
@@ -196,13 +190,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             //In case of change to map settings, get map color limits and update slider:
             //TBD: || might not catch all changed at once, if more then one parameter changed...
-            if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged())
-            {
+            if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
                 //In case tender is called as a result of zoom change event, check if
                 //We need to update slider with map range:
-                renderer.updateColorSliderFromColorScale(zd,displayOption);
+                renderer.updateColorSliderFromColorScale(zd, displayOption);
             }
-
 
 
             // Uncomment to draw bin grid (for debugging)
@@ -287,12 +279,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 loopGraphics.drawRect(x, y, w, h);
                 //loopGraphics.drawLine(x,y,x,y+w);
                 //loopGraphics.drawLine(x,y+w,x+h,y+w);
-                System.out.println(binStart1 + "-" + binEnd1);
+                //System.out.println(binStart1 + "-" + binEnd1);
                 if (w > 5) {
                     // Thick line if there is room.
                     loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
-                 //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
-                 //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
+                    //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
+                    //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
                 }
                 drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
 
@@ -333,8 +325,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (hic.getDisplayOption() == MatrixType.PEARSON &&
                 zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this ,"Pearson's matrix is not available at this resolution");
-                return null;
+            JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
+            return null;
 
         }
         int maxBinCountX = zd0.getXGridAxis().getBinCount();
@@ -345,15 +337,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();
         boolean success = renderer.render(0,
-                                          0,
-                                          maxBinCountX,
-                                          maxBinCountY,
-                                          zd0,
-                                          ctrl0,
-                                          displayOption,
-                                          hic.getNormalizationType(),
-                                          hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType()),
-                                          g);
+                0,
+                maxBinCountX,
+                maxBinCountY,
+                zd0,
+                ctrl0,
+                displayOption,
+                hic.getNormalizationType(),
+                hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType()),
+                g);
 
         if (!success) return null;
 
@@ -391,15 +383,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
             renderer.render(bx0,
-                            by0,
-                            imageWidth,
-                            imageHeight,
-                            hic.getZd(),
-                            hic.getControlZd(),
-                            displayOption,
-                            hic.getNormalizationType(),
-                            hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType()),
-                            g2D);
+                    by0,
+                    imageWidth,
+                    imageHeight,
+                    hic.getZd(),
+                    hic.getControlZd(),
+                    displayOption,
+                    hic.getNormalizationType(),
+                    hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType()),
+                    g2D);
 
             //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
             tile = new ImageTile(image, bx0, by0);
@@ -414,6 +406,361 @@ public class HeatmapPanel extends JComponent implements Serializable {
         tileCache.clear();
     }
 
+    JidePopupMenu getPopupMenu() {
+
+        JidePopupMenu menu = new JidePopupMenu();
+
+        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
+        mi.setSelected(straightEdgeEnabled);
+        mi.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (mi.isSelected()) {
+                    straightEdgeEnabled = true;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                } else {
+                    straightEdgeEnabled = false;
+                    hic.setCursorPoint(null);
+                    setCursor(Cursor.getDefaultCursor());
+                    repaint();
+                    mainWindow.repaintTrackPanels();
+                }
+
+            }
+        });
+        menu.add(mi);
+
+        final JMenuItem mi2 = new JMenuItem("Goto ...");
+        mi2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String fragmentString = JOptionPane.showInputDialog(HeatmapPanel.this,
+                        "Enter fragment or bp range in the form <bp|frag>:x:y");
+                if (fragmentString != null) {
+                    String[] tokens = Globals.colonPattern.split(fragmentString);
+                    HiC.Unit unit = HiC.Unit.FRAG;
+                    int idx = 0;
+                    if (tokens.length == 3) {
+                        if (tokens[idx++].toLowerCase().equals("bp")) {
+                            unit = HiC.Unit.BP;
+                        }
+                    }
+                    int x = Integer.parseInt(tokens[idx++].replace(",", ""));
+                    int y = (tokens.length > idx) ? Integer.parseInt(tokens[idx].replace(",", "")) : x;
+
+                    if (unit == HiC.Unit.FRAG) {
+                        hic.centerFragment(x, y);
+                    } else {
+                        hic.centerBP(x, y);
+                    }
+
+
+                }
+            }
+        });
+
+
+        final JMenuItem mi3 = new JMenuItem("Sync");
+        mi3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.broadcastState();
+            }
+        });
+
+
+        final JCheckBoxMenuItem mi4 = new JCheckBoxMenuItem("Linked");
+        mi4.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final boolean isLinked = mi4.isSelected();
+                if (isLinked) {
+                    hic.broadcastState();
+                }
+                hic.setLinkedMode(isLinked);
+            }
+        });
+
+        final JCheckBoxMenuItem mi4_25 = new JCheckBoxMenuItem("Freeze hover text");
+        mi4_25.setSelected(!mainWindow.isTooltipAllowedToUpdated());
+        mi4_25.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainWindow.toggleToolTipUpdates();
+            }
+        });
+
+        final JCheckBoxMenuItem mi4_5 = new JCheckBoxMenuItem("Copy hover text to clipboard");
+        mi4_5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection stringSelection = new StringSelection(mainWindow.getToolTip());
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+            }
+        });
+
+        final JCheckBoxMenuItem mi5 = new JCheckBoxMenuItem("Copy top position to clipboard");
+        mi5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection stringSelection = new StringSelection(hic.getXPosition());
+                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+            }
+        });
+
+        final JCheckBoxMenuItem mi6 = new JCheckBoxMenuItem("Copy left position to clipboard");
+        mi6.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection stringSelection = new StringSelection(hic.getYPosition());
+                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+            }
+        });
+
+        if (hic != null) {
+            menu.add(mi2);
+            menu.add(mi3);
+            mi4.setSelected(hic.isLinkedMode());
+            menu.add(mi4);
+            menu.add(mi4_25);
+            menu.add(mi4_5);
+            menu.add(mi5);
+            menu.add(mi6);
+        }
+
+
+        return menu;
+
+    }
+
+    private String toolTipText(int x, int y) {
+        // Update popup text
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return "";
+        HiCGridAxis xGridAxis = zd.getXGridAxis();
+        HiCGridAxis yGridAxis = zd.getYGridAxis();
+
+        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+
+        int xGenomeStart = xGridAxis.getGenomicStart(binX) + 1; // Conversion from in internal "0" -> 1 base coordinates
+        int yGenomeStart = yGridAxis.getGenomicStart(binY) + 1;
+        int xGenomeEnd = xGridAxis.getGenomicEnd(binX);
+        int yGenomeEnd = yGridAxis.getGenomicEnd(binY);
+
+        if (hic.isWholeGenome()) {
+
+            Chromosome xChrom = null;
+            Chromosome yChrom = null;
+            for (int i = 0; i < chromosomeBoundaries.length; i++) {
+                if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
+                    xChrom = hic.getChromosomes().get(i + 1);
+                }
+                if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
+                    yChrom = hic.getChromosomes().get(i + 1);
+                }
+                if (xChrom != null && yChrom != null) {
+
+                    int leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
+                    int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
+
+
+                    int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
+                    int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
+
+                    String txt = "";
+                    txt += "<html>";
+                    txt += xChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(xChromPos);
+                    txt += "<br>";
+                    txt += yChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(yChromPos);
+
+                    if (xChrom.getName().toLowerCase().contains("chr")) {
+                        hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    } else {
+                        hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    }
+                    if (yChrom.getName().toLowerCase().contains("chr")) {
+                        hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    } else {
+                        hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    }
+                    return txt;
+
+                }
+            }
+
+        } else {
+
+            //Update Position in hic. Used for clipboard copy:
+            if (hic.getXContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setXPosition(hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            } else {
+                hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            }
+            if (hic.getYContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setYPosition(hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            } else {
+                hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            }
+
+            //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
+            //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
+            StringBuilder txt = new StringBuilder();
+            txt.append("<html>");
+            txt.append(hic.getXContext().getChromosome().getName());
+            txt.append(":");
+            txt.append(formatter.format(xGenomeStart));
+            txt.append("-");
+            txt.append(formatter.format(xGenomeEnd));
+
+            if (xGridAxis instanceof HiCFragmentAxis) {
+                String fragNumbers;
+                int binSize = zd.getZoom().getBinSize();
+                if (binSize == 1) {
+                    fragNumbers = formatter.format(binX);
+                } else {
+                    int leftFragment = binX * binSize;
+                    int rightFragment = ((binX + 1) * binSize) - 1;
+                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
+                }
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(xGenomeEnd - xGenomeStart));
+                txt.append(")");
+            }
+
+            txt.append("<br>");
+            txt.append(hic.getYContext().getChromosome().getName());
+            txt.append(":");
+            txt.append(formatter.format(yGenomeStart));
+            txt.append("-");
+            txt.append(formatter.format(yGenomeEnd));
+
+            if (yGridAxis instanceof HiCFragmentAxis) {
+                String fragNumbers;
+                int binSize = zd.getZoom().getBinSize();
+                if (binSize == 1) {
+                    fragNumbers = formatter.format(binY);
+                } else {
+                    int leftFragment = binY * binSize;
+                    int rightFragment = ((binY + 1) * binSize) - 1;
+                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
+                }
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(yGenomeEnd - yGenomeStart));
+                txt.append(")");
+            }
+
+            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+                float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
+                if (!Float.isNaN(value)) {
+                    txt.append("<br>value = ");
+                    txt.append(value);
+                }
+            } else {
+                float value = hic.getNormalizedObservedValue(binX, binY);
+                if (!Float.isNaN(value)) {
+                    txt.append("<br>observed value = ");
+                    txt.append(getFloatString(value));
+                }
+
+                int c1 = hic.getXContext().getChromosome().getIndex();
+                int c2 = hic.getYContext().getChromosome().getIndex();
+                double ev = 0;
+                if (c1 == c2) {
+                    ExpectedValueFunction df = hic.getExpectedValues();
+                    if (df != null) {
+                        int distance = Math.abs(binX - binY);
+                        ev = df.getExpectedValue(c1, distance);
+                    }
+                } else {
+                    ev = zd.getAverageCount();
+                }
+
+                String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
+                txt.append("<br>expected value = ");
+                txt.append(evString);
+                if (ev > 0 && !Float.isNaN(value)) {
+                    txt.append("<br>O/E            = ");
+                    txt.append(formatter.format(value / ev));
+                } else {
+                    txt.append("<br>O/E            = NaN");
+                }
+
+                MatrixZoomData controlZD = hic.getControlZd();
+                if (controlZD != null) {
+                    float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
+                    txt.append("<br><br>control value = ");
+                    txt.append(getFloatString(controlValue));
+
+                    double obsValue = (value / zd.getAverageCount());
+                    txt.append("<br>observed/average = ");
+                    txt.append(getFloatString((float) obsValue));
+
+                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
+                    txt.append("<br>control/average = ");
+                    txt.append(getFloatString((float) ctlValue));
+
+                    if (value > 0 && controlValue > 0) {
+                        double ratio = obsValue / ctlValue;
+                        txt.append("<br>O'/C' = ");
+                        txt.append(getFloatString((float) ratio));
+
+                    }
+
+                }
+
+
+            }
+
+            for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
+                if (loop.getFirst().contains(x, y)) {
+                    txt.append("<br><br>");
+                    txt.append(loop.getSecond().tooltipText());
+                }
+            }
+
+
+            return txt.toString();
+        }
+
+        return null;
+    }
+
+    private String getFloatString(float value) {
+        String valueString;
+        if (Float.isNaN(value)) {
+            valueString = "NaN";
+        } else if (value < 0.001) {
+            valueString = String.valueOf(value);
+        } else {
+            valueString = formatter.format(value);
+        }
+        return valueString;
+    }
+
+    enum DragMode {NONE, PAN, ZOOM, SELECT}
+
+
+//    @Override
+//    public String getToolTipText(MouseEvent e) {
+//        return toolTipText(e.getX(), e.getY());
+//
+//    }
 
     static class ImageTile {
         final int bLeft;
@@ -426,7 +773,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             this.image = image;
         }
     }
-
 
     class HeatmapMouseHandler extends MouseAdapter {
 
@@ -699,352 +1045,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             }
         }
-    }
-
-
-    private boolean straightEdgeEnabled = false;
-
-    JidePopupMenu getPopupMenu() {
-
-        JidePopupMenu menu = new JidePopupMenu();
-
-        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
-        mi.setSelected(straightEdgeEnabled);
-        mi.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (mi.isSelected()) {
-                    straightEdgeEnabled = true;
-                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-                } else {
-                    straightEdgeEnabled = false;
-                    hic.setCursorPoint(null);
-                    setCursor(Cursor.getDefaultCursor());
-                    repaint();
-                    mainWindow.repaintTrackPanels();
-                }
-
-            }
-        });
-        menu.add(mi);
-
-        final JMenuItem mi2 = new JMenuItem("Goto ...");
-        mi2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String fragmentString = JOptionPane.showInputDialog(HeatmapPanel.this,
-                        "Enter fragment or bp range in the form <bp|frag>:x:y");
-                if (fragmentString != null) {
-                    String[] tokens = Globals.colonPattern.split(fragmentString);
-                    HiC.Unit unit = HiC.Unit.FRAG;
-                    int idx = 0;
-                    if (tokens.length == 3) {
-                        if (tokens[idx++].toLowerCase().equals("bp")) {
-                            unit = HiC.Unit.BP;
-                        }
-                    }
-                    int x = Integer.parseInt(tokens[idx++].replace(",", ""));
-                    int y = (tokens.length > idx) ? Integer.parseInt(tokens[idx].replace(",", "")) : x;
-
-                    if (unit == HiC.Unit.FRAG) {
-                        hic.centerFragment(x, y);
-                    } else {
-                        hic.centerBP(x, y);
-                    }
-
-
-                }
-            }
-        });
-
-
-        final JMenuItem mi3 = new JMenuItem("Sync");
-        mi3.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                hic.broadcastState();
-            }
-        });
-
-
-        final JCheckBoxMenuItem mi4 = new JCheckBoxMenuItem("Linked");
-        mi4.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final boolean isLinked = mi4.isSelected();
-                if(isLinked) {
-                    hic.broadcastState();
-                }
-                hic.setLinkedMode(isLinked);
-            }
-        });
-
-
-        final JCheckBoxMenuItem mi5 = new JCheckBoxMenuItem("Copy top position to clipboard");
-        mi5.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                StringSelection stringSelection = new StringSelection(hic.getXPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
-                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
-                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
-                clpbrd.setContents(stringSelection, null);
-            }
-        });
-
-        final JCheckBoxMenuItem mi6 = new JCheckBoxMenuItem("Copy left position to clipboard");
-        mi6.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                StringSelection stringSelection = new StringSelection(hic.getYPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
-                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
-                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
-                clpbrd.setContents(stringSelection, null);
-            }
-        });
-
-        if (hic != null) {
-            menu.add(mi2);
-            menu.add(mi3);
-            mi4.setSelected(hic.isLinkedMode());
-            menu.add(mi4);
-            menu.add(mi5);
-            menu.add(mi6);
-        }
-
-
-        return menu;
-
-    }
-
-
-//    @Override
-//    public String getToolTipText(MouseEvent e) {
-//        return toolTipText(e.getX(), e.getY());
-//
-//    }
-
-    private String toolTipText(int x, int y){
-        // Update popup text
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return "";
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-
-        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-
-        int xGenomeStart = xGridAxis.getGenomicStart(binX) + 1; // Conversion from in internal "0" -> 1 base coordinates
-        int yGenomeStart = yGridAxis.getGenomicStart(binY) + 1;
-        int xGenomeEnd = xGridAxis.getGenomicEnd(binX);
-        int yGenomeEnd = yGridAxis.getGenomicEnd(binY);
-
-        if (hic.isWholeGenome()) {
-
-            Chromosome xChrom = null;
-            Chromosome yChrom = null;
-            for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
-                    xChrom = hic.getChromosomes().get(i + 1);
-                }
-                if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
-                    yChrom = hic.getChromosomes().get(i + 1);
-                }
-                if (xChrom != null && yChrom != null) {
-
-                    int leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
-                    int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
-
-
-                    int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
-                    int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
-
-                    String txt = "";
-                    txt += "<html>";
-                    txt += xChrom.getName();
-                    txt += ":";
-                    txt += String.valueOf(xChromPos);
-                    txt += "<br>";
-                    txt += yChrom.getName();
-                    txt += ":";
-                    txt += String.valueOf(yChromPos);
-
-                    if(xChrom.getName().toLowerCase().contains("chr"))
-                    {
-                        hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
-                    }
-                    else
-                    {
-                        hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
-                    }
-                    if(yChrom.getName().toLowerCase().contains("chr")) {
-                        hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
-                    }
-                    else
-                    {
-                        hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
-                    }
-                    return txt;
-
-                }
-            }
-
-        } else {
-
-            //Update Position in hic. Used for clipboard copy:
-            if(hic.getXContext().getChromosome().getName().toLowerCase().contains("chr")) {
-                hic.setXPosition(hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
-            }
-            else
-            {
-                hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
-            }
-            if(hic.getYContext().getChromosome().getName().toLowerCase().contains("chr")) {
-                hic.setYPosition(hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
-            }
-            else
-            {
-                hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
-            }
-
-            //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
-            //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
-            StringBuilder txt = new StringBuilder();
-            txt.append("<html>");
-            txt.append(hic.getXContext().getChromosome().getName());
-            txt.append(":");
-            txt.append(formatter.format(xGenomeStart));
-            txt.append("-");
-            txt.append(formatter.format(xGenomeEnd));
-
-            if (xGridAxis instanceof HiCFragmentAxis) {
-                String fragNumbers;
-                int binSize = zd.getZoom().getBinSize();
-                if (binSize == 1) {
-                    fragNumbers = formatter.format(binX);
-                } else {
-                    int leftFragment = binX * binSize;
-                    int rightFragment = ((binX + 1) * binSize) - 1;
-                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
-                }
-                txt.append("  (");
-                txt.append(fragNumbers);
-                txt.append("  len=");
-                txt.append(formatter.format(xGenomeEnd - xGenomeStart));
-                txt.append(")");
-            }
-
-            txt.append("<br>");
-            txt.append(hic.getYContext().getChromosome().getName());
-            txt.append(":");
-            txt.append(formatter.format(yGenomeStart));
-            txt.append("-");
-            txt.append(formatter.format(yGenomeEnd));
-
-            if (yGridAxis instanceof HiCFragmentAxis) {
-                String fragNumbers;
-                int binSize = zd.getZoom().getBinSize();
-                if (binSize == 1) {
-                    fragNumbers = formatter.format(binY);
-                } else {
-                    int leftFragment = binY * binSize;
-                    int rightFragment = ((binY + 1) * binSize) - 1;
-                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
-                }
-                txt.append("  (");
-                txt.append(fragNumbers);
-                txt.append("  len=");
-                txt.append(formatter.format(yGenomeEnd - yGenomeStart));
-                txt.append(")");
-            }
-
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
-                float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
-                if(!Float.isNaN(value)) {
-                    txt.append("<br>value = ");
-                    txt.append(value);
-                }
-            } else {
-                float value = hic.getNormalizedObservedValue(binX, binY);
-                if(!Float.isNaN(value)) {
-                    txt.append("<br>observed value = ");
-                    txt.append(getFloatString(value));
-                }
-
-                int c1 = hic.getXContext().getChromosome().getIndex();
-                int c2 = hic.getYContext().getChromosome().getIndex();
-                double ev = 0;
-                if (c1 == c2) {
-                    ExpectedValueFunction df = hic.getExpectedValues();
-                    if (df != null) {
-                        int distance = Math.abs(binX - binY);
-                        ev = df.getExpectedValue(c1, distance);
-                    }
-                } else {
-                    ev = zd.getAverageCount();
-                }
-
-                String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-                txt.append("<br>expected value = ");
-                txt.append(evString);
-                if (ev > 0 && !Float.isNaN(value)) {
-                    txt.append("<br>O/E            = ");
-                    txt.append(formatter.format(value / ev));
-                } else {
-                    txt.append("<br>O/E            = NaN");
-                }
-
-                MatrixZoomData controlZD = hic.getControlZd();
-                if (controlZD != null) {
-                    float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
-                    txt.append("<br><br>control value = ");
-                    txt.append(getFloatString(controlValue));
-
-                    double obsValue = (value / zd.getAverageCount());
-                    txt.append("<br>observed/average = ");
-                    txt.append(getFloatString((float) obsValue));
-
-                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
-                    txt.append("<br>control/average = ");
-                    txt.append(getFloatString((float) ctlValue));
-
-                    if (value > 0 && controlValue > 0) {
-                        double ratio = obsValue / ctlValue;
-                        txt.append("<br>O'/C' = ");
-                        txt.append(getFloatString((float) ratio));
-
-                    }
-
-                }
-
-
-            }
-
-            for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
-                if (loop.getFirst().contains(x, y)) {
-                    txt.append("<br><br>");
-                    txt.append(loop.getSecond().tooltipText());
-                }
-            }
-
-
-            return txt.toString();
-        }
-
-        return null;
-    }
-
-    private String getFloatString(float value) {
-        String valueString;
-        if (Float.isNaN(value)) {
-            valueString = "NaN";
-        } else if (value < 0.001) {
-            valueString = String.valueOf(value);
-        } else {
-            valueString = formatter.format(value);
-        }
-        return valueString;
     }
 
 }

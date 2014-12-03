@@ -35,26 +35,30 @@ import java.util.regex.Pattern;
 public class EncodeFileBrowser extends JDialog {
 
     private static final long serialVersionUID = 3049287764412827292L;
-    private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
-
     private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
-
-
+    private static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
+    private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
+    private final EncodeTableModel model;
     private JTable table;
     private JTextField filterTextField;
     private JLabel rowCountLabel;
-
-    private final EncodeTableModel model;
     private boolean canceled;
 
+    private EncodeFileBrowser(Frame owner, EncodeTableModel model) {
+        super(owner);
+        this.model = model;
+        setModal(true);
+        initComponents();
+        init(model);
+    }
 
     public synchronized static EncodeFileBrowser getInstance(String genomeId) throws IOException {
 
         String encodeGenomeId = getEncodeGenomeId(genomeId);
         EncodeFileBrowser instance = instanceMap.get(encodeGenomeId);
         if (instance == null) {
-            Pair<String [], List<EncodeFileRecord>> records = getEncodeFileRecords(encodeGenomeId);
+            Pair<String[], List<EncodeFileRecord>> records = getEncodeFileRecords(encodeGenomeId);
             if (records == null) {
                 return null;
             }
@@ -69,7 +73,7 @@ public class EncodeFileBrowser extends JDialog {
     public synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
         EncodeFileBrowser instance = instanceMap.get("hic");
         if (instance == null) {
-            Pair<String [], List<EncodeFileRecord>> records = getEncodeFileRecords("hic");
+            Pair<String[], List<EncodeFileRecord>> records = getEncodeFileRecords("hic");
             if (records == null) {
                 return null;
             }
@@ -80,10 +84,8 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-
-    private static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
     public static boolean genomeSupported(String genomeId) {
-          return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
+        return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
     }
 
     private static String getEncodeGenomeId(String genomeId) {
@@ -91,7 +93,7 @@ public class EncodeFileBrowser extends JDialog {
         else return genomeId;
     }
 
-    private static Pair<String [], List<EncodeFileRecord>> getEncodeFileRecords(String genomeId) throws IOException {
+    private static Pair<String[], List<EncodeFileRecord>> getEncodeFileRecords(String genomeId) throws IOException {
 
         InputStream is = null;
 
@@ -114,7 +116,7 @@ public class EncodeFileBrowser extends JDialog {
                     String path = tokens[0];
 
                     // Filter BAMs for hic
-                    if(path == null || path.endsWith("bam")) continue;
+                    if (path == null || path.endsWith("bam")) continue;
 
                     Map<String, String> attributes = new HashMap<String, String>();
                     for (int i = 0; i < headers.length; i++) {
@@ -125,7 +127,7 @@ public class EncodeFileBrowser extends JDialog {
                     }
 
                     final EncodeFileRecord record = new EncodeFileRecord(path, attributes);
-                    if(record.hasMetaData()) records.add(record);
+                    if (record.hasMetaData()) records.add(record);
 
                 }
 
@@ -136,13 +138,8 @@ public class EncodeFileBrowser extends JDialog {
         }
     }
 
-
-    private EncodeFileBrowser(Frame owner, EncodeTableModel model) {
-        super(owner);
-        this.model = model;
-        setModal(true);
-        initComponents();
-        init(model);
+    public static void main(String[] args) throws IOException {
+        getInstance("hg19").setVisible(true);
     }
 
     private void init(final EncodeTableModel model) {
@@ -191,7 +188,7 @@ public class EncodeFileBrowser extends JDialog {
             rf = new RegexFilter(filterTextField.getText());
         } catch (java.util.regex.PatternSyntaxException e) {
             return;
-        } catch ( ClassCastException e) {
+        } catch (ClassCastException e) {
             return;
         }
         model.getSorter().setRowFilter(rf);
@@ -202,7 +199,6 @@ public class EncodeFileBrowser extends JDialog {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
     }
-
 
     private void loadButtonActionPerformed(ActionEvent e) {
         canceled = false;
@@ -254,7 +250,7 @@ public class EncodeFileBrowser extends JDialog {
     public void remove(ResourceLocator locator) {
         List<EncodeFileRecord> allRecords = model.getRecords();
         int rowCount = table.getRowCount();
-        int i=0;
+        int i = 0;
         boolean notFound = true;
         while (i < rowCount && notFound) {
             int modelIdx = table.convertRowIndexToModel(i);
@@ -268,81 +264,6 @@ public class EncodeFileBrowser extends JDialog {
             i++;
         }
     }
-
-    private class RegexFilter extends RowFilter<EncodeTableModel, Object> {
-
-        List<Pair<String, Matcher>> matchers;
-
-        RegexFilter(String text) {
-
-            if (text == null) {
-                throw new IllegalArgumentException("Pattern must be non-null");
-            }
-            matchers = new ArrayList<Pair<String, Matcher>>();
-            String[] tokens = Globals.whitespacePattern.split(text);
-            for (String t : tokens) {
-                // If token contains an = sign apply to specified column only
-                String column = "*";
-                String value = t.trim();
-                if (t.contains("=")) {
-                    String[] kv = Globals.equalPattern.split(t);
-                    if (kv.length > 1) {
-                        column = kv[0].trim();
-                        value = kv[1].trim();
-                    } else {
-                        value = kv[0];  // Value is column name until more input is entered
-                    }
-                }
-
-                matchers.add(new Pair<String, Matcher>(column, Pattern.compile("(?i)" + value).matcher("")));
-            }
-
-        }
-
-        /**
-         * Include row if each matcher succeeds in at least one column.  In other words all the conditions
-         * are combined with "and"
-         *
-         * @param value value to check
-         * @return if matched
-         */
-        @Override
-        public boolean include(Entry<? extends EncodeTableModel,?>  value) {
-
-            for (Pair<String, Matcher> entry : matchers) {
-                String column = entry.getFirst();
-                Matcher matcher = entry.getSecond();
-
-
-                // Search for a match in at least one column.  The first column is the checkbox.
-                boolean found = false;  // Pessimistic
-                int nColumns = table.getColumnCount();
-                for (int index = 1; index < nColumns; index++) {
-
-                    // Include column headings in search.  This is to prevent premature filtering when entering a
-                    // specific column condition (e.g. cataType=ChipSeq)
-                    matcher.reset(table.getColumnName(index).toLowerCase());
-                    if (matcher.find()) {
-                        found = true;
-                        break;
-                    }
-
-                    boolean wildcard = column.equals("*");
-                    if (wildcard || column.equalsIgnoreCase(table.getColumnName(index))) {
-                        matcher.reset(value.getStringValue(index));
-                        if (matcher.find()) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found) return false;
-            }
-            return true;  // If we get here we matched them all
-        }
-
-    }
-
 
     private void initComponents() {
 
@@ -444,9 +365,78 @@ public class EncodeFileBrowser extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
+    private class RegexFilter extends RowFilter<EncodeTableModel, Object> {
 
-    public static void main(String[] args) throws IOException {
-        getInstance("hg19").setVisible(true);
+        List<Pair<String, Matcher>> matchers;
+
+        RegexFilter(String text) {
+
+            if (text == null) {
+                throw new IllegalArgumentException("Pattern must be non-null");
+            }
+            matchers = new ArrayList<Pair<String, Matcher>>();
+            String[] tokens = Globals.whitespacePattern.split(text);
+            for (String t : tokens) {
+                // If token contains an = sign apply to specified column only
+                String column = "*";
+                String value = t.trim();
+                if (t.contains("=")) {
+                    String[] kv = Globals.equalPattern.split(t);
+                    if (kv.length > 1) {
+                        column = kv[0].trim();
+                        value = kv[1].trim();
+                    } else {
+                        value = kv[0];  // Value is column name until more input is entered
+                    }
+                }
+
+                matchers.add(new Pair<String, Matcher>(column, Pattern.compile("(?i)" + value).matcher("")));
+            }
+
+        }
+
+        /**
+         * Include row if each matcher succeeds in at least one column.  In other words all the conditions
+         * are combined with "and"
+         *
+         * @param value value to check
+         * @return if matched
+         */
+        @Override
+        public boolean include(Entry<? extends EncodeTableModel, ?> value) {
+
+            for (Pair<String, Matcher> entry : matchers) {
+                String column = entry.getFirst();
+                Matcher matcher = entry.getSecond();
+
+
+                // Search for a match in at least one column.  The first column is the checkbox.
+                boolean found = false;  // Pessimistic
+                int nColumns = table.getColumnCount();
+                for (int index = 1; index < nColumns; index++) {
+
+                    // Include column headings in search.  This is to prevent premature filtering when entering a
+                    // specific column condition (e.g. cataType=ChipSeq)
+                    matcher.reset(table.getColumnName(index).toLowerCase());
+                    if (matcher.find()) {
+                        found = true;
+                        break;
+                    }
+
+                    boolean wildcard = column.equals("*");
+                    if (wildcard || column.equalsIgnoreCase(table.getColumnName(index))) {
+                        matcher.reset(value.getStringValue(index));
+                        if (matcher.find()) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) return false;
+            }
+            return true;  // If we get here we matched them all
+        }
+
     }
 
 }

@@ -56,6 +56,8 @@ public abstract class HiCTrack {
 
     public abstract String getName();
 
+    public abstract void setName(String text);
+
     public abstract Color getPosColor();
 
     public abstract void render(Graphics2D g2d,
@@ -65,8 +67,6 @@ public abstract class HiCTrack {
                                 HiCGridAxis gridAxis);
 
     public abstract String getToolTipText(int x, int y, TrackPanel.Orientation orientation);
-
-    public abstract void setName(String text);
 
     public abstract void setColor(Color selectedColor);
 

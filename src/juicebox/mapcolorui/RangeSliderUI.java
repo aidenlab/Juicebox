@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 /**
  * UI delegate for the RangeSlider component.  RangeSliderUI paints two thumbs,
  * one for the lower value and one for the upper value.
+ *
  * @author Ernest Yu
  * @modified Muhammad S Shamim
  */
@@ -19,8 +20,15 @@ class RangeSliderUI extends BasicSliderUI {
      * Color of selected range.
      */
     private final Color rangeColor = Color.RED;
-    private final Color[] gradientColors = { new Color(255,255,255),  new Color(255,0,0)};
+    private final Color[] gradientColors = {Color.WHITE, Color.RED};
     private final float[] fractions = {0.0f, 1.0f};
+
+    private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
+    private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
+
+    private boolean colorIsOE = false;
+
+    private int oeColorMax;
 
     /**
      * Location and size of thumb for upper value.
@@ -47,6 +55,7 @@ class RangeSliderUI extends BasicSliderUI {
      */
     public RangeSliderUI(RangeSlider b) {
         super(b);
+        oeColorMax = OEColorScale.defaultMaxOEVal;
     }
 
     /**
@@ -191,18 +200,24 @@ class RangeSliderUI extends BasicSliderUI {
             int subTrackWidth = upperThumbRect.x - thumbRect.x;
             int leftArrowX = thumbRect.x;
             int rightArrowX = leftArrowX + subTrackWidth;
-            int leftArrowY = trackRect.y + trackRect.height/4;
+            int leftArrowY = trackRect.y + trackRect.height / 4;
             int redTrackWidth = trackRect.x + trackRect.width - rightArrowX;
 
-            Rectangle subRect = new Rectangle(leftArrowX, leftArrowY , subTrackWidth, trackRect.height/2);
-            Rectangle whiteSide = new Rectangle(trackRect.x, leftArrowY, leftArrowX - trackRect.x, subRect.height);
-            Rectangle redSide = new Rectangle(rightArrowX, leftArrowY, redTrackWidth, subRect.height);
+            Rectangle subRect = new Rectangle(leftArrowX, leftArrowY, subTrackWidth, trackRect.height / 2);
+            Rectangle leftSide = new Rectangle(trackRect.x, leftArrowY, leftArrowX - trackRect.x, subRect.height);
+            Rectangle rightSide = new Rectangle(rightArrowX, leftArrowY, redTrackWidth, subRect.height);
 
             Point startP = new Point(subRect.x, subRect.y);
             Point endP = new Point(subRect.x + subRect.width, subRect.y + subRect.height);
-            LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
 
-            drawSubTrackRectangles((Graphics2D)g, gradient, subRect, whiteSide, redSide);
+            if (colorIsOE) {
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
+            } else {
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, Color.RED, rightSide);
+            }
+
 
             g.setColor(oldColor);
 
@@ -232,16 +247,17 @@ class RangeSliderUI extends BasicSliderUI {
         }
     }
 
-    private void drawSubTrackRectangles(Graphics2D g, LinearGradientPaint gradientColor,
-                                        Rectangle gradRect, Rectangle whiteRect, Rectangle redRect){
+    private void drawSubTrackRectangles(Graphics2D g, LinearGradientPaint gradientColor, Rectangle gradientRect,
+                                        Paint leftColor, Rectangle leftRect,
+                                        Paint rightColor, Rectangle rightRect) {
         g.setPaint(gradientColor);
-        g.fill(gradRect);
+        g.fill(gradientRect);
 
-        g.setPaint(Color.WHITE);
-        g.fill(whiteRect);
+        g.setPaint(leftColor);
+        g.fill(leftRect);
 
-        g.setPaint(Color.RED);
-        g.fill(redRect);
+        g.setPaint(rightColor);
+        g.fill(rightRect);
     }
 
     /**
@@ -271,7 +287,6 @@ class RangeSliderUI extends BasicSliderUI {
         thumbRect = tmp;
 
     }
-
 
 
     /**
@@ -328,6 +343,14 @@ class RangeSliderUI extends BasicSliderUI {
                 slider.setValue(oldValue + delta);
             }
         }
+    }
+
+    public void setDisplayToOE(boolean isOE) {
+
+        this.colorIsOE = isOE;
+        OEColorScale.resetMax();
+        this.oeColorMax = OEColorScale.defaultMaxOEVal;
+
     }
 
     /**
@@ -484,20 +507,41 @@ class RangeSliderUI extends BasicSliderUI {
                     int trackRight = trackRect.x + (trackRect.width - 1);
                     int hMax = xPositionForValue(slider.getValue() + slider.getExtent());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackLeft = hMax;
-                    } else {
-                        trackRight = hMax;
-                    }
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
                     thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
+                    // Apply bounds to thumb position.
+                    if (drawInverted()) {
+                        thumbLeft = Math.max(thumbLeft, hMax);
+                    } else {
+                        thumbLeft = Math.min(thumbLeft, hMax);
+                    }
+
+                    if(colorIsOE){
+                        int midpoint = (trackRight - trackLeft)/2 + trackLeft;
+                        thumbLeft = Math.min(thumbLeft, midpoint - halfThumbWidth);
+                        //int upperThumb = trackRight - (thumbLeft - trackLeft);
+                        //setUpperThumbLocation(upperThumb, thumbRect.y);
+                        //slider.setValue(valueForXPosition(thumbLeft - halfThumbWidth));
+                        //slider.setExtent(valueForXPosition(upperThumb - halfThumbWidth) - slider.getValue());
+                    }
+
                     setThumbLocation(thumbLeft, thumbRect.y);
+                    //System.out.println("lower thumb dragged");
 
                     // Update slider value.
                     thumbMiddle = thumbLeft + halfThumbWidth;
                     slider.setValue(valueForXPosition(thumbMiddle));
+
+                    if(colorIsOE){
+                        int val = ((RangeSlider)slider).getLowerValue();
+                        if(val == 0){
+                            val = -1;
+                            ((RangeSlider)slider).setLowerValue(val);
+                        }
+                        ((RangeSlider)slider).setUpperValue(-val);
+                    }
+
                     break;
 
                 default:
@@ -530,6 +574,7 @@ class RangeSliderUI extends BasicSliderUI {
 
                     setUpperThumbLocation(thumbRect.x, thumbTop);
 
+
                     // Update slider extent.
                     thumbMiddle = thumbTop + halfThumbHeight;
                     slider.setExtent(valueForYPosition(thumbMiddle) - slider.getValue());
@@ -542,20 +587,44 @@ class RangeSliderUI extends BasicSliderUI {
                     int trackRight = trackRect.x + (trackRect.width - 1);
                     int hMin = xPositionForValue(slider.getValue());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackRight = hMin;
-                    } else {
-                        trackLeft = hMin;
-                    }
+
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
                     thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
+                    // Apply bounds to thumb position.
+                    if (drawInverted()) {
+                        thumbLeft = Math.min(thumbLeft, hMin);
+                    } else {
+                        thumbLeft = Math.max(thumbLeft, hMin);
+                    }
+
+                    if(colorIsOE){
+                        int midpoint = (trackRight - trackLeft)/2 + trackLeft;
+                        //System.out.println(midpoint);
+                        thumbLeft = Math.max(thumbLeft, midpoint - halfThumbWidth);
+                        //int lowerThumb = trackLeft + (trackRight - thumbLeft);
+                        //setThumbLocation(lowerThumb, thumbRect.y);
+                        //slider.setValue(valueForXPosition(lowerThumb- halfThumbWidth));
+                    }
+
+
+
+                    //System.out.println("upper thumb dragged");
                     setUpperThumbLocation(thumbLeft, thumbRect.y);
 
                     // Update slider extent.
-                    thumbMiddle = thumbLeft + halfThumbWidth;
+                    thumbMiddle = thumbLeft - halfThumbWidth;
                     slider.setExtent(valueForXPosition(thumbMiddle) - slider.getValue());
+
+                    if(colorIsOE){
+                        int val = ((RangeSlider)slider).getUpperValue();
+                        if(val == 0){
+                            val = 1;
+                            ((RangeSlider)slider).setUpperValue(val);
+                        }
+                        ((RangeSlider)slider).setLowerValue(-val);
+                    }
+
                     break;
 
                 default:

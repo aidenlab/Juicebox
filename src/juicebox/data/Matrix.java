@@ -14,10 +14,10 @@ import java.util.List;
  */
 public class Matrix {
 
-     private final int chr1;
-     private final int chr2;
-     List<MatrixZoomData> bpZoomData;
-     List<MatrixZoomData> fragZoomData;
+    private final int chr1;
+    private final int chr2;
+    List<MatrixZoomData> bpZoomData;
+    List<MatrixZoomData> fragZoomData;
 
     /**
      * Constructor for creating a matrix from precomputed data.
@@ -65,15 +65,22 @@ public class Matrix {
     }
 
     public MatrixZoomData getFirstZoomData(HiC.Unit unit) {
-        if(unit == HiC.Unit.BP) {
+        if (unit == HiC.Unit.BP) {
             return bpZoomData != null ? bpZoomData.get(0) : null;
-        }
-        else {
+        } else {
             return fragZoomData != null ? fragZoomData.get(0) : null;
         }
 
     }
 
+    public MatrixZoomData getFirstPearsonZoomData(HiC.Unit unit) {
+        if (unit == HiC.Unit.BP) {
+            return bpZoomData != null ? bpZoomData.get(2) : null;
+        } else {
+            return fragZoomData != null ? fragZoomData.get(2) : null;
+        }
+
+    }
     public MatrixZoomData getZoomData(HiCZoom zoom) {
         List<MatrixZoomData> zdList = (zoom.getUnit() == HiC.Unit.BP) ? bpZoomData : fragZoomData;
         //linear search for bin size, the lists are not large

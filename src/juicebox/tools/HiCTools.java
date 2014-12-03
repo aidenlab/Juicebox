@@ -164,14 +164,12 @@ public class HiCTools {
                 int genomeWideResolution = -100;
                 try {
                     genomeWideResolution = Integer.valueOf(args[2]);
-                }
-                catch (NumberFormatException error) {
+                } catch (NumberFormatException error) {
                     System.err.println("Usage: juicebox addNorm hicFile <max genome-wide resolution>");
                     System.exit(1);
                 }
                 NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
-            }
-            else {
+            } else {
                 NormalizationVectorUpdater.updateHicFile(file);
             }
         } else if (args[0].equals("addGWNorm")) {
@@ -184,8 +182,7 @@ public class HiCTools {
             int genomeWideResolution = -100;
             try {
                 genomeWideResolution = Integer.valueOf(args[2]);
-            }
-            catch (NumberFormatException error) {
+            } catch (NumberFormatException error) {
                 System.err.println("Usage: juicebox addNorm hicFile <max genome-wide resolution>");
                 System.exit(1);
             }
@@ -766,7 +763,7 @@ public class HiCTools {
             }
             */
 
-            for(double element : vector){
+            for (double element : vector) {
                 if (!Double.isNaN(element)) {
                     sum += element;
                     count++;
@@ -910,12 +907,12 @@ public class HiCTools {
 
         boolean getHelpOption() {
             Object opt = getOptionValue(helpOption);
-            return opt != null && (Boolean)opt;
+            return opt != null && (Boolean) opt;
         }
 
         boolean getDiagonalsOption() {
             Object opt = getOptionValue(diagonalsOption);
-            return opt != null && (Boolean)opt;
+            return opt != null && (Boolean) opt;
         }
 
         Set<String> getChromosomeOption() {
@@ -981,10 +978,10 @@ public class HiCTools {
     static class BedLikeFeature implements LocusScore {
 
         final String chr;
+        final String line;
         int start;
         int end;
         String name;
-        final String line;
 
         BedLikeFeature(String line) {
             this.line = line;

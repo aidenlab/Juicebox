@@ -31,7 +31,7 @@ public abstract class AbstractDatasetReader implements DatasetReader {
 
     public BasicMatrix readPearsons(String chr1Name, String chr2Name, HiCZoom zoom, NormalizationType type) throws IOException {
 
-       // TODO -- need to use zoom unit (BP or FRAG)
+        // TODO -- need to use zoom unit (BP or FRAG)
         String rootPath = FileUtils.getParent(path);
         String folder = rootPath + "/" + chr1Name;
         String file = "pearsons" + "_" + chr1Name + "_" + chr2Name + "_" + zoom.getBinSize() + "_" + type + ".bin";

@@ -37,6 +37,7 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 
     /**
      * Expected value vector.  No chromosome normalization
+     *
      * @return Genome-wide expected value vector
      */
     @Override

@@ -7,11 +7,15 @@ import java.util.regex.Pattern;
 
 /**
  * @author nchernia
- * Date: 8/26/12
+ *         Date: 8/26/12
  */
 public class FragmentCalculation {
 
     private Map<String, int[]> sitesMap = null;
+
+    private FragmentCalculation(Map<String, int[]> sitesMap) {
+        this.sitesMap = sitesMap;
+    }
 
     private static FragmentCalculation readFragments(InputStream is) throws IOException {
         Pattern pattern = Pattern.compile("\\s");
@@ -49,23 +53,6 @@ public class FragmentCalculation {
 
     }
 
-    private FragmentCalculation(Map<String, int[]> sitesMap) {
-        this.sitesMap = sitesMap;
-    }
-
-    public int [] getSites(String chrName) {
-        return sitesMap.get(chrName);
-    }
-
-    public int getNumberFragments(String chrName) {
-        int[] sites = sitesMap.get(chrName);
-        if (sites == null) // for "All"
-            return 1;
-        return sites.length;
-    }
-
-
-
     /**
      * Return fragment that this position lies on.  Fragment 0 means position < sites[0].
      * Fragment 1 means position >= sites[0] and < sites[1].
@@ -86,6 +73,17 @@ public class FragmentCalculation {
             else return mid + 1;
         }
         return lo;
+    }
+
+    public int[] getSites(String chrName) {
+        return sitesMap.get(chrName);
+    }
+
+    public int getNumberFragments(String chrName) {
+        int[] sites = sitesMap.get(chrName);
+        if (sites == null) // for "All"
+            return 1;
+        return sites.length;
     }
 
     public Map<String, int[]> getSitesMap() {

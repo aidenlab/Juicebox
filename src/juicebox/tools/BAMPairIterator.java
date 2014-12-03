@@ -51,7 +51,7 @@ public class BAMPairIterator implements PairIterator {
     private void advance() {
 
         while (iterator.hasNext()) {
-            Alignment alignment = (Alignment)iterator.next();
+            Alignment alignment = (Alignment) iterator.next();
 
             final ReadMate mate = alignment.getMate();
             if (alignment.isPaired() && alignment.isMapped() && alignment.getMappingQuality() > 0 &&
@@ -64,11 +64,11 @@ public class BAMPairIterator implements PairIterator {
                     if ((alignment.getChr().equals(mate.getChr()) && alignment.getStart() < mate.getStart()) ||
                             (alignment.getChr().compareTo(mate.getChr()) < 0)) {
                         final String chrom1 = alignment.getChr();
-                         final String chrom2 = mate.getChr();
+                        final String chrom2 = mate.getChr();
                         if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
                             int chr1 = chromosomeOrdinals.get(chrom1);
                             int chr2 = chromosomeOrdinals.get(chrom2);
-                           //  nextPair = new AlignmentPair(chr1, alignment.getStart(), chr2, mate.getStart());
+                            //  nextPair = new AlignmentPair(chr1, alignment.getStart(), chr2, mate.getStart());
                         }
                         return;
                     }

@@ -55,14 +55,15 @@ public class SparseVector {
 
     /**
      * Computes the mean of occupied elements
+     *
      * @return
      */
     public Double getMean() {
 
-        if(values.size() == 0) return Double.NaN;
+        if (values.size() == 0) return Double.NaN;
 
-        double sum=0;
-        for(Double v : values.values()) {
+        double sum = 0;
+        for (Double v : values.values()) {
             sum += v;
         }
         return sum / values.size();

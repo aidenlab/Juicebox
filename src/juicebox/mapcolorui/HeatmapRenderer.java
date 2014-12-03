@@ -29,12 +29,10 @@ public class HeatmapRenderer {
     // TODO -- introduce a "model" in lieu of MainWindow pointer
 
     private final MainWindow mainWindow;
-
-    private ContinuousColorScale observedColorScale;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
-
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
+    private ContinuousColorScale observedColorScale;
 
     public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
@@ -190,7 +188,7 @@ public class HeatmapRenderer {
         if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
-                observedColorScale = observedColorScaleMap.get(key);
+            observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
                 double percentile = wholeGenome ? 99 : 95;
                 float max = computePercentile(blocks, percentile);
@@ -208,14 +206,13 @@ public class HeatmapRenderer {
         return cs;
     }
 
-    public void updateColorSliderFromColorScale(MatrixZoomData zd, MatrixType displayOption)
-    {
+    public void updateColorSliderFromColorScale(MatrixZoomData zd, MatrixType displayOption) {
         if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
-        displayOption == MatrixType.CONTROL) {
+                displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale != null) {
-                mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum()*2);
+                mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
             }
         }
     }
@@ -268,8 +265,8 @@ public class HeatmapRenderer {
                 } else {
                     color = score == 0 ? Color.black : colorScale.getColor(score);
                 }
-                int px =  col - originX;
-                int py =  row - originY;
+                int px = col - originX;
+                int py = row - originY;
                 g.setColor(color);
                 //noinspection SuspiciousNameCombination
                 g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);

@@ -33,8 +33,18 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
         return igvTrack.getName();
     }
 
+    @Override
+    public void setName(String text) {
+        igvTrack.setName(text);
+    }
+
     public Color getColor() {
         return igvTrack.getColor();
+    }
+
+    @Override
+    public void setColor(Color selectedColor) {
+        igvTrack.setColor(selectedColor);
     }
 
     public boolean isLogScale() {
@@ -43,6 +53,11 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
 
     public Color getAltColor() {
         return igvTrack.getAltColor();
+    }
+
+    @Override
+    public void setAltColor(Color selectedColor) {
+        igvTrack.setAltColor(selectedColor);
     }
 
     public DataRange getDataRange() {
@@ -55,28 +70,13 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
     }
 
     @Override
-    public void setName(String text) {
-        igvTrack.setName(text);
-    }
-
-    @Override
-    public void setColor(Color selectedColor) {
-        igvTrack.setColor(selectedColor);
-    }
-
-    @Override
-    public void setAltColor(Color selectedColor) {
-        igvTrack.setAltColor(selectedColor);
-    }
-
-    @Override
     public Collection<WindowFunction> getAvailableWindowFunctions() {
         return igvTrack.getAvailableWindowFunctions();
     }
 
     protected List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
         igvTrack.setWindowFunction(windowFunction);
-        if (chr.contains("chr"))  return igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
+        if (chr.contains("chr")) return igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
         else return igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom);
     }
 }

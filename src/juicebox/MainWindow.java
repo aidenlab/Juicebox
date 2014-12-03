@@ -33,9 +33,9 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -49,7 +49,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -71,44 +70,45 @@ public class MainWindow extends JFrame {
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
-    public static Cursor fistCursor;
+    public static Cursor fistCursor; // for panning
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
     private static JMenuItem clearLocationList;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
-    // The "model" object containing the state for this instance.
-    private final HiC hic;
-    private String currentlyLoadedFile = "";
-    private String datasetTitle = "";
-    private String controlTitle;
+    private final HiC hic; // The "model" object containing the state for this instance.
+    private static String currentlyLoadedFile = "";
+    private static String datasetTitle = "";
+    private static String controlTitle;
     private double colorRangeScaleFactor = 1;
-    private LoadDialog loadDialog = null;
-    private JComboBox<Chromosome> chrBox1;
-    private JComboBox<Chromosome> chrBox2;
-    private JideButton refreshButton;
-    private JComboBox<String> normalizationComboBox;
-    private JComboBox<MatrixType> displayOptionComboBox;
-    private JideButton plusButton;
-    private JideButton minusButton;
-    private RangeSlider colorRangeSlider;
-    private ResolutionControl resolutionSlider;
-    private TrackPanel trackPanelX;
-    private TrackPanel trackPanelY;
-    private TrackLabelPanel trackLabelPanel;
-    private HiCRulerPanel rulerPanelX;
-    private HeatmapPanel heatmapPanel;
-    private HiCRulerPanel rulerPanelY;
-    private ThumbnailPanel thumbnailPanel;
-    private JLabel mouseHoverTextPanel;
-    private JTextField positionChrLeft;
-    private JTextField positionChrTop;
-    private JPanel hiCPanel;
-    private JMenu annotationsMenu;
-    private JMenu bookmarksMenu;
+    private static LoadDialog loadDialog = null;
+    private static JComboBox<Chromosome> chrBox1;
+    private static JComboBox<Chromosome> chrBox2;
+    private static JideButton refreshButton;
+    private static JideButton goButton;
+    private static JComboBox<String> normalizationComboBox;
+    private static JComboBox<MatrixType> displayOptionComboBox;
+    private static JideButton plusButton;
+    private static JideButton minusButton;
+    private static RangeSlider colorRangeSlider;
+    private static ResolutionControl resolutionSlider;
+    private static TrackPanel trackPanelX;
+    private static TrackPanel trackPanelY;
+    private static TrackLabelPanel trackLabelPanel;
+    private static HiCRulerPanel rulerPanelX;
+    private static HeatmapPanel heatmapPanel;
+    private static HiCRulerPanel rulerPanelY;
+    private static ThumbnailPanel thumbnailPanel;
+    private static JLabel mouseHoverTextPanel;
+    private static JTextField positionChrLeft;
+    private static JTextField positionChrTop;
+    private static JPanel hiCPanel;
+    private static JMenu annotationsMenu;
+    private static JMenu bookmarksMenu;
     private HiCZoom initialZoom;
-    private String saveImagePath;
+    private boolean tooltipAllowedToUpdated = true;
+    private int[] colorValuesToRestore = null;
 
     private MainWindow() {
 
@@ -176,7 +176,8 @@ public class MainWindow extends JFrame {
     }
 
     public void updateToolTipText(String s) {
-        mouseHoverTextPanel.setText(s);
+        if(tooltipAllowedToUpdated)
+            mouseHoverTextPanel.setText(s);
     }
 
     public boolean isResolutionLocked() {
@@ -284,7 +285,6 @@ public class MainWindow extends JFrame {
         return heatmapPanel;
     }
 
-
     public void updateZoom(HiCZoom newZoom) {
 
         resolutionSlider.setZoom(newZoom);
@@ -333,6 +333,11 @@ public class MainWindow extends JFrame {
         } else {
             currentlyLoadedFile = file;
         }
+
+        colorValuesToRestore = null;
+        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+        hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
             Runnable runnable = new Runnable() {
@@ -417,6 +422,7 @@ public class MainWindow extends JFrame {
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
+                        goButton.setEnabled(true);
 
                         refresh(); // an additional refresh seems to remove the upper left black corner
                     } catch (IOException error) {
@@ -444,6 +450,11 @@ public class MainWindow extends JFrame {
 
     public void refreshChromosomes() {
 
+        if(chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0 ){
+            chrBox1.setSelectedIndex(0);
+            chrBox2.setSelectedIndex(0);
+        }
+
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
 
@@ -462,7 +473,7 @@ public class MainWindow extends JFrame {
 
     }
 
-    public void setNormalizationDisplayState(){
+    public void setNormalizationDisplayState() {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
@@ -473,7 +484,12 @@ public class MainWindow extends JFrame {
         // Test for new dataset ("All"),  or change in chromosome
         final boolean wholeGenome = chrY.getName().equals("All");
         final boolean intraChr = chr1.getIndex() != chr2.getIndex();
-        if (wholeGenome || intraChr) {
+        if (wholeGenome) { // for now only allow observed
+            hic.setDisplayOption(MatrixType.OBSERVED);
+            displayOptionComboBox.setSelectedIndex(0);
+            normalizationComboBox.setSelectedIndex(0);
+        }
+        else if(intraChr){
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
@@ -482,10 +498,10 @@ public class MainWindow extends JFrame {
 
         normalizationComboBox.setEnabled(!wholeGenome);
         // Actually we'd like to enable
-        displayOptionComboBox.setEnabled(true);
+        displayOptionComboBox.setEnabled(!wholeGenome); // TODO add capability to view whole genome in OE, etc
     }
 
-    public void repaintTrackPanels(){
+    public void repaintTrackPanels() {
         trackPanelX.repaint();
         trackPanelY.repaint();
     }
@@ -522,7 +538,11 @@ public class MainWindow extends JFrame {
 
     private void setInitialZoom() {
 
-        if (hic.getXContext().getChromosome().getName().equals("All")) {
+        //For now, in case of Pearson - set initial to 500KB resolution.
+        if((hic.getDisplayOption() == MatrixType.PEARSON)){
+            initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
+        }
+        else if (hic.getXContext().getChromosome().getName().equals("All")) {
             resolutionSlider.setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {
@@ -563,6 +583,7 @@ public class MainWindow extends JFrame {
     }
 
     private void refreshButtonActionPerformed() {
+        colorValuesToRestore = null;
         refreshChromosomes();
     }
 
@@ -633,13 +654,10 @@ public class MainWindow extends JFrame {
                 }
                 InputStream is = ParsingUtils.openInputStream(url);
                 properties = new Properties();
-                if (is == null)
-                {
+                if (is == null) {
                     //No slection made:
                     return;
-                }
-                else
-                {
+                } else {
                     properties.load(is);
                 }
             } catch (Exception error) {
@@ -656,7 +674,7 @@ public class MainWindow extends JFrame {
         loadDialog.setVisible(true);
     }
 
-    public void updateTitle(boolean control, String title){
+    public void updateTitle(boolean control, String title) {
         if (control) controlTitle = title;
         else datasetTitle = title;
         updateTitle();
@@ -694,10 +712,11 @@ public class MainWindow extends JFrame {
         double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
         heatmapPanel.setObservedRange(min, max);
-/*
+
         if (hic.getDisplayOption() == MatrixType.OE) {
-            heatmapPanel.setOEMax(colorRangeSlider.getUpperValue() / 8);
-        }*/
+            System.out.println(colorRangeSlider.getUpperValue());
+            heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
+        }
     }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
@@ -716,9 +735,23 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
-        plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
-        minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
+        boolean activateOE = option == MatrixType.OE;
+        boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
+
+        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
+        colorRangeSlider.setDisplayToOE(activateOE);
+
+        if(activateOE){
+            resetOEColorRangeSlider();
+        }
+        else{
+            resetRegularColorRangeSlider();
+        }
+
+
+
+        plusButton.setEnabled(activateOE || isObservedOrControl);
+        minusButton.setEnabled(activateOE || isObservedOrControl);
         if (option == MatrixType.PEARSON) {
             if (hic.isWholeGenome()) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for whole-genome view.");
@@ -768,6 +801,7 @@ public class MainWindow extends JFrame {
         // TODO S7 - MSS
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
+                //System.out.println("Glassify : " + rootPane);
                 MainWindow.this.showGlassPane();
                 try {
                     runnable.run();
@@ -781,15 +815,16 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    public RecentMenu getRecentMapMenu(){
+    public RecentMenu getRecentMapMenu() {
         return recentMapMenu;
     }
 
-    public RecentMenu getRecentStateMenu(){
+    public RecentMenu getRecentStateMenu() {
         return recentLocationMenu;
     }
 
     public void showGlassPane() {
+        MessageUtils.setStatusBarMessage("Loading Map");// .showMessage("Loading Map");
         setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
     }
 
@@ -797,13 +832,13 @@ public class MainWindow extends JFrame {
         setGlassPaneVisibility(this.getGlassPane(), Cursor.DEFAULT_CURSOR, false);
     }
 
-    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible){
+    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible) {
         glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
         glassPane.setVisible(isVisible);
         setWaitingStatus(cursorState);
     }
 
-    public void setWaitingStatus(int cursorState){
+    public void setWaitingStatus(int cursorState) {
         rootPane.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
         rootPane.setCursor(Cursor.getPredefinedCursor(cursorState));
         hiCPanel.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
@@ -842,7 +877,39 @@ public class MainWindow extends JFrame {
 
     }
 
+    private void resetRegularColorRangeSlider(){
+        if(colorValuesToRestore != null) {
+            //refreshChromosomes();
+            //setInitialZoom();
 
+            colorRangeSlider.setMinimum(colorValuesToRestore[0]);
+            colorRangeSlider.setMaximum(colorValuesToRestore[1]);
+            colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
+            colorRangeSlider.setUpperValue(colorValuesToRestore[3]);
+            colorRangeScaleFactor = colorValuesToRestore[4];
+
+            refresh();
+            colorValuesToRestore = null;
+        }
+    }
+
+    private void resetOEColorRangeSlider(){
+
+        if(colorValuesToRestore == null){
+            colorValuesToRestore = new int[5];
+            colorValuesToRestore[0] = colorRangeSlider.getMinimum();
+            colorValuesToRestore[1] = colorRangeSlider.getMaximum();
+            colorValuesToRestore[2] = colorRangeSlider.getLowerValue();
+            colorValuesToRestore[3] = colorRangeSlider.getUpperValue();
+            colorValuesToRestore[4] = (int)colorRangeScaleFactor;
+        }
+
+        colorRangeSlider.setMinimum(-20);
+        colorRangeSlider.setMaximum(20);
+        colorRangeSlider.setLowerValue(-5);
+        colorRangeSlider.setUpperValue(5);
+
+    }
 
 
     private void initComponents() {
@@ -932,8 +999,35 @@ public class MainWindow extends JFrame {
         refreshButton.setEnabled(false);
         chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
 
+        //======== Display Option Panel ========
+        JPanel displayOptionPanel = new JPanel();
+        displayOptionPanel.setBackground(new Color(238, 238, 238));
+        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
+        displayOptionPanel.setLayout(new BorderLayout());
+        JPanel displayOptionLabelPanel = new JPanel();
+        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
+        displayOptionLabelPanel.setLayout(new BorderLayout());
 
-        //======== normalizationPanel ========
+        JLabel displayOptionLabel = new JLabel("Show");
+        displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
+        displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
+        JPanel displayOptionButtonPanel = new JPanel();
+        displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
+        displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
+        displayOptionComboBox = new JComboBox<MatrixType>();
+        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
+        displayOptionComboBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                displayOptionComboBoxActionPerformed(e);
+            }
+        });
+        displayOptionButtonPanel.add(displayOptionComboBox);
+        displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
+        toolbarPanel.add(displayOptionPanel);
+        displayOptionComboBox.setEnabled(false);
+
+        //======== Normalization Panel ========
         JPanel normalizationPanel = new JPanel();
         normalizationPanel.setBackground(new Color(238, 238, 238));
         normalizationPanel.setBorder(LineBorder.createGrayLineBorder());
@@ -963,143 +1057,7 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(normalizationPanel);
         normalizationComboBox.setEnabled(false);
 
-
-        //======== displayOptionPanel ========
-        JPanel displayOptionPanel = new JPanel();
-        displayOptionPanel.setBackground(new Color(238, 238, 238));
-        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
-        displayOptionPanel.setLayout(new BorderLayout());
-        JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
-        displayOptionLabelPanel.setLayout(new BorderLayout());
-
-        JLabel displayOptionLabel = new JLabel("Show");
-        displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
-        displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
-        JPanel displayOptionButtonPanel = new JPanel();
-        displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-        displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        displayOptionComboBox = new JComboBox<MatrixType>();
-        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
-        displayOptionComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                displayOptionComboBoxActionPerformed(e);
-            }
-        });
-        displayOptionButtonPanel.add(displayOptionComboBox);
-        displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        toolbarPanel.add(displayOptionPanel);
-        displayOptionComboBox.setEnabled(false);
-
-        //======== colorRangePanel ========
-
-        JPanel colorRangePanel = new JPanel();
-        colorRangePanel.setLayout(new BorderLayout());
-
-        JPanel sliderPanel = new JPanel();
-        sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
-
-        colorRangeSlider = new RangeSlider();
-
-        colorRangeSlider.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent mouseEvent) {
-                super.mouseEntered(mouseEvent);
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-        colorRangeSlider.setEnabled(false);
-
-        //---- colorRangeLabel ----
-        JLabel colorRangeLabel = new JLabel("Color Range");
-        colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
-        colorRangeLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-        colorRangeLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger() && colorRangeSlider.isEnabled()) {
-                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                    rangeDialog.setVisible(true);
-                }
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (colorRangeSlider.isEnabled()) {
-                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                    rangeDialog.setVisible(true);
-                }
-            }
-        });
-        JPanel colorLabelPanel = new JPanel();
-        colorLabelPanel.setBackground(new Color(204, 204, 204));
-        colorLabelPanel.setLayout(new BorderLayout());
-        colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
-
-        colorRangePanel.add(colorLabelPanel, BorderLayout.PAGE_START);
-
-        //---- colorRangeSlider ----
-        colorRangeSlider.setPaintTicks(false);
-        colorRangeSlider.setPaintLabels(false);
-        colorRangeSlider.setMaximumSize(new Dimension(32767, 52));
-        colorRangeSlider.setPreferredSize(new Dimension(200, 52));
-        colorRangeSlider.setMinimumSize(new Dimension(36, 52));
-
-        colorRangeSlider.setMaximum(2000);
-        colorRangeSlider.setLowerValue(0);
-        colorRangeSlider.setUpperValue(500);
-
-        colorRangeSlider.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                colorRangeSliderStateChanged(e);
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-        sliderPanel.add(colorRangeSlider);
-        JPanel plusMinusPanel = new JPanel();
-        plusMinusPanel.setLayout(new BoxLayout(plusMinusPanel, BoxLayout.Y_AXIS));
-
-        plusButton = new JideButton();
-        plusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-plus.png")));
-        plusButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-
-        minusButton = new JideButton();
-        minusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-minus.png")));
-        minusButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //Set limit to maximum range:
-                if (colorRangeSlider.getMaximum() > 2) {
-                    colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
-                }
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-
-        plusMinusPanel.add(plusButton);
-        plusMinusPanel.add(minusButton);
-        plusButton.setEnabled(false);
-        minusButton.setEnabled(false);
-        sliderPanel.add(plusMinusPanel);
-        colorRangePanel.add(sliderPanel, BorderLayout.PAGE_END);
-
-
-        colorRangePanel.setBorder(LineBorder.createGrayLineBorder());
-        colorRangePanel.setMinimumSize(new Dimension(96, 70));
-        colorRangePanel.setPreferredSize(new Dimension(202, 70));
-        colorRangePanel.setMaximumSize(new Dimension(32769, 70));
-        toolbarPanel.add(colorRangePanel);
-
-
-        //======== hiCPanel ========
+        //======== Resolution Panel ========
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
@@ -1153,7 +1111,7 @@ public class MainWindow extends JFrame {
 
         //---- heatmapPanel ----
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         heatmapPanel.setMaximumSize(new Dimension(800, 800));
         heatmapPanel.setMinimumSize(new Dimension(800, 800));
         heatmapPanel.setPreferredSize(new Dimension(800, 800));
@@ -1166,6 +1124,193 @@ public class MainWindow extends JFrame {
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
         toolbarPanel.add(resolutionSlider);
+
+        //======== Color Range Panel ========
+
+        JPanel colorRangePanel = new JPanel();
+        colorRangePanel.setLayout(new BorderLayout());
+
+        JPanel sliderPanel = new JPanel();
+        sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
+
+        colorRangeSlider = new RangeSlider();
+
+        colorRangeSlider.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent mouseEvent) {
+                super.mouseEntered(mouseEvent);
+                colorRangeSliderUpdateToolTip();
+            }
+        });
+        colorRangeSlider.setEnabled(false);
+
+        //---- colorRangeLabel ----
+        JLabel colorRangeLabel = new JLabel("Color Range");
+        colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
+        colorRangeLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+        colorRangeLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger() && colorRangeSlider.isEnabled()) {
+                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
+                    rangeDialog.setVisible(true);
+                }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (colorRangeSlider.isEnabled()) {
+                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
+                    rangeDialog.setVisible(true);
+                }
+            }
+        });
+        JPanel colorLabelPanel = new JPanel();
+        colorLabelPanel.setBackground(new Color(204, 204, 204));
+        colorLabelPanel.setLayout(new BorderLayout());
+        colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
+
+        colorRangePanel.add(colorLabelPanel, BorderLayout.PAGE_START);
+
+        //---- colorRangeSlider ----
+        colorRangeSlider.setPaintTicks(false);
+        colorRangeSlider.setPaintLabels(false);
+        colorRangeSlider.setMaximumSize(new Dimension(32767, 52));
+        colorRangeSlider.setPreferredSize(new Dimension(200, 52));
+        colorRangeSlider.setMinimumSize(new Dimension(36, 52));
+        resetRegularColorRangeSlider();
+
+        colorRangeSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                colorRangeSliderStateChanged(e);
+                colorRangeSliderUpdateToolTip();
+            }
+        });
+        sliderPanel.add(colorRangeSlider);
+        JPanel plusMinusPanel = new JPanel();
+        plusMinusPanel.setLayout(new BoxLayout(plusMinusPanel, BoxLayout.Y_AXIS));
+
+        plusButton = new JideButton();
+        plusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-plus.png")));
+        plusButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
+                if(hic.getDisplayOption() == MatrixType.OE) {
+                    colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
+                    colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
+                }
+                colorRangeSliderUpdateToolTip();
+            }
+        });
+
+        minusButton = new JideButton();
+        minusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-minus.png")));
+        minusButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Set limit to maximum range:
+                int newMax = colorRangeSlider.getMaximum()/2;
+                if ( newMax > 0) {
+                    colorRangeSlider.setMaximum(newMax);
+                    if(hic.getDisplayOption() == MatrixType.OE) {
+                        colorRangeSlider.setMinimum(-newMax);
+                        colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
+                    }
+                }
+                colorRangeSliderUpdateToolTip();
+            }
+        });
+
+        plusMinusPanel.add(plusButton);
+        plusMinusPanel.add(minusButton);
+        plusButton.setEnabled(false);
+        minusButton.setEnabled(false);
+        sliderPanel.add(plusMinusPanel);
+        colorRangePanel.add(sliderPanel, BorderLayout.PAGE_END);
+
+
+        colorRangePanel.setBorder(LineBorder.createGrayLineBorder());
+        colorRangePanel.setMinimumSize(new Dimension(96, 70));
+        colorRangePanel.setPreferredSize(new Dimension(202, 70));
+        colorRangePanel.setMaximumSize(new Dimension(32769, 70));
+        toolbarPanel.add(colorRangePanel);
+
+        //======== Goto Panel ========
+        JPanel goPanel = new JPanel();
+        goPanel.setBackground(new Color(238, 238, 238));
+        goPanel.setBorder(LineBorder.createGrayLineBorder());
+        goPanel.setLayout(new BorderLayout());
+        JPanel goLabelPanel = new JPanel();
+        goLabelPanel.setBackground(new Color(204, 204, 204));
+        goLabelPanel.setLayout(new BorderLayout());
+
+        JLabel goLabel = new JLabel("Goto");
+        goLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        goLabelPanel.add(goLabel, BorderLayout.CENTER);
+        goPanel.add(goLabelPanel, BorderLayout.PAGE_START);
+
+        JPanel goButtonPanel = new JPanel();
+        goButtonPanel.setBackground(new Color(238, 238, 238));
+        goButtonPanel.setLayout(new BoxLayout(goButtonPanel, BoxLayout.X_AXIS));
+
+
+        positionChrTop = new JTextField();
+        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
+        positionChrTop.setEnabled(false);
+        positionChrTop.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+                parsePositionText();
+
+            }
+        });
+
+        //positionChrTop.setPreferredSize(new Dimension(10, 10));
+
+
+        positionChrLeft = new JTextField();
+        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
+        positionChrLeft.setEnabled(false);
+        positionChrLeft.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+                parsePositionText();
+
+            }
+        });
+
+        //positionChrLeft.setPreferredSize(new Dimension(10, 10));
+        JPanel goPositionPanel = new JPanel();
+        goPositionPanel.setLayout(new BorderLayout());
+
+
+        goPositionPanel.add(positionChrTop, BorderLayout.PAGE_START);
+        goPositionPanel.add(positionChrLeft, BorderLayout.PAGE_END);
+
+        goButtonPanel.add(goPositionPanel, BorderLayout.PAGE_START);
+
+        goButton = new JideButton();
+        goButton.setEnabled(false);
+        goButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
+        goButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                parsePositionText();
+            }
+        });
+
+        goButtonPanel.add(goButton);
+        goPanel.add(goButtonPanel);
+
+
+        //goPanel.setBackground(Color.white);
+        //goPanel.setBorder(LineBorder.createBlackLineBorder());
+
+
+        toolbarPanel.add(goPanel);
         toolbarPanel.setEnabled(false);
 
 
@@ -1175,8 +1320,9 @@ public class MainWindow extends JFrame {
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(200, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
-        rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        //LayoutManager lm = new FlowLayout(FlowLayout.LEFT, 10, 20);
+        //rightSidePanel.getLayout().setResizable(true);
+        //rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
+        //LayoutManager lm = new GridLayout(FlowLayout.LEFT, 10, 20);
         //rightSidePanel.setLayout(lm);
         //rightSidePanel.setLayout(null);
 
@@ -1190,26 +1336,26 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setMaximumSize(new Dimension(200, 200));
         thumbnailPanel.setMinimumSize(new Dimension(200, 200));
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
         thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
         thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.PAGE_START);
+        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);//, BorderLayout.PAGE_START
 
         //========= mouse hover text ======
 
         mouseHoverTextPanel = new JLabel();
         mouseHoverTextPanel.setBackground(Color.white);
         mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
-        mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.LEFT);
-        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
-        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height + 20;
+        mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.CENTER);
+        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(180, 490);
+        Dimension prefSize = new Dimension(170, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
-        mouseHoverTextPanel.setBounds(new Rectangle(new Point(20, mouseTextY), prefSize));
-        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.PAGE_END);
+        mouseHoverTextPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
+        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.CENTER);//, BorderLayout.PAGE_END
 
         //======== xPlotPanel ========
 //
@@ -1267,7 +1413,6 @@ public class MainWindow extends JFrame {
     }
 
 
-
     public void parsePositionText() {
         //Expected format: <chr>:<start>-<end>:<resolution>
 
@@ -1294,37 +1439,29 @@ public class MainWindow extends JFrame {
         if (topChrTokens.length > 0) {
             if (topChrTokens[0].toLowerCase().contains("chr")) {
                 TopChrName = topChrTokens[0].substring(3);
-            }
-            else {
+            } else {
                 TopChrName = topChrTokens[0].toLowerCase();
             }
-        }
-        else
-        {
+        } else {
             this.positionChrTop.setBackground(Color.yellow);
             return;
         }
         try {
             TopChrInt = Integer.parseInt(TopChrName);
             //TBD - replace with actual chromosome range
-            if (TopChrInt > 22)
-            {
+            if (TopChrInt > 22) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
 
-        }
-        catch( Exception e ) {
-            if(TopChrName.toLowerCase().equals("x")){
+        } catch (Exception e) {
+            if (TopChrName.toLowerCase().equals("x")) {
                 TopChrName = "X";
-            }
-            else if(TopChrName.toLowerCase().equals("y")){
+            } else if (TopChrName.toLowerCase().equals("y")) {
                 TopChrName = "Y";
-            }
-            else if(TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")){
+            } else if (TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")) {
                 TopChrName = "MT";
-            }
-            else{
+            } else {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
@@ -1334,13 +1471,10 @@ public class MainWindow extends JFrame {
         if (leftChrTokens.length > 0) {
             if (leftChrTokens[0].toLowerCase().contains("chr")) {
                 LeftChrName = leftChrTokens[0].substring(3);
-            }
-            else {
+            } else {
                 LeftChrName = leftChrTokens[0].toLowerCase();
             }
-        }
-        else
-        {
+        } else {
             this.positionChrLeft.setBackground(Color.yellow);
             return;
         }
@@ -1348,23 +1482,18 @@ public class MainWindow extends JFrame {
             LeftChrInt = Integer.parseInt(LeftChrName);
 
             //TBD - replace with actual chromosome range
-            if (LeftChrInt > 22)
-            {
+            if (LeftChrInt > 22) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
-        }
-        catch( Exception e ) {
-            if(LeftChrName.toLowerCase().equals("x")){
+        } catch (Exception e) {
+            if (LeftChrName.toLowerCase().equals("x")) {
                 LeftChrName = "X";
-            }
-            else if(LeftChrName.toLowerCase().equals("y")){
+            } else if (LeftChrName.toLowerCase().equals("y")) {
                 LeftChrName = "Y";
-            }
-            else if(LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")){
+            } else if (LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")) {
                 LeftChrName = "MT";
-            }
-            else{
+            } else {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
@@ -1375,39 +1504,34 @@ public class MainWindow extends JFrame {
             //Make sure values are numerical:
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
             try {
                 Long.parseLong(topChrTokens[2].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
             }
-            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")),Long.valueOf(topChrTokens[2].replaceAll(",", "")));
+            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
-            outBinTop = topStart+((topEnd-topStart)/2);
+            outBinTop = topStart + ((topEnd - topStart) / 2);
 
-        }
-        else if (topChrTokens.length > 1){
+        } else if (topChrTokens.length > 1) {
             outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", ""));
         }
 
 
         if (leftChrTokens.length > 2) {
-            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")),Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
+            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
-            outBinLeft = leftStart+((leftEnd-leftStart)/2);
-        }
-        else if (topChrTokens.length > 1){
+            outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
+        } else if (topChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
@@ -1419,35 +1543,29 @@ public class MainWindow extends JFrame {
             //Make sure value is numeric:
             try {
                 Integer.parseInt(topChrTokens[3]);
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrTop.setBackground(Color.yellow);
                 return;
             }
             outBinSize = Integer.parseInt(topChrTokens[3]);
-        }
-        else if (leftChrTokens.length > 3) {
+        } else if (leftChrTokens.length > 3) {
             //Make sure value is numeric:
             try {
                 Integer.parseInt(leftChrTokens[3]);
-            }
-            catch( Exception e ) {
+            } catch (Exception e) {
                 this.positionChrLeft.setBackground(Color.yellow);
                 return;
-        }
+            }
             outBinSize = Integer.parseInt(leftChrTokens[3]);
-        }
-        else if (hic.getZoom().getBinSize() != 0)
-        {
+        } else if (hic.getZoom().getBinSize() != 0) {
             outBinSize = hic.getZoom().getBinSize();
         }
 
         this.positionChrTop.setBackground(Color.white);
         this.positionChrLeft.setBackground(Color.white);
 
-        hic.setState(TopChrName,LeftChrName,"BP", outBinSize, 0, 0, hic.getScaleFactor());
-        if (outBinTop > 0 && outBinLeft > 0)
-        {
+        hic.setState(TopChrName, LeftChrName, "BP", outBinSize, 0, 0, hic.getScaleFactor());
+        if (outBinTop > 0 && outBinLeft > 0) {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
         }
 
@@ -1457,8 +1575,9 @@ public class MainWindow extends JFrame {
 
 
     private void colorRangeSliderUpdateToolTip() {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED || hic.getDisplayOption() == MatrixType.CONTROL) {
-
+        if (hic.getDisplayOption() == MatrixType.OBSERVED ||
+                hic.getDisplayOption() == MatrixType.CONTROL ||
+                hic.getDisplayOption() == MatrixType.OE) {
 
             int iMin = colorRangeSlider.getMinimum();
             int lValue = colorRangeSlider.getLowerValue();
@@ -1491,10 +1610,6 @@ public class MainWindow extends JFrame {
 
             colorRangeSlider.setLabelTable(labelTable);
 
-        } else if (hic.getDisplayOption() == MatrixType.OE) {
-            double mymaximum = colorRangeSlider.getMaximum() / 8;
-            colorRangeSlider.setToolTipText("Range: " + new DecimalFormat("##.##").format(1 / mymaximum) + " "
-                    + new DecimalFormat("##.##").format(mymaximum));
         }
 
     }
@@ -1530,7 +1645,7 @@ public class MainWindow extends JFrame {
         fileMenu.addSeparator();
 
         //TODO S7 - MSS
-        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems,recentMapEntityNode ) {
+        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems, recentMapEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1710,51 +1825,16 @@ public class MainWindow extends JFrame {
 
         clearLocationList.setEnabled(false);
         bookmarksMenu.add(clearLocationList);
-        bookmarksMenu.addSeparator();
+        //bookmarksMenu.addSeparator();
 
 
         //========= Positioning panel ======
 
-        JLabel positionLabel = new JLabel("Jump To:");
+        //JLabel positionLabel = new JLabel("Go:");
+        //bookmarksMenu.add(positionLabel);
         //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
 
-        positionChrTop = new JTextField();
-        positionChrTop.setEnabled(false);
-        positionChrTop.addActionListener(new ActionListener(){
-
-            public void actionPerformed(ActionEvent e){
-
-                parsePositionText();
-
-            }});
-
-        positionChrTop.setPreferredSize(new Dimension(180,25));
-        positionChrTop.setPreferredSize(new Dimension(180, 25));
-        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionChrLeft = new JTextField();
-        positionChrLeft.setEnabled(false);
-        positionChrLeft.addActionListener(new ActionListener(){
-
-            public void actionPerformed(ActionEvent e){
-
-                parsePositionText();
-
-            }});
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setPreferredSize(new Dimension(180, 25));
-        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
-
-        positionLabel.setPreferredSize(new Dimension(200, 25));
-        positionChrTop.setPreferredSize(new Dimension(200, 30));
-        positionChrLeft.setPreferredSize(new Dimension(200, 30));
-
-        bookmarksMenu.add(positionLabel);
-        bookmarksMenu.add(positionChrTop);
-        bookmarksMenu.add(positionChrLeft);
-
-        bookmarksMenu.setBackground(Color.white);
-        bookmarksMenu.setBorder(LineBorder.createBlackLineBorder());
+        //positionLabel.setPreferredSize(new Dimension(200, 25));
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
@@ -1796,5 +1876,34 @@ public class MainWindow extends JFrame {
             hic.getDataset().putLoadedNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
         }
 
+    }
+
+    public String getToolTip(){
+        return mouseHoverTextPanel.getText();
+    }
+
+    public boolean isTooltipAllowedToUpdated(){
+        return  tooltipAllowedToUpdated;
+    }
+
+    public boolean toggleToolTipUpdates(){
+        tooltipAllowedToUpdated = !tooltipAllowedToUpdated;
+        return tooltipAllowedToUpdated;
+    }
+
+
+    private abstract class protectedGlassProcessing {
+
+        abstract void encapsulatedCommand();
+
+        public void process() {
+            try {
+                MainWindow.this.showGlassPane();
+                encapsulatedCommand();
+            } finally {
+                MainWindow.this.hideGlassPane();
+            }
+
+        }
     }
 }

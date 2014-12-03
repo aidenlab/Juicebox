@@ -20,13 +20,12 @@ import java.util.Collection;
  *         Time: 7:53 PM
  */
 public class HiCCoverageDataSource implements HiCDataSource {
+    private final HiC hic;
+    private final NormalizationType normalizationType;
     private String name;
     private Color color = new Color(97, 184, 209);
     private Color altcolor = color;
     private DataRange dataRange;
-    private final HiC hic;
-
-    private final NormalizationType normalizationType;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no) {
         this.name = no.getLabel();
@@ -51,31 +50,43 @@ public class HiCCoverageDataSource implements HiCDataSource {
     }
 
     public DataRange getDataRange() {
-        if(dataRange == null) {
+        if (dataRange == null) {
             initDataRange();
         }
         return dataRange;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
+    public void setDataRange(DataRange dataRange) {
+        this.dataRange = dataRange;
     }
 
-    public void setAltColor(Color color) {
-        this.altcolor = color;
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getName() { return name;}
+    public Color getColor() {
+        return color;
+    }
 
-    public Color getColor() { return color;}
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
-    public Color getAltColor() {return altcolor;}
+    public Color getAltColor() {
+        return altcolor;
+    }
 
-    public boolean isLog() {return false;}
+    public void setAltColor(Color color) {
+        this.altcolor = color;
+    }
+
+    public boolean isLog() {
+        return false;
+    }
 
     public Collection<WindowFunction> getAvailableWindowFunctions() {
         return new ArrayList<WindowFunction>();
@@ -102,10 +113,6 @@ public class HiCCoverageDataSource implements HiCDataSource {
         }
 
         return dataPoints;
-    }
-
-    public void setDataRange(DataRange dataRange) {
-        this.dataRange = dataRange;
     }
 
     public static class CoverageDataPoint implements HiCDataPoint {
