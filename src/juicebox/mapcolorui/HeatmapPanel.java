@@ -486,7 +486,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         mi4_25.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainWindow.toggleToolTipUpdates();
+                mainWindow.toggleToolTipUpdates(!mainWindow.isTooltipAllowedToUpdated());
             }
         });
 

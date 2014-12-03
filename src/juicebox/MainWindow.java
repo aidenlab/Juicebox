@@ -1886,9 +1886,8 @@ public class MainWindow extends JFrame {
         return  tooltipAllowedToUpdated;
     }
 
-    public boolean toggleToolTipUpdates(){
-        tooltipAllowedToUpdated = !tooltipAllowedToUpdated;
-        return tooltipAllowedToUpdated;
+    public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated){
+        this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
     }
 
 
