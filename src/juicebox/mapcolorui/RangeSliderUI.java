@@ -28,6 +28,8 @@ class RangeSliderUI extends BasicSliderUI {
 
     private boolean colorIsOE = false;
 
+    private int oeColorMax;
+
     /**
      * Location and size of thumb for upper value.
      */
@@ -53,6 +55,7 @@ class RangeSliderUI extends BasicSliderUI {
      */
     public RangeSliderUI(RangeSlider b) {
         super(b);
+        oeColorMax = OEColorScale.defaultMaxOEVal;
     }
 
     /**
@@ -343,7 +346,11 @@ class RangeSliderUI extends BasicSliderUI {
     }
 
     public void setDisplayToOE(boolean isOE) {
+
         this.colorIsOE = isOE;
+        OEColorScale.resetMax();
+        this.oeColorMax = OEColorScale.defaultMaxOEVal;
+
     }
 
     /**
@@ -500,16 +507,27 @@ class RangeSliderUI extends BasicSliderUI {
                     int trackRight = trackRect.x + (trackRect.width - 1);
                     int hMax = xPositionForValue(slider.getValue() + slider.getExtent());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackLeft = hMax;
-                    } else {
-                        trackRight = hMax;
-                    }
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
                     thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
+                    // Apply bounds to thumb position.
+                    if (drawInverted()) {
+                        thumbLeft = Math.max(thumbLeft, hMax);
+                    } else {
+                        thumbLeft = Math.min(thumbLeft, hMax);
+                    }
+
+                    if(colorIsOE){
+                        int midpoint = (trackRight - trackLeft)/2 + trackLeft;
+                        thumbLeft = Math.min(thumbLeft, midpoint - halfThumbWidth);
+                        int upperThumb = trackRight - (thumbLeft - trackLeft);
+                        setUpperThumbLocation(upperThumb, thumbRect.y);
+                        slider.setValue(valueForXPosition(thumbLeft+ halfThumbWidth));
+                        slider.setExtent(valueForXPosition(upperThumb+ halfThumbWidth) - slider.getValue());
+                    }
+
                     setThumbLocation(thumbLeft, thumbRect.y);
+                    //System.out.println("lower thumb dragged");
 
                     // Update slider value.
                     thumbMiddle = thumbLeft + halfThumbWidth;
@@ -546,6 +564,7 @@ class RangeSliderUI extends BasicSliderUI {
 
                     setUpperThumbLocation(thumbRect.x, thumbTop);
 
+
                     // Update slider extent.
                     thumbMiddle = thumbTop + halfThumbHeight;
                     slider.setExtent(valueForYPosition(thumbMiddle) - slider.getValue());
@@ -558,15 +577,29 @@ class RangeSliderUI extends BasicSliderUI {
                     int trackRight = trackRect.x + (trackRect.width - 1);
                     int hMin = xPositionForValue(slider.getValue());
 
-                    // Apply bounds to thumb position.
-                    if (drawInverted()) {
-                        trackRight = hMin;
-                    } else {
-                        trackLeft = hMin;
-                    }
+
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
                     thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
+                    // Apply bounds to thumb position.
+                    if (drawInverted()) {
+                        thumbLeft = Math.min(thumbLeft, hMin);
+                    } else {
+                        thumbLeft = Math.max(thumbLeft, hMin);
+                    }
+
+                    if(colorIsOE){
+                        int midpoint = (trackRight - trackLeft)/2 + trackLeft;
+                        //System.out.println(midpoint);
+                        thumbLeft = Math.max(thumbLeft, midpoint - halfThumbWidth);
+                        int lowerThumb = trackLeft + (trackRight - thumbLeft);
+                        setThumbLocation(lowerThumb, thumbRect.y);
+                        slider.setValue(valueForXPosition(lowerThumb+ halfThumbWidth));
+                    }
+
+
+
+                    //System.out.println("upper thumb dragged");
                     setUpperThumbLocation(thumbLeft, thumbRect.y);
 
                     // Update slider extent.

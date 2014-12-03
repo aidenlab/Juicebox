@@ -704,10 +704,10 @@ public class MainWindow extends JFrame {
         double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
         heatmapPanel.setObservedRange(min, max);
-/*
+
         if (hic.getDisplayOption() == MatrixType.OE) {
-            heatmapPanel.setOEMax(colorRangeSlider.getUpperValue() / 8);
-        }*/
+            heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
+        }
     }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
@@ -726,10 +726,23 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.OE);
-        colorRangeSlider.setDisplayToOE(option == MatrixType.OE);
-        plusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
-        minusButton.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL);
+        boolean activateOE = option == MatrixType.OE;
+        boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
+
+        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
+        colorRangeSlider.setDisplayToOE(activateOE);
+
+        if(activateOE){
+            resetOEColorRangeSlider();
+        }
+        else{
+            resetRegularColorRangeSlider();
+        }
+
+
+
+        plusButton.setEnabled(activateOE || isObservedOrControl);
+        minusButton.setEnabled(activateOE || isObservedOrControl);
         if (option == MatrixType.PEARSON) {
             if (hic.isWholeGenome()) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for whole-genome view.");
@@ -853,6 +866,20 @@ public class MainWindow extends JFrame {
         getContentPane().invalidate();
         repaint();
 
+    }
+
+    private void resetRegularColorRangeSlider(){
+        colorRangeSlider.setMinimum(0);
+        colorRangeSlider.setMaximum(2000);
+        colorRangeSlider.setLowerValue(0);
+        colorRangeSlider.setUpperValue(500);
+    }
+
+    private void resetOEColorRangeSlider(){
+        colorRangeSlider.setMinimum(-20);
+        colorRangeSlider.setMaximum(20);
+        colorRangeSlider.setLowerValue(-5);
+        colorRangeSlider.setUpperValue(5);
     }
 
 
@@ -1057,10 +1084,7 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setMaximumSize(new Dimension(32767, 52));
         colorRangeSlider.setPreferredSize(new Dimension(200, 52));
         colorRangeSlider.setMinimumSize(new Dimension(36, 52));
-
-        colorRangeSlider.setMaximum(2000);
-        colorRangeSlider.setLowerValue(0);
-        colorRangeSlider.setUpperValue(500);
+        resetRegularColorRangeSlider();
 
         colorRangeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
@@ -1078,6 +1102,10 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
+                if(hic.getDisplayOption() == MatrixType.OE) {
+                    colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
+                    colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
+                }
                 colorRangeSliderUpdateToolTip();
             }
         });
@@ -1090,6 +1118,10 @@ public class MainWindow extends JFrame {
                 //Set limit to maximum range:
                 if (colorRangeSlider.getMaximum() > 2) {
                     colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
+                    if(hic.getDisplayOption() == MatrixType.OE) {
+                        colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
+                        colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
+                    }
                 }
                 colorRangeSliderUpdateToolTip();
             }
