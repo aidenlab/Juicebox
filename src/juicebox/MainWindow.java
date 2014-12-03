@@ -1088,7 +1088,7 @@ public class MainWindow extends JFrame {
 
         //---- heatmapPanel ----
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         heatmapPanel.setMaximumSize(new Dimension(800, 800));
         heatmapPanel.setMinimumSize(new Dimension(800, 800));
         heatmapPanel.setPreferredSize(new Dimension(800, 800));
@@ -1188,10 +1188,11 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Set limit to maximum range:
-                if (colorRangeSlider.getMaximum() > 2) {
-                    colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() / 2);
+                int newMax = colorRangeSlider.getMaximum()/2;
+                if ( newMax > 0) {
+                    colorRangeSlider.setMaximum(newMax);
                     if(hic.getDisplayOption() == MatrixType.OE) {
-                        colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
+                        colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }
                 }

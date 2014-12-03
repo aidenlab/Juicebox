@@ -520,10 +520,10 @@ class RangeSliderUI extends BasicSliderUI {
                     if(colorIsOE){
                         int midpoint = (trackRight - trackLeft)/2 + trackLeft;
                         thumbLeft = Math.min(thumbLeft, midpoint - halfThumbWidth);
-                        int upperThumb = trackRight - (thumbLeft - trackLeft);
-                        setUpperThumbLocation(upperThumb, thumbRect.y);
-                        slider.setValue(valueForXPosition(thumbLeft+ halfThumbWidth));
-                        slider.setExtent(valueForXPosition(upperThumb+ halfThumbWidth) - slider.getValue());
+                        //int upperThumb = trackRight - (thumbLeft - trackLeft);
+                        //setUpperThumbLocation(upperThumb, thumbRect.y);
+                        //slider.setValue(valueForXPosition(thumbLeft - halfThumbWidth));
+                        //slider.setExtent(valueForXPosition(upperThumb - halfThumbWidth) - slider.getValue());
                     }
 
                     setThumbLocation(thumbLeft, thumbRect.y);
@@ -532,6 +532,16 @@ class RangeSliderUI extends BasicSliderUI {
                     // Update slider value.
                     thumbMiddle = thumbLeft + halfThumbWidth;
                     slider.setValue(valueForXPosition(thumbMiddle));
+
+                    if(colorIsOE){
+                        int val = ((RangeSlider)slider).getLowerValue();
+                        if(val == 0){
+                            val = -1;
+                            ((RangeSlider)slider).setLowerValue(val);
+                        }
+                        ((RangeSlider)slider).setUpperValue(-val);
+                    }
+
                     break;
 
                 default:
@@ -592,9 +602,9 @@ class RangeSliderUI extends BasicSliderUI {
                         int midpoint = (trackRight - trackLeft)/2 + trackLeft;
                         //System.out.println(midpoint);
                         thumbLeft = Math.max(thumbLeft, midpoint - halfThumbWidth);
-                        int lowerThumb = trackLeft + (trackRight - thumbLeft);
-                        setThumbLocation(lowerThumb, thumbRect.y);
-                        slider.setValue(valueForXPosition(lowerThumb+ halfThumbWidth));
+                        //int lowerThumb = trackLeft + (trackRight - thumbLeft);
+                        //setThumbLocation(lowerThumb, thumbRect.y);
+                        //slider.setValue(valueForXPosition(lowerThumb- halfThumbWidth));
                     }
 
 
@@ -603,8 +613,18 @@ class RangeSliderUI extends BasicSliderUI {
                     setUpperThumbLocation(thumbLeft, thumbRect.y);
 
                     // Update slider extent.
-                    thumbMiddle = thumbLeft + halfThumbWidth;
+                    thumbMiddle = thumbLeft - halfThumbWidth;
                     slider.setExtent(valueForXPosition(thumbMiddle) - slider.getValue());
+
+                    if(colorIsOE){
+                        int val = ((RangeSlider)slider).getUpperValue();
+                        if(val == 0){
+                            val = 1;
+                            ((RangeSlider)slider).setUpperValue(val);
+                        }
+                        ((RangeSlider)slider).setLowerValue(-val);
+                    }
+
                     break;
 
                 default:
