@@ -576,14 +576,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
                     String txt = "";
-                    txt += "<html>";
+                    txt += "<html><span style='color:#751C4D;'>";
                     txt += xChrom.getName();
                     txt += ":";
                     txt += String.valueOf(xChromPos);
-                    txt += "<br>";
+                    txt += "</span><br><span style='color:#648721;'>";
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
+                    txt += "</span></html>";
 
                     if (xChrom.getName().toLowerCase().contains("chr")) {
                         hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
@@ -617,7 +618,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
             StringBuilder txt = new StringBuilder();
-            txt.append("<html>");
+
+            txt.append("<html><span style='color:#751C4D;'>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(xGenomeStart));
@@ -641,12 +643,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            txt.append("<br>");
+            txt.append("</span><br><span style='color:#648721;'>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(yGenomeStart));
             txt.append("-");
             txt.append(formatter.format(yGenomeEnd));
+            txt.append("</span>");
 
             if (yGridAxis instanceof HiCFragmentAxis) {
                 String fragNumbers;
@@ -1006,7 +1009,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseMoved(MouseEvent e) {
             if (hic.getXContext() != null && hic.getZd() != null) {
-
                 mainWindow.updateToolTipText(toolTipText(e.getX(), e.getY()));
 
 

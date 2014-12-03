@@ -195,6 +195,10 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 g.drawString(c.getName(), strPosition, h - 15);
 
                 int xpos = (orientation == Orientation.HORIZONTAL ? x2 : -x2);
+
+                Color tColor = (orientation == Orientation.HORIZONTAL ? new Color(117, 28, 77) : new Color(100, 135, 33));
+                g.setColor(tColor);
+
                 g.drawLine(xpos, h - 10, xpos, h - 2);
 
                 x1 = x2;
@@ -246,6 +250,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 //}
 
                 int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
+                Color tColor = (orientation == Orientation.HORIZONTAL ? new Color(117, 28, 77) : new Color(100, 135, 33));
+                g.setColor(tColor);
                 g.drawLine(xpos, h - 10, xpos, h - 2);
                 nTick++;
             }
