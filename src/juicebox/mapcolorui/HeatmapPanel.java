@@ -14,6 +14,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
+import sun.applet.Main;
 
 import javax.swing.*;
 import java.awt.*;
@@ -480,6 +481,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+        final JCheckBoxMenuItem mi4_25 = new JCheckBoxMenuItem("Freeze hover text");
+        mi4_25.setSelected(!mainWindow.isTooltipAllowedToUpdated());
+        mi4_25.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainWindow.toggleToolTipUpdates();
+            }
+        });
+
+        final JCheckBoxMenuItem mi4_5 = new JCheckBoxMenuItem("Copy hover text to clipboard");
+        mi4_5.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringSelection stringSelection = new StringSelection(mainWindow.getToolTip());
+                Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+                clpbrd.setContents(stringSelection, null);
+            }
+        });
 
         final JCheckBoxMenuItem mi5 = new JCheckBoxMenuItem("Copy top position to clipboard");
         mi5.addActionListener(new ActionListener() {
@@ -510,6 +529,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi3);
             mi4.setSelected(hic.isLinkedMode());
             menu.add(mi4);
+            menu.add(mi4_25);
+            menu.add(mi4_5);
             menu.add(mi5);
             menu.add(mi6);
         }

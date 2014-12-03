@@ -70,44 +70,43 @@ public class MainWindow extends JFrame {
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
-    public static Cursor fistCursor;
+    public static Cursor fistCursor; // for panning
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
     private static JMenuItem clearLocationList;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
-    // The "model" object containing the state for this instance.
-    private final HiC hic;
-    private String currentlyLoadedFile = "";
-    private String datasetTitle = "";
-    private String controlTitle;
+    private final HiC hic; // The "model" object containing the state for this instance.
+    private static String currentlyLoadedFile = "";
+    private static String datasetTitle = "";
+    private static String controlTitle;
     private double colorRangeScaleFactor = 1;
-    private LoadDialog loadDialog = null;
-    private JComboBox<Chromosome> chrBox1;
-    private JComboBox<Chromosome> chrBox2;
-    private JideButton refreshButton;
-    private JComboBox<String> normalizationComboBox;
-    private JComboBox<MatrixType> displayOptionComboBox;
-    private JideButton plusButton;
-    private JideButton minusButton;
-    private RangeSlider colorRangeSlider;
-    private ResolutionControl resolutionSlider;
-    private TrackPanel trackPanelX;
-    private TrackPanel trackPanelY;
-    private TrackLabelPanel trackLabelPanel;
-    private HiCRulerPanel rulerPanelX;
-    private HeatmapPanel heatmapPanel;
-    private HiCRulerPanel rulerPanelY;
-    private ThumbnailPanel thumbnailPanel;
-    private JLabel mouseHoverTextPanel;
-    private JTextField positionChrLeft;
-    private JTextField positionChrTop;
-    private JPanel hiCPanel;
-    private JMenu annotationsMenu;
-    private JMenu bookmarksMenu;
+    private static LoadDialog loadDialog = null;
+    private static JComboBox<Chromosome> chrBox1;
+    private static JComboBox<Chromosome> chrBox2;
+    private static JideButton refreshButton;
+    private static JComboBox<String> normalizationComboBox;
+    private static JComboBox<MatrixType> displayOptionComboBox;
+    private static JideButton plusButton;
+    private static JideButton minusButton;
+    private static RangeSlider colorRangeSlider;
+    private static ResolutionControl resolutionSlider;
+    private static TrackPanel trackPanelX;
+    private static TrackPanel trackPanelY;
+    private static TrackLabelPanel trackLabelPanel;
+    private static HiCRulerPanel rulerPanelX;
+    private static HeatmapPanel heatmapPanel;
+    private static HiCRulerPanel rulerPanelY;
+    private static ThumbnailPanel thumbnailPanel;
+    private static JLabel mouseHoverTextPanel;
+    private static JTextField positionChrLeft;
+    private static JTextField positionChrTop;
+    private static JPanel hiCPanel;
+    private static JMenu annotationsMenu;
+    private static JMenu bookmarksMenu;
     private HiCZoom initialZoom;
-    private String saveImagePath;
+    private boolean tooltipAllowedToUpdated = true;
 
     private MainWindow() {
 
@@ -175,7 +174,8 @@ public class MainWindow extends JFrame {
     }
 
     public void updateToolTipText(String s) {
-        mouseHoverTextPanel.setText(s);
+        if(tooltipAllowedToUpdated)
+            mouseHoverTextPanel.setText(s);
     }
 
     public boolean isResolutionLocked() {
@@ -1172,8 +1172,9 @@ public class MainWindow extends JFrame {
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(200, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
-        rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        //LayoutManager lm = new FlowLayout(FlowLayout.LEFT, 10, 20);
+        //rightSidePanel.getLayout().setResizable(true);
+        //rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
+        //LayoutManager lm = new GridLayout(FlowLayout.LEFT, 10, 20);
         //rightSidePanel.setLayout(lm);
         //rightSidePanel.setLayout(null);
 
@@ -1192,21 +1193,21 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
         thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.PAGE_START);
+        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);//, BorderLayout.PAGE_START
 
         //========= mouse hover text ======
 
         mouseHoverTextPanel = new JLabel();
         mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
-        mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.LEFT);
+        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.CENTER);
+        mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.CENTER);
         mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
-        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height + 20;
+        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(180, 490);
+        Dimension prefSize = new Dimension(170, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
-        mouseHoverTextPanel.setBounds(new Rectangle(new Point(20, mouseTextY), prefSize));
-        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.PAGE_END);
+        mouseHoverTextPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
+        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.CENTER);//, BorderLayout.PAGE_END
 
         //======== xPlotPanel ========
 //
@@ -1765,6 +1766,20 @@ public class MainWindow extends JFrame {
         }
 
     }
+
+    public String getToolTip(){
+        return mouseHoverTextPanel.getText();
+    }
+
+    public boolean isTooltipAllowedToUpdated(){
+        return  tooltipAllowedToUpdated;
+    }
+
+    public boolean toggleToolTipUpdates(){
+        tooltipAllowedToUpdated = !tooltipAllowedToUpdated;
+        return tooltipAllowedToUpdated;
+    }
+
 
     private abstract class protectedGlassProcessing {
 
