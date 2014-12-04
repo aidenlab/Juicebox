@@ -1027,6 +1027,7 @@ public class MainWindow extends JFrame {
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
         displayOptionPanel.setMinimumSize(new Dimension(130, 57));
         displayOptionPanel.setPreferredSize(new Dimension(130, 57));
+        displayOptionPanel.setMaximumSize(new Dimension(130, 57));
         toolbarPanel.add(displayOptionPanel);
         displayOptionComboBox.setEnabled(false);
 
@@ -1116,13 +1117,47 @@ public class MainWindow extends JFrame {
         Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
         int panelHeight = screenDimension.height-210;
         heatmapPanel = new HeatmapPanel(this, hic);
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         heatmapPanel.setMaximumSize(new Dimension(panelHeight, panelHeight));
         heatmapPanel.setMinimumSize(new Dimension(panelHeight, panelHeight));
         heatmapPanel.setPreferredSize(new Dimension(panelHeight, panelHeight));
-        // heatmapPanel.setBackground(new Color(238, 238, 238));
         heatmapPanel.setBackground(Color.white);
-        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
+
+        // TODO - maybe flow layout or something else
+        boolean useGridBag = false;
+        JPanel grayMapPanel, blankPanel;
+
+        if(useGridBag){
+            grayMapPanel = new JPanel(new GridBagLayout());
+            grayMapPanel.setForeground(Color.WHITE);
+            grayMapPanel.setBackground(Color.WHITE);
+
+            GridBagConstraints c1 = new GridBagConstraints();
+            c1.anchor = GridBagConstraints.NORTHWEST;
+            c1.fill = GridBagConstraints.VERTICAL;
+            c1.gridx = 0;
+            c1.gridy = 0;
+            c1.weighty = 1.0;
+            c1.weightx = 0.9;
+            grayMapPanel.add(heatmapPanel,c1);
+
+            //c1.anchor = GridBagConstraints.NORTHEAST;
+            //c1.fill = GridBagConstraints.VERTICAL;
+            c1.weightx = 0.1;
+            blankPanel = new JPanel();
+            blankPanel.setBackground(Color.WHITE);
+            blankPanel.setForeground(Color.WHITE);
+            grayMapPanel.add(blankPanel,c1);
+            hiCPanel.add(grayMapPanel, BorderLayout.CENTER);
+            grayMapPanel.remove(blankPanel);
+        }
+        else{
+            hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
+        }
+
+
+
+
+
 
 
         // needs to be created after heatmap panel
@@ -1403,6 +1438,8 @@ public class MainWindow extends JFrame {
 //        final PopupMenu testPopUp = new PopupMenu();
 //        testPopUp.setLabel("Please wait");
 //        rootPane.getGlassPane().add(testPopUp);
+
+        // TODO S7 initialize glass panes
         rootPane.getGlassPane().addMouseListener(new MouseAdapter() {
         });
 
