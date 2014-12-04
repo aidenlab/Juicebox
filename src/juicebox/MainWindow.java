@@ -1100,8 +1100,8 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setPreferredSize(new Dimension(120, 70));
-        normalizationPanel.setMinimumSize(new Dimension(120, 70));
+        normalizationPanel.setPreferredSize(new Dimension(140, 70));
+        normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
         toolbarConstraints.gridx = 2;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
@@ -1396,7 +1396,7 @@ public class MainWindow extends JFrame {
         //goPanel.setBackground(Color.white);
         //goPanel.setBorder(LineBorder.createBlackLineBorder());
         goPanel.setMinimumSize(new Dimension(100, 70));
-        goPanel.setPreferredSize(new Dimension(200, 70));
+        goPanel.setPreferredSize(new Dimension(150, 70));
         goPanel.setMaximumSize(new Dimension(200, 70));
 
         toolbarConstraints.gridx = 5;
