@@ -988,9 +988,7 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
-        // TODO : actually figure out appropriate minimum size from longest string name in chromosomes
-        chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
-        chrSelectionPanel.setPreferredSize(new Dimension(200, 70));
+
         chrSelectionPanel.setLayout(new BorderLayout());
 
         JPanel chrLabelPanel = new JPanel();
@@ -1041,6 +1039,9 @@ public class MainWindow extends JFrame {
         refreshButton.setEnabled(false);
         chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
 
+        chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
+        chrSelectionPanel.setPreferredSize(new Dimension(200, 70));
+
         //======== Display Option Panel ========
         JPanel displayOptionPanel = new JPanel();
         displayOptionPanel.setBackground(new Color(238, 238, 238));
@@ -1066,9 +1067,9 @@ public class MainWindow extends JFrame {
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        displayOptionPanel.setMinimumSize(new Dimension(150, 70));
-        displayOptionPanel.setPreferredSize(new Dimension(150, 70));
-        displayOptionPanel.setMaximumSize(new Dimension(150, 70));
+        displayOptionPanel.setMinimumSize(new Dimension(140, 70));
+        displayOptionPanel.setPreferredSize(new Dimension(140, 70));
+        displayOptionPanel.setMaximumSize(new Dimension(140, 70));
 
         toolbarConstraints.gridx = 1;
         toolbarPanel.add(displayOptionPanel, toolbarConstraints);
@@ -1101,7 +1102,8 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setPreferredSize(new Dimension(170, 70));
+        normalizationPanel.setPreferredSize(new Dimension(120, 70));
+        normalizationPanel.setMinimumSize(new Dimension(120, 70));
 
         toolbarConstraints.gridx = 2;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
@@ -1395,15 +1397,15 @@ public class MainWindow extends JFrame {
 
         //goPanel.setBackground(Color.white);
         //goPanel.setBorder(LineBorder.createBlackLineBorder());
-        goPanel.setMinimumSize(new Dimension(150, 70));
+        goPanel.setMinimumSize(new Dimension(100, 70));
         goPanel.setPreferredSize(new Dimension(200, 70));
         goPanel.setMaximumSize(new Dimension(200, 70));
 
         toolbarConstraints.gridx = 5;
-        toolbarConstraints.weightx = 0.5;
+        toolbarConstraints.weightx = 0.25;
         toolbarPanel.add(goPanel, toolbarConstraints);
         // not sure this is working
-        toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
+        //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
         toolbarPanel.setEnabled(false);
 
 
