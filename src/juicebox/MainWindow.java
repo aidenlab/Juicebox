@@ -50,6 +50,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -718,7 +719,7 @@ public class MainWindow extends JFrame {
         heatmapPanel.setObservedRange(min, max);
 
         if (hic.getDisplayOption() == MatrixType.OE) {
-            System.out.println(colorRangeSlider.getUpperValue());
+            //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
         }
     }
@@ -752,8 +753,6 @@ public class MainWindow extends JFrame {
             resetRegularColorRangeSlider();
         }
 
-
-
         plusButton.setEnabled(activateOE || isObservedOrControl);
         minusButton.setEnabled(activateOE || isObservedOrControl);
         if (option == MatrixType.PEARSON) {
@@ -769,15 +768,14 @@ public class MainWindow extends JFrame {
                 return;
 
             } else if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
-                displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-                return;
+                        JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
+                        displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
+                        return;
             }
         }
 
         hic.setDisplayOption(option);
         refresh();
-
     }
 
     private void normalizationComboBoxActionPerformed(ActionEvent e) {
@@ -1681,29 +1679,44 @@ public class MainWindow extends JFrame {
             int uValue = colorRangeSlider.getUpperValue();
             int iMax = colorRangeSlider.getMaximum();
 
+            /*
             colorRangeSlider.setToolTipText("<html>Range: " + (int) (iMin / colorRangeScaleFactor) + " "
+
                     + (int) (iMax / colorRangeScaleFactor) + "<br>Showing: " +
                     (int) (lValue / colorRangeScaleFactor) + " "
                     + (int) (uValue / colorRangeScaleFactor)
                     + "</html>");
+            */
 
             Font f = FontManager.getFont(8);
 
             Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
-            final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
-            minTickLabel.setFont(f);
-            final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
-            LoTickLabel.setFont(f);
-            final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
-            UpTickLabel.setFont(f);
-            final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
-            maxTickLabel.setFont(f);
 
-            labelTable.put(iMin, minTickLabel);
-            labelTable.put(lValue, LoTickLabel);
-            labelTable.put(uValue, UpTickLabel);
-            labelTable.put(iMax, maxTickLabel);
+
+            if(hic.getDisplayOption() == MatrixType.OE){
+                colorRangeSlider.setToolTipText("Log Enrichment Values");
+            }
+            else{
+                colorRangeSlider.setToolTipText("Observed Counts");
+            }
+
+                final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
+                minTickLabel.setFont(f);
+                final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
+                LoTickLabel.setFont(f);
+                final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
+                UpTickLabel.setFont(f);
+                final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
+                maxTickLabel.setFont(f);
+
+                labelTable.put(iMin, minTickLabel);
+                labelTable.put(lValue, LoTickLabel);
+                labelTable.put(uValue, UpTickLabel);
+                labelTable.put(iMax, maxTickLabel);
+
+
+
 
             colorRangeSlider.setLabelTable(labelTable);
 
