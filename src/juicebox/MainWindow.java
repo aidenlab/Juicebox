@@ -1661,6 +1661,12 @@ public class MainWindow extends JFrame {
         this.positionChrTop.setBackground(Color.white);
         this.positionChrLeft.setBackground(Color.white);
 
+        // todo: We need to make sure our maps hold a valid binSize value as default.
+        if(outBinSize == 6197)
+        {
+            outBinSize = 250000;
+        }
+
         hic.setState(TopChrName, LeftChrName, "BP", outBinSize, 0, 0, hic.getScaleFactor());
         if (outBinTop > 0 && outBinLeft > 0) {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
