@@ -37,6 +37,7 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -324,6 +325,8 @@ public class MainWindow extends JFrame {
     }
 
     public void load(final List<String> files, final boolean control) {
+
+        MainWindow.this.showGlassPane();
 
         String file = files.get(0);
 
@@ -829,22 +832,53 @@ public class MainWindow extends JFrame {
         setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
     }
 
+    DisabledGlassPane glassPane2 = new DisabledGlassPane();
+
+    private void initializeGlassPaneListening(){
+
+        /* TODO delete, but leaving for now
+        rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        this.getGlassPane().
+        this.getGlassPane().addMouseListener(new MouseAdapter() {});
+        glassPane2.activate("Please Wait...");
+
+        rootPane.getGlassPane().addMouseListener(new MouseAdapter() {});
+        rootPane.getTopLevelAncestor().addMouseListener(new MouseAdapter(){});
+        rootPane.addMouseListener(new MouseAdapter(){});
+        hiCPanel.getTopLevelAncestor().addMouseListener(new MouseAdapter(){});
+        hiCPanel.addMouseListener(new MouseAdapter(){});
+        */
+
+        rootPane.setGlassPane( glassPane2 );
+        glassPane2.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    }
+
     public void hideGlassPane() {
         setGlassPaneVisibility(this.getGlassPane(), Cursor.DEFAULT_CURSOR, false);
     }
 
     public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible) {
-        glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
-        glassPane.setVisible(isVisible);
-        setWaitingStatus(cursorState);
+        if(isVisible)
+            glassPane2.activate("Loading...");
+        else
+            glassPane2.deactivate();
+
+        // TODO delete
+        //glassPane.setVisible(isVisible);
+        //glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
+        //rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(cursorState));
+        //setWaitingStatus(cursorState);
     }
 
+    /* TODO delete
     public void setWaitingStatus(int cursorState) {
+        rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(cursorState));
         rootPane.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
         rootPane.setCursor(Cursor.getPredefinedCursor(cursorState));
         hiCPanel.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
         hiCPanel.setCursor(Cursor.getPredefinedCursor(cursorState));
     }
+    */
 
     public void updateTrackPanel() {
         boolean hasTracks = hic.getLoadedTracks().size() > 0;
@@ -1434,16 +1468,18 @@ public class MainWindow extends JFrame {
 
 
         // setup the glass pane to display a wait cursor when visible, and to grab all mouse events
-        rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
 //        final PopupMenu testPopUp = new PopupMenu();
 //        testPopUp.setLabel("Please wait");
 //        rootPane.getGlassPane().add(testPopUp);
 
         // TODO S7 initialize glass panes
-        rootPane.getGlassPane().addMouseListener(new MouseAdapter() {
-        });
+        initializeGlassPaneListening();
+
 
     }
+
+
 
     public void setPositionChrLeft(String newPositionDate) {
         this.positionChrLeft.setText(newPositionDate);
@@ -1945,6 +1981,113 @@ public class MainWindow extends JFrame {
                 MainWindow.this.hideGlassPane();
             }
 
+        }
+    }
+
+    /*
+     * @author Rob Camick November 7, 2008
+     *  Simple implementation of a Glass Pane that will capture and ignore all
+     *  events as well paint the glass pane to give the frame a "disabled" look.
+     *
+     *  The background color of the glass pane should use a color with an
+     *  alpha value to create the disabled look.
+     */
+    public static class DisabledGlassPane extends JComponent
+            implements KeyListener
+    {
+        private final Border MESSAGE_BORDER = new EmptyBorder(20, 20, 20, 20);
+        private JLabel message = new JLabel();
+
+        public DisabledGlassPane()
+        {
+            //  Set glass pane properties
+
+            setOpaque( false );
+            Color base = UIManager.getColor("inactiveCaptionBorder");
+            Color background = new Color(base.getRed(), base.getGreen(), base.getBlue(), 128);
+            setBackground( background );
+            setLayout( new GridBagLayout() );
+            //message.setFont(new Font("Arial", Font.BOLD, 40));
+            //  Add a message label to the glass pane
+
+            add(message, new GridBagConstraints());
+            message.setOpaque(false);
+            message.setBorder(MESSAGE_BORDER);
+
+            //  Disable Mouse, Key and Focus events for the glass pane
+
+            addMouseListener( new MouseAdapter() {} );
+            addMouseMotionListener( new MouseMotionAdapter() {} );
+
+            addKeyListener( this );
+
+            setFocusTraversalKeysEnabled(false);
+        }
+
+        /*
+         *  The component is transparent but we want to paint the background
+         *  to give it the disabled look.
+         */
+        @Override
+        protected void paintComponent(Graphics g)
+        {
+            g.setColor( getBackground() );
+            g.fillRect(0, 0, getSize().width, getSize().height);
+        }
+
+        /*
+         *  The	background color of the message label will be the same as the
+         *  background of the glass pane without the alpha value
+         */
+        @Override
+        public void setBackground(Color background)
+        {
+            super.setBackground( background );
+
+            Color messageBackground = new Color(background.getRGB());
+            message.setBackground( messageBackground );
+        }
+        //
+//  Implement the KeyListener to consume events
+//
+        public void keyPressed(KeyEvent e)
+        {
+            e.consume();
+        }
+
+        public void keyTyped(KeyEvent e) {}
+
+        public void keyReleased(KeyEvent e)
+        {
+            e.consume();
+        }
+
+        /*
+         *  Make the glass pane visible and change the cursor to the wait cursor
+         *
+         *  A message can be displayed and it will be centered on the frame.
+         */
+        public void activate(String text)
+        {
+            if  (text != null && text.length() > 0)
+            {
+                message.setVisible( true );
+                message.setText( text );
+                message.setForeground( getForeground() );
+            }
+            else
+                message.setVisible( false );
+
+            setVisible(true);
+            requestFocusInWindow();
+        }
+
+        /*
+         *  Hide the glass pane and restore the cursor
+         */
+        public void deactivate()
+        {
+            setVisible( false );
         }
     }
 }
