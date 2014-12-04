@@ -14,7 +14,6 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
-import sun.applet.Main;
 
 import javax.swing.*;
 import java.awt.*;

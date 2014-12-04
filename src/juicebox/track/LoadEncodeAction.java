@@ -26,6 +26,7 @@ public class LoadEncodeAction extends AbstractAction {
     private static final Logger log = Logger.getLogger(LoadEncodeAction.class);
     private static final long serialVersionUID = 42L;
     private static final Map<String, Color> colors;
+
     static {
         colors = new HashMap<String, Color>();
         colors.put("H3K27AC", new Color(200, 0, 0));
@@ -37,6 +38,7 @@ public class LoadEncodeAction extends AbstractAction {
         colors.put("H3K9AC", new Color(100, 0, 0));
         colors.put("H3K9ME1", new Color(100, 0, 0));
     }
+
     private final Component owner;
     private final HiC hic;
     private String genome;

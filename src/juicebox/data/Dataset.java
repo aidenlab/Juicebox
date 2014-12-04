@@ -5,6 +5,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
@@ -622,8 +623,8 @@ public class Dataset {
                 normalizationVectorCache.put(key, nv);
             } catch (IOException e) {
                 normalizationVectorCache.put(key, null);
-                // TODO -- warn user
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                MessageUtils.showMessage("Normalization Vector not available for this resolution");
             }
         }
 

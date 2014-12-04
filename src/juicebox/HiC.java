@@ -53,6 +53,7 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
+
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
         this.trackManager = new HiCTrackManager(mainWindow, this);

@@ -33,11 +33,10 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
+
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -50,7 +49,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -78,12 +76,9 @@ public class MainWindow extends JFrame {
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
     private static JMenuItem clearLocationList;
-    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
-    private final HiC hic; // The "model" object containing the state for this instance.
     private static String currentlyLoadedFile = "";
     private static String datasetTitle = "";
     private static String controlTitle;
-    private double colorRangeScaleFactor = 1;
     private static LoadDialog loadDialog = null;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
@@ -108,6 +103,10 @@ public class MainWindow extends JFrame {
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
     private static JMenu bookmarksMenu;
+    private static DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
+    private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
+    private final HiC hic; // The "model" object containing the state for this instance.
+    private double colorRangeScaleFactor = 1;
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
     private int[] colorValuesToRestore = null;
@@ -145,7 +144,6 @@ public class MainWindow extends JFrame {
         SwingUtilities.invokeAndWait(runnable);
     }
 
-
     private static void initApplication() {
         DirectoryManager.initializeLog();
 
@@ -178,7 +176,7 @@ public class MainWindow extends JFrame {
     }
 
     public void updateToolTipText(String s) {
-        if(tooltipAllowedToUpdated)
+        if (tooltipAllowedToUpdated)
             mouseHoverTextPanel.setText(s);
     }
 
@@ -308,7 +306,6 @@ public class MainWindow extends JFrame {
         }
         heatmapPanel.setChromosomeBoundaries(chromosomeBoundaries);
     }
-
 
     public void setSelectedChromosomes(Chromosome xChrom, Chromosome yChrom) {
         chrBox1.setSelectedIndex(yChrom.getIndex());
@@ -451,10 +448,9 @@ public class MainWindow extends JFrame {
 
     }
 
-
     public void refreshChromosomes() {
 
-        if(chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0 ){
+        if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
             chrBox1.setSelectedIndex(0);
             chrBox2.setSelectedIndex(0);
         }
@@ -492,8 +488,7 @@ public class MainWindow extends JFrame {
             hic.setDisplayOption(MatrixType.OBSERVED);
             displayOptionComboBox.setSelectedIndex(0);
             normalizationComboBox.setSelectedIndex(0);
-        }
-        else if(intraChr){
+        } else if (intraChr) {
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
@@ -544,10 +539,9 @@ public class MainWindow extends JFrame {
     private void setInitialZoom() {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
-        if((hic.getDisplayOption() == MatrixType.PEARSON)){
+        if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
-        }
-        else if (hic.getXContext().getChromosome().getName().equals("All")) {
+        } else if (hic.getXContext().getChromosome().getName().equals("All")) {
             resolutionSlider.setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {
@@ -619,7 +613,7 @@ public class MainWindow extends JFrame {
     private void loadFromRecentActionPerformed(String url, String title, boolean control) {
 
         if (url != null) {
-            try {//TODO S7 - MSS
+            try {
                 load(Arrays.asList(url), control);
 
                 String path = (new URL(url)).getPath();
@@ -711,7 +705,6 @@ public class MainWindow extends JFrame {
         System.exit(0);
     }
 
-
     private void colorRangeSliderStateChanged(ChangeEvent e) {
         double min = colorRangeSlider.getLowerValue() / colorRangeScaleFactor;
         double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
@@ -746,10 +739,9 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
         colorRangeSlider.setDisplayToOE(activateOE);
 
-        if(activateOE){
+        if (activateOE) {
             resetOEColorRangeSlider();
-        }
-        else{
+        } else {
             resetRegularColorRangeSlider();
         }
 
@@ -768,9 +760,9 @@ public class MainWindow extends JFrame {
                 return;
 
             } else if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
-                        JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
-                        displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-                        return;
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
+                displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
+                return;
             }
         }
 
@@ -800,10 +792,8 @@ public class MainWindow extends JFrame {
      */
 
     public Future<?> executeLongRunningTask(final Runnable runnable) {
-        // TODO S7 - MSS
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                //System.out.println("Glassify : " + rootPane);
                 MainWindow.this.showGlassPane();
                 try {
                     runnable.run();
@@ -826,57 +816,17 @@ public class MainWindow extends JFrame {
     }
 
     public void showGlassPane() {
-        MessageUtils.setStatusBarMessage("Loading Map");// .showMessage("Loading Map");
-        setGlassPaneVisibility(this.getGlassPane(), Cursor.WAIT_CURSOR, true);
+        disabledGlassPane.activate("Loading...");
     }
 
-    DisabledGlassPane glassPane2 = new DisabledGlassPane();
-
-    private void initializeGlassPaneListening(){
-
-        /* TODO delete, but leaving for now
-        rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        this.getGlassPane().
-        this.getGlassPane().addMouseListener(new MouseAdapter() {});
-        glassPane2.activate("Please Wait...");
-
-        rootPane.getGlassPane().addMouseListener(new MouseAdapter() {});
-        rootPane.getTopLevelAncestor().addMouseListener(new MouseAdapter(){});
-        rootPane.addMouseListener(new MouseAdapter(){});
-        hiCPanel.getTopLevelAncestor().addMouseListener(new MouseAdapter(){});
-        hiCPanel.addMouseListener(new MouseAdapter(){});
-        */
-
-        rootPane.setGlassPane(glassPane2);
-        glassPane2.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    private void initializeGlassPaneListening() {
+        rootPane.setGlassPane(disabledGlassPane);
+        disabledGlassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
 
     public void hideGlassPane() {
-        setGlassPaneVisibility(this.getGlassPane(), Cursor.DEFAULT_CURSOR, false);
+        disabledGlassPane.deactivate();
     }
-
-    public void setGlassPaneVisibility(Component glassPane, int cursorState, boolean isVisible) {
-        if(isVisible)
-            glassPane2.activate("Loading...");
-        else
-            glassPane2.deactivate();
-
-        // TODO delete
-        //glassPane.setVisible(isVisible);
-        //glassPane.setCursor(Cursor.getPredefinedCursor(cursorState));
-        //rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(cursorState));
-        //setWaitingStatus(cursorState);
-    }
-
-    /* TODO delete
-    public void setWaitingStatus(int cursorState) {
-        rootPane.getGlassPane().setCursor(Cursor.getPredefinedCursor(cursorState));
-        rootPane.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
-        rootPane.setCursor(Cursor.getPredefinedCursor(cursorState));
-        hiCPanel.getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursorState));
-        hiCPanel.setCursor(Cursor.getPredefinedCursor(cursorState));
-    }
-    */
 
     public void updateTrackPanel() {
         boolean hasTracks = hic.getLoadedTracks().size() > 0;
@@ -910,8 +860,8 @@ public class MainWindow extends JFrame {
 
     }
 
-    private void resetRegularColorRangeSlider(){
-        if(colorValuesToRestore != null) {
+    private void resetRegularColorRangeSlider() {
+        if (colorValuesToRestore != null) {
             //refreshChromosomes();
             //setInitialZoom();
 
@@ -926,15 +876,15 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void resetOEColorRangeSlider(){
+    private void resetOEColorRangeSlider() {
 
-        if(colorValuesToRestore == null){
+        if (colorValuesToRestore == null) {
             colorValuesToRestore = new int[5];
             colorValuesToRestore[0] = colorRangeSlider.getMinimum();
             colorValuesToRestore[1] = colorRangeSlider.getMaximum();
             colorValuesToRestore[2] = colorRangeSlider.getLowerValue();
             colorValuesToRestore[3] = colorRangeSlider.getUpperValue();
-            colorValuesToRestore[4] = (int)colorRangeScaleFactor;
+            colorValuesToRestore[4] = (int) colorRangeScaleFactor;
         }
 
         colorRangeSlider.setMinimum(-20);
@@ -1161,7 +1111,7 @@ public class MainWindow extends JFrame {
 
         //---- heatmapPanel ----
         Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
-        int panelHeight = screenDimension.height-210;
+        int panelHeight = screenDimension.height - 210;
         heatmapPanel = new HeatmapPanel(this, hic);
         heatmapPanel.setMaximumSize(new Dimension(panelHeight, panelHeight));
         heatmapPanel.setMinimumSize(new Dimension(panelHeight, panelHeight));
@@ -1172,7 +1122,7 @@ public class MainWindow extends JFrame {
         boolean useGridBag = true;
         JPanel grayMapPanel, blankPanel;
 
-        if(useGridBag){
+        if (useGridBag) {
             grayMapPanel = new JPanel(new GridBagLayout());
             grayMapPanel.setForeground(Color.WHITE);
             grayMapPanel.setBackground(Color.WHITE);
@@ -1184,7 +1134,7 @@ public class MainWindow extends JFrame {
             c1.gridy = 0;
             c1.weighty = 1.0;
             c1.weightx = 0.9;
-            grayMapPanel.add(heatmapPanel,c1);
+            grayMapPanel.add(heatmapPanel, c1);
 
             //c1.anchor = GridBagConstraints.NORTHEAST;
             //c1.fill = GridBagConstraints.VERTICAL;
@@ -1192,11 +1142,10 @@ public class MainWindow extends JFrame {
             blankPanel = new JPanel();
             blankPanel.setBackground(Color.WHITE);
             blankPanel.setForeground(Color.WHITE);
-            grayMapPanel.add(blankPanel,c1);
+            grayMapPanel.add(blankPanel, c1);
             hiCPanel.add(grayMapPanel, BorderLayout.CENTER);
             grayMapPanel.remove(blankPanel);
-        }
-        else{
+        } else {
             hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
         }
 
@@ -1282,7 +1231,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
-                if(hic.getDisplayOption() == MatrixType.OE) {
+                if (hic.getDisplayOption() == MatrixType.OE) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                 }
@@ -1296,10 +1245,10 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Set limit to maximum range:
-                int newMax = colorRangeSlider.getMaximum()/2;
-                if ( newMax > 0) {
+                int newMax = colorRangeSlider.getMaximum() / 2;
+                if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
-                    if(hic.getDisplayOption() == MatrixType.OE) {
+                    if (hic.getDisplayOption() == MatrixType.OE) {
                         colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }
@@ -1485,28 +1434,17 @@ public class MainWindow extends JFrame {
         splitPanel.insertPane(rightSidePanel, 1);
         // hiCPanel.add(rightSidePanel, BorderLayout.EAST);
 
-
-        // setup the glass pane to display a wait cursor when visible, and to grab all mouse events
-
-//        final PopupMenu testPopUp = new PopupMenu();
-//        testPopUp.setLabel("Please wait");
-//        rootPane.getGlassPane().add(testPopUp);
-
-        // TODO S7 initialize glass panes
         initializeGlassPaneListening();
-
-
     }
 
 
-
     public void setPositionChrLeft(String newPositionDate) {
-        this.positionChrLeft.setText(newPositionDate);
+        positionChrLeft.setText(newPositionDate);
     }
 
 
     public void setPositionChrTop(String newPositionDate) {
-        this.positionChrTop.setText(newPositionDate);
+        positionChrTop.setText(newPositionDate);
     }
 
 
@@ -1522,8 +1460,8 @@ public class MainWindow extends JFrame {
         Long leftStart = 0L;
         Long leftEnd = 0L;
 
-        String[] leftChrTokens = this.positionChrLeft.getText().split(delimiters);
-        String[] topChrTokens = this.positionChrTop.getText().split(delimiters);
+        String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
+        String[] topChrTokens = positionChrTop.getText().split(delimiters);
 
 
         String LeftChrName = "";
@@ -1540,14 +1478,14 @@ public class MainWindow extends JFrame {
                 TopChrName = topChrTokens[0].toLowerCase();
             }
         } else {
-            this.positionChrTop.setBackground(Color.yellow);
+            positionChrTop.setBackground(Color.yellow);
             return;
         }
         try {
             TopChrInt = Integer.parseInt(TopChrName);
             //TBD - replace with actual chromosome range
             if (TopChrInt > 22) {
-                this.positionChrTop.setBackground(Color.yellow);
+                positionChrTop.setBackground(Color.yellow);
                 return;
             }
 
@@ -1559,7 +1497,7 @@ public class MainWindow extends JFrame {
             } else if (TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")) {
                 TopChrName = "MT";
             } else {
-                this.positionChrTop.setBackground(Color.yellow);
+                positionChrTop.setBackground(Color.yellow);
                 return;
             }
         }
@@ -1572,7 +1510,7 @@ public class MainWindow extends JFrame {
                 LeftChrName = leftChrTokens[0].toLowerCase();
             }
         } else {
-            this.positionChrLeft.setBackground(Color.yellow);
+            positionChrLeft.setBackground(Color.yellow);
             return;
         }
         try {
@@ -1580,7 +1518,7 @@ public class MainWindow extends JFrame {
 
             //TBD - replace with actual chromosome range
             if (LeftChrInt > 22) {
-                this.positionChrLeft.setBackground(Color.yellow);
+                positionChrLeft.setBackground(Color.yellow);
                 return;
             }
         } catch (Exception e) {
@@ -1591,7 +1529,7 @@ public class MainWindow extends JFrame {
             } else if (LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")) {
                 LeftChrName = "MT";
             } else {
-                this.positionChrLeft.setBackground(Color.yellow);
+                positionChrLeft.setBackground(Color.yellow);
                 return;
             }
         }
@@ -1602,13 +1540,13 @@ public class MainWindow extends JFrame {
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
             } catch (Exception e) {
-                this.positionChrTop.setBackground(Color.yellow);
+                positionChrTop.setBackground(Color.yellow);
                 return;
             }
             try {
                 Long.parseLong(topChrTokens[2].replaceAll(",", ""));
             } catch (Exception e) {
-                this.positionChrLeft.setBackground(Color.yellow);
+                positionChrLeft.setBackground(Color.yellow);
                 return;
             }
             topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
@@ -1629,7 +1567,7 @@ public class MainWindow extends JFrame {
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
             } catch (Exception e) {
-                this.positionChrTop.setBackground(Color.yellow);
+                positionChrTop.setBackground(Color.yellow);
                 return;
             }
             outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", ""));
@@ -1641,7 +1579,7 @@ public class MainWindow extends JFrame {
             try {
                 Integer.parseInt(topChrTokens[3]);
             } catch (Exception e) {
-                this.positionChrTop.setBackground(Color.yellow);
+                positionChrTop.setBackground(Color.yellow);
                 return;
             }
             outBinSize = Integer.parseInt(topChrTokens[3]);
@@ -1650,7 +1588,7 @@ public class MainWindow extends JFrame {
             try {
                 Integer.parseInt(leftChrTokens[3]);
             } catch (Exception e) {
-                this.positionChrLeft.setBackground(Color.yellow);
+                positionChrLeft.setBackground(Color.yellow);
                 return;
             }
             outBinSize = Integer.parseInt(leftChrTokens[3]);
@@ -1658,12 +1596,11 @@ public class MainWindow extends JFrame {
             outBinSize = hic.getZoom().getBinSize();
         }
 
-        this.positionChrTop.setBackground(Color.white);
-        this.positionChrLeft.setBackground(Color.white);
+        positionChrTop.setBackground(Color.white);
+        positionChrLeft.setBackground(Color.white);
 
         // todo: We need to make sure our maps hold a valid binSize value as default.
-        if(outBinSize == 6197)
-        {
+        if (outBinSize == 6197) {
             outBinSize = 250000;
         }
 
@@ -1701,29 +1638,25 @@ public class MainWindow extends JFrame {
             Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
 
-
-            if(hic.getDisplayOption() == MatrixType.OE){
+            if (hic.getDisplayOption() == MatrixType.OE) {
                 colorRangeSlider.setToolTipText("Log Enrichment Values");
-            }
-            else{
+            } else {
                 colorRangeSlider.setToolTipText("Observed Counts");
             }
 
-                final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
-                minTickLabel.setFont(f);
-                final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
-                LoTickLabel.setFont(f);
-                final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
-                UpTickLabel.setFont(f);
-                final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
-                maxTickLabel.setFont(f);
+            final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
+            minTickLabel.setFont(f);
+            final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
+            LoTickLabel.setFont(f);
+            final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
+            UpTickLabel.setFont(f);
+            final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
+            maxTickLabel.setFont(f);
 
-                labelTable.put(iMin, minTickLabel);
-                labelTable.put(lValue, LoTickLabel);
-                labelTable.put(uValue, UpTickLabel);
-                labelTable.put(iMax, maxTickLabel);
-
-
+            labelTable.put(iMin, minTickLabel);
+            labelTable.put(lValue, LoTickLabel);
+            labelTable.put(uValue, UpTickLabel);
+            labelTable.put(iMax, maxTickLabel);
 
 
             colorRangeSlider.setLabelTable(labelTable);
@@ -1762,7 +1695,6 @@ public class MainWindow extends JFrame {
 
         fileMenu.addSeparator();
 
-        //TODO S7 - MSS
         recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems, recentMapEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
@@ -1996,15 +1928,15 @@ public class MainWindow extends JFrame {
 
     }
 
-    public String getToolTip(){
+    public String getToolTip() {
         return mouseHoverTextPanel.getText();
     }
 
-    public boolean isTooltipAllowedToUpdated(){
-        return  tooltipAllowedToUpdated;
+    public boolean isTooltipAllowedToUpdated() {
+        return tooltipAllowedToUpdated;
     }
 
-    public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated){
+    public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
         this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
     }
 
@@ -2023,111 +1955,6 @@ public class MainWindow extends JFrame {
 
         }
     }
-
-    /*
-     * @author Rob Camick November 7, 2008
-     *  Simple implementation of a Glass Pane that will capture and ignore all
-     *  events as well paint the glass pane to give the frame a "disabled" look.
-     *
-     *  The background color of the glass pane should use a color with an
-     *  alpha value to create the disabled look.
-     */
-    public static class DisabledGlassPane extends JComponent
-            implements KeyListener
-    {
-        private final Border MESSAGE_BORDER = new EmptyBorder(20, 20, 20, 20);
-        private JLabel message = new JLabel();
-
-        public DisabledGlassPane()
-        {
-            //  Set glass pane properties
-
-            setOpaque( false );
-            Color base = UIManager.getColor("inactiveCaptionBorder");
-            Color background = new Color(base.getRed(), base.getGreen(), base.getBlue(), 128);
-            setBackground( background );
-            setLayout( new GridBagLayout() );
-            //message.setFont(new Font("Arial", Font.BOLD, 40));
-            //  Add a message label to the glass pane
-
-            add(message, new GridBagConstraints());
-            message.setOpaque(false);
-            message.setBorder(MESSAGE_BORDER);
-
-            //  Disable Mouse, Key and Focus events for the glass pane
-
-            addMouseListener( new MouseAdapter() {} );
-            addMouseMotionListener( new MouseMotionAdapter() {} );
-
-            addKeyListener( this );
-
-            setFocusTraversalKeysEnabled(false);
-        }
-
-        /*
-         *  The component is transparent but we want to paint the background
-         *  to give it the disabled look.
-         */
-        @Override
-        protected void paintComponent(Graphics g)
-        {
-            g.setColor( getBackground() );
-            g.fillRect(0, 0, getSize().width, getSize().height);
-        }
-
-        /*
-         *  The	background color of the message label will be the same as the
-         *  background of the glass pane without the alpha value
-         */
-        @Override
-        public void setBackground(Color background)
-        {
-            super.setBackground( background );
-
-            Color messageBackground = new Color(background.getRGB());
-            message.setBackground( messageBackground );
-        }
-        //
-//  Implement the KeyListener to consume events
-//
-        public void keyPressed(KeyEvent e)
-        {
-            e.consume();
-        }
-
-        public void keyTyped(KeyEvent e) {}
-
-        public void keyReleased(KeyEvent e)
-        {
-            e.consume();
-        }
-
-        /*
-         *  Make the glass pane visible and change the cursor to the wait cursor
-         *
-         *  A message can be displayed and it will be centered on the frame.
-         */
-        public void activate(String text)
-        {
-            if  (text != null && text.length() > 0)
-            {
-                message.setVisible( true );
-                message.setText( text );
-                message.setForeground( getForeground() );
-            }
-            else
-                message.setVisible( false );
-
-            setVisible(true);
-            requestFocusInWindow();
-        }
-
-        /*
-         *  Hide the glass pane and restore the cursor
-         */
-        public void deactivate()
-        {
-            setVisible( false );
-        }
-    }
 }
+
+
