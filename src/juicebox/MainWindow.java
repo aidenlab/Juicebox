@@ -911,11 +911,12 @@ public class MainWindow extends JFrame {
         toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
-        splitPanel.setShowGripper(true);
-        splitPanel.setDividerSize(5);
-        splitPanel.setBackground(Color.darkGray);
-        mainPanel.add(splitPanel, BorderLayout.CENTER);
+        //JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
+        //splitPanel.setShowGripper(true);
+        //splitPanel.setDividerSize(5);
+        //splitPanel.setBackground(Color.darkGray);
+        JPanel bigPanel = new JPanel();
+        bigPanel.setBackground(Color.white);
 
         JMenuBar menuBar = null;
         try {
@@ -1050,8 +1051,8 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setPreferredSize(new Dimension(120, 70));
-        normalizationPanel.setMinimumSize(new Dimension(120, 70));
+        normalizationPanel.setPreferredSize(new Dimension(140, 70));
+        normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
         toolbarConstraints.gridx = 2;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
@@ -1061,8 +1062,9 @@ public class MainWindow extends JFrame {
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
-        splitPanel.insertPane(hiCPanel, 0);
-        splitPanel.setBackground(Color.white);
+        bigPanel.add(hiCPanel);
+       // splitPanel.insertPane(hiCPanel, 0);
+       // splitPanel.setBackground(Color.white);
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
@@ -1119,10 +1121,10 @@ public class MainWindow extends JFrame {
         heatmapPanel.setBackground(Color.white);
 
         // TODO - maybe flow layout or something else
-        boolean useGridBag = true;
+        boolean useGridBag = false;
         JPanel grayMapPanel, blankPanel;
 
-        if (useGridBag) {
+/*        if (useGridBag) {
             grayMapPanel = new JPanel(new GridBagLayout());
             grayMapPanel.setForeground(Color.WHITE);
             grayMapPanel.setBackground(Color.WHITE);
@@ -1132,8 +1134,8 @@ public class MainWindow extends JFrame {
             c1.fill = GridBagConstraints.VERTICAL;
             c1.gridx = 0;
             c1.gridy = 0;
-            c1.weighty = 1.0;
-            c1.weightx = 0.9;
+            c1.weighty = 0;
+            c1.weightx = 0;
             grayMapPanel.add(heatmapPanel, c1);
 
             //c1.anchor = GridBagConstraints.NORTHEAST;
@@ -1144,10 +1146,11 @@ public class MainWindow extends JFrame {
             blankPanel.setForeground(Color.WHITE);
             grayMapPanel.add(blankPanel, c1);
             hiCPanel.add(grayMapPanel, BorderLayout.CENTER);
-            grayMapPanel.remove(blankPanel);
-        } else {
+         //   grayMapPanel.remove(blankPanel);
+       // } else {
+*/
             hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
-        }
+       // }
 
         // needs to be created after heatmap panel
         // not sure that's true?  -Neva
@@ -1345,7 +1348,7 @@ public class MainWindow extends JFrame {
         //goPanel.setBackground(Color.white);
         //goPanel.setBorder(LineBorder.createBlackLineBorder());
         goPanel.setMinimumSize(new Dimension(100, 70));
-        goPanel.setPreferredSize(new Dimension(200, 70));
+        goPanel.setPreferredSize(new Dimension(120, 70));
         goPanel.setMaximumSize(new Dimension(200, 70));
 
         toolbarConstraints.gridx = 5;
@@ -1360,7 +1363,7 @@ public class MainWindow extends JFrame {
 
         JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
         rightSidePanel.setBackground(Color.white);
-        rightSidePanel.setPreferredSize(new Dimension(200, 1000));
+        rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
         //rightSidePanel.getLayout().setResizable(true);
         //rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
@@ -1379,8 +1382,8 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setMinimumSize(new Dimension(200, 200));
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
 
-        thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-        thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
+   //     thumbnailPanel.setPreferredSize(new Dimension(200, 200));
+    //    thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
         thumbPanel.setBackground(Color.white);
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);//, BorderLayout.PAGE_START
@@ -1394,7 +1397,7 @@ public class MainWindow extends JFrame {
         //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(170, 490);
+        Dimension prefSize = new Dimension(200, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
         mouseHoverTextPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
         rightSidePanel.add(mouseHoverTextPanel, BorderLayout.CENTER);//, BorderLayout.PAGE_END
@@ -1429,9 +1432,9 @@ public class MainWindow extends JFrame {
         preferredSize.height += insets.bottom;
         rightSidePanel.setMinimumSize(preferredSize);
         rightSidePanel.setPreferredSize(preferredSize);
-
-
-        splitPanel.insertPane(rightSidePanel, 1);
+            mainPanel.add(bigPanel, BorderLayout.CENTER);
+           mainPanel.add(rightSidePanel, BorderLayout.EAST);
+       // splitPanel.insertPane(rightSidePanel, 1);
         // hiCPanel.add(rightSidePanel, BorderLayout.EAST);
 
         initializeGlassPaneListening();
