@@ -510,6 +510,7 @@ public class MainWindow extends JFrame {
         getHeatmapPanel().clearTileCache();
         repaint();
         updateThumbnail();
+        //System.err.println(heatmapPanel.getSize());
     }
 
     private void updateThumbnail() {
@@ -947,8 +948,8 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(chrSelectionPanel);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
-        chrSelectionPanel.setMinimumSize(new Dimension(130, 57));
-        chrSelectionPanel.setPreferredSize(new Dimension(130, 57));
+        chrSelectionPanel.setMinimumSize(new Dimension(200, 57));
+        chrSelectionPanel.setPreferredSize(new Dimension(200, 57));
         chrSelectionPanel.setLayout(new BorderLayout());
 
         JPanel chrLabelPanel = new JPanel();
@@ -1024,6 +1025,8 @@ public class MainWindow extends JFrame {
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
+        displayOptionPanel.setMinimumSize(new Dimension(130, 57));
+        displayOptionPanel.setPreferredSize(new Dimension(130, 57));
         toolbarPanel.add(displayOptionPanel);
         displayOptionComboBox.setEnabled(false);
 
@@ -1110,11 +1113,13 @@ public class MainWindow extends JFrame {
         leftPanel.add(rulerPanelY, BorderLayout.EAST);
 
         //---- heatmapPanel ----
+        Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int panelHeight = screenDimension.height-210;
         heatmapPanel = new HeatmapPanel(this, hic);
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        heatmapPanel.setMaximumSize(new Dimension(800, 800));
-        heatmapPanel.setMinimumSize(new Dimension(800, 800));
-        heatmapPanel.setPreferredSize(new Dimension(800, 800));
+        heatmapPanel.setMaximumSize(new Dimension(panelHeight, panelHeight));
+        heatmapPanel.setMinimumSize(new Dimension(panelHeight, panelHeight));
+        heatmapPanel.setPreferredSize(new Dimension(panelHeight, panelHeight));
         // heatmapPanel.setBackground(new Color(238, 238, 238));
         heatmapPanel.setBackground(Color.white);
         hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
