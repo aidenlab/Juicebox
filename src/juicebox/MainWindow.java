@@ -849,7 +849,7 @@ public class MainWindow extends JFrame {
         hiCPanel.addMouseListener(new MouseAdapter(){});
         */
 
-        rootPane.setGlassPane( glassPane2 );
+        rootPane.setGlassPane(glassPane2);
         glassPane2.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
 
@@ -960,7 +960,7 @@ public class MainWindow extends JFrame {
         final JPanel toolbarPanel = new JPanel();
         toolbarPanel.setBorder(null);
 
-        toolbarPanel.setLayout(new FlowLayout());
+        toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
         JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
@@ -977,12 +977,18 @@ public class MainWindow extends JFrame {
         }
         contentPane.add(menuBar, BorderLayout.NORTH);
 
+        GridBagConstraints toolbarConstraints = new GridBagConstraints();
+        toolbarConstraints.anchor = GridBagConstraints.LINE_START;
+        toolbarConstraints.fill = GridBagConstraints.HORIZONTAL;
+        toolbarConstraints.gridx = 0;
+        toolbarConstraints.gridy = 0;
 
         // --- Chromosome panel ---
         JPanel chrSelectionPanel = new JPanel();
-        toolbarPanel.add(chrSelectionPanel);
+        toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
+        // TODO : actually figure out appropriate minimum size from longest string name in chromosomes
         chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
         chrSelectionPanel.setPreferredSize(new Dimension(200, 70));
         chrSelectionPanel.setLayout(new BorderLayout());
@@ -1060,10 +1066,12 @@ public class MainWindow extends JFrame {
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        displayOptionPanel.setMinimumSize(new Dimension(170, 70));
-        displayOptionPanel.setPreferredSize(new Dimension(170, 70));
-        displayOptionPanel.setMaximumSize(new Dimension(170, 70));
-        toolbarPanel.add(displayOptionPanel);
+        displayOptionPanel.setMinimumSize(new Dimension(150, 70));
+        displayOptionPanel.setPreferredSize(new Dimension(150, 70));
+        displayOptionPanel.setMaximumSize(new Dimension(150, 70));
+
+        toolbarConstraints.gridx = 1;
+        toolbarPanel.add(displayOptionPanel, toolbarConstraints);
         displayOptionComboBox.setEnabled(false);
 
         //======== Normalization Panel ========
@@ -1093,10 +1101,10 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setMinimumSize(new Dimension(200, 70));
-        normalizationPanel.setPreferredSize(new Dimension(200, 70));
-        normalizationPanel.setMaximumSize(new Dimension(200, 70));
-        toolbarPanel.add(normalizationPanel);
+        normalizationPanel.setPreferredSize(new Dimension(170, 70));
+
+        toolbarConstraints.gridx = 2;
+        toolbarPanel.add(normalizationPanel, toolbarConstraints);
         normalizationComboBox.setEnabled(false);
 
         //======== Resolution Panel ========
@@ -1193,10 +1201,14 @@ public class MainWindow extends JFrame {
         }
 
         // needs to be created after heatmap panel
+        // not sure that's true?  -Neva
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
-        toolbarPanel.add(resolutionSlider);
+        resolutionSlider.setMinimumSize(new Dimension(100, 70));
+        toolbarConstraints.gridx = 3;
+        toolbarConstraints.weightx = 0.5;
+        toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
 
@@ -1308,7 +1320,9 @@ public class MainWindow extends JFrame {
         colorRangePanel.setMinimumSize(new Dimension(96, 70));
         colorRangePanel.setPreferredSize(new Dimension(202, 70));
         colorRangePanel.setMaximumSize(new Dimension(32769, 70));
-        toolbarPanel.add(colorRangePanel);
+        toolbarConstraints.gridx = 4;
+        toolbarConstraints.weightx = 0.5;
+        toolbarPanel.add(colorRangePanel, toolbarConstraints);
 
         //======== Goto Panel ========
         JPanel goPanel = new JPanel();
@@ -1381,11 +1395,14 @@ public class MainWindow extends JFrame {
 
         //goPanel.setBackground(Color.white);
         //goPanel.setBorder(LineBorder.createBlackLineBorder());
-        goPanel.setMinimumSize(new Dimension(200, 70));
+        goPanel.setMinimumSize(new Dimension(150, 70));
         goPanel.setPreferredSize(new Dimension(200, 70));
         goPanel.setMaximumSize(new Dimension(200, 70));
 
-        toolbarPanel.add(goPanel);
+        toolbarConstraints.gridx = 5;
+        toolbarConstraints.weightx = 0.5;
+        toolbarPanel.add(goPanel, toolbarConstraints);
+        // not sure this is working
         toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
         toolbarPanel.setEnabled(false);
 
