@@ -959,7 +959,8 @@ public class MainWindow extends JFrame {
 
         final JPanel toolbarPanel = new JPanel();
         toolbarPanel.setBorder(null);
-        toolbarPanel.setLayout(new GridLayout());
+
+        toolbarPanel.setLayout(new FlowLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
         JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
@@ -982,8 +983,8 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(chrSelectionPanel);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
-        chrSelectionPanel.setMinimumSize(new Dimension(200, 57));
-        chrSelectionPanel.setPreferredSize(new Dimension(200, 57));
+        chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
+        chrSelectionPanel.setPreferredSize(new Dimension(200, 70));
         chrSelectionPanel.setLayout(new BorderLayout());
 
         JPanel chrLabelPanel = new JPanel();
@@ -1059,9 +1060,9 @@ public class MainWindow extends JFrame {
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        displayOptionPanel.setMinimumSize(new Dimension(130, 57));
-        displayOptionPanel.setPreferredSize(new Dimension(130, 57));
-        displayOptionPanel.setMaximumSize(new Dimension(130, 57));
+        displayOptionPanel.setMinimumSize(new Dimension(170, 70));
+        displayOptionPanel.setPreferredSize(new Dimension(170, 70));
+        displayOptionPanel.setMaximumSize(new Dimension(170, 70));
         toolbarPanel.add(displayOptionPanel);
         displayOptionComboBox.setEnabled(false);
 
@@ -1092,6 +1093,9 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
+        normalizationPanel.setMinimumSize(new Dimension(200, 70));
+        normalizationPanel.setPreferredSize(new Dimension(200, 70));
+        normalizationPanel.setMaximumSize(new Dimension(200, 70));
         toolbarPanel.add(normalizationPanel);
         normalizationComboBox.setEnabled(false);
 
@@ -1157,7 +1161,7 @@ public class MainWindow extends JFrame {
         heatmapPanel.setBackground(Color.white);
 
         // TODO - maybe flow layout or something else
-        boolean useGridBag = false;
+        boolean useGridBag = true;
         JPanel grayMapPanel, blankPanel;
 
         if(useGridBag){
@@ -1188,15 +1192,10 @@ public class MainWindow extends JFrame {
             hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
         }
 
-
-
-
-
-
-
         // needs to be created after heatmap panel
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
+        resolutionSlider.setPreferredSize(new Dimension(200, 70));
         toolbarPanel.add(resolutionSlider);
 
         //======== Color Range Panel ========
@@ -1382,9 +1381,12 @@ public class MainWindow extends JFrame {
 
         //goPanel.setBackground(Color.white);
         //goPanel.setBorder(LineBorder.createBlackLineBorder());
-
+        goPanel.setMinimumSize(new Dimension(200, 70));
+        goPanel.setPreferredSize(new Dimension(200, 70));
+        goPanel.setMaximumSize(new Dimension(200, 70));
 
         toolbarPanel.add(goPanel);
+        toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
         toolbarPanel.setEnabled(false);
 
 
