@@ -19,6 +19,10 @@ public class OEColorScale implements ColorScale {
         resetMax();
     }
 
+    public static void resetMax() {
+        max = Math.log(defaultMaxOEVal);
+    }
+
     public Color getColor(float score) {
 /*
         int R = (int) (255 * Math.min(score/max, 1));
@@ -49,7 +53,6 @@ public class OEColorScale implements ColorScale {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-
     public Color getNoDataColor() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -63,8 +66,6 @@ public class OEColorScale implements ColorScale {
     }
 
     public void setMax(double max) {
-        this.max = Math.log(max);
+        OEColorScale.max = Math.log(max);
     }
-
-    public static void resetMax() {max = Math.log(defaultMaxOEVal);}
 }
