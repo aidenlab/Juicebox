@@ -66,7 +66,7 @@ public class MainWindow extends JFrame {
     public static final int BIN_PIXEL_WIDTH = 1;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
-    private static final int recentMapListMaxItems = 20;
+    private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
@@ -613,16 +613,13 @@ public class MainWindow extends JFrame {
     private void loadFromRecentActionPerformed(String url, String title, boolean control) {
 
         if (url != null) {
-            try {
-                load(Arrays.asList(url), control);
+            recentMapMenu.addEntry(title.trim() + "@@" + url, true);
+            load(Arrays.asList(url), control);
 
-                String path = (new URL(url)).getPath();
-                if (control) controlTitle = title;// TODO should the other one be set to empty/null
-                else datasetTitle = title;
-                updateTitle();
-            } catch (IOException e1) {
-                JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            if (control) controlTitle = title;// TODO should the other one be set to empty/null
+            else datasetTitle = title;
+            updateTitle();
+
         }
     }
 
@@ -685,12 +682,7 @@ public class MainWindow extends JFrame {
         setTitle(newTitle);
     }
 
-    private void clearMapActionPerformed() {
-        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        for (int i = 0; i < recentMapListMaxItems; i++) {
-            prefs.remove(recentMapEntityNode + i);
-        }
-    }
+
 
     private void clearLocationActionPerformed() {
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
@@ -1665,9 +1657,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(loadControlFromList);
 
-        fileMenu.addSeparator();
-
-        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems, recentMapEntityNode) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1676,20 +1666,11 @@ public class MainWindow extends JFrame {
             }
         };
         recentMapMenu.setMnemonic('R');
+
+
         fileMenu.add(recentMapMenu);
 
-        //---- Clear Recent ----
-        JMenuItem clearMapList = new JMenuItem();
-        clearMapList.setText("Clear recently used maps list");
-        clearMapList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Clear all items from preferences:
-                clearMapActionPerformed();
-                //clear the existing items
-                recentMapMenu.removeAll();
-            }
-        });
-        fileMenu.add(clearMapList);
+
 
         fileMenu.addSeparator();
 

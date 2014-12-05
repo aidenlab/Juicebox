@@ -11,15 +11,14 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
- * @author Ido Machol
- * @modified Muhammad S Shamim
+ * @author Ido Machol, Muhammad S Shamim, Neva Durand
  */
 public abstract class RecentMenu extends JMenu {
     private static final long serialVersionUID = 4685393080959162312L;
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-    private final List<String> m_items = new ArrayList<String>();
+    private List<String> m_items = new ArrayList<String>();
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);
@@ -29,17 +28,43 @@ public abstract class RecentMenu extends JMenu {
         String[] recentEntries = new String[count];
         Arrays.fill(recentEntries, "");
 
+        boolean addedItem = false;
         // load recent positions from properties
-        for (int i = 0; i < this.m_maxItems; i++) {
+        for (int i = this.m_maxItems-1; i >= 0; i--) {
             String val = prefs.get(this.m_entry + i, "");
             if (!val.equals("")) {
                 addEntry(val, false);
-            } else {
-                if (i == 0) this.setEnabled(false);
-                break;
+                addedItem = true;
             }
         }
+        if (!addedItem) {
+            this.setEnabled(false);
+        }
     }
+
+    /**
+     * Add "Clear" menu item to bottom of this list
+     */
+    private void addClearItem() {
+        //---- Clear Recent ----
+        JMenuItem clearMapList = new JMenuItem();
+        clearMapList.setText("Clear ");
+        clearMapList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //Clear all items from preferences:
+                for (int i = 0; i < m_maxItems; i++) {
+                    prefs.remove(m_entry + i);
+                }
+                //clear the existing items
+                removeAll();
+                m_items = new ArrayList<String>();
+                setEnabled(false);
+            }
+        });
+        addSeparator();
+        add(clearMapList);
+    }
+
 
     /**
      * Add new recent entry, update file and menu
@@ -48,10 +73,6 @@ public abstract class RecentMenu extends JMenu {
      * @param updateFile also save to file, Constructor call with false - no need to re-write.
      */
     public void addEntry(String savedEntry, boolean updateFile) {
-        //check if this is disabled
-        if (!this.isEnabled()) {
-            this.setEnabled(true);
-        }
 
         //clear the existing items
         this.removeAll();
@@ -100,6 +121,12 @@ public abstract class RecentMenu extends JMenu {
                 x.printStackTrace();
             }
         }
+        addClearItem();
+
+        //check if this is disabled
+        if (!this.isEnabled()) {
+            this.setEnabled(true);
+        }
     }
 
     /**
@@ -108,5 +135,6 @@ public abstract class RecentMenu extends JMenu {
      * @param mapPath The file that was selected.
      */
     public abstract void onSelectPosition(String mapPath);
+
 
 }
