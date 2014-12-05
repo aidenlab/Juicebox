@@ -81,6 +81,7 @@ public class Matrix {
         }
 
     }
+
     public MatrixZoomData getZoomData(HiCZoom zoom) {
         List<MatrixZoomData> zdList = (zoom.getUnit() == HiC.Unit.BP) ? bpZoomData : fragZoomData;
         //linear search for bin size, the lists are not large
