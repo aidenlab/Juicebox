@@ -167,6 +167,10 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
+        Color topTick = new  Color(00, 00, 255);
+        Color leftTick = new Color(00, 128, 00);
+
+
         if (w < 50 || hic.getScaleFactor() == 0) {
             return;
         }
@@ -183,6 +187,9 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             // Index 0 is whole genome
             int genomeCoord = 0;
             for (int i = 1; i < chromosomes.size(); i++) {
+                Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                g.setColor(tColor);
+
                 Chromosome c = chromosomes.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
@@ -195,9 +202,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 g.drawString(c.getName(), strPosition, h - 15);
 
                 int xpos = (orientation == Orientation.HORIZONTAL ? x2 : -x2);
-
-                Color tColor = (orientation == Orientation.HORIZONTAL ? new Color(117, 28, 77) : new Color(100, 135, 33));
-                g.setColor(tColor);
 
                 g.drawLine(xpos, h - 10, xpos, h - 2);
 
@@ -231,6 +235,9 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
 
             while (genomePosition < maxX && x < w) {
+                Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                g.setColor(tColor);
+
                 genomePosition = (int) (nTick * spacing);
 
                 // x = frame.getScreenPosition(genomeTickNumber);
@@ -250,8 +257,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 //}
 
                 int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
-                Color tColor = (orientation == Orientation.HORIZONTAL ? new Color(117, 28, 77) : new Color(100, 135, 33));
-                g.setColor(tColor);
+
                 g.drawLine(xpos, h - 10, xpos, h - 2);
                 nTick++;
             }

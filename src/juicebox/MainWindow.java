@@ -1455,7 +1455,7 @@ public class MainWindow extends JFrame {
         }
         try {
             TopChrInt = Integer.parseInt(TopChrName);
-            //TBD - replace with actual chromosome range
+            //todo - replace with actual chromosome range
             if (TopChrInt > 22) {
                 positionChrTop.setBackground(Color.yellow);
                 return;
@@ -1488,7 +1488,7 @@ public class MainWindow extends JFrame {
         try {
             LeftChrInt = Integer.parseInt(LeftChrName);
 
-            //TBD - replace with actual chromosome range
+            //todo - replace with actual chromosome range
             if (LeftChrInt > 22) {
                 positionChrLeft.setBackground(Color.yellow);
                 return;
