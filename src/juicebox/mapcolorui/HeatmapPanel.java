@@ -547,6 +547,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         HiCGridAxis xGridAxis = zd.getXGridAxis();
         HiCGridAxis yGridAxis = zd.getYGridAxis();
 
+        String topColor = "0000FF";
+        String leftColor = "009900";
+
         int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
         int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
 
@@ -576,11 +579,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
                     String txt = "";
-                    txt += "<html><span style='color:#751C4D;'>";
+                    txt += "<html><span style='color:#" + topColor + ";'>";
                     txt += xChrom.getName();
                     txt += ":";
                     txt += String.valueOf(xChromPos);
-                    txt += "</span><br><span style='color:#648721;'>";
+                    txt += "</span><br><span style='color:#" + leftColor + ";'>";
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
@@ -619,7 +622,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
             StringBuilder txt = new StringBuilder();
 
-            txt.append("<html><span style='color:#751C4D;'>");
+            txt.append("<html><span style='color:#" + topColor + ";'>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(xGenomeStart));
@@ -643,7 +646,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            txt.append("</span><br><span style='color:#648721;'>");
+            txt.append("</span><br><span style='color:#" + leftColor + ";'>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(yGenomeStart));
