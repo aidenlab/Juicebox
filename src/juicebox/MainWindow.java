@@ -911,10 +911,6 @@ public class MainWindow extends JFrame {
         toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        //JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
-        //splitPanel.setShowGripper(true);
-        //splitPanel.setDividerSize(5);
-        //splitPanel.setBackground(Color.darkGray);
         JPanel bigPanel = new JPanel();
         bigPanel.setBackground(Color.white);
 
@@ -931,6 +927,7 @@ public class MainWindow extends JFrame {
         toolbarConstraints.fill = GridBagConstraints.HORIZONTAL;
         toolbarConstraints.gridx = 0;
         toolbarConstraints.gridy = 0;
+        toolbarConstraints.weightx = 0.1;
 
         // --- Chromosome panel ---
         JPanel chrSelectionPanel = new JPanel();
@@ -1021,6 +1018,7 @@ public class MainWindow extends JFrame {
         displayOptionPanel.setMaximumSize(new Dimension(140, 70));
 
         toolbarConstraints.gridx = 1;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(displayOptionPanel, toolbarConstraints);
         displayOptionComboBox.setEnabled(false);
 
@@ -1054,7 +1052,9 @@ public class MainWindow extends JFrame {
         normalizationPanel.setPreferredSize(new Dimension(140, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
+
         toolbarConstraints.gridx = 2;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
         normalizationComboBox.setEnabled(false);
 
@@ -1120,46 +1120,15 @@ public class MainWindow extends JFrame {
         heatmapPanel.setPreferredSize(new Dimension(panelHeight, panelHeight));
         heatmapPanel.setBackground(Color.white);
 
-        // TODO - maybe flow layout or something else
-        boolean useGridBag = false;
-        JPanel grayMapPanel, blankPanel;
 
-/*        if (useGridBag) {
-            grayMapPanel = new JPanel(new GridBagLayout());
-            grayMapPanel.setForeground(Color.WHITE);
-            grayMapPanel.setBackground(Color.WHITE);
+        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
 
-            GridBagConstraints c1 = new GridBagConstraints();
-            c1.anchor = GridBagConstraints.NORTHWEST;
-            c1.fill = GridBagConstraints.VERTICAL;
-            c1.gridx = 0;
-            c1.gridy = 0;
-            c1.weighty = 0;
-            c1.weightx = 0;
-            grayMapPanel.add(heatmapPanel, c1);
-
-            //c1.anchor = GridBagConstraints.NORTHEAST;
-            //c1.fill = GridBagConstraints.VERTICAL;
-            c1.weightx = 0.1;
-            blankPanel = new JPanel();
-            blankPanel.setBackground(Color.WHITE);
-            blankPanel.setForeground(Color.WHITE);
-            grayMapPanel.add(blankPanel, c1);
-            hiCPanel.add(grayMapPanel, BorderLayout.CENTER);
-         //   grayMapPanel.remove(blankPanel);
-       // } else {
-*/
-            hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
-       // }
-
-        // needs to be created after heatmap panel
-        // not sure that's true?  -Neva
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
-        resolutionSlider.setMinimumSize(new Dimension(100, 70));
+        resolutionSlider.setMinimumSize(new Dimension(150, 70));
         toolbarConstraints.gridx = 3;
-        toolbarConstraints.weightx = 0.5;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
