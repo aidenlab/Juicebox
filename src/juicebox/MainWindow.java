@@ -66,7 +66,7 @@ public class MainWindow extends JFrame {
     public static final int BIN_PIXEL_WIDTH = 1;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;
-    private static final int recentMapListMaxItems = 20;
+    private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
@@ -614,16 +614,13 @@ public class MainWindow extends JFrame {
     private void loadFromRecentActionPerformed(String url, String title, boolean control) {
 
         if (url != null) {
-            try {
-                load(Arrays.asList(url), control);
+            recentMapMenu.addEntry(title.trim() + "@@" + url, true);
+            load(Arrays.asList(url), control);
 
-                String path = (new URL(url)).getPath();
-                if (control) controlTitle = title;// TODO should the other one be set to empty/null
-                else datasetTitle = title;
-                updateTitle();
-            } catch (IOException e1) {
-                JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            if (control) controlTitle = title;// TODO should the other one be set to empty/null
+            else datasetTitle = title;
+            updateTitle();
+
         }
     }
 
@@ -669,12 +666,7 @@ public class MainWindow extends JFrame {
         setTitle(newTitle);
     }
 
-    private void clearMapActionPerformed() {
-        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        for (int i = 0; i < recentMapListMaxItems; i++) {
-            prefs.remove(recentMapEntityNode + i);
-        }
-    }
+
 
     private void clearLocationActionPerformed() {
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
@@ -895,10 +887,6 @@ public class MainWindow extends JFrame {
         toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        //JideSplitPane splitPanel = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
-        //splitPanel.setShowGripper(true);
-        //splitPanel.setDividerSize(5);
-        //splitPanel.setBackground(Color.darkGray);
         JPanel bigPanel = new JPanel();
         bigPanel.setBackground(Color.white);
 
@@ -915,6 +903,7 @@ public class MainWindow extends JFrame {
         toolbarConstraints.fill = GridBagConstraints.HORIZONTAL;
         toolbarConstraints.gridx = 0;
         toolbarConstraints.gridy = 0;
+        toolbarConstraints.weightx = 0.1;
 
         // --- Chromosome panel ---
         JPanel chrSelectionPanel = new JPanel();
@@ -1005,6 +994,7 @@ public class MainWindow extends JFrame {
         displayOptionPanel.setMaximumSize(new Dimension(140, 70));
 
         toolbarConstraints.gridx = 1;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(displayOptionPanel, toolbarConstraints);
         displayOptionComboBox.setEnabled(false);
 
@@ -1038,7 +1028,9 @@ public class MainWindow extends JFrame {
         normalizationPanel.setPreferredSize(new Dimension(140, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
+
         toolbarConstraints.gridx = 2;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(normalizationPanel, toolbarConstraints);
         normalizationComboBox.setEnabled(false);
 
@@ -1104,46 +1096,15 @@ public class MainWindow extends JFrame {
         heatmapPanel.setPreferredSize(new Dimension(panelHeight, panelHeight));
         heatmapPanel.setBackground(Color.white);
 
-        // TODO - maybe flow layout or something else
-        boolean useGridBag = false;
-        JPanel grayMapPanel, blankPanel;
 
-/*        if (useGridBag) {
-            grayMapPanel = new JPanel(new GridBagLayout());
-            grayMapPanel.setForeground(Color.WHITE);
-            grayMapPanel.setBackground(Color.WHITE);
+        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
 
-            GridBagConstraints c1 = new GridBagConstraints();
-            c1.anchor = GridBagConstraints.NORTHWEST;
-            c1.fill = GridBagConstraints.VERTICAL;
-            c1.gridx = 0;
-            c1.gridy = 0;
-            c1.weighty = 0;
-            c1.weightx = 0;
-            grayMapPanel.add(heatmapPanel, c1);
-
-            //c1.anchor = GridBagConstraints.NORTHEAST;
-            //c1.fill = GridBagConstraints.VERTICAL;
-            c1.weightx = 0.1;
-            blankPanel = new JPanel();
-            blankPanel.setBackground(Color.WHITE);
-            blankPanel.setForeground(Color.WHITE);
-            grayMapPanel.add(blankPanel, c1);
-            hiCPanel.add(grayMapPanel, BorderLayout.CENTER);
-         //   grayMapPanel.remove(blankPanel);
-       // } else {
-*/
-            hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
-       // }
-
-        // needs to be created after heatmap panel
-        // not sure that's true?  -Neva
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
-        resolutionSlider.setMinimumSize(new Dimension(100, 70));
+        resolutionSlider.setMinimumSize(new Dimension(150, 70));
         toolbarConstraints.gridx = 3;
-        toolbarConstraints.weightx = 0.5;
+        toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
@@ -1703,9 +1664,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(loadControlFromList);
 
-        fileMenu.addSeparator();
-
-        recentMapMenu = new RecentMenu("Open recently used map", recentMapListMaxItems, recentMapEntityNode) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1714,20 +1673,11 @@ public class MainWindow extends JFrame {
             }
         };
         recentMapMenu.setMnemonic('R');
+
+
         fileMenu.add(recentMapMenu);
 
-        //---- Clear Recent ----
-        JMenuItem clearMapList = new JMenuItem();
-        clearMapList.setText("Clear recently used maps list");
-        clearMapList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Clear all items from preferences:
-                clearMapActionPerformed();
-                //clear the existing items
-                recentMapMenu.removeAll();
-            }
-        });
-        fileMenu.add(clearMapList);
+
 
         fileMenu.addSeparator();
 
