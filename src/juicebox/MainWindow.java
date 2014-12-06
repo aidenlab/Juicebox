@@ -110,6 +110,7 @@ public class MainWindow extends JFrame {
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
     private int[] colorValuesToRestore = null;
+    private Properties properties;
 
     private MainWindow() {
 
@@ -645,24 +646,7 @@ public class MainWindow extends JFrame {
     private void loadFromListActionPerformed(boolean control) {
 
         if (loadDialog == null) {
-            Properties properties;
-            try {
-                String url = System.getProperty("jnlp.loadMenu");
-                if (url == null) {
-                    url = "http://hicfiles.tc4ga.com/juicebox.properties";
-                }
-                InputStream is = ParsingUtils.openInputStream(url);
-                properties = new Properties();
-                if (is == null) {
-                    //No slection made:
-                    return;
-                } else {
-                    properties.load(is);
-                }
-            } catch (Exception error) {
-                JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            initProperties();
             loadDialog = new LoadDialog(this, properties);
             if (!loadDialog.getSuccess()) {
                 loadDialog = null;
@@ -1438,6 +1422,29 @@ public class MainWindow extends JFrame {
         // hiCPanel.add(rightSidePanel, BorderLayout.EAST);
 
         initializeGlassPaneListening();
+
+        initProperties();
+
+    }
+
+    public void initProperties(){
+        try {
+            String url = System.getProperty("jnlp.loadMenu");
+            if (url == null) {
+                url = "http://hicfiles.tc4ga.com/juicebox.properties";
+            }
+            InputStream is = ParsingUtils.openInputStream(url);
+            properties = new Properties();
+            if (is == null) {
+                //No slection made:
+                return;
+            } else {
+                properties.load(is);
+            }
+        } catch (Exception error) {
+            JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
     }
 
 
