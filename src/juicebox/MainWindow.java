@@ -1567,7 +1567,7 @@ public class MainWindow extends JFrame {
                 if(outBinSize != null && topChrTokens[3].toLowerCase().contains("f")){
                     resolutionUnits = "FRAG";
                 }
-                else
+                else if (outBinSize == null)
                 {
                     positionChrTop.setBackground(Color.yellow);
                     return;
@@ -1580,7 +1580,7 @@ public class MainWindow extends JFrame {
                 if(outBinSize != null && leftChrTokens[2].toLowerCase().contains("f")){
                     resolutionUnits = "FRAG";
                 }
-                else
+                else if (outBinSize == null)
                 {
                     positionChrLeft.setBackground(Color.yellow);
                     return;
