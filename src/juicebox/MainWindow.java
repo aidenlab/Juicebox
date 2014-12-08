@@ -289,6 +289,7 @@ public class MainWindow extends JFrame {
     public void updateZoom(HiCZoom newZoom) {
 
         resolutionSlider.setZoom(newZoom);
+        resolutionSlider.reset();
     }
 
     /**
@@ -479,7 +480,7 @@ public class MainWindow extends JFrame {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
 
-        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
+//        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
 
         // Test for new dataset ("All"),  or change in chromosome
@@ -1423,7 +1424,8 @@ public class MainWindow extends JFrame {
         //Expected format: <chr>:<start>-<end>:<resolution>
 
         String delimiters = "\\s+|:\\s*|\\-\\s*";
-        Integer outBinSize = 0;
+        String dashDelimiters = "\\s+|\\-\\s*";
+        java.lang.Integer outBinSize = 0;
         Long outBinLeft = 0L;
         Long outBinTop = 0L;
         Long topStart = 0L;
@@ -1433,8 +1435,10 @@ public class MainWindow extends JFrame {
 
         String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
         String[] topChrTokens = positionChrTop.getText().split(delimiters);
+        String[] leftDashChrTokens = positionChrLeft.getText().split(dashDelimiters);
+        String[] topDashChrTokens = positionChrTop.getText().split(dashDelimiters);
 
-
+        String resolutionUnits = "BP";
         String LeftChrName = "";
         String TopChrName = "";
         int LeftChrInt = 0;
@@ -1506,7 +1510,7 @@ public class MainWindow extends JFrame {
         }
 
         //Read positions:
-        if (topChrTokens.length > 2) {
+        if (topChrTokens.length > 2 && topDashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
@@ -1529,7 +1533,7 @@ public class MainWindow extends JFrame {
         }
 
 
-        if (leftChrTokens.length > 2) {
+        if (leftChrTokens.length > 2 && leftDashChrTokens.length > 1) {
             leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
@@ -1545,37 +1549,70 @@ public class MainWindow extends JFrame {
         }
 
         //Read resolution:
-        if (topChrTokens.length > 3) {
-            //Make sure value is numeric:
-            try {
-                Integer.parseInt(topChrTokens[3]);
-            } catch (Exception e) {
-                positionChrTop.setBackground(Color.yellow);
-                return;
+        if (topChrTokens.length > 3  || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
+            if(topDashChrTokens.length == 1)
+            {
+                outBinSize = hic.validteBinSize(topChrTokens[2].toLowerCase());
+                if(outBinSize != null && topChrTokens[2].toLowerCase().contains("f")){
+                    resolutionUnits = "FRAG";
+                }
+                else{
+                    positionChrTop.setBackground(Color.yellow);
+                    return;
+                }
             }
-            outBinSize = Integer.parseInt(topChrTokens[3]);
-        } else if (leftChrTokens.length > 3) {
-            //Make sure value is numeric:
-            try {
-                Integer.parseInt(leftChrTokens[3]);
-            } catch (Exception e) {
-                positionChrLeft.setBackground(Color.yellow);
-                return;
+            else if (topChrTokens.length > 3)
+            {
+                outBinSize = hic.validteBinSize(topChrTokens[3].toLowerCase());
+                if(outBinSize != null && topChrTokens[3].toLowerCase().contains("f")){
+                    resolutionUnits = "FRAG";
+                }
+                else
+                {
+                    positionChrTop.setBackground(Color.yellow);
+                    return;
+                }
             }
-            outBinSize = Integer.parseInt(leftChrTokens[3]);
+        } else if (leftChrTokens.length > 3  || (leftDashChrTokens.length == 1  && leftChrTokens.length > 2)) {
+            if(leftDashChrTokens.length == 1)
+            {
+                outBinSize = hic.validteBinSize(leftChrTokens[2].toLowerCase());
+                if(outBinSize != null && leftChrTokens[2].toLowerCase().contains("f")){
+                    resolutionUnits = "FRAG";
+                }
+                else
+                {
+                    positionChrLeft.setBackground(Color.yellow);
+                    return;
+                }
+            }
+            else if (leftChrTokens.length > 3)
+            {
+                outBinSize = hic.validteBinSize(leftChrTokens[3].toLowerCase());
+                if(outBinSize != null && leftChrTokens[3].toLowerCase().contains("f")){
+                    resolutionUnits = "FRAG";
+                }
+                else{
+                    positionChrLeft.setBackground(Color.yellow);
+                    return;
+                }
+            }
         } else if (hic.getZoom().getBinSize() != 0) {
-            outBinSize = hic.getZoom().getBinSize();
+            outBinSize = hic.validteBinSize(String.valueOf(hic.getZoom().getBinSize()));
+            if(outBinSize != null) {
+                resolutionUnits = hic.getZoom().getUnit().toString();
+            }
         }
 
         positionChrTop.setBackground(Color.white);
         positionChrLeft.setBackground(Color.white);
 
-        // todo: We need to make sure our maps hold a valid binSize value as default.
-        if (outBinSize == 6197) {
+        if(outBinSize == null) {
+            // If bin size is not valid, set to max bin size:
             outBinSize = 250000;
         }
 
-        hic.setState(TopChrName, LeftChrName, "BP", outBinSize, 0, 0, hic.getScaleFactor());
+        hic.setState(TopChrName, LeftChrName, resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
         if (outBinTop > 0 && outBinLeft > 0) {
             hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
         }
@@ -1669,6 +1706,7 @@ public class MainWindow extends JFrame {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
+                initProperties();
                 loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
             }
         };

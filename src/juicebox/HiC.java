@@ -53,6 +53,7 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
+    private HashMap binSizeDictionary = new HashMap();
 
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -61,6 +62,7 @@ public class HiC {
         this.m_zoomChanged = false;
         this.m_displayOptionChanged = false;
         this.m_normalizationTypeChanged = false;
+        initBinSizeDictionary();
     }
 
     public static boolean isPrivateHic(String string) {
@@ -810,4 +812,51 @@ public class HiC {
     }
 
     public enum Unit {BP, FRAG}
+
+    public java.lang.Integer validteBinSize(String key)
+    {
+        if (binSizeDictionary.containsKey(key))
+        {
+            return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private void initBinSizeDictionary(){
+        //BP Bin size:
+        binSizeDictionary.put("2.5m",2500000);
+        binSizeDictionary.put("1m",1000000);
+        binSizeDictionary.put("500k",500000);
+        binSizeDictionary.put("250k",250000);
+        binSizeDictionary.put("100k",100000);
+        binSizeDictionary.put("50k",50000);
+        binSizeDictionary.put("25k",25000);
+        binSizeDictionary.put("10k",10000);
+        binSizeDictionary.put("5k",5000);
+        binSizeDictionary.put("1k",1000);
+        binSizeDictionary.put("2500000",2500000);
+        binSizeDictionary.put("1000000",1000000);
+        binSizeDictionary.put("500000",500000);
+        binSizeDictionary.put("250000",250000);
+        binSizeDictionary.put("100000",100000);
+        binSizeDictionary.put("50000",50000);
+        binSizeDictionary.put("25000",25000);
+        binSizeDictionary.put("10000",10000);
+        binSizeDictionary.put("5000",5000);
+        binSizeDictionary.put("1000",1000);
+
+        //FRAG Bin size:
+        binSizeDictionary.put("500f",500);
+        binSizeDictionary.put("200f",200);
+        binSizeDictionary.put("100f",100);
+        binSizeDictionary.put("50f",50);
+        binSizeDictionary.put("20f",20);
+        binSizeDictionary.put("5f",5);
+        binSizeDictionary.put("2f",2);
+        binSizeDictionary.put("1f",1);
+    }
 }
+
