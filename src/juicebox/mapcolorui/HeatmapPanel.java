@@ -651,7 +651,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append(formatter.format(yGenomeStart));
             txt.append("-");
             txt.append(formatter.format(yGenomeEnd));
-            txt.append("</span>");
 
             if (yGridAxis instanceof HiCFragmentAxis) {
                 String fragNumbers;
@@ -669,6 +668,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(formatter.format(yGenomeEnd - yGenomeStart));
                 txt.append(")");
             }
+            txt.append("</span>");
 
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
