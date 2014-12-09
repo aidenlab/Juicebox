@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
@@ -30,6 +31,9 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JSplitButton localButton;
     private JMenuItem openURL;
     private JMenuItem open30;
+
+    private static boolean actionLock = false;
+
     private boolean control;
 
     public LoadDialog(MainWindow mainWindow, Properties properties) {
@@ -186,20 +190,29 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == openButton) {
-            loadFiles(tree.getSelectionPaths(), null);
-        } else if (e.getSource() == open30) {
-            loadFiles(tree.getSelectionPaths(), "30");
-        }
-        if (e.getSource() == localButton) {
-            mainWindow.loadMenuItemActionPerformed(control);
-            setVisible(false);
-        } else if (e.getSource() == openURL) {
-            mainWindow.loadFromURLActionPerformed(control);
-            setVisible(false);
-        } else if (e.getSource() == cancelButton) {
-            setVisible(false);
-            dispose();
+        if (!actionLock) {
+            try {
+                //use lock as double click protection.
+                actionLock = true;
+                if (e.getSource() == openButton) {
+                    loadFiles(tree.getSelectionPaths(), null);
+                } else if (e.getSource() == open30) {
+                    loadFiles(tree.getSelectionPaths(), "30");
+                }
+                if (e.getSource() == localButton) {
+                    mainWindow.loadMenuItemActionPerformed(control);
+                    setVisible(false);
+                } else if (e.getSource() == openURL) {
+                    mainWindow.loadFromURLActionPerformed(control);
+                    setVisible(false);
+                } else if (e.getSource() == cancelButton) {
+                    setVisible(false);
+                    dispose();
+                }
+            }
+            finally {
+                actionLock=false;
+            }
         }
     }
 

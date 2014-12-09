@@ -332,6 +332,7 @@ public class MainWindow extends JFrame {
 
         if (file.equals(currentlyLoadedFile)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
+            MainWindow.this.hideGlassPane();
             return;
         } else {
             currentlyLoadedFile = file;

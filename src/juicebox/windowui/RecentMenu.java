@@ -5,6 +5,8 @@ import org.broad.igv.Globals;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -103,6 +105,7 @@ public abstract class RecentMenu extends JMenu {
                         onSelectPosition(actionEvent.getActionCommand());
                     }
                 });
+                //menuItem.addMouseListener(new MouseListener() );
                 this.add(menuItem);
             }
 
