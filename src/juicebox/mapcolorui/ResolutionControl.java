@@ -43,7 +43,7 @@ public class ResolutionControl extends JPanel {
         bpLabelMap.put(25000, "25 KB");
         bpLabelMap.put(10000, "10 KB");
         bpLabelMap.put(5000, "5 KB");
-
+        bpLabelMap.put(1000, "1 KB");
     }
 
     private boolean resolutionLocked = false;
