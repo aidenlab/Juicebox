@@ -1397,8 +1397,8 @@ public class MainWindow extends JFrame {
             InputStream is = ParsingUtils.openInputStream(url);
             properties = new Properties();
             if (is == null) {
-                //No slection made:
-                return;
+                // No selection made:
+                // We may want to exit if they don't enter password.
             } else {
                 properties.load(is);
             }

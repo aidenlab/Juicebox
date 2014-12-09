@@ -197,6 +197,7 @@ public class Dataset {
         HashMap<String, String> statsMap = new HashMap<String, String>();
         StringTokenizer lines = new StringTokenizer(oldStats, "\n");
         DecimalFormat decimalFormat = new DecimalFormat("0.00%");
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
         while (lines.hasMoreTokens()) {
             String current = lines.nextToken();
             StringTokenizer colon = new StringTokenizer(current, ":");
@@ -212,31 +213,91 @@ public class Dataset {
         String newStats = "";
         int sequenced = -1;
         int unique = -1;
-        if (statsMap.containsKey("Total")) {
+
+        newStats += "<table><tr><th colspan=2>Experiment Information</th></tr>\n" +
+                "        <tr> <td> Experiment #:</td> <td>";
+        String filename = reader.getPath();
+        boolean mapq30 = false;
+        if (filename.lastIndexOf("_30") > 0) {
+            mapq30 = true;
+        }
+        String[] parts = filename.split("/");
+        newStats += parts[parts.length-2];
+        newStats += "</td></tr>";
+        newStats += "<tr> <td> Restriction Enzyme:</td><td>";
+        newStats += getRestrictionEnzyme() + "</td></tr>";
+        if (statsMap.containsKey("Experiment description")) {
+            String value = statsMap.get("Experiment description").trim();
+            if (!value.isEmpty())
+                newStats += "<tr><td>Experiment Description:</td><td>" + value + "</td></tr>";
+        }
+        newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
+                "        <tr> <td> Reference Genome:</td>";
+        newStats += "<td>" + genomeId + "</td></tr>";
+        newStats += "<tr> <td> MAPQ Threshold: </td><td>";
+        if (mapq30) newStats += "30";
+        else newStats += "1";
+        newStats += "</td></tr>";
+
+      /*  <table>
+        <tr>
+        <th colspan=2>Experiment Information</th></tr>
+        <tr> <td> Experiment #:</td> <td>HIC034</td></tr>
+        <tr> <td> Cell Type: </td><td>GM12878</td></tr>
+        <tr> <td> Protocol: </td><td>dilution</td></tr>
+        <tr> <td> Restriction Enzyme:</td><td>HindIII</td></tr>
+        <tr> <td> Crosslinking: </td><td>1% FA, 10min, RT</td></tr>
+        <tr> <td> Biotin Base: </td><td>bio-dCTP</td></tr>
+        <tr> <td> Ligation Volume: </td><td>8ml</td></tr>
+        <tr></tr>
+        <tr><th colspan=2>Alignment Information</th></tr>
+        <tr> <td> Reference Genome:</td><td>hg19</td></tr>
+        <tr> <td> MAPQ Threshold: </td><td>1</td></tr>
+        <tr></tr>
+        <tr><th colspan=2>Sequencing Information</th></tr>
+        <tr> <td> Instrument:  </td> <td>HiSeq 2000</td></tr>
+        <tr> <td> Read 1 Length:  </td> <td>101</td></tr>
+        <tr> <td> Read 2 Length:  </td> <td>101</td></tr>
+        </table>
+         */
+
+        newStats += "</table><table>";
+        if (statsMap.containsKey("Total") || statsMap.containsKey("Sequenced Read Pairs")) {
             newStats += "<tr><th colspan=2>Sequencing</th></tr>";
             newStats += "<tr><td>Sequenced Reads:</td>";
+            String value = "";
             try {
-                String value = statsMap.get("Total").trim();
-                sequenced = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                if (statsMap.containsKey("Total")) value = statsMap.get("Total").trim();
+                else value =  statsMap.get("Sequenced Read Pairs").trim();
+                sequenced = numberFormat.parse(value).intValue();
             } catch (ParseException error) {
                 sequenced = -1;
             }
-            newStats += "<td>" + statsMap.get("Total") + "</td></tr>";
+            newStats += "<td>" + value + "</td></tr>";
             // TODO: add in Total Bases
         }
-        if (statsMap.containsKey(" Regular")) {
+        if (statsMap.containsKey(" Regular") || statsMap.containsKey(" Normal Paired")) {
             newStats += "<tr></tr>";
             newStats += "<tr><th colspan=2>Alignment (% Sequenced Reads)</th></tr>";
             newStats += "<tr><td>Normal Paired:</td>";
-            newStats += "<td>" + statsMap.get(" Regular") + "</td></tr>";
+            newStats += "<td>";
+            if (statsMap.containsKey(" Regular"))  newStats +=  statsMap.get(" Regular");
+            else newStats +=  statsMap.get(" Normal Paired");
+            newStats += "</td></tr>";
         }
-        if (statsMap.containsKey(" Normal chimeric")) {
+        if (statsMap.containsKey(" Normal chimeric") || statsMap.containsKey(" Chimeric Paired")) {
             newStats += "<tr><td>Chimeric Paired:</td>";
-            newStats += "<td>" + statsMap.get(" Normal chimeric") + "</td></tr>";
+            newStats += "<td>";
+            if (statsMap.containsKey(" Normal chimeric"))  newStats += statsMap.get(" Normal chimeric");
+            else newStats += statsMap.get(" Chimeric Paired");
+            newStats += "</td></tr>";
         }
-        if (statsMap.containsKey(" Abnormal chimeric")) {
+        if (statsMap.containsKey(" Abnormal chimeric")|| statsMap.containsKey(" Chimeric Ambiguous")) {
             newStats += "<tr><td>Chimeric Ambiguous:</td>";
-            newStats += "<td>" + statsMap.get(" Abnormal chimeric") + "</td></tr>";
+            newStats += "<td>";
+            if (statsMap.containsKey(" Abnormal chimeric")) newStats += statsMap.get(" Abnormal chimeric");
+            else newStats += statsMap.get(" Chimeric Ambiguous");
+            newStats += "</td></tr>";
         }
         if (statsMap.containsKey(" Unmapped")) {
             newStats += "<tr><td>Unmapped:</td>";
@@ -244,33 +305,47 @@ public class Dataset {
         }
         newStats += "<tr></tr>";
         newStats += "<tr><th colspan=2>Duplication and Complexity (% Sequenced Reads)</td></tr>";
-        if (statsMap.containsKey(" Total alignable reads")) {
+        if (statsMap.containsKey(" Total alignable reads") || statsMap.containsKey("Alignable (Normal+Chimeric Paired)")) {
             newStats += "<tr><td>Alignable (Normal+Chimeric Paired):</td>";
-            newStats += "<td>" + statsMap.get(" Total alignable reads") + "</td></tr>";
+            newStats += "<td>";
+            if (statsMap.containsKey(" Total alignable reads")) newStats += statsMap.get(" Total alignable reads");
+            else newStats += statsMap.get("Alignable (Normal+Chimeric Paired)");
+            newStats += "</td></tr>";
         }
         if (statsMap.containsKey("Total reads after duplication removal")) {
             newStats += "<tr><td>Unique Reads:</td>";
+            String value = statsMap.get("Total reads after duplication removal");
             try {
-                String value = statsMap.get("Total reads after duplication removal").trim();
-                unique = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                unique = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 unique = -1;
             }
 
-            newStats += "<td>" + statsMap.get("Total reads after duplication removal");
+            newStats += "<td>" + value;
 
             if (sequenced != -1) {
                 newStats += " (" + decimalFormat.format(unique / (float) sequenced) + ")";
             }
             newStats += "</td></tr>";
         }
+        else if (statsMap.containsKey("Unique Reads")) {
+            newStats += "<tr><td>Unique Reads:</td>";
+            String value = statsMap.get("Unique Reads");
+            newStats += "<td>" + value  + "</td></tr>";
+            value = value.substring(0, value.indexOf('('));
+            try {
+                unique = numberFormat.parse(value.trim()).intValue();
+            } catch (ParseException error) {
+                unique = -1;
+            }
+        }
         if (statsMap.containsKey("Duplicate reads")) {
             newStats += "<tr><td>PCR Duplicates:</td>";
-            newStats += "<td>" + statsMap.get("Duplicate reads");
+            String value = statsMap.get("Duplicate reads");
+            newStats += "<td>" + value;
             int num;
             try {
-                String value = statsMap.get("Duplicate reads").trim();
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -279,13 +354,16 @@ public class Dataset {
             }
             newStats += "</td></tr>";
         }
+        else if (statsMap.containsKey("PCR Duplicates")) {
+            newStats += "<tr><td>PCR Duplicates:</td>";
+            newStats += "<td>" + statsMap.get("PCR Duplicates")+"</td></tr>";
+        }
         if (statsMap.containsKey("Optical duplicates")) {
             newStats += "<tr><td>Optical Duplicates:</td>";
-            newStats += "<td>" + statsMap.get("Optical duplicates");
+            String value = statsMap.get("Optical duplicates");
             int num;
             try {
-                String value = statsMap.get("Optical duplicates").trim();
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -294,19 +372,27 @@ public class Dataset {
             }
             newStats += "</td></tr>";
         }
-        if (statsMap.containsKey("Library complexity (new)")) {
+        else if (statsMap.containsKey("Optical Duplicates")) {
+            newStats += "<tr><td>Optical Duplicates:</td>";
+            newStats += "<td>" + statsMap.get("Optical Duplicates")+"</td></tr>";
+        }
+        if (statsMap.containsKey("Library complexity (new)") || statsMap.containsKey("Library Complexity Estimate")) {
             newStats += "<tr><td><b>Library Complexity Estimate:</b></td>";
-            newStats += "<td><b>" + statsMap.get("Library complexity (new)") + "</b></td></tr>";
+            newStats += "<td><b>";
+            if (statsMap.containsKey("Library complexity (new)")) newStats += statsMap.get("Library complexity (new)");
+            else newStats += statsMap.get("Library Complexity Estimate");
+            newStats += "</b></td></tr>";
         }
         newStats += "<tr></tr>";
         newStats += "<tr><th colspan=2>Analysis of Unique Reads (% Sequenced Reads / % Unique Reads)</td></tr>";
         if (statsMap.containsKey("Intra-fragment Reads")) {
             newStats += "<tr><td>Intra-fragment Reads:</td>";
-            newStats += "<td>" + statsMap.get("Intra-fragment Reads");
+            String value =   statsMap.get("Intra-fragment Reads");
+            if (value.indexOf('(') > 0) value = value.substring(0, value.indexOf('('));
+            newStats += "<td>" + value;
             int num;
             try {
-                String value = statsMap.get("Intra-fragment Reads").trim();
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -318,11 +404,11 @@ public class Dataset {
         }
         if (statsMap.containsKey("Non-uniquely Aligning Reads")) {
             newStats += "<tr><td>Below MAPQ Threshold:</td>";
-            newStats += "<td>" + statsMap.get("Non-uniquely Aligning Reads");
+            String value = statsMap.get("Non-uniquely Aligning Reads");
+            newStats += "<td>" + value.trim();
             int num;
             try {
-                String value = statsMap.get("Non-uniquely Aligning Reads").trim();
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                num = numberFormat.parse(value).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -332,13 +418,17 @@ public class Dataset {
             }
             newStats += "</td></tr>";
         }
+        else if (statsMap.containsKey("Below MAPQ Threshold")) {
+            newStats += "<tr><td>Below MAPQ Threshold:</td>";
+            newStats += "<td>" + statsMap.get("Below MAPQ Threshold") + "</td></tr>";
+        }
         if (statsMap.containsKey("Total reads in current file")) {
             newStats += "<tr><td><b>Hi-C Contacts:</b></td>";
-            newStats += "<td><b>" + statsMap.get("Total reads in current file");
+            String value = statsMap.get("Total reads in current file");
+            newStats += "<td><b>" + value.trim();
             int num;
             try {
-                String value = statsMap.get("Total reads in current file").trim();
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value).intValue();
+                num = numberFormat.parse(value).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -351,7 +441,7 @@ public class Dataset {
             if (statsMap.containsKey("HiC Contacts")) {
                 int num2;
                 try {
-                    num2 = NumberFormat.getNumberInstance(java.util.Locale.US).parse(statsMap.get("HiC Contacts").trim()).intValue();
+                    num2 = numberFormat.parse(statsMap.get("HiC Contacts").trim()).intValue();
                 } catch (ParseException error) {
                     num2 = -1;
                 }
@@ -360,13 +450,18 @@ public class Dataset {
                 }
             }
         }
-        if (statsMap.containsKey("Ligations")) {
+        else if (statsMap.containsKey("Hi-C Contacts")) {
+            newStats += "<tr><td><b>Hi-C Contacts:</b></td>";
+            newStats += "<td><b>" + statsMap.get("Hi-C Contacts") + "</b></td></tr>";
+
+        }
+        if (statsMap.containsKey("Ligations") || statsMap.containsKey(" Ligation Motif Present")) {
             newStats += "<tr><td>&nbsp;&nbsp;Ligation Motif Present:</td>";
-            String value = statsMap.get("Ligations");
+            String value = statsMap.containsKey("Ligations")?statsMap.get("Ligations"):statsMap.get(" Ligation Motif Present");
             newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -389,6 +484,10 @@ public class Dataset {
             int num2 = Math.round(Float.valueOf(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
+        }
+        else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
+            newStats += "<tr><td>&nbsp;&nbsp;3' Bias (Long Range):</td>";
+            newStats += "<td>" + statsMap.get(" 3' Bias (Long Range)") + "</td></tr>";
         }
         if (statsMap.containsKey("Inner") && statsMap.containsKey("Outer") &&
                 statsMap.containsKey("Left") && statsMap.containsKey("Right")) {
@@ -413,7 +512,10 @@ public class Dataset {
             value = value.substring(0, value.indexOf('%'));
             int num4 = Math.round(Float.valueOf(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
-
+        }
+        else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
+            newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
+            newStats += "<td>" + statsMap.get(" Pair Type %(L-I-O-R)") + "</td></tr>";
         }
         newStats += "<tr></tr>";
         newStats += "<tr><th colspan=2>Analysis of Hi-C Contacts (% Sequenced Reads / % Unique Reads)</th></tr>";
@@ -423,7 +525,7 @@ public class Dataset {
             newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -432,6 +534,10 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
+        }
+        else if (statsMap.containsKey("Inter-chromosomal")) {
+            newStats += "<tr><td>Inter-chromosomal:</td>";
+            newStats += "<td>" +  statsMap.get("Inter-chromosomal") + "</td></tr>";
         }
         if (statsMap.containsKey("Intra")) {
             newStats += "<tr><td>Intra-chromosomal:</td>";
@@ -439,7 +545,7 @@ public class Dataset {
             newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -448,6 +554,10 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
+        }
+        else if (statsMap.containsKey("Intra-chromosomal")) {
+            newStats += "<tr><td>Intra-chromosomal:</td>";
+            newStats += "<td>" +  statsMap.get("Intra-chromosomal") + "</td></tr>";
         }
         if (statsMap.containsKey("Small")) {
             newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
@@ -455,7 +565,7 @@ public class Dataset {
             newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -465,13 +575,17 @@ public class Dataset {
             }
             newStats += "</td></tr>";
         }
+        else if (statsMap.containsKey("Short Range (<20Kb)")) {
+            newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
+            newStats += "<td>" +  statsMap.get("Short Range (<20Kb)") + "</td></tr>";
+        }
         if (statsMap.containsKey("Large")) {
             newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
             String value = statsMap.get("Large");
             newStats += "<td><b>" + value.substring(0, value.indexOf('('));
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(value.trim()).intValue();
+                num = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }
@@ -481,11 +595,15 @@ public class Dataset {
             }
             newStats += "</b></td></tr>";
         }
+        else if (statsMap.containsKey("Long Range (>20Kb)")) {
+            newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
+            newStats += "<td><b>" +  statsMap.get("Long Range (>20Kb)") +  "</b></td></tr>";
+        }
         // Error checking
         if (statsMap.containsKey("Unique Reads")) {
             int num;
             try {
-                num = NumberFormat.getNumberInstance(java.util.Locale.US).parse(statsMap.get("Unique Reads").trim()).intValue();
+                num = numberFormat.parse(statsMap.get("Unique Reads").trim()).intValue();
             } catch (ParseException error) {
                 num = -1;
             }

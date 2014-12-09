@@ -54,19 +54,16 @@ public class QCDialog extends JDialog {
         styleSheet.addRule("td { padding: 2px; }");
         styleSheet.addRule("th {border-bottom: 1px solid #000; text-align: left; background-color: #D8D8D8; font-weight: normal;}");
 
-        if (text.contains("Protocol")) {
-            int split = text.indexOf("</table>") + 8;
-            textDescription = text.substring(0, split);
-            textStatistics = text.substring(split);
-            description = new JTextPane();
-            description.setEditable(false);
-            description.setContentType("text/html");
-            description.setEditorKit(kit);
-            description.setText(textDescription);
-            tabbedPane.addTab("About Library", description);
-        } else {
-            textStatistics = text;
-        }
+        int split = text.indexOf("</table>") + 8;
+        textDescription = text.substring(0, split);
+        textStatistics = text.substring(split);
+        description = new JTextPane();
+        description.setEditable(false);
+        description.setContentType("text/html");
+        description.setEditorKit(kit);
+        description.setText(textDescription);
+        tabbedPane.addTab("About Library", description);
+
 
         JTextPane textPane = new JTextPane();
         textPane.setEditable(false);
