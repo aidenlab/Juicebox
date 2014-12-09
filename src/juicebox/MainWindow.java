@@ -743,8 +743,15 @@ public class MainWindow extends JFrame {
             }
         }
 
-        hic.setDisplayOption(option);
-        refresh();
+        final MatrixType passOption = option;
+        Runnable runnable = new Runnable() {
+            public void run() {
+                hic.setDisplayOption(passOption);
+                refresh();
+            }
+        };
+        executeLongRunningTask(runnable);
+
     }
 
     private void normalizationComboBoxActionPerformed(ActionEvent e) {
@@ -756,8 +763,15 @@ public class MainWindow extends JFrame {
                 break;
             }
         }
-        hic.setNormalizationType(chosen);
-        refresh();
+        final NormalizationType passChosen = chosen;
+        Runnable runnable = new Runnable() {
+            public void run() {
+                hic.setNormalizationType(passChosen);
+                refresh();
+            }
+        };
+        executeLongRunningTask(runnable);
+
     }
 
     /**
