@@ -537,9 +537,18 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 stream.seek(idx.position);
                 stream.readFully(compressedBytes);
 
-                byte[] buffer = compressionUtils.decompress(compressedBytes);
-                LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
+                byte[] buffer;
 
+                try{
+                    buffer = compressionUtils.decompress(compressedBytes);
+
+                }
+                catch(Exception e)
+                {
+                    throw new RuntimeException("Block read error: " + e.getMessage());
+                }
+
+                LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
                 int nRecords = dis.readInt();
                 List<ContactRecord> records = new ArrayList<ContactRecord>(nRecords);
 
