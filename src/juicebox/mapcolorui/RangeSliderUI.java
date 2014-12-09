@@ -30,6 +30,11 @@ class RangeSliderUI extends BasicSliderUI {
     /**
      * Color of selected range.
      */
+
+    private final Color rangeColorBlank = Color.gray;
+    private final Color[] gradientColorsBlank = {Color.gray, Color.gray};
+    private final float[] fractionsBlank = {0.0f, 1.0f};
+
     private final Color rangeColor = Color.RED;
     private final Color[] gradientColors = {Color.WHITE, Color.RED};
     private final float[] fractions = {0.0f, 1.0f};
@@ -223,10 +228,11 @@ class RangeSliderUI extends BasicSliderUI {
             Point endP = new Point(subRect.x + subRect.width, subRect.y + subRect.height);
 
             if (colorIsBlank) {
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsBlank, gradientColorsBlank);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.gray, leftSide, Color.gray, rightSide);
+                oldColor = rangeColorBlank;
             }
-            if (colorIsOE) {
+            else if (colorIsOE) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
             } else {

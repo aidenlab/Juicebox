@@ -420,6 +420,7 @@ public class MainWindow extends JFrame {
                         refreshButton.setEnabled(true);
 
                         setColorRangeSliderVisible(true);
+                        colorRangeSlider.setDisplayToBlank(false);
                         plusButton.setEnabled(true);
                         minusButton.setEnabled(true);
                         annotationsMenu.setEnabled(true);
@@ -860,7 +861,7 @@ public class MainWindow extends JFrame {
         if (colorValuesToRestore != null) {
             //refreshChromosomes();
             //setInitialZoom();
-
+            colorRangeSlider.setDisplayToBlank(false);
             colorRangeSlider.setMinimum(colorValuesToRestore[0]);
             colorRangeSlider.setMaximum(colorValuesToRestore[1]);
             colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
@@ -874,6 +875,7 @@ public class MainWindow extends JFrame {
 
     private void resetOEColorRangeSlider() {
 
+        colorRangeSlider.setDisplayToBlank(false);
         if (colorValuesToRestore == null) {
             colorValuesToRestore = new int[5];
             colorValuesToRestore[0] = colorRangeSlider.getMinimum();
@@ -1145,6 +1147,7 @@ public class MainWindow extends JFrame {
             }
         });
         colorRangeSlider.setEnabled(false);
+        colorRangeSlider.setDisplayToBlank(true);
 
         //---- colorRangeLabel ----
         colorRangeLabel = new JLabel("Color Range");
