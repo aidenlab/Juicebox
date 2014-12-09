@@ -1026,7 +1026,7 @@ public class MainWindow extends JFrame {
         });
         normalizationButtonPanel.add(normalizationComboBox);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setPreferredSize(new Dimension(140, 70));
+        normalizationPanel.setPreferredSize(new Dimension(180, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
 
 

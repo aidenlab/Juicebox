@@ -922,26 +922,41 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (!e.isPopupTrigger() && e.getButton() == MouseEvent.BUTTON1 && !e.isControlDown()) {
 
                 if (hic.isWholeGenome()) {
-                    double binX = hic.getXContext().getBinOrigin() + (e.getX() / hic.getScaleFactor());
-                    double binY = hic.getYContext().getBinOrigin() + (e.getY() / hic.getScaleFactor());
+                    //avoid double click...
+                    if(e.getClickCount() == 1){
+                        double binX = hic.getXContext().getBinOrigin() + (e.getX() / hic.getScaleFactor());
+                        double binY = hic.getYContext().getBinOrigin() + (e.getY() / hic.getScaleFactor());
 
-                    int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
-                    int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
+                        int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
+                        int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
 
-                    Chromosome xChrom = null;
-                    Chromosome yChrom = null;
-                    for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                        if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                            xChrom = hic.getChromosomes().get(i + 1);
-                        }
-                        if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                            yChrom = hic.getChromosomes().get(i + 1);
-                        }
-                        if (xChrom != null && yChrom != null) {
-                            mainWindow.setSelectedChromosomes(xChrom, yChrom);
+                        Chromosome xChrom = null;
+                        Chromosome yChrom = null;
+                        for (int i = 0; i < chromosomeBoundaries.length; i++) {
+                            if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
+                                xChrom = hic.getChromosomes().get(i + 1);
+                            }
+                            if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
+                                yChrom = hic.getChromosomes().get(i + 1);
+                            }
+                            if (xChrom != null && yChrom != null) {
+
+                                final Chromosome xC = xChrom;
+                                final Chromosome yC = yChrom;
+
+                                Runnable runnable = new Runnable() {
+                                    public void run() {
+                                        mainWindow.setSelectedChromosomes(xC, yC);
+                                    }
+                                };
+                                mainWindow.executeLongRunningTask(runnable);
+                            }
                         }
                     }
-
+                    else
+                    {
+                        return;
+                    }
 
                 } else if (e.getClickCount() > 1) {
 
