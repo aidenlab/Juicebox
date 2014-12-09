@@ -38,6 +38,8 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
+                if (mouseEvent.getClickCount() >=1) {
+
                 try {
                     int xBP = (int) (mouseEvent.getX() * xScale());
                     int yBP = (int) (mouseEvent.getY() * yScale());
@@ -46,7 +48,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
                 } catch (Exception e) {
                     System.out.println("Error when thumbnail clicked");
                     e.printStackTrace();
-                }
+                }}
             }
 
             @Override

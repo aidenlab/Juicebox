@@ -4,6 +4,8 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.MainWindow;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -78,6 +80,7 @@ public class ColorRangeDialog extends JDialog {
         }
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
+        MainWindow.getInstance().setColorRangeSliderVisible(true);
         setVisible(false);
         //double tickSpacing = Double.parseDouble(tickSpacingField.getText());
         //int iTickSpacing = (int) Math.max(1, (colorRangeFactor * tickSpacing));
@@ -87,6 +90,7 @@ public class ColorRangeDialog extends JDialog {
     }
 
     private void cancelButtonActionPerformed(ActionEvent e) {
+        MainWindow.getInstance().setColorRangeSliderVisible(true);
         setVisible(false);
     }
 

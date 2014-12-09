@@ -1132,10 +1132,12 @@ public class MainWindow extends JFrame {
         colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
         colorRangeLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+
         colorRangeLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger() && colorRangeSlider.isEnabled()) {
+                    setColorRangeSliderVisible(false);
                     ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
                     rangeDialog.setVisible(true);
                 }
@@ -1143,10 +1145,13 @@ public class MainWindow extends JFrame {
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                //No double click here...
+                if (e.getClickCount() == 1) {
                 if (colorRangeSlider.isEnabled()) {
+                    setColorRangeSliderVisible(false);
                     ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
                     rangeDialog.setVisible(true);
-                }
+                }}
             }
         });
         JPanel colorLabelPanel = new JPanel();
@@ -1671,6 +1676,13 @@ public class MainWindow extends JFrame {
 
         }
 
+    }
+
+    public void setColorRangeSliderVisible(boolean state)
+    {
+        plusButton.setEnabled(state);
+        minusButton.setEnabled(state);
+        colorRangeSlider.setEnabled(state);
     }
 
     private JMenuBar createMenuBar() {
