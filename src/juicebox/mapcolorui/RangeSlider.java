@@ -32,6 +32,7 @@ public class RangeSlider extends JSlider implements Serializable {
     private RangeSliderUI rangeSliderUI;
 
     private boolean colorIsOE = false;
+    private boolean colorIsBlank = false;
 
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
@@ -124,4 +125,8 @@ public class RangeSlider extends JSlider implements Serializable {
         rangeSliderUI.setDisplayToOE(colorIsOE);
     }
 
+    public void setDisplayToBlank(boolean colorIsBlank) {
+        this.colorIsBlank = colorIsBlank;
+        rangeSliderUI.setDisplayToBlank(colorIsBlank);
+    }
 }

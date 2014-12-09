@@ -17,6 +17,7 @@ package juicebox;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
+import com.sun.corba.se.spi.orbutil.fsm.State;
 import juicebox.data.Dataset;
 import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
@@ -44,6 +45,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -89,6 +91,7 @@ public class MainWindow extends JFrame {
     private static JideButton plusButton;
     private static JideButton minusButton;
     private static RangeSlider colorRangeSlider;
+    private static JLabel colorRangeLabel;
     private static ResolutionControl resolutionSlider;
     private static TrackPanel trackPanelX;
     private static TrackPanel trackPanelY;
@@ -124,6 +127,7 @@ public class MainWindow extends JFrame {
         setDropTarget(target);
 
         colorRangeSlider.setUpperValue(1200);
+        colorRangeSlider.setDisplayToBlank(true);
 
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
@@ -415,7 +419,7 @@ public class MainWindow extends JFrame {
                         chrBox2.setEnabled(true);
                         refreshButton.setEnabled(true);
 
-                        colorRangeSlider.setEnabled(true);
+                        setColorRangeSliderVisible(true);
                         plusButton.setEnabled(true);
                         minusButton.setEnabled(true);
                         annotationsMenu.setEnabled(true);
@@ -1143,7 +1147,31 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setEnabled(false);
 
         //---- colorRangeLabel ----
-        JLabel colorRangeLabel = new JLabel("Color Range");
+        colorRangeLabel = new JLabel("Color Range");
+        MouseListener l = new MouseAdapter() {
+            Font original;
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if(colorRangeSlider.isEnabled()) {
+                    original = e.getComponent().getFont();
+                    Map attributes = original.getAttributes();
+                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+                    e.getComponent().setFont(original.deriveFont(attributes));
+                }
+            }
+
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                //if (colorRangeSlider.isEnabled()) {
+                    e.getComponent().setFont(original);
+                //}
+            }
+
+        };
+        colorRangeLabel.addMouseListener(l);
+
         colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
         colorRangeLabel.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -1698,6 +1726,12 @@ public class MainWindow extends JFrame {
         plusButton.setEnabled(state);
         minusButton.setEnabled(state);
         colorRangeSlider.setEnabled(state);
+        if(state){
+            colorRangeLabel.setForeground(Color.BLUE);
+        }
+        else {
+            colorRangeLabel.setForeground(Color.BLACK);
+        }
     }
 
     private JMenuBar createMenuBar() {

@@ -38,6 +38,7 @@ class RangeSliderUI extends BasicSliderUI {
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
 
     private boolean colorIsOE = false;
+    private boolean colorIsBlank = false;
 
     private int oeColorMax;
 
@@ -221,6 +222,10 @@ class RangeSliderUI extends BasicSliderUI {
             Point startP = new Point(subRect.x, subRect.y);
             Point endP = new Point(subRect.x + subRect.width, subRect.y + subRect.height);
 
+            if (colorIsBlank) {
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.gray, leftSide, Color.gray, rightSide);
+            }
             if (colorIsOE) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
@@ -363,6 +368,12 @@ class RangeSliderUI extends BasicSliderUI {
         this.oeColorMax = OEColorScale.defaultMaxOEVal;
 
     }
+
+    public void setDisplayToBlank(boolean isBlank) {
+
+        this.colorIsBlank = isBlank;
+    }
+
 
     /**
      * Listener to handle model change events.  This calculates the thumb
@@ -536,6 +547,7 @@ class RangeSliderUI extends BasicSliderUI {
                         //slider.setValue(valueForXPosition(thumbLeft - halfThumbWidth));
                         //slider.setExtent(valueForXPosition(upperThumb - halfThumbWidth) - slider.getValue());
                     }
+
 
                     setThumbLocation(thumbLeft, thumbRect.y);
                     //System.out.println("lower thumb dragged");
