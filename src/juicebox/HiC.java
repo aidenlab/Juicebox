@@ -53,7 +53,7 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private HashMap binSizeDictionary = new HashMap();
+    private HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
 
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -827,6 +827,16 @@ public class HiC {
 
     private void initBinSizeDictionary(){
         //BP Bin size:
+        binSizeDictionary.put("2.5M",2500000);
+        binSizeDictionary.put("1M",1000000);
+        binSizeDictionary.put("500K",500000);
+        binSizeDictionary.put("250K",250000);
+        binSizeDictionary.put("100K",100000);
+        binSizeDictionary.put("50K",50000);
+        binSizeDictionary.put("25K",25000);
+        binSizeDictionary.put("10K",10000);
+        binSizeDictionary.put("5K",5000);
+        binSizeDictionary.put("1K",1000);
         binSizeDictionary.put("2.5m",2500000);
         binSizeDictionary.put("1m",1000000);
         binSizeDictionary.put("500k",500000);
