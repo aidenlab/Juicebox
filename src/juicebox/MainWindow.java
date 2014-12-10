@@ -695,7 +695,7 @@ public class MainWindow extends JFrame {
 
         heatmapPanel.setObservedRange(min, max);
 
-        if (hic.getDisplayOption() == MatrixType.OE) {
+        if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
         }
@@ -717,7 +717,7 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE;
+        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
         boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
 
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);

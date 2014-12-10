@@ -69,7 +69,7 @@ public class ResourceTree {
         }
 
         createTreeFromDataset(hic, this);
-        addExternal(this);
+        addExternal();
         expandTree();
         hic.setResourceTree(this);
         dialogTree.setRootVisible(false);
@@ -398,73 +398,95 @@ public class ResourceTree {
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
     }
 
-    private void addExternal(ResourceTree resourceTree) {
+    private void addExternal() {
         DefaultMutableTreeNode externalFeatureRoot = new DefaultMutableTreeNode("External Features");
-        ResourceLocator locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-GM12878.txt");
-        locator.setName("ENCODE 5C GM12878");
+        ResourceLocator locator = new ResourceLocator("External Features");
+        locator.setName("External Features");
         locator.setType("loop");
-        CheckableResource resource = new CheckableResource("ENCODE 5C GM12878", false, locator);
-        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("ENCODE 5C GM12878");
+        CheckableResource rootResource = new CheckableResource("External Features", false, locator);
+        externalFeatureRoot.setUserObject(rootResource);
+        externalFeatureRoot.setAllowsChildren(true);
+
+        //Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-GM12878.txt");
+        locator.setName("ENCODE 5C GM12878 Loops (Sanyal et al., Nature, 2012)");
+        locator.setType("loop");
+        CheckableResource resource = new CheckableResource("ENCODE 5C GM12878 Loops (Sanyal et al., Nature, 2012)", false, locator);
+        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("ENCODE 5C GM12878 Loops (Sanyal et al., Nature, 2012)");
         externalFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-HeLa.txt");
-        locator.setName("ENCODE 5C HeLa");
+        locator.setName("ENCODE 5C HeLa Loops (Sanyal et al., Nature, 2012)");
         locator.setType("loop");
-        resource = new CheckableResource("ENCODE 5C HeLa", false, locator);
-        treeNode = new DefaultMutableTreeNode("ENCODE 5C HeLa");
+        resource = new CheckableResource("ENCODE 5C HeLa Loops (Sanyal et al., Nature, 2012)", false, locator);
+        treeNode = new DefaultMutableTreeNode("ENCODE 5C HeLa Loops (Sanyal et al., Nature, 2012)");
         externalFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-K562.txt");
-        locator.setName("ENCODE 5C K562");
+        locator.setName("ENCODE 5C K562 Loops (Sanyal et al., Nature, 2012)");
         locator.setType("loop");
-        resource = new CheckableResource("ENCODE 5C K562", false, locator);
-        treeNode = new DefaultMutableTreeNode("ENCODE 5C K562");
+        resource = new CheckableResource("ENCODE 5C K562 Loops (Sanyal et al., Nature, 2012)", false, locator);
+        treeNode = new DefaultMutableTreeNode("ENCODE 5C K562 Loops (Sanyal et al., Nature, 2012)");
         externalFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/JinRenAllLoops.txt");
-        locator.setName("Jin Ren IMR90 loops");
+        locator.setName("Jin et al. Hi-C IMR90 Loops (Nature, 2013)");
         locator.setType("loop");
-        resource = new CheckableResource("Jin Ren IMR90 loops", false, locator);
-        treeNode = new DefaultMutableTreeNode("Jin Ren IMR90 loops");
+        resource = new CheckableResource("Jin et al. Hi-C IMR90 Loops (Nature, 2013)", false, locator);
+        treeNode = new DefaultMutableTreeNode("Jin et al. Hi-C IMR90 Loops (Nature, 2013)");
         externalFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562.txt");
-        locator.setName("Li Ruan K562 CHiA-PET loops");
-        locator.setType("loop");
-        resource = new CheckableResource("Li Ruan K562 CHiA-PET loops", false, locator);
-        treeNode = new DefaultMutableTreeNode("Li Ruan K562 CHiA-PET loops");
-        externalFeatureRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/TADS_IMR90_hg19_looplist.txt");
-        locator.setName("Jin Ren IMR90 TADs");
+        locator.setName("Jin et al. Hi-C IMR90 TADs (Nature, 2013)");
         locator.setType("loop");
-        resource = new CheckableResource("Jin Ren IMR90 TADs", false, locator);
-        treeNode = new DefaultMutableTreeNode("Jin Ren IMR90 TADs");
+        resource = new CheckableResource("Jin et al. Hi-C IMR90 TADs (Nature, 2013)", false, locator);
+        treeNode = new DefaultMutableTreeNode("Jin et al. Hi-C IMR90 TADs (Nature, 2013)");
         externalFeatureRoot.add(treeNode);
         treeNode.setUserObject(resource);
-        resource.setEnabled(resourceTree.dialogTree.isEnabled());
+        resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562.txt");
+        locator.setName("Li et al. ChIA-PET/PolII K562 loops (Cell, 2012)");
+        locator.setType("loop");
+        resource = new CheckableResource("Li et al. ChIA-PET/PolII K562 loops (Cell, 2012)", false, locator);
+        treeNode = new DefaultMutableTreeNode("Li et al. ChIA-PET/PolII K562 loops (Cell, 2012)");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562CTCF.txt");
+        locator.setName("Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)");
+        locator.setType("loop");
+        resource = new CheckableResource("Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)", false, locator);
+        treeNode = new DefaultMutableTreeNode("Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)");
+        externalFeatureRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+
+
 
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(externalFeatureRoot);
     }
