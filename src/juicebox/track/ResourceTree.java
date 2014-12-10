@@ -394,6 +394,18 @@ public class ResourceTree {
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
+        locator = hic.getDataset().getSubcompartments();
+        if (locator != null) {
+            resource = new CheckableResource("Subcompartments", false, locator);
+
+            treeNode = new DefaultMutableTreeNode("Subcompartments");
+            oneDFeatureRoot.add(treeNode);
+            treeNode.setUserObject(resource);
+            resource.setEnabled(resourceTree.dialogTree.isEnabled());
+            treeNode.setAllowsChildren(false);
+            leafResources.add(resource);
+        }
+
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
     }
