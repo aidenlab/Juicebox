@@ -82,32 +82,49 @@ public class Dataset {
 
     }
 
-    public ResourceLocator getPeaks() {
-        String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
-        if (path.lastIndexOf("_30") > -1) {
-            path = path.substring(0, path.lastIndexOf("_30"));
+    private boolean onPeaksList(String path) {
+        if (path.contains("combined") || path.contains("primary") || path.contains("replicate")) {
+            return true;
         }
+        else return false;
+    }
 
-        String location = path + "_peaks.txt";
+    public ResourceLocator getPeaks() {
+        if (onPeaksList(reader.getPath())) {
+            String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+            if (path.lastIndexOf("_30") > -1) {
+                path = path.substring(0, path.lastIndexOf("_30"));
+            }
 
-        if (FileUtils.resourceExists(location)) {
-            return new ResourceLocator(location);
-        } else {
+            String location = path + "_peaks.txt";
+
+            if (FileUtils.resourceExists(location)) {
+                return new ResourceLocator(location);
+            } else {
+                return null;
+            }
+        }
+        else {
             return null;
         }
     }
 
     public ResourceLocator getBlocks() {
         String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
-        if (path.lastIndexOf("_30") > -1) {
-            path = path.substring(0, path.lastIndexOf("_30"));
+        if (onPeaksList(reader.getPath())) {
+            if (path.lastIndexOf("_30") > -1) {
+                path = path.substring(0, path.lastIndexOf("_30"));
+            }
+
+            String location = path + "_blocks.txt";
+
+            if (FileUtils.resourceExists(location)) {
+                return new ResourceLocator(location);
+            } else {
+                return null;
+            }
         }
-
-        String location = path + "_blocks.txt";
-
-        if (FileUtils.resourceExists(location)) {
-            return new ResourceLocator(location);
-        } else {
+        else {
             return null;
         }
     }
