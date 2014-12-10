@@ -427,8 +427,7 @@ public class MainWindow extends JFrame {
                         annotationsMenu.setEnabled(true);
 
                         saveLocationList.setEnabled(true);
-                        recentLocationMenu.setEnabled(true);
-                        clearLocationList.setEnabled(true);
+                        recentLocationMenu.setEnabled(recentLocationMenu.getMenuComponentCount()>0);
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
@@ -1925,7 +1924,7 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(recentLocationMenu);
 
         //---- Clear Recent state ----
-        clearLocationList = new JMenuItem();
+      /*  clearLocationList = new JMenuItem();
         clearLocationList.setText("Clear saved locations list");
         clearLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1937,17 +1936,8 @@ public class MainWindow extends JFrame {
         });
 
         clearLocationList.setEnabled(false);
-        bookmarksMenu.add(clearLocationList);
+        bookmarksMenu.add(clearLocationList);*/
         //bookmarksMenu.addSeparator();
-
-
-        //========= Positioning panel ======
-
-        //JLabel positionLabel = new JLabel("Go:");
-        //bookmarksMenu.add(positionLabel);
-        //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-
-        //positionLabel.setPreferredSize(new Dimension(200, 25));
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
