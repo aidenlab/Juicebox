@@ -36,10 +36,12 @@ public class Feature2D {
     private final int end2;
     private final Color color;
     private final Map<String, String> attributes;
+    private final String featureName;
 
 
-    public Feature2D(String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
+    public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
+        this.featureName = featureName;
         this.chr1 = chr1;
         this.start1 = start1;
         this.end1 = end1;
@@ -82,7 +84,10 @@ public class Feature2D {
     public String tooltipText() {
 
         StringBuilder txt = new StringBuilder();
-        txt.append("Feature<br>");
+
+        txt.append("<font color='red'>");
+        txt.append(featureName);
+        txt.append(":</font><br>");
 
         txt.append(chr1).append(":").append(formatter.format(start1 + 1));
         if ((end1 - start1) > 1) {
