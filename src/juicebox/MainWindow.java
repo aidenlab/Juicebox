@@ -985,7 +985,7 @@ public class MainWindow extends JFrame {
         chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
 
         chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
-        chrSelectionPanel.setPreferredSize(new Dimension(200, 70));
+        chrSelectionPanel.setPreferredSize(new Dimension(210, 70));
 
         //======== Display Option Panel ========
         JPanel displayOptionPanel = new JPanel();
