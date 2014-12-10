@@ -125,7 +125,7 @@ public class DirectoryManager {
                 throw new DataLoadException("Cannot write to user directory", HIC_DIRECTORY.getAbsolutePath());
             }
 
-            log.info("IGV Directory: " + HIC_DIRECTORY.getAbsolutePath());
+            log.debug("IGV Directory: " + HIC_DIRECTORY.getAbsolutePath());
         }
         return HIC_DIRECTORY;
     }

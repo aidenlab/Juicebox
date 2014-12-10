@@ -628,7 +628,7 @@ public class ResourceTree {
                     ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
                 }
             } catch (Exception e) {
-                System.out.println("There appears to be an invalid node in the resource tree");
+                log.debug("There appears to be an invalid node in the resource tree");
             }
         }
 

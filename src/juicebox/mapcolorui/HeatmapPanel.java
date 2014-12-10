@@ -1069,12 +1069,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         repaint();
                         mainWindow.repaintTrackPanels();
                     }
-
                 }
-
-
             }
         }
     }
-
 }

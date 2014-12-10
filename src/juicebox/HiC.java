@@ -664,19 +664,32 @@ public class HiC {
                 Chromosome chr2 = this.getChromosomeNamed(chr2Name);
                 if (chr1 == null || chr2 == null) {
                     if (errorCount < 100) {
-                        log.error("Skipping line: " + nextLine);
+                        log.debug("Skipping line: " + nextLine);
                     } else if (errorCount == 100) {
-                        log.error("Maximum error count exceeded.  Further errors will not be logged");
+                        log.debug("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;
                     continue;
                 }
 
+                int featureNameSepindex = path.lastIndexOf("_");
+                String featureName = path.substring(featureNameSepindex + 1);
+
+                if (featureName.equals("blocks.txt")){
+                    featureName = "Contact domain";
+                }
+                else if (featureName.equals("peaks.txt")){
+                    featureName = "Peak";
+                }
+                else
+                {
+                    featureName = "Feature";
+                }
                 // Convention is chr1 is lowest "index". Swap if necessary
                 Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
 
                 newList.add(chr1.getIndex(), chr2.getIndex(), feature);
 
