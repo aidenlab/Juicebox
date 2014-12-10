@@ -950,18 +950,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
                                 yChrom = hic.getChromosomes().get(i + 1);
                             }
-                            if (xChrom != null && yChrom != null) {
+                        }
+                        if (xChrom != null && yChrom != null) {
 
-                                final Chromosome xC = xChrom;
-                                final Chromosome yC = yChrom;
+                            final Chromosome xC = xChrom;
+                            final Chromosome yC = yChrom;
 
-                                Runnable runnable = new Runnable() {
-                                    public void run() {
-                                        mainWindow.setSelectedChromosomes(xC, yC);
-                                    }
-                                };
-                                mainWindow.executeLongRunningTask(runnable);
-                            }
+                            Runnable runnable = new Runnable() {
+                                public void run() {
+                                    mainWindow.setSelectedChromosomes(xC, yC);
+                                }
+                            };
+                            mainWindow.executeLongRunningTask(runnable);
                         }
                     }
                     else

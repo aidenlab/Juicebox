@@ -199,6 +199,8 @@ public class HeatmapRenderer {
         if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
+
+            //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
             observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
                 double percentile = wholeGenome ? 99 : 95;
