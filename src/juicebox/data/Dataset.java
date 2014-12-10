@@ -83,10 +83,7 @@ public class Dataset {
     }
 
     private boolean onPeaksList(String path) {
-        if (path.contains("combined") || path.contains("primary") || path.contains("replicate")) {
-            return true;
-        }
-        else return false;
+        return (path.contains("combined") || path.contains("primary") || path.contains("replicate"));
     }
 
     public ResourceLocator getSubcompartments() {
@@ -99,7 +96,7 @@ public class Dataset {
 
             String location = path + "_subcompartments.bed";
             locator = new ResourceLocator(location);
-            
+
             locator.setName("Subcompartments");
         }
         return locator;
