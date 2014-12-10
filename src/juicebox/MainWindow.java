@@ -238,7 +238,8 @@ public class MainWindow extends JFrame {
         colorRangeScaleFactor = 100.0 / max;
 
         colorRangeSlider.setPaintTicks(true);
-        colorRangeSlider.setSnapToTicks(true);
+        //colorRangeSlider.setSnapToTicks(true);
+        colorRangeSlider.setPaintLabels(true);
 
         int iMin = (int) (colorRangeScaleFactor * min);
         int iMax = (int) (colorRangeScaleFactor * max);
@@ -250,9 +251,9 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setUpperValue(uValue);
         colorRangeSlider.setMaximum(iMax);
 
-        Font f = FontManager.getFont(8);
-
         Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+
+        Font f = FontManager.getFont(8);
 
         final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
         minTickLabel.setFont(f);

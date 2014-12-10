@@ -206,7 +206,7 @@ public class HeatmapRenderer {
 
                 observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                 observedColorScaleMap.put(key, observedColorScale);
-                mainWindow.updateColorSlider(0, 2 * max, max);
+                //mainWindow.updateColorSlider(0, 2 * max, max);
 
             }
 
