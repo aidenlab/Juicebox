@@ -104,11 +104,15 @@ public class Feature2D {
         DecimalFormat df = new DecimalFormat("#.##");
 
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            txt.append("<br>");
-            txt.append(entry.getKey());
-            txt.append(" = <b>");
-            txt.append(df.format(Double.valueOf(entry.getValue())));
-            txt.append("</b>");
+            String tmpKey = entry.getKey();
+            if(!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3")||tmpKey.equals("f4")||tmpKey.equals("f5")))
+            {
+                txt.append("<br>");
+                txt.append(tmpKey);
+                txt.append(" = <b>");
+                txt.append(df.format(Double.valueOf(entry.getValue())));
+                txt.append("</b>");
+            }
         }
         return txt.toString();
     }
