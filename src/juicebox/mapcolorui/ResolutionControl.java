@@ -13,8 +13,10 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -61,7 +63,24 @@ public class ResolutionControl extends JPanel {
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         resolutionLabel.setBackground(new Color(204, 204, 204));
-
+//        resolutionLabel.addMouseListener(new MouseAdapter() {
+//            Font original;
+//
+//            @Override
+//            public void mouseEntered(MouseEvent e) {
+//                if (resolutionLabel.isEnabled()) {
+//                    original = e.getComponent().getFont();
+//                    Map attributes = original.getAttributes();
+//                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+//                    e.getComponent().setFont(original.deriveFont(attributes));
+//                }
+//            }
+//
+//            @Override
+//            public void mouseExited(MouseEvent e) {
+//                e.getComponent().setFont(original);
+//            }
+//        });
         JPanel resolutionLabelPanel = new JPanel();
         resolutionLabelPanel.setBackground(new Color(204, 204, 204));
         resolutionLabelPanel.setLayout(new BorderLayout());
@@ -248,6 +267,7 @@ public class ResolutionControl extends JPanel {
     public void setZoom(HiCZoom newZoom) {
         unit = newZoom.getUnit();
         resolutionLabel.setText(getUnitLabel());
+        resolutionLabel.setForeground(Color.BLUE);
         for (Map.Entry<Integer, HiCZoom> entry : idxZoomMap.entrySet()) {
             if (entry.getValue().equals(newZoom)) {
                 resolutionSlider.setValue(entry.getKey());

@@ -414,6 +414,7 @@ public class MainWindow extends JFrame {
                             hic.resetContexts();
                             updateTrackPanel();
                             resolutionSlider.unit = HiC.Unit.BP;
+
                             resolutionSlider.reset();
                             refreshChromosomes();
                         }
@@ -1129,6 +1130,7 @@ public class MainWindow extends JFrame {
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
         resolutionSlider.setMinimumSize(new Dimension(150, 70));
+
         toolbarConstraints.gridx = 3;
         toolbarConstraints.weightx = 0.1;
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
@@ -1946,16 +1948,6 @@ public class MainWindow extends JFrame {
 
         clearLocationList.setEnabled(false);
         bookmarksMenu.add(clearLocationList);
-        //bookmarksMenu.addSeparator();
-
-
-        //========= Positioning panel ======
-
-        //JLabel positionLabel = new JLabel("Go:");
-        //bookmarksMenu.add(positionLabel);
-        //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-
-        //positionLabel.setPreferredSize(new Dimension(200, 25));
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
