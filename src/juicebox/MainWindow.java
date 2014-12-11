@@ -348,7 +348,7 @@ public class MainWindow extends JFrame {
         colorValuesToRestore = null;
         heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
