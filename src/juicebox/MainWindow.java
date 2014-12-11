@@ -18,6 +18,7 @@ package juicebox;
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideSplitPane;
 import com.sun.corba.se.spi.orbutil.fsm.State;
+import javafx.scene.layout.Border;
 import juicebox.data.Dataset;
 import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
@@ -100,7 +101,7 @@ public class MainWindow extends JFrame {
     private static HeatmapPanel heatmapPanel;
     private static HiCRulerPanel rulerPanelY;
     private static ThumbnailPanel thumbnailPanel;
-    private static JLabel mouseHoverTextPanel;
+    private static JEditorPane mouseHoverTextPanel;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
     private static JPanel hiCPanel;
@@ -152,7 +153,7 @@ public class MainWindow extends JFrame {
     private static void initApplication() {
         DirectoryManager.initializeLog();
 
-        log.info("Default User Directory: " + DirectoryManager.getUserDirectory());
+        log.debug("Default User Directory: " + DirectoryManager.getUserDirectory());
         System.setProperty("http.agent", Globals.applicationString());
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -183,6 +184,7 @@ public class MainWindow extends JFrame {
     public void updateToolTipText(String s) {
         if (tooltipAllowedToUpdated)
             mouseHoverTextPanel.setText(s);
+            mouseHoverTextPanel.setCaretPosition(0);
     }
 
     public boolean isResolutionLocked() {
@@ -346,6 +348,7 @@ public class MainWindow extends JFrame {
         colorValuesToRestore = null;
         heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
@@ -427,7 +430,8 @@ public class MainWindow extends JFrame {
                         annotationsMenu.setEnabled(true);
 
                         saveLocationList.setEnabled(true);
-                        recentLocationMenu.setEnabled(recentLocationMenu.getMenuComponentCount()>0);
+                        recentLocationMenu.setEnabled(true);
+                        clearLocationList.setEnabled(true);
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
@@ -694,7 +698,7 @@ public class MainWindow extends JFrame {
 
         heatmapPanel.setObservedRange(min, max);
 
-        if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
+        if (hic.getDisplayOption() == MatrixType.OE) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
         }
@@ -716,7 +720,7 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
+        boolean activateOE = option == MatrixType.OE;
         boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
 
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
@@ -1362,16 +1366,10 @@ public class MainWindow extends JFrame {
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
-        //rightSidePanel.getLayout().setResizable(true);
-        //rightSidePanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        //LayoutManager lm = new GridLayout(FlowLayout.LEFT, 10, 20);
-        //rightSidePanel.setLayout(lm);
-        //rightSidePanel.setLayout(null);
 
         //======== Bird's view mini map ========
 
         JPanel thumbPanel = new JPanel();
-        //thumbPanel.setLayout(null);
         //---- thumbnailPanel ----
         thumbnailPanel = new ThumbnailPanel(this, hic);
         thumbnailPanel.setBackground(Color.white);
@@ -1379,26 +1377,37 @@ public class MainWindow extends JFrame {
         thumbnailPanel.setMinimumSize(new Dimension(200, 200));
         thumbnailPanel.setPreferredSize(new Dimension(200, 200));
 
-   //     thumbnailPanel.setPreferredSize(new Dimension(200, 200));
-    //    thumbnailPanel.setBounds(new Rectangle(new Point(0, 0), thumbnailPanel.getPreferredSize()));
         thumbPanel.add(thumbnailPanel);
         thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);//, BorderLayout.PAGE_START
+        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mouse hover text ======
+        JPanel tooltipPanel = new JPanel(new BorderLayout());
+        tooltipPanel.setBackground(Color.white);
+        tooltipPanel.setPreferredSize(new Dimension(200, 490));
+        mouseHoverTextPanel = new JEditorPane();
+        mouseHoverTextPanel.setEditable(false);
+        mouseHoverTextPanel.setContentType("text/html");
+        mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
 
-        mouseHoverTextPanel = new JLabel();
         mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setVerticalAlignment(SwingConstants.TOP);
-        mouseHoverTextPanel.setHorizontalAlignment(SwingConstants.CENTER);
-        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         Dimension prefSize = new Dimension(200, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
-        mouseHoverTextPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
-        rightSidePanel.add(mouseHoverTextPanel, BorderLayout.CENTER);//, BorderLayout.PAGE_END
 
+        JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
+        tooltipScroller.setBackground(Color.white);
+        tooltipScroller.setBorder(null);
+
+        tooltipPanel.setPreferredSize(new Dimension(210, 500));
+        tooltipPanel.add(tooltipScroller);
+        tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
+        tooltipPanel.setBackground(Color.white);
+        tooltipPanel.setBorder(null);
+
+        rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
         //======== xPlotPanel ========
 //
 //        xPlotPanel = new JPanel();
@@ -1924,7 +1933,7 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(recentLocationMenu);
 
         //---- Clear Recent state ----
-      /*  clearLocationList = new JMenuItem();
+        clearLocationList = new JMenuItem();
         clearLocationList.setText("Clear saved locations list");
         clearLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -1936,8 +1945,17 @@ public class MainWindow extends JFrame {
         });
 
         clearLocationList.setEnabled(false);
-        bookmarksMenu.add(clearLocationList);*/
+        bookmarksMenu.add(clearLocationList);
         //bookmarksMenu.addSeparator();
+
+
+        //========= Positioning panel ======
+
+        //JLabel positionLabel = new JLabel("Go:");
+        //bookmarksMenu.add(positionLabel);
+        //positionLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+
+        //positionLabel.setPreferredSize(new Dimension(200, 25));
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
