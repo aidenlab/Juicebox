@@ -110,7 +110,6 @@ public class Feature2D {
             txt.append(df.format(Double.valueOf(entry.getValue())));
             txt.append("</b>");
         }
-
         return txt.toString();
     }
 
