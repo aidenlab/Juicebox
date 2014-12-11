@@ -14,6 +14,7 @@ package juicebox.track;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.Map;
+import java.text.*;
 
 /**
  * chr1	x1	x2	chr2	y1	y2	color	observed	bl expected	donut expected	bl fdr	donut fdr
@@ -100,12 +101,14 @@ public class Feature2D {
             txt.append("-").append(formatter.format(end2));
         }
 
+        DecimalFormat df = new DecimalFormat("#.##");
 
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             txt.append("<br>");
             txt.append(entry.getKey());
-            txt.append(" = ");
-            txt.append(entry.getValue());
+            txt.append(" = <b>");
+            txt.append(df.format(Double.valueOf(entry.getValue())));
+            txt.append("</b>");
         }
 
         return txt.toString();
