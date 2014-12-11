@@ -61,27 +61,27 @@
     </Category>
     <Category trackLine='viewLimits=0:25' name="HeLa" version="1">
         <Resource trackLine='viewLimits=0:25' name="HeLa Input (Broad)"
-                  path="wgEncodeBroadHistoneHelas3ControlStdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3ControlStdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa CTCF (Broad)"
-                  path="wgEncodeBroadHistoneHelas3CtcfStdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3CtcfStdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K27ac" color="255,0,0"
-                  path="wgEncodeBroadHistoneHelas3H3k27acStdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k27acStdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K27me3" color="255,0,0"
-                  path="wgEncodeBroadHistoneHelas3H3k27me3StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k27me3StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K36me3" color="0,0,150"
-                  path="wgEncodeBroadHistoneHelas3H3k36me3StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k36me3StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K4me2" color="0,150,0"
-                  path="wgEncodeBroadHistoneHelas3H3k4me2StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k4me2StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K4me3" color="0,150,0"
-                  path="wgEncodeBroadHistoneHelas3H3k4me3StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k4me3StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K79me2"
-                  path="wgEncodeBroadHistoneHelas3H3k79me2StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k79me2StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H3K9ac" color="100,0,0"
-                  path="wgEncodeBroadHistoneHelas3H3k9acStdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H3k9acStdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa H4K20me1"
-                  path="wgEncodeBroadHistoneHelas3H4k20me1StdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3H4k20me1StdSig.bigWig"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HeLa Pol2(b)"
-                  path="wgEncodeBroadHistoneHelas3Pol2bStdSig.wig.tdf"></Resource>
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3Pol2bStdSig.bigWig"></Resource>
     </Category>
     <Category trackLine='viewLimits=0:25' name="HMEC" version="1">
         <Resource trackLine='viewLimits=0:25' name="HMEC Input (Broad)"
