@@ -86,21 +86,26 @@ public class Feature2D {
 
         StringBuilder txt = new StringBuilder();
 
-        txt.append("<font color='red'>");
-        txt.append(featureName);
-        txt.append(":</font><br>");
 
+
+        txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
+        txt.append(featureName);
+        txt.append("</span><br>");
+
+        txt.append("<span style='font-family: arial; font-size: 12pt;'>");
         txt.append(chr1).append(":").append(formatter.format(start1 + 1));
         if ((end1 - start1) > 1) {
             txt.append("-").append(formatter.format(end1));
         }
-        txt.append("<br>");
 
+        txt.append("</span><br>");
+
+        txt.append("<span style='font-family: arial; font-size: 12pt;'>");
         txt.append(chr2).append(":").append(formatter.format(start2 + 1));
         if ((end2 - start2) > 1) {
             txt.append("-").append(formatter.format(end2));
         }
-
+        txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
 
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
@@ -108,10 +113,12 @@ public class Feature2D {
             if(!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3")||tmpKey.equals("f4")||tmpKey.equals("f5")))
             {
                 txt.append("<br>");
+                txt.append("<span style='font-family: arial; font-size: 12pt;'>");
                 txt.append(tmpKey);
                 txt.append(" = <b>");
                 txt.append(df.format(Double.valueOf(entry.getValue())));
                 txt.append("</b>");
+                txt.append("</span>");
             }
         }
         return txt.toString();
