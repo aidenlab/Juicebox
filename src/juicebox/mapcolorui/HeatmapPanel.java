@@ -601,15 +601,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
                     String txt = "";
-                    txt += "<html><span style='color:#" + topColor + "; font-family: arial; font-size: 10pt;'>";
+                    txt += "<html><span style='color:#" + topColor + "; font-family: arial; font-size: 12pt;'>";
                     txt += xChrom.getName();
                     txt += ":";
                     txt += String.valueOf(xChromPos);
-                    txt += "</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 10pt;'>";
+                    txt += "</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 12pt;'>";
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
-                    txt += "</span></html>";
+                    txt += "</span>";
 
                     if (xChrom.getName().toLowerCase().contains("chr")) {
                         hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
@@ -644,7 +644,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
             StringBuilder txt = new StringBuilder();
 
-            txt.append("<html><span style='color:#" + topColor + "; font-family: arial; font-size: 10pt; '>");
+            txt.append("<html><span style='color:#" + topColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(xGenomeStart));
@@ -668,7 +668,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            txt.append("</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 10pt; '>");
+            txt.append("</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(yGenomeStart));
@@ -691,7 +691,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(formatter.format(yGenomeEnd - yGenomeStart));
                 txt.append(")");
             }
-            txt.append("</span>");
+            txt.append("</span><span font-family: arial; font-size: 12pt;'>");
 
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
@@ -728,6 +728,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else {
                     txt.append("<br>O/E            = NaN");
                 }
+                txt.append("</span><span font-family: arial; font-size: 12pt;'>");
 
                 MatrixZoomData controlZD = hic.getControlZd();
                 if (controlZD != null) {
@@ -754,7 +755,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
             }
-
+            txt.append("</span><span font-family: arial; font-size: 12pt;'>");
             for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
                 if (loop.getFirst().contains(x, y)) {
                     txt.append("<br><br>");
@@ -762,7 +763,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             }
 
-
+            txt.append("</span></html>");
             return txt.toString();
         }
 
