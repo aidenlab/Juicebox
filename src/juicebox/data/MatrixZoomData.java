@@ -24,7 +24,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
@@ -187,6 +186,7 @@ public class MatrixZoomData {
         final List<String> errorStrings = new ArrayList<String>();
         final AtomicInteger errorCounter = new AtomicInteger();
 
+
         List<Thread> threads = new ArrayList<Thread>();
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
@@ -203,8 +203,7 @@ public class MatrixZoomData {
                         }
                         blockList.add(b);
                     } catch (IOException e) {
-                        e.printStackTrace();
-                        //MessageUtils.showMessage(e.getMessage());
+                        //errorStrings.add(e.getMessage());
                         errorCounter.incrementAndGet();
                     }
                 }
@@ -225,7 +224,8 @@ public class MatrixZoomData {
 
         // untested since files got fixed :P - MSS
         if (errorCounter.get() > 0) {
-            MessageUtils.showMessage("Normalizations could not be loaded at this resolution");
+
+            return null;
         }
 
         return blockList;

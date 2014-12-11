@@ -69,7 +69,9 @@ public class ResourceTree {
         }
 
         createTreeFromDataset(hic, this);
-        addExternal();
+        if (hic.getDataset().getGenomeId().equals("hg19")) {
+            addExternal();
+        }
         expandTree();
         hic.setResourceTree(this);
         dialogTree.setRootVisible(false);
@@ -320,7 +322,6 @@ public class ResourceTree {
         CheckableResource resource = new CheckableResource("Dataset-specific 2-D Features", false, locator);
         twoDFeatureRoot.setUserObject(resource);
         twoDFeatureRoot.setAllowsChildren(true);
-
 
         if (hic.getDataset().getVersion() >= 6) {
             if (hic.getDataset().getNormalizationTypes().size() > 0) {

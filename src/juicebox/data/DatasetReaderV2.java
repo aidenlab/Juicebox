@@ -708,11 +708,15 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int nValues = dis.readInt();
         double[] values = new double[nValues];
+        boolean allNaN=true;
         for (int i = 0; i < nValues; i++) {
             values[i] = dis.readDouble();
+            if (!Double.isNaN(values[i])) {
+                allNaN = false;
+            }
         }
-
-        return new NormalizationVector(type, chrIdx, unit, binSize, values);
+        if (allNaN) return null;
+        else return new NormalizationVector(type, chrIdx, unit, binSize, values);
 
 
     }

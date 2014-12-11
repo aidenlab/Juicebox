@@ -23,6 +23,8 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.renderer.GraphicUtils;
+import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
 
@@ -145,11 +147,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         MatrixType displayOption = hic.getDisplayOption();
 
+        boolean allTilesNull = true;
         for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
             for (int tileColumn = tLeft; tileColumn <= tRight; tileColumn++) {
 
                 ImageTile tile = getImageTile(zd, tileRow, tileColumn, displayOption);
                 if (tile != null) {
+                    allTilesNull = false;
 
                     int imageWidth = tile.image.getWidth(null);
                     int imageHeight = tile.image.getHeight(null);
@@ -260,66 +264,71 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
         }
+        if (allTilesNull) {
+            g.setFont(FontManager.getFont(12));
+            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution",clipBounds, g);
 
-        // Render loops
-        drawnLoopFeatures.clear();
+        }
+        else {
+            // Render loops
+            drawnLoopFeatures.clear();
 
-        List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-        Graphics2D loopGraphics = (Graphics2D) g.create();
-        if (loops != null && loops.size() > 0) {
+            List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+            Graphics2D loopGraphics = (Graphics2D) g.create();
+            if (loops != null && loops.size() > 0) {
 
-            // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
-            HiCGridAxis xAxis = zd.getXGridAxis();
-            HiCGridAxis yAxis = zd.getYGridAxis();
-            boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
+                // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
+                HiCGridAxis xAxis = zd.getXGridAxis();
+                HiCGridAxis yAxis = zd.getYGridAxis();
+                boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
 
-            for (Feature2D feature : loops) {
+                for (Feature2D feature : loops) {
 
-                loopGraphics.setColor(feature.getColor());
+                    loopGraphics.setColor(feature.getColor());
 
-                int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
-                int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
-                int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
-                int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
+                    int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
+                    int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
+                    int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
+                    int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
 
-                int x = (int) ((binStart1 - binOriginX) * scaleFactor);
-                int y = (int) ((binStart2 - binOriginY) * scaleFactor);
-                int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
-                int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
-                loopGraphics.drawRect(x, y, w, h);
-                //loopGraphics.drawLine(x,y,x,y+w);
-                //loopGraphics.drawLine(x,y+w,x+h,y+w);
-                //System.out.println(binStart1 + "-" + binEnd1);
-                if (w > 5) {
-                    // Thick line if there is room.
-                    loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
-                    //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
-                    //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
-                }
-                drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
-
-                if (sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
-                    x = (int) ((binStart2 - binOriginX) * scaleFactor);
-                    y = (int) ((binStart1 - binOriginY) * scaleFactor);
-                    w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
-                    h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                    int x = (int) ((binStart1 - binOriginX) * scaleFactor);
+                    int y = (int) ((binStart2 - binOriginY) * scaleFactor);
+                    int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                    int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
                     loopGraphics.drawRect(x, y, w, h);
+                    //loopGraphics.drawLine(x,y,x,y+w);
+                    //loopGraphics.drawLine(x,y+w,x+h,y+w);
+                    //System.out.println(binStart1 + "-" + binEnd1);
                     if (w > 5) {
-                        loopGraphics.drawRect(x, y, w, h);
+                        // Thick line if there is room.
+                        loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
+                        //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
+                        //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
                     }
                     drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
+
+                    if (sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
+                        x = (int) ((binStart2 - binOriginX) * scaleFactor);
+                        y = (int) ((binStart1 - binOriginY) * scaleFactor);
+                        w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+                        h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                        loopGraphics.drawRect(x, y, w, h);
+                        if (w > 5) {
+                            loopGraphics.drawRect(x, y, w, h);
+                        }
+                        drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
+                    }
+
                 }
 
+                loopGraphics.dispose();
             }
 
-            loopGraphics.dispose();
+            if (zoomRectangle != null) {
+                ((Graphics2D) g).draw(zoomRectangle);
+            }
+
         }
-
-        if (zoomRectangle != null) {
-            ((Graphics2D) g).draw(zoomRectangle);
-        }
-
-
         //UNCOMMENT TO OUTLINE "selected" BIN
 //        if(hic.getSelectedBin() != null) {
 //            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
@@ -392,7 +401,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
-            renderer.render(bx0,
+            if (!renderer.render(bx0,
                     by0,
                     imageWidth,
                     imageHeight,
@@ -401,7 +410,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     displayOption,
                     hic.getNormalizationType(),
                     hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType()),
-                    g2D);
+                    g2D)) {
+                return null;
+            }
+
 
             //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
             tile = new ImageTile(image, bx0, by0);
