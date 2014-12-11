@@ -101,6 +101,22 @@ public class Dataset {
         return locator;
     }
 
+    public ResourceLocator getSuperLoops() {
+        ResourceLocator locator = null;
+        if (reader.getPath().contains("gm12878/in-situ/combined")) {
+            String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+            if (path.lastIndexOf("_30") > -1) {
+                path = path.substring(0, path.lastIndexOf("_30"));
+            }
+
+            String location = path + "_chrX_superloop_list.txt";
+            locator = new ResourceLocator(location);
+
+            locator.setName("ChrX super loops");
+        }
+        return locator;
+    }
+
     public ResourceLocator getPeaks() {
         if (onPeaksList(reader.getPath())) {
             String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));

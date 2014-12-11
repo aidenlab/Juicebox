@@ -381,6 +381,19 @@ public class ResourceTree {
             leafResources.add(resource);
 
         }
+        locator = hic.getDataset().getSuperLoops();
+        if (locator != null) {
+            resource = new CheckableResource("ChrX super loops", false, locator);
+            locator.setType("loop");
+            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("ChrX super loops");
+            twoDFeatureRoot.add(treeNode);
+            treeNode.setUserObject(resource);
+            resource.setEnabled(resourceTree.dialogTree.isEnabled());
+            treeNode.setAllowsChildren(false);
+            leafResources.add(resource);
+        }
+
+
 
 
         locator = new ResourceLocator("Eigenvector");
@@ -406,6 +419,7 @@ public class ResourceTree {
             treeNode.setAllowsChildren(false);
             leafResources.add(resource);
         }
+
 
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
