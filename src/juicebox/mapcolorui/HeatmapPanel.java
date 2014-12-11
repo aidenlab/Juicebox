@@ -266,7 +266,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         if (allTilesNull) {
             g.setFont(FontManager.getFont(12));
-            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution",clipBounds, g);
+            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.",clipBounds, g);
 
         }
         else {
