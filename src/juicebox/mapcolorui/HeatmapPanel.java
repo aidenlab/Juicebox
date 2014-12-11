@@ -601,11 +601,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
                     String txt = "";
-                    txt += "<html><span font-family: arial; font-size: 10pt; style='color:#" + topColor + ";'>";
+                    txt += "<html><span style='color:#" + topColor + "; font-family: arial; font-size: 10pt;'>";
                     txt += xChrom.getName();
                     txt += ":";
                     txt += String.valueOf(xChromPos);
-                    txt += "</span><br><span font-family: arial; font-size: 10pt; style='color:#" + leftColor + ";'>";
+                    txt += "</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 10pt;'>";
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
@@ -644,7 +644,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
             StringBuilder txt = new StringBuilder();
 
-            txt.append("<html><span font-family: arial; font-size: 10pt; style='color:#" + topColor + ";'>");
+            txt.append("<html><span style='color:#" + topColor + "; font-family: arial; font-size: 10pt; '>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(xGenomeStart));
@@ -668,7 +668,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            txt.append("</span><br><span font-family: arial; font-size: 10pt; style='color:#" + leftColor + ";'>");
+            txt.append("</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 10pt; '>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(yGenomeStart));

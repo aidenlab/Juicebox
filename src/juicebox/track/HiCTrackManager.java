@@ -129,7 +129,7 @@ public class HiCTrackManager {
             HiCWigAdapter da = new HiCWigAdapter(hic, path);
             HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
             loadedTracks.add(hicTrack);
-        } else if (pathLC.endsWith(".tdf") || pathLC.endsWith(".bigwig")) {
+        } else if (pathLC.endsWith(".tdf") || pathLC.endsWith(".bigwig") || pathLC.endsWith(".bw")) {
             List<Track> tracks = (new TrackLoader()).load(locator, genome);
 
             for (Track t : tracks) {
