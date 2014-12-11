@@ -14,10 +14,10 @@ package juicebox.windowui;
 
 public enum MatrixType {
     OBSERVED("Observed"),
-    OE("OE"),
+    OE("O/E"),
     PEARSON("Pearson"),
     EXPECTED("Expected"),
-    RATIO("Observed / Control"),
+    RATIO("Observed/Control"),
     CONTROL("Control");
     private final String value;
 
