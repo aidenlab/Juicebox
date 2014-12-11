@@ -1389,11 +1389,6 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setContentType("text/html");
         mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
 
-        Font font = UIManager.getFont("Label.font");
-        String bodyRule = "body { font-family: " + font.getFamily() + "; " +
-                "font-size: " + font.getSize() + "pt; }";
-        ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
-
         mouseHoverTextPanel.setBackground(Color.white);
         mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
