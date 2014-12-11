@@ -348,6 +348,7 @@ public class MainWindow extends JFrame {
         colorValuesToRestore = null;
         heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
@@ -1390,7 +1391,7 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
 
         mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         Dimension prefSize = new Dimension(200, 490);
