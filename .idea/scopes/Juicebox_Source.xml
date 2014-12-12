@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Juicebox Source" pattern="file:src/juicebox//*.java" />
+</component>
