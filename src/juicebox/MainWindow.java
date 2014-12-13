@@ -25,9 +25,6 @@
 package juicebox;
 
 import com.jidesoft.swing.JideButton;
-import com.jidesoft.swing.JideSplitPane;
-import com.sun.corba.se.spi.orbutil.fsm.State;
-import javafx.scene.layout.Border;
 import juicebox.data.Dataset;
 import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
