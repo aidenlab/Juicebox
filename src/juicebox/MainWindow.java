@@ -705,7 +705,7 @@ public class MainWindow extends JFrame {
 
         heatmapPanel.setObservedRange(min, max);
 
-        if (hic.getDisplayOption() == MatrixType.OE) {
+        if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
         }
@@ -727,7 +727,7 @@ public class MainWindow extends JFrame {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE;
+        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
         boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
 
         colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
@@ -1939,21 +1939,6 @@ public class MainWindow extends JFrame {
         recentLocationMenu.setMnemonic('S');
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
-
-        //---- Clear Recent state ----
-        clearLocationList = new JMenuItem();
-        clearLocationList.setText("Clear saved locations list");
-        clearLocationList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //Clear all items from preferences:
-                clearLocationActionPerformed();
-                //clear the existing items
-                recentLocationMenu.removeAll();
-            }
-        });
-
-        clearLocationList.setEnabled(false);
-        bookmarksMenu.add(clearLocationList);
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
