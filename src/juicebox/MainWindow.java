@@ -438,7 +438,6 @@ public class MainWindow extends JFrame {
 
                         saveLocationList.setEnabled(true);
                         recentLocationMenu.setEnabled(true);
-                        clearLocationList.setEnabled(true);
 
                         positionChrTop.setEnabled(true);
                         positionChrLeft.setEnabled(true);
@@ -516,7 +515,7 @@ public class MainWindow extends JFrame {
 
         normalizationComboBox.setEnabled(!wholeGenome);
         // Actually we'd like to enable
-        displayOptionComboBox.setEnabled(!wholeGenome); // TODO add capability to view whole genome in OE, etc
+        displayOptionComboBox.setEnabled(true); // TODO add capability to view whole genome in OE, etc
     }
 
     public void repaintTrackPanels() {
@@ -1243,7 +1242,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
-                if (hic.getDisplayOption() == MatrixType.OE) {
+                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                 }
@@ -1260,7 +1259,7 @@ public class MainWindow extends JFrame {
                 int newMax = colorRangeSlider.getMaximum() / 2;
                 if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
-                    if (hic.getDisplayOption() == MatrixType.OE) {
+                    if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                         colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }
@@ -1693,7 +1692,7 @@ public class MainWindow extends JFrame {
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED ||
                 hic.getDisplayOption() == MatrixType.CONTROL ||
-                hic.getDisplayOption() == MatrixType.OE) {
+                hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
 
             int iMin = colorRangeSlider.getMinimum();
             int lValue = colorRangeSlider.getLowerValue();
@@ -1714,7 +1713,7 @@ public class MainWindow extends JFrame {
             Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
 
-            if (hic.getDisplayOption() == MatrixType.OE) {
+            if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                 colorRangeSlider.setToolTipText("Log Enrichment Values");
             } else {
                 colorRangeSlider.setToolTipText("Observed Counts");
