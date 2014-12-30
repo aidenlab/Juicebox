@@ -113,7 +113,7 @@ public class MainWindow extends JFrame {
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
     private static JMenu bookmarksMenu;
-    private static DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
+    private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
     private double colorRangeScaleFactor = 1;
@@ -190,7 +190,7 @@ public class MainWindow extends JFrame {
     public void updateToolTipText(String s) {
         if (tooltipAllowedToUpdated)
             mouseHoverTextPanel.setText(s);
-            mouseHoverTextPanel.setCaretPosition(0);
+        mouseHoverTextPanel.setCaretPosition(0);
     }
 
     public boolean isResolutionLocked() {
@@ -337,15 +337,31 @@ public class MainWindow extends JFrame {
         initialZoom = null;
     }
 
-    public void load(final List<String> files, final boolean control) {
+    public void safeLoad(final List<String> files, final boolean control){
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    unsafeload(files, control);
+                } catch (IOException error) {
+                    log.error("Error loading hic file", error);
+                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
+                    hic.reset();
+                    updateThumbnail();
+                } catch (Exception error) {
+                    error.printStackTrace();
+                }
+            }
 
-        MainWindow.this.showGlassPane();
+        };
+        executeLongRunningTask(runnable, "MainWindow safe load");
+    }
+
+    private void unsafeload(final List<String> files, final boolean control) throws IOException{
 
         String file = files.get(0);
 
         if (file.equals(currentlyLoadedFile)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
-            MainWindow.this.hideGlassPane();
             return;
         } else {
             currentlyLoadedFile = file;
@@ -358,112 +374,93 @@ public class MainWindow extends JFrame {
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    try {
-                        DatasetReader reader = DatasetReaderFactory.getReader(files);
-                        if (reader == null) return;
-                        Dataset dataset = reader.read();
+            DatasetReader reader = DatasetReaderFactory.getReader(files);
+            if (reader == null) return;
+            Dataset dataset = reader.read();
 
-                        if (dataset.getVersion() <= 1) {
-                            JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
-                            return;
-                        }
+            if (dataset.getVersion() <= 1) {
+                JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
+                return;
+            }
 
-                        MatrixType[] options;
-                        if (control) {
-                            hic.setControlDataset(dataset);
-                            options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                                    MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                        } else {
-                            hic.reset();
+            MatrixType[] options;
+            if (control) {
+                hic.setControlDataset(dataset);
+                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
+                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+            } else {
+                hic.reset();
 
-                            hic.setDataset(dataset);
+                hic.setDataset(dataset);
 
-                            setChromosomes(dataset.getChromosomes());
+                setChromosomes(dataset.getChromosomes());
 
-                            chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
+                chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
-                            chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
+                chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
-                            String[] normalizationOptions;
-                            if (dataset.getVersion() < 6) {
-                                normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                            } else {
-                                ArrayList<String> tmp = new ArrayList<String>();
-                                tmp.add(NormalizationType.NONE.getLabel());
-                                for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                                    tmp.add(t.getLabel());
-                                }
-
-                                normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                                //tmp.add(NormalizationType.LOADED.getLabel());
-
-                            }
-
-                            if (normalizationOptions.length == 1) {
-                                normalizationComboBox.setEnabled(false);
-                            } else {
-                                normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
-                                normalizationComboBox.setSelectedIndex(0);
-                                normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
-                            }
-
-                            if (hic.isControlLoaded()) {
-                                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                            } else {
-                                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
-                            }
-
-
-                            hic.resetContexts();
-                            updateTrackPanel();
-                            resolutionSlider.unit = HiC.Unit.BP;
-
-                            resolutionSlider.reset();
-                            refreshChromosomes();
-                        }
-                        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
-                        displayOptionComboBox.setSelectedIndex(0);
-                        chrBox1.setEnabled(true);
-                        chrBox2.setEnabled(true);
-                        refreshButton.setEnabled(true);
-
-                        setColorRangeSliderVisible(true);
-                        colorRangeSlider.setDisplayToBlank(false);
-                        plusButton.setEnabled(true);
-                        minusButton.setEnabled(true);
-                        annotationsMenu.setEnabled(true);
-
-                        saveLocationList.setEnabled(true);
-                        recentLocationMenu.setEnabled(true);
-
-                        positionChrTop.setEnabled(true);
-                        positionChrLeft.setEnabled(true);
-                        goButton.setEnabled(true);
-
-                        refresh(); // an additional refresh seems to remove the upper left black corner
-                    } catch (IOException error) {
-                        log.error("Error loading hic file", error);
-                        JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                        hic.reset();
-
-                        updateThumbnail();
-
-                    } catch (Exception error) {
-                        error.printStackTrace();
-
+                String[] normalizationOptions;
+                if (dataset.getVersion() < 6) {
+                    normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
+                } else {
+                    ArrayList<String> tmp = new ArrayList<String>();
+                    tmp.add(NormalizationType.NONE.getLabel());
+                    for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
+                        tmp.add(t.getLabel());
                     }
-                }
-            };
-            executeLongRunningTask(runnable);
 
+                    normalizationOptions = tmp.toArray(new String[tmp.size()]);
+                    //tmp.add(NormalizationType.LOADED.getLabel());
+
+                }
+
+                if (normalizationOptions.length == 1) {
+                    normalizationComboBox.setEnabled(false);
+                } else {
+                    normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
+                    normalizationComboBox.setSelectedIndex(0);
+                    normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
+                }
+
+                if (hic.isControlLoaded()) {
+                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
+                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                } else {
+                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+                }
+
+
+                hic.resetContexts();
+                updateTrackPanel();
+                resolutionSlider.unit = HiC.Unit.BP;
+
+                resolutionSlider.reset();
+                refreshChromosomes();
+            }
+            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+            displayOptionComboBox.setSelectedIndex(0);
+            chrBox1.setEnabled(true);
+            chrBox2.setEnabled(true);
+            refreshButton.setEnabled(true);
+
+            setColorRangeSliderVisible(true);
+            colorRangeSlider.setDisplayToBlank(false);
+            plusButton.setEnabled(true);
+            minusButton.setEnabled(true);
+            annotationsMenu.setEnabled(true);
+
+            saveLocationList.setEnabled(true);
+            recentLocationMenu.setEnabled(true);
+
+            positionChrTop.setEnabled(true);
+            positionChrLeft.setEnabled(true);
+            goButton.setEnabled(true);
+
+            refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
 
         }
-
     }
 
     public void refreshChromosomes() {
@@ -619,7 +616,7 @@ public class MainWindow extends JFrame {
                 fileNames.add(f.getAbsolutePath());
                 str += f.getName() + " ";
             }
-            load(fileNames, control);
+            safeLoad(fileNames, control);
 
             if (control) controlTitle = str;
             else datasetTitle = str;
@@ -632,7 +629,7 @@ public class MainWindow extends JFrame {
 
         if (url != null) {
             recentMapMenu.addEntry(title.trim() + "@@" + url, true);
-            load(Arrays.asList(url), control);
+            safeLoad(Arrays.asList(url), control);
 
             if (control) controlTitle = title;// TODO should the other one be set to empty/null
             else datasetTitle = title;
@@ -645,7 +642,7 @@ public class MainWindow extends JFrame {
         String url = JOptionPane.showInputDialog("Enter URL: ");
         if (url != null) {
             try {
-                load(Arrays.asList(url), control);
+                safeLoad(Arrays.asList(url), control);
 
                 String path = (new URL(url)).getPath();
                 if (control) controlTitle = path;
@@ -722,7 +719,16 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void displayOptionComboBoxActionPerformed(ActionEvent e) {
+    private void safeDisplayOptionComboBoxActionPerformed(final ActionEvent e) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                unsafeDisplayOptionComboBoxActionPerformed(e);
+            }
+        };
+        executeLongRunningTask(runnable, "DisplayOptionsComboBox");
+    }
+
+    private void unsafeDisplayOptionComboBoxActionPerformed(ActionEvent e) {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
@@ -760,17 +766,20 @@ public class MainWindow extends JFrame {
         }
 
         final MatrixType passOption = option;
-        Runnable runnable = new Runnable() {
-            public void run() {
-                hic.setDisplayOption(passOption);
-                refresh();
-            }
-        };
-        executeLongRunningTask(runnable);
-
+        hic.setDisplayOption(passOption);
+        refresh();
     }
 
-    private void normalizationComboBoxActionPerformed(ActionEvent e) {
+    private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                unsafeNormalizationComboBoxActionPerformed(e);
+            }
+        };
+        executeLongRunningTask(runnable,"Normalization ComboBox");
+    }
+
+    private void unsafeNormalizationComboBoxActionPerformed(ActionEvent e) {
         String value = (String) normalizationComboBox.getSelectedItem();
         NormalizationType chosen = null;
         for (NormalizationType type : NormalizationType.values()) {
@@ -780,14 +789,8 @@ public class MainWindow extends JFrame {
             }
         }
         final NormalizationType passChosen = chosen;
-        Runnable runnable = new Runnable() {
-            public void run() {
-                hic.setNormalizationType(passChosen);
-                refresh();
-            }
-        };
-        executeLongRunningTask(runnable);
-
+        hic.setNormalizationType(passChosen);
+        refresh();
     }
 
     /**
@@ -798,15 +801,16 @@ public class MainWindow extends JFrame {
      * @return thread
      */
 
-    public Future<?> executeLongRunningTask(final Runnable runnable) {
+    public Future<?> executeLongRunningTask(final Runnable runnable, final String caller) {
+
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                MainWindow.this.showGlassPane();
+                MainWindow.this.showDisabledGlassPane(caller);
                 try {
                     runnable.run();
                     return "done";
                 } finally {
-                    MainWindow.this.hideGlassPane();
+                    MainWindow.this.hideDisabledGlassPane();
                 }
             }
         };
@@ -822,8 +826,22 @@ public class MainWindow extends JFrame {
         return recentLocationMenu;
     }
 
-    public void showGlassPane() {
+    int i = 0, j = 0;
+    private void showDisabledGlassPane(String caller) {
+
+        //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
+        //System.out.println("SB " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i++ +" "+caller);
+
+        /*
+         * TODO MSS debugging
+
+        try {
+            Thread.sleep(2000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+         */
     }
 
     private void initializeGlassPaneListening() {
@@ -831,8 +849,20 @@ public class MainWindow extends JFrame {
         disabledGlassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
 
-    public void hideGlassPane() {
+    private void hideDisabledGlassPane() {//getRootPane().getContentPane()
+        //System.out.println("HA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+j);
         disabledGlassPane.deactivate();
+        //System.out.println("HB " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+j++);
+
+        /*
+         * TODO MSS debugging
+
+        try {
+            Thread.sleep(2000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+         */
     }
 
     public void updateTrackPanel() {
@@ -905,6 +935,7 @@ public class MainWindow extends JFrame {
 
     private void initComponents() {
 
+        System.out.println("Initializing Components");
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
 
@@ -928,6 +959,7 @@ public class MainWindow extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        assert menuBar != null;
         contentPane.add(menuBar, BorderLayout.NORTH);
 
         GridBagConstraints toolbarConstraints = new GridBagConstraints();
@@ -1016,7 +1048,7 @@ public class MainWindow extends JFrame {
         displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                displayOptionComboBoxActionPerformed(e);
+                safeDisplayOptionComboBoxActionPerformed(e);
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -1052,7 +1084,7 @@ public class MainWindow extends JFrame {
         normalizationComboBox.setModel(new DefaultComboBoxModel<String>(new String[]{NormalizationType.NONE.getLabel()}));
         normalizationComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                normalizationComboBoxActionPerformed(e);
+                safeNormalizationComboBoxActionPerformed(e);
             }
         });
         normalizationButtonPanel.add(normalizationComboBox);
@@ -1071,8 +1103,8 @@ public class MainWindow extends JFrame {
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
         bigPanel.add(hiCPanel);
-       // splitPanel.insertPane(hiCPanel, 0);
-       // splitPanel.setBackground(Color.white);
+        // splitPanel.insertPane(hiCPanel, 0);
+        // splitPanel.setBackground(Color.white);
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
@@ -1121,11 +1153,11 @@ public class MainWindow extends JFrame {
 
         //---- heatmapPanel ----
         Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
-        int panelHeight = screenDimension.height - 210;
+        int panelSize = screenDimension.height - 210;
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setMaximumSize(new Dimension(panelHeight, panelHeight));
-        heatmapPanel.setMinimumSize(new Dimension(panelHeight, panelHeight));
-        heatmapPanel.setPreferredSize(new Dimension(panelHeight, panelHeight));
+        heatmapPanel.setMaximumSize(new Dimension(panelSize, panelSize));
+        heatmapPanel.setMinimumSize(new Dimension(panelSize, panelSize));
+        heatmapPanel.setPreferredSize(new Dimension(panelSize, panelSize));
         heatmapPanel.setBackground(Color.white);
 
 
@@ -1179,7 +1211,7 @@ public class MainWindow extends JFrame {
             @Override
             public void mouseExited(MouseEvent e) {
                 //if (colorRangeSlider.isEnabled()) {
-                    e.getComponent().setFont(original);
+                e.getComponent().setFont(original);
                 //}
             }
 
@@ -1204,11 +1236,11 @@ public class MainWindow extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 //No double click here...
                 if (e.getClickCount() == 1) {
-                if (colorRangeSlider.isEnabled()) {
-                    setColorRangeSliderVisible(false);
-                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                    rangeDialog.setVisible(true);
-                }}
+                    if (colorRangeSlider.isEnabled()) {
+                        setColorRangeSliderVisible(false);
+                        ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
+                        rangeDialog.setVisible(true);
+                    }}
             }
         });
         JPanel colorLabelPanel = new JPanel();
@@ -1445,15 +1477,14 @@ public class MainWindow extends JFrame {
         preferredSize.height += insets.bottom;
         rightSidePanel.setMinimumSize(preferredSize);
         rightSidePanel.setPreferredSize(preferredSize);
-            mainPanel.add(bigPanel, BorderLayout.CENTER);
-           mainPanel.add(rightSidePanel, BorderLayout.EAST);
-       // splitPanel.insertPane(rightSidePanel, 1);
+        mainPanel.add(bigPanel, BorderLayout.CENTER);
+        mainPanel.add(rightSidePanel, BorderLayout.EAST);
+        // splitPanel.insertPane(rightSidePanel, 1);
         // hiCPanel.add(rightSidePanel, BorderLayout.EAST);
 
         initializeGlassPaneListening();
 
         initProperties();
-
     }
 
     public void initProperties(){
@@ -1464,15 +1495,11 @@ public class MainWindow extends JFrame {
             }
             InputStream is = ParsingUtils.openInputStream(url);
             properties = new Properties();
-            if (is == null) {
-                // No selection made:
-                // We may want to exit if they don't enter password.
-            } else {
+            if (is != null) {
                 properties.load(is);
             }
         } catch (Exception error) {
             JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
         }
     }
 
@@ -1605,7 +1632,7 @@ public class MainWindow extends JFrame {
             leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
             outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
         } else if (topChrTokens.length > 1) {
-            //Make sure values are numerical:
+            //Make sure values are numerical: TODO parsing topChr but later getting value of leftChr - is this correct? seems like a typo
             try {
                 Long.parseLong(topChrTokens[1].replaceAll(",", ""));
             } catch (Exception e) {
@@ -1782,6 +1809,9 @@ public class MainWindow extends JFrame {
         fileMenu.add(loadControlFromList);
 
         recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
+
+            private static final long serialVersionUID = 3412L;
+
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1927,6 +1957,9 @@ public class MainWindow extends JFrame {
 
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
+
+            private static final long serialVersionUID = 1234L;
+
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -1991,22 +2024,6 @@ public class MainWindow extends JFrame {
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
         this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
-    }
-
-
-    private abstract class protectedGlassProcessing {
-
-        abstract void encapsulatedCommand();
-
-        public void process() {
-            try {
-                MainWindow.this.showGlassPane();
-                encapsulatedCommand();
-            } finally {
-                MainWindow.this.hideGlassPane();
-            }
-
-        }
     }
 }
 

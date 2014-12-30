@@ -56,13 +56,13 @@ public class LoadAction extends AbstractAction {
     private static final long serialVersionUID = -1122795124141741145L;
     private static final Logger log = Logger.getLogger(LoadAction.class);
 
-    private final JFrame owner;
+    private final MainWindow mainWindow;
     private final HiC hic;
 
 
-    public LoadAction(String s, JFrame owner, HiC hic) {
+    public LoadAction(String s, MainWindow mainWindow, HiC hic) {
         super(s);
-        this.owner = owner;
+        this.mainWindow = mainWindow;
         this.hic = hic;
     }
 
@@ -171,7 +171,7 @@ public class LoadAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(owner, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         String genome = hic.getDataset().getGenomeId();
@@ -180,15 +180,23 @@ public class LoadAction extends AbstractAction {
         }
 
         String xmlURL = "tracksMenu_" + genome + ".xml";
-
-        List<ResourceLocator> locators = loadNodes(xmlURL);
-        if (locators != null && !locators.isEmpty()) {
-            hic.loadHostedTracks(locators);
-        }
-
+        safeLoadNodes(xmlURL);
     }
 
-    private List<ResourceLocator> loadNodes(String xmlFile) {
+    private void safeLoadNodes(final String xmlFile){
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                List<ResourceLocator> locators = unsafeLoadNodes(xmlFile);
+                if (locators != null && !locators.isEmpty()) {
+                    hic.loadHostedTracks(locators);
+                }
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "safe load nodes");
+    }
+
+    private List<ResourceLocator> unsafeLoadNodes(String xmlFile) {
 
         ResourceTree resourceTree = hic.getResourceTree();
 
@@ -203,7 +211,7 @@ public class LoadAction extends AbstractAction {
             return null;
         }
 
-        resourceTree.showResourceTreeDialog(owner);
+        resourceTree.showResourceTreeDialog(mainWindow);
 
         LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
         LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
@@ -212,7 +220,6 @@ public class LoadAction extends AbstractAction {
         boolean repaint = false;
 
         if (selectedLocators != null) {
-            ((MainWindow) owner).showGlassPane();
             for (ResourceLocator locator : selectedLocators) {
                 try {
 
@@ -265,8 +272,7 @@ public class LoadAction extends AbstractAction {
                 }
             }
         }
-        ((MainWindow) owner).hideGlassPane();
-        if (repaint) owner.repaint();
+        if (repaint) mainWindow.repaint();
         return newLoadList;
     }
 

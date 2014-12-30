@@ -243,8 +243,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private void loadFiles(String path, String title, boolean control) {
         java.util.List<String> paths = new ArrayList<String>();
         paths.add(path);
-        mainWindow.load(paths, control);
-
+        mainWindow.safeLoad(paths, control);
         mainWindow.updateTitle(control, title);
     }
 
@@ -278,7 +277,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         //code to add a recent file to the menu
         mainWindow.getRecentMapMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
-        mainWindow.load(urls, control);
+        mainWindow.safeLoad(urls, control);
 
         mainWindow.updateTitle(control, title);
     }

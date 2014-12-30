@@ -279,10 +279,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         if (allTilesNull) {
             g.setFont(FontManager.getFont(12));
-            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.",clipBounds, g);
+            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
 
-        }
-        else {
+        } else {
             // Render loops
             drawnLoopFeatures.clear();
 
@@ -889,6 +888,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
 
+                System.out.println("Glass Drag");// TODO MSS delete if drag box to zoom glass pane works
                 final double scaleFactor1 = hic.getScaleFactor();
                 double binX = hic.getXContext().getBinOrigin() + (zoomRectangle.x / scaleFactor1);
                 double binY = hic.getYContext().getBinOrigin() + (zoomRectangle.y / scaleFactor1);
@@ -905,6 +905,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 double newBinSize = Math.max(newXBinSize, newYBinSize);
 
                 hic.zoomTo(xBP0, yBP0, newBinSize);
+
             }
 
             dragMode = DragMode.NONE;
@@ -971,18 +972,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         }
 
-        @Override
-        public void mouseClicked(MouseEvent e) {
+        private void unsafeMouseClicked(final MouseEvent eF) {
 
-            if (hic == null) return;
-
-            if (!e.isPopupTrigger() && e.getButton() == MouseEvent.BUTTON1 && !e.isControlDown()) {
+            if (!eF.isPopupTrigger() && eF.getButton() == MouseEvent.BUTTON1 && !eF.isControlDown()) {
 
                 if (hic.isWholeGenome()) {
                     //avoid double click...
-                    if(e.getClickCount() == 1){
-                        double binX = hic.getXContext().getBinOrigin() + (e.getX() / hic.getScaleFactor());
-                        double binY = hic.getYContext().getBinOrigin() + (e.getY() / hic.getScaleFactor());
+                    if (eF.getClickCount() == 1) {
+
+
+                        double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
+                        double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
                         int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
                         int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
@@ -1001,33 +1001,27 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                             final Chromosome xC = xChrom;
                             final Chromosome yC = yChrom;
-
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    mainWindow.setSelectedChromosomes(xC, yC);
-                                }
-                            };
-                            mainWindow.executeLongRunningTask(runnable);
+                            mainWindow.setSelectedChromosomes(xC, yC);
                         }
-                    }
-                    else
-                    {
+
+
+                    } else {
                         return;
                     }
 
-                } else if (e.getClickCount() > 1) {
+                } else if (eF.getClickCount() > 1) {
 
                     // Double click,  zoom and center on click location
                     final HiCZoom currentZoom = hic.getZd().getZoom();
                     final HiCZoom newZoom = mainWindow.isResolutionLocked() ? currentZoom :
-                            hic.getDataset().getNextZoom(currentZoom, !e.isAltDown());
+                            hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
 
                     // If newZoom == currentZoom adjust scale factor (no change in resolution)
-                    double centerBinX = hic.getXContext().getBinOrigin() + (e.getX() / hic.getScaleFactor());
-                    double centerBinY = hic.getYContext().getBinOrigin() + (e.getY() / hic.getScaleFactor());
+                    double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
+                    double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
                     if (newZoom.equals(currentZoom)) {
-                        double mult = e.isAltDown() ? 0.5 : 2.0;
+                        double mult = eF.isAltDown() ? 0.5 : 2.0;
                         double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
                         hic.setScaleFactor(newScaleFactor);
                         hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
@@ -1038,46 +1032,56 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                         final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                hic.setZoom(newZoom, xGenome, yGenome);
-                                mainWindow.updateZoom(newZoom);
-                            }
-                        };
-                        mainWindow.executeLongRunningTask(runnable);
+                        hic.setZoom(newZoom, xGenome, yGenome);
+                        mainWindow.updateZoom(newZoom);
+
+
                     }
 
                 } else {
 
+                    /*
+                             //s If IGV is running open on loci
+                            if (e.isShiftDown()) {
+                                String chr1 = hic.xContext.getChromosome().getName();
+                                int leftX = (int) hic.xContext.getChromosomePosition(0);
+                                int wX = (int) (hic.xContext.getScale() * getWidth());
+                                int rightX = leftX + wX;
+
+                                String chr2 = hic.yContext.getChromosome().getName();
+                                int leftY = (int) hic.yContext.getChromosomePosition(0);
+                                int wY = (int) (hic.xContext.getScale() * getHeight());
+                                int rightY = leftY + wY;
+
+                                String locus1 = "chr" + chr1 + ":" + leftX + "-" + rightX;
+                                String locus2 = "chr" + chr2 + ":" + leftY + "-" + rightY;
+
+                                IGVUtils.sendToIGV(locus1, locus2);
+                            }
+                            */
                     if (hic.getXContext() == null) return;
 
-                    int binX = (int) (hic.getXContext().getBinOrigin() + e.getX() / hic.getScaleFactor());
-                    int binY = (int) (hic.getYContext().getBinOrigin() + e.getY() / hic.getScaleFactor());
+                    int binX = (int) (hic.getXContext().getBinOrigin() + eF.getX() / hic.getScaleFactor());
+                    int binY = (int) (hic.getYContext().getBinOrigin() + eF.getY() / hic.getScaleFactor());
 
                     hic.setSelectedBin(new Point(binX, binY));
                     repaint();
-
-                    //If IGV is running open on loci
-//                    if (e.isShiftDown()) {
-
-//                        String chr1 = hic.xContext.getChromosome().getName();
-//                        int leftX = (int) hic.xContext.getChromosomePosition(0);
-//                        int wX = (int) (hic.xContext.getScale() * getWidth());
-//                        int rightX = leftX + wX;
-//
-//                        String chr2 = hic.yContext.getChromosome().getName();
-//                        int leftY = (int) hic.yContext.getChromosomePosition(0);
-//                        int wY = (int) (hic.xContext.getScale() * getHeight());
-//                        int rightY = leftY + wY;
-//
-//                        String locus1 = "chr" + chr1 + ":" + leftX + "-" + rightX;
-//                        String locus2 = "chr" + chr2 + ":" + leftY + "-" + rightY;
-//
-//                        IGVUtils.sendToIGV(locus1, locus2);
-//                    }
                 }
-
             }
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+            if (hic == null) return;
+
+            final MouseEvent eF = e;
+            Runnable runnable = new Runnable() {
+                public void run() {
+                    unsafeMouseClicked(eF);
+                }
+            };
+            mainWindow.executeLongRunningTask(runnable, "Mouse Click");
         }
 
         @Override
