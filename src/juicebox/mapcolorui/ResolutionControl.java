@@ -162,7 +162,7 @@ public class ResolutionControl extends JPanel {
             // Centering is relative to the bounds of the data, which might not be the bounds of the window
 
             public void stateChanged(ChangeEvent e) {
-                if (hic == null || hic.getMatrix() == null || hic.getZd() == null) return;
+                if (hic == null || hic.getMatrix() == null || hic.getZd() == null || resolutionSlider.getValueIsAdjusting()) return;
                 final ChangeEvent eF = e;
                 Runnable runnable = new Runnable() {
                     public void run() {
@@ -175,7 +175,7 @@ public class ResolutionControl extends JPanel {
 
             private void unsafeStateChanged(ChangeEvent e){
 
-                if (!resolutionSlider.getValueIsAdjusting()) {
+
 
                     int idx = resolutionSlider.getValue();
 
@@ -205,7 +205,7 @@ public class ResolutionControl extends JPanel {
                     }
 
                 }
-            }
+            
         });
         setEnabled(false);
     }
