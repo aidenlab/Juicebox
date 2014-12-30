@@ -41,6 +41,7 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 
@@ -1864,6 +1865,10 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveToImage);
 
 
+
+
+
+
         if (!HiCGlobals.isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
@@ -1879,6 +1884,42 @@ public class MainWindow extends JFrame {
             });
             fileMenu.add(dump);
         }
+
+        JMenuItem creditsMenu = new JMenuItem();
+        creditsMenu.setText("About");
+        creditsMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
+                JLabel iconLabel = new JLabel(icon);
+                JPanel iconPanel = new JPanel(new GridBagLayout());
+                iconPanel.add(iconLabel);
+
+                JPanel textPanel= new JPanel(new GridLayout(0, 1));
+                textPanel.add(new JLabel("<html><center>" +
+                        "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
+                        "Juicebox: Visualization software for Hi-C data" +
+                        "</h2>" +
+                        "</center>" +
+                        "<p>" +
+                        "Juicebox is Aiden Lab's software for visualizing data from proximity ligation experiments, such as Hi-C, 5C, and Chia-PET.<br>" +
+                        "Juicebox was created by Neva Durand, Jim Robinson, and Erez Aiden. Ongoing development work is carried out by Neva Durand,<br>" +
+                        "Muhammad Shamim, and Ido Machol. <br><br>" +
+                        "Copyright © 2014. Aiden Lab" +
+                        "<br><br>" +
+                        "If you use Juicebox in your research, please cite:<br><br>" +
+                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>"+
+                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
+                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong>" +
+                        "</p></html>"));
+
+                JPanel mainPanel = new JPanel(new BorderLayout());
+                mainPanel.add(textPanel);
+                mainPanel.add(iconPanel, BorderLayout.WEST);
+
+                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
+            }
+        });
+        fileMenu.add(creditsMenu);
 
         //---- exit ----
         JMenuItem exit = new JMenuItem();
