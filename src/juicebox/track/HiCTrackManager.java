@@ -94,35 +94,36 @@ public class HiCTrackManager {
         mainWindow.updateTrackPanel();
     }
 
-
-    public void load(final List<ResourceLocator> locators) {
-
+    public void safeTrackLoad(final List<ResourceLocator> locators){
         Runnable runnable = new Runnable() {
             public void run() {
-                for (ResourceLocator locator : locators) {
+                unsafeLoad(locators);
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "Safe Track Load");
+    }
+
+    private void unsafeLoad(final List<ResourceLocator> locators) {
+        for (ResourceLocator locator : locators) {
+            try {
+                loadTrack(locator);
+            } catch (Exception e) {
+                MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
+                System.out.println("Removing " + locator.getName());
+                hic.removeTrack(locator);
+
+                if (locator.getType() != null && locator.getType().equals("loop")) {
                     try {
-                        loadTrack(locator);
-                    } catch (Exception e) {
-                        MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
-                        System.out.println("Removing " + locator.getName());
-                        hic.removeTrack(locator);
-
-                        if (locator.getType() != null && locator.getType().equals("loop")) {
-                            try {
-                                hic.setLoopsInvisible(locator.getPath());
-                            } catch (Exception e2) {
-                                log.error("Error while making loops invisible ", e2);
-                                MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
-                            }
-                        }
-
+                        hic.setLoopsInvisible(locator.getPath());
+                    } catch (Exception e2) {
+                        log.error("Error while making loops invisible ", e2);
+                        MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
                     }
                 }
 
-                mainWindow.updateTrackPanel();
             }
-        };
-        mainWindow.executeLongRunningTask(runnable);
+        }
+        mainWindow.updateTrackPanel();
     }
 
     public void add(HiCTrack track) {

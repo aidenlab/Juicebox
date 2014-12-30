@@ -83,14 +83,14 @@ public class FileDropTargetListener implements DropTargetListener {
             for (File f : files) {
                 paths.add(f.getAbsolutePath());
             }
-            mainWindow.load(paths, false);
+            mainWindow.safeLoad(paths, false);
 
         } catch (Exception e) {
             String obj;
             try {
                 obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
                 if (HttpUtils.isRemoteURL(obj)) {
-                    mainWindow.load(Arrays.asList(obj), false);
+                    mainWindow.safeLoad(Arrays.asList(obj), false);
                 }
             } catch (Exception e1) {
                 e1.printStackTrace();

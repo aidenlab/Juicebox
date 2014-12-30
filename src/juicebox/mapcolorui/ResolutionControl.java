@@ -162,8 +162,18 @@ public class ResolutionControl extends JPanel {
             // Centering is relative to the bounds of the data, which might not be the bounds of the window
 
             public void stateChanged(ChangeEvent e) {
-
                 if (hic == null || hic.getMatrix() == null || hic.getZd() == null) return;
+                final ChangeEvent eF = e;
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        unsafeStateChanged(eF);
+                    }
+                };
+                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");
+                //runnable.run();
+            }
+
+            private void unsafeStateChanged(ChangeEvent e){
 
                 if (!resolutionSlider.getValueIsAdjusting()) {
 
@@ -182,23 +192,16 @@ public class ResolutionControl extends JPanel {
                         final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                         final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                        Runnable runnable = new Runnable() {
-                            public void run() {
+                        if (hic.getZd() == null) {
+                            hic.setZoom(zoom, 0, 0);
+                        } else {
 
-                                if (hic.getZd() == null) {
-                                    hic.setZoom(zoom, 0, 0);
-                                } else {
-
-                                    if (hic.setZoom(zoom, xGenome, yGenome)) {
-                                        lastValue = resolutionSlider.getValue();
-                                    } else {
-                                        resolutionSlider.setValue(lastValue);
-                                    }
-                                }
-
+                            if (hic.setZoom(zoom, xGenome, yGenome)) {
+                                lastValue = resolutionSlider.getValue();
+                            } else {
+                                resolutionSlider.setValue(lastValue);
                             }
-                        };
-                        mainWindow.executeLongRunningTask(runnable);
+                        }
                     }
 
                 }

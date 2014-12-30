@@ -180,13 +180,12 @@ public class HiC {
     }
 
     public void loadHostedTracks(List<ResourceLocator> locators) {
-        trackManager.load(locators);
+        trackManager.safeTrackLoad(locators);
     }
 
     public void loadTrack(String path) {
         trackManager.loadTrack(path);
     }
-
 
     public void loadCoverageTrack(NormalizationType no) {
         trackManager.loadCoverageTrack(no);
@@ -629,8 +628,9 @@ public class HiC {
 
         Feature2DList newList = new Feature2DList();
 
+
+
         try {
-            mainWindow.showGlassPane();
             br = ParsingUtils.openBufferedReader(path);
             String nextLine;
 
@@ -709,10 +709,8 @@ public class HiC {
 
             }
             loopLists.put(path, newList);
-            mainWindow.hideGlassPane();
         } finally {
             if (br != null) br.close();
-            mainWindow.hideGlassPane();
         }
 
     }
