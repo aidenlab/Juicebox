@@ -77,7 +77,7 @@ public class FileDropTargetListener implements DropTargetListener {
         Transferable transferable = event.getTransferable();
 
         try {
-            @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to retunr a File List.
+            @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to return a File List.
                     java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
             List<String> paths = new ArrayList<String>();
             for (File f : files) {

@@ -882,31 +882,42 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseReleased(final MouseEvent e) {
-
             if (e.isPopupTrigger()) {
                 getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+                dragMode = DragMode.NONE;
+                lastMousePoint = null;
+                zoomRectangle = null;
+                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
 
-                System.out.println("Glass Drag");// TODO MSS delete if drag box to zoom glass pane works
-                final double scaleFactor1 = hic.getScaleFactor();
-                double binX = hic.getXContext().getBinOrigin() + (zoomRectangle.x / scaleFactor1);
-                double binY = hic.getYContext().getBinOrigin() + (zoomRectangle.y / scaleFactor1);
-                double wBins = (int) (zoomRectangle.width / scaleFactor1);
-                double hBins = (int) (zoomRectangle.height / scaleFactor1);
-
-                final MatrixZoomData currentZD = hic.getZd();
-                int xBP0 = currentZD.getXGridAxis().getGenomicStart(binX);
-
-                int yBP0 = currentZD.getYGridAxis().getGenomicEnd(binY);
-
-                double newXBinSize = wBins * currentZD.getBinSize() / getWidth();
-                double newYBinSize = hBins * currentZD.getBinSize() / getHeight();
-                double newBinSize = Math.max(newXBinSize, newYBinSize);
-
-                hic.zoomTo(xBP0, yBP0, newBinSize);
-
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        unsafeDragging();
+                    }
+                };
+                mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
             }
+        }
+
+        private void unsafeDragging(){
+            final double scaleFactor1 = hic.getScaleFactor();
+            double binX = hic.getXContext().getBinOrigin() + (zoomRectangle.x / scaleFactor1);
+            double binY = hic.getYContext().getBinOrigin() + (zoomRectangle.y / scaleFactor1);
+            double wBins = (int) (zoomRectangle.width / scaleFactor1);
+            double hBins = (int) (zoomRectangle.height / scaleFactor1);
+
+            final MatrixZoomData currentZD = hic.getZd();
+            int xBP0 = currentZD.getXGridAxis().getGenomicStart(binX);
+
+            int yBP0 = currentZD.getYGridAxis().getGenomicEnd(binY);
+
+            double newXBinSize = wBins * currentZD.getBinSize() / getWidth();
+            double newYBinSize = hBins * currentZD.getBinSize() / getHeight();
+            double newBinSize = Math.max(newXBinSize, newYBinSize);
+
+            hic.zoomTo(xBP0, yBP0, newBinSize);
 
             dragMode = DragMode.NONE;
             lastMousePoint = null;
@@ -1001,7 +1012,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                             final Chromosome xC = xChrom;
                             final Chromosome yC = yChrom;
-                            mainWindow.setSelectedChromosomes(xC, yC);
+                            mainWindow.unsafeSetSelectedChromosomes(xC, yC);
                         }
 
 
