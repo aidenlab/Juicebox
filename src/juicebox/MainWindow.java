@@ -322,10 +322,14 @@ public class MainWindow extends JFrame {
         heatmapPanel.setChromosomeBoundaries(chromosomeBoundaries);
     }
 
-    public void setSelectedChromosomes(Chromosome xChrom, Chromosome yChrom) {
+    /*
+     * Only accessed from within another unsafe method in Heatmap Panel class,
+     * which in turn is encapsulated (i.e. made safe)
+     */
+    public void unsafeSetSelectedChromosomes(Chromosome xChrom, Chromosome yChrom) {
         chrBox1.setSelectedIndex(yChrom.getIndex());
         chrBox2.setSelectedIndex(xChrom.getIndex());
-        refreshChromosomes();
+        unsafeRefreshChromosomes();
     }
 
     public void setSelectedChromosomesNoRefresh(Chromosome xChrom, Chromosome yChrom) {
@@ -435,7 +439,7 @@ public class MainWindow extends JFrame {
                 resolutionSlider.unit = HiC.Unit.BP;
 
                 resolutionSlider.reset();
-                refreshChromosomes();
+                unsafeRefreshChromosomes();
             }
             displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
             displayOptionComboBox.setSelectedIndex(0);
@@ -463,7 +467,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    public void refreshChromosomes() {
+    private void unsafeRefreshChromosomes() {
 
         if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
             chrBox1.setSelectedIndex(0);
@@ -598,7 +602,14 @@ public class MainWindow extends JFrame {
 
     private void refreshButtonActionPerformed() {
         colorValuesToRestore = null;
-        refreshChromosomes();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                unsafeRefreshChromosomes();
+            }
+        };
+        executeLongRunningTask(runnable, "Refresh Button");
+
     }
 
     public void loadMenuItemActionPerformed(boolean control) {
@@ -828,20 +839,16 @@ public class MainWindow extends JFrame {
 
     int i = 0, j = 0;
     private void showDisabledGlassPane(String caller) {
-
         //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
         //System.out.println("SB " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i++ +" "+caller);
 
-        /*
-         * TODO MSS debugging
-
+        // TODO MSS glass pane debugging
         try {
-            Thread.sleep(2000);                 //1000 milliseconds is one second.
+            Thread.sleep(50);                 //1000 milliseconds is one second.
         } catch(InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-         */
     }
 
     private void initializeGlassPaneListening() {

@@ -419,7 +419,7 @@ public class HiC {
         HiCZoom newZoom = zoom;
         if (!mainWindow.isResolutionLocked()) {
             List<HiCZoom> zoomList = unit == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
-            zoomList.get(zoomList.size() - 1);   // Highest zoom level by defaul
+            zoomList.get(zoomList.size() - 1);   // Highest zoom level by default
             for (int i = zoomList.size() - 1; i >= 0; i--) {
                 if (zoomList.get(i).getBinSize() > targetBinSize) {
                     newZoom = zoomList.get(i);
