@@ -117,7 +117,7 @@ public class ResolutionControl extends JPanel {
                         unit = (unit == HiC.Unit.FRAG ? HiC.Unit.BP : HiC.Unit.FRAG);
                         resolutionLabel.setText(getUnitLabel());
                         reset();
-                        mainWindow.refresh();
+                        //mainWindow.refresh();
                     }
                 }
             }

@@ -272,7 +272,10 @@ public class LoadAction extends AbstractAction {
                 }
             }
         }
-        if (repaint) mainWindow.repaint();
+        if (repaint)
+        {
+            mainWindow.repaint();
+        }
         return newLoadList;
     }
 

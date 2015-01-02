@@ -450,11 +450,11 @@ public class HiC {
             broadcastState();
         }
 
-        try {
-            mainWindow.refresh();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            mainWindow.refresh();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
 
     }

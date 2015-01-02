@@ -347,6 +347,8 @@ public class MainWindow extends JFrame {
             public void run() {
                 try {
                     unsafeload(files, control);
+                    updateThumbnail();
+                    refresh();
                 } catch (IOException error) {
                     log.error("Error loading hic file", error);
                     JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -373,9 +375,9 @@ public class MainWindow extends JFrame {
         }
 
         colorValuesToRestore = null;
-        heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        //mouseHoverTextPanel.setBorder(LineBorder.createBlackLineBorder());
+        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
         if (file.endsWith("hic")) {
@@ -461,7 +463,7 @@ public class MainWindow extends JFrame {
             positionChrLeft.setEnabled(true);
             goButton.setEnabled(true);
 
-            refresh(); // an additional refresh seems to remove the upper left black corner
+            //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
 
@@ -488,9 +490,7 @@ public class MainWindow extends JFrame {
         rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
         setInitialZoom();
 
-        refresh();
-
-
+        updateThumbnail();
     }
 
     public void setNormalizationDisplayState() {
@@ -532,7 +532,7 @@ public class MainWindow extends JFrame {
         //System.err.println(heatmapPanel.getSize());
     }
 
-    private void updateThumbnail() {
+    public void updateThumbnail() {
         if (hic.getMatrix() != null) {
 
             //   MatrixZoomData zd0 = initialZoom == null ? hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit()) :
@@ -779,7 +779,7 @@ public class MainWindow extends JFrame {
 
         final MatrixType passOption = option;
         hic.setDisplayOption(passOption);
-        refresh();
+        //refresh();
     }
 
     private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
@@ -802,7 +802,7 @@ public class MainWindow extends JFrame {
         }
         final NormalizationType passChosen = chosen;
         hic.setNormalizationType(passChosen);
-        refresh();
+        //refresh();
     }
 
     /**
@@ -916,7 +916,7 @@ public class MainWindow extends JFrame {
             colorRangeSlider.setUpperValue(colorValuesToRestore[3]);
             colorRangeScaleFactor = colorValuesToRestore[4];
 
-            refresh();
+            //refresh();
             colorValuesToRestore = null;
         }
     }
@@ -944,6 +944,17 @@ public class MainWindow extends JFrame {
     private void initComponents() {
 
         System.out.println("Initializing Components");
+
+        //size of the screen
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        //height of the task bar
+        Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+        int taskBarSize = scnMax.bottom;
+
+        //available size of the screen
+        //setLocation(screenSize.width - getWidth(), screenSize.height - taskBarSize - getHeight());
+
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
 
@@ -959,7 +970,20 @@ public class MainWindow extends JFrame {
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
         JPanel bigPanel = new JPanel();
+        bigPanel.setLayout(new BorderLayout());
         bigPanel.setBackground(Color.white);
+
+        int bigPanelWidth = screenSize.width - getWidth() - 230;
+        int bigPanelHeight = screenSize.height - taskBarSize - getHeight() - 120;
+
+
+        bigPanel.setPreferredSize(new Dimension(bigPanelWidth, bigPanelHeight));
+        bigPanel.setMaximumSize(new Dimension(bigPanelWidth, bigPanelHeight));
+        bigPanel.setMinimumSize(new Dimension(bigPanelWidth, bigPanelHeight));
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.white);
+
 
         JMenuBar menuBar = null;
         try {
@@ -1110,13 +1134,24 @@ public class MainWindow extends JFrame {
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
-        bigPanel.add(hiCPanel);
+        bigPanel.add(hiCPanel,BorderLayout.CENTER);
+
+        JPanel wrapGapPanel = new JPanel();
+        wrapGapPanel.setBackground(Color.white);
+        wrapGapPanel.setMaximumSize(new Dimension(5, 5));
+        wrapGapPanel.setMinimumSize(new Dimension(5, 5));
+        wrapGapPanel.setPreferredSize(new Dimension(5, 5));
+        wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
+        bigPanel.add(wrapGapPanel, BorderLayout.EAST);
+
+
+
         // splitPanel.insertPane(hiCPanel, 0);
         // splitPanel.setBackground(Color.white);
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.white);
+        topPanel.setBackground(Color.green);
         topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(hic);
@@ -1160,16 +1195,38 @@ public class MainWindow extends JFrame {
         leftPanel.add(rulerPanelY, BorderLayout.EAST);
 
         //---- heatmapPanel ----
-        Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
-        int panelSize = screenDimension.height - 210;
+        //Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
+        //int panelSize = screenDimension.height - 210;
+
+        int panelWidth = screenSize.width - getWidth() - 300;
+        int panelHeight = screenSize.height - taskBarSize - getHeight();
+
+
+
+        System.err.println("Window W: " + panelWidth + " H" + panelHeight);
+
+        JPanel wrapHeatmapPanel = new JPanel(new BorderLayout());
+        wrapHeatmapPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
+        wrapHeatmapPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
+        wrapHeatmapPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+        wrapHeatmapPanel.setBackground(Color.BLUE);
+        wrapHeatmapPanel.setVisible(true);
+
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setMaximumSize(new Dimension(panelSize, panelSize));
-        heatmapPanel.setMinimumSize(new Dimension(panelSize, panelSize));
-        heatmapPanel.setPreferredSize(new Dimension(panelSize, panelSize));
+        heatmapPanel.setMaximumSize(new Dimension(panelWidth-5, panelHeight-5));
+        heatmapPanel.setMinimumSize(new Dimension(panelWidth-5, panelHeight-5));
+        heatmapPanel.setPreferredSize(new Dimension(panelWidth-5, panelHeight-5));
         heatmapPanel.setBackground(Color.white);
 
+        wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
 
-        hiCPanel.add(heatmapPanel, BorderLayout.CENTER);
+        //hiCPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
+        //hiCPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
+        //hiCPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
+
+        hiCPanel.add(wrapHeatmapPanel, BorderLayout.CENTER);
+
+        //======== Resolution Slider Panel ========
 
         // Resolution  panel
         resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
@@ -1417,21 +1474,26 @@ public class MainWindow extends JFrame {
         //======== Bird's view mini map ========
 
         JPanel thumbPanel = new JPanel();
+        thumbPanel.setLayout(new BorderLayout());
+
         //---- thumbnailPanel ----
         thumbnailPanel = new ThumbnailPanel(this, hic);
         thumbnailPanel.setBackground(Color.white);
-        thumbnailPanel.setMaximumSize(new Dimension(200, 200));
-        thumbnailPanel.setMinimumSize(new Dimension(200, 200));
-        thumbnailPanel.setPreferredSize(new Dimension(200, 200));
+        thumbnailPanel.setMaximumSize(new Dimension(210, 210));
+        thumbnailPanel.setMinimumSize(new Dimension(210, 210));
+        thumbnailPanel.setPreferredSize(new Dimension(210, 210));
 
-        thumbPanel.add(thumbnailPanel);
+//        JPanel gapPanel = new JPanel();
+//        gapPanel.setMaximumSize(new Dimension(1, 1));
+//        rightSidePanel.add(gapPanel,BorderLayout.WEST);
+        thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
         thumbPanel.setBackground(Color.white);
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mouse hover text ======
         JPanel tooltipPanel = new JPanel(new BorderLayout());
         tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setPreferredSize(new Dimension(200, 490));
+        tooltipPanel.setPreferredSize(new Dimension(210, 490));
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
@@ -1441,7 +1503,7 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(200, 490);
+        Dimension prefSize = new Dimension(210, 490);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
         JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
@@ -1487,6 +1549,8 @@ public class MainWindow extends JFrame {
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
+        //mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
         // splitPanel.insertPane(rightSidePanel, 1);
         // hiCPanel.add(rightSidePanel, BorderLayout.EAST);
 
