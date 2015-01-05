@@ -210,13 +210,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
 
                     // Uncomment to draw tile grid (for debugging)
-                    // g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
+                    //g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
 
                 }
             }
 
             //In case of change to map settings, get map color limits and update slider:
-            //TBD: || might not catch all changed at once, if more then one parameter changed...
+            //TODO: || might not catch all changed at once, if more then one parameter changed...
             if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
                 //In case tender is called as a result of zoom change event, check if
                 //We need to update slider with map range:
@@ -224,16 +224,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
 
-            // Uncomment to draw bin grid (for debugging)
+            //Uncomment to draw bin grid (for debugging)
 //            Graphics2D g2 = (Graphics2D) g.create();
 //            g2.setColor(Color.green);
 //            g2.setColor(new Color(0, 0, 1.0f, 0.3f));
 //            for (int bin = (int) binOriginX; bin <= bRight; bin++) {
-//                int pX = (int) ((bin - hic.getXContext().getBinOrigin()) * hic.getXContext().getScaleFactor());
+//                int pX = (int) ((bin - hic.getXContext().getBinOrigin()) * hic.getScaleFactor());
 //                g2.drawLine(pX, 0, pX, getHeight());
 //            }
 //            for (int bin = (int) binOriginY; bin <= bBottom; bin++) {
-//                int pY = (int) ((bin - hic.getYContext().getBinOrigin()) * hic.getYContext().getScaleFactor());
+//                int pY = (int) ((bin - hic.getYContext().getBinOrigin()) * hic.getScaleFactor());
 //                g2.drawLine(0, pY, getWidth(), pY);
 //            }
 //            g2.dispose();
@@ -245,28 +245,39 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Draw grid
             if (isWholeGenome) {
                 Color color = g.getColor();
-                g.setColor(Color.lightGray);
+                g.setColor(Color.LIGHT_GRAY);
 
                 List<Chromosome> chromosomes = hic.getChromosomes();
                 // Index 0 is whole genome
                 int xGenomeCoord = 0;
+                int x=0;
                 for (int i = 1; i < chromosomes.size(); i++) {
                     Chromosome c = chromosomes.get(i);
                     xGenomeCoord += (c.getLength() / 1000);
                     int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
-                    int x = (int) (xBin * scaleFactor);
-                    g.drawLine(x, 0, x, getHeight());
+                    x = (int) (xBin * scaleFactor);
+                    g.drawLine(x, 0, x, getTickHeight(g));
                 }
+
+
+
                 int yGenomeCoord = 0;
+                int y=0;
                 for (int i = 1; i < chromosomes.size(); i++) {
                     Chromosome c = chromosomes.get(i);
                     yGenomeCoord += (c.getLength() / 1000);
                     int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
-                    int y = (int) (yBin * hic.getScaleFactor());
-                    g.drawLine(0, y, getWidth(), y);
+                    y = (int) (yBin * hic.getScaleFactor());
+                    g.drawLine(0, y, getTickWidth(g), y);
                 }
 
                 g.setColor(color);
+                
+                //Cover gray background for the empty parts of the matrix:
+                g.setColor(Color.white);
+                g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
+                g.fillRect(0,getTickWidth(g),getHeight(),getWidth());
+                g.fillRect(getTickHeight(g),getTickWidth(g),getHeight(),getWidth());
             }
 
             Point cursorPoint = hic.getCursorPoint();
@@ -351,6 +362,51 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //            g.drawRect(pX, pY, w, h);
 //        }
     }
+
+    private int getTickWidth(Graphics g) {
+
+        int w = getWidth();
+        int h = getHeight();
+
+        if (w < 50 || hic.getScaleFactor() == 0) {
+            return 0;
+        }
+
+        List<Chromosome> chromosomes = hic.getChromosomes();
+        // Index 0 is whole genome
+        int genomeCoord = 0;
+        for (int i = 1; i < chromosomes.size(); i++) {
+
+            Chromosome c = chromosomes.get(i);
+            genomeCoord += (c.getLength() / 1000);
+        }
+
+        int xBin = hic.getZd().getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+        return (int) (xBin * hic.getScaleFactor());
+    }
+
+    private int getTickHeight(Graphics g) {
+
+        int w = getHeight();
+        int h = getWidth();
+
+        if (w < 50 || hic.getScaleFactor() == 0) {
+            return 0;
+        }
+
+        List<Chromosome> chromosomes = hic.getChromosomes();
+        // Index 0 is whole genome
+        int genomeCoord = 0;
+        for (int i = 1; i < chromosomes.size(); i++) {
+
+            Chromosome c = chromosomes.get(i);
+            genomeCoord += (c.getLength() / 1000);
+        }
+
+        int xBin = hic.getZd().getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+        return (int) (xBin * hic.getScaleFactor());
+    }
+
 
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption) {
 

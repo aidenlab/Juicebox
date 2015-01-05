@@ -221,6 +221,7 @@ public class HeatmapRenderer {
                 double percentile = wholeGenome ? 99 : 95;
                 float max = computePercentile(blocks, percentile);
 
+                //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                 observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
                 observedColorScaleMap.put(key, observedColorScale);
                 //mainWindow.updateColorSlider(0, 2 * max, max);

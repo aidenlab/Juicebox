@@ -72,7 +72,7 @@ import java.util.prefs.Preferences;
  */
 public class MainWindow extends JFrame {
 
-    public static final Color RULER_LINE_COLOR = new Color(0, 0, 0, 100);
+    public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final int BIN_PIXEL_WIDTH = 1;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final long serialVersionUID = 1428522656885950466L;

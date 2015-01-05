@@ -161,7 +161,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 g.drawString(rangeString, strPosition, vPos);
             }
         }
-
     }
 
     private boolean isHorizontal() {
@@ -193,7 +192,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             // Index 0 is whole genome
             int genomeCoord = 0;
             for (int i = 1; i < chromosomes.size(); i++) {
-                Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                Color tColor = isHorizontal() ? topTick : leftTick;
                 g.setColor(tColor);
 
                 Chromosome c = chromosomes.get(i);
@@ -207,7 +206,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
                 g.drawString(c.getName(), strPosition, h - 15);
 
-                int xpos = (orientation == Orientation.HORIZONTAL ? x2 : -x2);
+                int xpos = isHorizontal() ? x2 : -x2;
 
                 g.drawLine(xpos, h - 10, xpos, h - 2);
 
