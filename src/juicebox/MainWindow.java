@@ -1973,7 +1973,8 @@ public class MainWindow extends JFrame {
                         "If you use Juicebox in your research, please cite:<br><br>" +
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>"+
                         "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
-                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong>" +
+                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                        "* contributed equally" +
                         "</p></html>"));
 
                 JPanel mainPanel = new JPanel(new BorderLayout());
