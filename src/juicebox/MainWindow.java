@@ -532,6 +532,11 @@ public class MainWindow extends JFrame {
         //System.err.println(heatmapPanel.getSize());
     }
 
+    public void refreshMainOnly() {
+        getHeatmapPanel().clearTileCache();
+        repaint();
+    }
+
     public void updateThumbnail() {
         if (hic.getMatrix() != null) {
 
@@ -802,7 +807,7 @@ public class MainWindow extends JFrame {
         }
         final NormalizationType passChosen = chosen;
         hic.setNormalizationType(passChosen);
-        //refresh();
+        refreshMainOnly();
     }
 
     /**
@@ -1164,7 +1169,6 @@ public class MainWindow extends JFrame {
         trackPanelX.setMinimumSize(new Dimension(1, 50));
         trackPanelX.setVisible(false);
         topPanel.add(trackPanelX, BorderLayout.NORTH);
-
 
         rulerPanelX = new HiCRulerPanel(hic);
         rulerPanelX.setMaximumSize(new Dimension(4000, 50));
