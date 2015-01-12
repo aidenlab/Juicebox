@@ -253,4 +253,8 @@
         <Resource trackLine='viewLimits=0:25' name="NHEK Pol2(b)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneNhekPol2bStdSig.wig.tdf"></Resource>
     </Category>
+    <Category trackLine='viewLimits=0:25' name="CD4+ T" version="1">
+        <Resource trackLine='viewLimits=0:25' name="CD4+ T H4K20me3" color="135,206,250"
+                  path="https://hicfiles.s3.amazonaws.com/external/H4K20me3.bw"></Resource>
+    </Category>
 </Global>

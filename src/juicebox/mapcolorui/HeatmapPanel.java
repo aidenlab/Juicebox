@@ -277,7 +277,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 g.setColor(Color.white);
                 g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
                 g.fillRect(0,getTickWidth(g),getHeight(),getWidth());
-                g.fillRect(getTickHeight(g),getTickWidth(g),getHeight(),getWidth());
+                g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
             }
 
             Point cursorPoint = hic.getCursorPoint();
@@ -1039,7 +1039,43 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         }
 
-        private void unsafeMouseClicked(final MouseEvent eF) {
+        private void unsafeMouseClickSubActionA(final MouseEvent eF){
+            double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
+            double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
+
+            int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
+            int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
+
+            Chromosome xChrom = null;
+            Chromosome yChrom = null;
+            for (int i = 0; i < chromosomeBoundaries.length; i++) {
+                if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
+                    xChrom = hic.getChromosomes().get(i + 1);
+                }
+                if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
+                    yChrom = hic.getChromosomes().get(i + 1);
+                }
+            }
+            if (xChrom != null && yChrom != null) {
+
+                final Chromosome xC = xChrom;
+                final Chromosome yC = yChrom;
+                mainWindow.unsafeSetSelectedChromosomes(xC, yC);
+            }
+
+            //Only if zoom is changed All->Chr:
+            mainWindow.updateThumbnail();
+        }
+
+        private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom){
+            final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+            final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+
+            hic.setZoom(newZoom, xGenome, yGenome);
+            mainWindow.updateZoom(newZoom);
+        }
+
+        private void safeMouseClicked(final MouseEvent eF) {
 
             if (!eF.isPopupTrigger() && eF.getButton() == MouseEvent.BUTTON1 && !eF.isControlDown()) {
 
@@ -1047,32 +1083,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     //avoid double click...
                     if (eF.getClickCount() == 1) {
 
-
-                        double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
-                        double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
-
-                        int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
-                        int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
-
-                        Chromosome xChrom = null;
-                        Chromosome yChrom = null;
-                        for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                            if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                                xChrom = hic.getChromosomes().get(i + 1);
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                unsafeMouseClickSubActionA(eF);
                             }
-                            if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                                yChrom = hic.getChromosomes().get(i + 1);
-                            }
-                        }
-                        if (xChrom != null && yChrom != null) {
-
-                            final Chromosome xC = xChrom;
-                            final Chromosome yC = yChrom;
-                            mainWindow.unsafeSetSelectedChromosomes(xC, yC);
-                        }
-
-                        //Only if zoom is changed All->Chr:
-                        mainWindow.updateThumbnail();
+                        };
+                        mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
 
                     } else {
                         return;
@@ -1086,8 +1102,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
 
                     // If newZoom == currentZoom adjust scale factor (no change in resolution)
-                    double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
-                    double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
+                    final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
+                    final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
                     if (newZoom.equals(currentZoom)) {
                         double mult = eF.isAltDown() ? 0.5 : 2.0;
@@ -1097,13 +1113,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
                         mainWindow.repaint();
                     } else {
-
-                        final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                        final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
-
-                        hic.setZoom(newZoom, xGenome, yGenome);
-                        mainWindow.updateZoom(newZoom);
-
+                        Runnable runnable = new Runnable() {
+                            public void run() {
+                                unsafeMouseClickSubActionB(centerBinX, centerBinY, newZoom);
+                            }
+                        };
+                        mainWindow.executeLongRunningTask(runnable, "Mouse Click Zoom");
                     }
 
                 } else {
@@ -1124,14 +1139,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mouseClicked(MouseEvent e) {
 
             if (hic == null) return;
-
-            final MouseEvent eF = e;
-            Runnable runnable = new Runnable() {
-                public void run() {
-                    unsafeMouseClicked(eF);
-                }
-            };
-            mainWindow.executeLongRunningTask(runnable, "Mouse Click");
+            safeMouseClicked(e);
         }
 
         @Override
