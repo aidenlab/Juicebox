@@ -61,6 +61,7 @@ public class HiCTools {
         System.out.println("       juicebox addGWNorm <hicFile> <min resolution>");
         System.out.println("       juicebox bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
         System.out.println("       juicebox calcKR <infile>");
+        System.out.println("       juicebox arrowhead <hicfile> <resolution>");
         System.out.println("       juicebox pre <options> <infile> <outfile> <genomeID>");
         System.out.println("  <options>: -d only calculate intra chromosome (diagonal) [false]");
         System.out.println("           : -f <restriction site file> calculate fragment map");
@@ -193,6 +194,21 @@ public class HiCTools {
                 System.exit(1);
             }
             NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
+        } else if (args[0].equals("arrowhead")) {
+            if (args.length != 2) {
+                System.err.println("Usage: juicebox arrowhead hicFile resolution");
+                System.exit(1);
+            }
+            String file = args[1];
+            int resolution = -100;
+            try {
+                resolution = Integer.valueOf(args[2]);
+            }
+            catch (NumberFormatException error) {
+                System.err.println("Usage: juicebox arrowhead hicFile resolution");
+                System.exit(1);
+            }
+            Arrowhead.runArrowhead(file, resolution);
         } else if (args[0].equals("pre")) {
             String genomeId = "";
             try {
