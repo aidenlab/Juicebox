@@ -1970,9 +1970,9 @@ public class MainWindow extends JFrame {
                         "</center>" +
                         "<p>" +
                         "Juicebox is Aiden Lab's software for visualizing data from proximity ligation experiments, such as Hi-C, 5C, and Chia-PET.<br>" +
-                        "Juicebox was created by Neva Durand, Jim Robinson, and Erez Aiden. Ongoing development work is carried out by Neva Durand,<br>" +
-                        "Muhammad Shamim, and Ido Machol. <br><br>" +
-                        "Copyright © 2014. Aiden Lab" +
+                        "Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden. Ongoing development work is carried out by Neva C. Durand,<br>" +
+                        "Muhammad Shamim, and Ido Machol.<br><br>" +
+                        "Copyright © 2014. Broad Institute and Aiden Lab" +
                         "<br><br>" +
                         "If you use Juicebox in your research, please cite:<br><br>" +
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>"+
