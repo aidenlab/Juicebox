@@ -49,10 +49,25 @@ public class TrackLabelPanel extends JPanel {
     private final HiC hic;
     private HiCTrack eigenvectorTrack;
     private int numExtraBufferLinesSpaces = 2;
+    final private int leftMargin = 10;
+    final private int rightMargin = 5;
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;
-        setLayout(new GridLayout(0, 1));
+        setLayout(null);
+    }
+
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+
+        for(Component c : this.getComponents()) {
+            if(c instanceof JLabel) {
+                Rectangle bounds = c.getBounds();
+                bounds.width = width - (leftMargin + rightMargin);
+                c.setBounds(bounds);
+            }
+        }
     }
 
     public void updateLabels() {
@@ -65,27 +80,26 @@ public class TrackLabelPanel extends JPanel {
 
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
         int trackCount = tracks.size() + (eigenvectorTrack == null ? 0 : 1);
-        if (trackCount < 2) {
+        if (trackCount == 0) {
             return;
         }
 
-        String multiLineText = "";
-
+        int top = 0;
+        final int width = getWidth() - (leftMargin + rightMargin);
         for (HiCTrack hicTrack : tracks) {
-            multiLineText += hicTrack.getName() + "<br><br>";
+            JLabel textLabel = getTrackLabel(hicTrack.getName(), true);
+
+            textLabel.setBounds(leftMargin, top, width, hicTrack.getHeight());
+            textLabel.setBackground(Color.CYAN);
+            add(textLabel);
+            top += hicTrack.getHeight();
         }
-
-        multiLineText = "<html>" + multiLineText + "</html>";
-        //System.out.println(multiLineText);
-
-        JLabel textLabel = getTrackLabel(multiLineText, false);
-        add(textLabel);
 
     }
 
     private JLabel getTrackLabel(String name, boolean addToolTip) {
-        JLabel label = new JLabel(name, SwingConstants.RIGHT);
-        label.setVerticalAlignment(SwingConstants.TOP);
+        JLabel label = new JLabel(name); //, SwingConstants.RIGHT);
+        label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(FontManager.getFont(Font.BOLD, 10));
         if (addToolTip)
             label.setToolTipText(name);
