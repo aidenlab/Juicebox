@@ -64,7 +64,8 @@ public class TrackLabelPanel extends JPanel {
         }
 
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
-        if (tracks.isEmpty() && eigenvectorTrack == null) {
+        int trackCount = tracks.size() + (eigenvectorTrack == null ? 0 : 1);
+        if (trackCount < 2) {
             return;
         }
 
