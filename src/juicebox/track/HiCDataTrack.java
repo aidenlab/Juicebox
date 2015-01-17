@@ -202,7 +202,9 @@ public class HiCDataTrack extends HiCTrack {
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
 
-        if (data == null) return null;
+        String text = getName();
+
+        if (data == null) return getName();
 
         Context context = orientation == TrackPanel.Orientation.X ? hic.getXContext() : hic.getYContext();
 
@@ -235,14 +237,17 @@ public class HiCDataTrack extends HiCTrack {
 
             }
         });
-        if (idx < 0) return String.valueOf(bin);
+        if (idx < 0) {
+            text += "<br>bin: " + formatter.format((int)bin);
+        } else {
+            HiCDataPoint ws = data[idx];
+            if (ws == null) return null;
 
-        HiCDataPoint ws = data[idx];
-        if (ws == null) return null;
-
-        return "<html>" + formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()) +
-                "<br>bin: " + formatter.format(ws.getBinNumber()) +
-                "<br>value: " + formatter.format(ws.getValue(windowFunction));
+            text += "<br>" + formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()) +
+                    "<br>bin: " + formatter.format(ws.getBinNumber()) +
+                    "<br>value: " + formatter.format(ws.getValue(windowFunction));
+        }
+        return text;
     }
 
     @Override

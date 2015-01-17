@@ -187,12 +187,14 @@ public class HiCFeatureTrack extends HiCTrack {
 
         Context context = orientation == TrackPanel.Orientation.X ? hic.getXContext() : hic.getYContext();
 
+        String text = getName();
         IGVFeature f = getFeatureAtPixel(x, context, orientation);
         if (f != null) { // && (f.getEnd() > start && f.getStart() < end)) {
-            return f.getDescription();
+            text += "<br>" +  f.getDescription();
         } else {
-            return null;
+            return text;
         }
+        return text;
     }
 
     private IGVFeature getFeatureAtPixel(int x, Context context, TrackPanel.Orientation orientation) {
