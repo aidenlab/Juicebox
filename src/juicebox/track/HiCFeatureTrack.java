@@ -111,8 +111,9 @@ public class HiCFeatureTrack extends HiCTrack {
                 g2d.setColor(featureColor);
             }
 
-            double bin1 = gridAxis.getBinNumberForGenomicPosition(feature.getStart());
-            double bin2 = gridAxis.getBinNumberForGenomicPosition(feature.getEnd() - 1);
+            double bin1 = getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
+            double bin2 = getFractionalBin(feature.getEnd(), scaleFactor, gridAxis);
+
 
             if (bin2 < startBin) {
                 continue;
@@ -120,14 +121,6 @@ public class HiCFeatureTrack extends HiCTrack {
                 break;
             }
 
-            // Fractional bin (important for "super-zoom")
-            if (scaleFactor > 1) {
-                double bw1 = gridAxis.getGenomicEnd(bin1) - gridAxis.getGenomicStart(bin1);
-                bin1 += (feature.getStart() - gridAxis.getGenomicStart(bin1)) / bw1;
-
-                double bw2 = gridAxis.getGenomicEnd(bin2) - gridAxis.getGenomicStart(bin2);
-                bin2 += (feature.getEnd() - gridAxis.getGenomicStart(bin2)) / bw2;
-            }
 
             int xPixelLeft = x + (int) ((bin1 - startBin) * scaleFactor);
             int xPixelRight = x + (int) ((bin2 - startBin) * scaleFactor);
@@ -156,70 +149,32 @@ public class HiCFeatureTrack extends HiCTrack {
                     }
                 }
 
-                // UTRS  -- Don't bother with this.  Bins are too coarse a resolution.
-                // "Thick" start for UTRs.  It's UCSC's normenclature, not mine
-//                int thickBinStart = bin1;
-//                int thickBinEnd = bin2;
-//                if (feature instanceof BasicFeature) {
-//                    thickBinStart = gridAxis.getBinNumberForGenomicPosition(((BasicFeature) feature).getThickStart());
-//                    thickBinEnd = gridAxis.getBinNumberForGenomicPosition(((BasicFeature) feature).getThickEnd());
-//                }
-
                 for (Exon exon : feature.getExons()) {
 
-                    bin1 = gridAxis.getBinNumberForGenomicPosition(exon.getStart());
-                    bin2 = gridAxis.getBinNumberForGenomicPosition(exon.getEnd() - 1);
-
-                    // UTRS  -- Don't bother with this.  Bins are too coarse a resolution.
-//                    if (feature instanceof BasicFeature) {
-//                        if (thickBinStart > bin1) {
-//                            int utrW = (int) ((Math.min(bin2, thickBinStart) - bin1 + 1) * context.getScaleFactor());
-//                            g2d.fillRect(xPixelLeft, fUTRy, utrW, THIN_BLOCK_HEIGHT);
-//                            if (thickBinStart >= bin2) continue;  // entire exon is UTR
-//                            bin1 = thickBinStart;
-//                        }
-//
-//                        if (thickBinEnd < bin2) {
-//                            int tmp = Math.max(bin1, thickBinEnd);
-//                            int utrW = (int) ((bin2 - tmp + 1) * context.getScaleFactor());
-//                            g2d.fillRect(xPixelLeft, fUTRy, utrW, THIN_BLOCK_HEIGHT);
-//                            if (thickBinEnd <= bin1) continue;  // entire exon is UTR
-//                            bin2 = thickBinEnd;
-//                        }
-//                    }
+                    bin1 = getFractionalBin(exon.getStart(), scaleFactor, gridAxis);
+                    bin2 = getFractionalBin(exon.getEnd(), scaleFactor, gridAxis);
 
                     xPixelLeft = (int) ((bin1 - startBin) * scaleFactor);
                     fw = (int) ((bin2 - bin1 + 1) * scaleFactor);
                     g2d.fillRect(xPixelLeft, fy, fw, fh);
                 }
-//
-//                // Tag transcription start with green
-//                if (feature instanceof BasicFeature) {
-//                    int b;
-//                    if (feature.getStrand() == Strand.POSITIVE) {
-//                        b = gridAxis.getBinNumberForGenomicPosition(((BasicFeature) feature).getThickStart());
-//                    } else {
-//                        b = gridAxis.getBinNumberForGenomicPosition(((BasicFeature) feature).getThickEnd());
-//                    }
-//                    int pixel = (int) ((b - startBin) * context.getScaleFactor());
-//                    int pw = (int) Math.max(1, context.getScaleFactor());
-//                    strGraphics.fillRect(pixel, fy, pw, fh);
-//                }
 
 
             }
 
-            // Name
-//            String name = feature.getName();
-//            int sw = (int) fm.getStringBounds(name, g2d).getWidth();
-//            int sx = (xPixelLeft + xPixelRight - sw) / 2;
-//            if (sx > lastNameX) {
-//                lastNameX = sx + sw;
-//                g2d.drawString(name, sx, y + height - 5);
-//            }
 
             strGraphics.dispose();
         }
+    }
+
+    private static double getFractionalBin(int position, double scaleFactor, HiCGridAxis gridAxis) {
+        double bin1 = gridAxis.getBinNumberForGenomicPosition(position);
+        // Fractional bin (important for "super-zoom")
+        if (scaleFactor > 1) {
+            double bw1 = gridAxis.getGenomicEnd(bin1) - gridAxis.getGenomicStart(bin1);
+            bin1 += (position - gridAxis.getGenomicStart(bin1)) / bw1;
+        }
+        return bin1;
     }
 
     @Override
