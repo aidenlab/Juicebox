@@ -69,8 +69,8 @@ public class TrackPanel extends JPanel {
 
     public void removeTrack(HiCTrack track) {
         hic.removeTrack(track);
-        invalidate();
-        mainWindow.invalidate();
+        mainWindow.revalidate();
+        //this.revalidate();
         mainWindow.repaint();
     }
 
