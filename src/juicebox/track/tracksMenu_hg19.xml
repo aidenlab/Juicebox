@@ -175,6 +175,19 @@
         <Resource trackLine='viewLimits=0:25' name="HUVEC Pol2(b)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneHuvecPol2bStdSig.wig.tdf"></Resource>
     </Category>
+    <Category trackLine='viewLimits=0:25' name="IMR90" version="1">
+        <Resource trackLine='viewLimits=0:25' name="IMR90 CEBPB"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90CebpbIggrabUniPk.narrowPeak.gz"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="IMR90 CTCF"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90CtcfbIggrabUniPk.narrowPeak.gz"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="IMR90 MAFK"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90MafkIggrabUniPk.narrowPeak.gz"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="IMR90 POLR2A"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90Pol2IggrabUniPk.narrowPeak.gz"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="IMR90 RAD21"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90Rad21IggrabUniPk.narrowPeak.gz"></Resource>
+
+    </Category>
     <Category trackLine='viewLimits=0:25' name="K562" version="1">
         <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=K562" scaleType=log' color="149,128,255"
                   name="K562 RNA-seq"
