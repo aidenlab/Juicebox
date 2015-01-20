@@ -775,8 +775,8 @@ public class Dataset {
         String key = chr.getName() + "_" + zoom.getKey() + "_" + number + "_" + type;
         if (!eigenvectorCache.containsKey(key)) {
 
-            double[] eigenvector;
-            eigenvector = reader.readEigenvector(chr.getName(), zoom, number, type.toString());
+            double[] eigenvector = null;
+            //eigenvector = reader.readEigenvector(chr.getName(), zoom, number, type.toString());
 
             if (eigenvector == null) {
                 ExpectedValueFunction df = getExpectedValues(zoom, type);

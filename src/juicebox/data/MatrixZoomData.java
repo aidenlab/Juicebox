@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author jrobinso
- * @date Aug 10, 2010
+ * @since Aug 10, 2010
  */
 public class MatrixZoomData {
 
@@ -58,7 +58,7 @@ public class MatrixZoomData {
     private final HiCZoom zoom;    // Unit and bin size
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
-    // Observed values are ogranized into sub-matrices ("blocks")
+    // Observed values are organized into sub-matrices ("blocks")
     private final int blockBinCount;   // block size in bins
     private final int blockColumnCount;     // number of block columns
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
@@ -77,10 +77,16 @@ public class MatrixZoomData {
 
 
     /**
-     * @param chr1
-     * @param chr2
-     * @return
-     * @throws IOException
+     * Constructor, sets the grid axes.  Called when read from file.
+     *
+     * @param chr1 Chromosome 1
+     * @param chr2 Chromosome 2
+     * @param zoom Zoom (bin size and BP or FRAG)
+     * @param blockBinCount  Number of bins divided by number of columns (around 1000)
+     * @param blockColumnCount Number of bins divided by 1000 (BLOCK_SIZE)
+     * @param chr1Sites Used for looking up fragment
+     * @param chr2Sites Used for looking up fragment
+     * @param reader Pointer to file reader
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
                           int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
@@ -102,14 +108,12 @@ public class MatrixZoomData {
             correctedBinCount = nBinsX / blockColumnCount + 1;
         }
 
-        int[] xSites = chr1Sites;
-        int[] ySites = chr2Sites;
         if (zoom.getUnit() == HiC.Unit.BP) {
-            this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), xSites);
-            this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), ySites);
+            this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr1Sites);
+            this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr2Sites);
         } else {
-            this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), xSites, chr1.getLength());
-            this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), ySites, chr2.getLength());
+            this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr1Sites, chr1.getLength());
+            this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr2Sites, chr2.getLength());
 
         }
 
@@ -166,8 +170,8 @@ public class MatrixZoomData {
      * @param binY1 leftmost position in "bins"
      * @param binX2 rightmost position in "bins"
      * @param binY2 bottom position in "bins"
-     * @param no
-     * @return
+     * @param no normalization type
+     * @return List of overlapping blocks, normalized
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
 
@@ -196,10 +200,7 @@ public class MatrixZoomData {
             }
         }
 
-
-        final List<String> errorStrings = new ArrayList<String>();
         final AtomicInteger errorCounter = new AtomicInteger();
-
 
         List<Thread> threads = new ArrayList<Thread>();
         for (final int blockNumber : blocksToLoad) {
@@ -217,7 +218,6 @@ public class MatrixZoomData {
                         }
                         blockList.add(b);
                     } catch (IOException e) {
-                        //errorStrings.add(e.getMessage());
                         errorCounter.incrementAndGet();
                     }
                 }
@@ -250,8 +250,9 @@ public class MatrixZoomData {
      * Return the observed value at the specified location.   Supports tooltip text
      * This implementation is naive, but might get away with it for tooltip.
      *
-     * @param binX
-     * @param binY
+     * @param binX  X bin
+     * @param binY Y bin
+     * @param normalizationType Normalization type
      */
     public float getObservedValue(int binX, int binY, NormalizationType normalizationType) {
 
@@ -309,12 +310,12 @@ public class MatrixZoomData {
 //        return 0;
 //    }
 
-   /* public boolean isPearsonAvailable(NormalizationType option) {
-
-
-    }*/
-
-
+    /**
+     * Computes eigenvector from Pearson's.
+     * @param df  Expected values, needed to get Pearson's
+     * @param which Which eigenvector; 0 is principal.
+     * @return Eigenvector
+     */
     public double[] computeEigenvector(ExpectedValueFunction df, int which) {
         BasicMatrix pearsons = getPearsons(df);
         if (pearsons == null) {
@@ -360,15 +361,24 @@ public class MatrixZoomData {
 
     }
 
+    /**
+     * Returns the Pearson's matrix; read if available (currently commented out), calculate if small enough.
+     *
+     * @param df Expected values
+     * @return Pearson's matrix or null if not able to calculate or read
+     */
     public BasicMatrix getPearsons(ExpectedValueFunction df) {
 
         BasicMatrix pearsons = pearsonsMap.get(df.getNormalizationType());
         if (pearsons == null && !missingPearsonFiles.contains(df.getNormalizationType())) {
+            /*
+            // We used to put precomputed Pearson's files in the directory with the appropriate key, but don't do
+            // that now.  If we ever decide to again, uncomment.
             try {
                 pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
             } catch (IOException e) {
                 log.error(e.getMessage());
-            }
+            }*/
             if (pearsons != null) {
                 pearsonsMap.put(df.getNormalizationType(), pearsons);
             } else {
@@ -382,10 +392,15 @@ public class MatrixZoomData {
         }
 
         return pearsonsMap.get(df.getNormalizationType());
-
     }
 
-
+    /**
+     * Returns Pearson value at given bin X and Y
+     * @param binX X bin
+     * @param binY Y bin
+     * @param type Normalization type
+     * @return Pearson's value at this location
+     */
     public float getPearsonValue(int binX, int binY, NormalizationType type) {
         BasicMatrix pearsons = pearsonsMap.get(type);
         if (pearsons != null) {
@@ -395,9 +410,13 @@ public class MatrixZoomData {
         }
     }
 
+    /**
+     * Compute the Pearson's.  Read in the observed, calculate O/E from the expected value function, subtract the row
+     * means, compute the Pearson's correlation on that matrix
+     * @param df Expected value
+     * @return Pearson's correlation matrix
+     */
     private BasicMatrix computePearsons(ExpectedValueFunction df) {
-
-
         if (chr1 != chr2) {
             throw new RuntimeException("Cannot compute pearsons for non-diagonal matrices");
         }
@@ -444,7 +463,6 @@ public class MatrixZoomData {
 
         }
 
-
         // Subtract row means
         double[] rowMeans = new double[dim];
         for (int i = 0; i < dim; i++) {
@@ -460,68 +478,17 @@ public class MatrixZoomData {
             }
         }
 
-
-//
-//        // Dump OE subtracted
-//        try {
-//            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("OE_new_subtracted.tab")));
-//            for (int i = 0; i < dim; i++) {
-//                double[] row = vectors[i];
-//                for (int j = 0; j < dim; j++) {
-//                    double value = row == null ? 0 : row[j];
-//                    pw.println(i + "\t" + j + "\t" + value);
-//                }
-//            }
-//            pw.close();
-//
-//            //   ScratchPad.dumpMatrix(pearsons, "Pearsons_sparse_rowmean.tab");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
         BasicMatrix pearsons = Pearsons.computePearsons(vectors, dim);
-
-//        // Dump Pearsons
-//        try {
-//            PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter("Pearsons_new.tab")));
-//            for (int i = 0; i < dim; i++) {
-//                for (int j = 0; j < dim; j++) {
-//                    pw.println(i + "\t" + j + "\t" + pearsons.getEntry(i, j));
-//                }
-//            }
-//            pw.close();
-//
-//            //   ScratchPad.dumpMatrix(pearsons, "Pearsons_sparse_rowmean.tab");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
         pearsonsMap.put(df.getNormalizationType(), pearsons);
-
 
         return pearsons;
     }
 
-    private boolean isZeros(double[] array) {
-        for (double anArray : array)
-            if (anArray != 0 && !Double.isNaN(anArray))
-                return false;
-        return true;
-    }
-
-    private double getVectorMean(RealVector vector) {
-        double sum = 0;
-        int count = 0;
-        int size = vector.getDimension();
-        for (int i = 0; i < size; i++) {
-            if (!Double.isNaN(vector.getEntry(i))) {
-                sum += vector.getEntry(i);
-                count++;
-            }
-        }
-        return sum / count;
-    }
-
+    /**
+     * Return the mean of the given vector, ignoring NaNs
+     * @param vector Vector to calculate the mean on
+     * @return The mean of the vector, not including NaNs.
+     */
     private double getVectorMean(double[] vector) {
         double sum = 0;
         int count = 0;
@@ -534,6 +501,9 @@ public class MatrixZoomData {
         return count == 0 ? 0 : sum / count;
     }
 
+    /**
+     *  Utility for printing description of this matrix.
+     */
     public void printDescription() {
         System.out.println("Chromosomes: " + chr1.getName() + " - " + chr2.getName());
         System.out.println("unit: " + zoom.getUnit());
@@ -550,6 +520,9 @@ public class MatrixZoomData {
      * Dump observed matrix to text
      *
      * @param printWriter Text output stream
+     * @param nv1 Normalization vector for X axis
+     * @param nv2 Normalization vector for Y axis
+     * @throws IOException If fail to write
      */
     public void dump(PrintWriter printWriter, double[] nv1, double[] nv2) throws IOException {
         // Get the block index keys, and sort
@@ -583,7 +556,9 @@ public class MatrixZoomData {
      * Dump observed matrix to binary.
      *
      * @param les Binary output stream
-     * @throws IOException
+     * @param nv1 Normalization vector for X axis
+     * @param nv2 Normalization vector for Y axis
+     * @throws IOException If fail to write
      */
     public void dump(LittleEndianOutputStream les, double[] nv1, double[] nv2) throws IOException {
 
@@ -622,6 +597,8 @@ public class MatrixZoomData {
      * @param df   Density function (expected values)
      * @param type will be "oe", "pearsons", or "expected"
      * @param les  output stream
+     * @param pw Text output stream
+     * @throws java.io.IOException If fails to write
      */
     public void dumpOE(ExpectedValueFunction df, String type, NormalizationType no, LittleEndianOutputStream les, PrintWriter pw) throws IOException {
         if (les == null && pw == null) {
@@ -712,29 +689,52 @@ public class MatrixZoomData {
         }
     }
 
+    /**
+     * Returns the average count
+     * @return Average count
+     */
     public double getAverageCount() {
         return averageCount;
     }
 
+    /**
+     * Sets the average count
+     * @param averageCount Average count to set
+     */
     public void setAverageCount(double averageCount) {
         this.averageCount = averageCount;
     }
 
+    /**
+     * Returns iterator for contact records
+     * @return  iterator for contact records
+     */
     public Iterator<ContactRecord> contactRecordIterator() {
         return new ContactRecordIterator();
     }
 
+    /**
+     * Class for iterating over the contact records
+     */
     public class ContactRecordIterator implements Iterator<ContactRecord> {
 
         final List<Integer> blockNumbers;
         int blockIdx;
         Iterator<ContactRecord> currentBlockIterator;
 
+        /**
+         * Initializes the iterator
+         */
         public ContactRecordIterator() {
             this.blockIdx = -1;
             this.blockNumbers = reader.getBlockNumbers(MatrixZoomData.this);
         }
 
+        /**
+         * Indicates whether or not there is another block waiting; checks current block
+         * iterator and creates a new one if need be
+         * @return true if there is another block to be read
+         */
         @Override
         public boolean hasNext() {
 
@@ -766,47 +766,22 @@ public class MatrixZoomData {
             return false;
         }
 
+        /**
+         * Returns the next contact record
+         * @return The next contact record
+         */
         @Override
         public ContactRecord next() {
             return currentBlockIterator == null ? null : currentBlockIterator.next();
         }
 
+        /**
+         * Not supported
+         */
         @Override
         public void remove() {
             //Not supported
             throw new RuntimeException("remove() is not supported");
         }
     }
-
-    private class GradientXFilter extends DefaultRealMatrixChangingVisitor {
-        double previousValue = Double.MAX_VALUE;
-
-        public double visit(int row, int column, double value) throws org.apache.commons.math.linear.MatrixVisitorException {
-            double newValue;
-            if (previousValue != Double.MAX_VALUE) {
-                newValue = (previousValue * -1 + value) / 2;
-            } else newValue = value;
-            previousValue = value;
-            return newValue;
-        }
-
-    }
-    /*     // Actually, this isn't smart, Gaussian filter
-    private class GaussianFilter extends DefaultRealMatrixChangingVisitor {
-        private double[][] filter = new double[5][5];
-
-        public GaussianFilter() {
-            super();
-            filter[0][0] = 0.0232; filter[0][1] = 0.0338; filter[0][2] = 0.0383; filter[0][3] = 0.0338; filter[0][4] = 0.0232;
-            filter[1][0] = 0.0338; filter[1][1] = 0.0492; filter[1][2] = 0.0558; filter[1][3] = 0.0492; filter[0][0] = 0.0338;
-            filter[2][0] = 0.0383; filter[2][1] = 0.0558; filter[2][2] = 0.0632; filter[2][3] = 0.0558; filter[0][0] = 0.0383;
-            filter[3][0] = 0.0338; filter[3][1] = 0.0492; filter[3][2] = 0.0558; filter[3][3] = 0.0492; filter[0][0] = 0.0338;
-            filter[4][0] = 0.0232; filter[4][1] = 0.0338; filter[4][2] = 0.0383; filter[4][3] = 0.0338; filter[0][0] = 0.0232;
-        public double visit(int row, int column, double value) throws org.apache.commons.math.linear.MatrixVisitorException {
-
-
-        }
-
-    }    */
-
 }
