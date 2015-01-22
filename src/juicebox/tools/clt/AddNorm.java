@@ -39,7 +39,7 @@ public class AddNorm extends JuiceboxCLT {
     private String file;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
         if (args.length < 2 || args.length > 3) {
             throw new IOException("1");
@@ -56,7 +56,7 @@ public class AddNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         if (useGenomeWideResolution)
             NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
         else

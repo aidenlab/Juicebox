@@ -52,7 +52,7 @@
     </Category>
     <Category name="GM12878" version="1">
         <Resource color="255,128,128" name="GM12878 CTCF Orientation"
-                  path="http://hicfiles.s3.amazonaws.com/external/GM12878_CTCF_orientation.bed" />
+                  path="http://hicfiles.s3.amazonaws.com/external/GM12878_CTCF_orientation.bed"/>
         <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=GM12878" scaleType=log' color="255,128,128"
                   name="GM12878 RNA-seq"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/regTxn/wgEncodeRegTxnCaltechRnaSeqGm12878R2x75Il200SigPooled.wig.tdf"/>

@@ -39,7 +39,7 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox pre <options> <infile> <outfile> <genomeID>");
         String genomeId = "";
         try {
@@ -74,7 +74,7 @@ public class PreProcessing extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         preprocessor.preprocess(inputFile);
     }
 }

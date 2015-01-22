@@ -36,8 +36,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
-import org.broad.igv.renderer.GraphicUtils;
-import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
@@ -118,7 +116,7 @@ public class HeatmapRenderer {
 
             List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
             if (blocks == null) {
-                 return false;
+                return false;
             }
 
             boolean hasControl = controlZD != null && (displayOption == MatrixType.CONTROL || displayOption == MatrixType.RATIO);

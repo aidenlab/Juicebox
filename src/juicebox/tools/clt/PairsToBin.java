@@ -36,7 +36,7 @@ public class PairsToBin extends JuiceboxCLT {
     private String ifile, ofile, genomeId;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox pairsToBin <infile> <outfile> <genomeID>");
         if (args.length != 4) {
             throw new IOException("1");
@@ -47,7 +47,7 @@ public class PairsToBin extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         List<Chromosome> chromosomes = CommonTools.loadChromosomes(genomeId);
         AsciiToBinConverter.convert(ifile, ofile, chromosomes);
     }

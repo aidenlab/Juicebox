@@ -38,68 +38,67 @@ import java.util.List;
 /**
  * Created by nchernia on 1/9/15.
  */
-public class Arrowhead extends JuiceboxCLT{
+public class Arrowhead extends JuiceboxCLT {
 
- String file;
- int resolution = -100;
+    String file;
+    int resolution = -100;
 
- @Override
- public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-  setUsage("juicebox arrowhead hicFile resolution");
-  if (args.length != 2) {
-   throw new IOException("1");
-  }
-  file = args[1];
-  try {
-   resolution = Integer.valueOf(args[2]);
-  }
-  catch (NumberFormatException error) {
-   throw new IOException("1");
-  }
- }
+    @Override
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+        setUsage("juicebox arrowhead hicFile resolution");
+        if (args.length != 2) {
+            throw new IOException("1");
+        }
+        file = args[1];
+        try {
+            resolution = Integer.valueOf(args[2]);
+        } catch (NumberFormatException error) {
+            throw new IOException("1");
+        }
+    }
 
- @Override
- public void run() throws IOException {
+    @Override
+    public void run() throws IOException {
 
-  System.err.println("This method is not currently implemented.");
-  System.exit(1);
-
-
-  // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
-  DatasetReaderV2 reader = new DatasetReaderV2(file);
+        System.err.println("This method is not currently implemented.");
+        System.exit(1);
 
 
-  Dataset ds = reader.read();
+        // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
+        DatasetReaderV2 reader = new DatasetReaderV2(file);
 
-  if (reader.getVersion() < 5) {
-   throw new RuntimeException("This file is version " + reader.getVersion() +
-           ". Only versions 5 and greater are supported at this time.");
-  }
 
-  // Should possibly check for KR, if doesn't have it, exit.
+        Dataset ds = reader.read();
 
-  // For each chromosome, launches blockbuster_sub_list.sh res file chr
-  // then concatenates them together.
+        if (reader.getVersion() < 5) {
+            throw new RuntimeException("This file is version " + reader.getVersion() +
+                    ". Only versions 5 and greater are supported at this time.");
+        }
 
-  //   will need to deal with getting corner scores for lists, possibly different function?
-  // First calls arrowhead with 1-2000, 1000-3000, etc. sized matrices.
-  List<Chromosome> chromosomes = ds.getChromosomes();
+        // Should possibly check for KR, if doesn't have it, exit.
 
-  // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
-  HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
+        // For each chromosome, launches blockbuster_sub_list.sh res file chr
+        // then concatenates them together.
 
-  for (Chromosome chr : chromosomes) {
-   if (chr.getName().equals(Globals.CHR_ALL)) continue;
+        //   will need to deal with getting corner scores for lists, possibly different function?
+        // First calls arrowhead with 1-2000, 1000-3000, etc. sized matrices.
+        List<Chromosome> chromosomes = ds.getChromosomes();
 
-   Matrix matrix = ds.getMatrix(chr, chr);
+        // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
+        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-   if (matrix == null) continue;
-   MatrixZoomData zd = matrix.getZoomData(zoom);
-   // M 1000 0.4
-   int maxSize = (int)Math.ceil(chr.getLength() / (double)zoom.getBinSize());
-   for (int i=0; i<maxSize; i+=1000) {
-    List<Block> blockList = zd.getNormalizedBlocksOverlapping(i, i, i + 2000, i + 2000, NormalizationType.KR);
-    // For block list, make a matrix and fill it out.  Not sure what to use yet though.  Not sparse, in any event.
+        for (Chromosome chr : chromosomes) {
+            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+
+            Matrix matrix = ds.getMatrix(chr, chr);
+
+            if (matrix == null) continue;
+            MatrixZoomData zd = matrix.getZoomData(zoom);
+            // M 1000 0.4
+            int maxSize = (int) Math.ceil(chr.getLength() / (double) zoom.getBinSize());
+            for (int i = 0; i < maxSize; i += 1000) {
+                List<Block> blockList = zd.getNormalizedBlocksOverlapping(i, i, i + 2000, i + 2000, NormalizationType.KR);
+                // For block list, make a matrix and fill it out.  Not sure what to use yet though.  Not sparse, in any event.
                 /*
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
@@ -107,12 +106,11 @@ public class Arrowhead extends JuiceboxCLT{
                         int x = rec.getBinX();
                         int y = rec.getBinY();
                         */
-   }
+            }
 
 
-  }
- }
-
+        }
+    }
 
 
 /**

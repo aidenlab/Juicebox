@@ -61,7 +61,7 @@ public class Arrowhead {
         // For each chromosome, launches blockbuster_sub_list.sh res file chr
         // then concatenates them together.
 
-    //   will need to deal with getting corner scores for lists, possibly different function?
+        //   will need to deal with getting corner scores for lists, possibly different function?
         // First calls arrowhead with 1-2000, 1000-3000, etc. sized matrices.
         List<Chromosome> chromosomes = ds.getChromosomes();
 
@@ -76,8 +76,8 @@ public class Arrowhead {
             if (matrix == null) continue;
             MatrixZoomData zd = matrix.getZoomData(zoom);
             // M 1000 0.4
-            int maxSize = (int)Math.ceil(chr.getLength() / (double)zoom.getBinSize());
-            for (int i=0; i<maxSize; i+=1000) {
+            int maxSize = (int) Math.ceil(chr.getLength() / (double) zoom.getBinSize());
+            for (int i = 0; i < maxSize; i += 1000) {
                 List<Block> blockList = zd.getNormalizedBlocksOverlapping(i, i, i + 2000, i + 2000, NormalizationType.KR);
                 // For block list, make a matrix and fill it out.  Not sure what to use yet though.  Not sparse, in any event.
                 /*

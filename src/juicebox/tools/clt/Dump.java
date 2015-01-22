@@ -58,7 +58,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
 
         //juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]")
 
@@ -79,7 +79,7 @@ public class Dump extends JuiceboxCLT {
 
         if (!args[3].endsWith("hic")) {
             System.err.println("Only 'hic' files are supported");
-           throw new IOException("-1");
+            throw new IOException("-1");
         }
 
         int idx = 3;
@@ -135,7 +135,6 @@ public class Dump extends JuiceboxCLT {
         }
 
 
-
         try {
             unit = HiC.Unit.valueOf(args[idx + 2]);
         } catch (IllegalArgumentException error) {
@@ -160,8 +159,7 @@ public class Dump extends JuiceboxCLT {
             if (args.length == idx + 5) {
                 includeIntra = true;
             }
-        }
-        else if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
+        } else if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
 
             if (args.length == idx + 5) {
                 ofile = args[idx + 4];
@@ -170,9 +168,8 @@ public class Dump extends JuiceboxCLT {
     }
 
 
-
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         HiCZoom zoom = new HiCZoom(unit, binSize);
 
         //*****************************************************
@@ -356,7 +353,6 @@ public class Dump extends JuiceboxCLT {
         pw.flush();
         pw.close();
     }
-
 
 
     /**

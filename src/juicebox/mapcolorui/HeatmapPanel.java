@@ -250,7 +250,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<Chromosome> chromosomes = hic.getChromosomes();
                 // Index 0 is whole genome
                 int xGenomeCoord = 0;
-                int x=0;
+                int x = 0;
                 for (int i = 1; i < chromosomes.size(); i++) {
                     Chromosome c = chromosomes.get(i);
                     xGenomeCoord += (c.getLength() / 1000);
@@ -260,9 +260,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
 
-
                 int yGenomeCoord = 0;
-                int y=0;
+                int y = 0;
                 for (int i = 1; i < chromosomes.size(); i++) {
                     Chromosome c = chromosomes.get(i);
                     yGenomeCoord += (c.getLength() / 1000);
@@ -272,11 +271,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
                 g.setColor(color);
-                
+
                 //Cover gray background for the empty parts of the matrix:
                 g.setColor(Color.white);
                 g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
-                g.fillRect(0,getTickWidth(g),getHeight(),getWidth());
+                g.fillRect(0, getTickWidth(g), getHeight(), getWidth());
                 g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
             }
 
@@ -957,7 +956,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
-        private void unsafeDragging(){
+        private void unsafeDragging() {
             final double scaleFactor1 = hic.getScaleFactor();
             double binX = hic.getXContext().getBinOrigin() + (zoomRectangle.x / scaleFactor1);
             double binY = hic.getYContext().getBinOrigin() + (zoomRectangle.y / scaleFactor1);
@@ -1039,7 +1038,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         }
 
-        private void unsafeMouseClickSubActionA(final MouseEvent eF){
+        private void unsafeMouseClickSubActionA(final MouseEvent eF) {
             double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
             double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
@@ -1067,7 +1066,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             mainWindow.updateThumbnail();
         }
 
-        private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom){
+        private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
             final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
             final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 

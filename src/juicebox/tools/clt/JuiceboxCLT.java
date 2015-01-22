@@ -40,15 +40,15 @@ public abstract class JuiceboxCLT {
 
     public abstract void run() throws IOException;
 
-    void setUsage(String usage){
+    void setUsage(String usage) {
         this.usage = usage;
     }
 
-    public String getUsage(String usage){
+    public String getUsage(String usage) {
         return usage;
     }
 
-    public void printUsage(){
-        System.out.println("Usage:   "+usage);
+    public void printUsage() {
+        System.out.println("Usage:   " + usage);
     }
 }

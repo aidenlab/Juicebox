@@ -94,7 +94,7 @@ public class HiCTrackManager {
         mainWindow.updateTrackPanel();
     }
 
-    public void safeTrackLoad(final List<ResourceLocator> locators){
+    public void safeTrackLoad(final List<ResourceLocator> locators) {
         Runnable runnable = new Runnable() {
             public void run() {
                 unsafeLoad(locators);

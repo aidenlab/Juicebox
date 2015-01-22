@@ -35,7 +35,7 @@ public class CalcKR extends JuiceboxCLT {
     private String infile = null;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox calcKR <infile>");
         if (!(args.length == 2)) {
             throw new IOException("1");
@@ -44,7 +44,7 @@ public class CalcKR extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         NormalizationCalculations.calcKR(infile);
     }
 }

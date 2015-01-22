@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.tools.HiCDBUtils;
 import juicebox.tools.HiCTools;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -41,7 +42,7 @@ public class SQLDatabase extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
 
         try {
             HiCDBUtils.main(dbArgs);
@@ -49,8 +50,7 @@ public class SQLDatabase extends JuiceboxCLT {
             System.err.println("Sql exception: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             throw new IOException("-1");
         }

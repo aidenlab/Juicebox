@@ -35,7 +35,10 @@ import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.commons.math.linear.*;
+import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.EigenDecompositionImpl;
+import org.apache.commons.math.linear.RealMatrix;
+import org.apache.commons.math.linear.RealVector;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
@@ -79,14 +82,14 @@ public class MatrixZoomData {
     /**
      * Constructor, sets the grid axes.  Called when read from file.
      *
-     * @param chr1 Chromosome 1
-     * @param chr2 Chromosome 2
-     * @param zoom Zoom (bin size and BP or FRAG)
-     * @param blockBinCount  Number of bins divided by number of columns (around 1000)
+     * @param chr1             Chromosome 1
+     * @param chr2             Chromosome 2
+     * @param zoom             Zoom (bin size and BP or FRAG)
+     * @param blockBinCount    Number of bins divided by number of columns (around 1000)
      * @param blockColumnCount Number of bins divided by 1000 (BLOCK_SIZE)
-     * @param chr1Sites Used for looking up fragment
-     * @param chr2Sites Used for looking up fragment
-     * @param reader Pointer to file reader
+     * @param chr1Sites        Used for looking up fragment
+     * @param chr2Sites        Used for looking up fragment
+     * @param reader           Pointer to file reader
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
                           int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
@@ -170,7 +173,7 @@ public class MatrixZoomData {
      * @param binY1 leftmost position in "bins"
      * @param binX2 rightmost position in "bins"
      * @param binY2 bottom position in "bins"
-     * @param no normalization type
+     * @param no    normalization type
      * @return List of overlapping blocks, normalized
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
@@ -250,8 +253,8 @@ public class MatrixZoomData {
      * Return the observed value at the specified location.   Supports tooltip text
      * This implementation is naive, but might get away with it for tooltip.
      *
-     * @param binX  X bin
-     * @param binY Y bin
+     * @param binX              X bin
+     * @param binY              Y bin
      * @param normalizationType Normalization type
      */
     public float getObservedValue(int binX, int binY, NormalizationType normalizationType) {
@@ -312,7 +315,8 @@ public class MatrixZoomData {
 
     /**
      * Computes eigenvector from Pearson's.
-     * @param df  Expected values, needed to get Pearson's
+     *
+     * @param df    Expected values, needed to get Pearson's
      * @param which Which eigenvector; 0 is principal.
      * @return Eigenvector
      */
@@ -396,6 +400,7 @@ public class MatrixZoomData {
 
     /**
      * Returns Pearson value at given bin X and Y
+     *
      * @param binX X bin
      * @param binY Y bin
      * @param type Normalization type
@@ -413,6 +418,7 @@ public class MatrixZoomData {
     /**
      * Compute the Pearson's.  Read in the observed, calculate O/E from the expected value function, subtract the row
      * means, compute the Pearson's correlation on that matrix
+     *
      * @param df Expected value
      * @return Pearson's correlation matrix
      */
@@ -486,6 +492,7 @@ public class MatrixZoomData {
 
     /**
      * Return the mean of the given vector, ignoring NaNs
+     *
      * @param vector Vector to calculate the mean on
      * @return The mean of the vector, not including NaNs.
      */
@@ -502,7 +509,7 @@ public class MatrixZoomData {
     }
 
     /**
-     *  Utility for printing description of this matrix.
+     * Utility for printing description of this matrix.
      */
     public void printDescription() {
         System.out.println("Chromosomes: " + chr1.getName() + " - " + chr2.getName());
@@ -520,8 +527,8 @@ public class MatrixZoomData {
      * Dump observed matrix to text
      *
      * @param printWriter Text output stream
-     * @param nv1 Normalization vector for X axis
-     * @param nv2 Normalization vector for Y axis
+     * @param nv1         Normalization vector for X axis
+     * @param nv2         Normalization vector for Y axis
      * @throws IOException If fail to write
      */
     public void dump(PrintWriter printWriter, double[] nv1, double[] nv2) throws IOException {
@@ -597,7 +604,7 @@ public class MatrixZoomData {
      * @param df   Density function (expected values)
      * @param type will be "oe", "pearsons", or "expected"
      * @param les  output stream
-     * @param pw Text output stream
+     * @param pw   Text output stream
      * @throws java.io.IOException If fails to write
      */
     public void dumpOE(ExpectedValueFunction df, String type, NormalizationType no, LittleEndianOutputStream les, PrintWriter pw) throws IOException {
@@ -691,6 +698,7 @@ public class MatrixZoomData {
 
     /**
      * Returns the average count
+     *
      * @return Average count
      */
     public double getAverageCount() {
@@ -699,6 +707,7 @@ public class MatrixZoomData {
 
     /**
      * Sets the average count
+     *
      * @param averageCount Average count to set
      */
     public void setAverageCount(double averageCount) {
@@ -707,7 +716,8 @@ public class MatrixZoomData {
 
     /**
      * Returns iterator for contact records
-     * @return  iterator for contact records
+     *
+     * @return iterator for contact records
      */
     public Iterator<ContactRecord> contactRecordIterator() {
         return new ContactRecordIterator();
@@ -733,6 +743,7 @@ public class MatrixZoomData {
         /**
          * Indicates whether or not there is another block waiting; checks current block
          * iterator and creates a new one if need be
+         *
          * @return true if there is another block to be read
          */
         @Override
@@ -768,6 +779,7 @@ public class MatrixZoomData {
 
         /**
          * Returns the next contact record
+         *
          * @return The next contact record
          */
         @Override

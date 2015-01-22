@@ -35,7 +35,7 @@ public class BinToPairs extends JuiceboxCLT {
     private String ifile, ofile;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox binToPairs <infile> <outfile>");
 
         if (args.length != 3) {
@@ -46,7 +46,7 @@ public class BinToPairs extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         AsciiToBinConverter.convertBack(ifile, ofile);
     }
 }

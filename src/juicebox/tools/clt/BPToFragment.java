@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 
-public class BPToFragment extends JuiceboxCLT{
+public class BPToFragment extends JuiceboxCLT {
 
     private String fragFile, inputBedFile, outputFile;
 

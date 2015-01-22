@@ -25,9 +25,9 @@
 package juicebox.track;
 
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Map;
-import java.text.*;
 
 /**
  * chr1	x1	x2	chr2	y1	y2	color	observed	bl expected	donut expected	bl fdr	donut fdr
@@ -100,7 +100,6 @@ public class Feature2D {
         StringBuilder txt = new StringBuilder();
 
 
-
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(featureName);
         txt.append("</span><br>");
@@ -123,8 +122,7 @@ public class Feature2D {
 
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             String tmpKey = entry.getKey();
-            if(!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3")||tmpKey.equals("f4")||tmpKey.equals("f5")))
-            {
+            if (!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3") || tmpKey.equals("f4") || tmpKey.equals("f5"))) {
                 txt.append("<br>");
                 txt.append("<span style='font-family: arial; font-size: 12pt;'>");
                 txt.append(tmpKey);

@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
 import juicebox.tools.NormalizationVectorUpdater;
+
 import java.io.IOException;
 
 
@@ -35,7 +36,7 @@ public class AddGWNorm extends JuiceboxCLT {
     private int genomeWideResolution = -100;
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
         if (args.length != 3) {
             throw new IOException("1");
@@ -50,7 +51,7 @@ public class AddGWNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
     }
 }

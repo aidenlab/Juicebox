@@ -41,7 +41,6 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 
@@ -342,7 +341,7 @@ public class MainWindow extends JFrame {
         initialZoom = null;
     }
 
-    public void safeLoad(final List<String> files, final boolean control){
+    public void safeLoad(final List<String> files, final boolean control) {
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
@@ -363,7 +362,7 @@ public class MainWindow extends JFrame {
         executeLongRunningTask(runnable, "MainWindow safe load");
     }
 
-    private void unsafeload(final List<String> files, final boolean control) throws IOException{
+    private void unsafeload(final List<String> files, final boolean control) throws IOException {
 
         String file = files.get(0);
 
@@ -698,7 +697,6 @@ public class MainWindow extends JFrame {
     }
 
 
-
     private void clearLocationActionPerformed() {
         Preferences prefs = Preferences.userNodeForPackage(Globals.class);
         for (int i = 0; i < recentLocationMaxItems; i++) {
@@ -793,7 +791,7 @@ public class MainWindow extends JFrame {
                 unsafeNormalizationComboBoxActionPerformed(e);
             }
         };
-        executeLongRunningTask(runnable,"Normalization ComboBox");
+        executeLongRunningTask(runnable, "Normalization ComboBox");
     }
 
     private void unsafeNormalizationComboBoxActionPerformed(ActionEvent e) {
@@ -844,6 +842,7 @@ public class MainWindow extends JFrame {
     }
 
     int i = 0, j = 0;
+
     private void showDisabledGlassPane(String caller) {
         //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
@@ -852,7 +851,7 @@ public class MainWindow extends JFrame {
         // TODO MSS glass pane debugging
         try {
             Thread.sleep(50);                 //1000 milliseconds is one second.
-        } catch(InterruptedException ex) {
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
     }
@@ -1139,7 +1138,7 @@ public class MainWindow extends JFrame {
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
-        bigPanel.add(hiCPanel,BorderLayout.CENTER);
+        bigPanel.add(hiCPanel, BorderLayout.CENTER);
 
         JPanel wrapGapPanel = new JPanel();
         wrapGapPanel.setBackground(Color.white);
@@ -1148,7 +1147,6 @@ public class MainWindow extends JFrame {
         wrapGapPanel.setPreferredSize(new Dimension(5, 5));
         wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
         bigPanel.add(wrapGapPanel, BorderLayout.EAST);
-
 
 
         // splitPanel.insertPane(hiCPanel, 0);
@@ -1206,7 +1204,6 @@ public class MainWindow extends JFrame {
         int panelHeight = screenSize.height - taskBarSize - getHeight();
 
 
-
         System.err.println("Window W: " + panelWidth + " H" + panelHeight);
 
         JPanel wrapHeatmapPanel = new JPanel(new BorderLayout());
@@ -1217,9 +1214,9 @@ public class MainWindow extends JFrame {
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setMaximumSize(new Dimension(panelWidth-5, panelHeight-5));
-        heatmapPanel.setMinimumSize(new Dimension(panelWidth-5, panelHeight-5));
-        heatmapPanel.setPreferredSize(new Dimension(panelWidth-5, panelHeight-5));
+        heatmapPanel.setMaximumSize(new Dimension(panelWidth - 5, panelHeight - 5));
+        heatmapPanel.setMinimumSize(new Dimension(panelWidth - 5, panelHeight - 5));
+        heatmapPanel.setPreferredSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setBackground(Color.white);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
@@ -1268,7 +1265,7 @@ public class MainWindow extends JFrame {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                if(colorRangeSlider.isEnabled()) {
+                if (colorRangeSlider.isEnabled()) {
                     original = e.getComponent().getFont();
                     Map attributes = original.getAttributes();
                     attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
@@ -1309,7 +1306,8 @@ public class MainWindow extends JFrame {
                         setColorRangeSliderVisible(false);
                         ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
                         rangeDialog.setVisible(true);
-                    }}
+                    }
+                }
             }
         });
         JPanel colorLabelPanel = new JPanel();
@@ -1563,7 +1561,7 @@ public class MainWindow extends JFrame {
         initProperties();
     }
 
-    public void initProperties(){
+    public void initProperties() {
         try {
             String url = System.getProperty("jnlp.loadMenu");
             if (url == null) {
@@ -1719,57 +1717,45 @@ public class MainWindow extends JFrame {
         }
 
         //Read resolution:
-        if (topChrTokens.length > 3  || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
-            if(topDashChrTokens.length == 1)
-            {
+        if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
+            if (topDashChrTokens.length == 1) {
                 outBinSize = hic.validteBinSize(topChrTokens[2].toLowerCase());
-                if(outBinSize != null && topChrTokens[2].toLowerCase().contains("f")){
+                if (outBinSize != null && topChrTokens[2].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                }
-                else{
+                } else {
                     positionChrTop.setBackground(Color.yellow);
                     return;
                 }
-            }
-            else if (topChrTokens.length > 3)
-            {
+            } else if (topChrTokens.length > 3) {
                 outBinSize = hic.validteBinSize(topChrTokens[3].toLowerCase());
-                if(outBinSize != null && topChrTokens[3].toLowerCase().contains("f")){
+                if (outBinSize != null && topChrTokens[3].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                }
-                else if (outBinSize == null)
-                {
+                } else if (outBinSize == null) {
                     positionChrTop.setBackground(Color.yellow);
                     return;
                 }
             }
-        } else if (leftChrTokens.length > 3  || (leftDashChrTokens.length == 1  && leftChrTokens.length > 2)) {
-            if(leftDashChrTokens.length == 1)
-            {
+        } else if (leftChrTokens.length > 3 || (leftDashChrTokens.length == 1 && leftChrTokens.length > 2)) {
+            if (leftDashChrTokens.length == 1) {
                 outBinSize = hic.validteBinSize(leftChrTokens[2].toLowerCase());
-                if(outBinSize != null && leftChrTokens[2].toLowerCase().contains("f")){
+                if (outBinSize != null && leftChrTokens[2].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                }
-                else if (outBinSize == null)
-                {
+                } else if (outBinSize == null) {
                     positionChrLeft.setBackground(Color.yellow);
                     return;
                 }
-            }
-            else if (leftChrTokens.length > 3)
-            {
+            } else if (leftChrTokens.length > 3) {
                 outBinSize = hic.validteBinSize(leftChrTokens[3].toLowerCase());
-                if(outBinSize != null && leftChrTokens[3].toLowerCase().contains("f")){
+                if (outBinSize != null && leftChrTokens[3].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                }
-                else{
+                } else {
                     positionChrLeft.setBackground(Color.yellow);
                     return;
                 }
             }
         } else if (hic.getZoom().getBinSize() != 0) {
             outBinSize = hic.validteBinSize(String.valueOf(hic.getZoom().getBinSize()));
-            if(outBinSize != null) {
+            if (outBinSize != null) {
                 resolutionUnits = hic.getZoom().getUnit().toString();
             }
         }
@@ -1777,7 +1763,7 @@ public class MainWindow extends JFrame {
         positionChrTop.setBackground(Color.white);
         positionChrLeft.setBackground(Color.white);
 
-        if(outBinSize == null) {
+        if (outBinSize == null) {
             // If bin size is not valid, set to max bin size:
             outBinSize = 250000;
         }
@@ -1843,15 +1829,13 @@ public class MainWindow extends JFrame {
 
     }
 
-    public void setColorRangeSliderVisible(boolean state)
-    {
+    public void setColorRangeSliderVisible(boolean state) {
         plusButton.setEnabled(state);
         minusButton.setEnabled(state);
         colorRangeSlider.setEnabled(state);
-        if(state){
+        if (state) {
             colorRangeLabel.setForeground(Color.BLUE);
-        }
-        else {
+        } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
     }
@@ -1902,7 +1886,6 @@ public class MainWindow extends JFrame {
         fileMenu.add(recentMapMenu);
 
 
-
         fileMenu.addSeparator();
 
         JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
@@ -1933,10 +1916,6 @@ public class MainWindow extends JFrame {
         fileMenu.add(saveToImage);
 
 
-
-
-
-
         if (!HiCGlobals.isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
@@ -1962,7 +1941,7 @@ public class MainWindow extends JFrame {
                 JPanel iconPanel = new JPanel(new GridBagLayout());
                 iconPanel.add(iconLabel);
 
-                JPanel textPanel= new JPanel(new GridLayout(0, 1));
+                JPanel textPanel = new JPanel(new GridLayout(0, 1));
                 textPanel.add(new JLabel("<html><center>" +
                         "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
                         "Juicebox: Visualization software for Hi-C data" +
@@ -1975,7 +1954,7 @@ public class MainWindow extends JFrame {
                         "Copyright © 2014. Broad Institute and Aiden Lab" +
                         "<br><br>" +
                         "If you use Juicebox in your research, please cite:<br><br>" +
-                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>"+
+                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
                         "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
                         "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
                         "* contributed equally" +

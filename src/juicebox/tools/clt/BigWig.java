@@ -60,7 +60,7 @@ public class BigWig extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException{
+    public void run() throws IOException {
         if (version == 0)
             BigWigUtils.computeBins(path, windowSize);
         else if (version == 1)

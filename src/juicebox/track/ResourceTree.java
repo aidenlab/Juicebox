@@ -407,8 +407,6 @@ public class ResourceTree {
         }
 
 
-
-
         locator = new ResourceLocator("Eigenvector");
         locator.setType("eigenvector");
         locator.setName("Eigenvector");
@@ -524,8 +522,6 @@ public class ResourceTree {
         resource.setEnabled(dialogTree.isEnabled());
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
-
-
 
 
         ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(externalFeatureRoot);

@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 /**
  * @author Jim Robinson
  * @date 9/16/11
- *
+ * <p/>
  * TODO - finish testing that the new CLT file (HiCTools) works identically to this one in terms of outputs
  * TODO - then delete this file. Also clean up the folder. All .sizes file should be in a single package,
  * TODO - not scattered with java files. Also some the helper classes can likely be added to the appropriate
@@ -208,8 +208,7 @@ public class HiCToolsOLD {
             int resolution = -100;
             try {
                 resolution = Integer.valueOf(args[2]);
-            }
-            catch (NumberFormatException error) {
+            } catch (NumberFormatException error) {
                 System.err.println("Usage: juicebox arrowhead hicFile resolution");
                 System.exit(1);
             }

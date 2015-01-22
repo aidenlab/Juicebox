@@ -45,7 +45,7 @@ public class APA extends JuiceboxCLT {
         }
         files = new String[args.length - 4];
 
-     System.arraycopy(args, 4, files, 0, files.length);
+        System.arraycopy(args, 4, files, 0, files.length);
 
         bounds = new double[2];
 

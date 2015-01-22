@@ -563,12 +563,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                 byte[] buffer;
 
-                try{
+                try {
                     buffer = compressionUtils.decompress(compressedBytes);
 
-                }
-                catch(Exception e)
-                {
+                } catch (Exception e) {
                     throw new RuntimeException("Block read error: " + e.getMessage());
                 }
 
@@ -721,7 +719,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int nValues = dis.readInt();
         double[] values = new double[nValues];
-        boolean allNaN=true;
+        boolean allNaN = true;
         for (int i = 0; i < nValues; i++) {
             values[i] = dis.readDouble();
             if (!Double.isNaN(values[i])) {
