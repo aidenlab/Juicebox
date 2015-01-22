@@ -217,7 +217,9 @@ public class HiCDBUtils {
 
 
         } finally {
+            assert dbConnection != null;
             dbConnection.close();
+            assert fragmentReader != null;
             fragmentReader.close();
         }
     }
@@ -330,7 +332,7 @@ public class HiCDBUtils {
         try {
 
             dbConnection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            return dbConnection;
+            //return dbConnection;
 
         } catch (SQLException e) {
 

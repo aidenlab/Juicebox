@@ -72,6 +72,7 @@ public class FragmentCalculation {
             is = new FileInputStream(file);
             return readFragments(is);
         } finally {
+            assert is != null;
             is.close();
         }
 
