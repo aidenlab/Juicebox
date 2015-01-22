@@ -40,7 +40,7 @@ public abstract class JuiceboxCLT {
 
     public abstract void run() throws IOException;
 
-    public void setUsage(String usage){
+    void setUsage(String usage){
         this.usage = usage;
     }
 

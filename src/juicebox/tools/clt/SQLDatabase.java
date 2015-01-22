@@ -29,12 +29,9 @@ import juicebox.tools.HiCTools;
 import java.io.IOException;
 import java.sql.SQLException;
 
-/**
- * Created by muhammadsaadshamim on 1/21/15.
- */
 public class SQLDatabase extends JuiceboxCLT {
 
-    String[] dbArgs;
+    private String[] dbArgs;
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {

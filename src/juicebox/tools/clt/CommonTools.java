@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 
-public class CommonTools {
+class CommonTools {
     /**
      * Load chromosomes from given ID or file name.
      *

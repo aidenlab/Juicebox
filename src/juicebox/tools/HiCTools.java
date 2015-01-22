@@ -104,13 +104,11 @@ public class HiCTools {
             "hiccups", "juicebox.tools.clt.HiCCUPS"
     };
 
-    private static Map<String, String> argToClass;
-
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        argToClass = new HashMap<String, String>();
+        Map<String, String> argToClass = new HashMap<String, String>();
         for(int i = 0; i < nameToCommandLineTool.length; i +=2){
-            argToClass.put(nameToCommandLineTool[i].toLowerCase(), nameToCommandLineTool[i+1]);
+            argToClass.put(nameToCommandLineTool[i].toLowerCase(), nameToCommandLineTool[i + 1]);
         }
 
         Globals.setHeadless(true);

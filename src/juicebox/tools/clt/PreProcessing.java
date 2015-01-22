@@ -32,21 +32,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by muhammadsaadshamim on 1/20/15.
- */
 public class PreProcessing extends JuiceboxCLT {
 
-    private String genomeId = "";
-    private List<Chromosome> chromosomes;
     private long genomeLength = 0;
-    private String inputFile, outputFile;
-    private String tmpDir;
+    private String inputFile;
     private Preprocessor preprocessor;
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException{
         setUsage("juicebox pre <options> <infile> <outfile> <genomeID>");
+        String genomeId = "";
         try {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -54,7 +49,7 @@ public class PreProcessing extends JuiceboxCLT {
             throw new IOException("1");
         }
 
-        chromosomes = CommonTools.loadChromosomes(genomeId);
+        List<Chromosome> chromosomes = CommonTools.loadChromosomes(genomeId);
 
         for (Chromosome c : chromosomes) {
             if (c != null)
@@ -63,8 +58,8 @@ public class PreProcessing extends JuiceboxCLT {
         chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
 
         inputFile = args[1];
-        outputFile = args[2];
-        tmpDir = parser.getTmpdirOption();
+        String outputFile = args[2];
+        String tmpDir = parser.getTmpdirOption();
 
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromosomes);
         preprocessor.setIncludedChromosomes(parser.getChromosomeOption());

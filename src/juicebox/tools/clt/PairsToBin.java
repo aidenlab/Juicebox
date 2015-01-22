@@ -31,9 +31,6 @@ import org.broad.igv.feature.Chromosome;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by muhammadsaadshamim on 1/20/15.
- */
 public class PairsToBin extends JuiceboxCLT {
 
     private String ifile, ofile, genomeId;

@@ -47,13 +47,14 @@ public class Dump extends JuiceboxCLT {
     private HiC.Unit unit = null;
     private NormalizationType norm = null;
 
-    private List<String> files = new ArrayList<String>();
+    private final List<String> files = new ArrayList<String>();
     private String chr1, chr2;
     private Dataset dataset = null;
     private List<Chromosome> chromosomeList;
     private Map<String, Chromosome> chromosomeMap;
     private int binSize = 0;
-    private String binSizeSt, type, ofile = null;
+    private String type;
+    private String ofile = null;
     private boolean includeIntra = false;
 
     @Override
@@ -142,7 +143,7 @@ public class Dump extends JuiceboxCLT {
             throw new IOException("1");
         }
 
-        binSizeSt = args[idx + 3];
+        String binSizeSt = args[idx + 3];
 
         try {
             binSize = Integer.parseInt(binSizeSt);
