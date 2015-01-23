@@ -36,7 +36,7 @@ public class SQLDatabase extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox db <frag|annot|update> [items]");
+        //setUsage("juicebox db <frag|annot|update> [items]");
         dbArgs = new String[args.length - 1];
         System.arraycopy(args, 1, dbArgs, 0, args.length - 1);
     }

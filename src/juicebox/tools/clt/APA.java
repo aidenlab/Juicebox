@@ -38,7 +38,7 @@ public class APA extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix");
+        //setUsage("juicebox apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix");
 
         if (!(args.length == 7 || args.length == 8)) {
             throw new IOException("1");

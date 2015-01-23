@@ -40,7 +40,7 @@ public class PreProcessing extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox pre <options> <infile> <outfile> <genomeID>");
+        //setUsage("juicebox pre <options> <infile> <outfile> <genomeID>");
         String genomeId = "";
         try {
             genomeId = args[3];

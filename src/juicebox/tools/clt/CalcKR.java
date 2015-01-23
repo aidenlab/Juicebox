@@ -36,7 +36,7 @@ public class CalcKR extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox calcKR <infile>");
+        //setUsage("juicebox calcKR <infile>");
         if (!(args.length == 2)) {
             throw new IOException("1");
         }

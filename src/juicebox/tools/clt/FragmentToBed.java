@@ -36,7 +36,7 @@ public class FragmentToBed extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox fragmentToBed <fragmentFile>");
+        //setUsage("juicebox fragmentToBed <fragmentFile>");
         if (args.length != 2) {
             throw new IOException("1");
         }

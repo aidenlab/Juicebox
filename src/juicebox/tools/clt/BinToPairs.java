@@ -36,7 +36,7 @@ public class BinToPairs extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        setUsage("juicebox binToPairs <infile> <outfile>");
+        //setUsage("juicebox binToPairs <infile> <outfile>");
 
         if (args.length != 3) {
             throw new IOException("1");

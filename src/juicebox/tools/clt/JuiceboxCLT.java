@@ -29,26 +29,25 @@ import juicebox.tools.HiCTools;
 import java.io.IOException;
 
 /**
- * All command line tools should implement a simple interface and be called through this interface
- * <not implemented yet>
+ * All command line tools should extend from this class
  */
 public abstract class JuiceboxCLT {
 
-    private String usage;
+    private static String usage;
 
     public abstract void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException;
 
     public abstract void run() throws IOException;
 
-    void setUsage(String usage) {
+    public void setUsage(String usage) {
         this.usage = usage;
     }
 
-    public String getUsage(String usage) {
+    public static String getUsage(String usage) {
         return usage;
     }
 
     public void printUsage() {
-        System.out.println("Usage:   " + usage);
+        System.out.println("Usage:   juicebox " + usage);
     }
 }
