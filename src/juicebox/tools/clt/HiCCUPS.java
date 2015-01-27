@@ -34,10 +34,14 @@ public class HiCCUPS extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) {
 
+
+
     }
 
     @Override
     public void run() {
+
+
 
     }
 }

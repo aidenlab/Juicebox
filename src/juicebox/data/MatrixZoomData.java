@@ -239,9 +239,8 @@ public class MatrixZoomData {
             }
         }
 
-        // untested since files got fixed :P - MSS
+        // untested since files got fixed - MSS
         if (errorCounter.get() > 0) {
-
             return null;
         }
 
