@@ -238,7 +238,7 @@ public class HiCDataTrack extends HiCTrack {
             }
         });
         if (idx < 0) {
-            text += "<br>bin: " + formatter.format((int)bin);
+            text += "<br>bin: " + formatter.format((int) bin);
         } else {
             HiCDataPoint ws = data[idx];
             if (ws == null) return null;

@@ -88,7 +88,7 @@ public class ExpectedValueCalculation {
      * @param fragmentCountMap Optional.  Map of chromosome name -> number of fragments
      * @param type             Identifies the observed matrix type,  either NONE (observed), VC, or KR.
      */
-    ExpectedValueCalculation(List<Chromosome> chromosomeList, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
+    public ExpectedValueCalculation(List<Chromosome> chromosomeList, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
 
         this.type = type;
         this.gridSize = gridSize;
@@ -104,6 +104,7 @@ public class ExpectedValueCalculation {
         for (Chromosome chr : chromosomeList) {
             if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
                 chromosomes.put(chr.getIndex(), chr);
+                assert fragmentCountMap != null;
                 maxLen = isFrag ?
                         Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
                         Math.max(maxLen, chr.getLength());

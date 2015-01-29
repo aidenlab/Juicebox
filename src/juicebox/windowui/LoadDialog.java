@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
@@ -233,9 +232,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                     setVisible(false);
                     dispose();
                 }
-            }
-            finally {
-                actionLock=false;
+            } finally {
+                actionLock = false;
             }
         }
     }

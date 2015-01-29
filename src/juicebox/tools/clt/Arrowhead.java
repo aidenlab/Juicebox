@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools;
+package juicebox.tools.clt;
 
 import juicebox.HiC;
 import juicebox.data.*;
+import juicebox.tools.HiCTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -37,9 +38,27 @@ import java.util.List;
 /**
  * Created by nchernia on 1/9/15.
  */
-public class Arrowhead {
+public class Arrowhead extends JuiceboxCLT {
 
-    public static void runArrowhead(String file, int resolution) throws IOException {
+    String file;
+    int resolution = -100;
+
+    @Override
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+        //setUsage("juicebox arrowhead hicFile resolution");
+        if (args.length != 2) {
+            throw new IOException("1");
+        }
+        file = args[1];
+        try {
+            resolution = Integer.valueOf(args[2]);
+        } catch (NumberFormatException error) {
+            throw new IOException("1");
+        }
+    }
+
+    @Override
+    public void run() throws IOException {
 
         System.err.println("This method is not currently implemented.");
         System.exit(1);
@@ -92,6 +111,7 @@ public class Arrowhead {
 
         }
     }
+
 
 /**
  * function [final, scores] = run_blockbuster(M,str,list, control)

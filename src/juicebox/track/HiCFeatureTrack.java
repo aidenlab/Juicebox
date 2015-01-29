@@ -190,7 +190,7 @@ public class HiCFeatureTrack extends HiCTrack {
         String text = getName();
         IGVFeature f = getFeatureAtPixel(x, context, orientation);
         if (f != null) { // && (f.getEnd() > start && f.getStart() < end)) {
-            text += "<br>" +  f.getDescription();
+            text += "<br>" + f.getDescription();
         } else {
             return text;
         }

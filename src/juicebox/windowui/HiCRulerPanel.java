@@ -172,7 +172,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
-        Color topTick = new  Color(00, 00, 255);
+        Color topTick = new Color(00, 00, 255);
         Color leftTick = new Color(00, 128, 00);
 
 

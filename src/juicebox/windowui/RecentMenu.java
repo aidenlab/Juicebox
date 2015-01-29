@@ -29,8 +29,6 @@ import org.broad.igv.Globals;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +54,7 @@ public abstract class RecentMenu extends JMenu {
 
         boolean addedItem = false;
         // load recent positions from properties
-        for (int i = this.m_maxItems-1; i >= 0; i--) {
+        for (int i = this.m_maxItems - 1; i >= 0; i--) {
             String val = prefs.get(this.m_entry + i, "");
             if (!val.equals("")) {
                 addEntry(val, false);

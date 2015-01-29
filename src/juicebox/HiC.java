@@ -629,7 +629,6 @@ public class HiC {
         Feature2DList newList = new Feature2DList();
 
 
-
         try {
             br = ParsingUtils.openBufferedReader(path);
             String nextLine;
@@ -690,14 +689,11 @@ public class HiC {
                 int featureNameSepindex = path.lastIndexOf("_");
                 String featureName = path.substring(featureNameSepindex + 1);
 
-                if (featureName.equals("blocks.txt")){
+                if (featureName.equals("blocks.txt")) {
                     featureName = "Contact domain";
-                }
-                else if (featureName.equals("peaks.txt")){
+                } else if (featureName.equals("peaks.txt")) {
                     featureName = "Peak";
-                }
-                else
-                {
+                } else {
                     featureName = "Feature";
                 }
                 // Convention is chr1 is lowest "index". Swap if necessary
@@ -849,60 +845,56 @@ public class HiC {
 
     public enum Unit {BP, FRAG}
 
-    public java.lang.Integer validteBinSize(String key)
-    {
-        if (binSizeDictionary.containsKey(key))
-        {
+    public java.lang.Integer validteBinSize(String key) {
+        if (binSizeDictionary.containsKey(key)) {
             return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
-        }
-        else
-        {
+        } else {
             return null;
         }
     }
 
-    private void initBinSizeDictionary(){
+    private void initBinSizeDictionary() {
         //BP Bin size:
-        binSizeDictionary.put("2.5M",2500000);
-        binSizeDictionary.put("1M",1000000);
-        binSizeDictionary.put("500K",500000);
-        binSizeDictionary.put("250K",250000);
-        binSizeDictionary.put("100K",100000);
-        binSizeDictionary.put("50K",50000);
-        binSizeDictionary.put("25K",25000);
-        binSizeDictionary.put("10K",10000);
-        binSizeDictionary.put("5K",5000);
-        binSizeDictionary.put("1K",1000);
-        binSizeDictionary.put("2.5m",2500000);
-        binSizeDictionary.put("1m",1000000);
-        binSizeDictionary.put("500k",500000);
-        binSizeDictionary.put("250k",250000);
-        binSizeDictionary.put("100k",100000);
-        binSizeDictionary.put("50k",50000);
-        binSizeDictionary.put("25k",25000);
-        binSizeDictionary.put("10k",10000);
-        binSizeDictionary.put("5k",5000);
-        binSizeDictionary.put("1k",1000);
-        binSizeDictionary.put("2500000",2500000);
-        binSizeDictionary.put("1000000",1000000);
-        binSizeDictionary.put("500000",500000);
-        binSizeDictionary.put("250000",250000);
-        binSizeDictionary.put("100000",100000);
-        binSizeDictionary.put("50000",50000);
-        binSizeDictionary.put("25000",25000);
-        binSizeDictionary.put("10000",10000);
-        binSizeDictionary.put("5000",5000);
-        binSizeDictionary.put("1000",1000);
+        binSizeDictionary.put("2.5M", 2500000);
+        binSizeDictionary.put("1M", 1000000);
+        binSizeDictionary.put("500K", 500000);
+        binSizeDictionary.put("250K", 250000);
+        binSizeDictionary.put("100K", 100000);
+        binSizeDictionary.put("50K", 50000);
+        binSizeDictionary.put("25K", 25000);
+        binSizeDictionary.put("10K", 10000);
+        binSizeDictionary.put("5K", 5000);
+        binSizeDictionary.put("1K", 1000);
+        binSizeDictionary.put("2.5m", 2500000);
+        binSizeDictionary.put("1m", 1000000);
+        binSizeDictionary.put("500k", 500000);
+        binSizeDictionary.put("250k", 250000);
+        binSizeDictionary.put("100k", 100000);
+        binSizeDictionary.put("50k", 50000);
+        binSizeDictionary.put("25k", 25000);
+        binSizeDictionary.put("10k", 10000);
+        binSizeDictionary.put("5k", 5000);
+        binSizeDictionary.put("1k", 1000);
+        binSizeDictionary.put("2500000", 2500000);
+        binSizeDictionary.put("1000000", 1000000);
+        binSizeDictionary.put("500000", 500000);
+        binSizeDictionary.put("250000", 250000);
+        binSizeDictionary.put("100000", 100000);
+        binSizeDictionary.put("50000", 50000);
+        binSizeDictionary.put("25000", 25000);
+        binSizeDictionary.put("10000", 10000);
+        binSizeDictionary.put("5000", 5000);
+        binSizeDictionary.put("1000", 1000);
 
         //FRAG Bin size:
-        binSizeDictionary.put("500f",500);
-        binSizeDictionary.put("200f",200);
-        binSizeDictionary.put("100f",100);
-        binSizeDictionary.put("50f",50);
-        binSizeDictionary.put("20f",20);
-        binSizeDictionary.put("5f",5);
-        binSizeDictionary.put("2f",2);
-        binSizeDictionary.put("1f",1);
+        binSizeDictionary.put("500f", 500);
+        binSizeDictionary.put("200f", 200);
+        binSizeDictionary.put("100f", 100);
+        binSizeDictionary.put("50f", 50);
+        binSizeDictionary.put("20f", 20);
+        binSizeDictionary.put("5f", 5);
+        binSizeDictionary.put("2f", 2);
+        binSizeDictionary.put("1f", 1);
     }
 }
 

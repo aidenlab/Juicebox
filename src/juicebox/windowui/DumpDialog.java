@@ -30,7 +30,7 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.NormalizationVector;
-import juicebox.tools.HiCTools;
+import juicebox.tools.HiCToolsOLD;
 
 import javax.swing.*;
 import java.awt.*;
@@ -86,7 +86,7 @@ public class DumpDialog extends JFileChooser {
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
                         NormalizationVector nv = hic.getNormalizationVector(hic.getZd().getChr1Idx());
-                        HiCTools.dumpVector(new PrintWriter(getSelectedFile()), nv.getData(), false);
+                        HiCToolsOLD.dumpVector(new PrintWriter(getSelectedFile()), nv.getData(), false);
                     }
                 } else if (box.getSelectedItem().toString().contains("Expected")) {
 
@@ -107,14 +107,14 @@ public class DumpDialog extends JFileChooser {
                         }
                         pw.flush();
                     } else {
-                        HiCTools.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
+                        HiCToolsOLD.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
                     }
                 } else if (box.getSelectedItem().equals("Eigenvector")) {
                     int chrIdx = hic.getZd().getChr1Idx();
                     double[] eigenvector = hic.getEigenvector(chrIdx, 0);
 
                     if (eigenvector != null) {
-                        HiCTools.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);
+                        HiCToolsOLD.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);
                     }
                 }
             } catch (IOException error) {

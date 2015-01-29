@@ -61,8 +61,8 @@ public class TrackLabelPanel extends JPanel {
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
 
-        for(Component c : this.getComponents()) {
-            if(c instanceof JLabel) {
+        for (Component c : this.getComponents()) {
+            if (c instanceof JLabel) {
                 Rectangle bounds = c.getBounds();
                 bounds.width = width - (leftMargin + rightMargin);
                 c.setBounds(bounds);

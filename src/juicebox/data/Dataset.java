@@ -144,8 +144,7 @@ public class Dataset {
             } else {
                 return null;
             }
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -164,8 +163,7 @@ public class Dataset {
             } else {
                 return null;
             }
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -291,7 +289,7 @@ public class Dataset {
             mapq30 = true;
         }
         String[] parts = filename.split("/");
-        newStats += parts[parts.length-2];
+        newStats += parts[parts.length - 2];
         newStats += "</td></tr>";
         newStats += "<tr> <td> Restriction Enzyme:</td><td>";
         newStats += getRestrictionEnzyme() + "</td></tr>";
@@ -337,7 +335,7 @@ public class Dataset {
             String value = "";
             try {
                 if (statsMap.containsKey("Total")) value = statsMap.get("Total").trim();
-                else value =  statsMap.get("Sequenced Read Pairs").trim();
+                else value = statsMap.get("Sequenced Read Pairs").trim();
                 sequenced = numberFormat.parse(value).intValue();
             } catch (ParseException error) {
                 sequenced = -1;
@@ -350,18 +348,18 @@ public class Dataset {
             newStats += "<tr><th colspan=2>Alignment (% Sequenced Reads)</th></tr>";
             newStats += "<tr><td>Normal Paired:</td>";
             newStats += "<td>";
-            if (statsMap.containsKey(" Regular"))  newStats +=  statsMap.get(" Regular");
-            else newStats +=  statsMap.get(" Normal Paired");
+            if (statsMap.containsKey(" Regular")) newStats += statsMap.get(" Regular");
+            else newStats += statsMap.get(" Normal Paired");
             newStats += "</td></tr>";
         }
         if (statsMap.containsKey(" Normal chimeric") || statsMap.containsKey(" Chimeric Paired")) {
             newStats += "<tr><td>Chimeric Paired:</td>";
             newStats += "<td>";
-            if (statsMap.containsKey(" Normal chimeric"))  newStats += statsMap.get(" Normal chimeric");
+            if (statsMap.containsKey(" Normal chimeric")) newStats += statsMap.get(" Normal chimeric");
             else newStats += statsMap.get(" Chimeric Paired");
             newStats += "</td></tr>";
         }
-        if (statsMap.containsKey(" Abnormal chimeric")|| statsMap.containsKey(" Chimeric Ambiguous")) {
+        if (statsMap.containsKey(" Abnormal chimeric") || statsMap.containsKey(" Chimeric Ambiguous")) {
             newStats += "<tr><td>Chimeric Ambiguous:</td>";
             newStats += "<td>";
             if (statsMap.containsKey(" Abnormal chimeric")) newStats += statsMap.get(" Abnormal chimeric");
@@ -396,11 +394,10 @@ public class Dataset {
                 newStats += " (" + decimalFormat.format(unique / (float) sequenced) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Unique Reads")) {
+        } else if (statsMap.containsKey("Unique Reads")) {
             newStats += "<tr><td>Unique Reads:</td>";
             String value = statsMap.get("Unique Reads");
-            newStats += "<td>" + value  + "</td></tr>";
+            newStats += "<td>" + value + "</td></tr>";
             value = value.substring(0, value.indexOf('('));
             try {
                 unique = numberFormat.parse(value.trim()).intValue();
@@ -422,10 +419,9 @@ public class Dataset {
                 newStats += " (" + decimalFormat.format(num / (float) sequenced) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("PCR Duplicates")) {
+        } else if (statsMap.containsKey("PCR Duplicates")) {
             newStats += "<tr><td>PCR Duplicates:</td>";
-            newStats += "<td>" + statsMap.get("PCR Duplicates")+"</td></tr>";
+            newStats += "<td>" + statsMap.get("PCR Duplicates") + "</td></tr>";
         }
         if (statsMap.containsKey("Optical duplicates")) {
             newStats += "<tr><td>Optical Duplicates:</td>";
@@ -440,10 +436,9 @@ public class Dataset {
                 newStats += " (" + decimalFormat.format(num / (float) sequenced) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Optical Duplicates")) {
+        } else if (statsMap.containsKey("Optical Duplicates")) {
             newStats += "<tr><td>Optical Duplicates:</td>";
-            newStats += "<td>" + statsMap.get("Optical Duplicates")+"</td></tr>";
+            newStats += "<td>" + statsMap.get("Optical Duplicates") + "</td></tr>";
         }
         if (statsMap.containsKey("Library complexity (new)") || statsMap.containsKey("Library Complexity Estimate")) {
             newStats += "<tr><td><b>Library Complexity Estimate:</b></td>";
@@ -456,7 +451,7 @@ public class Dataset {
         newStats += "<tr><th colspan=2>Analysis of Unique Reads (% Sequenced Reads / % Unique Reads)</td></tr>";
         if (statsMap.containsKey("Intra-fragment Reads")) {
             newStats += "<tr><td>Intra-fragment Reads:</td>";
-            String value =   statsMap.get("Intra-fragment Reads");
+            String value = statsMap.get("Intra-fragment Reads");
             if (value.indexOf('(') > 0) value = value.substring(0, value.indexOf('('));
             newStats += "<td>" + value;
             int num;
@@ -486,8 +481,7 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Below MAPQ Threshold")) {
+        } else if (statsMap.containsKey("Below MAPQ Threshold")) {
             newStats += "<tr><td>Below MAPQ Threshold:</td>";
             newStats += "<td>" + statsMap.get("Below MAPQ Threshold") + "</td></tr>";
         }
@@ -518,15 +512,14 @@ public class Dataset {
                     System.err.println("Check files -- \"HiC Contacts\" should be the same as \"Total reads in current file\"");
                 }
             }
-        }
-        else if (statsMap.containsKey("Hi-C Contacts")) {
+        } else if (statsMap.containsKey("Hi-C Contacts")) {
             newStats += "<tr><td><b>Hi-C Contacts:</b></td>";
             newStats += "<td><b>" + statsMap.get("Hi-C Contacts") + "</b></td></tr>";
 
         }
         if (statsMap.containsKey("Ligations") || statsMap.containsKey(" Ligation Motif Present")) {
             newStats += "<tr><td>&nbsp;&nbsp;Ligation Motif Present:</td>";
-            String value = statsMap.containsKey("Ligations")?statsMap.get("Ligations"):statsMap.get(" Ligation Motif Present");
+            String value = statsMap.containsKey("Ligations") ? statsMap.get("Ligations") : statsMap.get(" Ligation Motif Present");
             newStats += "<td>" + value.substring(0, value.indexOf('('));
             int num;
             try {
@@ -553,8 +546,7 @@ public class Dataset {
             int num2 = Math.round(Float.valueOf(value));
 
             newStats += "<td>" + num2 + "% - " + num1 + "%</td></tr>";
-        }
-        else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
+        } else if (statsMap.containsKey(" 3' Bias (Long Range)")) {
             newStats += "<tr><td>&nbsp;&nbsp;3' Bias (Long Range):</td>";
             newStats += "<td>" + statsMap.get(" 3' Bias (Long Range)") + "</td></tr>";
         }
@@ -581,8 +573,7 @@ public class Dataset {
             value = value.substring(0, value.indexOf('%'));
             int num4 = Math.round(Float.valueOf(value));
             newStats += "<td>" + num1 + "% - " + num2 + "% - " + num3 + "% - " + num4 + "%</td></tr>";
-        }
-        else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
+        } else if (statsMap.containsKey(" Pair Type %(L-I-O-R)")) {
             newStats += "<tr><td>&nbsp;&nbsp;Pair Type % (L-I-O-R):</td>";
             newStats += "<td>" + statsMap.get(" Pair Type %(L-I-O-R)") + "</td></tr>";
         }
@@ -603,10 +594,9 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Inter-chromosomal")) {
+        } else if (statsMap.containsKey("Inter-chromosomal")) {
             newStats += "<tr><td>Inter-chromosomal:</td>";
-            newStats += "<td>" +  statsMap.get("Inter-chromosomal") + "</td></tr>";
+            newStats += "<td>" + statsMap.get("Inter-chromosomal") + "</td></tr>";
         }
         if (statsMap.containsKey("Intra")) {
             newStats += "<tr><td>Intra-chromosomal:</td>";
@@ -623,10 +613,9 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Intra-chromosomal")) {
+        } else if (statsMap.containsKey("Intra-chromosomal")) {
             newStats += "<tr><td>Intra-chromosomal:</td>";
-            newStats += "<td>" +  statsMap.get("Intra-chromosomal") + "</td></tr>";
+            newStats += "<td>" + statsMap.get("Intra-chromosomal") + "</td></tr>";
         }
         if (statsMap.containsKey("Small")) {
             newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
@@ -643,10 +632,9 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</td></tr>";
-        }
-        else if (statsMap.containsKey("Short Range (<20Kb)")) {
+        } else if (statsMap.containsKey("Short Range (<20Kb)")) {
             newStats += "<tr><td>&nbsp;&nbsp;Short Range (&lt;20Kb):</td>";
-            newStats += "<td>" +  statsMap.get("Short Range (<20Kb)") + "</td></tr>";
+            newStats += "<td>" + statsMap.get("Short Range (<20Kb)") + "</td></tr>";
         }
         if (statsMap.containsKey("Large")) {
             newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
@@ -663,10 +651,9 @@ public class Dataset {
                         " / " + decimalFormat.format(num / (float) unique) + ")";
             }
             newStats += "</b></td></tr>";
-        }
-        else if (statsMap.containsKey("Long Range (>20Kb)")) {
+        } else if (statsMap.containsKey("Long Range (>20Kb)")) {
             newStats += "<tr><td><b>&nbsp;&nbsp;Long Range (&gt;20Kb):</b></td>";
-            newStats += "<td><b>" +  statsMap.get("Long Range (>20Kb)") +  "</b></td></tr>";
+            newStats += "<td><b>" + statsMap.get("Long Range (>20Kb)") + "</b></td></tr>";
         }
         // Error checking
         if (statsMap.containsKey("Unique Reads")) {

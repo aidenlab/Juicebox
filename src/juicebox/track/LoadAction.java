@@ -47,7 +47,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 
-
 /**
  * @author jrobinso
  */
@@ -183,7 +182,7 @@ public class LoadAction extends AbstractAction {
         safeLoadNodes(xmlURL);
     }
 
-    private void safeLoadNodes(final String xmlFile){
+    private void safeLoadNodes(final String xmlFile) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -272,8 +271,7 @@ public class LoadAction extends AbstractAction {
                 }
             }
         }
-        if (repaint)
-        {
+        if (repaint) {
             mainWindow.repaint();
         }
         return newLoadList;

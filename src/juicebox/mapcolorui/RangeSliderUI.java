@@ -244,8 +244,7 @@ class RangeSliderUI extends BasicSliderUI {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsBlank, gradientColorsBlank);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.gray, leftSide, Color.gray, rightSide);
                 oldColor = rangeColorBlank;
-            }
-            else if (colorIsOE) {
+            } else if (colorIsOE) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsOE, gradientColorsOE);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
             } else {
@@ -401,7 +400,7 @@ class RangeSliderUI extends BasicSliderUI {
      */
     private class ChangeHandler implements ChangeListener {
         public void stateChanged(ChangeEvent arg0) {
-            if (!lowerDragging && !upperDragging ) {
+            if (!lowerDragging && !upperDragging) {
                 calculateThumbLocation();
                 slider.repaint();
             }

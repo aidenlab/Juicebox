@@ -37,10 +37,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -162,7 +160,8 @@ public class ResolutionControl extends JPanel {
             // Centering is relative to the bounds of the data, which might not be the bounds of the window
 
             public void stateChanged(ChangeEvent e) {
-                if (hic == null || hic.getMatrix() == null || hic.getZd() == null || resolutionSlider.getValueIsAdjusting()) return;
+                if (hic == null || hic.getMatrix() == null || hic.getZd() == null || resolutionSlider.getValueIsAdjusting())
+                    return;
                 final ChangeEvent eF = e;
                 Runnable runnable = new Runnable() {
                     public void run() {
@@ -173,39 +172,38 @@ public class ResolutionControl extends JPanel {
                 //runnable.run();
             }
 
-            private void unsafeStateChanged(ChangeEvent e){
+            private void unsafeStateChanged(ChangeEvent e) {
 
 
+                int idx = resolutionSlider.getValue();
 
-                    int idx = resolutionSlider.getValue();
+                final HiCZoom zoom = idxZoomMap.get(idx);
+                if (zoom == null) return;
 
-                    final HiCZoom zoom = idxZoomMap.get(idx);
-                    if (zoom == null) return;
+                if (hic.getXContext() != null) {
 
-                    if (hic.getXContext() != null) {
+                    hic.setScaleFactor(1.0);
+                    hic.setScaleFactor(1.0);
 
-                        hic.setScaleFactor(1.0);
-                        hic.setScaleFactor(1.0);
+                    double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
+                    double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
+                    final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
+                    final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                        double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
-                        double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                        final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                        final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+                    if (hic.getZd() == null) {
+                        hic.setZoom(zoom, 0, 0);
+                    } else {
 
-                        if (hic.getZd() == null) {
-                            hic.setZoom(zoom, 0, 0);
+                        if (hic.setZoom(zoom, xGenome, yGenome)) {
+                            lastValue = resolutionSlider.getValue();
                         } else {
-
-                            if (hic.setZoom(zoom, xGenome, yGenome)) {
-                                lastValue = resolutionSlider.getValue();
-                            } else {
-                                resolutionSlider.setValue(lastValue);
-                            }
+                            resolutionSlider.setValue(lastValue);
                         }
                     }
-
                 }
-            
+
+            }
+
         });
         setEnabled(false);
     }
