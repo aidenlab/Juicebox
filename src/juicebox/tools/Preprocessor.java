@@ -215,6 +215,7 @@ public class Preprocessor {
         }
 
         updateMasterIndex();
+        System.out.println("Finished preprocess");
     }
 
     private void writeHeader(String stats, String graphs) throws IOException {

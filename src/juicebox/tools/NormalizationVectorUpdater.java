@@ -248,6 +248,7 @@ public class NormalizationVectorUpdater {
         System.err.println();
         update(path, version, filePosition, expectedValueCalculations, normVectorIndex,
                 normVectorBuffer.getBytes());
+        System.err.println("Finished writing norms");
     }
 
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
