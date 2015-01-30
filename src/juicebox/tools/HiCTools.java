@@ -137,7 +137,7 @@ public class HiCTools {
 
         try {
             if (argToClass.containsKey(cmd)) {
-                Class c = Class.forName(argToClass.get(cmd));
+                Class<?> c = Class.forName(argToClass.get(cmd));
                 Constructor constructor = c.getConstructor();
                 JuiceboxCLT instanceOfCLT = (JuiceboxCLT) constructor.newInstance();
                 instanceOfCLT.setUsage(argToUsage.get(cmd));

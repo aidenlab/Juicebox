@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
+import juicebox.tools.NormalizationVectorUpdater;
 import juicebox.tools.Preprocessor;
 import org.broad.igv.feature.Chromosome;
 
@@ -36,6 +37,7 @@ public class PreProcessing extends JuiceboxCLT {
 
     private long genomeLength = 0;
     private String inputFile;
+    private String outputFile;
     private Preprocessor preprocessor;
 
     @Override
@@ -58,7 +60,7 @@ public class PreProcessing extends JuiceboxCLT {
         chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
 
         inputFile = args[1];
-        String outputFile = args[2];
+        outputFile = args[2];
         String tmpDir = parser.getTmpdirOption();
 
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromosomes);
@@ -76,5 +78,6 @@ public class PreProcessing extends JuiceboxCLT {
     @Override
     public void run() throws IOException {
         preprocessor.preprocess(inputFile);
+        NormalizationVectorUpdater.updateHicFile(outputFile);
     }
 }
