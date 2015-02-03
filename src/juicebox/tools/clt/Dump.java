@@ -65,9 +65,10 @@ public class Dump extends JuiceboxCLT {
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]")
 
-        if (!(args[1].equals("observed") || args[1].equals("oe") ||
-                args[1].equals("pearson") || args[1].equals("norm") ||
-                args[1].equals("expected") || args[1].equals("eigenvector"))) {
+        String mType = args[1].toLowerCase();
+        if (!(mType.equals("observed") || mType.equals("oe") ||
+                mType.equals("pearson") || mType.equals("norm") ||
+                mType.equals("expected") || mType.equals("eigenvector"))) {
             System.err.println("Matrix or vector must be one of \"observed\", \"oe\", \"pearson\", \"norm\", " +
                     "\"expected\", or \"eigenvector\".");
             throw new IOException("-1");
@@ -125,7 +126,7 @@ public class Dump extends JuiceboxCLT {
 
         chromosomeMap = new HashMap<String, Chromosome>();
         for (Chromosome c : chromosomeList) {
-            chromosomeMap.put(c.getName(), c);
+            chromosomeMap.put(c.getName().replaceAll("chr",""), c);
         }
 
         if (!chromosomeMap.containsKey(chr1)) {
@@ -374,10 +375,17 @@ public class Dump extends JuiceboxCLT {
                                    HiCZoom zoom, String type, String ofile) throws IOException {
         LittleEndianOutputStream les = null;
         BufferedOutputStream bos = null;
+        PrintWriter txtWriter = null;
+
 
         if (ofile != null) {
-            bos = new BufferedOutputStream(new FileOutputStream(ofile));
-            les = new LittleEndianOutputStream(bos);
+            if(ofile.endsWith(".hic")) {
+                bos = new BufferedOutputStream(new FileOutputStream(ofile));
+                les = new LittleEndianOutputStream(bos);
+            }
+            else if(ofile.endsWith(".txt")){
+                txtWriter = new PrintWriter(new FileOutputStream(ofile));
+            }
         }
 
         if (type.equals("oe") || type.equals("pearson")) {
@@ -446,7 +454,10 @@ public class Dump extends JuiceboxCLT {
                     nv2 = nv1;
                 }
             }
-            if (les == null) {
+            if(txtWriter != null){
+                zd.dump(txtWriter, nv1, nv2);
+            }
+            else if (les == null) {
                 zd.dump(new PrintWriter(System.out), nv1, nv2);
             } else {
                 try {
