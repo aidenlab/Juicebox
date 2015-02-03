@@ -36,6 +36,10 @@ public class BigWig extends JuiceboxCLT {
     private int start = -1, end = -1, windowSize = -1;
     private String chr, path;
 
+    public BigWig(){
+        super("bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");

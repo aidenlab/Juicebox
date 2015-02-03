@@ -38,6 +38,10 @@ public class AddNorm extends JuiceboxCLT {
 
     private String file;
 
+    public AddNorm(){
+        super("addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");

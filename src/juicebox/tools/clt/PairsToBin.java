@@ -35,6 +35,10 @@ public class PairsToBin extends JuiceboxCLT {
 
     private String ifile, ofile, genomeId;
 
+    public PairsToBin(){
+        super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox pairsToBin <infile> <outfile> <genomeID>");

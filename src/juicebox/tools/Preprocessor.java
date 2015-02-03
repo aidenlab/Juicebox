@@ -1419,7 +1419,10 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
             } while (activeList.size() > 0);
 
             for (File f : tmpFiles) {
-                f.delete();
+                boolean result = f.delete();
+                if(!result){
+                    System.out.println("Error while deleting file");
+                }
             }
 
             computeStats(sampledData);

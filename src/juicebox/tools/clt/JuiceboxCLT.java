@@ -25,7 +25,6 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-
 import java.io.IOException;
 
 /**
@@ -35,6 +34,10 @@ public abstract class JuiceboxCLT {
 
     private static String usage;
 
+    protected JuiceboxCLT(String usage){
+        setUsage(usage);
+    }
+
     public abstract void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException;
 
     public abstract void run() throws IOException;
@@ -43,7 +46,7 @@ public abstract class JuiceboxCLT {
         this.usage = usage;
     }
 
-    public static String getUsage(String usage) {
+    public String getUsage(String usage) {
         return usage;
     }
 

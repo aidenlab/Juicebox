@@ -25,16 +25,13 @@
 package juicebox.tools.clt;
 
 import juicebox.track.Feature2D;
-import juicebox.track.Feature2DList;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.util.ParsingUtils;
 
-import java.awt.*;
 import java.io.*;
 import java.util.*;
 

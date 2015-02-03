@@ -34,6 +34,10 @@ public class BinToPairs extends JuiceboxCLT {
 
     private String ifile, ofile;
 
+    public BinToPairs(){
+        super("binToPairs <input_HiC_file> <output_HiC_file>");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox binToPairs <infile> <outfile>");

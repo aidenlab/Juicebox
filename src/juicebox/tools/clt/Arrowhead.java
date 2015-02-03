@@ -43,6 +43,10 @@ public class Arrowhead extends JuiceboxCLT {
     String file;
     int resolution = -100;
 
+    public Arrowhead(){
+        super("arrowhead <input_HiC_file> <resolution>");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox arrowhead hicFile resolution");

@@ -41,6 +41,10 @@ public class BPToFragment extends JuiceboxCLT {
 
     private String fragFile, inputBedFile, outputFile;
 
+    public BPToFragment(){
+        super("bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");

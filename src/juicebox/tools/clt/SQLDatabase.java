@@ -34,6 +34,10 @@ public class SQLDatabase extends JuiceboxCLT {
 
     private String[] dbArgs;
 
+    public SQLDatabase(){
+        super("db <frag|annot|update> [items]");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox db <frag|annot|update> [items]");

@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt;
 
-import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.tools.HiCTools;
 import juicebox.track.Feature2D;
@@ -50,6 +49,10 @@ public class APA extends JuiceboxCLT {
     private double[] bounds;
 
     private String restrictionSiteFilename = "/aidenlab/restriction_sites/hg19_HindIII.txt";
+
+    public APA(){
+        super("apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix");
+    }
 
     //defaults
     double min_peak_dist = 30; // distance between two bins, can be changed in opts
@@ -236,7 +239,12 @@ public class APA extends JuiceboxCLT {
 
         dataFolder += "."+prefix + new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date());
         File dataDir = new File(dataFolder);
-        dataDir.mkdir();
+        boolean result = dataDir.mkdir();
+        if(!result){
+            System.out.println("Error creating directory (data not saved): " + dataDir);
+            return;
+        }
+
         System.out.println("Saving "+prefix+" data to " + dataFolder);
 
         //save GW data

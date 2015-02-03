@@ -61,6 +61,9 @@ public class HiCDBUtils {
             updateFragmentAnnotations();
 
         } else {
+            // TODO ?
+            // Throw exception?
+            throw new IOException("Command not clear");
 
         }
     }

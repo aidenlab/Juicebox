@@ -35,6 +35,10 @@ public class AddGWNorm extends JuiceboxCLT {
     private String file;
     private int genomeWideResolution = -100;
 
+    public AddGWNorm(){
+        super("addGWNorm <input_HiC_file> <min resolution>");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
         //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");

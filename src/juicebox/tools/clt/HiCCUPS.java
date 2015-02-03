@@ -31,6 +31,10 @@ import juicebox.tools.HiCTools;
  */
 public class HiCCUPS extends JuiceboxCLT {
 
+    public HiCCUPS(){
+        super("");
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) {
 
