@@ -50,7 +50,7 @@ public class APA extends JuiceboxCLT {
     private String restrictionSiteFilename = "/aidenlab/restriction_sites/hg19_HindIII.txt";
 
     public APA(){
-        super("apa <-n minval> <-x maxval> <-w window>  <-r resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder <SavePrefix> <>");
+        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution] <CountsFolder> <PeaksFile> <SaveFolder> [SavePrefix] [RestrictionSiteFile]");
     }
 
     //defaults
