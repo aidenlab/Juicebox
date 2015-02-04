@@ -46,50 +46,51 @@ public class APA extends JuiceboxCLT {
     private Array2DRowRealMatrix xMatrix;
 
     private String[] files;
-    private double[] bounds;
 
     private String restrictionSiteFilename = "/aidenlab/restriction_sites/hg19_HindIII.txt";
 
     public APA(){
-        super("apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix");
+        super("apa <-n minval> <-x maxval> <-w window>  <-r resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder <SavePrefix> <>");
     }
 
     //defaults
-    double min_peak_dist = 30; // distance between two bins, can be changed in opts
-    double max_peak_dist= Double.POSITIVE_INFINITY;
-    int window = 10;
+    private double min_peak_dist = 30; // distance between two bins, can be changed in opts
+    private double max_peak_dist= Double.POSITIVE_INFINITY;
+    private int window = 10;
     int width=6; //size of boxes
     int peakwidth = 2; //for enrichment calculation of crosshair norm
-    int resolution = 10000;
+    private int resolution = 10000;
     boolean save_all = false;
 
-    private String workingdirectory = System.getProperty("user.dir");
+    private final String workingdirectory = System.getProperty("user.dir");
     private String dataFolder = workingdirectory +"/Data";
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox apa <minval maxval window  resolution> input_file.hic PeaksFile/PeaksFolder SaveFolder SavePrefix");
 
-        if (!(args.length == 7 || args.length == 8)) {
+        if (!(args.length > 2 && args.length < 6)) {
             throw new IOException("1");
         }
-        files = new String[args.length - 4];
 
-        System.arraycopy(args, 4, files, 0, files.length);
+        files = new String[args.length];
+        System.arraycopy(args, 0, files, 0, files.length);
 
         if (files.length > 4)
             restrictionSiteFilename = files[4];
 
-        bounds = new double[2];
+        Number[] optionalAPAFlags = parser.getAPAOptions();
 
-        try {
-            bounds[0] = Double.valueOf(args[0]);
-            bounds[1] = Double.valueOf(args[1]);
-            window = Integer.valueOf(args[2]);
-            resolution = Integer.valueOf(args[3]);
-        } catch (NumberFormatException error) {
-            throw new IOException("2");
-        }
+        if(optionalAPAFlags[0] != null)
+            min_peak_dist = optionalAPAFlags[0].doubleValue();
+
+        if(optionalAPAFlags[1] != null)
+            max_peak_dist = optionalAPAFlags[1].doubleValue();
+
+        if(optionalAPAFlags[2] != null)
+            window = optionalAPAFlags[2].intValue();
+
+        if(optionalAPAFlags[3] != null)
+            resolution = optionalAPAFlags[3].intValue();
 
     }
 
@@ -124,7 +125,7 @@ public class APA extends JuiceboxCLT {
 
             List<Chromosome> chromosomes = ds.getChromosomes();
             Map<Chromosome,ArrayList<Feature2D>> chrToLoops =
-                    APAUtils.loadLoopList(files[1], new ArrayList<Chromosome>(chromosomes));
+                    APAUtils.loadLoopList(files[1], new ArrayList<Chromosome>(chromosomes), min_peak_dist, max_peak_dist);
 
             // Loop through chromosomes
             for (Chromosome chr : chromosomes) {
@@ -141,6 +142,8 @@ public class APA extends JuiceboxCLT {
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
                 ArrayList<Feature2D> loops = chrToLoops.get(chr);
+
+
                 Matrix matrix = ds.getMatrix(chr, chr);
                 if (matrix == null) continue;
 
@@ -157,7 +160,6 @@ public class APA extends JuiceboxCLT {
                 }
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                // TODO filter loops
                 // TODO loop num statistics
 
                 for (Feature2D loop : loops){
@@ -223,6 +225,8 @@ public class APA extends JuiceboxCLT {
         System.err.println("This method is not currently implemented.");
         System.exit(7);
     }
+
+
 
 
     private Array2DRowRealMatrix cleanArray2DMatrix(int rows, int cols){

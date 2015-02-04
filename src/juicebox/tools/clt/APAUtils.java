@@ -40,12 +40,11 @@ import java.util.*;
  */
 public class APAUtils {
 
-    private static final Logger log = Logger.getLogger(APA.class);
-
-    public static Map<Chromosome,ArrayList<Feature2D>> loadLoopList(String path, ArrayList<Chromosome> chromosomes) throws IOException {
+    public static Map<Chromosome,ArrayList<Feature2D>> loadLoopList(String path, ArrayList<Chromosome> chromosomes,
+                                                                    double min_peak_dist, double max_peak_dist) throws IOException {
 
         Map<Chromosome,ArrayList<Feature2D>> chrToLoops = new HashMap<Chromosome,ArrayList<Feature2D>>();
-        Map<String,ArrayList<Feature2D>> loopMap = loadLoopMap(path);
+        Map<String,ArrayList<Feature2D>> loopMap = loadLoopMap(path, min_peak_dist, max_peak_dist);
 
         Set<String> keys = loopMap.keySet();
 
@@ -62,18 +61,17 @@ public class APAUtils {
         return chrToLoops;
     }
 
-    public static Map<String,ArrayList<Feature2D>> loadLoopMap(String path) throws IOException {
+    private static Map<String,ArrayList<Feature2D>> loadLoopMap(String path,
+                                                                double min_peak_dist, double max_peak_dist) throws IOException {
         BufferedReader br = null;
 
         Map<String,ArrayList<Feature2D>> chrToLoopsMap = new HashMap<String, ArrayList<Feature2D>>();
-
 
         try {
             br = ParsingUtils.openBufferedReader(path);
             String nextLine;
 
-            // header
-            nextLine = br.readLine();
+            nextLine = br.readLine(); // header
             String[] headers = Globals.tabPattern.split(nextLine);
 
             int errorCount = 0;
@@ -113,20 +111,45 @@ public class APAUtils {
                         newList.add(feature);
                         chrToLoopsMap.put(chr1Name, newList);
                     }
-
                 }
-
             }
         } finally {
             if (br != null) br.close();
         }
-        return chrToLoopsMap;
+
+        Map<String,ArrayList<Feature2D>> filteredChrToLoopsMap = new HashMap<String, ArrayList<Feature2D>>();
+
+        for(String key : chrToLoopsMap.keySet()){
+            filteredChrToLoopsMap.put(key, filterLoopsBySize(chrToLoopsMap.get(key), min_peak_dist, max_peak_dist));
+        }
+
+        return filteredChrToLoopsMap;
     }
 
+
+    private static ArrayList<Feature2D> filterLoopsBySize(ArrayList<Feature2D> loops,
+                                                          double min_peak_dist, double max_peak_dist) {
+
+        ArrayList<Feature2D> filteredLoops = new ArrayList<Feature2D>();
+
+        for(Feature2D loop : loops){
+            int x = Math.abs(loop.getEnd1() - loop.getStart1());
+            int y = Math.abs(loop.getEnd2() - loop.getStart2());
+
+            if(x >= min_peak_dist && y >= min_peak_dist)
+                if(x <= max_peak_dist && y <= max_peak_dist)
+                    filteredLoops.add(loop);
+        }
+
+        return new ArrayList<Feature2D>(filteredLoops);
+    }
+
+
+
     private static boolean equivalentChromosome(String token, Chromosome chr) {
-        if (token.toLowerCase().equals(chr.getName().toLowerCase()) || String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) || token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
-            return true;
-        return false;
+        String token2 = token.toLowerCase().replaceAll("chr","");
+        String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
+        return token2.equals(chrName);
     }
 
     public static int[] range(int start, int stop) {
@@ -163,7 +186,8 @@ public class APAUtils {
             ex.printStackTrace();
         } finally {
             try {
-                writer.close();
+                if(writer != null)
+                    writer.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -186,7 +210,8 @@ public class APAUtils {
             ex.printStackTrace();
         } finally {
             try {
-                writer.close();
+                if(writer != null)
+                    writer.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -205,7 +230,8 @@ public class APAUtils {
             ex.printStackTrace();
         } finally {
             try {
-                writer.close();
+                if(writer != null)
+                    writer.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -215,39 +241,39 @@ public class APAUtils {
     // NOTE - indices are inclusive in java
     // but in python the second index is not inclusive
 
-    public static double peak2mean(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double peak2mean(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         return centralVal / ((sum(x.getData()) - centralVal) / (x.getColumnDimension() - 1));
     }
 
-    public static double peak2UL(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double peak2UL(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         double avg = mean(x.getSubMatrix(0, width - 1, 0, width - 1).getData());
         return centralVal / avg;
     }
 
-    public static double peak2UR(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double peak2UR(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         int max = x.getColumnDimension();
         double avg = mean(x.getSubMatrix(0, width - 1, max - width, max - 1).getData());
         return centralVal / avg;
     }
 
-    public static double peak2LL(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double peak2LL(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         int max = x.getColumnDimension();
         double avg = mean(x.getSubMatrix(max - width, max - 1, 0, width - 1).getData());
         return centralVal / avg;
     }
 
-    public static double peak2LR(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double peak2LR(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         int max = x.getColumnDimension();
         double avg = mean(x.getSubMatrix(max - width, max - 1, max - width, max - 1).getData());
         return centralVal / avg;
     }
 
-    public static double ZscoreLL(Array2DRowRealMatrix x, int mdpt, int width) {
+    private static double ZscoreLL(Array2DRowRealMatrix x, int mdpt, int width) {
         double centralVal = x.getEntry(mdpt, mdpt);
         int max = x.getColumnDimension();
         DescriptiveStatistics yStats = statistics(x.getSubMatrix(max - width, max - 1, 0, width - 1).getData());

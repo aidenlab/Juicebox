@@ -80,9 +80,10 @@ public class HiCTools {
             System.exit(0);
         }
 
-        String cmd = args[0].toLowerCase();
+
 
         try {
+                String cmd = args[0].toLowerCase();
                 JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
 
                 try {
@@ -102,7 +103,7 @@ public class HiCTools {
         } catch (Exception e) {
             //System.out.println(e.getMessage());
             CLTFactory.usage();
-            e.printStackTrace();
+            //e.printStackTrace();
             System.exit(2);
         }
     }
@@ -118,7 +119,16 @@ public class HiCTools {
         private Option graphOption = null;
         private Option mapqOption = null;
 
+        // APA options
+        private Option apaMinValOption = null;
+        private Option apaMaxValOption = null;
+        private Option apaWindowOption = null;
+        private Option apaResolutionOption = null;
+
+
+
         CommandLineParser() {
+
             diagonalsOption = addBooleanOption('d', "diagonals");
             chromosomeOption = addStringOption('c', "chromosomes");
             countThresholdOption = addIntegerOption('m', "minCountThreshold");
@@ -128,6 +138,27 @@ public class HiCTools {
             statsOption = addStringOption('s', "statistics text file");
             graphOption = addStringOption('g', "graph text file");
             mapqOption = addIntegerOption('q', "mapping quality threshold");
+
+            //apa <-m minval> <-x maxval> <-w window>  <-r resolution>
+            apaMinValOption = addDoubleOption('n', "minimum value");
+            apaMaxValOption = addDoubleOption('x', "maximum value");
+            apaWindowOption = addIntegerOption('w', "window");
+            apaResolutionOption = addIntegerOption('r', "resolution");
+        }
+
+        public Number[] getAPAOptions(){
+            Number[] apaFlagValues = new Number[4];
+
+            Object[] apaOptions = {getOptionValue(apaMinValOption), getOptionValue(apaMaxValOption),
+                    getOptionValue(apaWindowOption), getOptionValue(apaResolutionOption)};
+
+            for(int i = 0; i < apaOptions.length; i++) {
+                if (apaOptions[i] != null)
+                    apaFlagValues[i] = ((Number) apaOptions[i]);
+                else
+                    apaFlagValues[i] = null;
+            }
+            return apaFlagValues;
         }
 
         public boolean getHelpOption() {

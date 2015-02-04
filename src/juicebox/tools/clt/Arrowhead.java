@@ -40,8 +40,8 @@ import java.util.List;
  */
 public class Arrowhead extends JuiceboxCLT {
 
-    String file;
-    int resolution = -100;
+    private String file;
+    private int resolution = -100;
 
     public Arrowhead(){
         super("arrowhead <input_HiC_file> <resolution>");

@@ -42,8 +42,8 @@ public abstract class JuiceboxCLT {
 
     public abstract void run() throws IOException;
 
-    public void setUsage(String usage) {
-        this.usage = usage;
+    public void setUsage(String newUsage) {
+        usage = newUsage;
     }
 
     public String getUsage(String usage) {
