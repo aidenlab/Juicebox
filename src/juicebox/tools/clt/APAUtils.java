@@ -24,9 +24,15 @@
 
 package juicebox.tools.clt;
 
+import com.sun.tools.javac.util.ArrayUtils;
+import juicebox.data.Block;
+import juicebox.data.ContactRecord;
+import juicebox.data.MatrixZoomData;
 import juicebox.track.Feature2D;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math.stat.descriptive.rank.Percentile;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -218,7 +224,7 @@ public class APAUtils {
         }
     }
 
-    public static void saveArrayText(String filename, double[] array) {
+    public static void saveListText(String filename, List<Double> array) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
@@ -300,5 +306,136 @@ public class APAUtils {
         return statistics(x).getMean();
     }
 
+    private static double mean(Array2DRowRealMatrix x) {
+        return statistics(x.getData()).getMean();
+    }
 
+    public static Array2DRowRealMatrix standardNormalization(Array2DRowRealMatrix matrix) {
+        Array2DRowRealMatrix normeddata = cleanArray2DMatrix(matrix.getRowDimension(),
+                matrix.getColumnDimension()).add(matrix);
+        normeddata.scalarMultiply(1./Math.max(1.,APAUtils.mean(matrix)));
+        return normeddata;
+    }
+
+    public static Array2DRowRealMatrix centerNormalization(Array2DRowRealMatrix matrix) {
+
+        int center = matrix.getRowDimension()/2;
+        double centerVal = matrix.getEntry(center, center);
+
+        if(centerVal == 0){
+            centerVal = minimumPositive(matrix.getData());
+            if (centerVal == 0)
+                centerVal = 1;
+        }
+
+        Array2DRowRealMatrix normeddata = cleanArray2DMatrix(matrix.getRowDimension(),
+                matrix.getColumnDimension()).add(matrix);
+        normeddata.scalarMultiply(1./centerVal);
+        return normeddata;
+    }
+
+    public static double peakEnhancement(Array2DRowRealMatrix matrix){
+        int rows = matrix.getRowDimension();
+        int center = rows/2;
+        double centerVal = matrix.getEntry(center, center);
+        double remainingSum = sum(matrix.getData()) - centerVal;
+        double remainingAverage = remainingSum/(rows*rows-1);
+        return centerVal / remainingAverage;
+    }
+
+    private static double minimumPositive(double[][] data) {
+        double minVal = Double.MAX_VALUE;
+        for(double[] row : data){
+            for(double val : row) {
+                if(val > 0 && val < minVal)
+                    minVal = val;
+            }
+        }
+        if(minVal == Double.MAX_VALUE)
+            minVal = 0;
+        return minVal;
+    }
+
+
+    public static Array2DRowRealMatrix cleanArray2DMatrix(int rows, int cols){
+        Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(rows,cols);
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                matrix.setEntry(r,c,0);
+        return matrix;
+    }
+
+
+    public static Array2DRowRealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
+                                                            int L, int resolution, int window) {
+        long time = System.nanoTime();
+        int loopX = loop.getStart1();
+        int loopY = loop.getStart2();
+        int binXStart = loopX - resolution*(window+1);
+        int binXEnd = loopX + resolution*(window+1);
+        int binYStart = loopY - resolution*(window+1);
+        int binYEnd = loopY + resolution*(window+1);
+
+        System.out.println((System.nanoTime()-time)/1000000000.);
+
+        List<Block> blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
+                NormalizationType.NONE);
+
+        System.out.println((System.nanoTime()-time)/1000000000.);
+
+        Array2DRowRealMatrix data = APAUtils.cleanArray2DMatrix(L, L);
+
+        System.out.println((System.nanoTime()-time)/1000000000.);
+
+        for (Block b : blocks) {
+            for (ContactRecord rec : b.getContactRecords()) {
+                //, rec.getBinY(), rec.getCounts()
+
+                int relativeX = window + (rec.getBinX() - loopX)/resolution;
+                int relativeY = window + (rec.getBinY() - loopY)/resolution;
+
+                if(relativeX >= 0 && relativeX < L){
+                    if(relativeY >= 0 && relativeY < L){
+                        data.addToEntry(relativeX, relativeY, rec.getCounts());
+                    }
+                }
+            }
+        }
+        System.out.println((System.nanoTime()-time)/1000000000.);
+        return data;
+    }
+
+    public static Array2DRowRealMatrix rankPercentile(Array2DRowRealMatrix data) {
+        int n = data.getColumnDimension();
+        Percentile percentile = new Percentile();
+        percentile.setData(flattenSquareMatrix(data));
+
+        Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(n,n);
+        for (int r = 0; r < n; r++){
+            for (int c = 0; c < n; c++) {
+                double currValue = data.getEntry(r, c);
+                if(currValue == 0){
+                    matrix.setEntry(r, c, 0);
+                }
+                else {
+                    matrix.setEntry(r, c, percentile.evaluate(currValue));
+                }
+                //matrix.setEntry(r, c, percentile.evaluate());
+            }
+        }
+        return matrix;
+    }
+
+    private static double[] flattenSquareMatrix(Array2DRowRealMatrix matrix){
+        int n = matrix.getColumnDimension();
+        int numElements = n*n;
+        double[] flatMatrix = new double[numElements];
+
+        int index = 0;
+        for (double[] row : matrix.getData()){
+            System.arraycopy(row, 0, flatMatrix, index, n);
+            index += n;
+        }
+        return flatMatrix;
+    }
 }
