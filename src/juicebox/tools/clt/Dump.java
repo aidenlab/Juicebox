@@ -126,7 +126,7 @@ public class Dump extends JuiceboxCLT {
 
         chromosomeMap = new HashMap<String, Chromosome>();
         for (Chromosome c : chromosomeList) {
-            chromosomeMap.put(c.getName().replaceAll("chr",""), c);
+            chromosomeMap.put(c.getName(), c);
         }
 
         if (!chromosomeMap.containsKey(chr1)) {

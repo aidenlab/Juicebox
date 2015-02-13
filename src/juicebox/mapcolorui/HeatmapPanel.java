@@ -327,6 +327,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
                         //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
                     }
+                    else {
+                        loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
+                    }
                     drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
 
                     if (sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
@@ -336,7 +339,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
                         loopGraphics.drawRect(x, y, w, h);
                         if (w > 5) {
-                            loopGraphics.drawRect(x, y, w, h);
+                            loopGraphics.drawRect(x+1, y+1, w-2, h-2);
+                        }
+                        else {
+                            loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
                         }
                         drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
                     }
