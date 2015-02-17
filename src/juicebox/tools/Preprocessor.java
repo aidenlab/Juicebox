@@ -238,7 +238,7 @@ public class Preprocessor {
         los.writeString(genomeId);
 
         // Attribute dictionary
-        int nAttributes = 0;
+        int nAttributes;
         if (stats != null && graphs != null) nAttributes = 2;
         else if (stats != null) nAttributes = 1;
         else if (graphs != null) nAttributes = 1;
@@ -391,6 +391,7 @@ public class Preprocessor {
 
         int genomeLength = chromosomes.get(0).getLength();  // <= whole genome in KB
         int binSize = genomeLength / 500;
+        if (binSize == 0) binSize = 1;
         int nBinsX = genomeLength / binSize + 1;
         int nBlockColumns = nBinsX / BLOCK_SIZE + 1;
         matrix = new MatrixPP(0, 0, binSize, nBlockColumns);
@@ -502,7 +503,6 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
         // Vectors  (Expected values,  other).
         buffer.putInt(expectedValueCalculations.size());
         for (Map.Entry<String, ExpectedValueCalculation> entry : expectedValueCalculations.entrySet()) {
-            String key = entry.getKey();
             ExpectedValueCalculation ev = entry.getValue();
 
             ev.computeDensity();
@@ -597,7 +597,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
     /**
      * Note -- compressed
      *
-     * @param zd
+     * @param zd     Matrix zoom data
      * @param block       Block to write
      * @param sampledData Array to hold a sample of the data (to compute statistics)
      * @throws IOException
@@ -1305,7 +1305,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
         /**
          * Dump the blocks calculated so far to a temporary file
          *
-         * @param file
+         * @param file    File to write to
          * @throws IOException
          */
         private void dumpBlocks(File file) throws IOException {
@@ -1355,9 +1355,6 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
 
         // Merge and write out blocks one at a time.
         private List<IndexEntry> mergeAndWriteBlocks() throws IOException {
-            if (chr1.getIndex() == 10 && chr2.getIndex() == 24) {
-                int tmp = 0;
-            }
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
             List<BlockQueue> activeList = new ArrayList<BlockQueue>();
