@@ -22,9 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.utils;
 
 import juicebox.tools.HiCTools;
+import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
@@ -33,7 +34,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 
-class CommonTools {
+public class CommonTools {
     /**
      * Load chromosomes from given ID or file name.
      *
@@ -41,18 +42,20 @@ class CommonTools {
      * @return Chromosome lengths
      * @throws java.io.IOException if chromosome length file not found
      */
-    static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
+    public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 
         InputStream is = null;
 
         try {
             // Note: to get this to work, had to edit Intellij settings
             // so that "?*.sizes" are considered sources to be copied to class path
-            is = HiCTools.class.getResourceAsStream(idOrFile + ".chrom.sizes");
+            is = ChromosomeSizes.class.getResourceAsStream(idOrFile + ".chrom.sizes");
+            System.out.println(is);
 
             if (is == null) {
                 // Not an ID,  see if its a file
                 File file = new File(idOrFile);
+
                 if (file.exists()) {
                     is = new FileInputStream(file);
                 } else {

@@ -28,41 +28,14 @@ import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CLTFactory;
 import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.Globals;
-
 import java.io.IOException;
 import java.util.*;
 
 
 /**
+ * Command line tool handling through factory model
  * @author Muhammad Shamim
  * @date 1/20/2015
- * <p/>
- * MSS - Comments
- * <p/>
- * I've tested the new CLT changes with AddGWNorm, AddNorm, BinToPairs, CalcKR, Dump,
- * and PairsToBin and verified that the outputs are identical to the previous ones.
- * <p/>
- * using python:
- * {
- * import filecmp
- * print filecmp.cmp('output1.hic', 'output2.hic') # byte by byte comparison of output files
- * }
- * <p/>
- * Have not tested BigWig, BPToFrag, FragToBed, Pre, or DB.
- * They should still work, as I haven't changed their internal code.
- * If some one could let me know where to find frag/bed files,
- * and how the genomeIDs match up with HiC files, I can test the remaining commands.
- * <p/>
- * I'm going to go ahead and commit the changes.
- * The old file will be renamed HiCToolsOld and I'll leave a TODO comment explaining to remove it after testing.
- * <p/>
- * Some of the commands used
- * addGWNorm /Users/muhammadsaadshamim/Desktop/testing/test2.hic 100000000
- * addNorm /Users/muhammadsaadshamim/Desktop/testing/test2.hic 100000000
- * binToPairs /Users/muhammadsaadshamim/Desktop/testing/a1.hic /Users/muhammadsaadshamim/Desktop/testing/b1.hic
- * calcKR /Users/muhammadsaadshamim/Desktop/testing/a1.hic
- * dump observed NONE /Users/muhammadsaadshamim/Desktop/testing/a1.hic 1 1 BP 1000000 /Users/muhammadsaadshamim/Desktop/testing/b1.hic
- * pairsToBin /Users/muhammadsaadshamim/Desktop/testing/a1.hic /Users/muhammadsaadshamim/Desktop/testing/b1.hic hg19
  */
 public class HiCTools {
 
@@ -79,8 +52,6 @@ public class HiCTools {
             CLTFactory.usage();
             System.exit(0);
         }
-
-
 
         try {
                 String cmd = args[0].toLowerCase();
@@ -101,9 +72,7 @@ public class HiCTools {
                     System.exit(-7); // error running the code, these shouldn't occur (error checking should be added)
                 }
         } catch (Exception e) {
-            //System.out.println(e.getMessage());
             CLTFactory.usage();
-            //e.printStackTrace();
             System.exit(2);
         }
     }

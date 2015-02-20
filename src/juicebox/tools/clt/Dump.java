@@ -27,9 +27,9 @@ package juicebox.tools.clt;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.*;
-import juicebox.tools.ExpectedValueCalculation;
+import juicebox.tools.utils.ExpectedValueCalculation;
 import juicebox.tools.HiCTools;
-import juicebox.tools.NormalizationCalculations;
+import juicebox.tools.utils.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -58,7 +58,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
 
     public Dump(){
-        super("dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>");
+        super("dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]");
     }
 
     @Override
@@ -326,9 +326,8 @@ public class Dump extends JuiceboxCLT {
      * @param pw     Stream to print to
      * @param vector Vector to print out
      * @param center Mean centers if true
-     * @throws java.io.IOException
      */
-    static private void dumpVector(PrintWriter pw, double[] vector, boolean center) {
+    static public void dumpVector(PrintWriter pw, double[] vector, boolean center) {
         double sum = 0;
         if (center) {
             int count = 0;

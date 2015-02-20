@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.data.*;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.APAUtils;
 import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
@@ -43,8 +44,6 @@ import java.util.*;
  */
 public class APA extends JuiceboxCLT {
 
-    private Array2DRowRealMatrix xMatrix;
-
     private String[] files;
 
     private String restrictionSiteFilename = "/aidenlab/restriction_sites/hg19_HindIII.txt";
@@ -60,10 +59,9 @@ public class APA extends JuiceboxCLT {
     int width=6; //size of boxes
     int peakwidth = 2; //for enrichment calculation of crosshair norm
     private int resolution = 10000;
-    boolean saveAllData = true;
+    private final boolean saveAllData = true;
 
     private final String workingdirectory = System.getProperty("user.dir");
-    private String dataFolder = workingdirectory +"/Data";
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
@@ -72,8 +70,12 @@ public class APA extends JuiceboxCLT {
             throw new IOException("1");
         }
 
+
         files = new String[args.length-1];
-        System.arraycopy(args, 1, files, 0, files.length-1);
+        System.arraycopy(args, 1, files, 0, files.length);
+
+        for(String s : files)
+            System.out.println("--- "+s);
 
         if (files.length > 4)
             restrictionSiteFilename = files[4];
@@ -99,19 +101,19 @@ public class APA extends JuiceboxCLT {
 
         //Calculate parameters that will need later
         int L = 2*window+1;
-        int midpoint = window*(2*window + 1) + window; //midpoint of flattened matrix
-        int[] shift = APAUtils.range(-window,window+1); //window on which to do psea
-        int mdpt = shift.length/2;
+        //int midpoint = window*(2*window + 1) + window; //midpoint of flattened matrix
+        //int[] shift = APAUtils.range(-window,window+1); //window on which to do psea
+        //int mdpt = shift.length/2;
 
         //define gw data structures
-        int gw_npeaks = 0;
+        //int gw_npeaks = 0;
         int gw_npeaks_used = 0;
-        int gw_npeaks_used_nonunique = 0;
+        //int gw_npeaks_used_nonunique = 0;
         Array2DRowRealMatrix gw_psea = APAUtils.cleanArray2DMatrix(L, L);
         Array2DRowRealMatrix gw_normed_psea = APAUtils.cleanArray2DMatrix(L, L);
         Array2DRowRealMatrix gw_center_normed_psea = APAUtils.cleanArray2DMatrix(L, L);
         Array2DRowRealMatrix gw_rank_psea = APAUtils.cleanArray2DMatrix(L, L);
-        Array2DRowRealMatrix gw_coverage = APAUtils.cleanArray2DMatrix(L, L);
+        //Array2DRowRealMatrix gw_coverage = APAUtils.cleanArray2DMatrix(L, L);
         List<Double> gw_enhancement = new ArrayList<Double>();
 
         try {
@@ -140,7 +142,7 @@ public class APA extends JuiceboxCLT {
                 Array2DRowRealMatrix normed_psea = APAUtils.cleanArray2DMatrix(L, L);
                 Array2DRowRealMatrix center_normed_psea = APAUtils.cleanArray2DMatrix(L, L);
                 Array2DRowRealMatrix rank_psea = APAUtils.cleanArray2DMatrix(L, L);
-                Array2DRowRealMatrix coverage = APAUtils.cleanArray2DMatrix(L, L);
+                //Array2DRowRealMatrix coverage = APAUtils.cleanArray2DMatrix(L, L);
                 List<Double> enhancement = new ArrayList<Double>();
 
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
@@ -149,7 +151,7 @@ public class APA extends JuiceboxCLT {
                 if(chrToLoops.containsKey(chr)) {
                     ArrayList<Feature2D> loops = chrToLoops.get(chr);
                     int npeaks_used_nonunique = loops.size();
-                    gw_npeaks_used_nonunique += npeaks_used_nonunique;
+                    //gw_npeaks_used_nonunique += npeaks_used_nonunique;
 
                     // remove repeats
                     Set<Feature2D> uniqueLoops = new HashSet<Feature2D>(loops);
@@ -171,34 +173,17 @@ public class APA extends JuiceboxCLT {
                             zoom = subZoom;
                         }
                     }
-                    System.out.println("Adjusting zoom to " + zoom.getBinSize());
+                    resolution = zoom.getBinSize();
+                    System.out.println("Adjusting resolution to " + resolution);
                     MatrixZoomData zd = matrix.getZoomData(zoom);
 
                     for (Feature2D loop : uniqueLoops) {
-                        //long time = System.nanoTime();
-                        System.out.println("Processing loop");
-
-                        //System.out.println((System.nanoTime()-time)/1000000);
-
                         Array2DRowRealMatrix newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window);
-
-                        //System.out.println((System.nanoTime()-time)/1000000000.);
-
-                        // all data for the loop added to new data by this point
                         psea.add(newData);
-                        //System.out.println((System.nanoTime()-time)/1000000);
-
                         normed_psea.add(APAUtils.standardNormalization(newData));
-                        //System.out.println((System.nanoTime()-time)/1000000);
-
                         center_normed_psea.add(APAUtils.centerNormalization(newData));
-                        //System.out.println((System.nanoTime()-time)/1000000);
-
                         rank_psea.add(APAUtils.rankPercentile(newData));
-                        //System.out.println((System.nanoTime()-time)/1000000);
-
                         enhancement.add(APAUtils.peakEnhancement(newData));
-                        //System.out.println((System.nanoTime()-time)/1000000);
                     }
 
 
@@ -249,7 +234,7 @@ public class APA extends JuiceboxCLT {
 
     private void saveDataSet(int mdpt, Array2DRowRealMatrix psea, Array2DRowRealMatrix normed_psea,
                              Array2DRowRealMatrix rank_psea, List<Double> enhancement, String prefix){
-
+        System.out.println(files[2]);
         File dataDirHome = new File(files[2]);
         if(!dataDirHome.exists()){
             boolean result = dataDirHome.mkdir();
@@ -259,7 +244,7 @@ public class APA extends JuiceboxCLT {
             }
         }
 
-        dataFolder = dataDirHome.getAbsolutePath()+"/"+prefix +"_"+ new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date());
+        String dataFolder = dataDirHome.getAbsolutePath() + "/" + prefix + "_" + new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date());
         File dataDir = new File(dataFolder);
         boolean result = dataDir.mkdir();
         if(!result){
@@ -274,6 +259,6 @@ public class APA extends JuiceboxCLT {
         APAUtils.saveMatrixText(dataFolder + "/"+prefix+"_normed_psea.txt", normed_psea);
         APAUtils.saveMatrixText(dataFolder + "/"+prefix+"_rank_psea.txt", rank_psea);
         APAUtils.saveListText(dataFolder + "/" + prefix + "_enhancement.txt", enhancement);
-        APAUtils.saveMeasures(psea, mdpt, dataFolder + "/"+prefix+"_measures.txt");
+        APAUtils.saveMeasures(dataFolder + "/"+prefix+"_measures.txt", psea);
     }
 }

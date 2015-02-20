@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,25 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
 
-import juicebox.tools.utils.AsciiToBinConverter;
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.CommonTools;
-import org.broad.igv.feature.Chromosome;
+package juicebox.tools.utils;
 
-import java.io.IOException;
-import java.util.List;
+import juicebox.tools.utils.AlignmentPair;
 
-public class PairsToBin extends JuiceboxCLT {
+import java.util.Iterator;
 
-    private String ifile, ofile, genomeId;
+/**
+ * @author Jim Robinson
+ * @date 9/24/11
+ */
+public interface PairIterator extends Iterator<AlignmentPair> {
+    boolean hasNext();
 
-    public PairsToBin(){
-        super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
-    }
+    AlignmentPair next();
 
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        if (args.length != 4) {
-            throw new IOException("1");
-        }
-        ifile = args[1];
-        ofile = args[2];
-        genomeId = args[3];
-    }
+    void remove();
 
-    @Override
-    public void run() throws IOException {
-        List<Chromosome> chromosomes = CommonTools.loadChromosomes(genomeId);
-        AsciiToBinConverter.convert(ifile, ofile, chromosomes);
-    }
+    void close();
+
+    void push(AlignmentPair pair);
 }

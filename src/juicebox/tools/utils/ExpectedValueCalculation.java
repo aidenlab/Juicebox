@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.tools;
+package juicebox.tools.utils;
 
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.windowui.NormalizationType;
@@ -62,7 +62,7 @@ public class ExpectedValueCalculation {
     private final LinkedHashMap<Integer, Double> chrScaleFactors;
     private final NormalizationType type;
     // A little redundant, for clarity
-    boolean isFrag = false;
+    public boolean isFrag = false;
     /**
      * Genome wide count of binned reads at a given distance
      */

@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools;
+package juicebox.tools.utils;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import org.broad.igv.feature.Chromosome;

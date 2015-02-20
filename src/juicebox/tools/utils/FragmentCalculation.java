@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools;
+package juicebox.tools.utils;
 
 import java.io.*;
 import java.util.LinkedHashMap;

@@ -25,7 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-import juicebox.tools.NormalizationCalculations;
+import juicebox.tools.utils.NormalizationCalculations;
 
 import java.io.IOException;
 
@@ -35,7 +35,7 @@ public class CalcKR extends JuiceboxCLT {
     private String infile = null;
 
     public CalcKR(){
-        super("calcKR <input_HiC_file>");
+        super("calcKR <input_?_file>");
     }
 
     @Override

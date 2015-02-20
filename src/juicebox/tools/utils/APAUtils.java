@@ -22,9 +22,8 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.utils;
 
-import com.sun.tools.javac.util.ArrayUtils;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
@@ -32,8 +31,6 @@ import juicebox.track.Feature2D;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math.stat.descriptive.rank.Percentile;
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
@@ -46,6 +43,17 @@ import java.util.*;
  */
 public class APAUtils {
 
+    private final static double epsilon = 1e-6;
+
+    /**
+     * Retrieves a filtered list of loops
+     * @param path
+     * @param chromosomes
+     * @param min_peak_dist
+     * @param max_peak_dist
+     * @return
+     * @throws IOException
+     */
     public static Map<Chromosome,ArrayList<Feature2D>> loadLoopList(String path, ArrayList<Chromosome> chromosomes,
                                                                     double min_peak_dist, double max_peak_dist) throws IOException {
 
@@ -67,6 +75,14 @@ public class APAUtils {
         return chrToLoops;
     }
 
+    /**
+     * Reads loops from text file
+     * @param path
+     * @param min_peak_dist
+     * @param max_peak_dist
+     * @return
+     * @throws IOException
+     */
     private static Map<String,ArrayList<Feature2D>> loadLoopMap(String path,
                                                                 double min_peak_dist, double max_peak_dist) throws IOException {
         BufferedReader br = null;
@@ -80,7 +96,7 @@ public class APAUtils {
             nextLine = br.readLine(); // header
             String[] headers = Globals.tabPattern.split(nextLine);
 
-            int errorCount = 0;
+            // TODO int errorCount = 0;
             int lineNum = 1;
             while ((nextLine = br.readLine()) != null) {
                 lineNum++;
@@ -95,11 +111,11 @@ public class APAUtils {
                 String chr1Name, chr2Name;
                 int start1, end1, start2, end2;
                 try {
-                    chr1Name = tokens[0].replaceAll("chr", "").toLowerCase();
+                    chr1Name = tokens[0].toLowerCase();
                     start1 = Integer.parseInt(tokens[1]);
                     end1 = Integer.parseInt(tokens[2]);
 
-                    chr2Name = tokens[3].replaceAll("chr", "").toLowerCase();
+                    chr2Name = tokens[3].toLowerCase();
                     start2 = Integer.parseInt(tokens[4]);
                     end2 = Integer.parseInt(tokens[5]);
                 } catch (Exception e) {
@@ -123,6 +139,7 @@ public class APAUtils {
             if (br != null) br.close();
         }
 
+        // filtering of loops
         Map<String,ArrayList<Feature2D>> filteredChrToLoopsMap = new HashMap<String, ArrayList<Feature2D>>();
 
         for(String key : chrToLoopsMap.keySet()){
@@ -133,6 +150,13 @@ public class APAUtils {
     }
 
 
+    /**
+     * Size filtering of loops
+     * @param loops
+     * @param min_peak_dist
+     * @param max_peak_dist
+     * @return
+     */
     private static ArrayList<Feature2D> filterLoopsBySize(ArrayList<Feature2D> loops,
                                                           double min_peak_dist, double max_peak_dist) {
 
@@ -150,34 +174,51 @@ public class APAUtils {
         return new ArrayList<Feature2D>(filteredLoops);
     }
 
-
-
+    /**
+     * Evaulates whether the same chromosome is being referenced by the token
+     * @param token
+     * @param chr
+     * @return
+     */
     private static boolean equivalentChromosome(String token, Chromosome chr) {
         String token2 = token.toLowerCase().replaceAll("chr","");
         String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
         return token2.equals(chrName);
     }
 
-    public static int[] range(int start, int stop) {
+    /**
+     * creates a range of integers
+     * @param start
+     * @param stop
+     * @return
+     */
+    private static int[] range(int start, int stop) {
         int[] result = new int[stop - start];
         for (int i = 0; i < stop - start; i++)
             result[i] = start + i;
         return result;
     }
 
-    //TODO
+    /*TODO is this necessary? I think the set uniqueness method works better for java?
     public static double[][] uniqueRows(double[][] iMatrix) {
         //unique_a = unique(a.view([('', a.dtype)]*a.shape[1]))
         //return unique_a.view(a.dtype).reshape((unique_a.shape[0], a.shape[1]))
         return new double[2][2];
     }
+    */
 
-    public static void saveMeasures(Array2DRowRealMatrix x, int mdpt, String filename) {
+    /**
+     *
+     * @param filename
+     * @param x
+     */
+    public static void saveMeasures(String filename, Array2DRowRealMatrix x) {
         int width = 6; //width of boxes
         Writer writer = null;
         //int totWidth = x.getColumnDimension();
         //float widthp5 = width + .5f;
         //float half_width = width/2f;
+        int mdpt = x.getColumnDimension()/2;
 
 
         try {
@@ -368,31 +409,27 @@ public class APAUtils {
 
     public static Array2DRowRealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
                                                             int L, int resolution, int window) {
-        long time = System.nanoTime();
-        int loopX = loop.getStart1();
-        int loopY = loop.getStart2();
-        int binXStart = loopX - resolution*(window+1);
-        int binXEnd = loopX + resolution*(window+1);
-        int binYStart = loopY - resolution*(window+1);
-        int binYEnd = loopY + resolution*(window+1);
+        //long time = System.nanoTime();
+        int loopX = loop.getStart1()/resolution;
+        int loopY = loop.getStart2()/resolution;
+        int binXStart = loopX - (window+1);
+        int binXEnd = loopX + (window+1);
+        int binYStart = loopY - (window+1);
+        int binYEnd = loopY + (window+1);
 
-        System.out.println((System.nanoTime()-time)/1000000000.);
+        //System.out.println((System.nanoTime()-time)/1000000000.);
 
         List<Block> blocks = zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
                 NormalizationType.NONE);
 
-        System.out.println((System.nanoTime()-time)/1000000000.);
-
         Array2DRowRealMatrix data = APAUtils.cleanArray2DMatrix(L, L);
-
-        System.out.println((System.nanoTime()-time)/1000000000.);
 
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {
                 //, rec.getBinY(), rec.getCounts()
 
-                int relativeX = window + (rec.getBinX() - loopX)/resolution;
-                int relativeY = window + (rec.getBinY() - loopY)/resolution;
+                int relativeX = window + (rec.getBinX() - loopX);
+                int relativeY = window + (rec.getBinY() - loopY);
 
                 if(relativeX >= 0 && relativeX < L){
                     if(relativeY >= 0 && relativeY < L){
@@ -401,14 +438,13 @@ public class APAUtils {
                 }
             }
         }
-        System.out.println((System.nanoTime()-time)/1000000000.);
+        //System.out.println((System.nanoTime()-time)/1000000000.);
         return data;
     }
 
     public static Array2DRowRealMatrix rankPercentile(Array2DRowRealMatrix data) {
         int n = data.getColumnDimension();
-        Percentile percentile = new Percentile();
-        percentile.setData(flattenSquareMatrix(data));
+        StatPercentile percentile = new StatPercentile(flattenSquareMatrix(data));
 
         Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(n,n);
         for (int r = 0; r < n; r++){

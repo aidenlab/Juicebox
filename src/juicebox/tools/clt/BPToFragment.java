@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.FragmentCalculation;
+import juicebox.tools.utils.FragmentCalculation;
 import juicebox.tools.HiCTools;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.LocusScore;

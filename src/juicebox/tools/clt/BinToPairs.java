@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.AsciiToBinConverter;
+import juicebox.tools.utils.AsciiToBinConverter;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;
@@ -40,8 +40,6 @@ public class BinToPairs extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox binToPairs <infile> <outfile>");
-
         if (args.length != 3) {
             throw new IOException("1");
         }

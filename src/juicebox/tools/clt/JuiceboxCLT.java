@@ -34,7 +34,7 @@ public abstract class JuiceboxCLT {
 
     private static String usage;
 
-    protected JuiceboxCLT(String usage){
+    JuiceboxCLT(String usage){
         setUsage(usage);
     }
 
@@ -42,7 +42,7 @@ public abstract class JuiceboxCLT {
 
     public abstract void run() throws IOException;
 
-    public void setUsage(String newUsage) {
+    private void setUsage(String newUsage) {
         usage = newUsage;
     }
 

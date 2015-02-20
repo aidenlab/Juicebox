@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCDBUtils;
+import juicebox.tools.utils.HiCDBUtils;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;

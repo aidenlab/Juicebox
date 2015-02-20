@@ -25,8 +25,9 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-import juicebox.tools.NormalizationVectorUpdater;
-import juicebox.tools.Preprocessor;
+import juicebox.tools.utils.NormalizationVectorUpdater;
+import juicebox.tools.utils.Preprocessor;
+import juicebox.tools.utils.CommonTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -46,7 +47,7 @@ public class PreProcessing extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        String genomeId = "";
+        String genomeId;
         try {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
