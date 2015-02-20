@@ -873,6 +873,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
 
+    // TODO - not generating tracks at present, just some relevant code pieces - MSS
     private String trackGenerator(int x, int y) {
         // Update popup text
         final MatrixZoomData zd = hic.getZd();
