@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Juicebox:jar_tools">
+    <output-path>$PROJECT_DIR$/out/artifacts/Juicebox_jar_tools</output-path>
+    <root id="archive" name="Juicebox.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="Juicebox" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/igv.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/htsjdk-1.123.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
