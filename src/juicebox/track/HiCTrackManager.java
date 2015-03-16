@@ -138,12 +138,13 @@ public class HiCTrackManager {
         String pathLC = path.toLowerCase();
         // genome = GenomeManager.getInstance().getCurrentGenome();
 
-        if (pathLC.endsWith(".wig") || pathLC.endsWith(".bedgraph") ||
-                pathLC.endsWith(".wig.gz") || pathLC.endsWith(".bedgraph.gz")) {
+        if (pathLC.endsWith(".wig")  ||
+                pathLC.endsWith(".wig.gz")) {
             HiCWigAdapter da = new HiCWigAdapter(hic, path);
             HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
             loadedTracks.add(hicTrack);
-        } else if (pathLC.endsWith(".tdf") || pathLC.endsWith(".bigwig") || pathLC.endsWith(".bw")) {
+        } else if (pathLC.endsWith(".tdf") || pathLC.endsWith(".bigwig") || pathLC.endsWith(".bw")
+                || pathLC.endsWith(".bedgraph") || pathLC.endsWith(".bedgraph.gz")) {
             List<Track> tracks = (new TrackLoader()).load(locator, genome);
 
             for (Track t : tracks) {
