@@ -64,6 +64,9 @@ public class AsciiPairIterator implements PairIterator {
      * 0 15 61559113 0 16 15 61559309 16
      * 16 10 26641879 16 0 9 12797549 0
      * <p/>
+     * Medium for,:
+     * readname str1 chr1 pos1 frag1 str2 chr2 pos2 frag2 mapq1 mapq2
+     * <p/>
      * Long form:
      * str1 chr1 pos1 frag1 str2 chr2 pos2 frag2 mapq1 cigar1 seq1 mapq2 cigar2 seq2 rname1 rname2
      */
@@ -80,34 +83,59 @@ public class AsciiPairIterator implements PairIterator {
                         format = Format.SHORT;
                     } else if (nTokens == 16) {
                         format = Format.LONG;
-                    } else {
+                    } else if (nTokens == 11) {
+                        format = Format.MEDIUM;
+                    }
+                    else {
                         throw new IOException("Unexpected column count.  Only 8 or 16 columns supported.  Check file format");
                     }
                 }
 
-                // this should be strand, chromosome, position, fragment.
+                if (format == Format.MEDIUM) {
+                    String chrom1 = getInternedString(tokens[2]);
+                    String chrom2 = getInternedString(tokens[6]);
+                    // some contigs will not be present in the chrom.sizes file
+                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        int chr1 = chromosomeOrdinals.get(chrom1);
+                        int chr2 = chromosomeOrdinals.get(chrom2);
+                        int pos1 = Integer.parseInt(tokens[3]);
+                        int pos2 = Integer.parseInt(tokens[7]);
+                        int frag1 = Integer.parseInt(tokens[4]);
+                        int frag2 = Integer.parseInt(tokens[8]);
+                        int mapq1 = Integer.parseInt(tokens[9]);
+                        int mapq2 = Integer.parseInt(tokens[10]);
 
-                String chrom1 = getInternedString(tokens[1]);
-                String chrom2 = getInternedString(tokens[5]);
-                // some contigs will not be present in the chrom.sizes file
-                if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
-                    int chr1 = chromosomeOrdinals.get(chrom1);
-                    int chr2 = chromosomeOrdinals.get(chrom2);
-                    int pos1 = Integer.parseInt(tokens[2]);
-                    int pos2 = Integer.parseInt(tokens[6]);
-                    int frag1 = Integer.parseInt(tokens[3]);
-                    int frag2 = Integer.parseInt(tokens[7]);
-                    int mapq1 = 1000;
-                    int mapq2 = 1000;
-                    if (format == Format.LONG) {
-                        mapq1 = Integer.parseInt(tokens[8]);
-                        mapq2 = Integer.parseInt(tokens[11]);
+                        boolean strand1 = Integer.parseInt(tokens[1]) == 0;
+                        boolean strand2 = Integer.parseInt(tokens[5]) == 0;
+                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
                     }
-                    boolean strand1 = Integer.parseInt(tokens[0]) == 0;
-                    boolean strand2 = Integer.parseInt(tokens[4]) == 0;
-                    nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-                } else {
-                    nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+
+                }
+                else {
+                    // this should be strand, chromosome, position, fragment.
+
+                    String chrom1 = getInternedString(tokens[1]);
+                    String chrom2 = getInternedString(tokens[5]);
+                    // some contigs will not be present in the chrom.sizes file
+                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                        int chr1 = chromosomeOrdinals.get(chrom1);
+                        int chr2 = chromosomeOrdinals.get(chrom2);
+                        int pos1 = Integer.parseInt(tokens[2]);
+                        int pos2 = Integer.parseInt(tokens[6]);
+                        int frag1 = Integer.parseInt(tokens[3]);
+                        int frag2 = Integer.parseInt(tokens[7]);
+                        int mapq1 = 1000;
+                        int mapq2 = 1000;
+                        if (format == Format.LONG) {
+                            mapq1 = Integer.parseInt(tokens[8]);
+                            mapq2 = Integer.parseInt(tokens[11]);
+                        }
+                        boolean strand1 = Integer.parseInt(tokens[0]) == 0;
+                        boolean strand2 = Integer.parseInt(tokens[4]) == 0;
+                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
+                    } else {
+                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                    }
                 }
                 return;
             }
@@ -172,6 +200,6 @@ public class AsciiPairIterator implements PairIterator {
         }
     }
 
-    enum Format {SHORT, LONG}
+    enum Format {SHORT, LONG, MEDIUM}
 
 }

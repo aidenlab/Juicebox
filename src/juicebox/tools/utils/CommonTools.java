@@ -50,7 +50,6 @@ public class CommonTools {
             // Note: to get this to work, had to edit Intellij settings
             // so that "?*.sizes" are considered sources to be copied to class path
             is = ChromosomeSizes.class.getResourceAsStream(idOrFile + ".chrom.sizes");
-            System.out.println(is);
 
             if (is == null) {
                 // Not an ID,  see if its a file
