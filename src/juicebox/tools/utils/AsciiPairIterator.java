@@ -29,6 +29,11 @@ import org.broad.igv.Globals;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.util.zip.GZIPInputStream;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +56,15 @@ public class AsciiPairIterator implements PairIterator {
     private Format format = null;
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
-        this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
+        if (path.endsWith(".gz")) {
+            InputStream fileStream = new FileInputStream(path);
+            InputStream gzipStream = new GZIPInputStream(fileStream);
+            Reader decoder = new InputStreamReader(gzipStream, "UTF8");
+            this.reader = new BufferedReader(decoder);
+        }
+        else {
+            this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
+        }
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();
     }

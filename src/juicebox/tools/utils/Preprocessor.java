@@ -293,7 +293,6 @@ public class Preprocessor {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
         writeMatrix(wholeGenomeMatrix);
 
-
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile, chromosomeIndexes) :
                 new AsciiPairIterator(inputFile, chromosomeIndexes);
