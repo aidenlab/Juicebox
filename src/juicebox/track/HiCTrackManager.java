@@ -136,7 +136,9 @@ public class HiCTrackManager {
         Genome genome = loadGenome();
         String path = locator.getPath();
         String pathLC = path.toLowerCase();
-        // genome = GenomeManager.getInstance().getCurrentGenome();
+        int index = path.lastIndexOf('.');
+        String extension = path.substring(index).toLowerCase();
+        locator.setType(extension);
 
         if (pathLC.endsWith(".wig")  ||
                 pathLC.endsWith(".wig.gz")) {
