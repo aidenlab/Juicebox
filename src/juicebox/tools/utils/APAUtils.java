@@ -124,7 +124,7 @@ public class APAUtils {
                 }
 
                 if(chr1Name.equals(chr2Name)) {
-                    Feature2D feature = new Feature2D("Peak", chr1Name, start1, end1, chr2Name, start2, end2, null, null);
+                    Feature2D feature = new Feature2D(Feature2D.peak, chr1Name, start1, end1, chr2Name, start2, end2, null, null);
                     if(chrToLoopsMap.containsKey(chr1Name)){
                         chrToLoopsMap.get(chr1Name).add(feature);
                     }
