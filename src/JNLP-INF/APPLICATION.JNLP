@@ -22,8 +22,8 @@
   <update check="always" policy="always"/>
   <resources>
     <java version="1.6+"
-          initial-heap-size="256m" 
-          max-heap-size="1000m" />
+          initial-heap-size="512m"
+          max-heap-size="2000m" />
     <jar href="juicebox.jar" download="eager" main="true"/>
     <property name="jnlp.loadMenu" value="http://hicfiles.tc4ga.com/juicebox.properties"/>
     <property name="jnlp.webstart.version" value="true"/>
