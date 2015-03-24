@@ -39,4 +39,10 @@ public class HiCGlobals {
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
 
+    // Juicebox version (for display purposes only)
+    private static double versionNum = 1.1;
+
+    // Juicebox title
+    public static String juiceboxTitle = "[Juicebox "+versionNum+"] Hi-C Map: ";
+
 }

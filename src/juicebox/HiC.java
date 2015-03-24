@@ -690,11 +690,11 @@ public class HiC {
                 String featureName = path.substring(featureNameSepindex + 1);
 
                 if (featureName.equals("blocks.txt")) {
-                    featureName = "Contact domain";
+                    featureName = Feature2D.domain;
                 } else if (featureName.equals("peaks.txt")) {
-                    featureName = "Peak";
+                    featureName = Feature2D.peak;
                 } else {
-                    featureName = "Feature";
+                    featureName = Feature2D.generic;
                 }
                 // Convention is chr1 is lowest "index". Swap if necessary
                 Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
