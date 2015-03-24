@@ -138,7 +138,9 @@ public class HiCTrackManager {
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
         String extension = path.substring(index).toLowerCase();
-        locator.setType(extension);
+        if (!extension.equals(".gz")) {
+            locator.setType(extension);
+        }
 
         if (pathLC.endsWith(".wig")  ||
                 pathLC.endsWith(".wig.gz")) {
@@ -154,7 +156,7 @@ public class HiCTrackManager {
                 HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
                 loadedTracks.add(hicTrack);
             }
-        } else if (pathLC.endsWith(".bb")) {
+       } else if (pathLC.endsWith(".bb")) {
             try {
                 BigWigDataSource src = new BigWigDataSource(new BBFileReader(locator.getPath()), genome);
                 HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
