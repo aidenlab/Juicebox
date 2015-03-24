@@ -305,8 +305,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
 
                 // TODO make these variables accessible as user options
-                boolean onlyPlotUpperRight = true,
-                        onlyPlotLowerLeft = false,
+                // the other day, Erez mentioned his preferred was everything in lower left
+                // can change for future.
+                boolean onlyPlotUpperRight = false,
+                        onlyPlotLowerLeft = true,
                         allowUpperRightLoops = false;
 
 
@@ -367,19 +369,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
                     // TODO is there a reason for checking bounds and not just filtering by loop vs domain
+                    // TODO also are any features being missed y discard upper right
                     // which is contained in
                     if (allowUpperRightLoops && sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
                         x = (int) ((binStart2 - binOriginX) * scaleFactor);
                         y = (int) ((binStart1 - binOriginY) * scaleFactor);
                         w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
                         h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
-                        loopGraphics.setColor(Color.ORANGE);
+                        //loopGraphics.setColor(Color.ORANGE);
                         loopGraphics.drawRect(x, y, w, h);
                         if (w > 5) {
-                            loopGraphics.setColor(Color.magenta);
+                            //loopGraphics.setColor(Color.magenta);
                             loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
                         } else {
-                            loopGraphics.setColor(Color.CYAN);
+                            //loopGraphics.setColor(Color.CYAN);
                             loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
                         }
                         drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
