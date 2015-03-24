@@ -193,19 +193,25 @@
                   path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90Rad21IggrabUniPk.narrowPeak.gz"></Resource>
         <Resource trackLine='viewLimits=0:25' name="NHLF CTCF"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/signal/jan2011/bigwig/wgEncodeBroadHistoneNhlfCtcfStdAln_2Reps.norm5.rawsignal.bw"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27ac" color="255,0,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27ac Peaks" color="255,0,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k27acStdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27me3" color="255,0,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27me3 Peaks" color="255,0,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k27me3StdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K36me3" color="0,0,150"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27me3 Signal" color="255,0,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/signal/jan2011/bigwig/wgEncodeBroadHistoneNhlfH3k27me3StdAln_2Reps.norm5.rawsignal.bw"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K36me3 Peaks" color="0,0,150"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k36me3StdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me1" color="0,150,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K36me3 Signal" color="0,0,150"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/signal/jan2011/bigwig/wgEncodeBroadHistoneNhlfH3k36me3StdAln_2Reps.norm5.rawsignal.bw"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me1 Peaks" color="0,150,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me1StdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me2" color="0,150,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me2 Peaks" color="0,150,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me2StdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me3" color="0,150,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me3 Peaks" color="0,150,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me3StdAln.bb"></Resource>
-        <Resource trackLine='viewLimits=0:25' name="NHLF H3K9ac" color="100,0,0"
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me3 Signal" color="0,150,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/signal/jan2011/bigwig/wgEncodeBroadHistoneNhlfH3k4me3StdAln_2Reps.norm5.rawsignal.bw"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K9ac Peaks" color="100,0,0"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k9acStdAln.bb"></Resource>
         <Resource trackLine='viewLimits=0:25' name="NHLF H4K20me1"
                   path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH4k20me1StdAln.bb"></Resource>
