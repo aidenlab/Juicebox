@@ -304,6 +304,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 HiCGridAxis yAxis = zd.getYGridAxis();
                 boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
 
+                // TODO make these variables accessible as user options
+                boolean onlyPlotUpperRight = true,
+                        onlyPlotLowerLeft = false,
+                        allowUpperRightLoops = false;
+
+
                 for (Feature2D feature : loops) {
 
                     loopGraphics.setColor(feature.getColor());
@@ -317,31 +323,63 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int y = (int) ((binStart2 - binOriginY) * scaleFactor);
                     int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
                     int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
-                    loopGraphics.drawRect(x, y, w, h);
-                    //loopGraphics.drawLine(x,y,x,y+w);
-                    //loopGraphics.drawLine(x,y+w,x+h,y+w);
+
+
+                    if(onlyPlotLowerLeft) {
+                        //loopGraphics.setColor(Color.green);
+                        loopGraphics.drawLine(x, y, x, y + w);
+                        loopGraphics.drawLine(x, y + w, x + h, y + w);
+                    }
+                    else if(onlyPlotUpperRight){
+                        //loopGraphics.setColor(Color.blue);
+                        loopGraphics.drawLine(x, y, x + h, y);
+                        loopGraphics.drawLine(x + h, y, x + h, y + w);
+                    }
+                    else
+                    {
+                        //loopGraphics.setColor(Color.yellow);
+                        loopGraphics.drawRect(x, y, w, h);
+                    }
                     //System.out.println(binStart1 + "-" + binEnd1);
                     if (w > 5) {
-                        // Thick line if there is room.
-                        loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
-                        //   loopGraphics.drawLine(x+1,y+1,x+1,y+w-1);
-                        //   loopGraphics.drawLine(x+1,y+w-1,x+h-1,y+w-1);
+                        // Thick line if there is room. TODO double check +/- 1
+                        if(onlyPlotLowerLeft){
+                            loopGraphics.drawLine(x+1,y+1,x+1,y+w+1);
+                            loopGraphics.drawLine(x+1,y+w+1,x+h+1,y+w-1);
+                        }
+                        else if(onlyPlotUpperRight){
+                            loopGraphics.drawLine(x+1,y+1,x+h+1,y+1);
+                            loopGraphics.drawLine(x+h+1,y+1,x+h+1,y+w-1);
+                        }
+                        else {
+                            loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
+                        }
                     }
                     else {
                         loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
                     }
+
+
                     drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
 
-                    if (sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
+                    feature.getClass();
+
+
+
+                    // TODO is there a reason for checking bounds and not just filtering by loop vs domain
+                    // which is contained in
+                    if (allowUpperRightLoops && sameChr && !(binStart1 == binStart2 && binEnd1 == binEnd2)) {
                         x = (int) ((binStart2 - binOriginX) * scaleFactor);
                         y = (int) ((binStart1 - binOriginY) * scaleFactor);
                         w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
                         h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                        loopGraphics.setColor(Color.ORANGE);
                         loopGraphics.drawRect(x, y, w, h);
                         if (w > 5) {
-                            loopGraphics.drawRect(x+1, y+1, w-2, h-2);
-                        }
-                        else {
+                            loopGraphics.setColor(Color.magenta);
+                            loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
+                        } else {
+                            loopGraphics.setColor(Color.CYAN);
                             loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
                         }
                         drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
@@ -636,7 +674,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi6);
             menu.add(mi7);
             menu.add(mi8);
-            menu.add(mi9);
+            //menu.add(mi9);
         }
 
 
