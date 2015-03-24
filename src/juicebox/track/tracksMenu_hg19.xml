@@ -53,15 +53,12 @@
     <Category name="GM12878" version="1">
         <Resource color="255,128,128" name="GM12878 CTCF Orientation"
                   path="http://hicfiles.s3.amazonaws.com/external/GM12878_CTCF_orientation.bed"/>
-        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=GM12878" scaleType=log' color="255,128,128"
+        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=GM12878" scaleType=log' color="149,128,255"
                   name="GM12878 RNA-seq"
                   path="http://hicfiles.s3.amazonaws.com/external/GM12878_RnaSeq_summed.bw"/>
         <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=GM12878"'
-                  name="GM12878 DnaseI Rep 1"
-                  path="http://igvdata.broadinstitute.org/data/hg19/encode/uwDnase/wgEncodeUwDnaseGm12878RawRep1.tdf"/>
-        <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=GM12878"'
-                  name="GM12878 DnaseI Rep 2"
-                  path="http://igvdata.broadinstitute.org/data/hg19/encode/uwDnase/wgEncodeUwDnaseGm12878RawRep2.bigWig"/>
+                  name="GM12878 DnaseI"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseUwdukeGm12878UniPk.narrowPeak.gz"/>
         <Resource trackLine='viewLimits=0:25' name="GM12878 Input (Broad)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneGm12878ControlStdSig.wig.tdf"></Resource>
         <Resource trackLine='viewLimits=0:25' name="GM12878 CTCF (Broad)"
@@ -110,6 +107,9 @@
                   path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneHelas3Pol2bStdSig.bigWig"></Resource>
     </Category>
     <Category trackLine='viewLimits=0:25' name="HMEC" version="1">
+        <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=HMEC"'
+                  name="HMEC DnaseI"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseUwdukeHmecUniPk.narrowPeak.gz"/>
         <Resource trackLine='viewLimits=0:25' name="HMEC Input (Broad)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneHmecControlStdSig.wig.tdf"></Resource>
         <Resource trackLine='viewLimits=0:25' name="HMEC CTCF (Broad)"
@@ -132,7 +132,7 @@
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneHmecH4k20me1StdSig.wig.tdf"></Resource>
     </Category>
     <Category trackLine='viewLimits=0:25' name="HUVEC" version="1">
-        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=HUVEC" scaleType=log' color="128,200,255"
+        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=HUVEC" scaleType=log' color="149,128,255"
                   name="HUVEC RNA-seq"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/regTxn/wgEncodeRegTxnCaltechRnaSeqHuvecR2x75Il200SigPooled.wig.tdf"/>
         <Resource color="128,200,255" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=HUVEC"'
@@ -175,7 +175,12 @@
         <Resource trackLine='viewLimits=0:25' name="HUVEC Pol2(b)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneHuvecPol2bStdSig.wig.tdf"></Resource>
     </Category>
-    <Category trackLine='viewLimits=0:25' name="IMR90" version="1">
+    <Category trackLine='viewLimits=0:25' name="IMR90/NHLF" version="1">
+        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=NHLF" scaleType=log' name="NHLF RNA-seq"  color="149,128,255"
+                  path="http://hicfiles.s3.amazonaws.com/external/NHLF_RnaSeq_summed.bw"/>
+        <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=NHLF"'
+                  name="NHLF DnaseI"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseUwNhlfUniPk.narrowPeak.gz"/>
         <Resource trackLine='viewLimits=0:25' name="IMR90 CEBPB"
                   path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90CebpbIggrabUniPk.narrowPeak.gz"></Resource>
         <Resource trackLine='viewLimits=0:25' name="IMR90 CTCF"
@@ -186,18 +191,32 @@
                   path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90Pol2IggrabUniPk.narrowPeak.gz"></Resource>
         <Resource trackLine='viewLimits=0:25' name="IMR90 RAD21"
                   path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgTfbsUniform/wgEncodeAwgTfbsSydhImr90Rad21IggrabUniPk.narrowPeak.gz"></Resource>
-
+        <Resource trackLine='viewLimits=0:25' name="NHLF CTCF"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/signal/jan2011/bigwig/wgEncodeBroadHistoneNhlfCtcfStdAln_2Reps.norm5.rawsignal.bw"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27ac" color="255,0,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k27acStdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K27me3" color="255,0,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k27me3StdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K36me3" color="0,0,150"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k36me3StdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me1" color="0,150,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me1StdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me2" color="0,150,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me2StdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K4me3" color="0,150,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k4me3StdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H3K9ac" color="100,0,0"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH3k9acStdAln.bb"></Resource>
+        <Resource trackLine='viewLimits=0:25' name="NHLF H4K20me1"
+                  path="http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/byDataType/peaks/jan2011/histone_macs/optimal/hub/wgEncodeBroadHistoneNhlfH4k20me1StdAln.bb"></Resource>
     </Category>
     <Category trackLine='viewLimits=0:25' name="K562" version="1">
         <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=K562" scaleType=log' color="149,128,255"
                   name="K562 RNA-seq"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/regTxn/wgEncodeRegTxnCaltechRnaSeqK562R2x75Il200SigPooled.wig.tdf"/>
-        <Resource color="149,128,255" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=K562"'
-                  name="K562 DnaseI Rep 1"
-                  path="http://igvdata.broadinstitute.org/data/hg19/encode/uwDnase/wgEncodeUwDnaseK562RawRep1.bigWig"/>
-        <Resource color="149,128,255" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=K562"'
-                  name="K562 DnaseI Rep 2"
-                  path="http://igvdata.broadinstitute.org/data/hg19/encode/uwDnase/wgEncodeUwDnaseK562RawRep2.bigWig"/>
+        <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=K562"'
+                  name="K562 DnaseI"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseUwdukeK562UniPk.narrowPeak.gz"/>
         <Resource trackLine='viewLimits=0:25' name="K562 Input (Broad)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneK562ControlStdSig.wig.tdf"></Resource>
         <Resource trackLine='viewLimits=0:25 meta="type=CTCF;cell line=K562"' name="K562 Input (UW)"
@@ -236,11 +255,11 @@
     </Category>
     <Category trackLine='viewLimits=0:25' name="NHEK" version="1">
         <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell
-      line=NHEK" scaleType=log' color="227,128,255" name="NHEK
+      line=NHEK" scaleType=log' color="149,128,255" name="NHEK
       RNA-seq"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/regTxn/wgEncodeRegTxnCaltechRnaSeqNhekR2x75Il200SigPooled.wig.tdf"/>
-        <Resource color="227,128,255" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=NHEK"' name="NHEK DnaseI"
-                  path="http://igvdata.broadinstitute.org/data/hg19/encode/uwDnase/wgEncodeUwDnaseNhekRawRep1.bigWig"/>
+        <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=NHEK"' name="NHEK DnaseI"
+                  path="http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeAwgDnaseUniform/wgEncodeAwgDnaseUwdukeNhekUniPk.narrowPeak.gz"/>
         <Resource trackLine='viewLimits=0:25' name="NHEK Input (Broad)"
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneNhekControlStdSig.wig.tdf"></Resource>
         <Resource trackLine='viewLimits=0:25' name="NHEK CTCF (Broad)"
