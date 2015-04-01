@@ -186,15 +186,20 @@ public class HiCFeatureTrack extends HiCTrack {
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
 
         Context context = orientation == TrackPanel.Orientation.X ? hic.getXContext() : hic.getYContext();
+        StringBuilder txt = new StringBuilder();
 
-        String text = getName();
+
+        txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
+        txt.append(getName());
+        txt.append("</span>");
+
         IGVFeature f = getFeatureAtPixel(x, context, orientation);
         if (f != null) { // && (f.getEnd() > start && f.getStart() < end)) {
-            text += "<br>" + f.getDescription();
-        } else {
-            return text;
+            txt.append("<span style='font-family: arial; font-size: 12pt;'>");
+            txt.append("<br>" + f.getDescription());
+            txt.append("</span>");
         }
-        return text;
+        return txt.toString();
     }
 
     private IGVFeature getFeatureAtPixel(int x, Context context, TrackPanel.Orientation orientation) {
