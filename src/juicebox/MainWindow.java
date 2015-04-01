@@ -1413,6 +1413,9 @@ public class MainWindow extends JFrame {
 
             public void actionPerformed(ActionEvent e) {
 
+                if (positionChrLeft.getText().isEmpty()) {
+                    positionChrLeft.setText(positionChrTop.getText());
+                }
                 parsePositionText();
 
             }
@@ -1448,6 +1451,9 @@ public class MainWindow extends JFrame {
         goButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
         goButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                if (positionChrLeft.getText().isEmpty()) {
+                    positionChrLeft.setText(positionChrTop.getText());
+                }
                 parsePositionText();
             }
         });
