@@ -152,13 +152,14 @@ public class ResourceTree {
 
         dialog = new JDialog(parent, "Available Features", true);
 
-        JPanel treePanel = new JPanel();
+        JPanel treePanel = new JPanel(new BorderLayout());
         JScrollPane pane = new JScrollPane(dialogTree);
-        treePanel.add(pane);
+        treePanel.add(pane, BorderLayout.CENTER);
 
         pane.setPreferredSize(new Dimension(650, 500));
         pane.setOpaque(true);
         pane.setBackground(Color.WHITE);
+        pane.setViewportView(dialogTree);
 
         dialog.setBackground(Color.WHITE);
         dialog.getContentPane().setBackground(Color.WHITE);
