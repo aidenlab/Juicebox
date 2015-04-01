@@ -141,6 +141,11 @@ public class HiCTrackManager {
         if (!extension.equals(".gz")) {
             locator.setType(extension);
         }
+        else {
+            // setting type to be the extension before the .gz
+            int index2 = path.substring(0,index).lastIndexOf('.');
+            locator.setType(path.substring(0,index).substring(index2));
+        }
 
         if (pathLC.endsWith(".wig")  ||
                 pathLC.endsWith(".wig.gz")) {
