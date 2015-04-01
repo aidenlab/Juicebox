@@ -693,7 +693,8 @@ public class MainWindow extends JFrame {
     private void updateTitle() {
         String newTitle = datasetTitle;
         if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
-        setTitle(newTitle);
+        // TODO decide on title displayed in Juicebox
+        setTitle(HiCGlobals.juiceboxTitle+newTitle);
     }
 
 

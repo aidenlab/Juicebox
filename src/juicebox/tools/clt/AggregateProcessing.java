@@ -26,6 +26,8 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.APAPlotter;
+
 import java.io.IOException;
 
 /**
@@ -116,7 +118,9 @@ public class AggregateProcessing {
         //HiCTools.main(l3);
         // ? HiCTools.main(l4);
         //HiCTools.main(l5);
-        HiCTools.main(l6);
+        //HiCTools.main(l6);
+
+        APAPlotter.run();
 
     }
 }

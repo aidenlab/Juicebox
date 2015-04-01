@@ -40,6 +40,12 @@ import java.util.Map;
  */
 public class Feature2D {
 
+
+    public static String peak = "Peak";
+    public static String domain = "Contact domain";
+    public static String generic = "Feature";
+
+
     private final NumberFormat formatter = NumberFormat.getInstance();
 
     private final String chr1;
@@ -66,6 +72,7 @@ public class Feature2D {
         this.attributes = attributes;
     }
 
+    public String getFeatureName(){ return featureName; }
 
     public String getChr1() {
         return chr1;
@@ -127,6 +134,8 @@ public class Feature2D {
                 txt.append("<span style='font-family: arial; font-size: 12pt;'>");
                 txt.append(tmpKey);
                 txt.append(" = <b>");
+                System.out.println(entry.getValue());
+                // TODO why does this need to be a double?
                 txt.append(df.format(Double.valueOf(entry.getValue())));
                 txt.append("</b>");
                 txt.append("</span>");
