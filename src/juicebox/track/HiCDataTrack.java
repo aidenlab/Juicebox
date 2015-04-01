@@ -276,7 +276,7 @@ public class HiCDataTrack extends HiCTrack {
                 final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(MainWindow.getInstance(), HiCDataTrack.this);
                 trackConfigDialog.setVisible(true);
                 if (!trackConfigDialog.isCanceled()) {
-                    MainWindow.getInstance().repaint();
+                    MainWindow.getInstance().updateTrackPanel();
                 }
             }
         });
