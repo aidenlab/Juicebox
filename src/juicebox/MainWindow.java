@@ -1034,6 +1034,7 @@ public class MainWindow extends JFrame {
                 chrBox1ActionPerformed(e);
             }
         });
+        chrBox1.setPreferredSize(new Dimension(95, 70));
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
@@ -1044,6 +1045,7 @@ public class MainWindow extends JFrame {
                 chrBox2ActionPerformed(e);
             }
         });
+        chrBox2.setPreferredSize(new Dimension(95, 70));
         chrButtonPanel.add(chrBox2);
 
 
@@ -1055,6 +1057,7 @@ public class MainWindow extends JFrame {
                 refreshButtonActionPerformed();
             }
         });
+        refreshButton.setPreferredSize(new Dimension(24,24));
         chrButtonPanel.add(refreshButton);
 
         chrBox1.setEnabled(false);
