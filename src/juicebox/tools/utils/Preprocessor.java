@@ -202,10 +202,13 @@ public class Preprocessor {
 
             los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
 
+            System.out.println("Start write header");
             writeHeader(stats, graphs);
 
+            System.out.println("Start write body");
             writeBody(inputFile);
 
+            System.out.println("Start write footer");
             writeFooter();
 
 
