@@ -201,10 +201,14 @@ public class HiCDataTrack extends HiCTrack {
 
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
+        StringBuilder txt = new StringBuilder();
 
-        String text = getName();
 
-        if (data == null) return getName();
+        txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
+        txt.append(getName());
+        txt.append("</span>");
+
+        if (data == null) return txt.toString();
 
         Context context = orientation == TrackPanel.Orientation.X ? hic.getXContext() : hic.getYContext();
 
@@ -237,17 +241,21 @@ public class HiCDataTrack extends HiCTrack {
 
             }
         });
+
+
+        txt.append("<span style='font-family: arial; font-size: 12pt;'>");
         if (idx < 0) {
-            text += "<br>bin: " + formatter.format((int) bin);
+            txt.append("<br>bin: " + formatter.format((int) bin));
         } else {
             HiCDataPoint ws = data[idx];
             if (ws == null) return null;
 
-            text += "<br>" + formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()) +
+            txt.append("<br>" + formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()) +
                     "<br>bin: " + formatter.format(ws.getBinNumber()) +
-                    "<br>value: " + formatter.format(ws.getValue(windowFunction));
+                    "<br>value: " + formatter.format(ws.getValue(windowFunction)));
         }
-        return text;
+        txt.append("</span>");
+        return txt.toString();
     }
 
     @Override
@@ -268,7 +276,7 @@ public class HiCDataTrack extends HiCTrack {
                 final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(MainWindow.getInstance(), HiCDataTrack.this);
                 trackConfigDialog.setVisible(true);
                 if (!trackConfigDialog.isCanceled()) {
-                    MainWindow.getInstance().repaint();
+                    MainWindow.getInstance().updateTrackPanel();
                 }
             }
         });

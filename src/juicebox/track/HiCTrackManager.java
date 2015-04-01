@@ -141,6 +141,11 @@ public class HiCTrackManager {
         if (!extension.equals(".gz")) {
             locator.setType(extension);
         }
+        else {
+            // setting type to be the extension before the .gz
+            int index2 = path.substring(0,index).lastIndexOf('.');
+            locator.setType(path.substring(0,index).substring(index2));
+        }
 
         if (pathLC.endsWith(".wig")  ||
                 pathLC.endsWith(".wig.gz")) {
@@ -235,7 +240,6 @@ public class HiCTrackManager {
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                // TODO this shouldn't be accessing broad anymore
                 genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
             } else {
                 genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";

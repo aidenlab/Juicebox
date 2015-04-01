@@ -566,7 +566,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(mi);
 
-        final JMenuItem mi2 = new JMenuItem("Goto ...");
+     /*   final JMenuItem mi2 = new JMenuItem("Goto ...");
         mi2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -593,7 +593,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 }
             }
-        });
+        });*/
 
 
         final JMenuItem mi3 = new JMenuItem("Sync");
@@ -669,7 +669,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
 
         if (hic != null) {
-            menu.add(mi2);
+        //    menu.add(mi2);
             menu.add(mi3);
             mi4.setSelected(hic.isLinkedMode());
             menu.add(mi4);
@@ -1157,6 +1157,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mousePressed(final MouseEvent e) {
 
             if (hic.isWholeGenome()) {
+                if (e.isPopupTrigger()) {
+                    getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+                }
                 return;
             }
 

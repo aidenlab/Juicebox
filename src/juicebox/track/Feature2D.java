@@ -134,7 +134,7 @@ public class Feature2D {
                 txt.append("<span style='font-family: arial; font-size: 12pt;'>");
                 txt.append(tmpKey);
                 txt.append(" = <b>");
-                System.out.println(entry.getValue());
+                //System.out.println(entry.getValue());
                 // TODO why does this need to be a double?
                 txt.append(df.format(Double.valueOf(entry.getValue())));
                 txt.append("</b>");
