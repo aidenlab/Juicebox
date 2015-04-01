@@ -100,7 +100,8 @@ public class HiCIGVDataAdapter extends HiCDataAdapter {
 
     protected List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
         igvTrack.setWindowFunction(windowFunction);
-        if (chr.contains("chr")) return igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
-        else return igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom);
+        List<LocusScore> scores = igvTrack.getSummaryScores(chr, gStart, gEnd, zoom);
+        // Problems with human not having the "chr".  Return scores if not null, otherwise try adding "chr"
+        return scores != null ? scores : igvTrack.getSummaryScores("chr" + chr, gStart, gEnd, zoom);
     }
 }

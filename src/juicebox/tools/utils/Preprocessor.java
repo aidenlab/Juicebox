@@ -603,7 +603,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
      */
     private void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData) throws IOException {
 
-        final Map<Point, ContactCount> records = block.getContractRecordMap();//   getContactRecords();
+        final Map<Point, ContactCount> records = block.getContactRecordMap();//   getContactRecords();
 
         // System.out.println("Write contact records : records count = " + records.size());
 
@@ -988,13 +988,13 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
         }
         */
 
-        public Map<Point, ContactCount> getContractRecordMap() {
+        public Map<Point, ContactCount> getContactRecordMap() {
             return contactRecordMap;
         }
 
         public void merge(BlockPP other) {
 
-            for (Map.Entry<Point, ContactCount> entry : other.getContractRecordMap().entrySet()) {
+            for (Map.Entry<Point, ContactCount> entry : other.getContactRecordMap().entrySet()) {
 
                 Point point = entry.getKey();
                 ContactCount otherValue = entry.getValue();
@@ -1329,7 +1329,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
                     blockNumbers.add(number);
 
                     los.writeInt(number);
-                    Map<Point, ContactCount> records = b.getContractRecordMap();
+                    Map<Point, ContactCount> records = b.getContactRecordMap();
 
                     los.writeInt(records.size());
                     for (Map.Entry<Point, ContactCount> entry : records.entrySet()) {
