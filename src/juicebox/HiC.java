@@ -845,7 +845,7 @@ public class HiC {
 
     public enum Unit {BP, FRAG}
 
-    public java.lang.Integer validteBinSize(String key) {
+    public java.lang.Integer validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
             return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
         } else {
