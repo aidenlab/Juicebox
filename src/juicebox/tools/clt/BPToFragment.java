@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import com.google.common.base.CharMatcher;
 import juicebox.tools.utils.FragmentCalculation;
 import juicebox.tools.HiCTools;
 import org.broad.igv.Globals;
@@ -33,13 +34,16 @@ import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import com.google.common.base.Splitter;
 
 
 public class BPToFragment extends JuiceboxCLT {
 
     private String fragFile, inputBedFile, outputFile;
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     public BPToFragment(){
         super("bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
@@ -71,15 +75,16 @@ public class BPToFragment extends JuiceboxCLT {
 
             String nextLine;
             while ((nextLine = fragmentReader.readLine()) != null) {
-                String[] tokens = pattern.split(nextLine);
+                //String[] tokens = pattern.split(nextLine);
+                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
 
                 // A hack, could use IGV's genome alias definitions
-                String chr = getChrAlias(tokens[0]);
+                String chr = getChrAlias(tokens.get(0));
 
-                int[] sites = new int[tokens.length];
+                int[] sites = new int[tokens.size()];
                 sites[0] = 0;  // Convenient convention
-                for (int i = 1; i < tokens.length; i++) {
-                    sites[i] = Integer.parseInt(tokens[i]) - 1;
+                for (int i = 1; i < tokens.size(); i++) {
+                    sites[i] = Integer.parseInt(tokens.get(i)) - 1;
                 }
                 fragmentMap.put(chr, sites);
             }
@@ -140,10 +145,12 @@ public class BPToFragment extends JuiceboxCLT {
 
                 BedLikeFeature feature = new BedLikeFeature(nextLine);
 
-                String[] tokens = Globals.whitespacePattern.split(nextLine);
-                String chr = tokens[0];
-                int start = Integer.parseInt(tokens[1]);
-                int end = Integer.parseInt(tokens[2]);
+                //String[] tokens = Globals.whitespacePattern.split(nextLine);
+                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+
+                String chr = tokens.get(0);
+                int start = Integer.parseInt(tokens.get(1));
+                int end = Integer.parseInt(tokens.get(2));
 
                 int[] sites = fragmentMap.get(feature.getChr());
                 if (sites == null) continue;
@@ -152,8 +159,8 @@ public class BPToFragment extends JuiceboxCLT {
                 int lastSite = FragmentCalculation.binarySearch(sites, feature.getEnd());
 
                 bedWriter.print(chr + "\t" + start + "\t" + end + "\t" + firstSite + "\t" + lastSite);
-                for (int i = 3; i < tokens.length; i++) {
-                    bedWriter.print("\t" + tokens[i]);
+                for (int i = 3; i < tokens.size(); i++) {
+                    bedWriter.print("\t" + tokens.get(i));
                 }
                 bedWriter.println();
 
@@ -185,11 +192,13 @@ public class BPToFragment extends JuiceboxCLT {
 
         BedLikeFeature(String line) {
             this.line = line;
-            String[] tokens = Globals.whitespacePattern.split(line);
-            this.chr = tokens[0];
-            this.start = Integer.parseInt(tokens[1]);
-            this.end = Integer.parseInt(tokens[2]);
-            if (tokens.length > 3) {
+            //String[] tokens = Globals.whitespacePattern.split(line);
+            List<String> tokens = MY_SPLITTER.splitToList(line);
+
+            this.chr = tokens.get(0);
+            this.start = Integer.parseInt(tokens.get(1));
+            this.end = Integer.parseInt(tokens.get(2));
+            if (tokens.size() > 3) {
                 this.name = name; // TODO - is this supposed to be this.name = tokens[x]? otherwise a redundant line
             }
 

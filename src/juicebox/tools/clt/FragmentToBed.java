@@ -24,15 +24,19 @@
 
 package juicebox.tools.clt;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import juicebox.tools.HiCTools;
 
 import java.io.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 
 public class FragmentToBed extends JuiceboxCLT {
 
     private String filename;
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     public FragmentToBed(){
         super("fragmentToBed <fragmentFile>");
@@ -70,12 +74,14 @@ public class FragmentToBed extends JuiceboxCLT {
             Pattern pattern = Pattern.compile("\\s");
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
-                String[] tokens = pattern.split(nextLine);
-                String chr = tokens[0];
+                //String[] tokens = pattern.split(nextLine);
+                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
+
+                String chr = tokens.get(0);
                 int fragNumber = 0;
-                int beg = Integer.parseInt(tokens[1]) - 1;  // 1 vs 0 based coords
-                for (int i = 2; i < tokens.length; i++) {
-                    int end = Integer.parseInt(tokens[i]) - 1;
+                int beg = Integer.parseInt(tokens.get(1)) - 1;  // 1 vs 0 based coords
+                for (int i = 2; i < tokens.size(); i++) {
+                    int end = Integer.parseInt(tokens.get(i)) - 1;
                     writer.println(chr + "\t" + beg + "\t" + end + "\t" + fragNumber);
                     beg = end;
                     fragNumber++;
