@@ -2,13 +2,13 @@
 <jnlp
   spec="6.0+"
   codebase="https://s3.amazonaws.com/hicfiles.tc4ga.com/public/"
-  href="juicebox.jnlp">
+  href="juicebox_bcm.jnlp">
   <information>
-    <title>Juicebox</title>
+    <title>Juicebox (BCM)</title>
     <vendor>Aiden Lab</vendor>
     <homepage href="http://www.aidenlab.org/"/>
     <description>Juicebox: Interactive Viewer for HiC data</description>
-    <description kind="short">Juicebox</description>
+    <description kind="short">Juicebox (BCM)</description>
     <icon href="juicebox.gif"/>
     <icon kind="splash" href="juicebox.gif"/>
 	<shortcut online="true">
@@ -22,10 +22,10 @@
   <update check="always" policy="always"/>
   <resources>
     <java version="1.6+"
-          initial-heap-size="512m"
-          max-heap-size="2000m" />
-    <jar href="juicebox.jar" download="eager" main="true"/>
-    <property name="jnlp.loadMenu" value="http://hicfiles.tc4ga.com/juicebox.properties"/>
+          initial-heap-size="512m" 
+          max-heap-size="2048m" />
+    <jar href="juicebox_bcm.jar" download="eager" main="true"/>
+    <property name="jnlp.loadMenu" value="http://adam.bcma.bcm.edu/hicInternalMenu.properties"/>
     <property name="jnlp.webstart.version" value="true"/>
     <property name="java.net.preferIPv4Stack" value="true"/>
     <property name="apple.laf.useScreenMenuBar" value="true"/>

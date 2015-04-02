@@ -240,7 +240,12 @@ public class HiCTrackManager {
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
+                if (hic.getDataset().getGenomeId().equals("assembly")) {
+                    genomePath = "http://hicfiles.s3.amazonaws.com/internal/assembly.genome";
+                }
+                else {
+                    genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
+                }
             } else {
                 genomePath = "http://igvdata.broadinstitute.org/genomes/hg19.genome";
             }
