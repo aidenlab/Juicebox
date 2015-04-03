@@ -8,7 +8,7 @@
     <vendor>Aiden Lab</vendor>
     <homepage href="http://www.aidenlab.org/"/>
     <description>Juicebox: Interactive Viewer for HiC data</description>
-    <description kind="short">Juicebox (BCM)</description>
+    <description kind="short">Juicebox</description>
     <icon href="juicebox.gif"/>
     <icon kind="splash" href="juicebox.gif"/>
 	<shortcut online="true">
