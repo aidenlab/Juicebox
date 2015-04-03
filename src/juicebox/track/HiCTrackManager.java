@@ -138,13 +138,17 @@ public class HiCTrackManager {
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
         String extension = path.substring(index).toLowerCase();
+        // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
+        // the location "type" in order to read the file properly
         if (!extension.equals(".gz")) {
             locator.setType(extension);
         }
         else {
             // setting type to be the extension before the .gz
             int index2 = path.substring(0,index).lastIndexOf('.');
-            locator.setType(path.substring(0,index).substring(index2));
+            String str = path.substring(0,index).substring(index2);
+            // special exception for refGene.txt.gz
+            if (!str.equals(".txt")) locator.setType(str);
         }
 
         if (pathLC.endsWith(".wig")  ||
