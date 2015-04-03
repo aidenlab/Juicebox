@@ -25,23 +25,37 @@
 package juicebox.windowui;
 
 import com.jidesoft.swing.JideButton;
+import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.MainWindow;
+import org.apache.log4j.Logger;
+import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Created by nchernia on 4/2/15.
  */
-public class GoToPanel extends JPanel implements ActionListener {
+public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
     private HiC hic;
+    private String genomeID;
+    private HashMap<String, GeneLocation> geneLocationHashMap = null;
+    private static final Logger log = Logger.getLogger(GoToPanel.class);
 
     public GoToPanel(HiC hic) {
         super();
@@ -63,6 +77,7 @@ public class GoToPanel extends JPanel implements ActionListener {
         positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
         positionChrTop.setEnabled(false);
         positionChrTop.addActionListener(this);
+        positionChrTop.addFocusListener(this);
         //positionChrTop.setPreferredSize(new Dimension(10, 10));
 
 
@@ -70,6 +85,7 @@ public class GoToPanel extends JPanel implements ActionListener {
         positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
         positionChrLeft.setEnabled(false);
         positionChrLeft.addActionListener(this);
+        positionChrLeft.addFocusListener(this);
         //positionChrLeft.setPreferredSize(new Dimension(10, 10));
         JPanel goPositionPanel = new JPanel();
         goPositionPanel.setLayout(new BorderLayout());
@@ -101,8 +117,15 @@ public class GoToPanel extends JPanel implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent event) {
-        if (positionChrLeft.getText().isEmpty()) {
+        if (positionChrLeft.getText().isEmpty() && positionChrTop.getText().isEmpty()) {
+            positionChrTop.setBackground(Color.yellow);
+            positionChrLeft.setBackground(Color.yellow);
+        }
+        else if (positionChrLeft.getText().isEmpty()) {
             positionChrLeft.setText(positionChrTop.getText());
+        }
+        else if (positionChrTop.getText().isEmpty()) {
+            positionChrTop.setText(positionChrLeft.getText());
         }
         parsePositionText();
     }
@@ -121,13 +144,13 @@ public class GoToPanel extends JPanel implements ActionListener {
 
         String delimiters = "\\s+|:\\s*|\\-\\s*";
         String dashDelimiters = "\\s+|\\-\\s*";
-        java.lang.Integer outBinSize = 0;
-        Long outBinLeft = 0L;
-        Long outBinTop = 0L;
-        Long topStart = 0L;
-        Long topEnd = 0L;
-        Long leftStart = 0L;
-        Long leftEnd = 0L;
+        int outBinSize = 0;
+        int outBinLeft = 0;
+        int outBinTop = 0;
+        int topStart = 0;
+        int topEnd = 0;
+        int leftStart = 0;
+        int leftEnd = 0;
 
         String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
         String[] topChrTokens = positionChrTop.getText().split(delimiters);
@@ -135,156 +158,128 @@ public class GoToPanel extends JPanel implements ActionListener {
         String[] topDashChrTokens = positionChrTop.getText().split(dashDelimiters);
 
         String resolutionUnits = "BP";
-        String LeftChrName = "";
-        String TopChrName = "";
-        int LeftChrInt = 0;
-        int TopChrInt = 0;
+        Chromosome leftChr;
+        Chromosome topChr;
 
+        if (topChrTokens.length == 1) {
+            parseGenePositionText();
+            return;
+        }
         //Read Chromosomes:
         //First chromosome:
-        if (topChrTokens.length > 0) {
-            if (topChrTokens[0].toLowerCase().contains("chr")) {
-                TopChrName = topChrTokens[0].substring(3);
-            } else {
-                TopChrName = topChrTokens[0].toLowerCase();
-            }
-        } else {
+        List<Chromosome> chromosomeList = hic.getDataset().getChromosomes();
+
+        HashMap<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
+        for (Chromosome c : chromosomeList) {
+            chromosomeMap.put(c.getName().toLowerCase(), c);
+            chromosomeMap.put("chr" + c.getName().toLowerCase(), c);
+            if (c.getName().equals("MT")) chromosomeMap.put("chrm", c);
+        }
+
+
+        topChr = chromosomeMap.get(topChrTokens[0].toLowerCase());
+        if (topChr == null) {
             positionChrTop.setBackground(Color.yellow);
+            log.error("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
             return;
         }
-        try {
-            TopChrInt = Integer.parseInt(TopChrName);
-            //todo - replace with actual chromosome range (won't work right now on genomes outside of human+mouse)
-            if (TopChrInt > 22) {
-                positionChrTop.setBackground(Color.yellow);
-                return;
-            }
-
-        } catch (Exception e) {
-            if (TopChrName.toLowerCase().equals("x")) {
-                TopChrName = "X";
-            } else if (TopChrName.toLowerCase().equals("y")) {
-                TopChrName = "Y";
-            } else if (TopChrName.toLowerCase().equals("mt") || TopChrName.toLowerCase().equals("m")) {
-                TopChrName = "MT";
-            } else {
-
-                positionChrTop.setBackground(Color.yellow);
-                return;
-            }
-        }
-
-        //Second chromosome:
-        if (leftChrTokens.length > 0) {
-            if (leftChrTokens[0].toLowerCase().contains("chr")) {
-                LeftChrName = leftChrTokens[0].substring(3);
-            } else {
-                LeftChrName = leftChrTokens[0].toLowerCase();
-            }
-        } else {
+        leftChr = chromosomeMap.get(leftChrTokens[0].toLowerCase());
+        if (leftChr == null) {
             positionChrLeft.setBackground(Color.yellow);
+            log.error("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
             return;
-        }
-        try {
-            LeftChrInt = Integer.parseInt(LeftChrName);
-
-            //todo - replace with actual chromosome range (won't work right now on genomes outside of human+mouse)
-            if (LeftChrInt > 22) {
-                positionChrLeft.setBackground(Color.yellow);
-                return;
-            }
-        } catch (Exception e) {
-            if (LeftChrName.toLowerCase().equals("x")) {
-                LeftChrName = "X";
-            } else if (LeftChrName.toLowerCase().equals("y")) {
-                LeftChrName = "Y";
-            } else if (LeftChrName.toLowerCase().equals("mt") || LeftChrName.toLowerCase().equals("m")) {
-                LeftChrName = "MT";
-            } else {
-                positionChrLeft.setBackground(Color.yellow);
-                return;
-            }
         }
 
         //Read positions:
         if (topChrTokens.length > 2 && topDashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                Long.parseLong(topChrTokens[1].replaceAll(",", ""));
+                topStart = Integer.min(Integer.valueOf(topChrTokens[1].replaceAll(",", "")), Integer.valueOf(topChrTokens[2].replaceAll(",", "")));
+                topEnd = Integer.max(Integer.valueOf(topChrTokens[1].replaceAll(",", "")), Integer.valueOf(topChrTokens[2].replaceAll(",", "")));
             } catch (Exception e) {
                 positionChrTop.setBackground(Color.yellow);
+                log.error("Cannot parse " + topChrTokens[1] + " or " +  topChrTokens[2] + ". Expecting int");
                 return;
             }
-            try {
-                Long.parseLong(topChrTokens[2].replaceAll(",", ""));
-            } catch (Exception e) {
-                positionChrLeft.setBackground(Color.yellow);
-                return;
-            }
-            topStart = Long.min(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
-            topEnd = Long.max(Long.valueOf(topChrTokens[1].replaceAll(",", "")), Long.valueOf(topChrTokens[2].replaceAll(",", "")));
             outBinTop = topStart + ((topEnd - topStart) / 2);
-
         } else if (topChrTokens.length > 1) {
-            outBinTop = Long.valueOf(topChrTokens[1].replaceAll(",", ""));
+            //Make sure values are numerical:
+            try {
+                outBinTop = Integer.valueOf(topChrTokens[1].replaceAll(",", ""));
+            } catch (Exception e) {
+                positionChrTop.setBackground(Color.yellow);
+                log.error("Cannot parse " + topChrTokens[1] + ". Expecting int");
+                return;
+            }
+
         }
 
-
         if (leftChrTokens.length > 2 && leftDashChrTokens.length > 1) {
-            leftStart = Long.min(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
-            leftEnd = Long.max(Long.valueOf(leftChrTokens[1].replaceAll(",", "")), Long.valueOf(leftChrTokens[2].replaceAll(",", "")));
-            outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
-        } else if (topChrTokens.length > 1) {
-            //Make sure values are numerical: TODO parsing topChr but later getting value of leftChr - is this correct? seems like a typo
+            //Make sure values are numerical:
             try {
-                Long.parseLong(topChrTokens[1].replaceAll(",", ""));
+                leftStart = Integer.min(Integer.valueOf(leftChrTokens[1].replaceAll(",", "")), Integer.valueOf(leftChrTokens[2].replaceAll(",", "")));
+                leftEnd = Integer.max(Integer.valueOf(leftChrTokens[1].replaceAll(",", "")), Integer.valueOf(leftChrTokens[2].replaceAll(",", "")));
             } catch (Exception e) {
-                positionChrTop.setBackground(Color.yellow);
+                positionChrLeft.setBackground(Color.yellow);
+                log.error("Cannot parse " + leftChrTokens[1] + " or " +  leftChrTokens[2] + ". Expecting int");
                 return;
             }
-            outBinLeft = Long.valueOf(leftChrTokens[1].replaceAll(",", ""));
+            outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
+        } else if (leftChrTokens.length > 1) {
+            //Make sure values are numerical:
+            try {
+                outBinLeft = Integer.valueOf(leftChrTokens[1].replaceAll(",", ""));
+            } catch (Exception e) {
+                positionChrLeft.setBackground(Color.yellow);
+                log.error("Cannot parse " + leftChrTokens[1] + ". Expecting int");
+                return;
+            }
         }
 
         //Read resolution:
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
             if (topDashChrTokens.length == 1) {
                 outBinSize = hic.validateBinSize(topChrTokens[2].toLowerCase());
-                if (outBinSize != null && topChrTokens[2].toLowerCase().contains("f")) {
+                if (outBinSize != Integer.MIN_VALUE && topChrTokens[2].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
                 } else {
                     positionChrTop.setBackground(Color.yellow);
+                    log.error("Invalid resolution " + topChrTokens[2].toLowerCase());
                     return;
                 }
             } else if (topChrTokens.length > 3) {
                 outBinSize = hic.validateBinSize(topChrTokens[3].toLowerCase());
-                if (outBinSize != null && topChrTokens[3].toLowerCase().contains("f")) {
+                if (outBinSize != Integer.MIN_VALUE && topChrTokens[3].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                } else if (outBinSize == null) {
+                } else if (outBinSize == Integer.MIN_VALUE) {
                     positionChrTop.setBackground(Color.yellow);
+                    log.error("Invalid resolution " + topChrTokens[3].toLowerCase());
                     return;
                 }
             }
         } else if (leftChrTokens.length > 3 || (leftDashChrTokens.length == 1 && leftChrTokens.length > 2)) {
             if (leftDashChrTokens.length == 1) {
                 outBinSize = hic.validateBinSize(leftChrTokens[2].toLowerCase());
-                if (outBinSize != null && leftChrTokens[2].toLowerCase().contains("f")) {
+                if (outBinSize != Integer.MIN_VALUE && leftChrTokens[2].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
-                } else if (outBinSize == null) {
+                } else if (outBinSize == Integer.MIN_VALUE) {
                     positionChrLeft.setBackground(Color.yellow);
+                    log.error("Invalid resolution " + leftChrTokens[2].toLowerCase());
                     return;
                 }
             } else if (leftChrTokens.length > 3) {
                 outBinSize = hic.validateBinSize(leftChrTokens[3].toLowerCase());
-                if (outBinSize != null && leftChrTokens[3].toLowerCase().contains("f")) {
+                if (outBinSize != Integer.MIN_VALUE && leftChrTokens[3].toLowerCase().contains("f")) {
                     resolutionUnits = "FRAG";
                 } else {
                     positionChrLeft.setBackground(Color.yellow);
+                    log.error("Invalid resolution " + leftChrTokens[3].toLowerCase());
                     return;
                 }
             }
         } else if (hic.getZoom().getBinSize() != 0) {
             outBinSize = hic.validateBinSize(String.valueOf(hic.getZoom().getBinSize()));
-            if (outBinSize != null) {
+            if (outBinSize != Integer.MIN_VALUE) {
                 resolutionUnits = hic.getZoom().getUnit().toString();
             }
         }
@@ -292,18 +287,133 @@ public class GoToPanel extends JPanel implements ActionListener {
         positionChrTop.setBackground(Color.white);
         positionChrLeft.setBackground(Color.white);
 
-        if (outBinSize == null) {
+        if (outBinSize == Integer.MIN_VALUE) {
             // If bin size is not valid, set to max bin size:
             outBinSize = 250000;
         }
 
-        hic.setState(TopChrName, LeftChrName, resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
+        hic.setState(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
         if (outBinTop > 0 && outBinLeft > 0) {
-            hic.centerBP(Math.round(outBinTop), Math.round(outBinLeft));
+            hic.centerBP(outBinTop, outBinLeft);
         }
 
         //We might end with ALL->All view, make sure normalization state is updates accordingly...
         MainWindow.getInstance().setNormalizationDisplayState();
+    }
+
+    private void parseGenePositionText() {
+        String genomeID = hic.getDataset().getGenomeId();
+        // Currently only human and mouse, not worrying about small differences in location between genomes
+        if (genomeID.equals("b37") || genomeID.equals("hg38")) genomeID = "hg19";
+        if (genomeID.equals("mm10")) genomeID = "mm9";
+        if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
+            initializeGeneHashMap(genomeID);
+        }
+        else {
+            GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
+            GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
+            if (location1 == null) {
+                positionChrTop.setBackground(Color.yellow);
+                log.error("Gene location map doesn't contain " + positionChrTop.getText().trim());
+                return;
+            }
+            if (location2 == null) {
+                positionChrLeft.setBackground(Color.yellow);
+                log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
+                return;
+            }
+            hic.setState(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
+            hic.centerBP(location1.centerPosition, location2.centerPosition);
+            MainWindow.getInstance().setNormalizationDisplayState();
+        }
+    }
+
+    private void initializeGeneHashMap(String genomeID) {
+        if (genomeID.equals("hg19") || genomeID.equals("hg38") || genomeID.equals("mm9") || genomeID.equals("mm10")) {
+            final String gID = genomeID;
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    unsafeInitializeGeneHashMap(gID);
+                }
+            };
+            MainWindow.getInstance().executeLongRunningTask(runnable, "Initialize Gene Hash Map");
+        }
+        else {
+            MessageUtils.showErrorMessage("Cannot find genes for " + genomeID, null);
+            positionChrTop.setBackground(Color.yellow);
+            geneLocationHashMap = null;
+        }
+    }
+
+    private void unsafeInitializeGeneHashMap(String genomeID) {
+        // Custom format parsed from ref Gene file.
+        // Name1 Name2 chromosome position (where position is midpoint of transcription start and end)
+        String path = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
+        BufferedReader reader;
+        try {
+            SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
+
+            reader = new BufferedReader(new InputStreamReader(stream));
+        }
+        catch (Exception error) {
+            MessageUtils.showErrorMessage("Failed to read gene database", error);
+            positionChrTop.setBackground(Color.yellow);
+            geneLocationHashMap = null;
+            return;
+        }
+
+        geneLocationHashMap = new HashMap<String, GeneLocation>();
+        String nextLine;
+
+        try {
+            while ((nextLine = reader.readLine()) != null) {
+                String[] values = nextLine.split(" ");
+                GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
+                geneLocationHashMap.put(values[0].trim(), location);
+                geneLocationHashMap.put(values[1].trim(), location);
+            }
+        }
+        catch (Exception error) {
+            MessageUtils.showErrorMessage("Failed to parse gene database", error);
+            positionChrTop.setBackground(Color.yellow);
+            geneLocationHashMap = null;
+
+        }
+        if (geneLocationHashMap != null) this.genomeID = genomeID;
+        GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
+        GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
+        if (location1 == null) {
+            positionChrTop.setBackground(Color.yellow);
+            log.error("Gene location map doesn't contain " + positionChrTop.getText().trim());
+            return;
+        }
+        if (location2 == null) {
+            positionChrLeft.setBackground(Color.yellow);
+            log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
+            return;
+        }
+        hic.setState(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
+        hic.centerBP(location1.centerPosition, location2.centerPosition);
+        MainWindow.getInstance().setNormalizationDisplayState();
+    }
+
+    private class GeneLocation {
+        private String chromosome;
+        private int centerPosition;
+
+        private GeneLocation(String chromosome, int centerPosition) {
+            this.chromosome = chromosome;
+            this.centerPosition = centerPosition;
+        }
+    }
+
+    public void focusGained(FocusEvent event) {
+        if (event.getSource() == positionChrLeft) positionChrLeft.setBackground(Color.white);
+        else if (event.getSource() == positionChrTop) positionChrTop.setBackground(Color.white);
+    }
+    public void focusLost(FocusEvent event) {
+
     }
 
 }

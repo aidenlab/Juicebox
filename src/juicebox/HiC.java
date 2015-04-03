@@ -90,9 +90,6 @@ public class HiC {
         initBinSizeDictionary();
     }
 
-    public static boolean isPrivateHic(String string) {
-        return string.contains("igvdata/hic/files");
-    }
 
     public void reset() {
         dataset = null;
@@ -754,7 +751,6 @@ public class HiC {
             mainWindow.updateZoom(newZoom);
         }
 
-        //setScaleFactor(scalefactor);
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);
         yContext.setBinOrigin(yOrigin);
@@ -845,11 +841,11 @@ public class HiC {
 
     public enum Unit {BP, FRAG}
 
-    public java.lang.Integer validateBinSize(String key) {
+    public int validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
             return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
         } else {
-            return null;
+            return Integer.MIN_VALUE;
         }
     }
 
