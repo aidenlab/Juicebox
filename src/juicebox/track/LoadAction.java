@@ -78,10 +78,12 @@ public class LoadAction extends AbstractAction {
                 Element global = xmlDocument.getDocumentElement();
                 masterDocument.appendChild(masterDocument.importNode(global, true));
             }
+            else {
+                masterDocument = null;
+            }
         } catch (Exception e) {
             String message = "Cannot create an XML Document from " + xmlUrl;
             log.error(message, e);
-
         }
 
         if (buffer.length() > 0) {
@@ -96,8 +98,12 @@ public class LoadAction extends AbstractAction {
     private static Document readXMLDocument(String url, StringBuffer errors) {
         InputStream is = null;
         Document xmlDocument = null;
+        is = LoadAction.class.getResourceAsStream(url);
+        if (is == null) {
+            log.error(url + "doesn't exist, so cannot read default annotations");
+            return null;
+        }
         try {
-            is = LoadAction.class.getResourceAsStream(url);
             xmlDocument = Utilities.createDOMDocumentFromXmlStream(is);
 
             xmlDocument = resolveIncludes(xmlDocument, errors);
@@ -115,12 +121,10 @@ public class LoadAction extends AbstractAction {
             log.error("Parser configuration error for:" + url, e);
             errors.append(url).append("<br><i>").append(e.getMessage());
         } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    log.error("Error closing stream for: " + url, e);
-                }
+            try {
+                is.close();
+            } catch (IOException e) {
+                log.error("Error closing stream for: " + url, e);
             }
         }
         return xmlDocument;

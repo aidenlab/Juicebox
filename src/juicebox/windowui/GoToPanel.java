@@ -147,6 +147,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         int outBinSize = 0;
         int outBinLeft = 0;
         int outBinTop = 0;
+        int estimatedOutBinSize = 0;
         int topStart = 0;
         int topEnd = 0;
         int leftStart = 0;
@@ -202,6 +203,17 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 return;
             }
             outBinTop = topStart + ((topEnd - topStart) / 2);
+            int diff = topEnd - topStart;
+            if (diff >= 1000000) {
+                estimatedOutBinSize = 1000000;
+            } else if (diff >= 100000) {
+                estimatedOutBinSize = 100000;
+            } else if (diff >= 10000) {
+                estimatedOutBinSize = 10000;
+            } else  {
+                estimatedOutBinSize = 5000;
+            }
+
         } else if (topChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
@@ -225,6 +237,18 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 return;
             }
             outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
+            int diff = topEnd - topStart;
+            int estimatedOutBinSize2;
+            if (diff >= 1000000) {
+                estimatedOutBinSize2 = 1000000;
+            } else if (diff >= 100000) {
+                estimatedOutBinSize2 = 100000;
+            } else if (diff >= 10000) {
+                estimatedOutBinSize2 = 10000;
+            } else  {
+                estimatedOutBinSize2 = 5000;
+            }
+            estimatedOutBinSize = Math.max(estimatedOutBinSize, estimatedOutBinSize2);
         } else if (leftChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
@@ -277,11 +301,14 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                     return;
                 }
             }
-        } else if (hic.getZoom().getBinSize() != 0) {
+        } else if (estimatedOutBinSize > 0) {
+            outBinSize = estimatedOutBinSize;
+        } else if (hic.getZoom().getBinSize() != 0) { //no resolution specified, not at whole genome view
             outBinSize = hic.validateBinSize(String.valueOf(hic.getZoom().getBinSize()));
             if (outBinSize != Integer.MIN_VALUE) {
                 resolutionUnits = hic.getZoom().getUnit().toString();
             }
+
         }
 
         positionChrTop.setBackground(Color.white);
