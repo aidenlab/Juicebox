@@ -94,7 +94,10 @@ public class HiCFeatureTrack extends HiCTrack {
         Graphics strGraphics = g2d.create();
         strGraphics.setColor(new Color(0, 150, 0));
 
-        if (!chr.startsWith("chr")) chr = "chr" + chr;   // TODO - use alias
+        if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
+                !chr.equals("All")) {
+            chr = "chr" + chr;
+        }
 
         Iterator<?> iter;
         try {
@@ -215,7 +218,11 @@ public class HiCFeatureTrack extends HiCTrack {
         int middle = gridAxis.getGenomicMid(bin);
 
         String chr = context.getChromosome().getName();
-        if (!chr.startsWith("chr")) chr = "chr" + chr;   // TODO -- use genome aliax
+
+        if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
+                !chr.equals("All")) {
+            chr = "chr" + chr;
+        }
 
         int b1 = Math.max(0, bin - 2);
         int b2 = bin + 2;
