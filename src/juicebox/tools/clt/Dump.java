@@ -58,7 +58,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
 
     public Dump(){
-        super("dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]");
+        super("dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]");
     }
 
     @Override
