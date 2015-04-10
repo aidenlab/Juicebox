@@ -229,8 +229,17 @@
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox_CLT.jar"/>
   </target>
+
+    <target name="sign">
+        <signjar
+                alias="${sign.alias}" keystore="${sign.keystore}" storepass="${sign.storepass}" tsaurl="http://timestamp.digicert.com">
+            <path>
+                <fileset dir="${basedir}/out" includes="**/*.jar" />
+            </path>
+        </signjar>
+    </target>
   
-  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicebox_clt:jar" description="Build all artifacts">
+  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicebox_clt:jar, sign" description="Build all artifacts">
     <mkdir dir="${artifact.output.juicebox:jar}"/>
     <copy todir="${artifact.output.juicebox:jar}">
       <fileset dir="${artifact.temp.output.juicebox:jar}"/>
