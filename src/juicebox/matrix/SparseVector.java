@@ -52,7 +52,7 @@ public class SparseVector {
     }
 
     public Double get(Integer idx) {
-        return values.containsKey(idx) ? values.get(idx) : 0;
+        return values.containsKey(idx) ? values.get(idx) : 0.0;
     }
 
     public Collection<Integer> getIndeces() {
