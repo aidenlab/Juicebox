@@ -2,9 +2,9 @@
 <jnlp
   spec="6.0+"
   codebase="https://s3.amazonaws.com/hicfiles.tc4ga.com/public/"
-  href="juicebox_32.jnlp">
+  href="juicebox_64.jnlp">
   <information>
-    <title>Juicebox test</title>
+    <title>Juicebox</title>
     <vendor>Aiden Lab</vendor>
     <homepage href="http://www.aidenlab.org/"/>
     <description>Juicebox: Interactive Viewer for HiC data</description>
