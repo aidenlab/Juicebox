@@ -161,6 +161,8 @@ public class Feature2D {
 
             // append to tooltip text, but now each category is spaced apart
             for (ArrayList<Map.Entry<String, String>> attributeCategory : sortedFeatureAttributes) {
+                if(attributeCategory.isEmpty())
+                    continue;
                 for (Map.Entry<String, String> entry : attributeCategory) {
                     String tmpKey = entry.getKey();
                     txt.append("<br>");
