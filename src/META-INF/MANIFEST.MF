@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Permissions: all-permissions
-Main-Class: juicebox.MainWindow
-
