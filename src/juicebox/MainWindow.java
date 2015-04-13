@@ -84,7 +84,6 @@ public class MainWindow extends JFrame {
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    private static JMenuItem clearLocationList;
     private static String currentlyLoadedFile = "";
     private static String datasetTitle = "";
     private static String controlTitle;
@@ -112,7 +111,6 @@ public class MainWindow extends JFrame {
 
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
-    private static JMenu bookmarksMenu;
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
@@ -631,6 +629,7 @@ public class MainWindow extends JFrame {
                 fileNames.add(f.getAbsolutePath());
                 str += f.getName() + " ";
             }
+            getRecentMapMenu().addEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
             safeLoad(fileNames, control);
 
             if (control) controlTitle = str;
@@ -696,13 +695,6 @@ public class MainWindow extends JFrame {
         setTitle(HiCGlobals.juiceboxTitle+newTitle);
     }
 
-
-    private void clearLocationActionPerformed() {
-        Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-        for (int i = 0; i < recentLocationMaxItems; i++) {
-            prefs.remove(recentLocationEntityNode + i);
-        }
-    }
 
     private void exitActionPerformed() {
         setVisible(false);
@@ -1626,6 +1618,24 @@ public class MainWindow extends JFrame {
 
         fileMenu.add(recentMapMenu);
 
+       /* JMenuItem localItem = new JMenuItem("Open Local");
+        localItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadMenuItemActionPerformed(false);
+            }
+        });
+        fileMenu.add(localItem);
+        JMenuItem localControlItem = new JMenuItem("Open Local Control");
+        localControlItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadMenuItemActionPerformed(false);
+            }
+        });
+        fileMenu.add(localControlItem);
+       */
+
 
         fileMenu.addSeparator();
 
@@ -1636,9 +1646,7 @@ public class MainWindow extends JFrame {
                 if (hic.getDataset() == null) {
                     JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
-                    JDialog qcDialog = new QCDialog(MainWindow.this, hic);
-                    qcDialog.setTitle(MainWindow.this.getTitle() + " info");
-                    qcDialog.setVisible(true);
+                    new QCDialog(MainWindow.this, hic, MainWindow.this.getTitle() + " info");
                 }
             }
         });
@@ -1656,7 +1664,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(saveToImage);
 
-
+        // TODO: make this an export of the data on screen instead of a GUI for CLT
         if (!HiCGlobals.isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
@@ -1773,7 +1781,7 @@ public class MainWindow extends JFrame {
             }
         });
 
-        bookmarksMenu = new JMenu("Bookmarks");
+        JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
         saveLocationList = new JMenuItem();
         saveLocationList.setText("Save current location");
