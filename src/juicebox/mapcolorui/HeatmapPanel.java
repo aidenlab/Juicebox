@@ -26,6 +26,7 @@ package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
@@ -692,8 +693,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         HiCGridAxis xGridAxis = zd.getXGridAxis();
         HiCGridAxis yGridAxis = zd.getYGridAxis();
 
-        String topColor = "0000FF";
-        String leftColor = "009900";
 
         int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
         int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
@@ -724,11 +723,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
                     String txt = "";
-                    txt += "<html><span style='color:#" + topColor + "; font-family: arial; font-size: 12pt;'>";
+                    txt += "<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
                     txt += xChrom.getName();
                     txt += ":";
                     txt += String.valueOf(xChromPos);
-                    txt += "</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 12pt;'>";
+                    txt += "</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
                     txt += yChrom.getName();
                     txt += ":";
                     txt += String.valueOf(yChromPos);
@@ -767,7 +766,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
             StringBuilder txt = new StringBuilder();
 
-            txt.append("<html><span style='color:#" + topColor + "; font-family: arial; font-size: 12pt; '>");
+            txt.append("<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(xGenomeStart));
@@ -791,7 +790,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(")");
             }
 
-            txt.append("</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 12pt; '>");
+            txt.append("</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
             txt.append(formatter.format(yGenomeStart));

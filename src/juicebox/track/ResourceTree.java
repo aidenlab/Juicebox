@@ -240,7 +240,7 @@ public class ResourceTree {
                     openAnnotationPath = new File(path);
                     ResourceLocator locator = new ResourceLocator(path);
                     locator.setName(file.getName());
-                    locator.setType("loop");
+                    locator.setType("loop"); // TODO 2D not all are loops?
                     CheckableResource resource = new CheckableResource(file.getName(), true, locator);
                     leafResources.add(resource);
 

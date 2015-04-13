@@ -24,10 +24,14 @@
 
 package juicebox.track;
 
+import juicebox.HiCGlobals;
+
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * chr1	x1	x2	chr2	y1	y2	color	observed	bl expected	donut expected	bl fdr	donut fdr
@@ -102,6 +106,9 @@ public class Feature2D {
         return color;
     }
 
+
+    private static final String[] categories = new String[] {"observed", "coordinate","enriched","expected", "fdr"};
+
     public String tooltipText() {
 
         StringBuilder txt = new StringBuilder();
@@ -111,7 +118,7 @@ public class Feature2D {
         txt.append(featureName);
         txt.append("</span><br>");
 
-        txt.append("<span style='font-family: arial; font-size: 12pt;'>");
+        txt.append("<span style='font-family: arial; font-size: 12pt;color:"+ HiCGlobals.topChromosomeColor+";'>");
         txt.append(chr1).append(":").append(formatter.format(start1 + 1));
         if ((end1 - start1) > 1) {
             txt.append("-").append(formatter.format(end1));
@@ -119,7 +126,7 @@ public class Feature2D {
 
         txt.append("</span><br>");
 
-        txt.append("<span style='font-family: arial; font-size: 12pt;'>");
+        txt.append("<span style='font-family: arial; font-size: 12pt;color:"+ HiCGlobals.leftChromosomeColor+";'>");
         txt.append(chr2).append(":").append(formatter.format(start2 + 1));
         if ((end2 - start2) > 1) {
             txt.append("-").append(formatter.format(end2));
@@ -127,18 +134,71 @@ public class Feature2D {
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
 
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            String tmpKey = entry.getKey();
-            if (!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3") || tmpKey.equals("f4") || tmpKey.equals("f5"))) {
-                txt.append("<br>");
-                txt.append("<span style='font-family: arial; font-size: 12pt;'>");
-                txt.append(tmpKey);
-                txt.append(" = <b>");
-                //System.out.println(entry.getValue());
-                // TODO why does this need to be a double?
-                txt.append(df.format(Double.valueOf(entry.getValue())));
-                txt.append("</b>");
-                txt.append("</span>");
+        if(HiCGlobals.allowSpacingBetweenFeatureText) {
+            // organize attributes into categories. +1 is for the leftover category if no keywords present
+            ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<ArrayList<Map.Entry<String, String>>>();
+            for (int i = 0; i < categories.length + 1; i++) {
+                sortedFeatureAttributes.add(new ArrayList<Map.Entry<String, String>>());
+            }
+
+            // sorting the entries, also filtering out f1-f5 flags
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                String tmpKey = entry.getKey();
+                if (!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3") || tmpKey.equals("f4") || tmpKey.equals("f5"))) {
+                    boolean categoryHasBeenAssigned = false;
+                    for (int i = 0; i < categories.length; i++) {
+                        if (tmpKey.contains(categories[i])) {
+                            sortedFeatureAttributes.get(i).add(entry);
+                            categoryHasBeenAssigned = true;
+                            break;
+                        }
+                    }
+                    if (!categoryHasBeenAssigned) {
+                        sortedFeatureAttributes.get(categories.length).add(entry);
+                    }
+                }
+            }
+
+            // append to tooltip text, but now each category is spaced apart
+            for (ArrayList<Map.Entry<String, String>> attributeCategory : sortedFeatureAttributes) {
+                if(attributeCategory.isEmpty())
+                    continue;
+                for (Map.Entry<String, String> entry : attributeCategory) {
+                    String tmpKey = entry.getKey();
+                    txt.append("<br>");
+                    txt.append("<span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append(tmpKey);
+                    txt.append(" = <b>");
+                    try {
+                        txt.append(df.format(Double.valueOf(entry.getValue())));
+                    } catch (Exception e) {
+                        txt.append(entry.getValue()); // for text i.e. non-decimals
+                    }
+                    txt.append("</b>");
+                    txt.append("</span>");
+                }
+                txt.append("<br>"); // the extra spacing between categories
+            }
+        }
+        else {
+            // simple text dump for plotting, no spacing or rearranging by category
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                String tmpKey = entry.getKey();
+                if (!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3") || tmpKey.equals("f4") || tmpKey.equals("f5"))) {
+                    txt.append("<br>");
+                    txt.append("<span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append(tmpKey);
+                    txt.append(" = <b>");
+                    //System.out.println(entry.getValue());
+                    try {
+                        txt.append(df.format(Double.valueOf(entry.getValue())));
+                    }
+                    catch (Exception e){
+                        txt.append(entry.getValue());
+                    }
+                    txt.append("</b>");
+                    txt.append("</span>");
+                }
             }
         }
         return txt.toString();

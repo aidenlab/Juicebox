@@ -45,4 +45,11 @@ public class HiCGlobals {
     // Juicebox title
     public static String juiceboxTitle = "[Juicebox "+versionNum+"] Hi-C Map: ";
 
+    // for plotting
+    public static String topChromosomeColor = "#0000FF";
+    public static String leftChromosomeColor = "#009900";
+
+    // Feature2D hover text
+    public static boolean allowSpacingBetweenFeatureText = true;
+
 }
