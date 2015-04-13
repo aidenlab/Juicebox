@@ -378,12 +378,11 @@ public class Dump extends JuiceboxCLT {
 
 
         if (ofile != null) {
-            if(ofile.endsWith(".txt")){
-                txtWriter = new PrintWriter(new FileOutputStream(ofile));
-            }
-            else{
+            if(ofile.endsWith(".bin")){
                 bos = new BufferedOutputStream(new FileOutputStream(ofile));
                 les = new LittleEndianOutputStream(bos);
+            }else{
+                txtWriter = new PrintWriter(new FileOutputStream(ofile));
             }
         }
 
