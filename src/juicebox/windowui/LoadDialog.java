@@ -51,7 +51,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JTree tree;
     private JButton cancelButton;
     private JSplitButton openButton;
-    private JSplitButton localButton;
+    //private JSplitButton localButton;
+    private JButton localButton;
     private JMenuItem openURL;
     private JMenuItem open30;
 
@@ -117,23 +118,23 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         popupMenu.add(open30);
         openButton.setComponentPopupMenu(popupMenu);
 
-        localButton = new JSplitButton("Load Local...");
+        localButton = new JButton("Local...");
         localButton.addActionListener(this);
+        localButton.setPreferredSize(new Dimension((int) localButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
-        JPopupMenu popupMenu1 = new JPopupMenu("Popup1");
+        /*JPopupMenu popupMenu1 = new JPopupMenu("Popup1");
         openURL = new JMenuItem("Load URL...");
         openURL.addActionListener(this);
         popupMenu1.add(openURL);
         localButton.setComponentPopupMenu(popupMenu1);
-
+          */
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(this);
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
         buttonPanel.add(openButton);
-        if (!HiCGlobals.isRestricted) {
-            buttonPanel.add(localButton);
-        }
+        buttonPanel.add(localButton);
+
         buttonPanel.add(cancelButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -236,13 +237,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 actionLock = false;
             }
         }
-    }
-
-    private void loadFiles(String path, String title, boolean control) {
-        java.util.List<String> paths = new ArrayList<String>();
-        paths.add(path);
-        mainWindow.safeLoad(paths, control);
-        mainWindow.updateTitle(control, title);
     }
 
     private void loadFiles(TreePath[] paths, String ext) {
