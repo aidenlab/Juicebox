@@ -107,7 +107,7 @@ public class AsciiPairIterator implements PairIterator {
                         format = Format.MEDIUM;
                     }
                     else {
-                        throw new IOException("Unexpected column count.  Only 8 or 16 columns supported.  Check file format");
+                        throw new IOException("Unexpected column count.  Only 11 or 16 columns supported.  Check file format");
                     }
                 }
 
