@@ -772,8 +772,7 @@ public class MainWindow extends JFrame {
             }
         }
 
-        final MatrixType passOption = option;
-        hic.setDisplayOption(passOption);
+        hic.setDisplayOption(option);
         //refresh();
     }
 
@@ -1630,7 +1629,7 @@ public class MainWindow extends JFrame {
         localControlItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                loadMenuItemActionPerformed(false);
+                loadMenuItemActionPerformed(true);
             }
         });
         fileMenu.add(localControlItem);
