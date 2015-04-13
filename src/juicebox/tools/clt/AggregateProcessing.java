@@ -120,7 +120,17 @@ public class AggregateProcessing {
         //HiCTools.main(l5);
         //HiCTools.main(l6);
 
-        APAPlotter.run();
+        String[] l7 = { "pre",
+                        "/Users/muhammadsaadshamim/Desktop/HIC156_smaller.txt",
+                        "/Users/muhammadsaadshamim/Desktop/HIC156_smaller",
+                        "hg19"
+        };
+        //HiCTools.main(l7);
+
+        String[] l8 = {"dump","observed","NONE","/Users/muhammadsaadshamim/Desktop/temp_Juice/Juicebox/testing/HIC156_smaller_2.hic","1","1","BP","10000","/Users/muhammadsaadshamim/Desktop/temp_Juice/Juicebox/testing/temp6"};
+        HiCTools.main(l8);
+
+        //APAPlotter.run();
 
     }
 }
