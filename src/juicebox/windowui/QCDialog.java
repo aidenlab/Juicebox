@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.data.ExpectedValueFunction;
+import org.broad.igv.ui.util.MessageUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -58,7 +59,7 @@ public class QCDialog extends JDialog {
             1873817423, 2310129700l, 2848035868l, 3511191734l, 4328761281l, 5336699231l, 6579332247l, 8111308308l,
             10000000000l};
 
-    public QCDialog(MainWindow mainWindow, HiC hic) {
+    public QCDialog(MainWindow mainWindow, HiC hic, String title) {
         super(mainWindow);
 
         Dataset dataset = hic.getDataset();
@@ -78,26 +79,27 @@ public class QCDialog extends JDialog {
         styleSheet.addRule("td { padding: 2px; }");
         styleSheet.addRule("th {border-bottom: 1px solid #000; text-align: left; background-color: #D8D8D8; font-weight: normal;}");
 
-        int split = text.indexOf("</table>") + 8;
-        textDescription = text.substring(0, split);
-        textStatistics = text.substring(split);
-        description = new JTextPane();
-        description.setEditable(false);
-        description.setContentType("text/html");
-        description.setEditorKit(kit);
-        description.setText(textDescription);
-        tabbedPane.addTab("About Library", description);
+        if (text != null) {
+            int split = text.indexOf("</table>") + 8;
+            textDescription = text.substring(0, split);
+            textStatistics = text.substring(split);
+            description = new JTextPane();
+            description.setEditable(false);
+            description.setContentType("text/html");
+            description.setEditorKit(kit);
+            description.setText(textDescription);
+            tabbedPane.addTab("About Library", description);
 
 
-        JTextPane textPane = new JTextPane();
-        textPane.setEditable(false);
-        textPane.setContentType("text/html");
+            JTextPane textPane = new JTextPane();
+            textPane.setEditable(false);
+            textPane.setContentType("text/html");
 
-        textPane.setEditorKit(kit);
-        textPane.setText(textStatistics);
-        JScrollPane pane = new JScrollPane(textPane);
-        tabbedPane.addTab("Statistics", pane);
-
+            textPane.setEditorKit(kit);
+            textPane.setText(textStatistics);
+            JScrollPane pane = new JScrollPane(textPane);
+            tabbedPane.addTab("Statistics", pane);
+        }
         boolean success = true;
         if (graphs != null) {
 
@@ -288,9 +290,9 @@ public class QCDialog extends JDialog {
                 if (expected[i] > 0) expectedValues.add(i + 1, expected[i]);
             }
             collection.addSeries(expectedValues);
-            String title = "Expected at " + hic.getZoom() + " norm " + hic.getNormalizationType();
+            String title1 = "Expected at " + hic.getZoom() + " norm " + hic.getNormalizationType();
             final JFreeChart readTypeChart = ChartFactory.createXYLineChart(
-                    title,          // chart title
+                    title1,          // chart title
                     "Distance between reads (log)",               // domain axis label
                     "Genome-wide expected (log)",                  // range axis label
                     collection,                  // data
@@ -313,10 +315,18 @@ public class QCDialog extends JDialog {
             tabbedPane.addTab("Expected", chartPanel5);
         }
 
-        getContentPane().add(tabbedPane);
-        pack();
-        setModal(false);
-        setLocation(100, 100);
+        if (text == null && graphs == null) {
+            JOptionPane.showMessageDialog(this, "Sorry, no metrics are available for this dataset", "Error", JOptionPane.ERROR_MESSAGE);
+            setVisible(false);
+            dispose();
 
+        } else {
+            getContentPane().add(tabbedPane);
+            pack();
+            setModal(false);
+            setLocation(100, 100);
+            setTitle(title);
+            setVisible(true);
+        }
     }
 }
