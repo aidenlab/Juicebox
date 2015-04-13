@@ -454,9 +454,9 @@ Hi-C Contacts: 247,589 (20.02% / 84.20%)
 Inter-chromosomal: 58,845  (4.76% / 20.01%)
 Intra-chromosomal: 188,744  (15.27% / 64.19%)
 Short Range (<20Kb): 48,394  (3.91% / 16.46%)
-Long Range (>20Kb): 140,350  (11.35% / 47.73%)*/
+Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
-        System.err.println("contig: " + contig + " total: " + totalRead + " below mapq: " + belowMapq + " intra frag: " + intraFrag);
+        System.err.println("contig: " + contig + " total: " + totalRead + " below mapq: " + belowMapq + " intra frag: " + intraFrag); */
 
         matrix.parsingComplete();
         return matrix;
