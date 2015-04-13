@@ -1321,6 +1321,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             if (!eF.isPopupTrigger() && eF.getButton() == MouseEvent.BUTTON1 && !eF.isControlDown()) {
 
+                if (hic.getZd() == null) return;
                 if (hic.isWholeGenome()) {
                     //avoid double click...
                     if (eF.getClickCount() == 1) {
@@ -1332,11 +1333,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         };
                         mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
 
-                    } else {
-                        return;
                     }
-
-                } else if (eF.getClickCount() == 1) {
+                } else if (eF.getClickCount() == 2) {
 
                     // Double click,  zoom and center on click location
                     final HiCZoom currentZoom = hic.getZd().getZoom();
@@ -1363,7 +1361,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         mainWindow.executeLongRunningTask(runnable, "Mouse Click Zoom");
                     }
 
-                } else {
+                }
+                //else {
 
 //                    if (hic.getXContext() == null) return;
 //
@@ -1372,8 +1371,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //                    hic.setSelectedBin(new Point(binX, binY));
 //                    repaint();
-                    return;
-                }
+
+               // }
             }
         }
 
