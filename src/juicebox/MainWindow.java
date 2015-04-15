@@ -773,7 +773,7 @@ public class MainWindow extends JFrame {
         }
 
         hic.setDisplayOption(option);
-        //refresh();
+        refresh(); // necessary to invalidate minimap when changing view
     }
 
     private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
