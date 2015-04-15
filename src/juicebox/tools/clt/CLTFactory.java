@@ -41,7 +41,7 @@ public class CLTFactory {
     //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
     //        "bpToFrag",     "juicebox.tools.clt.BPToFragment",      "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
     //        "calcKR",       "juicebox.tools.clt.CalcKR",            "calcKR <input_HiC_file>",
-            "dump",         "juicebox.tools.clt.Dump",              "dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
+            "dump",         "juicebox.tools.clt.Dump",              "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
     //        "fragmentToBed","juicebox.tools.clt.FragmentToBed",     "fragmentToBed <fragmentFile>",
     //        "hiccups",      "juicebox.tools.clt.HiCCUPS",           "",
     //        "pairsToBin",   "juicebox.tools.clt.PairsToBin",        "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
@@ -68,14 +68,11 @@ public class CLTFactory {
         System.out.println("       juicebox pre <options> <infile> <outfile> <genomeID>");
         */
 
-        System.out.println("   <options>: -d only calculate intra chromosome (diagonal) [false]");
+        System.out.println("  <options>: -d only calculate intra chromosome (diagonal) [false]");
         System.out.println("           : -f <restriction site file> calculate fragment map");
         System.out.println("           : -m <int> only write cells with count above threshold m [0]");
         System.out.println("           : -q <int> filter by MAPQ score greater than or equal to q");
         System.out.println("           : -c <chromosome ID> only calculate map on specific chromosome");
-        System.out.println("           : -s <statsFile> include text statistics file");
-        System.out.println("           : -g <graphFile> include graph file");
-        System.out.println("           : -t, --tmpdir <temporary file directory>");
         System.out.println("           : -h print help");
     }
 
