@@ -49,7 +49,6 @@ import java.util.List;
  */
 public class HiCFeatureTrack extends HiCTrack {
 
-    static final int THIN_BLOCK_HEIGHT = 6;
     private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
     private static final int BLOCK_HEIGHT = 14;
     private static final int ARROW_SPACING = 10;
@@ -57,7 +56,6 @@ public class HiCFeatureTrack extends HiCTrack {
     private final HiC hic;
     private final FeatureSource<?> featureSource;
     private Color color = Color.blue.darker();
-    private Color altColor = Color.blue.brighter();
     private String name;
 
 
@@ -198,8 +196,8 @@ public class HiCFeatureTrack extends HiCTrack {
 
         IGVFeature f = getFeatureAtPixel(x, context, orientation);
         if (f != null) { // && (f.getEnd() > start && f.getStart() < end)) {
-            txt.append("<span style='font-family: arial; font-size: 12pt;'>");
-            txt.append("<br>" + f.getDescription());
+            txt.append("<span style='font-family: arial; font-size: 12pt;'><br>");
+            txt.append(f.getDescription());
             txt.append("</span>");
         }
         return txt.toString();
@@ -264,9 +262,7 @@ public class HiCFeatureTrack extends HiCTrack {
     }
 
     @Override
-    public void setAltColor(Color selectedColor) {
-        this.altColor = selectedColor;
-    }
+    public void setAltColor(Color selectedColor) {}
 
     @Override
     public String getName() {

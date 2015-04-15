@@ -96,7 +96,7 @@ public class TrackPanel extends JPanel {
 
                 if (mouseEvent.isPopupTrigger()) {
                     handlePopupEvent(mouseEvent);
-                } else {
+                } else if (mouseEvent.getClickCount()>1) {
 
                     int x = mouseEvent.getX();
                     int y = mouseEvent.getY();
