@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils;
 
-import juicebox.data.Matrix;
 import org.tc33.jheatchart.HeatChart;
 
 import javax.imageio.IIOImage;
@@ -33,22 +32,10 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
 import java.io.File;
 import java.io.IOException;
-import java.text.AttributedCharacterIterator;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by muhammadsaadshamim on 2/19/15.     956 227 8502
@@ -140,7 +127,7 @@ public class APAPlotter {
 
     private static void saveJpeg(BufferedImage image, File outputFile, float quality) throws IOException {
         Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
-        ImageWriter writer = (ImageWriter) iter.next();
+        ImageWriter writer = iter.next();
         ImageWriteParam iwp = writer.getDefaultWriteParam();
         iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
         iwp.setCompressionQuality(quality);
