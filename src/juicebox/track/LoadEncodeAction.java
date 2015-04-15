@@ -160,6 +160,7 @@ public class LoadEncodeAction extends AbstractAction {
         try {
             EncodeFileBrowser browser = EncodeFileBrowser.getInstance(genome);
             browser.remove(locator);
+            loadedLocators.remove(locator);
         } catch (IOException e) {
             e.printStackTrace();
         }

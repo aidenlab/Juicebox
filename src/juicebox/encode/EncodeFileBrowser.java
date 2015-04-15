@@ -235,18 +235,6 @@ public class EncodeFileBrowser extends JDialog {
         return canceled;
     }
 
-    private Set<String> getLoadedPaths() {
-
-        if (!IGV.hasInstance()) return new HashSet<String>();
-
-        Collection<ResourceLocator> locators = IGV.getInstance().getDataResourceLocators();
-        HashSet<String> loadedPaths = new HashSet<String>(locators.size());
-        for (ResourceLocator locator : locators) {
-            loadedPaths.add(locator.getPath());
-        }
-        return loadedPaths;
-    }
-
     /**
      * @return the list of VISIBLE selected records.  Filtered records are not returned even if record.selected == true
      * @throws java.io.IOException
