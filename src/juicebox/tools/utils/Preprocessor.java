@@ -123,6 +123,12 @@ public class Preprocessor {
     }
 
     public void preprocess(final String inputFile) throws IOException {
+        File file = new File(inputFile);
+
+        if (!file.exists() || file.length() == 0) {
+            System.err.println(inputFile + " does not exist or does not contain any reads.");
+            System.exit(1);
+        }
 
         try {
             String stats = null;
