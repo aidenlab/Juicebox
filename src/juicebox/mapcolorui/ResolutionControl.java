@@ -28,16 +28,13 @@ import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.windowui.HiCZoom;
-import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
-
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.TextAttribute;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -141,7 +138,7 @@ public class ResolutionControl extends JPanel {
                 Runnable runnable = new Runnable() {
                     public void run() {
                         reset();
-                        mainWindow.refresh();
+                        mainWindow.refresh(); // necessary to correct BP/FRAG switching all red box
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Resolution switched");
