@@ -29,16 +29,12 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
-
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -85,39 +81,67 @@ public class ResolutionControl extends JPanel {
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         resolutionLabel.setBackground(new Color(204, 204, 204));
-//        resolutionLabel.addMouseListener(new MouseAdapter() {
-//            Font original;
-//
-//            @Override
-//            public void mouseEntered(MouseEvent e) {
-//                if (resolutionLabel.isEnabled()) {
-//                    original = e.getComponent().getFont();
-//                    Map attributes = original.getAttributes();
-//                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-//                    e.getComponent().setFont(original.deriveFont(attributes));
-//                }
-//            }
-//
-//            @Override
-//            public void mouseExited(MouseEvent e) {
-//                e.getComponent().setFont(original);
-//            }
-//        });
+
         JPanel resolutionLabelPanel = new JPanel();
         resolutionLabelPanel.setBackground(new Color(204, 204, 204));
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
+
+        /* TODO not working
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
+            private Font original;
+
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                //if (resolutionSlider.isEnabled()) {
+                    original = e.getComponent().getFont();
+                    Map attributes = original.getAttributes();
+                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+                    e.getComponent().setFont(original.deriveFont(attributes));
+                //}
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                //if (resolutionSlider.isEnabled())
+                e.getComponent().setFont(original);
+            }
+
+        });
+        */
+
+        resolutionLabelPanel.addMouseListener(new MouseAdapter() {
+
             @Override
             public void mousePressed(MouseEvent e) {
-                if (resolutionSlider.isEnabled() && hic != null && hic.getDataset() != null) {
+                if (e.isPopupTrigger() && resolutionSlider.isEnabled() && hic != null && hic.getDataset() != null) {
                     if (hic.getDataset().hasFrags()) {
-                        unit = (unit == HiC.Unit.FRAG ? HiC.Unit.BP : HiC.Unit.FRAG);
-                        resolutionLabel.setText(getUnitLabel());
-                        reset();
-                        //mainWindow.refresh();
+                        processClick();
                     }
                 }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //No double click here...
+                if (e.getClickCount() == 1 && resolutionSlider.isEnabled() && hic != null && hic.getDataset() != null) {
+                    if (hic.getDataset().hasFrags()) {
+                        processClick();
+                    }
+                }
+            }
+
+            private void processClick(){
+                unit = (unit == HiC.Unit.FRAG ? HiC.Unit.BP : HiC.Unit.FRAG);
+                resolutionLabel.setText(getUnitLabel());
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        reset();
+                        mainWindow.refresh(); // necessary to correct BP/FRAG switching all red box
+                    }
+                };
+                mainWindow.executeLongRunningTask(runnable, "Resolution switched");
             }
         });
 

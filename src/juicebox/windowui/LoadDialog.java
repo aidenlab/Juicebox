@@ -24,7 +24,6 @@
 
 package juicebox.windowui;
 
-import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 
 import javax.swing.*;

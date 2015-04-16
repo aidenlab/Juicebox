@@ -80,7 +80,7 @@ public class CLTFactory {
 
         cmd = cmd.toLowerCase();
 
-        if(cmd.equals("addGWNorm")){
+        if(cmd.equals("addGWNorm".toLowerCase())){
             return new AddGWNorm();
         }
         else if(cmd.equals("addNorm".toLowerCase())){
@@ -94,7 +94,8 @@ public class CLTFactory {
         }
         else if(cmd.equals("bigWig".toLowerCase())){
             return new BigWig();
-        }else if(cmd.equals("binToPairs".toLowerCase())){
+        }
+        else if(cmd.equals("binToPairs".toLowerCase())){
             return new BinToPairs();
         }
         else if(cmd.equals("bpToFrag".toLowerCase())){

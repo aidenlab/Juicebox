@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils;
 
-import juicebox.tools.HiCTools;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import org.broad.igv.feature.Chromosome;
 

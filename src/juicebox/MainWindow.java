@@ -64,7 +64,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.prefs.Preferences;
 
 /**
  * @author James Robinson
@@ -773,7 +772,7 @@ public class MainWindow extends JFrame {
         }
 
         hic.setDisplayOption(option);
-        //refresh();
+        refresh(); // necessary to invalidate minimap when changing view
     }
 
     private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
@@ -1254,9 +1253,10 @@ public class MainWindow extends JFrame {
 
         //---- colorRangeLabel ----
         colorRangeLabel = new JLabel("Color Range");
-        MouseListener l = new MouseAdapter() {
-            Font original;
+        colorRangeLabel.addMouseListener(new MouseAdapter() {
+            private Font original;
 
+            @SuppressWarnings({"unchecked","rawtypes"})
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (colorRangeSlider.isEnabled()) {
@@ -1267,16 +1267,13 @@ public class MainWindow extends JFrame {
                 }
             }
 
-
             @Override
             public void mouseExited(MouseEvent e) {
-                //if (colorRangeSlider.isEnabled()) {
+                //if (colorRangeSlider.isEnabled())
                 e.getComponent().setFont(original);
-                //}
             }
 
-        };
-        colorRangeLabel.addMouseListener(l);
+        });
 
         colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
         colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
@@ -1286,22 +1283,22 @@ public class MainWindow extends JFrame {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger() && colorRangeSlider.isEnabled()) {
-                    setColorRangeSliderVisible(false);
-                    ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                    rangeDialog.setVisible(true);
+                    processClick();
                 }
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
                 //No double click here...
-                if (e.getClickCount() == 1) {
-                    if (colorRangeSlider.isEnabled()) {
-                        setColorRangeSliderVisible(false);
-                        ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                        rangeDialog.setVisible(true);
-                    }
+                if (e.getClickCount() == 1 && colorRangeSlider.isEnabled()) {
+                        processClick();
                 }
+            }
+
+            private void processClick(){
+                setColorRangeSliderVisible(false);
+                ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
+                rangeDialog.setVisible(true);
             }
         });
         JPanel colorLabelPanel = new JPanel();
