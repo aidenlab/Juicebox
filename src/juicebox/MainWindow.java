@@ -57,6 +57,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -338,18 +339,28 @@ public class MainWindow extends JFrame {
         initialZoom = null;
     }
 
-    public void safeLoad(final List<String> files, final boolean control) {
+    public void safeLoad(final List<String> files, final boolean control, final String title) {
         Runnable runnable = new Runnable() {
             public void run() {
+                String resetTitle;
+                if (control) resetTitle = controlTitle;
+                else resetTitle = datasetTitle;
+
                 try {
                     unsafeload(files, control);
                     updateThumbnail();
                     refresh();
+                    if (control) controlTitle = title;
+                    else datasetTitle = title;
+                    updateTitle();
                 } catch (IOException error) {
                     log.error("Error loading hic file", error);
                     JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                    hic.reset();
+                    if (!control) hic.reset();
                     updateThumbnail();
+                    if (control) controlTitle = resetTitle;
+                    else datasetTitle = resetTitle;
+                    updateTitle();
                 } catch (Exception error) {
                     error.printStackTrace();
                 }
@@ -366,8 +377,6 @@ public class MainWindow extends JFrame {
         if (file.equals(currentlyLoadedFile)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
             return;
-        } else {
-            currentlyLoadedFile = file;
         }
 
         colorValuesToRestore = null;
@@ -379,7 +388,15 @@ public class MainWindow extends JFrame {
         if (file.endsWith("hic")) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
-            Dataset dataset = reader.read();
+            Dataset dataset;
+           // try {
+                dataset = reader.read();
+           // }
+           // catch (IOException error) {
+           //     JOptionPane.showMessageDialog(MainWindow.this,
+           //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
+           //     return;
+           // }
 
             if (dataset.getVersion() <= 1) {
                 JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
@@ -457,7 +474,9 @@ public class MainWindow extends JFrame {
 
             goPanel.setEnabled(true);
 
-
+            if (!control) {
+                currentlyLoadedFile = file;
+            }
             //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
@@ -511,8 +530,7 @@ public class MainWindow extends JFrame {
         }
 
         normalizationComboBox.setEnabled(!wholeGenome);
-        // Actually we'd like to enable
-        displayOptionComboBox.setEnabled(true); // TODO add capability to view whole genome in OE, etc
+        displayOptionComboBox.setEnabled(true);
     }
 
     public void repaintTrackPanels() {
@@ -629,12 +647,7 @@ public class MainWindow extends JFrame {
                 str += f.getName() + " ";
             }
             getRecentMapMenu().addEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
-            safeLoad(fileNames, control);
-
-            if (control) controlTitle = str;
-            else datasetTitle = str;
-            updateTitle();
-
+            safeLoad(fileNames, control, str);
         }
     }
 
@@ -642,11 +655,7 @@ public class MainWindow extends JFrame {
 
         if (url != null) {
             recentMapMenu.addEntry(title.trim() + "@@" + url, true);
-            safeLoad(Arrays.asList(url), control);
-
-            if (control) controlTitle = title;// TODO should the other one be set to empty/null
-            else datasetTitle = title;
-            updateTitle();
+            safeLoad(Arrays.asList(url), control, title);
 
         }
     }
@@ -655,13 +664,9 @@ public class MainWindow extends JFrame {
         String url = JOptionPane.showInputDialog("Enter URL: ");
         if (url != null) {
             try {
-                safeLoad(Arrays.asList(url), control);
-
                 String path = (new URL(url)).getPath();
-                if (control) controlTitle = path;
-                else datasetTitle = path;
-                updateTitle();
-            } catch (IOException e1) {
+                safeLoad(Arrays.asList(url), control, path);
+            } catch (MalformedURLException e1) {
                 JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -737,6 +742,12 @@ public class MainWindow extends JFrame {
     private void unsafeDisplayOptionComboBoxActionPerformed(ActionEvent e) {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
+        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
+            JOptionPane.showMessageDialog(this, option + " matrix is not available for whole-genome view.");
+            displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
+            return;
+        }
+
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
         boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
         boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
@@ -753,12 +764,6 @@ public class MainWindow extends JFrame {
         plusButton.setEnabled(activateOE || isObservedOrControl);
         minusButton.setEnabled(activateOE || isObservedOrControl);
         if (option == MatrixType.PEARSON) {
-            if (hic.isWholeGenome()) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for whole-genome view.");
-                displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-                return;
-
-            }
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for inter-chr views.");
                 displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
