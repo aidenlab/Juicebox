@@ -245,10 +245,10 @@ public class NormalizationVectorUpdater {
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
         reader.close();
-        System.err.println();
+        System.out.println();
         update(path, version, filePosition, expectedValueCalculations, normVectorIndex,
                 normVectorBuffer.getBytes());
-        System.err.println("Finished writing norms");
+        System.out.println("Finished writing norms");
     }
 
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
@@ -367,9 +367,10 @@ public class NormalizationVectorUpdater {
         int version = reader.getVersion();
         long filePosition = reader.getNormFilePosition();
         reader.close();
-        System.err.println();
+        System.out.println();
         update(path, version, filePosition, expectedValueFunctionMap, normVectorIndex,
                 normVectorBuffer.getBytes());
+        System.out.println("Finished normalization");
     }
 
 
@@ -507,14 +508,14 @@ public class NormalizationVectorUpdater {
             }
 
             BufferedByteWriter buffer = new BufferedByteWriter();
-            System.err.println("Writing expected");
+            System.out.println("Writing expected");
             writeExpectedValues(buffer, expectedValueCalculations);
 
             byte[] evBytes = buffer.getBytes();
             raf.getChannel().position(filePosition);
             raf.write(evBytes);
 
-            System.err.println("Writing norms");
+            System.out.println("Writing norms");
             // Get the size of the index in bytes, to compute an offset for the actual entries.
             buffer = new BufferedByteWriter();
             writeNormIndex(buffer, normVectorIndex);
@@ -559,14 +560,14 @@ public class NormalizationVectorUpdater {
             }
 
             BufferedByteWriter buffer = new BufferedByteWriter();
-            System.err.println("Writing expected");
+            System.out.println("Writing expected");
             writeExpectedValues(buffer, expectedValueFunctionMap);
 
             byte[] evBytes = buffer.getBytes();
             raf.getChannel().position(filePosition);
             raf.write(evBytes);
 
-            System.err.println("Writing norms");
+            System.out.println("Writing norms");
             // Get the size of the index in bytes, to compute an offset for the actual entries.
             buffer = new BufferedByteWriter();
             writeNormIndex(buffer, normVectorIndex);

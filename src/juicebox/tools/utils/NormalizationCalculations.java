@@ -357,7 +357,7 @@ public class NormalizationCalculations {
                 } else {
                     offset = getOffset(10);
                 }
-                System.out.print(" " + iteration + "%");
+             //   System.out.print(" " + iteration + "%");
             } else {
                 // otherwise, check to be sure there are no tiny KR values
                 // create true KR vector
@@ -385,7 +385,7 @@ public class NormalizationCalculations {
                         if (offset[i] != -1) offset[i] = index++;
                     }
                 }
-                if (recalculate) System.out.print(" " + rowsTossed);
+               // if (recalculate) System.out.print(" " + rowsTossed);
             }
             iteration++;
 
