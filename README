@@ -117,15 +117,14 @@ The "juicebox" script can be used in place of the unwieldy
 Running the command line tools without any arguments produces the following 
 usage message:
 Juicebox Command Line Tools Usage:
-       juicebox dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>
-       juicebox pre <options> <infile> <outfile> <genomeID>
+  juicebox dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>
+  juicebox pre <options> <infile> <outfile> <genomeID>
 <options>: -d only calculate intra chromosome (diagonal) [false]
-         : -f <restriction site file> calculate fragment map
-         : -m <int> only write cells with count above threshold m [0]
-         : -q <int> filter by MAPQ score greater than or equal to q 
-         : -c <chromosome ID> only calculate map on specific 
-              chromosome
-         : -h print help
+  : -f <restriction site file> calculate fragment map
+  : -m <int> only write cells with count above threshold m [0]
+  : -q <int> filter by MAPQ score greater than or equal to q 
+  : -c <chromosome ID> only calculate map on specific chromosome
+  : -h print help
 
 ---
 Pre
@@ -134,33 +133,36 @@ The “pre” command takes three required arguments and a number of optional
 arguments.  The optional arguments should go before the required ones.  
 
 The required arguments are:
-<infile>: Text file with paired contacts.  The text file should be in the 
-following 11 column format.  The text file may be gzipped.  
-<readname> <str1> <chr1> <pos1> <frag1> <str2> <chr2> <pos2> <frag2> <mapq1> <mapq2>
-str = strand (0 for forward, anything else for reverse)
-chr = chromosome (must be a chromosome in the genome)
-pos = position
-frag = restriction site fragment
-mapq = mapping quality score
 
-If not using the restriction site file option, frag will be ignored.  If not 
-using mapping quality filter, mapq will be ignored.
+<infile>: Text file with paired contacts. The text file may be gzipped, and
+  should be in the following 11 column format: 
+  <readname> <str1> <chr1> <pos1> <frag1> <str2> <chr2> <pos2> <frag2> <mapq1> <mapq2>
+    str = strand (0 for forward, anything else for reverse)
+    chr = chromosome (must be a chromosome in the genome)
+    pos = position
+    frag = restriction site fragment
+    mapq = mapping quality score
+  If not using the restriction site file option, frag will be ignored.  If not 
+  using mapping quality filter, mapq will be ignored.
 <outfile>: Name of outfile, should end with .hic.  This is the file you will 
-load into Juicebox.
-<genomeID>: Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3, canFam3, equCab2, galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10
+  load into Juicebox.
+<genomeID>: Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3,
+  canFam3, equCab2, galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10
+
 The optional arguments are:
--d Only calculate intra chromosome (diagonal) [false]
--f <restriction site file> Calculate fragment map.  Requires restriction site 
-file; each line should start with the chromosome name followed by the position
-of each restriction site on that chromosome, in numeric order, and ending with
-the size of the chromosome
- -m <int> Only write cells with count above threshold m [0]
- -q <int> Filter by MAPQ score greater than or equal to q [not set]
- -c <chromosome ID> Only calculate map on specific chromosome
+  -d Only calculate intra chromosome (diagonal) [false]
+  -f <restriction site file> Calculate fragment map.  Requires restriction site 
+    file; each line should start with the chromosome name followed by the position
+    of each restriction site on that chromosome, in numeric order, and ending with
+    the size of the chromosome
+  -m <int> Only write cells with count above threshold m [0]
+  -q <int> Filter by MAPQ score greater than or equal to q [not set]
+  -c <chromosome ID> Only calculate map on specific chromosome
 
 ------------
 Pre Examples
 ------------
+
   juicebox pre data/test.txt.gz data/test.hic hg19
 This will produce a file in data/test.hic that can be loaded into Juicebox. It 
 will not include a fragment map and will not filter any of the reads.
@@ -185,19 +187,19 @@ Dump
 The “dump” command takes 7 arguments and produces text in sparse matrix format
 (row, column, value).  Hi-C matrices are symmetric.  Here are the arguments:
 * The kind of matrix you would like to dump.  Must be one of 
-observed/oe/norm/expected.  The latter 2 will produce vectors.   
+  observed/oe/norm/expected.  The latter 2 will produce vectors.   
 * The kind of normalization you want to apply. Must be one of 
-NONE/VC/VC_SQRT/KR. VC is vanilla coverage, VC_SQRT is square root of vanilla 
-coverage, and KR is Knight-Ruiz or Balanced normalization.
+  NONE/VC/VC_SQRT/KR. VC is vanilla coverage, VC_SQRT is square root of vanilla 
+  coverage, and KR is Knight-Ruiz or Balanced normalization.
 * The .hic file or files you want to dump.  If you list multiple files, the 
-matrices will be summed together then dumped
+  matrices will be summed together then dumped
 * chr1: The first chromosome.  
 * chr2: The second chromosome.  
 * The unit of resolution, BP/FRAG.  BP is base-pair delimited resolution and 
-FRAG is fragment delimited.
+  FRAG is fragment delimited.
 * The bin size.  For BP, this must be one of <2500000, 1000000, 500000, 250000,
-100000, 50000, 25000, 10000, 5000> and for FRAG this must be one of <500, 200,
-100, 50, 20, 5, 2, 1>
+  100000, 50000, 25000, 10000, 5000> and for FRAG this must be one of <500, 200,
+  100, 50, 20, 5, 2, 1>
 
 -------------
 Dump Examples
@@ -223,17 +225,18 @@ chr1_chr5.txt.
 Compiling Jars from Source Files
 --------------------------------
 1. You should have Java 1.8 JDK and Apache Ant installed on your system. See
-below for more information.
+   below for more information.
 2. Go to the folder containing the Juicebox source files and edit the 
-juicebox.properties file with the proper Java JDK Address.
+   juicebox.properties file with the proper Java JDK Address.
 3. Open the command line, navigate to the folder containing the build.xml file
-and type
-  ant
-The process should take no more than a minute to build on most machines.
+   and type
+     ant
+   The process should take no more than a minute to build on most machines.
 4. The jars are written to the directory out/.  You can change this by editing 
-the build.xml file.
+   the build.xml file.
 
 * Installing Java 1.8 JDK
+
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
 http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 (Alternative) For Ubuntu/LinuxMint
@@ -241,24 +244,24 @@ http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
 
 * Installing Apache Ant
 Mac
-Ant should be installed on most Macs. To verify installation via the command 
-prompt, type
-  ant -version
-If Ant is not on your Mac, install it via homebrew. At the command prompt, type
-  brew update
-  brew install ant
-You may need to install Homebrew (http://brew.sh/) on your machine
-See the following Stackoverflow post for more details:
-http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
+  Ant should be installed on most Macs. To verify installation via the command 
+  prompt, type
+    ant -version 
+  If Ant is not on your Mac, install it via homebrew. At the command prompt, type
+    brew update
+    brew install ant
+  You may need to install Homebrew (http://brew.sh/) on your machine
+  See the following Stackoverflow post for more details:
+  http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
 
 Windows
-Installing Ant requires some minor changes to your system environment. Follow 
-the instructions in this article:
-http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
+  Installing Ant requires some minor changes to your system environment. Follow 
+  the instructions in this article:
+  http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
 
 Linux
-In the command prompt, type
-  sudo apt-get install ant
-or
-  sudo yum install ant
-depending on your package installer
+  In the command prompt, type
+    sudo apt-get install ant 
+  or
+    sudo yum install ant
+  depending on your package installer
