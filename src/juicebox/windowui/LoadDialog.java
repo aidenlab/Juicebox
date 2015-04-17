@@ -67,44 +67,52 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         //Create the nodes.
         DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
-        if (!createNodes(top, properties)) {
-            dispose();
-            success = false;
-            return;
-        }
+        if (properties != null) {
+            if (!createNodes(top, properties)) {
+                dispose();
+                success = false;
+                return;
+            }
 
-        //Create a tree that allows one selection at a time.
-        tree = new JTree(top);
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+            //Create a tree that allows one selection at a time.
+            tree = new JTree(top);
+            tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
 
-        //Listen for when the selection changes.
-        tree.addTreeSelectionListener(this);
-        tree.setRootVisible(false);
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent mouseEvent) {
-                TreePath selPath = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-                if (selPath != null) {
-                    if (mouseEvent.getClickCount() == 2) {
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath.getLastPathComponent();
-                        if (node != null && node.isLeaf()) {
-                            TreePath[] paths = new TreePath[1];
-                            paths[0] = selPath;
-                            loadFiles(paths, null);
+            //Listen for when the selection changes.
+            tree.addTreeSelectionListener(this);
+            tree.setRootVisible(false);
+            tree.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent mouseEvent) {
+                    TreePath selPath = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+                    if (selPath != null) {
+                        if (mouseEvent.getClickCount() == 2) {
+                            DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath.getLastPathComponent();
+                            if (node != null && node.isLeaf()) {
+                                TreePath[] paths = new TreePath[1];
+                                paths[0] = selPath;
+                                loadFiles(paths, null);
+                            }
+
                         }
-
                     }
                 }
-            }
-        });
+            });
 
-        //Create the scroll pane and add the tree to it.
-        JScrollPane treeView = new JScrollPane(tree);
-        treeView.setPreferredSize(new Dimension(400, 400));
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(treeView, BorderLayout.CENTER);
-        add(centerPanel, BorderLayout.CENTER);
-
+            //Create the scroll pane and add the tree to it.
+            JScrollPane treeView = new JScrollPane(tree);
+            treeView.setPreferredSize(new Dimension(400, 400));
+            JPanel centerPanel = new JPanel(new BorderLayout());
+            centerPanel.add(treeView, BorderLayout.CENTER);
+            add(centerPanel, BorderLayout.CENTER);
+        }
+        else {
+            JLabel label = new JLabel("Can't find properties file; no online maps to load");
+            label.setHorizontalAlignment(JLabel.CENTER);
+            JPanel panel=new JPanel(new BorderLayout());
+            panel.add(label, BorderLayout.CENTER);
+            add(panel, BorderLayout.CENTER);
+        }
         JPanel buttonPanel = new JPanel();
 
         openButton = new JSplitButton("Open MAPQ > 0");
@@ -115,6 +123,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         open30 = new JMenuItem("Open MAPQ \u2265 30");
         open30.addActionListener(this);
         popupMenu.add(open30);
+        popupMenu.setEnabled(false);
+        open30.setEnabled(false);
         openButton.setComponentPopupMenu(popupMenu);
 
         localButton = new JButton("Local...");
@@ -201,7 +211,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         if (node.isLeaf()) {
             openButton.setEnabled(true);
-            if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")) {
+
+            if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")) {    // maternal paternal
                 open30.setEnabled(false);
             } else {
                 open30.setEnabled(true);

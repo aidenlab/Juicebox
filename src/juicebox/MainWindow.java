@@ -1480,14 +1480,15 @@ public class MainWindow extends JFrame {
 
         initializeGlassPaneListening();
 
-        initProperties();
+        // initProperties();
     }
 
     public void initProperties() {
         try {
             String url = System.getProperty("jnlp.loadMenu");
             if (url == null) {
-                url = "http://hicfiles.tc4ga.com/juicebox.properties";
+//                url = "http://hicfiles.tc4ga.com/juicebox.properties";
+                url = "http://hicfiles.tc4ga.com/reviewer.properties";
             }
             InputStream is = ParsingUtils.openInputStream(url);
             properties = new Properties();
@@ -1495,7 +1496,8 @@ public class MainWindow extends JFrame {
                 properties.load(is);
             }
         } catch (Exception error) {
-            JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
+            log.error("Can't find properties file for loading list", error);
+        //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -1610,7 +1612,7 @@ public class MainWindow extends JFrame {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-                initProperties();
+                //initProperties();         // don't know why we're doing this here
                 loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
             }
         };
