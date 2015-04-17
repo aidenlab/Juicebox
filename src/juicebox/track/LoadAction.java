@@ -100,7 +100,7 @@ public class LoadAction extends AbstractAction {
         Document xmlDocument = null;
         is = LoadAction.class.getResourceAsStream(url);
         if (is == null) {
-            log.error(url + "doesn't exist, so cannot read default annotations");
+            log.error(url + " doesn't exist, so cannot read default annotations");
             return null;
         }
         try {
