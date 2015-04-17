@@ -204,11 +204,26 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             }
             outBinTop = topStart + ((topEnd - topStart) / 2);
             int diff = topEnd - topStart;
-            if (diff >= 1000000) {
+            diff = diff/1000;
+            if (diff >= 2500000) {
+                estimatedOutBinSize = 2500000;
+            }
+            else if (diff >= 1000000) {
                 estimatedOutBinSize = 1000000;
-            } else if (diff >= 100000) {
+            }
+            else if (diff >= 500000) {
+                estimatedOutBinSize = 500000;
+            }
+            else if (diff >= 100000) {
                 estimatedOutBinSize = 100000;
-            } else if (diff >= 10000) {
+            }
+            else if (diff >= 50000) {
+                estimatedOutBinSize = 50000;
+            }
+            else if (diff >= 25000) {
+                estimatedOutBinSize = 25000;
+            }
+            else if (diff >= 10000) {
                 estimatedOutBinSize = 10000;
             } else  {
                 estimatedOutBinSize = 5000;
@@ -239,11 +254,26 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
             int diff = topEnd - topStart;
             int estimatedOutBinSize2;
-            if (diff >= 1000000) {
+            diff = diff/1000;
+            if (diff >= 2500000) {
+                estimatedOutBinSize2 = 2500000;
+            }
+            else if (diff >= 1000000) {
                 estimatedOutBinSize2 = 1000000;
-            } else if (diff >= 100000) {
+            }
+            else if (diff >= 500000) {
+                estimatedOutBinSize2 = 500000;
+            }
+            else if (diff >= 100000) {
                 estimatedOutBinSize2 = 100000;
-            } else if (diff >= 10000) {
+            }
+            else if (diff >= 50000) {
+                estimatedOutBinSize2 = 50000;
+            }
+            else if (diff >= 25000) {
+                estimatedOutBinSize2 = 25000;
+            }
+            else if (diff >= 10000) {
                 estimatedOutBinSize2 = 10000;
             } else  {
                 estimatedOutBinSize2 = 5000;
