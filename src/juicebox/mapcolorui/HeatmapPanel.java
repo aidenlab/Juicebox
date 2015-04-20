@@ -596,8 +596,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });*/
 
-
-        final JMenuItem mi3 = new JMenuItem("Sync");
+        // internally, single sync = what we previously called sync
+        final JMenuItem mi3 = new JMenuItem("Single Sync");
         mi3.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -605,8 +605,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-
-        final JCheckBoxMenuItem mi4 = new JCheckBoxMenuItem("Linked");
+        // internally, continuous sync = what we used to call linked
+        final JCheckBoxMenuItem mi4 = new JCheckBoxMenuItem("Continuous Sync");
         mi4.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
