@@ -80,7 +80,13 @@ public class CLTFactory {
 
         cmd = cmd.toLowerCase();
 
-        if(cmd.equals("addGWNorm".toLowerCase())){
+        if(cmd.equals("pre")){
+            return new PreProcessing();
+        }
+        else if(cmd.equals("dump")){
+            return new Dump();
+        }
+    /*  else if(cmd.equals("addGWNorm".toLowerCase())){
             return new AddGWNorm();
         }
         else if(cmd.equals("addNorm".toLowerCase())){
@@ -104,9 +110,6 @@ public class CLTFactory {
         else if(cmd.equals("calcKR".toLowerCase())){
             return new CalcKR();
         }
-        else if(cmd.equals("dump")){
-            return new Dump();
-        }
         else if(cmd.equals("fragmentToBed".toLowerCase())){
             return new FragmentToBed();
         }
@@ -119,9 +122,7 @@ public class CLTFactory {
         else if(cmd.equals("db")){
             return new SQLDatabase();
         }
-        else if(cmd.equals("pre")){
-            return new PreProcessing();
-        }
+    */
 
         return null;
     }
