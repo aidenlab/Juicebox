@@ -26,117 +26,253 @@ package juicebox.tools.utils;
 
 import org.tc33.jheatchart.HeatChart;
 
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.FileImageOutputStream;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
+import java.text.DecimalFormat;
 
 /**
- * Created by muhammadsaadshamim on 2/19/15.     956 227 8502
+ * Helper class to wrap heat map plotting and handle APA plots
+ * The static plot method should be called all the necessary inputs.
  */
 public class APAPlotter {
 
-    static double[][] data =
-            {{0, 0, 0, 0, 1, 1, 0, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1},
-            {1, 0, 0, 0, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
-            {0, 0, 1, 0, 0, 1, 0, 1, 0, 3, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0},
-            {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0},
-            {0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 0, 2, 1, 3, 0, 0, 0, 2, 1, 0, 1},
-            {0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0},
-            {0, 2, 0, 0, 1, 0, 1, 2, 1, 0, 1, 0, 1, 2, 1, 2, 1, 0, 0, 0, 0},
-            {0, 0, 0, 0, 1, 0, 1, 1, 0, 3, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1},
-            {1, 0, 0, 0, 0, 1, 0, 2, 0, 0, 5, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0},
-            {2, 2, 0, 1, 0, 1, 2, 0, 2, 1, 4, 1, 2, 0, 1, 1, 1, 1, 1, 0, 0},
-            {0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 3, 2, 0, 0, 0, 1, 0, 1, 2},
-            {1, 2, 0, 0, 1, 1, 1, 4, 1, 1, 0, 0, 0, 3, 0, 2, 0, 0, 1, 0, 2},
-            {0, 1, 0, 0, 0, 0, 0, 2, 0, 3, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0},
-            {1, 2, 0, 0, 1, 0, 2, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 2, 0, 1},
-            {1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0},
-            {0, 1, 0, 1, 0, 2, 1, 1, 2, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0},
-            {0, 0, 0, 0, 1, 2, 2, 1, 0, 1, 1, 1, 0, 0, 0, 1, 2, 1, 0, 0, 0},
-            {0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-            {1, 1, 1, 0, 2, 2, 1, 0, 1, 1, 3, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2},
-            {1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 3, 1, 1, 1, 1, 3, 1, 1, 0, 1}};
+    /** APA heat map plots range between red (max value) and white (0) */
+    private static final Color[] gradientColors = {Color.RED, Color.WHITE};
+    private static final float[] gradientFractions = {0.0f, 1.0f};
 
-    public static void run(){
+    /** used for comparisons */
+    private static final double epsilon = 1e-6;
 
+    /** heat map dimension defaults */
+    private static int fullHeight = 500;
+    private static int heatmapWidth = 500;
+    private static int colorScaleWidth = 40;
+    private static int colorScaleHorizontalMargin = 10;
+    private static int colorScaleVerticalMargin = 100;
+    private static int extraWidthBuffer = 20;
+    private static int fullWidth = heatmapWidth + colorScaleWidth + extraWidthBuffer;
+    private static int numDivisions = 6;
+
+    /**
+     * Method for plotting APA data
+     *
+     * @param data for heat map
+     * @param axesRange initial values and increments to annotate axes [x0, dx, y0, dy]
+     * @param regionValues values for TL TR BL BR regions
+     * @param regionDimensions dimensions for regions in cell units (1 data point = 1 cell)
+     * @param title for heat map plot
+     * @param outputFile where image will saved
+     * @param fileType for outputFile, should be an image type (e.g. "png")
+     */
+    public static void plot(double[][] data, int[] axesRange, double[] regionValues,
+                            Dimension regionDimensions, String title, File outputFile, String fileType){
+
+        // initialize heat map
         HeatChart map = new HeatChart(data);
         map.setLowValueColour(Color.WHITE);
         map.setHighValueColour(Color.RED);
-        map.setTitle("N=2330(2330)/3331, P2LL: 5.538");
-        map.setXValues(-data.length/2,1);
-        map.setYValues(-data.length/2,1);
+        map.setXValues(axesRange[0], axesRange[1]);
+        map.setYValues(axesRange[2], axesRange[3]);
+        map.setTitle(title);
 
-        HeatChart colorBar = generateColorBar(map);
-
-        //double min = APAUtils.
-        // Step 3: Output the chart to a file.
         try {
+            // calculate dimensions for plot wrapper
+            initializeSizes(map);
 
-            BufferedImage apaImage = new BufferedImage(600,500, BufferedImage.TYPE_3BYTE_BGR);
+            // create blank white image
+            BufferedImage apaImage = new BufferedImage(fullWidth, fullHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = apaImage.createGraphics();
+            g2.setBackground(Color.WHITE);
+            g2.fillRect(0, 0, fullWidth, fullHeight);
 
-            Graphics2D apaGraphics = apaImage.createGraphics();
+            // plot in heat map, color bar, etc
+            g2.drawImage(map.getChartImage(), 0, 0, heatmapWidth, fullHeight, null);
+            drawHeatMapBorder(g2, map);
+            plotColorScaleBar(g2);
+            plotColorScaleValues(g2, map);
 
-            apaGraphics.drawImage(map.getChartImage(),0,0,500,500,null );
-            apaGraphics.drawImage(colorBar.getChartImage(),500,0,100,500,null );
+            // top left, top right, bottom left, bottom right values (from APA)
+            drawCornerRegions(g2, map, regionDimensions, regionValues);
 
-            saveJpeg(apaImage,new File("/Users/muhammadsaadshamim/Desktop/img.jpg"),1.0f);
+            // save data
+            ImageIO.write(apaImage, fileType, outputFile);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static int nColors = 10;
+    /**
+     * Initialize dimensions used for plotting APA data
+     * @param heatMap object
+     */
+    private static void initializeSizes(HeatChart heatMap) {
 
-    private static HeatChart generateColorBar(HeatChart map) {
-
-        double minVal = HeatChart.min(data);
-        double maxVal = HeatChart.max(data);
-
-        HeatChart colorBar = new HeatChart(generateColumnData(minVal, maxVal, nColors+1));
-        colorBar.setHighValueColour(map.getHighValueColour());
-        colorBar.setLowValueColour(map.getLowValueColour());
-        colorBar.setYValues(maxVal, -(maxVal - minVal)/nColors);
-
-        return colorBar;
+        Dimension mapDimensions = getImageDimensions(heatMap.getChartImage());
+        //fullHeight = (int) (mapDimensions.height*((double)heatmapWidth)/mapDimensions.width);
+        fullHeight = mapDimensions.height;
+        heatmapWidth = mapDimensions.width;
+        colorScaleWidth = 40;
+        colorScaleHorizontalMargin = 10;
+        colorScaleVerticalMargin = fullHeight/5;
+        extraWidthBuffer = 30;
+        fullWidth = heatmapWidth + colorScaleWidth + extraWidthBuffer;
+        numDivisions = calculateIdealNumDivisions(heatMap.getPermissiveIntRange());
     }
 
-    private static double[][] generateColumnData(double minVal, double maxVal, int n) {
-        double[][] newData = new double[n][1];
-        int iter = 0;
-        for(double i = maxVal; i > minVal; i -= (maxVal-minVal)/(n- 1)){
-            newData[iter][0] = i;
-            iter++;
+    /**
+     * Calculate raw dimensions of image
+     * @param image
+     * @return dimension (x,y) size of image in pixels
+     */
+    private static Dimension getImageDimensions(Image image) {
+        ImageIcon icon = new ImageIcon(image);
+        return new Dimension(icon.getIconWidth(), icon.getIconHeight());
+    }
+
+    /**
+     * Calculate optimal number of color map divisions based on range
+     * @param range of heat map data (max - min)
+     * @return optimal number of color map divisions
+     */
+    private static int calculateIdealNumDivisions(int range) {
+        // 33 ~ minimum number of pixels per division
+        for(int n = fullHeight/33; n > 3; n--){
+            if(range % n == 0)
+                return n;
         }
-        return newData;
+        return 5;
     }
 
-    public static Double[] convert(double[] row) {
-        Double[] copy = new Double[row.length];
-        System.arraycopy(row,0,copy,0,row.length);
-        return copy;
+    /**
+     *
+     * @param g2 graphics2D object
+     */
+    private static void plotColorScaleBar(Graphics2D g2) {
+        // calculate color scale bar dimensions & location
+        Point csBarTL = new Point(heatmapWidth + colorScaleHorizontalMargin, colorScaleVerticalMargin);
+        Point csBarBL = new Point(heatmapWidth + colorScaleHorizontalMargin, fullHeight - colorScaleVerticalMargin);
+        Rectangle csBar = new Rectangle(csBarTL.x, csBarTL.y,
+                colorScaleWidth - 2 * colorScaleHorizontalMargin, fullHeight - 2 * colorScaleVerticalMargin);
+
+        // plot the color scale linear gradient
+        LinearGradientPaint gradient = new LinearGradientPaint(csBarTL, csBarBL, gradientFractions, gradientColors);
+        g2.setPaint(gradient);
+        g2.fill(csBar);
+
+        // plot a border around color scale
+        g2.setColor(Color.black);
+        g2.drawRect(csBar.x, csBar.y, csBar.width, csBar.height);
     }
 
-    private static void saveJpeg(BufferedImage image, File outputFile, float quality) throws IOException {
-        Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
-        ImageWriter writer = iter.next();
-        ImageWriteParam iwp = writer.getDefaultWriteParam();
-        iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        iwp.setCompressionQuality(quality);
+    /**
+     * Plot number value axis for color scale bar.
+     * @param g2 graphics2D object
+     * @param heatMap object
+     */
+    private static void plotColorScaleValues(Graphics2D g2, HeatChart heatMap) {
+        // size, increment calculations
+        double valIncrement = heatMap.getDataRange()/((double)numDivisions);
+        double depthIncrement = ((double)(fullHeight - 2*colorScaleVerticalMargin))/((double)numDivisions);
+        int verticalDepth = fullHeight - colorScaleVerticalMargin;
+        int csBarRightEdgeX = fullWidth - colorScaleHorizontalMargin-extraWidthBuffer;
 
-        FileImageOutputStream output = new FileImageOutputStream(outputFile);
-        writer.setOutput(output);
-        IIOImage imageOut = new IIOImage(image, null, null);
-        writer.write(null, imageOut, iwp);
-        writer.dispose();
+        // formatting
+        g2.setFont(heatMap.getAxisValuesFont());
+        DecimalFormat df = new DecimalFormat("0.#");
 
+        // draw each tick mark and its value
+        for(double i = heatMap.getLowValue(); i <= heatMap.getHighValue(); i += valIncrement, verticalDepth -= depthIncrement){
+            if(i > heatMap.getHighValue() - epsilon)
+                verticalDepth = colorScaleVerticalMargin;
+            g2.drawString(df.format(i),csBarRightEdgeX + 5, verticalDepth); // value
+            g2.drawLine(csBarRightEdgeX-5, verticalDepth, csBarRightEdgeX, verticalDepth); // tick mark
+        }
+    }
+
+    /**
+     * Draw black border around main heat map
+     * @param g2 graphics2D object
+     * @param heatMap object
+     */
+    private static void drawHeatMapBorder(Graphics2D g2, HeatChart heatMap) {
+        // calculate corners of heat map rectangle
+        Point heatMapTL = heatMap.getHeatMapTL();
+        Point heatMapBR = heatMap.getHeatMapBR();
+
+        // plot border around heat map
+        g2.setColor(Color.BLACK);
+        g2.drawRect(heatMapTL.x, heatMapTL.y, heatMapBR.x - heatMapTL.x, heatMapBR.y - heatMapTL.y);
+    }
+
+    /**
+     * Draw the corner boxes and their values as calculated by APA overlayed above the existing heat map
+     *
+     * @param g2 graphics2D oObject
+     * @param map heat map object
+     * @param regionCellDimensions dimensions for the corner regions to be plotted in units of cells, not pixels
+     *                             where each cell corresponds to a data point, usually 20px-by-20px (default)
+     * @param regionAPAValues APA results for each region in order of TL TR BL BR
+     */
+    private static void drawCornerRegions(Graphics2D g2, HeatChart map, Dimension regionCellDimensions,
+                                          double[] regionAPAValues) {
+        // retrieve corners of heat map
+        Point topLeft = map.getHeatMapTL();
+        Point topRight = map.getHeatMapTR();
+        Point bottomLeft = map.getHeatMapBL();
+        Point bottomRight = map.getHeatMapBR();
+
+        // calculate dimensions of corner regions
+        Dimension cellSize = map.getCellSize();
+        int cornerWidth = regionCellDimensions.width * cellSize.width,
+                cornerHeight = regionCellDimensions.height * cellSize.height;
+
+        // slide to top left corner within each region
+        topRight.translate(-cornerWidth,0);
+        bottomLeft.translate(0, -cornerHeight);
+        bottomRight.translate(-cornerWidth, -cornerHeight);
+
+        // plot the four region TL TR BL BR and their values
+        Point[] points = {topLeft,topRight, bottomLeft, bottomRight};
+        g2.setColor(Color.black);
+        for(int i = 0; i < 4; i++) {
+            // plot rectangle from upper left corner
+            Point currPoint = points[i];
+            g2.drawRect(currPoint.x, currPoint.y, cornerWidth, cornerHeight);
+
+            // translate to center of rectangle
+            currPoint.translate(cornerWidth/2, cornerHeight/2);
+            drawCenteredDouble(g2, regionAPAValues[i], currPoint);
+        }
+    }
+
+    /**
+     * Plot double centered at a point (rather than from the upper left corner as is the default)
+     *
+     * @param g2 graphics2D object
+     * @param value to be plotted
+     * @param position for value to be centered at
+     */
+    private static void drawCenteredDouble(Graphics2D g2, Double value, Point position) {
+        DecimalFormat df = new DecimalFormat("0.000");
+        drawCenteredString(g2, df.format(value), position);
+    }
+
+    /**
+     * Plot text centered at a point (rather than from the upper left corner as is the default)
+     *
+     * @param g2 graphics2D object
+     * @param text to be plotted
+     * @param position of where text will be centered at
+     */
+    private static void drawCenteredString(Graphics2D g2, String text, Point position) {
+        FontMetrics fm = g2.getFontMetrics();
+        int x2 = position.x - fm.stringWidth(text)/ 2;
+        int y2 = fm.getAscent() + (position.y - (fm.getAscent() + fm.getDescent()) / 2);
+        g2.drawString(text, x2, y2);
     }
 }
