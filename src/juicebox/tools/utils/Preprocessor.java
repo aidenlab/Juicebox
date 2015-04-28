@@ -214,6 +214,7 @@ public class Preprocessor {
             System.out.println("Writing body");
             writeBody(inputFile);
 
+            System.out.println();
             System.out.println("Writing footer");
             writeFooter();
 
