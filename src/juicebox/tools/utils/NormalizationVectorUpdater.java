@@ -150,6 +150,10 @@ public class NormalizationVectorUpdater {
 
                 NormalizationCalculations nc = new NormalizationCalculations(zd);
 
+                if (!nc.isEnoughMemory()) {
+                    System.err.println("Not enough memory, skipping " + chr);
+                    continue;
+                }
 
                 double[] vc = nc.computeVC();
                 double[] vcSqrt = new double[vc.length];

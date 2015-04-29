@@ -52,18 +52,33 @@ public class NormalizationCalculations {
 
     private ArrayList<ContactRecord> list;
     private int totSize;
+    private boolean isEnoughMemory = false;
 
     public NormalizationCalculations(MatrixZoomData zd) {
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
-        this.list = new ArrayList<ContactRecord>();
-        Iterator<ContactRecord> iter = zd.contactRecordIterator();
-        while (iter.hasNext()) {
-            ContactRecord cr = iter.next();
-            list.add(cr);
+        Iterator<ContactRecord> iter1 = zd.contactRecordIterator();
+        int count=0;
+        while (iter1.hasNext()) {
+            iter1.next();
+            count++;
         }
-        this.totSize = zd.getXGridAxis().getBinCount();
+        if (count*1000 < Runtime.getRuntime().maxMemory()) {
+            isEnoughMemory = true;
+
+            this.list = new ArrayList<ContactRecord>();
+            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            while (iter.hasNext()) {
+                ContactRecord cr = iter.next();
+                list.add(cr);
+            }
+            this.totSize = zd.getXGridAxis().getBinCount();
+        }
+    }
+
+    public boolean isEnoughMemory() {
+        return isEnoughMemory;
     }
 
     public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
@@ -324,13 +339,17 @@ public class NormalizationCalculations {
         return Math.sqrt(norm_sum / matrix_sum);
     }
 
+
     public double[] computeKR() {
+
         boolean recalculate = true;
         int[] offset = getOffset(0);
         double[] kr = null;
         int iteration = 1;
+
         while (recalculate && iteration <= 6) {
             // create new matrix upon every iteration, because we've thrown out rows
+
             SparseSymmetricMatrix sparseMatrix = new SparseSymmetricMatrix();
             populateMatrix(sparseMatrix, offset);
 
@@ -339,6 +358,7 @@ public class NormalizationCalculations {
             for (int offset1 : offset) {
                 if (offset1 != -1) newSize++;
             }
+
             // initialize x0 for call the compute KR norm
             double[] x0 = new double[newSize];
             for (int i = 0; i < x0.length; i++) x0[i] = 1;
@@ -396,6 +416,7 @@ public class NormalizationCalculations {
                 kr[i] = Double.NaN;
             }
         }
+
         return kr;
 
     }
