@@ -26,10 +26,14 @@ The former turns on all warnings, the latter gives some flexibility since some p
 * The GUI's main class is `MainWindow.java` - click the little `...` button next to the text box for main class, and type `MainWindow.java`.
 * The CLT's main class is `HiCTools.java`.  
 * For the GUI under VM Options:
+
         -Xmx2000m
         -Djnlp.loadMenu="http://hicfiles.tc4ga.com/juicebox.properties"
+
 * For the CLT use 
+
         -Xmx2000m
+
 * Note that the `Xmx2000m` flag sets the maximum memory heap size to 2GB. 
 Depending on your computer you might want more or less.
 Some tools will break if there's not enough memory and the file is too large,
