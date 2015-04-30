@@ -19,9 +19,8 @@ then you'll point to it (IntelliJ has lots of documentation on this sort of thin
 
 * You'll need to do is be sure `*.sizes` is included as a file to be copied over to the class files.
 Set this up via IntelliJ `Preferences` -> `Compiler`. Add `?*.sizes` to the list of Resource Patterns.
-While there, also go to Java Compiler and put this into additional command line options: `-Xlint:all -target 1.7`
+While there, also go to `Java Compiler` and put this into additional command line options: `-Xlint:all -target 1.7`
 The former turns on all warnings, the latter gives some flexibility since some people haven't updated Java to 1.8 yet.
-
 * Go to `Run` -> `Edit Configurations`.
 * Add with `+` sign, `Application`.
 * You'll create two of these, one for the GUI (call it Juicebox GUI or whatever you want, really) and one for the CLT.
