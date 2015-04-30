@@ -16,7 +16,6 @@ To set up in IDEA, have the Java SDK installed
 then you'll point to it (IntelliJ has lots of documentation on this sort of thing).  
 
 * Then go to `VCS` -> `checkout from version control`.
-
 * You'll need to do is be sure `*.sizes` is included as a file to be copied over to the class files.
 Set this up via IntelliJ `Preferences` -> `Compiler`. Add `?*.sizes` to the list of Resource Patterns.
 While there, also go to `Java Compiler` and put this into additional command line options: `-Xlint:all -target 1.7`
@@ -27,17 +26,13 @@ The former turns on all warnings, the latter gives some flexibility since some p
 * The GUI's main class is `MainWindow` - click the little `...` button next to the text box for main class, and type `MainWindow`.
 * The CLT's main class is `HiCTools`.  
 * For the GUI under VM Options:
-
         -Xmx2000m
         -Djnlp.loadMenu="http://hicfiles.tc4ga.com/juicebox.properties"
-
-* For the CLT I use 
-
+* For the CLT use 
         -Xmx2000m
-
-Note that that's 2GB RAM, depending on your computer you might want more or less.
+* Note that the `Xmx2000m` flag sets the maximum memory heap size to 2GB. 
+Depending on your computer you might want more or less.
 Some CLT things will break if there's not enough memory and the file is too large,
-but don't worry about that for development; I've found 2GB is fine.
-
+but don't worry about that for development; 2GB should be fine.
 * One last note: be sure to `Commit and Push` when you commit files, it's hidden in the dropdown menu button in the
 commit window.
