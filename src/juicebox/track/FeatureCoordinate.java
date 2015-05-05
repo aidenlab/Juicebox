@@ -22,45 +22,47 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils;
-
-import java.util.Arrays;
+package juicebox.track;
 
 /**
- * Created by muhammadsaadshamim on 2/15/15.
+ * Created by muhammadsaadshamim on 5/4/15.
  */
-public class StatPercentile {
+public class FeatureCoordinate implements Comparable<FeatureCoordinate>{
 
-    private double[] statsData;
+    private String chromosome;
+    private int startPosition;
+    private int endPosition;
 
-    public StatPercentile(double[] data){
-        statsData = new double[data.length];
-        System.arraycopy(data, 0, statsData, 0, data.length);
-        Arrays.sort(statsData);
+    public FeatureCoordinate(String chromosome, int startPosition, int endPosition){
+        this.chromosome = chromosome;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
     }
 
-    // TODO optimize using binary search
-    // TODO actually could be much more optimized since same vals are queried
-    public double evaluate(double val) {
-        for(int i = 0; i < statsData.length; i++){
-            if(statsData[i] >= val){
-                if(statsData[i] > val){
-                    return Math.max(0.0,100.0*i/statsData.length);
-                }
-                else{
-                    double percentile = 0;
-                    int num = 0;
-                    for(int j = i; j < statsData.length; j++){
-                        if(statsData[j] > val){
-                            break;
-                        }
-                        percentile += ((double)i)/statsData.length;
-                        num++;
-                    }
-                    return percentile/num;
-                }
+    public String getChromosome() {
+        return chromosome;
+    }
+
+    public int getStartPosition() {
+        return startPosition;
+    }
+
+    public int getEndPosition() {
+        return endPosition;
+    }
+
+    @Override
+    public int compareTo(FeatureCoordinate otherCoordinate) {
+        if(chromosome.equals(otherCoordinate.getChromosome())){
+            if(startPosition == otherCoordinate.getStartPosition()){
+                return endPosition - otherCoordinate.getEndPosition();
+            }
+            else{
+                return startPosition - otherCoordinate.getStartPosition();
             }
         }
-        return 1.0;
+        else{
+            return chromosome.compareTo(otherCoordinate.getChromosome());
+        }
     }
 }

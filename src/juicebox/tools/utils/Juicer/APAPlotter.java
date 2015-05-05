@@ -22,8 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils;
+package juicebox.tools.utils.Juicer;
 
+import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.tc33.jheatchart.HeatChart;
 
 import javax.imageio.ImageIO;
@@ -62,17 +63,19 @@ public class APAPlotter {
      *
      * @param data for heat map
      * @param axesRange initial values and increments to annotate axes [x0, dx, y0, dy]
-     * @param regionValues values for TL TR BL BR regions
-     * @param regionDimensions dimensions for regions in cell units (1 data point = 1 cell)
-     * @param title for heat map plot
      * @param outputFile where image will saved
-     * @param fileType for outputFile, should be an image type (e.g. "png")
      */
-    public static void plot(double[][] data, int[] axesRange, double[] regionValues,
-                            Dimension regionDimensions, String title, File outputFile, String fileType){
+    public static void plot(Array2DRowRealMatrix data,
+                            int[] axesRange,
+                            File outputFile,
+                            String title){
+
+        APARegionStatistics apaStats = new APARegionStatistics(data);
+        DecimalFormat df = new DecimalFormat("0.000");
+        title += ", P2LL = "+df.format(apaStats.getPeak2LL());
 
         // initialize heat map
-        HeatChart map = new HeatChart(data);
+        HeatChart map = new HeatChart(data.getData());
         map.setLowValueColour(Color.WHITE);
         map.setHighValueColour(Color.RED);
         map.setXValues(axesRange[0], axesRange[1]);
@@ -89,17 +92,21 @@ public class APAPlotter {
             g2.setBackground(Color.WHITE);
             g2.fillRect(0, 0, fullWidth, fullHeight);
 
+
             // plot in heat map, color bar, etc
             g2.drawImage(map.getChartImage(), 0, 0, heatmapWidth, fullHeight, null);
             drawHeatMapBorder(g2, map);
             plotColorScaleBar(g2);
             plotColorScaleValues(g2, map);
 
+
             // top left, top right, bottom left, bottom right values (from APA)
-            drawCornerRegions(g2, map, regionDimensions, regionValues);
+
+            drawCornerRegions(g2, map, new Dimension(apaStats.regionWidth, apaStats.regionWidth),
+                    apaStats.getRegionCornerValues());
 
             // save data
-            ImageIO.write(apaImage, fileType, outputFile);
+            ImageIO.write(apaImage, "png", outputFile);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,6 +121,7 @@ public class APAPlotter {
 
         Dimension mapDimensions = getImageDimensions(heatMap.getChartImage());
         //fullHeight = (int) (mapDimensions.height*((double)heatmapWidth)/mapDimensions.width);
+
         fullHeight = mapDimensions.height;
         heatmapWidth = mapDimensions.width;
         colorScaleWidth = 40;
@@ -176,7 +184,7 @@ public class APAPlotter {
      */
     private static void plotColorScaleValues(Graphics2D g2, HeatChart heatMap) {
         // size, increment calculations
-        double valIncrement = heatMap.getDataRange()/((double)numDivisions);
+        double valIncrement = Math.max(heatMap.getDataRange()/((double)numDivisions), epsilon);
         double depthIncrement = ((double)(fullHeight - 2*colorScaleVerticalMargin))/((double)numDivisions);
         int verticalDepth = fullHeight - colorScaleVerticalMargin;
         int csBarRightEdgeX = fullWidth - colorScaleHorizontalMargin-extraWidthBuffer;
@@ -185,12 +193,16 @@ public class APAPlotter {
         g2.setFont(heatMap.getAxisValuesFont());
         DecimalFormat df = new DecimalFormat("0.#");
 
+
         // draw each tick mark and its value
-        for(double i = heatMap.getLowValue(); i <= heatMap.getHighValue(); i += valIncrement, verticalDepth -= depthIncrement){
+        for(double i = heatMap.getLowValue();
+            i <= heatMap.getHighValue();
+            i += valIncrement, verticalDepth -= depthIncrement){
+
             if(i > heatMap.getHighValue() - epsilon)
                 verticalDepth = colorScaleVerticalMargin;
             g2.drawString(df.format(i),csBarRightEdgeX + 5, verticalDepth); // value
-            g2.drawLine(csBarRightEdgeX-5, verticalDepth, csBarRightEdgeX, verticalDepth); // tick mark
+            g2.drawLine(csBarRightEdgeX - 5, verticalDepth, csBarRightEdgeX, verticalDepth); // tick mark
         }
     }
 
