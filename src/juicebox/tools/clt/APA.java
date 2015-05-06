@@ -29,14 +29,11 @@ import juicebox.data.DatasetReaderV2;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.Juicer.APADataStack;
-import juicebox.tools.utils.Juicer.APAUtils;
+import juicebox.tools.utils.Juicer.*;
 import juicebox.tools.utils.Common.CommonTools;
-import juicebox.tools.utils.Juicer.LoopContainer;
-import juicebox.tools.utils.Juicer.LoopListParser;
 import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
-import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
@@ -116,6 +113,9 @@ public class APA extends JuiceboxCLT {
             System.out.println("Accessing " + files[0]);
             DatasetReaderV2 reader = new DatasetReaderV2(files[0]);
             Dataset ds = reader.read();
+            // select zoom level closest to the requested one
+            HiCZoom zoom = CommonTools.getZoomLevel(ds, resolution);
+            resolution = zoom.getBinSize();
 
             if (reader.getVersion() < 5) {
                 throw new RuntimeException("This file is version " + reader.getVersion() +
@@ -123,7 +123,8 @@ public class APA extends JuiceboxCLT {
             }
 
             List<Chromosome> chromosomes = ds.getChromosomes();
-            LoopContainer loopContainer = LoopListParser.parseList(files[1], chromosomes, min_peak_dist, max_peak_dist);
+            LoopContainer loopContainer = LoopListParser.parseList(files[1], chromosomes,
+                    min_peak_dist, max_peak_dist, resolution);
             Set<Chromosome> commonChromosomes = loopContainer.getCommonChromosomes(chromosomes);
 
             // Loop through chromosomes
@@ -133,12 +134,9 @@ public class APA extends JuiceboxCLT {
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
                 Matrix matrix = ds.getMatrix(chr, chr);
                 if (matrix == null) continue;
-
-                // select zoom level closest to the requested one
-                HiCZoom zoom = CommonTools.getZoomLevel(ds, resolution);
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                ArrayList<Feature2D> loops = loopContainer.getUniqueFilteredLoopList(chr);
+                Set<Feature2D> loops = loopContainer.getUniqueFilteredLoopList(chr);
                 Integer[] peakNumbers = loopContainer.getUniqueFilteredLoopNumbers(chr);
 
                 if(loops.size() != peakNumbers[0])
@@ -150,7 +148,7 @@ public class APA extends JuiceboxCLT {
                 }
 
                 for (Feature2D loop : loops) {
-                    Array2DRowRealMatrix newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window);
+                    RealMatrix newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window);
                     apaDataStack.addData(newData);
                 }
 

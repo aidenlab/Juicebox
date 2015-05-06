@@ -54,7 +54,8 @@ public class LoopListParser {
     public static LoopContainer parseList(String path,
                                           List<Chromosome> chromosomes,
                                           double minPeakDist,
-                                          double maxPeakDist) throws IOException {
+                                          double maxPeakDist,
+                                          int resolution) throws IOException {
         BufferedReader br = null;
 
         Map<String, ArrayList<Feature2D>> chrToLoopsMap = new HashMap<String, ArrayList<Feature2D>>();
@@ -100,7 +101,7 @@ public class LoopListParser {
                     Feature2D feature;
 
                     // arbitrary order is not important; but this allows for easy removal of duplicates
-                    if (coord1.compareTo(coord2) > 0) {
+                    if (coord1.compareTo(coord2) < 0) {
                         feature = new Feature2D(Feature2D.peak, coord1, coord2, null, null);
                     } else {
                         feature = new Feature2D(Feature2D.peak, coord2, coord1, null, null);
@@ -120,7 +121,7 @@ public class LoopListParser {
         }
 
         /** now that data has been extracted, it will be filtered down */
-        Map<Chromosome, ArrayList<Feature2D>> filteredChrToLoopsMap = new HashMap<Chromosome, ArrayList<Feature2D>>();
+        Map<Chromosome, Set<Feature2D>> filteredChrToLoopsMap = new HashMap<Chromosome, Set<Feature2D>>();
         Map<Chromosome, Integer[]> chrToTotalsMap = new HashMap<Chromosome, Integer[]>();
 
         Set<String> keys = chrToLoopsMap.keySet();
@@ -132,9 +133,10 @@ public class LoopListParser {
                 if (equivalentChromosome(stringKey, chrKey)) {
                     ArrayList<Feature2D> loops = chrToLoopsMap.get(stringKey);
                     ArrayList<Feature2D> uniqueLoops = filterLoopsByUniqueness(loops);
-                    ArrayList<Feature2D> filteredUniqueLoops = filterLoopsBySize(uniqueLoops, minPeakDist, maxPeakDist);
+                    ArrayList<Feature2D> filteredUniqueLoops = filterLoopsBySize(uniqueLoops,
+                            minPeakDist, maxPeakDist, resolution);
 
-                    filteredChrToLoopsMap.put(chrKey, filteredUniqueLoops);
+                    filteredChrToLoopsMap.put(chrKey, new HashSet<Feature2D>(filteredUniqueLoops));
                     chrToTotalsMap.put(chrKey, new Integer[]{filteredUniqueLoops.size(), uniqueLoops.size(), loops.size()});
 
                     keys.remove(stringKey);
@@ -165,15 +167,17 @@ public class LoopListParser {
      */
     private static ArrayList<Feature2D> filterLoopsBySize(List<Feature2D> loops,
                                                           double minPeakDist,
-                                                          double maxPeakDist) {
+                                                          double maxPeakDist,
+                                                          int resolution) {
         ArrayList<Feature2D> sizeFilteredLoops = new ArrayList<Feature2D>();
 
         for (Feature2D loop : loops) {
-            int xDist = Math.abs(loop.getEnd1() - loop.getStart1());
-            int yDist = Math.abs(loop.getEnd2() - loop.getStart2());
+            int xMidPt = loop.getMidPt1();
+            int yMidPt = loop.getMidPt2();
 
-            if (xDist >= minPeakDist && yDist >= minPeakDist)
-                if (xDist <= maxPeakDist && yDist <= maxPeakDist)
+            int dist = Math.abs(xMidPt - yMidPt);
+            if (dist >= minPeakDist*resolution)
+                if (dist <= maxPeakDist*resolution)
                     sizeFilteredLoops.add(loop);
         }
 

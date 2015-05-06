@@ -1345,8 +1345,8 @@ public class HeatChart {
 		
 		// Draw the heatmap image.
 		drawHeatMap(chartGraphics, zValues);
-		/*
-		// Draw the axis labels.
+
+		// Draw the axis labels. TODO MSS - redo drawing axes
 		drawXLabel(chartGraphics);
 		drawYLabel(chartGraphics);
 		
@@ -1356,7 +1356,7 @@ public class HeatChart {
 		// Draw axis values.
 		drawXValues(chartGraphics);
 		drawYValues(chartGraphics);
-		*/
+
 		
 		return chartImage;
 	}

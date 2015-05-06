@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
-import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.RealMatrix;
 import org.tc33.jheatchart.HeatChart;
 
 import javax.imageio.ImageIO;
@@ -65,7 +65,7 @@ public class APAPlotter {
      * @param axesRange initial values and increments to annotate axes [x0, dx, y0, dy]
      * @param outputFile where image will saved
      */
-    public static void plot(Array2DRowRealMatrix data,
+    public static void plot(RealMatrix data,
                             int[] axesRange,
                             File outputFile,
                             String title){

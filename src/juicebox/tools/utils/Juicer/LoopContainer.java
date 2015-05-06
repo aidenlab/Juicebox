@@ -34,10 +34,10 @@ import java.util.*;
  */
 public class LoopContainer {
 
-    private Map<Chromosome, ArrayList<Feature2D>> filteredChrToLoopsMap;
+    private Map<Chromosome, Set<Feature2D>> filteredChrToLoopsMap;
     private Map<Chromosome, Integer[]> numFilteredUniqueTotalLoops;
 
-    public LoopContainer(Map<Chromosome, ArrayList<Feature2D>> filteredChrToLoopsMap,
+    public LoopContainer(Map<Chromosome, Set<Feature2D>> filteredChrToLoopsMap,
                          Map<Chromosome, Integer[]> numFilteredUniqueTotalLoops) {
         this.filteredChrToLoopsMap = filteredChrToLoopsMap;
         this.numFilteredUniqueTotalLoops = numFilteredUniqueTotalLoops;
@@ -49,8 +49,8 @@ public class LoopContainer {
                 new HashSet<Chromosome>(chromosomes));
     }
 
-    public ArrayList<Feature2D> getUniqueFilteredLoopList(Chromosome chr) {
-        return new ArrayList<Feature2D>(filteredChrToLoopsMap.get(chr));
+    public Set<Feature2D> getUniqueFilteredLoopList(Chromosome chr) {
+        return new HashSet<Feature2D>(filteredChrToLoopsMap.get(chr));
     }
 
     /**

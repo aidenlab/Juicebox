@@ -114,6 +114,14 @@ public class Feature2D {
         return end2;
     }
 
+    public int getMidPt1() { return midPoint(start1, end1);}
+
+    public int getMidPt2() { return midPoint(start2, end2);}
+
+    private int midPoint(int start, int end) {
+        return start + (end - start)/2;
+    }
+
     public Color getColor() {
         return color;
     }
@@ -215,5 +223,6 @@ public class Feature2D {
         }
         return txt.toString();
     }
+
 
 }

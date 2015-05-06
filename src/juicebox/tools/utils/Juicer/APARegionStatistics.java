@@ -25,6 +25,7 @@
 package juicebox.tools.utils.Juicer;
 
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
 /**
@@ -42,7 +43,7 @@ public class APARegionStatistics {
 
     private double peak2mean, peak2UL, peak2UR, peak2LL, peak2LR, ZscoreLL;
 
-    public APARegionStatistics(Array2DRowRealMatrix data) {
+    public APARegionStatistics(RealMatrix data) {
         int max = data.getColumnDimension();
         int mdpt = max/2;
         double centralVal = data.getEntry(mdpt, mdpt);

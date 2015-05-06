@@ -39,7 +39,7 @@ public class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        String[] l1 = {"apa",
+        String[] l1 = {"apa","-r","5000",
                 "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
                 "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
                 "/Users/muhammadsaadshamim/Desktop/apaTest1"};
