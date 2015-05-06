@@ -22,9 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils;
+package juicebox.tools.utils.Common;
 
+import juicebox.data.Dataset;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
+import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
@@ -92,5 +94,21 @@ public class CommonTools {
         } finally {
             if (is != null) is.close();
         }
+    }
+
+    public static HiCZoom getZoomLevel(Dataset ds, int resolution) {
+        List<HiCZoom> resolutions = ds.getBpZooms();
+        HiCZoom zoom = resolutions.get(0);
+        int currentDistance = Math.abs(zoom.getBinSize() - resolution);
+        // Loop through resolutions
+        for (HiCZoom subZoom : resolutions) {
+            int newDistance = Math.abs(subZoom.getBinSize() - resolution);
+            if (newDistance < currentDistance) {
+                currentDistance = newDistance;
+                zoom = subZoom;
+            }
+        }
+        System.out.println("Adjusting resolution to " + zoom.getBinSize());
+        return zoom;
     }
 }

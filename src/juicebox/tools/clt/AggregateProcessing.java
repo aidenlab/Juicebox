@@ -26,10 +26,7 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.APAPlotter;
 
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -42,35 +39,13 @@ public class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        double[][] dataAPA =
-                        {{0, 0, 0, 0, 1, 1, 0, 1, 2, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 5},
-                        {1, 0, 0, 0, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2},
-                        {0, 0, 1, 0, 0, 1, 0, 1, 0, 3, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 5},
-                        {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1},
-                        {0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 5},
-                        {0, 0, 0, 0, 2, 0, 0, 0, 1, 1, 0, 2, 1, 3, 0, 0, 0, 2, 1, 0, 1, 2},
-                        {0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1},
-                        {0, 2, 0, 0, 1, 0, 1, 2, 1, 0, 1, 0, 1, 2, 1, 2, 1, 0, 0, 0, 0, 0},
-                        {0, 0, 0, 0, 1, 0, 1, 1, 1, 3, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 5},
-                        {1, 0, 0, 0, 20, 1, 0, 2, 0, 0, 4, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 5},
-                        {2, 2, 0, 1, 0, 1, 2, 0, 2, 1, 4, 1, 2, 0, 1, 1, 1, 1, 1, 0, 0, 1},
-                        {0, 1, 0, 0, 0, 2, 3, 0, 0, 3, 0, 0, 3, 2, 0, 0, 0, 1, 0, 1, 2, 2},
-                        {1, 2, 0, 0, 1, 1, 1, 4, 1, 1, 0, 0, 0, 3, 0, 2, 0, 0, 1, 0, 2, 1},
-                        {0, 1, 0, 0, 0, 0, 0, 2, 0, 3, 2, 0, 0, 0, 0, 06, 2, 0, 0, 0, 0, 1},
-                        {1, 2, 0, 0, 1, 0, 2, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 2, 0, 1, 1},
-                        {1, 1, 1, 1, 0, 1, 1, 1, 15, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1},
-                        {0, 1, 0, 1, 0, 2, 1, 1, 2, 73, 1, 1, 0, 0, 0, 1, 0, 17, 0, 0, 0, 1},
-                        {0, 0, 0, 0, 1, 2, 2, 1, 0, 1, 1, 1, 0, 0, 0, 5, 2, 1, 0, 0, 0, 1},
-                        {0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-                        {1, 1, 1, 0, 2, 2, 1, 0, 1, 1, 3, 0, 1, 0, 0, 0, 0, 1, 0, 0, 2, 1},
-                        {1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 3, 1, 1, 1, 1, 3, 1, 1, 0, 1, 1}};
-        int[] axesRange = {-dataAPA.length / 2, 1, -dataAPA.length / 2, 1};
-        double[] regionValues = {0,0,0,0};
-        Dimension regionDimensions = new Dimension(5,7);
-        String title = "N=2330(2330)/3331, P2LL: 5.538";
-        File ofile = new File("/Users/muhammadsaadshamim/Desktop/im0.png");
+        String[] l1 = {"apa","-r","5000",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
+                "/Users/muhammadsaadshamim/Desktop/apaTest1"};
 
-        APAPlotter.plot(dataAPA,  axesRange, regionValues, regionDimensions, title, ofile, "png");
+        HiCTools.main(l1);
+
     }
 }
 
