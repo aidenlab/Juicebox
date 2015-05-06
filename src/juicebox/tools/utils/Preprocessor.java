@@ -301,6 +301,7 @@ public class Preprocessor {
 
     private void writeBody(String inputFile) throws IOException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
+
         writeMatrix(wholeGenomeMatrix);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
@@ -1050,7 +1051,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Constructor for creating a matrix and initializing zoomed data at predefined resolution scales.  This
          * constructor is used when parsing alignment files.
-         *
+         *                       c
          * @param chr1Idx Chromosome 1
          * @param chr2Idx Chromosome 2
          */
@@ -1383,47 +1384,50 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
             List<IndexEntry> indexEntries = new ArrayList<IndexEntry>();
 
-            if (activeList.size() > 0) {    // logic strange but didn't want to mess with Jim's code and need to check size first
-                do {
-                    Collections.sort(activeList, new Comparator<BlockQueue>() {
-                        @Override
-                        public int compare(BlockQueue o1, BlockQueue o2) {
-                            return o1.getBlock().getNumber() - o2.getBlock().getNumber();
-                        }
-                    });
-
-                    BlockQueue topQueue = activeList.get(0);
-                    BlockPP currentBlock = topQueue.getBlock();
-                    topQueue.advance();
-                    int num = currentBlock.getNumber();
-
-
-                    for (int i = 1; i < activeList.size(); i++) {
-                        BlockQueue blockQueue = activeList.get(i);
-                        BlockPP block = blockQueue.getBlock();
-                        if (block.getNumber() == num) {
-                            currentBlock.merge(block);
-                            blockQueue.advance();
-                        }
-                    }
-
-                    Iterator<BlockQueue> iterator = activeList.iterator();
-                    while (iterator.hasNext()) {
-                        if (iterator.next().getBlock() == null) {
-                            iterator.remove();
-                        }
-                    }
-
-                    // Output block
-                    long position = los.getWrittenCount();
-                    writeBlock(this, currentBlock, sampledData);
-                    int size = (int) (los.getWrittenCount() - position);
-
-                    indexEntries.add(new IndexEntry(num, position, size));
-
-
-                } while (activeList.size() > 0);
+            if (activeList.size() == 0) {
+                throw new RuntimeException("No reads in Hi-C contact matrices. This could be because the MAPQ filter is set too high (-q) or because all reads map to the same fragment.");
             }
+
+            do {
+                Collections.sort(activeList, new Comparator<BlockQueue>() {
+                    @Override
+                    public int compare(BlockQueue o1, BlockQueue o2) {
+                        return o1.getBlock().getNumber() - o2.getBlock().getNumber();
+                    }
+                });
+
+                BlockQueue topQueue = activeList.get(0);
+                BlockPP currentBlock = topQueue.getBlock();
+                topQueue.advance();
+                int num = currentBlock.getNumber();
+
+
+                for (int i = 1; i < activeList.size(); i++) {
+                    BlockQueue blockQueue = activeList.get(i);
+                    BlockPP block = blockQueue.getBlock();
+                    if (block.getNumber() == num) {
+                        currentBlock.merge(block);
+                        blockQueue.advance();
+                    }
+                }
+
+                Iterator<BlockQueue> iterator = activeList.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next().getBlock() == null) {
+                        iterator.remove();
+                    }
+                }
+
+                // Output block
+                long position = los.getWrittenCount();
+                writeBlock(this, currentBlock, sampledData);
+                int size = (int) (los.getWrittenCount() - position);
+
+                indexEntries.add(new IndexEntry(num, position, size));
+
+
+            } while (activeList.size() > 0);
+
 
             for (File f : tmpFiles) {
                 boolean result = f.delete();
