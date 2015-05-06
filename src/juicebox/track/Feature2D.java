@@ -75,6 +75,19 @@ public class Feature2D {
         this.attributes = attributes;
     }
 
+    public Feature2D(String featureName, FeatureCoordinate coord1, FeatureCoordinate coord2, Color c,
+                     Map<String, String> attributes) {
+        this.featureName = featureName;
+        this.chr1 = coord1.getChromosome();
+        this.start1 = coord1.getStartPosition();
+        this.end1 = coord1.getEndPosition();
+        this.chr2 = coord2.getChromosome();
+        this.start2 = coord2.getStartPosition();
+        this.end2 = coord2.getEndPosition();
+        this.color = (c == null ? Color.black : c);
+        this.attributes = attributes;
+    }
+
     public String getFeatureName(){ return featureName; }
 
     public String getChr1() {
@@ -99,6 +112,14 @@ public class Feature2D {
 
     public int getEnd2() {
         return end2;
+    }
+
+    public int getMidPt1() { return midPoint(start1, end1);}
+
+    public int getMidPt2() { return midPoint(start2, end2);}
+
+    private int midPoint(int start, int end) {
+        return start + (end - start)/2;
     }
 
     public Color getColor() {
@@ -202,5 +223,6 @@ public class Feature2D {
         }
         return txt.toString();
     }
+
 
 }

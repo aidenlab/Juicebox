@@ -301,6 +301,7 @@ public class Preprocessor {
 
     private void writeBody(String inputFile) throws IOException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
+
         writeMatrix(wholeGenomeMatrix);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
@@ -1050,7 +1051,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Constructor for creating a matrix and initializing zoomed data at predefined resolution scales.  This
          * constructor is used when parsing alignment files.
-         *
+         *                       c
          * @param chr1Idx Chromosome 1
          * @param chr2Idx Chromosome 2
          */
@@ -1383,6 +1384,9 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
             List<IndexEntry> indexEntries = new ArrayList<IndexEntry>();
 
+            if (activeList.size() == 0) {
+                throw new RuntimeException("No reads in Hi-C contact matrices. This could be because the MAPQ filter is set too high (-q) or because all reads map to the same fragment.");
+            }
 
             do {
                 Collections.sort(activeList, new Comparator<BlockQueue>() {
@@ -1423,6 +1427,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
 
             } while (activeList.size() > 0);
+
 
             for (File f : tmpFiles) {
                 boolean result = f.delete();
