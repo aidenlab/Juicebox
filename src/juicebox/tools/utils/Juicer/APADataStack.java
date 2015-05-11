@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
+import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.File;
@@ -58,10 +59,10 @@ public class APADataStack {
     private static File dataDirectory;
 
     public APADataStack(int n, String path, String customPrefix){
-        psea = APAUtils.cleanArray2DMatrix(n, n);
-        normedPsea = APAUtils.cleanArray2DMatrix(n, n);
-        centerNormedPsea = APAUtils.cleanArray2DMatrix(n, n);
-        rankPsea = APAUtils.cleanArray2DMatrix(n, n);
+        psea = MatrixTools.cleanArray2DMatrix(n, n);
+        normedPsea = MatrixTools.cleanArray2DMatrix(n, n);
+        centerNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
+        rankPsea = MatrixTools.cleanArray2DMatrix(n, n);
         //coverage = APAUtils.cleanArray2DMatrix(n, n);
         enhancement = new ArrayList<Double>();
 
@@ -97,10 +98,10 @@ public class APADataStack {
 
     private static void initializeGenomeWideVariables(int n) {
         if(genomeWideVariablesNotSet){
-            gwPsea = APAUtils.cleanArray2DMatrix(n, n);
-            gwNormedPsea = APAUtils.cleanArray2DMatrix(n, n);
-            gwCenterNormedPsea = APAUtils.cleanArray2DMatrix(n, n);
-            gwRankPsea = APAUtils.cleanArray2DMatrix(n, n);
+            gwPsea = MatrixTools.cleanArray2DMatrix(n, n);
+            gwNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
+            gwCenterNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
+            gwRankPsea = MatrixTools.cleanArray2DMatrix(n, n);
             //gwCoverage = APAUtils.cleanArray2DMatrix(n, n);
             gwEnhancement = new ArrayList<Double>();
             genomeWideVariablesNotSet = false;
@@ -165,7 +166,7 @@ public class APADataStack {
                     axesRange,
                     new File(dataPath + apaDataTitles[i] + ".png"),
                     title);
-            APAUtils.saveMatrixText(dataPath + apaDataTitles[i] + ".txt", apaMatrices[i]);
+            MatrixTools.saveMatrixText(dataPath + apaDataTitles[i] + ".txt", apaMatrices[i]);
         }
 
         APAUtils.saveListText(dataPath + apaDataTitles[4]+".txt", givenEnhancement);

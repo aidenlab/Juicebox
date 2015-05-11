@@ -88,11 +88,13 @@ public class HiCTools {
         private Option graphOption = null;
         private Option mapqOption = null;
 
+        private Option resolutionOption = null;
+
         // APA options
         private Option apaMinValOption = null;
         private Option apaMaxValOption = null;
         private Option apaWindowOption = null;
-        private Option apaResolutionOption = null;
+
 
 
 
@@ -108,18 +110,20 @@ public class HiCTools {
             graphOption = addStringOption('g', "graph text file");
             mapqOption = addIntegerOption('q', "mapping quality threshold");
 
+            resolutionOption = addIntegerOption('r', "resolution");
+
             //apa <-m minval> <-x maxval> <-w window>  <-r resolution>
             apaMinValOption = addDoubleOption('n', "minimum value");
             apaMaxValOption = addDoubleOption('x', "maximum value");
             apaWindowOption = addIntegerOption('w', "window");
-            apaResolutionOption = addIntegerOption('r', "resolution");
+
         }
 
         public Number[] getAPAOptions(){
             Number[] apaFlagValues = new Number[4];
 
             Object[] apaOptions = {getOptionValue(apaMinValOption), getOptionValue(apaMaxValOption),
-                    getOptionValue(apaWindowOption), getOptionValue(apaResolutionOption)};
+                    getOptionValue(apaWindowOption), getOptionValue(resolutionOption)};
 
             for(int i = 0; i < apaOptions.length; i++) {
                 if (apaOptions[i] != null)
@@ -172,6 +176,11 @@ public class HiCTools {
 
         public int getMapqThresholdOption() {
             Object opt = getOptionValue(mapqOption);
+            return opt == null ? 0 : ((Number) opt).intValue();
+        }
+
+        public int getResolutionOption() {
+            Object opt = getOptionValue(resolutionOption);
             return opt == null ? 0 : ((Number) opt).intValue();
         }
     }

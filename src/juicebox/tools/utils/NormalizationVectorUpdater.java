@@ -25,6 +25,7 @@
 package juicebox.tools.utils;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -64,14 +65,9 @@ public class NormalizationVectorUpdater {
 
     public static void updateHicFile(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
-
-
         Dataset ds = reader.read();
 
-        if (reader.getVersion() < 5) {
-            throw new RuntimeException("This file is version " + reader.getVersion() +
-                    ". Only versions 5 and greater are supported at this time.");
-        }
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 
@@ -261,10 +257,7 @@ public class NormalizationVectorUpdater {
 
         Dataset ds = reader.read();
 
-        if (reader.getVersion() < 5) {
-            throw new RuntimeException("This file is version " + reader.getVersion() +
-                    ". Only versions 5 and greater are supported at this time.");
-        }
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 

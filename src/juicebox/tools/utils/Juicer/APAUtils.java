@@ -27,6 +27,7 @@ package juicebox.tools.utils.Juicer;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.utils.Common.MatrixTools;
 import juicebox.tools.utils.Common.StatPercentile;
 import juicebox.track.Feature2D;
 import juicebox.windowui.NormalizationType;
@@ -51,7 +52,7 @@ public class APAUtils {
      * @return
      */
     private static int[] range(int start, int stop) {
-        int[] result = new int[stop - start];
+        int[] result = new int[stop - start];// TODO think a +1 is missing (stop inclusive?)
         for (int i = 0; i < stop - start; i++)
             result[i] = start + i;
         return result;
@@ -87,30 +88,6 @@ public class APAUtils {
         }
     }
 
-
-    public static void saveMatrixText(String filename, RealMatrix realMatrix) {
-        Writer writer = null;
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
-            double[][] matrix = realMatrix.getData();
-            for (double[] row : matrix) {
-                for (double val : row) {
-                    writer.write(val + " ");
-                }
-                writer.write("\n");
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if (writer != null)
-                    writer.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
     public static void saveListText(String filename, List<Double> array) {
         Writer writer = null;
         try {
@@ -132,15 +109,13 @@ public class APAUtils {
     }
 
     public static RealMatrix standardNormalization(RealMatrix matrix) {
-        RealMatrix normeddata = cleanArray2DMatrix(matrix.getRowDimension(),
+        RealMatrix normeddata = MatrixTools.cleanArray2DMatrix(matrix.getRowDimension(),
                 matrix.getColumnDimension()).add(matrix);
-        normeddata.scalarMultiply(1. / Math.max(1., APAUtils.mean(matrix)));
+        normeddata.scalarMultiply(1. / Math.max(1., MatrixTools.mean(matrix)));
         return normeddata;
     }
 
-    private static double mean(RealMatrix x) {
-        return APARegionStatistics.statistics(x.getData()).getMean();
-    }
+
 
     public static RealMatrix centerNormalization(RealMatrix matrix) {
 
@@ -148,12 +123,12 @@ public class APAUtils {
         double centerVal = matrix.getEntry(center, center);
 
         if (centerVal == 0) {
-            centerVal = minimumPositive(matrix.getData());
+            centerVal = MatrixTools.minimumPositive(matrix.getData());
             if (centerVal == 0)
                 centerVal = 1;
         }
 
-        RealMatrix normeddata = cleanArray2DMatrix(matrix.getRowDimension(),
+        RealMatrix normeddata = MatrixTools.cleanArray2DMatrix(matrix.getRowDimension(),
                 matrix.getColumnDimension()).add(matrix);
         normeddata.scalarMultiply(1. / centerVal);
         return normeddata;
@@ -168,29 +143,6 @@ public class APAUtils {
         return centerVal / remainingAverage;
     }
 
-    private static double minimumPositive(double[][] data) {
-        double minVal = Double.MAX_VALUE;
-        for (double[] row : data) {
-            for (double val : row) {
-                if (val > 0 && val < minVal)
-                    minVal = val;
-            }
-        }
-        if (minVal == Double.MAX_VALUE)
-            minVal = 0;
-        return minVal;
-    }
-
-
-    public static RealMatrix cleanArray2DMatrix(int rows, int cols) {
-        RealMatrix matrix = new Array2DRowRealMatrix(rows, cols);
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                matrix.setEntry(r, c, 0);
-        return matrix;
-    }
-
-
 
 
     /**
@@ -200,7 +152,7 @@ public class APAUtils {
      */
     public static RealMatrix rankPercentile(RealMatrix data) {
         int n = data.getColumnDimension();
-        StatPercentile percentile = new StatPercentile(flattenSquareMatrix(data));
+        StatPercentile percentile = new StatPercentile(MatrixTools.flattenSquareMatrix(data));
 
         RealMatrix matrix = new Array2DRowRealMatrix(n, n);
         for (int r = 0; r < n; r++) {
@@ -217,23 +169,7 @@ public class APAUtils {
         return matrix;
     }
 
-    /**
-     * Flatten a 2D double matrix into a double array
-     * @param matrix
-     * @return 1D double array in row major order
-     */
-    private static double[] flattenSquareMatrix(RealMatrix matrix) {
-        int n = matrix.getColumnDimension();
-        int numElements = n * n;
-        double[] flattenedMatrix = new double[numElements];
 
-        int index = 0;
-        for (double[] row : matrix.getData()) {
-            System.arraycopy(row, 0, flattenedMatrix, index, n);
-            index += n;
-        }
-        return flattenedMatrix;
-    }
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
                                                             int L, int resolution, int window) {
@@ -247,7 +183,7 @@ public class APAUtils {
         Set<Block> blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
                 NormalizationType.NONE));
 
-        RealMatrix data = APAUtils.cleanArray2DMatrix(L, L);
+        RealMatrix data = MatrixTools.cleanArray2DMatrix(L, L);
 
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {
