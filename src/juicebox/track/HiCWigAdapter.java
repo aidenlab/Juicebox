@@ -102,14 +102,23 @@ public class HiCWigAdapter extends HiCDataAdapter {
 
 
     protected java.util.List<LocusScore> getLocusScores(String chr, int gStart, int gEnd, int zoom, WindowFunction windowFunction) {
-        if (!chr.startsWith("chr")) chr = "chr" + chr;
-
         List<LocusScore> scores = locusScoreMap.get(chr);
+        if (scores == null) {
+            // Problems with human not having the "chr".  Try adding "chr"
+            scores = locusScoreMap.get("chr" + chr);
+        }
+        // neither option has been seen yet.  try again with regular chr
         if (scores == null) {
             int[] startLocations = dataset.getStartLocations(chr);
             int[] endLocations = dataset.getEndLocations(chr);
             float[] values = dataset.getData(trackName, chr);
 
+            if (values == null) {
+                chr = "chr" + chr;
+                startLocations = dataset.getStartLocations(chr);
+                endLocations = dataset.getEndLocations(chr);
+                values = dataset.getData(trackName, chr);
+            }
             if (values == null) return null;
 
             scores = new ArrayList<LocusScore>(values.length);
