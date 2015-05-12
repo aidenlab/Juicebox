@@ -24,12 +24,15 @@
 
 package juicebox.tools.utils.Common;
 
+import juicebox.data.Block;
+import juicebox.data.ContactRecord;
 import juicebox.data.Dataset;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
-import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,8 +40,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Created by muhammadsaadshamim on 5/12/15.
+ */
+public class HiCFileTools {
 
-public class CommonTools {
     /**
      * Load chromosomes from given ID or file name.
      *
@@ -180,5 +186,33 @@ public class CommonTools {
             System.exit(0);
         }
         return null;
+    }
+
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                 int binYStart, int binYEnd, int numRows, int numCols) {
+
+        // numRows/numCols is just to ensure a set size in case bounds are approximate
+        // left upper corner is reference for 0,0
+
+        Set<Block> blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
+                NormalizationType.KR));
+
+        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
+
+        for (Block b : blocks) {
+            for (ContactRecord rec : b.getContactRecords()) {
+
+                int relativeX = rec.getBinX() - binXStart;
+                int relativeY = rec.getBinY() - binYStart;
+
+                if (relativeX >= 0 && relativeX < numRows) {
+                    if (relativeY >= 0 && relativeY < numCols) {
+                        data.addToEntry(relativeX, relativeY, rec.getCounts());
+                    }
+                }
+            }
+        }
+
+        return data;
     }
 }

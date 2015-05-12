@@ -24,7 +24,8 @@
 
 package juicebox.tools.utils.Common;
 
-import juicebox.tools.utils.Juicer.APARegionStatistics;
+import juicebox.data.NormalizationVector;
+import juicebox.tools.utils.Juicer.APA.APARegionStatistics;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -62,14 +63,16 @@ public class MatrixTools {
      * @param matrix
      * @return 1D double array in row major order
      */
-    public static double[] flattenSquareMatrix(RealMatrix matrix) {
+    public static double[] flattenedRowMajorOrderMatrix(RealMatrix matrix) {
         int n = matrix.getColumnDimension();
-        int numElements = n * n;
+        int m = matrix.getRowDimension();
+        int numElements = n * m;
         double[] flattenedMatrix = new double[numElements];
 
         int index = 0;
-        for (double[] row : matrix.getData()) {
-            System.arraycopy(row, 0, flattenedMatrix, index, n);
+        for(int i = 0; i < m; i++){
+        //for (double[] row : matrix.getData()) {
+            System.arraycopy(matrix.getRow(i), 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
@@ -100,5 +103,55 @@ public class MatrixTools {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public static double[] sliceFromVector(NormalizationVector krNormalizationVector, int bound1, int bound2) {
+        double[] vector = krNormalizationVector.getData();
+
+        int n = bound2 - bound1;
+        double[] slicedVector = new double[n];
+
+        for(int i = 0; i < n; i++){
+            slicedVector[i] = vector[bound1+i];
+        }
+
+        return slicedVector;
+    }
+
+    public static float[][] reshapeFlatMatrix(float[] flatMatrix, int n) {
+        float[][] squareMatrix = new float[n][n];
+
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < n; j++){
+                squareMatrix[i][j] = flatMatrix[i*n+j];
+            }
+        }
+        return squareMatrix;
+    }
+
+    /**
+     * From Matrix M, extract out M[r1:r2,c1:c2]
+     * r2, c2 not inclusive (~python numpy)
+     *
+     * @param matrix
+     * @param r1
+     * @param r2
+     * @param c1
+     * @param c2
+     * @return extracted matrix region M[r1:r2,c1:c2]
+     */
+    public static float[][] extractLocalMatrixRegion(float[][] matrix, int r1, int r2, int c1, int c2) {
+
+        int numRows = r2 - r1;
+        int numColumns = c2 - c1;
+        float[][] extractedRegion = new float[numRows][numColumns];
+
+        for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numColumns; j++){
+                extractedRegion[i][j] = matrix[r1+i][c1+j];
+            }
+        }
+
+        return extractedRegion;
     }
 }
