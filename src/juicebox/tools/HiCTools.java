@@ -89,13 +89,13 @@ public class HiCTools {
         private Option mapqOption = null;
 
         private Option resolutionOption = null;
+        private Option multipleResolutionsOption = null;
 
         // APA options
         private Option apaMinValOption = null;
         private Option apaMaxValOption = null;
         private Option apaWindowOption = null;
-
-
+        private Set<Integer> multipleResolutionOptions;
 
 
         CommandLineParser() {
@@ -111,6 +111,7 @@ public class HiCTools {
             mapqOption = addIntegerOption('q', "mapping quality threshold");
 
             resolutionOption = addIntegerOption('r', "resolution");
+            multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
 
             //apa <-m minval> <-x maxval> <-w window>  <-r resolution>
             apaMinValOption = addDoubleOption('n', "minimum value");
@@ -182,6 +183,11 @@ public class HiCTools {
         public int getResolutionOption() {
             Object opt = getOptionValue(resolutionOption);
             return opt == null ? 0 : ((Number) opt).intValue();
+        }
+
+        public Set<String> getMultipleResolutionOptions() {
+            Object opt = getOptionValue(multipleResolutionsOption);
+            return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
         }
     }
 }

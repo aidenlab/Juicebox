@@ -30,16 +30,16 @@ import juicebox.data.DatasetReaderV2;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.tools.utils.Juicer.*;
-import juicebox.tools.utils.Common.CommonTools;
+import juicebox.tools.utils.Juicer.APA.APADataStack;
+import juicebox.tools.utils.Juicer.APA.APAUtils;
 import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -114,12 +114,13 @@ public class APA extends JuiceboxCLT {
         try {
             System.out.println("Accessing " + files[0]);
             DatasetReaderV2 reader = new DatasetReaderV2(files[0]);
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
             Dataset ds = reader.read();
             // select zoom level closest to the requested one
-            HiCZoom zoom = CommonTools.getZoomLevel(ds, resolution);
+            HiCZoom zoom = HiCFileTools.getZoomLevel(ds, resolution);
             resolution = zoom.getBinSize();
 
-            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
 
             List<Chromosome> chromosomes = ds.getChromosomes();
             LoopContainer loopContainer = LoopListParser.parseList(files[1], chromosomes,

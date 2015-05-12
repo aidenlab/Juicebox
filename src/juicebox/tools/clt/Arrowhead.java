@@ -71,9 +71,10 @@ public class Arrowhead extends JuiceboxCLT {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         DatasetReaderV2 reader = new DatasetReaderV2(file);
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         Dataset ds = reader.read();
 
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
 
         // Should possibly check for KR, if doesn't have it, exit.
 

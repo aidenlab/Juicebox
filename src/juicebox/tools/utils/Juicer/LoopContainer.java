@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
-import juicebox.tools.utils.Common.CommonTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.track.Feature2D;
 import org.broad.igv.feature.Chromosome;
 
@@ -45,7 +45,7 @@ public class LoopContainer {
     }
 
     public Set<Chromosome> getCommonChromosomes(List<Chromosome> chromosomes) {
-        return CommonTools.getSetIntersection(
+        return HiCFileTools.getSetIntersection(
                 new HashSet<Chromosome>(filteredChrToLoopsMap.keySet()),
                 new HashSet<Chromosome>(chromosomes));
     }
