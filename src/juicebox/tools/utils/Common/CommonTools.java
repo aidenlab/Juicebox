@@ -26,12 +26,15 @@ package juicebox.tools.utils.Common;
 
 import juicebox.data.Dataset;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
+import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -110,5 +113,72 @@ public class CommonTools {
         }
         System.out.println("Adjusting resolution to " + zoom.getBinSize());
         return zoom;
+    }
+
+    /**
+     * Set intersection
+     *
+     * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
+     *
+     * @param set1
+     * @param set2
+     * @return
+     */
+    public static Set<Chromosome> getSetIntersection (Set<Chromosome> set1, Set<Chromosome> set2) {
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
+    public static Set<Chromosome> stringToChromosomes(Set<String> chromosomesSpecified,
+                                                      List<Chromosome> referenceChromosomes) {
+
+        Set<Chromosome> chrKeys = new HashSet<Chromosome>(referenceChromosomes);
+        Set<String> strKeys = new HashSet<String>(chromosomesSpecified);
+        Set<Chromosome> convertedChromosomes = new HashSet<Chromosome>();
+
+        // filter down loops by uniqueness, then size, and save the totals at each stage
+        for (Chromosome chrKey : chrKeys) {
+            for (String strKey : strKeys) {
+                if (equivalentChromosome(strKey, chrKey)) {
+                    convertedChromosomes.add(chrKey);
+                    strKeys.remove(strKey);
+                    break;
+                }
+            }
+        }
+
+        return new HashSet<Chromosome>(convertedChromosomes);
+    }
+
+    /**
+     * Evaluates whether the same chromosome is being referenced by the token
+     *
+     * @param token
+     * @param chr
+     * @return
+     */
+    public static boolean equivalentChromosome(String token, Chromosome chr) {
+        String token2 = token.toLowerCase().replaceAll("chr", "");
+        String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
+        return token2.equals(chrName);
+    }
+
+    /**
+     *
+     * @param fileName
+     * @return
+     */
+    public static PrintWriter openWriter(String fileName) {
+        try {
+            File file = new File(fileName);
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
+            return out;
+        } catch (IOException e) {
+            System.out.println("I/O error opening file: "+fileName);
+            System.exit(0);
+        }
+        return null;
     }
 }

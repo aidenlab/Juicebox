@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.HiCTools;
 import juicebox.windowui.HiCZoom;
@@ -70,14 +71,9 @@ public class Arrowhead extends JuiceboxCLT {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         DatasetReaderV2 reader = new DatasetReaderV2(file);
-
-
         Dataset ds = reader.read();
 
-        if (reader.getVersion() < 5) {
-            throw new RuntimeException("This file is version " + reader.getVersion() +
-                    ". Only versions 5 and greater are supported at this time.");
-        }
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         // Should possibly check for KR, if doesn't have it, exit.
 

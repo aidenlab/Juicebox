@@ -52,4 +52,10 @@ public class HiCGlobals {
     // Feature2D hover text
     public static boolean allowSpacingBetweenFeatureText = true;
 
+    public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
+        if (version < 5) {
+            throw new RuntimeException("This file is version " + version +
+                    ". Only versions 5 and greater are supported at this time.");
+        }
+    }
 }

@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
+import juicebox.tools.utils.Common.CommonTools;
 import juicebox.track.Feature2D;
 import org.broad.igv.feature.Chromosome;
 
@@ -44,7 +45,7 @@ public class LoopContainer {
     }
 
     public Set<Chromosome> getCommonChromosomes(List<Chromosome> chromosomes) {
-        return getSetIntersection(
+        return CommonTools.getSetIntersection(
                 new HashSet<Chromosome>(filteredChrToLoopsMap.keySet()),
                 new HashSet<Chromosome>(chromosomes));
     }
@@ -62,19 +63,5 @@ public class LoopContainer {
         return numFilteredUniqueTotalLoops.get(chr);
     }
 
-    /**
-     * Set intersection
-     *
-     * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
-     *
-     * @param set1
-     * @param set2
-     * @return
-     */
-    private static Set<Chromosome> getSetIntersection (Set<Chromosome> set1, Set<Chromosome> set2) {
-        boolean set1IsLarger = set1.size() > set2.size();
-        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
-        cloneSet.retainAll(set1IsLarger ? set1 : set2);
-        return cloneSet;
-    }
+
 }

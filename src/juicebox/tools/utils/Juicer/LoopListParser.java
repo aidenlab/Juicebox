@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
+import juicebox.tools.utils.Common.CommonTools;
 import juicebox.track.Feature2D;
 import juicebox.track.FeatureCoordinate;
 import org.broad.igv.Globals;
@@ -130,7 +131,7 @@ public class LoopListParser {
         // filter down loops by uniqueness, then size, and save the totals at each stage
         for (Chromosome chrKey : chromosomes) {
             for (String stringKey : keys) {
-                if (equivalentChromosome(stringKey, chrKey)) {
+                if (CommonTools.equivalentChromosome(stringKey, chrKey)) {
                     ArrayList<Feature2D> loops = chrToLoopsMap.get(stringKey);
                     ArrayList<Feature2D> uniqueLoops = filterLoopsByUniqueness(loops);
                     ArrayList<Feature2D> filteredUniqueLoops = filterLoopsBySize(uniqueLoops,
@@ -184,16 +185,5 @@ public class LoopListParser {
         return new ArrayList<Feature2D>(sizeFilteredLoops);
     }
 
-    /**
-     * Evaluates whether the same chromosome is being referenced by the token
-     *
-     * @param token
-     * @param chr
-     * @return
-     */
-    private static boolean equivalentChromosome(String token, Chromosome chr) {
-        String token2 = token.toLowerCase().replaceAll("chr", "");
-        String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
-        return token2.equals(chrName);
-    }
+
 }

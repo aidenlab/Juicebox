@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.DatasetReaderV2;
 import juicebox.data.Matrix;
@@ -84,6 +85,7 @@ public class APA extends JuiceboxCLT {
         //if (files.length > 4)
         //    restrictionSiteFilename = files[4];
 
+        //                 [min value, max value, window, resolution]
         Number[] optionalAPAFlags = parser.getAPAOptions();
 
         if (optionalAPAFlags[0] != null)
@@ -117,10 +119,7 @@ public class APA extends JuiceboxCLT {
             HiCZoom zoom = CommonTools.getZoomLevel(ds, resolution);
             resolution = zoom.getBinSize();
 
-            if (reader.getVersion() < 5) {
-                throw new RuntimeException("This file is version " + reader.getVersion() +
-                        ". Only versions 5 and greater are supported at this time.");
-            }
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
             List<Chromosome> chromosomes = ds.getChromosomes();
             LoopContainer loopContainer = LoopListParser.parseList(files[1], chromosomes,
@@ -128,6 +127,8 @@ public class APA extends JuiceboxCLT {
             Set<Chromosome> commonChromosomes = loopContainer.getCommonChromosomes(chromosomes);
 
             // Loop through chromosomes
+            // TODO this should be rewritten to use chrIdx/Name instead of the whole chromosome
+            // TODO the arraylists and maps don't need the entire chr class, just a unique identifier
             for (Chromosome chr : commonChromosomes) {
                 APADataStack apaDataStack = new APADataStack(L, files[2], files[3]);
 
