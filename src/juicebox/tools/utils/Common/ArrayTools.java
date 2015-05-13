@@ -61,20 +61,19 @@ public class ArrayTools {
      * @param w2
      * @return
      */
-    public static float[] generatePoissonPMF(int index, float total, int w2) {
+    public static double[] generateScaledPoissonPMF(int index, float total, int w2) {
         // TODO optimize because poisson calculation repeated multiple times
 
         double mu = Math.pow(2.0,(index + 1.0) / 3.0);
-
         double[] poissonPMF = new double[w2];
-        poissonPMF[0] = Math.exp(-mu);
+        poissonPMF[0] = Math.exp(-mu)*total; // the total is for scaling
 
         // use dynamic programming to grow poisson PMF
         for (int k = 1; k < w2; k++){
             poissonPMF[k] = poissonPMF[k-1] * mu / k;
         }
 
-        return doubleArrayToFloatArray(poissonPMF);
+        return poissonPMF;
     }
 
     public static float[] doubleArrayToFloatArray(double[] doubleArray){

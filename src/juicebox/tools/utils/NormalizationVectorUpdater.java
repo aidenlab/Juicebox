@@ -65,8 +65,9 @@ public class NormalizationVectorUpdater {
 
     public static void updateHicFile(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         Dataset ds = reader.read();
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 
@@ -252,8 +253,9 @@ public class NormalizationVectorUpdater {
 
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         Dataset ds = reader.read();
+        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
 
 
 

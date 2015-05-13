@@ -119,8 +119,9 @@ public class HiCCUPS extends JuiceboxCLT {
         try {
             System.out.println("Accessing " + inputHiCFileName);
             DatasetReaderV2 reader = new DatasetReaderV2(inputHiCFileName);
-            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
             Dataset ds = reader.read();
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
             // select zoom level closest to the requested one
 
             List<Chromosome> commonChromosomes = ds.getChromosomes();
@@ -128,8 +129,13 @@ public class HiCCUPS extends JuiceboxCLT {
                 commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
                         commonChromosomes));
 
+            Set<HiCZoom> actualResolutionsFound = new HashSet<HiCZoom>();
+
             for (int resolution : resolutions) {
-                HiCZoom zoom = HiCFileTools.getZoomLevel(ds, resolution);
+                actualResolutionsFound.add(HiCFileTools.getZoomLevel(ds, resolution));
+            }
+
+            for (HiCZoom zoom : actualResolutionsFound) {
                 runHiccupsProcessing(ds, zoom, commonChromosomes);
             }
 
@@ -308,7 +314,8 @@ public class HiCCUPS extends JuiceboxCLT {
     private void calculateThresholdAndFDR(int index, int width, int fdr, int[][] rcsHist,
                                           float[] threshold, float[][] fdrLog) {
         if (rcsHist[index][0] > 0) {
-            float[] expected = ArrayTools.generatePoissonPMF(index, rcsHist[index][0], width);
+            float[] expected = ArrayTools.doubleArrayToFloatArray(
+                    ArrayTools.generateScaledPoissonPMF(index, rcsHist[index][0], width));
             float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
             for (int j = 0; j < width; j++) {
                 if (fdr * rcsExpected[j] <= rcsHist[index][j]) {

@@ -114,8 +114,9 @@ public class APA extends JuiceboxCLT {
         try {
             System.out.println("Accessing " + files[0]);
             DatasetReaderV2 reader = new DatasetReaderV2(files[0]);
-            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
             Dataset ds = reader.read();
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+
             // select zoom level closest to the requested one
             HiCZoom zoom = HiCFileTools.getZoomLevel(ds, resolution);
             resolution = zoom.getBinSize();

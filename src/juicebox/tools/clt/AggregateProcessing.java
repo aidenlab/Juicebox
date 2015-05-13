@@ -44,7 +44,12 @@ public class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
                 "/Users/muhammadsaadshamim/Desktop/apaTest1"};
 
-        HiCTools.main(l1);
+        String[] l2 = {"hiccups",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/HiCFiles/gm12891.hic",
+                "/Users/muhammadsaadshamim/Desktop/156_fdr",
+                "/Users/muhammadsaadshamim/Desktop/156_peaks"};
+
+        HiCTools.main(l2);
 
     }
 }
