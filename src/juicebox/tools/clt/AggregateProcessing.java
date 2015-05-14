@@ -45,11 +45,34 @@ public class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/apaTest1"};
 
         String[] l2 = {"hiccups",
-                "/Users/muhammadsaadshamim/Desktop/Leviathan/HiCFiles/gm12891.hic",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
                 "/Users/muhammadsaadshamim/Desktop/156_fdr",
                 "/Users/muhammadsaadshamim/Desktop/156_peaks"};
 
-        HiCTools.main(l2);
+        String[] l3 = {"hiccups",
+                "-r","5000",
+                "-c","21",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/GM12878/21_fdr",
+                "/Users/muhammadsaadshamim/Desktop/GM12878/21_peaks"};
+
+
+        //dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]
+        String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21.bin"};
+
+        String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21exp.bin"};
+
+        String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21norm.bin"};
+
+
+        //HiCTools.main(l4);
+        //HiCTools.main(l5);
+        //HiCTools.main(l6);
+        HiCTools.main(l3);
+
 
     }
 }

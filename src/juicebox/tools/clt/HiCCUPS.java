@@ -68,7 +68,7 @@ public class HiCCUPS extends JuiceboxCLT {
     private static int matrixSize = regionWidth + regionMargin + regionMargin;
     private static int fdr = 10;
     private static int window = 20;
-    private static int peakWidth = 20;
+    private static int peakWidth = 5;
 
     private static int divisor() {
         return (window - peakWidth) * (window + peakWidth);
@@ -140,7 +140,7 @@ public class HiCCUPS extends JuiceboxCLT {
             }
 
         } catch (IOException e) {
-            System.out.println("Unable to extract APA data");
+            System.out.println("Unable to read hic data in HiCCUPS");
             e.printStackTrace();
             System.exit(-3);
         }
@@ -195,18 +195,15 @@ public class HiCCUPS extends JuiceboxCLT {
                 long start_time = System.currentTimeMillis();
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                // need to extract KR and expected vector for HiCCUPS calculations; entire vector extracted, but only segments passed at a time corresponding to sliced region
-                NormalizationVector krNormalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, NormalizationType.KR);
-                if (krNormalizationVector == null)
-                    krNormalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, NormalizationType.KR); // TODO
-
-                double[] expectedVector = ds.getExpectedValues(zoom, NormalizationType.KR).getExpectedValues();
+                NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
+                NormalizationVector normalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, NormalizationType.KR);
+                double[] expectedVector = ds.getExpectedValues(zoom, preferredNormalization).getExpectedValues();
 
                 // need overall bounds for the chromosome
                 int chrLength = chromosome.getLength();
                 int chrMatrixWdith = (int) Math.ceil((double) chrLength / resolution);
                 long load_time = System.currentTimeMillis();
-                System.out.println("Time to load chr" + chromosome.getName() + " matrix: " + (load_time - start_time));
+                System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
 
 
                 for (int i = 0; i < (chrMatrixWdith / regionWidth) + 1; i++) {
@@ -215,10 +212,10 @@ public class HiCCUPS extends JuiceboxCLT {
                     for (int j = i; j < (chrMatrixWdith / regionWidth) + 1; j++){
                         int[] columnBounds = calculateRegionBounds(j, regionWidth, regionMargin, matrixSize, chrMatrixWdith);
 
-                        GPUOutputContainer gpuOutputs = gpuController.process(zd, krNormalizationVector, expectedVector,
+                        GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
                                 rowBounds, columnBounds, matrixSize,
                                 thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                boundRowIndex, boundColumnIndex);
+                                boundRowIndex, boundColumnIndex, preferredNormalization);
 
                         int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + peakWidth + 2;
                         
@@ -247,9 +244,9 @@ public class HiCCUPS extends JuiceboxCLT {
                 long segmentTime = System.currentTimeMillis();
 
                 if (runNum == 0) {
-                    System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "s");
+                    System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "ms");
                 } else { // runNum = 1
-                    System.out.println("Time to print chr" + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "s");
+                    System.out.println("Time to print chr" + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
                 }
 
             }
@@ -267,7 +264,7 @@ public class HiCCUPS extends JuiceboxCLT {
                 }
 
                 long thresh_time1 = System.currentTimeMillis();
-                System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0));
+                System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0) + "ms");
             }
         }
         long final_time = System.currentTimeMillis();
@@ -323,6 +320,12 @@ public class HiCCUPS extends JuiceboxCLT {
                     break;
                 }
             }
+
+            //for(float j : threshold)
+            //    System.out.println(j + " " + ((int)j));
+
+
+
             for (int j = (int)threshold[index]; j < width; j++) {
                 float sum1 = rcsExpected[j];
                 float sum2 = rcsHist[index][j];

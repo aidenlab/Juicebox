@@ -33,6 +33,7 @@ import juicebox.data.NormalizationVector;
 import juicebox.tools.utils.Common.ArrayTools;
 import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.tools.utils.Common.MatrixTools;
+import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 
@@ -58,17 +59,20 @@ public class GPUController {
     public GPUOutputContainer process(MatrixZoomData zd, NormalizationVector krNormalizationVector, double[] expectedKRVector,
                                       int[] rowBounds, int[] columnBounds, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH,float[] thresholdV,
-                                      float[] boundRowIndex, float[] boundColumnIndex) {
+                                      float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType) {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
-                columnBounds[0], columnBounds[1], matrixSize, matrixSize);
+                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
         
-        float[] observedKRVals = ArrayTools.doubleArrayToFloatArray(
+        float[] observedVals = ArrayTools.doubleArrayToFloatArray(
                 MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData));
 
         // slice KR vector to localized region
 
         float[] distanceExpectedKRVector = ArrayTools.doubleArrayToFloatArray(expectedKRVector);
+
+
+
         float[] kr1CPU = ArrayTools.doubleArrayToFloatArray(
                 MatrixTools.sliceFromVector(krNormalizationVector, rowBounds[0], rowBounds[1]));
         float[] kr2CPU = ArrayTools.doubleArrayToFloatArray(
@@ -79,7 +83,7 @@ public class GPUController {
         long gpu_time1 = System.currentTimeMillis();
 
         // transfer host (CPU) memory to device (GPU) memory
-        CUdeviceptr observedKRGPU = GPUHelper.allocateInput(Pointer.to(observedKRVals), observedKRVals.length, Sizeof.FLOAT);
+        CUdeviceptr observedKRGPU = GPUHelper.allocateInput(Pointer.to(observedVals), observedVals.length, Sizeof.FLOAT);
         CUdeviceptr expectedKRVectorGPU = GPUHelper.allocateInput(Pointer.to(distanceExpectedKRVector), distanceExpectedKRVector.length, Sizeof.FLOAT);
         CUdeviceptr kr1GPU = GPUHelper.allocateInput(Pointer.to(kr1CPU), kr1CPU.length, Sizeof.FLOAT);
         CUdeviceptr kr2GPU = GPUHelper.allocateInput(Pointer.to(kr2CPU), kr2CPU.length, Sizeof.FLOAT);
@@ -158,9 +162,7 @@ public class GPUController {
 
         long gpu_time2 = System.currentTimeMillis();
 
-        //print gpu_time2-gpu_time1, bound1R, boundColumnR
-        System.out.println("GPU Time: " + (gpu_time2-gpu_time1));
-
+        //System.out.println("GPU Time: " + (gpu_time2-gpu_time1));
 
         // x2, y2 not inclusive here
         int x1 = rowBounds[2], x2 = matrixSize - rowBounds[3];

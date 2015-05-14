@@ -41,6 +41,11 @@ public class DumpDialog extends JFileChooser {
     static final long serialVersionUID = 42L;
     private JComboBox<String> box;
 
+    /**
+     * TODO I think a good amount of the code below is duplicated in the dumpGeneralVector method and should call that instead
+     * @param mainWindow
+     * @param hic
+     */
     public DumpDialog(MainWindow mainWindow, HiC hic) {
         super();
         int result = showSaveDialog(mainWindow);

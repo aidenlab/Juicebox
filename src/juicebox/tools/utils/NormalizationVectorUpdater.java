@@ -256,9 +256,6 @@ public class NormalizationVectorUpdater {
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
-
-
-
         List<Chromosome> chromosomes = ds.getChromosomes();
 
         List<HiCZoom> resolutions = new ArrayList<HiCZoom>();
