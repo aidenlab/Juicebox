@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer;
+package juicebox.tools.utils.Juicer.HiCCUPS;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
@@ -51,6 +51,12 @@ public class GPUHelper {
         cuMemAlloc(dInput, size * Sizeof.FLOAT);
         cuMemcpyHtoD(dInput, ptr, size * typeSize);
         return dInput;
+    }
+
+    public static void freeUpMemory(CUdeviceptr[] pointers){
+        for(CUdeviceptr pointer : pointers){
+            cuMemFree(pointer);
+        }
     }
 }
 

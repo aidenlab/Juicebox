@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer;
+package juicebox.tools.utils.Juicer.APA;
 
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
@@ -152,7 +152,7 @@ public class APAUtils {
      */
     public static RealMatrix rankPercentile(RealMatrix data) {
         int n = data.getColumnDimension();
-        StatPercentile percentile = new StatPercentile(MatrixTools.flattenSquareMatrix(data));
+        StatPercentile percentile = new StatPercentile(MatrixTools.flattenedRowMajorOrderMatrix(data));
 
         RealMatrix matrix = new Array2DRowRealMatrix(n, n);
         for (int r = 0; r < n; r++) {
@@ -195,7 +195,7 @@ public class APAUtils {
                 if (relativeX >= 0 && relativeX < L) {
                     if (relativeY >= 0 && relativeY < L) {
                         data.addToEntry(relativeX, relativeY, rec.getCounts());
-                        System.out.println(relativeX+" "+relativeY+" "+rec.getCounts());
+                        //System.out.println(relativeX+" "+relativeY+" "+rec.getCounts());
                     }
                 }
             }

@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer;
+package juicebox.tools.utils.Juicer.APA;
 
 import org.apache.commons.math.linear.RealMatrix;
 import org.tc33.jheatchart.HeatChart;
@@ -102,7 +102,7 @@ public class APAPlotter {
 
             // top left, top right, bottom left, bottom right values (from APA)
 
-            drawCornerRegions(g2, map, new Dimension(apaStats.regionWidth, apaStats.regionWidth),
+            drawCornerRegions(g2, map, new Dimension(APARegionStatistics.regionWidth, APARegionStatistics.regionWidth),
                     apaStats.getRegionCornerValues());
 
             // save data

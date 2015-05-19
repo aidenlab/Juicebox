@@ -24,12 +24,12 @@
 
 package juicebox.tools.utils.Common;
 
-import juicebox.data.Dataset;
+import juicebox.data.*;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
-import juicebox.track.Feature2D;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
+import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,8 +37,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Created by muhammadsaadshamim on 5/12/15.
+ */
+public class HiCFileTools {
 
-public class CommonTools {
     /**
      * Load chromosomes from given ID or file name.
      *
@@ -111,7 +114,6 @@ public class CommonTools {
                 zoom = subZoom;
             }
         }
-        System.out.println("Adjusting resolution to " + zoom.getBinSize());
         return zoom;
     }
 
@@ -179,6 +181,65 @@ public class CommonTools {
             System.out.println("I/O error opening file: "+fileName);
             System.exit(0);
         }
+        return null;
+    }
+
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
+                                                 int binYStart, int binYEnd, int numRows, int numCols,
+                                                 NormalizationType normalizationType) {
+
+        // numRows/numCols is just to ensure a set size in case bounds are approximate
+        // left upper corner is reference for 0,0
+
+        Set<Block> blocks = new HashSet<Block>();
+
+        try {
+            blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
+                    normalizationType));
+        }
+        catch (Exception e){
+            System.out.println("You do not have "+normalizationType+" normalized maps available at this resolution");
+            e.printStackTrace();
+            System.exit(-6);
+        }
+
+        RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
+
+        if(blocks.size() > 0) {
+            for (Block b : blocks) {
+                for (ContactRecord rec : b.getContactRecords()) {
+
+                    int relativeX = rec.getBinX() - binXStart;
+                    int relativeY = rec.getBinY() - binYStart;
+
+                    if (relativeX >= 0 && relativeX < numRows) {
+                        if (relativeY >= 0 && relativeY < numCols) {
+                            data.addToEntry(relativeX, relativeY, rec.getCounts());
+                        }
+                    }
+                }
+            }
+        }
+
+        return data;
+    }
+
+    public static NormalizationType determinePreferredNormalization(Dataset ds){
+        NormalizationType[] preferredNormalization = new NormalizationType[]{NormalizationType.KR, NormalizationType.VC};
+        List<NormalizationType> normalizationTypeList = ds.getNormalizationTypes();
+
+        System.out.println("Norms: "+normalizationTypeList);
+
+        for(NormalizationType normalizationType : preferredNormalization){
+            if(normalizationTypeList.contains(normalizationType)){
+                System.out.println("Selected "+normalizationType);
+                return normalizationType;
+            }
+            System.out.println("Did not find Normalization: " + normalizationType);
+        }
+
+        System.out.println("Could not find normalizations");
+        System.exit(-5);
         return null;
     }
 }

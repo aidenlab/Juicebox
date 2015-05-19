@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.Juicer;
 
-import juicebox.tools.utils.Common.CommonTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.track.Feature2D;
 import juicebox.track.FeatureCoordinate;
 import org.broad.igv.Globals;
@@ -131,7 +131,7 @@ public class LoopListParser {
         // filter down loops by uniqueness, then size, and save the totals at each stage
         for (Chromosome chrKey : chromosomes) {
             for (String stringKey : keys) {
-                if (CommonTools.equivalentChromosome(stringKey, chrKey)) {
+                if (HiCFileTools.equivalentChromosome(stringKey, chrKey)) {
                     ArrayList<Feature2D> loops = chrToLoopsMap.get(stringKey);
                     ArrayList<Feature2D> uniqueLoops = filterLoopsByUniqueness(loops);
                     ArrayList<Feature2D> filteredUniqueLoops = filterLoopsBySize(uniqueLoops,
