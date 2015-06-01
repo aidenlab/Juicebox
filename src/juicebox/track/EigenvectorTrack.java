@@ -26,6 +26,7 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.track.TrackPanel;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
@@ -34,8 +35,10 @@ import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * @author Jim Robinson
@@ -52,6 +55,7 @@ public class EigenvectorTrack extends HiCTrack {
     private Color altColor = Color.red.darker();
     private int currentZoom = -1;
     private String name = "eigenvector";
+
 
     public EigenvectorTrack(String id, String name, HiC hic) {
         super(new ResourceLocator(id));
@@ -154,10 +158,19 @@ public class EigenvectorTrack extends HiCTrack {
             setData(chrIdx, eigen);
         }
 
+
         if (eigen == null || eigen.length == 0) {
-            g2d.setFont(FontManager.getFont(8));
-            GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g2d);
-            return;  // No data available
+            g2d.setFont(FontManager.getFont(12));
+
+                if (orientation == TrackPanel.Orientation.X) {
+                    GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g2d);
+                    //System.out.println("height: "+ rect.height + " y: "+rect.y); //FOR DEBUGGING
+                } else {
+                    // Would print incorrectly so we had to retype for the Y Orientation
+                    drawRotatedString(g2d, "Eigenvector not available at this resolution", (2*rect.height) / 3, rect.x+15);
+                }
+                return;  // No data available
+
         }
 
         double dataMax = dataMaxCache.get(chrIdx);
@@ -209,5 +222,18 @@ public class EigenvectorTrack extends HiCTrack {
     public void forceRefresh() {
         currentZoom = -1;
         clearDataCache();
+    }
+
+    // TODO this may be duplicated somewhere
+    private void drawRotatedString(Graphics2D g2, String string, float x, float y){
+        AffineTransform orig = g2.getTransform();
+        g2.rotate(0);
+        g2.setColor(Color.BLUE);
+        g2.translate(x, 0);
+        g2.scale(-1, 1);
+        g2.translate(-x, 0);
+        g2.drawString(string,x,y);
+        g2.setTransform(orig);
+
     }
 }
