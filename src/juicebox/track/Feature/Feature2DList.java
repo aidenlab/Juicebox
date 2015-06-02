@@ -22,19 +22,21 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track;
+package juicebox.track.Feature;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.track.Feature.Feature2D;
+import org.broad.igv.feature.Chromosome;
+
+import java.util.*;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
  * Visibility depends on user selection.
  *
  * @author Neva Durand
- * @since 9/2013
+ * @modified Muhammad Shamim
+ *
  */
 public class Feature2DList {
 
@@ -42,6 +44,11 @@ public class Feature2DList {
      * List of 2D features stored by chromosome
      */
     private final Map<String, List<Feature2D>> featureList;
+
+    /*
+     * Metrics resulting from APA filtering
+     */
+    private Map<String, Integer[]> filterMetrics;
 
     /**
      * Visibility as set by user
@@ -126,6 +133,86 @@ public class Feature2DList {
         }
 
         return "" + c1 + "_" + c2;
+    }
+
+    /**
+     * Helper method to get the key given chromosomes
+     *
+     * @param chr1 First chromosome
+     * @param chr2 Second chromosome
+     * @return key
+     */
+    private String getKey(Chromosome chr1, Chromosome chr2) {
+        return getKey(chr1.getIndex(), chr2.getIndex());
+    }
+
+    /**
+     * Remove duplicates and filters by size
+     * Also save internal metrics for these measures
+     *
+     * @param minPeakDist
+     * @param maxPeakDist
+     * @param resolution
+     */
+    public void apaFiltering(double minPeakDist, double maxPeakDist, int resolution) {
+
+        filterMetrics = new HashMap<String, Integer[]>();
+        Set<String> keys = featureList.keySet();
+
+        for(String key : keys){
+            List<Feature2D> features = featureList.remove(key);
+            List<Feature2D> uniqueFeatures = filterFeaturesByUniqueness(features);
+            List<Feature2D> filteredUniqueFeatures = filterFeaturesBySize(uniqueFeatures,
+                    minPeakDist, maxPeakDist, resolution);
+
+
+            featureList.put(key, filteredUniqueFeatures);
+            filterMetrics.put(key,
+                    new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
+        }
+    }
+
+    /**
+     * remove duplicates by using a hashset intermediate
+     * @param features
+     * @return
+     */
+    private static ArrayList<Feature2D> filterFeaturesByUniqueness(List<Feature2D> features) {
+        return new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+    }
+
+    /**
+     * Size filtering of loops
+     *
+     * @param features
+     * @param minPeakDist
+     * @param maxPeakDist
+     * @return
+     */
+    private static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
+                                                          double minPeakDist, double maxPeakDist, int resolution) {
+
+        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
+
+        for (Feature2D feature : features) {
+            int xMidPt = feature.getMidPt1();
+            int yMidPt = feature.getMidPt2();
+            int dist = Math.abs(xMidPt - yMidPt);
+
+            if (dist >= minPeakDist*resolution)
+                if (dist <= maxPeakDist*resolution)
+                    sizeFilteredFeatures.add(feature);
+        }
+        return new ArrayList<Feature2D>(sizeFilteredFeatures);
+    }
+
+    /**
+     * [NumUniqueFiltered, NumUnique, NumTotal]
+     * @param chr
+     * @return
+     */
+    public Integer[] getFilterMetrics(Chromosome chr) {
+        return filterMetrics.get(getKey(chr,chr));
     }
 
 }

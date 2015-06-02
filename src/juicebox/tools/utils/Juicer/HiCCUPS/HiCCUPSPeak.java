@@ -48,7 +48,7 @@ public class HiCCUPSPeak {
 
     private String chrName;
 
-    public HiCCUPSPeak(float observedVal, float peakVal, int rowPosition, int columnPosition,
+    public HiCCUPSPeak(String chrName, float observedVal, float peakVal, int rowPosition, int columnPosition,
                        float expectedBLVal, float expectedDonutVal, float expectedHVal, float expectedVVal,
                        float binBLVal, float binDonutVal, float binHVal, float binVVal) {
         this.chrName = chrName;
@@ -67,10 +67,17 @@ public class HiCCUPSPeak {
     }
 
     public void calculateFDR(float[][] fdrLogBL, float[][] fdrLogDonut, float[][] fdrLogH, float[][] fdrLogV) {
-        fdrBL = fdrLogBL[(int)binBL][(int)observed];
-        fdrDonut = fdrLogDonut[(int)binDonut][(int)observed];
-        fdrH = fdrLogH[(int)binH][(int)observed];
-        fdrV = fdrLogV[(int)binV][(int)observed];
+        if(binBL >= 0  && binDonut >= 0  && binH >= 0  && binV >= 0  && observed >= 0) {
+            fdrBL = fdrLogBL[(int) binBL][(int) observed];
+            fdrDonut = fdrLogDonut[(int) binDonut][(int) observed];
+            fdrH = fdrLogH[(int) binH][(int) observed];
+            fdrV = fdrLogV[(int) binV][(int) observed];
+        }
+        else{
+            System.out.println("Error in calculateFDR binBL=" + binBL + " binDonut=" + binDonut +" binH=" + binH +
+                    " binV="+ binV + " observed="+ observed);
+        }
+
     }
 
     @Override

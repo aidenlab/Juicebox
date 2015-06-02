@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track;
+package juicebox.track.Feature;
 
 import juicebox.HiCGlobals;
 
@@ -47,10 +47,7 @@ public class Feature2D {
     public static String peak = "Peak";
     public static String domain = "Contact domain";
     public static String generic = "Feature";
-
-
     private final NumberFormat formatter = NumberFormat.getInstance();
-
     private final String chr1;
     private final int start1;
     private final int end1;
@@ -71,19 +68,6 @@ public class Feature2D {
         this.chr2 = chr2;
         this.start2 = start2;
         this.end2 = end2;
-        this.color = (c == null ? Color.black : c);
-        this.attributes = attributes;
-    }
-
-    public Feature2D(String featureName, FeatureCoordinate coord1, FeatureCoordinate coord2, Color c,
-                     Map<String, String> attributes) {
-        this.featureName = featureName;
-        this.chr1 = coord1.getChromosome();
-        this.start1 = coord1.getStartPosition();
-        this.end1 = coord1.getEndPosition();
-        this.chr2 = coord2.getChromosome();
-        this.start2 = coord2.getStartPosition();
-        this.end2 = coord2.getEndPosition();
         this.color = (c == null ? Color.black : c);
         this.attributes = attributes;
     }
@@ -132,8 +116,6 @@ public class Feature2D {
     public String tooltipText() {
 
         StringBuilder txt = new StringBuilder();
-
-
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(featureName);
         txt.append("</span><br>");
@@ -223,6 +205,4 @@ public class Feature2D {
         }
         return txt.toString();
     }
-
-
 }

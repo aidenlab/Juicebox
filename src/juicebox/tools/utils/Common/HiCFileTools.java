@@ -165,6 +165,15 @@ public class HiCFileTools {
         String token2 = token.toLowerCase().replaceAll("chr", "");
         String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
         return token2.equals(chrName);
+
+
+        /* TODO pretty sure code commented is redundant alternative, verify accuracy
+            if (token.toLowerCase().equals(chr.getName().toLowerCase()) ||
+                    String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) ||
+                    token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
+                return chr;
+        */
+
     }
 
     /**
@@ -185,8 +194,8 @@ public class HiCFileTools {
     }
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
-                                                 int binYStart, int binYEnd, int numRows, int numCols,
-                                                 NormalizationType normalizationType) {
+                                                       int binYStart, int binYEnd, int numRows, int numCols,
+                                                       NormalizationType normalizationType) {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
@@ -228,11 +237,11 @@ public class HiCFileTools {
         NormalizationType[] preferredNormalization = new NormalizationType[]{NormalizationType.KR, NormalizationType.VC};
         List<NormalizationType> normalizationTypeList = ds.getNormalizationTypes();
 
-        System.out.println("Norms: "+normalizationTypeList);
+        //System.out.println("Norms: "+normalizationTypeList);
 
         for(NormalizationType normalizationType : preferredNormalization){
             if(normalizationTypeList.contains(normalizationType)){
-                System.out.println("Selected "+normalizationType);
+                System.out.println("Selected "+normalizationType+" Normalization");
                 return normalizationType;
             }
             System.out.println("Did not find Normalization: " + normalizationType);
@@ -240,6 +249,14 @@ public class HiCFileTools {
 
         System.out.println("Could not find normalizations");
         System.exit(-5);
+        return null;
+    }
+
+    public static Chromosome getChromosomeNamed(String chrName, List<Chromosome> chromosomes) {
+        for (Chromosome chr : chromosomes) {
+            if(equivalentChromosome(chrName, chr))
+                return chr;
+        }
         return null;
     }
 }
