@@ -25,9 +25,9 @@
 package juicebox.track.Feature;
 
 import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.track.Feature.Feature2D;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -36,7 +36,6 @@ import java.util.*;
  *
  * @author Neva Durand
  * @modified Muhammad Shamim
- *
  */
 public class Feature2DList {
 
@@ -159,7 +158,7 @@ public class Feature2DList {
         filterMetrics = new HashMap<String, Integer[]>();
         Set<String> keys = featureList.keySet();
 
-        for(String key : keys){
+        for (String key : keys) {
             List<Feature2D> features = featureList.remove(key);
             List<Feature2D> uniqueFeatures = filterFeaturesByUniqueness(features);
             List<Feature2D> filteredUniqueFeatures = filterFeaturesBySize(uniqueFeatures,
@@ -174,6 +173,7 @@ public class Feature2DList {
 
     /**
      * remove duplicates by using a hashset intermediate
+     *
      * @param features
      * @return
      */
@@ -190,7 +190,7 @@ public class Feature2DList {
      * @return
      */
     private static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
-                                                          double minPeakDist, double maxPeakDist, int resolution) {
+                                                             double minPeakDist, double maxPeakDist, int resolution) {
 
         ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
 
@@ -199,8 +199,8 @@ public class Feature2DList {
             int yMidPt = feature.getMidPt2();
             int dist = Math.abs(xMidPt - yMidPt);
 
-            if (dist >= minPeakDist*resolution)
-                if (dist <= maxPeakDist*resolution)
+            if (dist >= minPeakDist * resolution)
+                if (dist <= maxPeakDist * resolution)
                     sizeFilteredFeatures.add(feature);
         }
         return new ArrayList<Feature2D>(sizeFilteredFeatures);
@@ -208,11 +208,44 @@ public class Feature2DList {
 
     /**
      * [NumUniqueFiltered, NumUnique, NumTotal]
+     *
      * @param chr
      * @return
      */
     public Integer[] getFilterMetrics(Chromosome chr) {
-        return filterMetrics.get(getKey(chr,chr));
+        return filterMetrics.get(getKey(chr, chr));
+    }
+
+    /**
+     * Export feature list to given file path
+     *
+     * @param outputFilePath
+     */
+    public void exportFeatureList(String outputFilePath) {
+        PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
+
+        Feature2D featureZero = extractSingleFeature();
+        outputFile.println(featureZero.getOutputFileHeader());
+
+        for (String key : featureList.keySet()) {
+            for (Feature2D feature : featureList.get(key)) {
+                outputFile.println(feature);
+            }
+        }
+        outputFile.close();
+    }
+
+    /**
+     * Get first feature found
+     * @return feature
+     */
+    private Feature2D extractSingleFeature() {
+        for (String key : featureList.keySet()) {
+            for (Feature2D feature : featureList.get(key)) {
+                return feature;
+            }
+        }
+        return null;
     }
 
 }

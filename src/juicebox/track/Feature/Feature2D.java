@@ -30,6 +30,7 @@ import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -204,5 +205,33 @@ public class Feature2D {
             }
         }
         return txt.toString();
+    }
+
+    public String getOutputFileHeader(){
+        String output = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+
+        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        Collections.sort(keys);
+
+        for(String key : keys){
+            output += "\t"+key;
+        }
+
+        return output;
+    }
+
+    @Override
+    public String toString(){
+        String output = chr1+"\t"+start1+"\t"+end1+"\t"+chr2+"\t"+start2+"\t"+end2;
+        output += "\t"+color.getRed()+","+color.getGreen()+","+color.getBlue();
+
+        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        Collections.sort(keys);
+
+        for(String key : keys){
+            output += "\t"+attributes.get(key);
+        }
+
+        return output;
     }
 }
