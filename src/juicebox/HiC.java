@@ -26,23 +26,25 @@
 package juicebox;
 
 import juicebox.data.*;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.track.*;
+import juicebox.track.Feature.Feature2D;
+import juicebox.track.Feature.Feature2DList;
+import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.color.ColorUtilities;
-import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the "model" class for the HiC viewer.
@@ -620,100 +622,11 @@ public class HiC {
             return;
         }
 
-        int attCol = 7;
-        BufferedReader br = null;
 
-        Feature2DList newList = new Feature2DList();
-
-
-        try {
-            br = ParsingUtils.openBufferedReader(path);
-            String nextLine;
-
-            // header
-            nextLine = br.readLine();
-            String[] headers = Globals.tabPattern.split(nextLine);
-
-            int errorCount = 0;
-            int lineNum = 1;
-            while ((nextLine = br.readLine()) != null) {
-                lineNum++;
-                String[] tokens = Globals.tabPattern.split(nextLine);
-                if (tokens.length > headers.length) {
-                    throw new IOException("Improperly formatted file");
-                }
-                if (tokens.length < 6) {
-                    continue;
-                }
-
-                String chr1Name, chr2Name;
-                int start1, end1, start2, end2;
-                try {
-                    chr1Name = tokens[0];
-                    start1 = Integer.parseInt(tokens[1]);
-                    end1 = Integer.parseInt(tokens[2]);
-
-                    chr2Name = tokens[3];
-                    start2 = Integer.parseInt(tokens[4]);
-                    end2 = Integer.parseInt(tokens[5]);
-                } catch (Exception e) {
-                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
-                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
-                }
+        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0);
+        loopLists.put(path, newList);
 
 
-                Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
-
-                Map<String, String> attrs = new LinkedHashMap<String, String>();
-                for (int i = attCol; i < tokens.length; i++) {
-
-                    attrs.put(headers[i], tokens[i]);
-                }
-
-                Chromosome chr1 = this.getChromosomeNamed(chr1Name);
-                Chromosome chr2 = this.getChromosomeNamed(chr2Name);
-                if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        log.debug("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        log.debug("Maximum error count exceeded.  Further errors will not be logged");
-                    }
-
-                    errorCount++;
-                    continue;
-                }
-
-                int featureNameSepindex = path.lastIndexOf("_");
-                String featureName = path.substring(featureNameSepindex + 1);
-
-                if (featureName.equals("blocks.txt")) {
-                    featureName = Feature2D.domain;
-                } else if (featureName.equals("peaks.txt")) {
-                    featureName = Feature2D.peak;
-                } else {
-                    featureName = Feature2D.generic;
-                }
-                // Convention is chr1 is lowest "index". Swap if necessary
-                Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
-
-                newList.add(chr1.getIndex(), chr2.getIndex(), feature);
-
-            }
-            loopLists.put(path, newList);
-        } finally {
-            if (br != null) br.close();
-        }
-
-    }
-
-    private Chromosome getChromosomeNamed(String token) {
-        for (Chromosome chr : chromosomes) {
-            if (token.toLowerCase().equals(chr.getName().toLowerCase()) || String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) || token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
-                return chr;
-        }
-        return null;
     }
 
     /**
@@ -724,8 +637,8 @@ public class HiC {
 
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
 
-            Chromosome chrX = getChromosomeNamed(chrXName);
-            Chromosome chrY = getChromosomeNamed(chrYName);
+            Chromosome chrX = HiCFileTools.getChromosomeNamed(chrXName, chromosomes);
+            Chromosome chrY = HiCFileTools.getChromosomeNamed(chrYName, chromosomes);
 
             if (chrX == null || chrY == null) {
                 //Chromosomes do not appear to exist in current map.

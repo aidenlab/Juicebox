@@ -68,10 +68,16 @@ public class ArrayTools {
         double[] poissonPMF = new double[w2];
         poissonPMF[0] = Math.exp(-mu)*total; // the total is for scaling
 
+        double totalSum = poissonPMF[0];
+
         // use dynamic programming to grow poisson PMF
         for (int k = 1; k < w2; k++){
             poissonPMF[k] = poissonPMF[k-1] * mu / k;
+            totalSum += poissonPMF[k];
         }
+        System.out.println("Poisson mult by total");
+        System.out.println(total);
+        System.out.println(totalSum);
 
         return poissonPMF;
     }

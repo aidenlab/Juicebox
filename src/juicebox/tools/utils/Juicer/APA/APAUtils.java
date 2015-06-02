@@ -29,13 +29,15 @@ import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.Common.MatrixTools;
 import juicebox.tools.utils.Common.StatPercentile;
-import juicebox.track.Feature2D;
+import juicebox.track.Feature.Feature2D;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Muhammad Shamim on 1/21/15.
@@ -116,7 +118,6 @@ public class APAUtils {
     }
 
 
-
     public static RealMatrix centerNormalization(RealMatrix matrix) {
 
         int center = matrix.getRowDimension() / 2;
@@ -144,9 +145,7 @@ public class APAUtils {
     }
 
 
-
     /**
-     *
      * @param data
      * @return
      */
@@ -170,9 +169,8 @@ public class APAUtils {
     }
 
 
-
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
-                                                            int L, int resolution, int window) {
+                                                  int L, int resolution, int window) {
         int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopX - (window + 1);

@@ -31,17 +31,18 @@ import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.Juicer.*;
 import juicebox.tools.utils.Juicer.APA.APADataStack;
 import juicebox.tools.utils.Juicer.APA.APAUtils;
-import juicebox.track.Feature2D;
+import juicebox.track.Feature.Feature2D;
+import juicebox.track.Feature.Feature2DList;
+import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 /**
  * TODO - once fully debugged, change notation convention from underscore to camelcase (match the rest of the files)
@@ -55,8 +56,8 @@ public class APA extends JuiceboxCLT {
     }
 
     //defaults
-    private double min_peak_dist = 30; // distance between two bins, can be changed in opts
-    private double max_peak_dist = Double.POSITIVE_INFINITY;
+    private double minPeakDist = 30; // distance between two bins, can be changed in opts
+    private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
     int width = 6; //size of boxes
     int peakwidth = 2; //for enrichment calculation of crosshair norm
@@ -76,7 +77,7 @@ public class APA extends JuiceboxCLT {
 
         files = new String[4];
         files[3] = "";
-        System.arraycopy(args, 1, files, 0, args.length-1);
+        System.arraycopy(args, 1, files, 0, args.length - 1);
 
 
         for (String s : files)
@@ -89,10 +90,10 @@ public class APA extends JuiceboxCLT {
         Number[] optionalAPAFlags = parser.getAPAOptions();
 
         if (optionalAPAFlags[0] != null)
-            min_peak_dist = optionalAPAFlags[0].doubleValue();
+            minPeakDist = optionalAPAFlags[0].doubleValue();
 
         if (optionalAPAFlags[1] != null)
-            max_peak_dist = optionalAPAFlags[1].doubleValue();
+            maxPeakDist = optionalAPAFlags[1].doubleValue();
 
         if (optionalAPAFlags[2] != null)
             window = optionalAPAFlags[2].intValue();
@@ -108,7 +109,7 @@ public class APA extends JuiceboxCLT {
         //Calculate parameters that will need later
         int L = 2 * window + 1;
         Integer[] gwPeakNumbers = new Integer[3];
-        for(int i = 0; i < gwPeakNumbers.length; i++)
+        for (int i = 0; i < gwPeakNumbers.length; i++)
             gwPeakNumbers[i] = 0;
 
         try {
@@ -122,31 +123,29 @@ public class APA extends JuiceboxCLT {
             resolution = zoom.getBinSize();
 
 
-
             List<Chromosome> chromosomes = ds.getChromosomes();
-            LoopContainer loopContainer = LoopListParser.parseList(files[1], chromosomes,
-                    min_peak_dist, max_peak_dist, resolution);
-            Set<Chromosome> commonChromosomes = loopContainer.getCommonChromosomes(chromosomes);
 
-            // Loop through chromosomes
-            // TODO this should be rewritten to use chrIdx/Name instead of the whole chromosome
-            // TODO the arraylists and maps don't need the entire chr class, just a unique identifier
-            for (Chromosome chr : commonChromosomes) {
+            Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
+                    true, minPeakDist, maxPeakDist, resolution);
+
+            for (Chromosome chr : chromosomes) {
                 APADataStack apaDataStack = new APADataStack(L, files[2], files[3]);
 
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
+
                 Matrix matrix = ds.getMatrix(chr, chr);
                 if (matrix == null) continue;
+
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                Set<Feature2D> loops = loopContainer.getUniqueFilteredLoopList(chr);
-                Integer[] peakNumbers = loopContainer.getUniqueFilteredLoopNumbers(chr);
+                List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
+                Integer[] peakNumbers = loopList.getFilterMetrics(chr);
 
-                if(loops.size() != peakNumbers[0])
-                    System.out.println("Error reading stat numbers fro "+chr);
+                if (loops.size() != peakNumbers[0])
+                    System.out.println("Error reading stat numbers fro " + chr);
 
-                for(int i = 0; i < peakNumbers.length; i++){
-                    System.out.println(chr+" "+i + " " + peakNumbers[i]+" "+gwPeakNumbers[i]);
+                for (int i = 0; i < peakNumbers.length; i++) {
+                    System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
                     gwPeakNumbers[i] += peakNumbers[i];
                 }
 
@@ -165,7 +164,6 @@ public class APA extends JuiceboxCLT {
             e.printStackTrace();
             System.exit(-3);
         }
-
 
         APADataStack.exportGenomeWideData(gwPeakNumbers);
 
