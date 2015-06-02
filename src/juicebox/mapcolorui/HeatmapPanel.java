@@ -328,37 +328,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 
 
-                    if(onlyPlotLowerLeft) {
+                    if (onlyPlotLowerLeft) {
                         //loopGraphics.setColor(Color.green);
                         loopGraphics.drawLine(x, y, x, y + w);
                         loopGraphics.drawLine(x, y + w, x + h, y + w);
-                    }
-                    else if(onlyPlotUpperRight){
+                    } else if (onlyPlotUpperRight) {
                         //loopGraphics.setColor(Color.blue);
                         loopGraphics.drawLine(x, y, x + h, y);
                         loopGraphics.drawLine(x + h, y, x + h, y + w);
-                    }
-                    else
-                    {
+                    } else {
                         //loopGraphics.setColor(Color.yellow);
                         loopGraphics.drawRect(x, y, w, h);
                     }
                     //System.out.println(binStart1 + "-" + binEnd1);
                     if (w > 5) {
                         // Thick line if there is room. TODO double check +/- 1
-                        if(onlyPlotLowerLeft){
-                            loopGraphics.drawLine(x+1,y+1,x+1,y+w+1);
-                            loopGraphics.drawLine(x+1,y+w+1,x+h+1,y+w-1);
-                        }
-                        else if(onlyPlotUpperRight){
-                            loopGraphics.drawLine(x+1,y+1,x+h+1,y+1);
-                            loopGraphics.drawLine(x+h+1,y+1,x+h+1,y+w-1);
-                        }
-                        else {
+                        if (onlyPlotLowerLeft) {
+                            loopGraphics.drawLine(x + 1, y + 1, x + 1, y + w + 1);
+                            loopGraphics.drawLine(x + 1, y + w + 1, x + h + 1, y + w - 1);
+                        } else if (onlyPlotUpperRight) {
+                            loopGraphics.drawLine(x + 1, y + 1, x + h + 1, y + 1);
+                            loopGraphics.drawLine(x + h + 1, y + 1, x + h + 1, y + w - 1);
+                        } else {
                             loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
                         }
-                    }
-                    else {
+                    } else {
                         loopGraphics.drawRect(x - 1, y - 1, w + 2, h + 2);
                     }
 
@@ -366,7 +360,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
 
                     feature.getClass();
-
 
 
                     // TODO is there a reason for checking bounds and not just filtering by loop vs domain
@@ -670,7 +663,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
 
         if (hic != null) {
-        //    menu.add(mi2);
+            //    menu.add(mi2);
             menu.add(mi3);
             mi4.setSelected(hic.isLinkedMode());
             menu.add(mi4);
@@ -1195,6 +1188,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
+            } else {
+                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }
         }
 
@@ -1371,7 +1366,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                    hic.setSelectedBin(new Point(binX, binY));
 //                    repaint();
 
-               // }
+                // }
             }
         }
 
