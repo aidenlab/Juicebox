@@ -162,7 +162,7 @@ public class GPUOutputContainer {
         }
     }
 
-    public List<HiCCUPSPeak> extractPeaks(int w1, int w2, int rowOffset, int columnOffset, int resolution) {
+    public List<HiCCUPSPeak> extractPeaks(String chrName, int w1, int w2, int rowOffset, int columnOffset, int resolution) {
 
         List<HiCCUPSPeak> peaks = new ArrayList<HiCCUPSPeak>();
 
@@ -179,24 +179,40 @@ public class GPUOutputContainer {
                 float expectedDonutVal = expectedDonut[i][j];
                 float expectedHVal = expectedH[i][j];
                 float expectedVVal = expectedV[i][j];
-                float binBLVal = expectedBL[i][j];
-                float binDonutVal = expectedDonut[i][j];
-                float binHVal = expectedH[i][j];
-                float binVVal = expectedV[i][j];
+                float binBLVal = binBL[i][j];
+                float binDonutVal = binDonut[i][j];
+                float binHVal = binH[i][j];
+                float binVVal = binV[i][j];
 
                 int rowPos = (i + rowOffset)*resolution;
                 int colPos = (j + columnOffset)*resolution;
 
-                if(observedVal < w2 && binBLVal < w1 && binDonutVal < w1 && binHVal < w1 && binVVal < w1) {
+                if(!(Float.isNaN(observedVal) ||
+                        Float.isNaN(expectedBLVal) || Float.isNaN(expectedDonutVal) || Float.isNaN(expectedHVal) || Float.isNaN(expectedVVal) ||
+                        Float.isNaN(binBLVal) || Float.isNaN(binDonutVal) || Float.isNaN(binHVal) || Float.isNaN(binVVal) )) {
+                    if (observedVal < w2 && binBLVal < w1 && binDonutVal < w1 && binHVal < w1 && binVVal < w1) {
 
-                    peaks.add(new HiCCUPSPeak(observedVal, peakVal, rowPos, colPos,
-                            expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
-                            binBLVal, binDonutVal, binHVal, binVVal));
+                        peaks.add(new HiCCUPSPeak(chrName, observedVal, peakVal, rowPos, colPos,
+                                expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
+                                binBLVal, binDonutVal, binHVal, binVVal));
+                    }
                 }
-
             }
         }
 
         return peaks;
+    }
+
+    @Override
+    public String toString(){
+
+        for(float[] row : observed){
+            for(float entry : row){
+                System.out.print(" "+entry);
+            }
+            System.out.print("\n");
+        }
+
+        return "";
     }
 }

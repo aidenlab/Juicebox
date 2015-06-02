@@ -29,6 +29,7 @@ import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
 import jcuda.driver.JCudaDriver;
 import jcuda.utils.KernelLauncher;
+import juicebox.tools.utils.Common.MatrixTools;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -46,7 +47,11 @@ public class GPUHelper {
         return dOutput;
     }
 
-    public static CUdeviceptr allocateInput(Pointer ptr, int size, int typeSize){
+    //public static CUdeviceptr allocateInput(Pointer ptr, int size, int typeSize){
+    public static CUdeviceptr allocateInput(float[] input){
+        int typeSize = Sizeof.FLOAT;
+        Pointer ptr = Pointer.to(input);
+        int size = input.length;
         CUdeviceptr dInput = new CUdeviceptr();
         cuMemAlloc(dInput, size * Sizeof.FLOAT);
         cuMemcpyHtoD(dInput, ptr, size * typeSize);
@@ -57,6 +62,12 @@ public class GPUHelper {
         for(CUdeviceptr pointer : pointers){
             cuMemFree(pointer);
         }
+    }
+
+    public static float[][] GPUArraytoCPUMatrix(float[] result, int n, int x1, int x2, int y1, int y2) {
+        return MatrixTools.extractLocalMatrixRegion(
+                MatrixTools.reshapeFlatMatrix(result, n)
+                , x1, x2, y1, y2);
     }
 }
 

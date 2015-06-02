@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.Juicer.HiCCUPS.GPUTesting;
 
 import java.io.IOException;
 
@@ -50,7 +51,7 @@ public class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/156_peaks"};
 
         String[] l3 = {"hiccups",
-                "-r","5000",
+                "-r","50000",
                 "-c","21",
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/GM12878/21_fdr",
@@ -72,6 +73,7 @@ public class AggregateProcessing {
         //HiCTools.main(l5);
         //HiCTools.main(l6);
         HiCTools.main(l3);
+        //GPUTesting.test();
 
 
     }

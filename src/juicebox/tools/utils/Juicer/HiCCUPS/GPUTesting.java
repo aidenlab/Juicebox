@@ -69,23 +69,11 @@ public class GPUTesting {
         // data to the device
         System.out.println("Initializing device memory...");
 
-        CUdeviceptr dResult = new CUdeviceptr();
-        cuMemAlloc(dResult, size * Sizeof.FLOAT);
+        CUdeviceptr dResult = GPUHelper.allocateOutput(size, Sizeof.FLOAT);
+        CUdeviceptr dA = GPUHelper.allocateInput(a);
+        CUdeviceptr dB = GPUHelper.allocateInput(b);
 
-
-
-        CUdeviceptr dA = new CUdeviceptr();
-        cuMemAlloc(dA, size * Sizeof.FLOAT);
-        cuMemcpyHtoD(dA, Pointer.to(a), size * Sizeof.FLOAT);
-
-        CUdeviceptr dB = new CUdeviceptr();
-        cuMemAlloc(dB, size * Sizeof.FLOAT);
-        cuMemcpyHtoD(dB, Pointer.to(b) , size * Sizeof.FLOAT);
-
-
-        // Call the kernel
         System.out.println("Calling the kernel...");
-
         kernelLauncher.setBlockSize(size, 1, 1);
         kernelLauncher.call(dResult, dA, dB);
 

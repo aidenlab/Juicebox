@@ -42,7 +42,7 @@ public class GPUController {
     private String kernelCode;
     private int blockSize = 16;  //number of threads in block
     private int[] block = new int[]{blockSize, blockSize, 1}; //threads per block = block_size*block_size
-    private int[] grid; // for grid of blocks
+    //private int[] grid; // for grid of blocks
 
     private KernelLauncher kernelLauncher;
 
@@ -52,8 +52,10 @@ public class GPUController {
                 KernelLauncher.compile(kernelCode, GPUKernel.kernelName);
 
         kernelLauncher.setBlockSize(blockSize, blockSize, 1);
+        int gridSize = (matrixSize / blockSize) + 1;
+        kernelLauncher.setGridSize(gridSize, gridSize);
 
-        grid = new int[]{(matrixSize / blockSize) + 1, (matrixSize / blockSize) + 1};
+        //grid = new int[]{, (matrixSize / blockSize) + 1};
     }
 
     public GPUOutputContainer process(MatrixZoomData zd, NormalizationVector krNormalizationVector, double[] expectedKRVector,
@@ -82,17 +84,19 @@ public class GPUController {
 
         long gpu_time1 = System.currentTimeMillis();
 
+
+
         // transfer host (CPU) memory to device (GPU) memory
-        CUdeviceptr observedKRGPU = GPUHelper.allocateInput(Pointer.to(observedVals), observedVals.length, Sizeof.FLOAT);
-        CUdeviceptr expectedKRVectorGPU = GPUHelper.allocateInput(Pointer.to(distanceExpectedKRVector), distanceExpectedKRVector.length, Sizeof.FLOAT);
-        CUdeviceptr kr1GPU = GPUHelper.allocateInput(Pointer.to(kr1CPU), kr1CPU.length, Sizeof.FLOAT);
-        CUdeviceptr kr2GPU = GPUHelper.allocateInput(Pointer.to(kr2CPU), kr2CPU.length, Sizeof.FLOAT);
-        CUdeviceptr thresholdBLGPU = GPUHelper.allocateInput(Pointer.to(thresholdBL), thresholdBL.length, Sizeof.FLOAT);
-        CUdeviceptr thresholdDonutGPU = GPUHelper.allocateInput(Pointer.to(thresholdDonut), thresholdDonut.length, Sizeof.FLOAT);
-        CUdeviceptr thresholdHGPU = GPUHelper.allocateInput(Pointer.to(thresholdH), thresholdH.length, Sizeof.FLOAT);
-        CUdeviceptr thresholdVGPU = GPUHelper.allocateInput(Pointer.to(thresholdV), thresholdV.length, Sizeof.FLOAT);
-        CUdeviceptr boundRowIndexGPU = GPUHelper.allocateInput(Pointer.to(boundRowIndex), boundRowIndex.length, Sizeof.FLOAT);
-        CUdeviceptr boundColumnIndexGPU = GPUHelper.allocateInput(Pointer.to(boundColumnIndex), boundColumnIndex.length, Sizeof.FLOAT);
+        CUdeviceptr observedKRGPU = GPUHelper.allocateInput(observedVals);
+        CUdeviceptr expectedKRVectorGPU = GPUHelper.allocateInput(distanceExpectedKRVector);
+        CUdeviceptr kr1GPU = GPUHelper.allocateInput(kr1CPU);
+        CUdeviceptr kr2GPU = GPUHelper.allocateInput(kr2CPU);
+        CUdeviceptr thresholdBLGPU = GPUHelper.allocateInput(thresholdBL);
+        CUdeviceptr thresholdDonutGPU = GPUHelper.allocateInput(thresholdDonut);
+        CUdeviceptr thresholdHGPU = GPUHelper.allocateInput(thresholdH);
+        CUdeviceptr thresholdVGPU = GPUHelper.allocateInput(thresholdV);
+        CUdeviceptr boundRowIndexGPU = GPUHelper.allocateInput(boundRowIndex);
+        CUdeviceptr boundColumnIndexGPU = GPUHelper.allocateInput(boundColumnIndex);
 
         // create empty gpu arrays for the results
         int flattenedSize = matrixSize * matrixSize;
@@ -108,6 +112,7 @@ public class GPUController {
         CUdeviceptr peakGPU = GPUHelper.allocateOutput(flattenedSize, Sizeof.FLOAT);
 
         // call the kernel on the card
+
         kernelLauncher.call(
                 // inputs
                 observedKRGPU,
@@ -148,6 +153,7 @@ public class GPUController {
         float[] observedResult = new float[flattenedSize];
         float[] peakResult = new float[flattenedSize];
 
+
         cuMemcpyDtoH(Pointer.to(expectedBLResult), expectedBLGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(expectedDonutResult), expectedDonutGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(expectedHResult), expectedHGPU, flattenedSize * Sizeof.FLOAT);
@@ -160,6 +166,9 @@ public class GPUController {
         cuMemcpyDtoH(Pointer.to(peakResult), peakGPU, flattenedSize * Sizeof.FLOAT);
 
 
+
+
+
         long gpu_time2 = System.currentTimeMillis();
 
         //System.out.println("GPU Time: " + (gpu_time2-gpu_time1));
@@ -168,23 +177,50 @@ public class GPUController {
         int x1 = rowBounds[2], x2 = matrixSize - rowBounds[3];
         int y1 = columnBounds[2], y2 = matrixSize - columnBounds[3];
 
-        float[][] observedDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(observedResult, matrixSize), x1, x2, y1, y2);
-        float[][] peakDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(peakResult, matrixSize), x1, x2, y1, y2);
-        float[][] binBLDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(binBLResult, matrixSize), x1, x2, y1, y2);
-        float[][] binDonutDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(binDonutResult, matrixSize), x1, x2, y1, y2);
-        float[][] binHDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(binHResult, matrixSize), x1, x2, y1, y2);
-        float[][] binVDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(binVResult, matrixSize), x1, x2, y1, y2);
-        float[][] expectedBLDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(expectedBLResult, matrixSize), x1, x2, y1, y2);
-        float[][] expectedDonutDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(expectedDonutResult, matrixSize), x1, x2, y1, y2);
-        float[][] expectedHDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(expectedHResult, matrixSize), x1, x2, y1, y2);
-        float[][] expectedVDenseCPU = MatrixTools.extractLocalMatrixRegion(MatrixTools.reshapeFlatMatrix(expectedVResult, matrixSize), x1, x2, y1, y2);
+        //System.out.println("flat = "+flattenedSize+" n = "+matrixSize+" x1 = "+x1+" x2 = "+x2+" y1 = "+y1+" y2 ="+y2);
+
+        float[][] observedDenseCPU = GPUHelper.GPUArraytoCPUMatrix(observedResult, matrixSize, x1, x2, y1, y2);
+        float[][] peakDenseCPU = GPUHelper.GPUArraytoCPUMatrix(peakResult, matrixSize, x1, x2, y1, y2);
+        float[][] binBLDenseCPU = GPUHelper.GPUArraytoCPUMatrix(binBLResult, matrixSize, x1, x2, y1, y2);
+        float[][] binDonutDenseCPU = GPUHelper.GPUArraytoCPUMatrix(binDonutResult, matrixSize, x1, x2, y1, y2);
+        float[][] binHDenseCPU = GPUHelper.GPUArraytoCPUMatrix(binHResult, matrixSize, x1, x2, y1, y2);
+        float[][] binVDenseCPU = GPUHelper.GPUArraytoCPUMatrix(binVResult, matrixSize, x1, x2, y1, y2);
+        float[][] expectedBLDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedBLResult, matrixSize, x1, x2, y1, y2);
+        float[][] expectedDonutDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedDonutResult, matrixSize, x1, x2, y1, y2);
+        float[][] expectedHDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedHResult, matrixSize, x1, x2, y1, y2);
+        float[][] expectedVDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedVResult, matrixSize, x1, x2, y1, y2);
+
+
+        //MatrixTools.extractLocalMatrixRegion(, x1, x2, y1, y2);
+        //float[][] temp12 = MatrixTools.reshapeFlatMatrix(observedResult, matrixSize);
+
+
+        /** testing **/
+        //dumpToFile(expectedBLResult, "expectedBLResult+"+)
+        /*System.out.println("diag observedResult = ");
+        int tempI = (int)Math.sqrt(flattenedSize);
+        for(int i = 0; i < flattenedSize; i+= 1+ tempI){
+            System.out.print(observedResult[i]+" ");
+        }
+        System.out.println("");
+
+        System.out.println("diag2 observedDenseCPU = ");
+        tempI = Math.min(observedDenseCPU.length,observedDenseCPU[0].length);
+        for(int i = 0; i < tempI; i++){
+            System.out.print(observedDenseCPU[i][i]+" ");
+        }
+        System.out.println("");
+        */
+
 
 
         // free up GPU inputs and outputs
-        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedKRVectorGPU, kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU,
-                thresholdHGPU, thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU});
-        GPUHelper.freeUpMemory(new CUdeviceptr[]{expectedBLGPU, expectedDonutGPU, expectedHGPU, expectedVGPU,
-                binBLGPU, binDonutGPU, binHGPU, binVGPU, observedGPU, peakGPU});
+        GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedKRVectorGPU,
+                kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
+                thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU});
+        GPUHelper.freeUpMemory(new CUdeviceptr[]{expectedBLGPU, expectedDonutGPU,
+                expectedHGPU, expectedVGPU, binBLGPU, binDonutGPU, binHGPU, binVGPU,
+                observedGPU, peakGPU});
 
         return new GPUOutputContainer(observedDenseCPU, peakDenseCPU,
                 binBLDenseCPU, binDonutDenseCPU, binHDenseCPU, binVDenseCPU,
