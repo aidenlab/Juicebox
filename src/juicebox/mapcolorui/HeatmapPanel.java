@@ -344,7 +344,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         // Thick line if there is room. TODO double check +/- 1
                         if (onlyPlotLowerLeft) {
                             loopGraphics.drawLine(x + 1, y + 1, x + 1, y + w + 1);
-                            loopGraphics.drawLine(x + 1, y + w + 1, x + h + 1, y + w - 1);
+                            loopGraphics.drawLine(x + 1, y + w + 1, x + h + 1, y + w + 1);
                         } else if (onlyPlotUpperRight) {
                             loopGraphics.drawLine(x + 1, y + 1, x + h + 1, y + 1);
                             loopGraphics.drawLine(x + h + 1, y + 1, x + h + 1, y + w - 1);
