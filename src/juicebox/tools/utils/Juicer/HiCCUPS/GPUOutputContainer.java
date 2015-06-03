@@ -25,6 +25,7 @@
 package juicebox.tools.utils.Juicer.HiCCUPS;
 
 import juicebox.tools.utils.Common.ArrayTools;
+import juicebox.track.Feature.Feature2DList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -162,9 +163,10 @@ public class GPUOutputContainer {
         }
     }
 
-    public List<HiCCUPSPeak> extractPeaks(String chrName, int w1, int w2, int rowOffset, int columnOffset, int resolution) {
+    public Feature2DList extractPeaks(int chrIndex, String chrName, int w1, int w2,
+                                      int rowOffset, int columnOffset, int resolution) {
 
-        List<HiCCUPSPeak> peaks = new ArrayList<HiCCUPSPeak>();
+        Feature2DList peaks = new Feature2DList();
 
         for (int i = 0; i < numRows; i ++){
             for (int j = 0; j < numColumns; j++){
@@ -192,8 +194,8 @@ public class GPUOutputContainer {
                         Float.isNaN(binBLVal) || Float.isNaN(binDonutVal) || Float.isNaN(binHVal) || Float.isNaN(binVVal) )) {
                     if (observedVal < w2 && binBLVal < w1 && binDonutVal < w1 && binHVal < w1 && binVVal < w1) {
 
-                        peaks.add(new HiCCUPSPeak(chrName, observedVal, peakVal, rowPos, colPos,
-                                expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
+                        peaks.add(chrIndex, chrIndex, HiCCUPSUtils.generatePeak(chrName, observedVal, peakVal,
+                                rowPos, colPos, expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
                                 binBLVal, binDonutVal, binHVal, binVVal));
                     }
                 }
@@ -201,18 +203,5 @@ public class GPUOutputContainer {
         }
 
         return peaks;
-    }
-
-    @Override
-    public String toString(){
-
-        for(float[] row : observed){
-            for(float entry : row){
-                System.out.print(" "+entry);
-            }
-            System.out.print("\n");
-        }
-
-        return "";
     }
 }

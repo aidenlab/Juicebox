@@ -31,7 +31,7 @@ import juicebox.tools.utils.Common.ArrayTools;
 import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.tools.utils.Juicer.HiCCUPS.GPUController;
 import juicebox.tools.utils.Juicer.HiCCUPS.GPUOutputContainer;
-import juicebox.tools.utils.Juicer.HiCCUPS.HiCCUPSPeak;
+import juicebox.track.Feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -155,9 +155,7 @@ public class HiCCUPS extends JuiceboxCLT {
         long begin_time = System.currentTimeMillis();
         int resolution = zoom.getBinSize();
 
-        // take in input sheet
         PrintWriter outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + resolution);
-        PrintWriter outputEnriched = HiCFileTools.openWriter(outputEnrichedFileName + "_" + resolution);
 
         // Loop through chromosomes
         int[][] histBL = new int[w1][w2];
@@ -176,6 +174,8 @@ public class HiCCUPS extends JuiceboxCLT {
         float[] boundColumnIndex = new float[1];
 
         GPUController gpuController = new GPUController(window, matrixSize, peakWidth, divisor());
+
+        Feature2DList globalList = new Feature2DList();
 
         for (int runNum : new int[]{0, 1}) {
             for (Chromosome chromosome : commonChromosomes) {
@@ -226,14 +226,11 @@ public class HiCCUPS extends JuiceboxCLT {
                             gpuOutputs.cleanUpPeakNaNs();
                             gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
 
-                            List<HiCCUPSPeak> peaksList = gpuOutputs.extractPeaks(chromosome.getName(),
+                            Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
                                     w1, w2, rowBounds[4], columnBounds[4], resolution);
+                            peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
 
-                            for(HiCCUPSPeak peak : peaksList){
-                                //System.out.println("Potential Peak "+peak);
-                                peak.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-                                outputEnriched.println(peak);
-                            }
+                            globalList.add(peaksList);
                         }
                     }
                 }
@@ -268,8 +265,9 @@ public class HiCCUPS extends JuiceboxCLT {
         long final_time = System.currentTimeMillis();
         System.out.println("Total time: " + (final_time - begin_time));
 
+        globalList.exportFeatureList(outputEnrichedFileName + "_" + resolution);
+
         outputFDR.close();
-        outputEnriched.close();
     }
 
 

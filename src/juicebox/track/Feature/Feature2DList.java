@@ -25,10 +25,13 @@
 package juicebox.track.Feature;
 
 import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.Juicer.HiCCUPS.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
+import java.awt.*;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.List;
 
 /**
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
@@ -246,6 +249,75 @@ public class Feature2DList {
             }
         }
         return null;
+    }
+
+    /*
+     * Set color for the features
+     * @param color
+     */
+    public void setColor(Color color){
+        for (String key : featureList.keySet()) {
+            for (Feature2D feature : featureList.get(key)) {
+                feature.setColor(color);
+            }
+        }
+    }
+
+    /**
+     * Calculate FDR values for all peaks
+     * @param fdrLogBL
+     * @param fdrLogDonut
+     * @param fdrLogH
+     * @param fdrLogV
+     */
+    public void calculateFDR(float[][] fdrLogBL, float[][] fdrLogDonut, float[][] fdrLogH, float[][] fdrLogV) {
+        for (String key : featureList.keySet()) {
+            for (Feature2D feature : featureList.get(key)) {
+                HiCCUPSUtils.calculateFDR(feature, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+            }
+        }
+    }
+
+    /**
+     * Adds features to appropriate chromosome pair list;
+     * key stored so that first chromosome always less than second
+     *
+     * @param inputList
+     * @return
+     */
+    public void add(Feature2DList inputList) {
+
+        Set<String> inputKeySet = inputList.getKeySet();
+
+        for(String inputKey : inputKeySet){
+            List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
+
+            List<Feature2D> features = featureList.get(inputKey);
+            if (features == null) {
+                features = new ArrayList<Feature2D>();
+                features.addAll(inputFeatures);
+                featureList.put(inputKey, features);
+            } else {
+                features.addAll(inputFeatures);
+            }
+        }
+    }
+
+    /**
+     * Get all keys (chromosome pairs) for hashmap
+     * @return keySet
+     */
+    private Set<String> getKeySet() {
+        return featureList.keySet();
+    }
+
+    /**
+     * Get feature list corresponding to key (chromosome pair)
+     * @param key
+     * @return
+     */
+    private List<Feature2D> getFeatureList(String key){
+        return featureList.get(key);
     }
 
 }

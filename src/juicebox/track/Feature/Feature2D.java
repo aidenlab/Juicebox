@@ -55,8 +55,8 @@ public class Feature2D {
     private final String chr2;
     private final int start2;
     private final int end2;
-    private final Color color;
-    private final Map<String, String> attributes;
+    private Color color;
+    private Map<String, String> attributes;
     private final String featureName;
 
 
@@ -107,9 +107,15 @@ public class Feature2D {
         return start + (end - start)/2;
     }
 
+    public void setColor(Color color){
+        this.color = color;
+    }
+
     public Color getColor() {
         return color;
     }
+
+
 
 
     private static final String[] categories = new String[] {"observed", "coordinate","enriched","expected", "fdr"};
@@ -233,5 +239,13 @@ public class Feature2D {
         }
 
         return output;
+    }
+
+    public float getFloatAttribute(String key) {
+        return Float.parseFloat(attributes.get(key));
+    }
+
+    public void addFeature(String key, String value) {
+        attributes.put(key, value);
     }
 }
