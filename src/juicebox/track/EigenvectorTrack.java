@@ -168,6 +168,7 @@ public class EigenvectorTrack extends HiCTrack {
             } else {
                 drawRotatedString(g2d, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
             }
+            //***TODO center the "Eigenvector" label************
             g2d.setFont(original);
             return;  // No data available
 

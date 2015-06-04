@@ -24,23 +24,21 @@
 
 package juicebox.windowui;
 
+import com.jidesoft.swing.JideBoxLayout;
 import juicebox.MainWindow;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+//import javax.swing.tree.TreeNode;
+
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
@@ -50,12 +48,15 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JTree tree;
     private JButton cancelButton;
     private JSplitButton openButton;
-    //private JSplitButton localButton;
     private JButton localButton;
     private JMenuItem openURL;
     private JMenuItem open30;
+    private JTextField fTextField;
 
     private static boolean actionLock = false;
+
+    private final ArrayList<DefaultMutableTreeNode> tempNodes = new ArrayList<DefaultMutableTreeNode>();
+    private final ArrayList<DefaultMutableTreeNode> treeNames = new ArrayList<DefaultMutableTreeNode>();
 
     private boolean control;
 
@@ -65,8 +66,9 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         this.mainWindow = mainWindow;
 
         //Create the nodes.
-        DefaultMutableTreeNode top =
+        final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
+
         if (properties != null) {
             if (!createNodes(top, properties)) {
                 dispose();
@@ -98,23 +100,20 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                     }
                 }
             });
-
             //Create the scroll pane and add the tree to it.
             JScrollPane treeView = new JScrollPane(tree);
             treeView.setPreferredSize(new Dimension(400, 400));
             JPanel centerPanel = new JPanel(new BorderLayout());
             centerPanel.add(treeView, BorderLayout.CENTER);
             add(centerPanel, BorderLayout.CENTER);
-        }
-        else {
+        } else {
             JLabel label = new JLabel("Can't find properties file; no online maps to load");
             label.setHorizontalAlignment(JLabel.CENTER);
-            JPanel panel=new JPanel(new BorderLayout());
+            JPanel panel = new JPanel(new BorderLayout());
             panel.add(label, BorderLayout.CENTER);
             add(panel, BorderLayout.CENTER);
         }
         JPanel buttonPanel = new JPanel();
-
         openButton = new JSplitButton("Open MAPQ > 0");
         openButton.addActionListener(this);
         openButton.setEnabled(false);
@@ -131,27 +130,79 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         localButton.addActionListener(this);
         localButton.setPreferredSize(new Dimension((int) localButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
-        /*JPopupMenu popupMenu1 = new JPopupMenu("Popup1");
-        openURL = new JMenuItem("Load URL...");
-        openURL.addActionListener(this);
-        popupMenu1.add(openURL);
-        localButton.setComponentPopupMenu(popupMenu1);
-          */
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(this);
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
         buttonPanel.add(openButton);
         buttonPanel.add(localButton);
-
         buttonPanel.add(cancelButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
-        Dimension minimumSize = new Dimension(400, 400);
+        Dimension minimumSize = new Dimension(500, 400);
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
         success = true;
+
+        JLabel fLabel = new JLabel();
+        fTextField = new JTextField();
+        fLabel.setText("Filter:");
+        fTextField.setToolTipText("Case Sensitive Search");
+        fTextField.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
+        buttonPanel.add(fLabel, JideBoxLayout.FIX);
+        buttonPanel.add(fTextField, JideBoxLayout.VARY);
+
+        //*********************SEARCH FILTER*******************************
+
+        fTextField.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                collapseAll(tree);
+                    Enumeration en = top.preorderEnumeration();
+                if (!fTextField.getText().isEmpty()) {
+                    recolorSearchStrings(); //Coloring text that matches input
+                    while (en.hasMoreElements()) {
+                        Object leaf = en.nextElement();
+                        String str = leaf.toString();
+                        if (str.toLowerCase().contains(fTextField.getText().toLowerCase())) {
+                            makeFilteredTree(leaf);
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    private void makeFilteredTree(Object obj) {
+        DefaultMutableTreeNode dNode = (DefaultMutableTreeNode)obj;
+        if (dNode != null) {
+                    tree.setExpandsSelectedPaths(true);
+                    TreePath path = new TreePath(dNode.getPath());
+                    tree.scrollPathToVisible(path);
+                    //Overriding in order to change text color to red
+                }
+    }
+
+    private void recolorSearchStrings(){
+        tree.setCellRenderer(new DefaultTreeCellRenderer() {
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree,
+                                                          Object value, boolean sel, boolean expanded, boolean leaf,
+                                                          int row, boolean hasFocus) {
+
+                String searchInput = fTextField.getText();
+                String text = value.toString();
+
+                StringBuffer html = new StringBuffer("<html>");
+                Matcher m = Pattern.compile(Pattern.quote(searchInput)).matcher(text);
+                while (m.find())
+                    m.appendReplacement(html, "<font color = #ff0000 >" + m.group() + "</font>");
+                m.appendTail(html).append("</html>");
+                return super.getTreeCellRendererComponent(
+                        tree, html.toString(), sel, expanded, leaf, row, hasFocus);
+            }
+        });
     }
 
     public void setControl(boolean control) {
@@ -162,12 +213,28 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         return success;
     }
 
+    public static TreePath getPath(TreeNode treeNode) {
+        List<Object> nodes = new ArrayList<Object>();
+        if (treeNode != null) {
+            nodes.add(treeNode);
+            treeNode = treeNode.getParent();
+            while (treeNode != null) {
+                nodes.add(0, treeNode);
+                treeNode = treeNode.getParent();
+            }
+        }
+
+        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
     private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
         // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
         // TreeSet is sorted, so properties file is implemented in order
         TreeSet<String> keys = new TreeSet<String>(properties.stringPropertyNames());
         HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<String, DefaultMutableTreeNode>();
         hashMap.put(((ItemInfo) top.getUserObject()).uid, top);
+        //HashMap<String, DefaultMutableTreeNode> tempHash = new HashMap<String, DefaultMutableTreeNode>();
+        //tempHash.put(((ItemInfo) top.getUserObject()).uid, top);
 
         for (String key : keys) {
             String value = properties.getProperty(key);
@@ -280,6 +347,14 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         //code to add a recent file to the menu
         mainWindow.getRecentMapMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
         mainWindow.safeLoad(urls, control, title);
+    }
+
+    public void collapseAll(JTree tree) {
+        int row = tree.getRowCount() - 1;
+        while (row >= 0) {
+            tree.collapseRow(row);
+            row--;
+        }
     }
 
 
