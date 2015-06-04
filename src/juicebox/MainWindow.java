@@ -84,7 +84,7 @@ public class MainWindow extends JFrame {
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    private static String currentlyLoadedFile = "";
+    private static String currentlyLoadedFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -372,10 +372,16 @@ public class MainWindow extends JFrame {
 
     private void unsafeload(final List<String> files, final boolean control) throws IOException {
 
-        String file = files.get(0);
+        String newFilesToBeLoaded = "";
+        boolean allFilesAreHiC = true;
+        for(String file : files){
+            newFilesToBeLoaded += file;
+            allFilesAreHiC &= file.endsWith(".hic");
+        }
 
-        if (file.equals(currentlyLoadedFile)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
+
+        if (newFilesToBeLoaded.equals(currentlyLoadedFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
         }
 
@@ -385,7 +391,7 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
-        if (file.endsWith("hic")) {
+        if (allFilesAreHiC) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
             Dataset dataset;
@@ -475,12 +481,11 @@ public class MainWindow extends JFrame {
             goPanel.setEnabled(true);
 
             if (!control) {
-                currentlyLoadedFile = file;
+                currentlyLoadedFiles = newFilesToBeLoaded;
             }
             //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
-
         }
     }
 
