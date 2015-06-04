@@ -53,6 +53,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -76,6 +77,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
     private final HeatmapRenderer renderer;
     private Rectangle zoomRectangle;
+    private Rectangle annotateRectangle;
+    private boolean isRegion;
     /**
      * Chromosome boundaries in kbases for whole genome view.
      */
@@ -83,6 +86,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean straightEdgeEnabled = false;
 
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
+        isRegion = false;
         this.mainWindow = mainWindow;
         this.hic = hic;
         renderer = new HeatmapRenderer(mainWindow, hic);
@@ -295,7 +299,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Render loops
             drawnLoopFeatures.clear();
 
+            //ever null?
             List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+            //zero or more
+            List<Feature2D> customLoops = mainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+            if (loops == null){
+                loops = customLoops;
+            } else {
+                System.out.println("hic visible loops:" + loops.toString());
+                System.out.println("custom loops: " + customLoops.toString());
+                loops.addAll(customLoops);
+                System.out.println("combined: " + loops.toString());
+            }
+
             Graphics2D loopGraphics = (Graphics2D) g.create();
             if (loops != null && loops.size() > 0) {
 
@@ -307,9 +323,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // TODO make these variables accessible as user options
                 // the other day, Erez mentioned his preferred was everything in lower left
                 // can change for future.
-                boolean onlyPlotUpperRight = false,
+                boolean onlyPlotUpperRight = true,
                         onlyPlotLowerLeft = true,
-                        allowUpperRightLoops = false;
+                        allowUpperRightLoops = true;
 
 
                 for (Feature2D feature : loops) {
@@ -388,6 +404,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             if (zoomRectangle != null) {
                 ((Graphics2D) g).draw(zoomRectangle);
+            }
+
+            if (annotateRectangle != null) {
+                ((Graphics2D) g).draw(annotateRectangle);
             }
 
         }
@@ -530,10 +550,98 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return tile;
     }
 
-
     public void clearTileCache() {
         tileCache.clear();
     }
+
+//    //helper for getannotatemenu
+//    private int geneXPos(int x){
+//        final MatrixZoomData zd = hic.getZd();
+//        if (zd == null) return -1;
+//        HiCGridAxis xGridAxis = zd.getXGridAxis();
+//        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+//        return xGridAxis.getGenomicStart(binX) + 1;
+//    }
+//
+//    //helper for getannotatemenu
+//    private int geneYPos(int y){
+//        final MatrixZoomData zd = hic.getZd();
+//        if (zd == null) return -1;
+//        HiCGridAxis yGridAxis = zd.getYGridAxis();
+//        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+//        return yGridAxis.getGenomicStart(binY) + 1;
+//    }
+
+//    JidePopupMenu getAnnotateMenu(){
+//
+//        JidePopupMenu menu = new JidePopupMenu();
+////        //meh!
+////        final int start1 = geneXPos(annotateRectangle.x);
+////        final int start2 = geneYPos(annotateRectangle.y);
+////        final int end1 = geneXPos(annotateRectangle.x + annotateRectangle.height);
+////        final int end2 = geneYPos(annotateRectangle.y + annotateRectangle.width);
+////        final int chr1Idx = hic.getXContext().getChromosome().getIndex();
+////        final int chr2Idx = hic.getYContext().getChromosome().getIndex();
+////        final String chr1 = hic.getXContext().getChromosome().getName();
+////        final String chr2 = hic.getYContext().getChromosome().getName();
+//
+//        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
+//        mi.setSelected(straightEdgeEnabled);
+//        mi.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (mi.isSelected()) {
+//                    straightEdgeEnabled = true;
+//                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+//                } else {
+//                    straightEdgeEnabled = false;
+//                    hic.setCursorPoint(null);
+//                    setCursor(Cursor.getDefaultCursor());
+//                    repaint();
+//                    mainWindow.repaintTrackPanels();
+//                }
+//            }
+//        });
+//
+//        //meh
+//        // Make selected region an annotated peak
+//        final JMenuItem mi2 = new JMenuItem("Annotate Peak");
+//
+//        mi2.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+////                System.out.println("MY STUFF:");
+////                System.out.println("chr1 " + chr1);
+////                System.out.println("start1 " + start1);
+////                System.out.println("end1 " + end1);
+////                System.out.println("chr1Idx " + chr1Idx);
+////                System.out.println("chr2 " + chr2);
+////                System.out.println("start2 " + start2);
+////                System.out.println("end2 " + end2);
+//                Feature2D newFeature = new Feature2D(Feature2D.peak, chr1, start1, end1, chr2, start2, end2,
+//                        java.awt.Color.orange, new HashMap<String,String>());
+//                mainWindow.customAnnotations.add(chr1Idx, chr2Idx, newFeature);
+//            }
+//        });
+//
+//        // Make selected region an annotated contact domain
+//            // Fit by diagonal
+//
+//        // Make selected region a generic feature
+//
+////        public static String peak = "Peak";
+////        public static String domain = "Contact domain";
+////        public static String generic = "Feature";
+//
+//        if (hic != null) {
+//            menu.add(mi);
+//            menu.add(mi2);
+//        }
+//
+//
+//        return menu;
+//
+//    }
 
     JidePopupMenu getPopupMenu() {
 
@@ -677,6 +785,234 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return menu;
 
     }
+
+    //meh
+    private String chr(int x, int y) {
+        // Update popup text
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return "";
+        HiCGridAxis xGridAxis = zd.getXGridAxis();
+        HiCGridAxis yGridAxis = zd.getYGridAxis();
+
+
+        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+
+        int xGenomeStart = xGridAxis.getGenomicStart(binX) + 1; // Conversion from in internal "0" -> 1 base coordinates
+        int yGenomeStart = yGridAxis.getGenomicStart(binY) + 1;
+        int xGenomeEnd = xGridAxis.getGenomicEnd(binX);
+        int yGenomeEnd = yGridAxis.getGenomicEnd(binY);
+
+        if (hic.isWholeGenome()) {
+
+            Chromosome xChrom = null;
+            Chromosome yChrom = null;
+            for (int i = 0; i < chromosomeBoundaries.length; i++) {
+                if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
+                    xChrom = hic.getChromosomes().get(i + 1);
+                }
+                if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
+                    yChrom = hic.getChromosomes().get(i + 1);
+                }
+                if (xChrom != null && yChrom != null) {
+
+                    int leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
+                    int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
+
+
+                    int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
+                    int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
+
+                    String txt = "";
+                    txt += "<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
+                    txt += xChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(xChromPos);
+                    txt += "</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
+                    txt += yChrom.getName();
+                    txt += ":";
+                    txt += String.valueOf(yChromPos);
+                    txt += "</span></html>";
+
+                    if (xChrom.getName().toLowerCase().contains("chr")) {
+                        hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    } else {
+                        hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
+                    }
+                    if (yChrom.getName().toLowerCase().contains("chr")) {
+                        hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    } else {
+                        hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+                    }
+                    return txt;
+
+                }
+            }
+
+        } else {
+
+            //Update Position in hic. Used for clipboard copy:
+            if (hic.getXContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setXPosition(hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            } else {
+                hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
+            }
+            if (hic.getYContext().getChromosome().getName().toLowerCase().contains("chr")) {
+                hic.setYPosition(hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            } else {
+                hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
+            }
+
+            //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
+            //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
+            StringBuilder txt = new StringBuilder();
+
+            txt.append("<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
+            txt.append(hic.getXContext().getChromosome().getName());
+            txt.append(":");
+            txt.append(formatter.format(xGenomeStart));
+            txt.append("-");
+            txt.append(formatter.format(xGenomeEnd));
+
+            if (xGridAxis instanceof HiCFragmentAxis) {
+                String fragNumbers;
+                int binSize = zd.getZoom().getBinSize();
+                if (binSize == 1) {
+                    fragNumbers = formatter.format(binX);
+                } else {
+                    int leftFragment = binX * binSize;
+                    int rightFragment = ((binX + 1) * binSize) - 1;
+                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
+                }
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(xGenomeEnd - xGenomeStart));
+                txt.append(")");
+            }
+
+            txt.append("</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
+            txt.append(hic.getYContext().getChromosome().getName());
+            txt.append(":");
+            txt.append(formatter.format(yGenomeStart));
+            txt.append("-");
+            txt.append(formatter.format(yGenomeEnd));
+
+            if (yGridAxis instanceof HiCFragmentAxis) {
+                String fragNumbers;
+                int binSize = zd.getZoom().getBinSize();
+                if (binSize == 1) {
+                    fragNumbers = formatter.format(binY);
+                } else {
+                    int leftFragment = binY * binSize;
+                    int rightFragment = ((binY + 1) * binSize) - 1;
+                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
+                }
+                txt.append("  (");
+                txt.append(fragNumbers);
+                txt.append("  len=");
+                txt.append(formatter.format(yGenomeEnd - yGenomeStart));
+                txt.append(")");
+            }
+            txt.append("</span><span style='font-family: arial; font-size: 12pt;'>");
+
+            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+                float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
+                if (!Float.isNaN(value)) {
+
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("value = ");
+                    txt.append(value);
+                    txt.append("</span>");
+
+                }
+            } else {
+                float value = hic.getNormalizedObservedValue(binX, binY);
+                if (!Float.isNaN(value)) {
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("observed value = ");
+                    txt.append(getFloatString(value));
+                    txt.append("</span>");
+                }
+
+                int c1 = hic.getXContext().getChromosome().getIndex();
+                int c2 = hic.getYContext().getChromosome().getIndex();
+                double ev = 0;
+                if (c1 == c2) {
+                    ExpectedValueFunction df = hic.getExpectedValues();
+                    if (df != null) {
+                        int distance = Math.abs(binX - binY);
+                        ev = df.getExpectedValue(c1, distance);
+                    }
+                } else {
+                    ev = zd.getAverageCount();
+                }
+
+                String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
+                txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                txt.append("expected value = ");
+                txt.append(evString);
+                txt.append("</span>");
+                if (ev > 0 && !Float.isNaN(value)) {
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("O/E            = ");
+                    txt.append(formatter.format(value / ev));
+                    txt.append("</span>");
+                } else {
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("O/E            = NaN");
+                    txt.append("</span>");
+                }
+
+                MatrixZoomData controlZD = hic.getControlZd();
+                if (controlZD != null) {
+                    float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
+                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("control value = ");
+                    txt.append(getFloatString(controlValue));
+                    txt.append("</span>");
+
+                    double obsValue = (value / zd.getAverageCount());
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("observed/average = ");
+                    txt.append(getFloatString((float) obsValue));
+                    txt.append("</span>");
+
+                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("control/average = ");
+                    txt.append(getFloatString((float) ctlValue));
+                    txt.append("</span>");
+
+                    if (value > 0 && controlValue > 0) {
+                        double ratio = obsValue / ctlValue;
+                        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append("O'/C' = ");
+                        txt.append(getFloatString((float) ratio));
+                        txt.append("</span>");
+                    }
+
+                }
+
+
+            }
+
+            for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
+                if (loop.getFirst().contains(x, y)) {
+                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append(loop.getSecond().tooltipText());
+                    txt.append("</span>");
+
+                }
+            }
+
+            txt.append("</html>");
+            return txt.toString();
+        }
+
+        return null;
+    }
+    //meh
 
     private String toolTipText(int x, int y) {
         // Update popup text
@@ -1100,7 +1436,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return valueString;
     }
 
-    enum DragMode {NONE, PAN, ZOOM, SELECT}
+    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE}
 
 
 //    @Override
@@ -1154,10 +1490,30 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 return;
             }
 
+            // Priority is right click
             if (e.isPopupTrigger()) {
                 getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+            // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
+            //meh
+            } else if (e.isShiftDown()){
+                dragMode = DragMode.ANNOTATE;
+                mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
+                mainWindow.customAnnotationHandler.doPeak();
+
+                //
+                straightEdgeEnabled = true;
+                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                //
+
+
+//                //mainWindow.customAnnotationHandler.isEnabled()){
+//                if (mainWindow.customAnnotationHandler.isPeak()){
+//                    mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
+//                } else {
+//                    dragMode = DragMode.ANNOTATE;
+//                }
             } else {
                 dragMode = DragMode.PAN;
                 setCursor(MainWindow.fistCursor);
@@ -1176,10 +1532,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.NONE;
                 lastMousePoint = null;
                 zoomRectangle = null;
+                annotateRectangle = null;
                 setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
-
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
-
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
@@ -1187,8 +1542,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
+            //meh - NOW pops up menu, not custom and doesn't take in information
+            } else if (dragMode == DragMode.ANNOTATE) {
+                mainWindow.customAnnotationHandler.addFeature(mainWindow.customAnnotations);
+                dragMode = DragMode.NONE;
+
+                //
+                zoomRectangle = null;
+                lastMousePoint = null;
+                straightEdgeEnabled = false;
+                hic.setCursorPoint(null);
+                setCursor(Cursor.getDefaultCursor());
+                repaint();
+                mainWindow.repaintTrackPanels();
+                //
+
+            } else if (true){
+                return;
             } else {
-                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                    setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }
         }
 
@@ -1220,6 +1592,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         final public void mouseDragged(final MouseEvent e) {
 
+            Rectangle lastRectangle, damageRect;
+            int x, y;
+
             if (hic.getZd() == null || hic.isWholeGenome()) {
                 return;
             }
@@ -1233,7 +1608,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             int deltaY = e.getY() - lastMousePoint.y;
             switch (dragMode) {
                 case ZOOM:
-                    Rectangle lastRectangle = zoomRectangle;
+                    lastRectangle = zoomRectangle;
 
                     if (deltaX == 0 || deltaY == 0) {
                         return;
@@ -1247,12 +1622,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         deltaX = (int) (deltaY * aspectRatio);
                     }
 
-
-                    int x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
-                    int y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
+                    x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
+                    y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
                     zoomRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
-                    Rectangle damageRect = lastRectangle == null ? zoomRectangle : zoomRectangle.union(lastRectangle);
+                    damageRect = lastRectangle == null ? zoomRectangle : zoomRectangle.union(lastRectangle);
                     damageRect.x--;
                     damageRect.y--;
                     damageRect.width += 2;
@@ -1260,6 +1634,41 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     paintImmediately(damageRect);
 
                     break;
+                // meh
+                case ANNOTATE:
+//                    lastRectangle = annotateRectangle;
+//
+//                    if (deltaX == 0 || deltaY == 0) {
+//                        return;
+//                    }
+//
+//                    // Constrain aspect ratio of zoom rectangle to that of panel
+////                    double aspectRatio2 = (double) getWidth() / getHeight();
+////                    if (deltaX * aspectRatio2 > deltaY) {
+////                        deltaY = (int) (deltaX / aspectRatio2);
+////                    } else {
+////                        deltaX = (int) (deltaY * aspectRatio2);
+////                    }
+//
+//                    x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
+//                    y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
+//                    annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+//
+//                    damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+//                    damageRect.x--;
+//                    damageRect.y--;
+//                    damageRect.width += 2;
+//                    damageRect.height += 2;
+//                    paintImmediately(damageRect);
+                    isRegion = true;
+                    mainWindow.customAnnotationHandler.doDomain();
+                    Rectangle newRect = mainWindow.customAnnotationHandler.updateSelectionRegion(lastMousePoint.x,
+                            lastMousePoint.y, deltaX, deltaY);
+                    if (newRect != null){
+                        paintImmediately(newRect);
+                    }
+                    break;
+                    //finish drawing rectangle
                 default:
 
                     // int dx = (int) (deltaX * hic.xContext.getScale());

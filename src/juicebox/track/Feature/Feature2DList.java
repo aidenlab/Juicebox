@@ -73,7 +73,13 @@ public class Feature2DList {
      * @return List of 2D features at that point
      */
     public List<Feature2D> get(int chr1Idx, int chr2Idx) {
-        return featureList.get(getKey(chr1Idx, chr2Idx));
+        List<Feature2D> returnVal = featureList.get(getKey(chr1Idx, chr2Idx));
+        if (returnVal == null){
+            return new ArrayList<Feature2D>();
+        } else {
+            return returnVal;
+        }
+        //return featureList.get(getKey(chr1Idx, chr2Idx));
     }
 
     /**

@@ -30,6 +30,10 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.track.Feature.CustomAnnotation;
+import juicebox.track.Feature.CustomAnnotationHandler;
+import juicebox.track.Feature.Feature2D;
+import juicebox.track.Feature.Feature2DList;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackLabelPanel;
@@ -109,6 +113,11 @@ public class MainWindow extends JFrame {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
 
+    // meh
+    public static CustomAnnotation customAnnotations;
+    public static CustomAnnotationHandler customAnnotationHandler;
+
+
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
@@ -123,6 +132,10 @@ public class MainWindow extends JFrame {
     private MainWindow() {
 
         hic = new HiC(this);
+
+        // meh: create new feature list
+        customAnnotations = new CustomAnnotation();
+        customAnnotationHandler = new CustomAnnotationHandler(hic);
 
         initComponents();
         createCursors();
@@ -1735,6 +1748,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(exit);
 
+        // "Annotations" menu items
         annotationsMenu = new JMenu("Annotations");
 
         JMenuItem newLoadMI = new JMenuItem();
@@ -1751,6 +1765,52 @@ public class MainWindow extends JFrame {
         loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
         annotationsMenu.add(loadEncodeMI);
 
+//        // meh annotations menu
+//        final JMenuItem customAnnotationMenu = new JMenuItem("Custom Annotations");
+//        annotationsMenu.add(customAnnotationMenu);
+//
+//        final JMenuItem annotate = new JMenuItem("Annotate Mode");
+//        customAnnotationMenu.add(annotate);
+//
+//        // Add peak annotations
+//        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
+//        final JCheckBoxMenuItem annotatePeak = new JCheckBoxMenuItem("Loops");
+//
+//        annotatePeak.setSelected(false);
+//        annotatePeak.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doPeak();
+//            }
+//        });
+//        annotatePeak.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0));
+//        annotate.add(annotatePeak);
+//
+//        // Add domain annotations
+//        final JCheckBoxMenuItem annotateDomain = new JCheckBoxMenuItem("Domains");
+//
+//        annotateDomain.setSelected(false);
+//        annotateDomain.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doDomain();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
+//        annotate.add(annotateDomain);
+//
+//        // Add generic annotations
+//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic Feature");
+//
+//        annotateGeneric.setSelected(false);
+//        annotateGeneric.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doGeneric();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
+//        annotate.add(annotateDomain);
 
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
 
@@ -1765,6 +1825,21 @@ public class MainWindow extends JFrame {
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 
         annotationsMenu.add(showLoopsItem);
+
+        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
+
+        showCustomLoopsItem.setSelected(true);
+        showCustomLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                repaint();
+            }
+        });
+        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+
+        annotationsMenu.add(showCustomLoopsItem);
+        // meh
 
         annotationsMenu.setEnabled(false);
 
