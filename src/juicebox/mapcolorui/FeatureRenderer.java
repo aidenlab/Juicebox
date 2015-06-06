@@ -37,19 +37,24 @@ import java.util.List;
  * Created by muhammadsaadshamim on 6/4/15.
  */
 public class FeatureRenderer {
+
+    // TODO make these variables accessible as user options
+    // the other day, Erez mentioned his preferred was everything in lower left
+    // can change for future.
+    private static final boolean onlyPlotUpperRight = true;
+    private static final boolean onlyPlotLowerLeft = true;
+    private static final boolean allowUpperRightLoops = true;
+
     public static void render(Graphics2D loopGraphics, List<Feature2D> loops, MatrixZoomData zd,
-                              double binOriginX, double binOriginY, double scaleFactor, List<Pair<Rectangle, Feature2D>> drawnLoopFeatures) {
+                              double binOriginX, double binOriginY, double scaleFactor,
+                              List<Pair<Rectangle, Feature2D>> drawnLoopFeatures) {
+
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();
         HiCGridAxis yAxis = zd.getYGridAxis();
         boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
 
-        // TODO make these variables accessible as user options
-        // the other day, Erez mentioned his preferred was everything in lower left
-        // can change for future.
-        boolean onlyPlotUpperRight = true,
-                onlyPlotLowerLeft = true,
-                allowUpperRightLoops = true;
+
 
 
         for (Feature2D feature : loops) {
@@ -99,7 +104,6 @@ public class FeatureRenderer {
             drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
 
             feature.getClass();
-
 
             // TODO is there a reason for checking bounds and not just filtering by loop vs domain
             // TODO also are any features being missed y discard upper right

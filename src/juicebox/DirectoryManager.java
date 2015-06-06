@@ -76,7 +76,7 @@ public class DirectoryManager {
 
         if (HIC_DIRECTORY == null) {
 
-            // Hack for known Java / Windows bug.   Attempt to remvoe (possible) read-only bit from user directory
+            // Hack for known Java / Windows bug.   Attempt to remove (possible) read-only bit from user directory
             if (System.getProperty("os.name").startsWith("Windows")) {
                 try {
                     Runtime.getRuntime().exec("attrib -r \"" + getUserDirectory().getAbsolutePath() + "\"");

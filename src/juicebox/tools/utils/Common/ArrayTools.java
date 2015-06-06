@@ -45,6 +45,14 @@ public class ArrayTools {
         return max;
     }
 
+    public static double arrayMax(double[] array) {
+        double max = array[0];
+        for (double val : array)
+            if (val > max)
+                max = val;
+        return max;
+    }
+
     public static int arrayMin(int[] array) {
         int min = array[0];
         for (int val : array)
@@ -109,5 +117,26 @@ public class ArrayTools {
             outputArray[i] = total;
         }
         return outputArray;
+    }
+
+    /**
+     * inclusive both ends
+     * @param array
+     * @param start index
+     * @param end index (inclusive)
+     */
+    public static double[] extractArray(double[] array, int start, int end) {
+        double[] array2 = new double[end - start + 1];
+        System.arraycopy(array, start, array2, 0, array2.length);
+        return array2;
+    }
+
+    public static double[] flipArray(double[] array) {
+        int n = array.length;
+        double[] array2 = new double[n];
+        for(int i = 0; i < n; i++){
+            array2[i] = array[n-i];
+        }
+        return array2;
     }
 }

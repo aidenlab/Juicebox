@@ -26,9 +26,19 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.Common.MatrixTools;
+import juicebox.tools.utils.Juicer.APA.APAPlotter;
+import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
+import juicebox.tools.utils.Juicer.Arrowhead.DynamicProgrammingUtils;
 import juicebox.tools.utils.Juicer.HiCCUPS.GPUTesting;
+import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.RealMatrix;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created for testing multiple CLTs at once
@@ -72,8 +82,55 @@ public class AggregateProcessing {
         //HiCTools.main(l4);
         //HiCTools.main(l5);
         //HiCTools.main(l6);
-        HiCTools.main(l3);
+        //HiCTools.main(l3);
         //GPUTesting.test();
+
+
+        RealMatrix rm = new Array2DRowRealMatrix(new double[][]
+            {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
+                {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
+                {0.5269,    0.4317,    0.3724,    0.9203,    0.5479},
+                {0.4168,    0.0155,    0.1981,    0.0527,    0.9427},
+                {0.6569,    0.9841,    0.4897,    0.7379,    0.4177}});
+
+        rm = new Array2DRowRealMatrix(new double[][]
+                {       {1,0,0,0,0,0,0,0},
+                        {0,1,0,0,0,0,0,0},
+                        {0,2,0,0,0,0,0,0},
+                        {0,0,1,0,0,0,0,0},
+                        {0,0,0,1,0,0,1,0},
+                        {0,0,0,0,1,0,0,0},
+                        {3,0,0,1,0,0,0,0},
+                        {1,1,1,0,0,0,0,0}});
+
+        rm = MatrixTools.randomUnitMatrix(20);
+        long time = System.currentTimeMillis();
+        List<Set<Point>> te = BinaryConnectedComponents.detection(rm);
+        time = System.currentTimeMillis() - time;
+
+
+        APAPlotter.plot(rm, new int[]{0,1,0,1},new File("/Users/muhammadsaadshamim/Desktop/temp/1"),"Pic");
+
+        for(Set<Point> set : te){
+            System.out.println(set);
+        }
+        System.out.println(time);
+        /*
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, -1));
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, 0));
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, 1));
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, 2));
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, 3));
+        System.out.println("");
+        System.out.println(DynamicProgrammingUtils.upper(rm, 4));
+        System.out.println("");
+        */
+
 
 
     }
@@ -157,10 +214,10 @@ public class AggregateProcessing {
 
         String[][] cmds = {l1, l2, l3, l4, l5, l6};
 
-        // ? HiCTools.main(l1);
+        //HiCTools.main(l1);
         //HiCTools.main(l2);  // worked
         //HiCTools.main(l3);
-        // ? HiCTools.main(l4);
+        //HiCTools.main(l4);
         //HiCTools.main(l5);
         //HiCTools.main(l6);
 
