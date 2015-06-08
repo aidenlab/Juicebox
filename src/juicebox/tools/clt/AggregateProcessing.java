@@ -50,6 +50,30 @@ public class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
+
+
+
+        //HiCTools.main(l4);
+        //HiCTools.main(l5);
+        //HiCTools.main(l6);
+        //HiCTools.main(l3);
+        //GPUTesting.test();
+
+
+
+
+
+    }
+}
+
+        /*
+         * Example: this dumps data of each chromosome
+         * for 5 single cell Hi-C experiments
+         * at 5, 10, and 25 kb resolutions
+         */
+        /*
+
+
         String[] l1 = {"apa","-r","5000",
                 "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
                 "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
@@ -79,13 +103,6 @@ public class AggregateProcessing {
                 "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21norm.bin"};
 
 
-        //HiCTools.main(l4);
-        //HiCTools.main(l5);
-        //HiCTools.main(l6);
-        //HiCTools.main(l3);
-        //GPUTesting.test();
-
-
         RealMatrix rm = new Array2DRowRealMatrix(new double[][]
             {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
                 {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
@@ -103,45 +120,8 @@ public class AggregateProcessing {
                         {3,0,0,1,0,0,0,0},
                         {1,1,1,0,0,0,0,0}});
 
-        rm = MatrixTools.randomUnitMatrix(20);
-        long time = System.currentTimeMillis();
-        List<Set<Point>> te = BinaryConnectedComponents.detection(rm);
-        time = System.currentTimeMillis() - time;
 
 
-        APAPlotter.plot(rm, new int[]{0,1,0,1},new File("/Users/muhammadsaadshamim/Desktop/temp/1"),"Pic");
-
-        for(Set<Point> set : te){
-            System.out.println(set);
-        }
-        System.out.println(time);
-        /*
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, -1));
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, 0));
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, 1));
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, 2));
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, 3));
-        System.out.println("");
-        System.out.println(DynamicProgrammingUtils.upper(rm, 4));
-        System.out.println("");
-        */
-
-
-
-    }
-}
-
-        /*
-         * Example: this dumps data of each chromosome
-         * for 5 single cell Hi-C experiments
-         * at 5, 10, and 25 kb resolutions
-         */
-        /*
         String[] chrs = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","X"};
         String[] kbs = {"5","10","25"};
 
@@ -215,10 +195,6 @@ public class AggregateProcessing {
         String[][] cmds = {l1, l2, l3, l4, l5, l6};
 
         //HiCTools.main(l1);
-        //HiCTools.main(l2);  // worked
-        //HiCTools.main(l3);
-        //HiCTools.main(l4);
-        //HiCTools.main(l5);
         //HiCTools.main(l6);
 
         String[] l7 = { "pre",
