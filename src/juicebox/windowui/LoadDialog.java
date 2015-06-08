@@ -35,9 +35,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-//import javax.swing.tree.TreeNode;
 
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
@@ -49,14 +46,15 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JButton cancelButton;
     private JSplitButton openButton;
     private JButton localButton;
-    private JMenuItem openURL;
+    private JMenuItem openURL; //TODO Is this safe to remove?
     private JMenuItem open30;
     private JTextField fTextField;
 
     private static boolean actionLock = false;
 
-    private final ArrayList<DefaultMutableTreeNode> tempNodes = new ArrayList<DefaultMutableTreeNode>();
-    private final ArrayList<DefaultMutableTreeNode> treeNames = new ArrayList<DefaultMutableTreeNode>();
+    private final String[] searchColors = {"red", "blue", "green", "cyan",
+            "orange", "magenta", "pink"};
+
 
     private boolean control;
 
@@ -145,7 +143,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         pack();
         success = true;
 
-        JLabel fLabel = new JLabel();
+        final JLabel fLabel = new JLabel();
         fTextField = new JTextField();
         fLabel.setText("Filter:");
         fTextField.setToolTipText("Case Sensitive Search");
@@ -158,14 +156,18 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         fTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
-                    Enumeration en = top.preorderEnumeration();
+                Enumeration en = top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
-                    recolorSearchStrings(); //Coloring text that matches input
+                    String[] searchStrings = fTextField.getText().split(",");
+                    colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
                         Object leaf = en.nextElement();
                         String str = leaf.toString();
-                        if (str.toLowerCase().contains(fTextField.getText().toLowerCase())) {
-                            makeFilteredTree(leaf);
+                        for (String term : searchStrings) {
+                            if (str.toLowerCase().contains(term.toLowerCase())) {
+                                expandToWantedNode(leaf);
+                                break;
+                            }
                         }
                     }
                 }
@@ -174,33 +176,34 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     }
 
-    private void makeFilteredTree(Object obj) {
-        DefaultMutableTreeNode dNode = (DefaultMutableTreeNode)obj;
+    private void expandToWantedNode(Object obj) {
+        DefaultMutableTreeNode dNode = (DefaultMutableTreeNode) obj;
         if (dNode != null) {
-                    tree.setExpandsSelectedPaths(true);
-                    TreePath path = new TreePath(dNode.getPath());
-                    tree.scrollPathToVisible(path);
-                    //Overriding in order to change text color to red
-                }
+            tree.setExpandsSelectedPaths(true);
+            TreePath path = new TreePath(dNode.getPath());
+            tree.scrollPathToVisible(path);
+        }
     }
 
-    private void recolorSearchStrings(){
+    //Overriding in order to change text color
+    private void colorSearchStrings(final String[] parts) {
+
+
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
             @Override
             public Component getTreeCellRendererComponent(JTree tree,
                                                           Object value, boolean sel, boolean expanded, boolean leaf,
                                                           int row, boolean hasFocus) {
-
-                String searchInput = fTextField.getText();
                 String text = value.toString();
+                String html = "<html>";
+                for (int i = 0; i < parts.length; i++) {
+                    String searchColor = searchColors[i];
+                    text = text.replaceAll(parts[i], "<font color = \"" + searchColor + "\" >" + parts[i] + "</font>");
+                }
+                html = html + text + "</html>";
 
-                StringBuffer html = new StringBuffer("<html>");
-                Matcher m = Pattern.compile(Pattern.quote(searchInput)).matcher(text);
-                while (m.find())
-                    m.appendReplacement(html, "<font color = #ff0000 >" + m.group() + "</font>");
-                m.appendTail(html).append("</html>");
                 return super.getTreeCellRendererComponent(
-                        tree, html.toString(), sel, expanded, leaf, row, hasFocus);
+                        tree, html, sel, expanded, leaf, row, hasFocus);
             }
         });
     }
@@ -349,7 +352,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         mainWindow.safeLoad(urls, control, title);
     }
 
-    public void collapseAll(JTree tree) {
+    private void collapseAll(JTree tree) {
         int row = tree.getRowCount() - 1;
         while (row >= 0) {
             tree.collapseRow(row);
