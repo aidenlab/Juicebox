@@ -26,19 +26,8 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.Common.MatrixTools;
-import juicebox.tools.utils.Juicer.APA.APAPlotter;
-import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
-import juicebox.tools.utils.Juicer.Arrowhead.DynamicProgrammingUtils;
-import juicebox.tools.utils.Juicer.HiCCUPS.GPUTesting;
-import org.apache.commons.math.linear.Array2DRowRealMatrix;
-import org.apache.commons.math.linear.RealMatrix;
 
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
 
 /**
  * Created for testing multiple CLTs at once
@@ -46,11 +35,9 @@ import java.util.List;
 public class AggregateProcessing {
 
 
-
-
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-
+                /*
             RealMatrix rm = new Array2DRowRealMatrix(new double[][]
                     {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
                             {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
@@ -68,17 +55,33 @@ public class AggregateProcessing {
                             {3,0,0,1,0,0,0,0},
                             {1,1,1,0,0,0,0,0}});
 
-            System.out.println(BinaryConnectedComponents.detection(rm.getData(), 0));
+            //System.out.println(BinaryConnectedComponents.detection(rm.getData(), 0));
 
+            String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/chr_17.bin"};
 
-        //HiCTools.main(l4);
+            String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/expected_17.bin"};
+
+            String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/kr_17.bin"};
+                */
+
+        String[] l2 = {"hiccups",
+                "-r", "50000",
+                "-c", "17",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/pycuda/jcuda/file1",
+                "/Users/muhammadsaadshamim/Desktop/pycuda/jcuda/file2"};
+
+        long time = System.currentTimeMillis();
+        HiCTools.main(l2);
+        time = (System.currentTimeMillis() - time) / 1000;
+        System.out.println("Total time " + time);
         //HiCTools.main(l5);
         //HiCTools.main(l6);
         //HiCTools.main(l3);
         //GPUTesting.test();
-
-
-
 
 
     }

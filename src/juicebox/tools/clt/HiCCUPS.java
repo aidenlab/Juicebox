@@ -63,7 +63,7 @@ public class HiCCUPS extends JuiceboxCLT {
     // TODO dimensions should be variably set
     private static int w1 = 40, w2 = 10000;
 
-    private static int regionWidth = 50;
+    private static int regionWidth = 50; // 500 original
     private static int regionMargin = 20;
     private static int matrixSize = regionWidth + regionMargin + regionMargin;
     private static int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)

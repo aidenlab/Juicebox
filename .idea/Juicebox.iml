@@ -16,6 +16,14 @@
         <JAVADOC>
           <root url="jar://$MODULE_DIR$/lib/jcuda-0.7.0.jar!/doc" />
         </JAVADOC>
+        <NATIVE>
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/lib" />
+        </NATIVE>
         <SOURCES />
       </library>
     </orderEntry>
