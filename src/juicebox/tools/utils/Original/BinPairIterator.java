@@ -22,11 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils;
+package juicebox.tools.utils.Original;
 
 import htsjdk.tribble.util.LittleEndianInputStream;
-import juicebox.tools.utils.AlignmentPair;
-import juicebox.tools.utils.PairIterator;
 
 import java.io.BufferedInputStream;
 import java.io.EOFException;

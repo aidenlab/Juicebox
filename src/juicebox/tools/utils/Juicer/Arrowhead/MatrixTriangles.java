@@ -24,14 +24,24 @@
 
 package juicebox.tools.utils.Juicer.Arrowhead;
 
-import juicebox.data.Matrix;
 import juicebox.tools.utils.Common.MatrixTools;
+import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
 import org.apache.commons.math.linear.RealMatrix;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-public class MatrixTriangles {
+class MatrixTriangles {
+
+    private boolean initialMatricesNotGenerated = true;
+    private boolean blockScoresNotCalculated = true;
+    private boolean blockScoresNotThresholded = true;
+
 
     private RealMatrix up;
     private RealMatrix upSign;
@@ -39,6 +49,10 @@ public class MatrixTriangles {
     private RealMatrix lo;
     private RealMatrix loSign;
     private RealMatrix loSquared;
+
+    private RealMatrix upVar;
+    private RealMatrix loVar;
+    private RealMatrix blockScore;
 
     /**
      * calculate Bnew, the block score matrix. it's a combination of 3 matrices
@@ -100,8 +114,6 @@ public class MatrixTriangles {
         upSquared = MatrixTools.elementBasedDivision(upSquared, upCount);
         
         // Lower triangle
-
-
         for(int a = 0; a < n; a++){
             for(int b = a+1; b < n; b++){
                 int val = (int)Math.floor((b - a + 1) / 2);
@@ -118,30 +130,143 @@ public class MatrixTriangles {
         lo = MatrixTools.elementBasedDivision(lo, loCount);
         loSign = MatrixTools.elementBasedDivision(loSign, loCount);
         loSquared = MatrixTools.elementBasedDivision(loSquared, loCount);
+
+        initialMatricesNotGenerated = false;
     }
 
-    public RealMatrix getUp() {
-        return up;
+    /**
+     * Calculate block scores
+     */
+    public void generateBlockScoreCalculations() {
+        if(initialMatricesNotGenerated){
+            System.out.println("Initial matrices have not been generated");
+            System.exit(-4);
+        }
+
+        upVar = upSquared.subtract(MatrixTools.elementBasedMultiplication(up, up));
+        loVar = loSquared.subtract(MatrixTools.elementBasedMultiplication(lo, lo));
+        RealMatrix diff = MatrixTools.normalizeByMax(lo.subtract(up));
+        RealMatrix diffSign = MatrixTools.normalizeByMax(loSign.subtract(upSign));
+        RealMatrix diffSquared = MatrixTools.normalizeByMax((upVar).add(loVar));
+        blockScore = (diff.add(diffSign)).subtract(diffSquared);
+
+        blockScoresNotCalculated = false;
     }
 
-    public RealMatrix getUpSign() {
-        return upSign;
+    /**
+     * Use give thresholds to eliminate extremes
+     * @param varThreshold
+     * @param signThreshold
+     */
+    public void thresholdScoreValues(double varThreshold, int signThreshold) {
+        if(blockScoresNotCalculated){
+            System.out.println("Block scores not calculated");
+            System.exit(-5);
+        }
+
+        signThresholdInternalValues(blockScore, upSign, loSign, signThreshold);
+
+        if (varThreshold != 1000) {
+            varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
+        }
+        blockScoresNotThresholded = false;
     }
 
-    public RealMatrix getUpSquared() {
-        return upSquared;
+    /**
+     * Threshold values in block score matrix, set extremes to zero
+     *
+     * @param matrix
+     * @param thresholdSums
+     * @param threshold
+     */
+    private void varThresholdInternalValues(RealMatrix matrix, RealMatrix thresholdSums, double threshold) {
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (thresholdSums.getEntry(i, j) > threshold) {
+                    matrix.setEntry(i, j, 0);
+                }
+            }
+        }
     }
 
-    public RealMatrix getLo() {
-        return lo;
+    /**
+     * Threshold sign values in block score matrix, set extremes at either end to zero
+     *
+     * @param matrix
+     * @param upSign
+     * @param loSign
+     * @param threshold
+     */
+    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, int threshold) {
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if ((-upSign.getEntry(i, j)) < threshold || loSign.getEntry(i, j) < threshold) {
+                    matrix.setEntry(i, j, 0);
+                }
+            }
+        }
     }
 
-    public RealMatrix getLoSquared() {
-        return loSquared;
+    /**
+     * extract block scores from regions specified in the provided list
+     *
+     * @param indexList
+     * @return
+     */
+    public double[] extractScoresUsingList(List<Integer[]> indexList) {
+        if(blockScoresNotCalculated){
+            System.out.println("Block scores not calculated");
+            System.exit(-5);
+        }
+
+        double[] scores = new double[indexList.size()];
+        for (int i = 0; i < scores.length; i++) {
+            Integer[] indices = indexList.get(i);
+            scores[i] = MatrixTools.calculateMax(blockScore.getSubMatrix(indices[0], indices[1], indices[2], indices[3]));
+        }
+        return scores;
     }
 
-    public RealMatrix getLoSign() {
-        return loSign;
+    public List<Set<Point>> extractConnectedComponents() {
+        if(blockScoresNotThresholded){
+            System.out.println("Scores not fixed for threshold");
+            System.exit(-6);
+        }
+
+        return BinaryConnectedComponents.detection(blockScore.getData(), 0);
+    }
+
+    public List<HighScore> calculateResults(List<Set<Point>> connectedComponents) {
+        /*  for each connected component, get result for highest scoring point  */
+        ArrayList<HighScore>results = new ArrayList<HighScore>();
+        for (Set<Point> component : connectedComponents) {
+            Point score = getHighestScoringPoint(blockScore, component);
+            int i = score.x, j = score.y;
+            results.add(new HighScore(i, j, blockScore.getEntry(i, j), upVar.getEntry(i, j), loVar.getEntry(i, j),
+                    -upSign.getEntry(i, j), loSign.getEntry(i, j)));
+        }
+        return results;
+    }
+
+    /**
+     * Find the point within the connected component with the highest block score
+     *
+     * @param blockScore
+     * @param component
+     * @return scorePoint
+     */
+    private Point getHighestScoringPoint(RealMatrix blockScore, Set<Point> component) {
+        Point scorePoint = component.iterator().next();
+        double highestScore = blockScore.getEntry(scorePoint.x, scorePoint.y);
+
+        for (Point point : component) {
+            double score = blockScore.getEntry(point.x, point.y);
+            if (score > highestScore) {
+                highestScore = score;
+                scorePoint = new Point(point);
+            }
+        }
+        return new Point(scorePoint);
     }
 }
 

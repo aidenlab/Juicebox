@@ -22,50 +22,33 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents;
-
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
+package juicebox.tools.utils.Juicer.Arrowhead;
 
 /**
- * Created by muhammadsaadshamim on 6/5/15.
+ * Wrapper for arrowhead blockbuster results
+ * Created by muhammadsaadshamim on 6/8/15.
  */
-class IndexNode {
-    private final int n;
-    private final Set<IndexNode> connectedNodes = new HashSet<IndexNode>();
-    private boolean hasNotBeenIndexed = true;
-    private final Set<Point> matrixIndices = new HashSet<Point>();
+class HighScore {
+    private final int i;
+    private final int j;
+    private final double score;
+    private final double uVarScore;
+    private final double lVarScore;
+    private final double upSign;
+    private final double loSign;
 
-    public IndexNode(int n) {
-        this.n = n;
+    public HighScore(int i, int j, double score, double uVarScore, double lVarScore,
+                     double upSign, double loSign) {
+        this.i = i;
+        this.j = j;
+        this.score = score;
+        this.uVarScore = uVarScore;
+        this.lVarScore = lVarScore;
+        this.upSign = upSign;
+        this.loSign = loSign;
     }
 
-    public void addConnections(IndexNode node) {
-        connectedNodes.add(node);
-    }
-
-    public void addPoint(Point point) {
-        matrixIndices.add(point);
-    }
-
-    public Set<Point> getMatrixIndices() {
-        return matrixIndices;
-    }
-
-    public void index() {
-        hasNotBeenIndexed = false;
-    }
-
-    public boolean hasNotBeenIndexed() {
-        return hasNotBeenIndexed;
-    }
-
-    public Set<IndexNode> getConnectedNodes() {
-        return connectedNodes;
-    }
-
-    public int getIndex() {
-        return n;
+    public String toString() {
+        return "" + i + "\t" + j + "\t" + score + "\t" + uVarScore + "\t" + lVarScore + "\t" + upSign + "\t" + loSign;
     }
 }

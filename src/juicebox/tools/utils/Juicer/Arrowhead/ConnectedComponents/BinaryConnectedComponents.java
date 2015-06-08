@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents;
 
-import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;
@@ -124,9 +123,7 @@ public class BinaryConnectedComponents {
         int[][] subMatrix = new int[right-left+1][bottom-top+1];
 
         for(int i = 0; i < subMatrix.length; i++){
-            for(int j = 0; j < subMatrix[0].length; j++){
-                subMatrix[i][j] = matrix[left+i][top+j];
-            }
+            System.arraycopy(matrix[left + i], top + 0, subMatrix[i], 0, subMatrix[0].length);
         }
 
         return subMatrix;

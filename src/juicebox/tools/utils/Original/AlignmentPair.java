@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.tools.utils;
+package juicebox.tools.utils.Original;
 
 //import htsjdk.tribble.util.LittleEndianOutputStream;
 //import java.io.IOException;

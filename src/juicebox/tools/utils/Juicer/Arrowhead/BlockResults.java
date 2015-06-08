@@ -26,7 +26,6 @@ package juicebox.tools.utils.Juicer.Arrowhead;
 
 import juicebox.tools.utils.Common.ArrayTools;
 import juicebox.tools.utils.Common.MatrixTools;
-import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;
@@ -39,8 +38,9 @@ import java.util.Set;
  */
 public class BlockResults {
 
-    private List<HighScore> results;
-    private double[] scoreList1, scoreList2;
+    private final List<HighScore> results;
+    private final double[] scoreList1;
+    private final double[] scoreList2;
 
     public BlockResults(RealMatrix observed, double varThreshold, int signThreshold,
                         List<Integer[]> givenList1, List<Integer[]> givenList2) {
@@ -52,43 +52,20 @@ public class BlockResults {
 
         int n = Math.min(observed.getRowDimension(), observed.getColumnDimension());
         int gap = 7;
+
         RealMatrix dUpstream = calculateDirectionalityIndexUpstream(observed, n, gap);
-        MatrixTriangles triangles = DynamicProgrammingUtils.generateTriangles(dUpstream);
+        MatrixTriangles triangles = new MatrixTriangles(dUpstream);
 
-        RealMatrix up = triangles.getUp();
-        RealMatrix upSign = triangles.getUpSign();
-        RealMatrix upSquared = triangles.getUpSquared();
-        RealMatrix upVar = upSquared.subtract(MatrixTools.elementBasedMultiplication(up, up));
+        triangles.generateBlockScoreCalculations();
 
-        RealMatrix lo = triangles.getLo();
-        RealMatrix loSign = triangles.getLoSign();
-        RealMatrix loSquared = triangles.getLoSquared();
-        RealMatrix loVar = loSquared.subtract(MatrixTools.elementBasedMultiplication(lo, lo));
+        scoreList1 = triangles.extractScoresUsingList(givenList1);
+        scoreList2 = triangles.extractScoresUsingList(givenList2);
 
-        RealMatrix diff = MatrixTools.normalizeByMax(lo.subtract(up));
-        RealMatrix diffSign = MatrixTools.normalizeByMax(loSign.subtract(upSign));
-        RealMatrix diffSquared = MatrixTools.normalizeByMax((upVar).add(loVar));
-        RealMatrix blockScore = (diff.add(diffSign)).subtract(diffSquared);
+        triangles.thresholdScoreValues(varThreshold, signThreshold);
 
-        scoreList1 = extractScoresUsingList(blockScore, givenList1);
-        scoreList2 = extractScoresUsingList(blockScore, givenList2);
+        List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
 
-        signThresholdInternalValues(blockScore, upSign, loSign, signThreshold);
-
-        if (varThreshold != 1000) {
-            varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
-        }
-
-        List<Set<Point>> connectedComponents = BinaryConnectedComponents.detection(blockScore.getData(), 0);
-
-        /*  for each connected component, get result for highest scoring point  */
-        results = new ArrayList<HighScore>();
-        for (Set<Point> component : connectedComponents) {
-            Point score = getHighestScoringPoint(blockScore, component);
-            int i = score.x, j = score.y;
-            results.add(new HighScore(i, j, blockScore.getEntry(i, j), upVar.getEntry(i, j), loVar.getEntry(i, j),
-                    -upSign.getEntry(i, j), loSign.getEntry(i, j)));
-        }
+        results = triangles.calculateResults(connectedComponents);
     }
 
     /**
@@ -126,78 +103,6 @@ public class BlockResults {
     }
 
     /**
-     * Find the point within the connected component with the highest block score
-     *
-     * @param blockScore
-     * @param component
-     * @return scorePoint
-     */
-    private Point getHighestScoringPoint(RealMatrix blockScore, Set<Point> component) {
-        Point scorePoint = component.iterator().next();
-        double highestScore = blockScore.getEntry(scorePoint.x, scorePoint.y);
-
-        for (Point point : component) {
-            double score = blockScore.getEntry(point.x, point.y);
-            if (score > highestScore) {
-                highestScore = score;
-                scorePoint = new Point(point);
-            }
-        }
-        return new Point(scorePoint);
-    }
-
-    /**
-     * Threshold values in block score matrix, set extremes to zero
-     *
-     * @param matrix
-     * @param thresholdSums
-     * @param threshold
-     */
-    private void varThresholdInternalValues(RealMatrix matrix, RealMatrix thresholdSums, double threshold) {
-        for (int i = 0; i < matrix.getRowDimension(); i++) {
-            for (int j = 0; j < matrix.getColumnDimension(); j++) {
-                if (thresholdSums.getEntry(i, j) > threshold) {
-                    matrix.setEntry(i, j, 0);
-                }
-            }
-        }
-    }
-
-    /**
-     * Threshold values in block score matrix, set extremes at either end to zero
-     *
-     * @param matrix
-     * @param upSign
-     * @param loSign
-     * @param threshold
-     */
-    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, int threshold) {
-        for (int i = 0; i < matrix.getRowDimension(); i++) {
-            for (int j = 0; j < matrix.getColumnDimension(); j++) {
-                if ((-upSign.getEntry(i, j)) < threshold || loSign.getEntry(i, j) < threshold) {
-                    matrix.setEntry(i, j, 0);
-                }
-            }
-        }
-    }
-
-    /**
-     * extract block scores from regions specified in the provided list
-     *
-     * @param scoreMatrix
-     * @param indexList
-     * @return
-     */
-    private double[] extractScoresUsingList(RealMatrix scoreMatrix, List<Integer[]> indexList) {
-        double[] scores = new double[indexList.size()];
-        for (int i = 0; i < scores.length; i++) {
-            Integer[] indices = indexList.get(i);
-            scores[i] = MatrixTools.calculateMax(scoreMatrix.getSubMatrix(indices[0], indices[1], indices[2], indices[3]));
-        }
-        return scores;
-    }
-
-    /**
      * @return block results
      */
     public List<HighScore> getResults() {
@@ -218,31 +123,4 @@ public class BlockResults {
         return scoreList2;
     }
 
-    /**
-     * Wrapper for arrowhead blockbuster results
-     */
-    public class HighScore {
-        private int i;
-        private int j;
-        private double score;
-        private double uVarScore;
-        private double lVarScore;
-        private double upSign;
-        private double loSign;
-
-        public HighScore(int i, int j, double score, double uVarScore, double lVarScore,
-                         double upSign, double loSign) {
-            this.i = i;
-            this.j = j;
-            this.score = score;
-            this.uVarScore = uVarScore;
-            this.lVarScore = lVarScore;
-            this.upSign = upSign;
-            this.loSign = loSign;
-        }
-
-        public String toString() {
-            return "" + i + "\t" + j + "\t" + score + "\t" + uVarScore + "\t" + lVarScore + "\t" + upSign + "\t" + loSign;
-        }
-    }
 }

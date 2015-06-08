@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.Juicer.Arrowhead;
 
-import juicebox.data.Matrix;
 import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -113,18 +112,4 @@ public class DynamicProgrammingUtils {
         return upperMatrix;
     }
 
-    public static MatrixTriangles generateTriangles(RealMatrix matrix){
-        return new MatrixTriangles(matrix);
-    }
-
-    /**
-     *
-     * @param observed
-     * @param varThreshold
-     * @param signThreshold
-     * @return
-     */
-    public static BlockResults blockbuster(RealMatrix observed, double varThreshold, int signThreshold){
-        return new BlockResults(observed, varThreshold, signThreshold, null, null);
-    }
 }

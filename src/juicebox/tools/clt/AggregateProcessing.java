@@ -51,6 +51,24 @@ public class AggregateProcessing {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
 
+            RealMatrix rm = new Array2DRowRealMatrix(new double[][]
+                    {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
+                            {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
+                            {0.5269,    0.4317,    0.3724,    0.9203,    0.5479},
+                            {0.4168,    0.0155,    0.1981,    0.0527,    0.9427},
+                            {0.6569,    0.9841,    0.4897,    0.7379,    0.4177}});
+
+            rm = new Array2DRowRealMatrix(new double[][]
+                    {       {1,0,0,0,0,0,0,0},
+                            {0,1,0,0,0,0,0,0},
+                            {0,2,0,0,0,0,0,0},
+                            {0,0,1,0,0,0,0,0},
+                            {0,0,0,1,0,0,1,0},
+                            {0,0,0,0,1,0,0,0},
+                            {3,0,0,1,0,0,0,0},
+                            {1,1,1,0,0,0,0,0}});
+
+            System.out.println(BinaryConnectedComponents.detection(rm.getData(), 0));
 
 
         //HiCTools.main(l4);

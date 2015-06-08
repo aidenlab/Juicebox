@@ -23,9 +23,7 @@
  */
 
 
-package juicebox.tools.utils;
-
-import juicebox.tools.utils.AlignmentPair;
+package juicebox.tools.utils.Original;
 
 import java.util.Iterator;
 

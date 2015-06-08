@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.AsciiToBinConverter;
+import juicebox.tools.utils.Original.AsciiToBinConverter;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.Common.HiCFileTools;
 import org.broad.igv.feature.Chromosome;

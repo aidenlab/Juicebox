@@ -25,7 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.NormalizationCalculations;
+import juicebox.tools.utils.Original.NormalizationCalculations;
 
 import java.io.IOException;
 

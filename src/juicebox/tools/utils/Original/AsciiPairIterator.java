@@ -22,12 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils;
+package juicebox.tools.utils.Original;
 
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import org.broad.igv.Globals;
 
 import java.io.BufferedReader;
 import java.io.IOException;

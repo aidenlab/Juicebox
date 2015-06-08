@@ -26,8 +26,8 @@ package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.NormalizationVectorUpdater;
-import juicebox.tools.utils.Preprocessor;
+import juicebox.tools.utils.Original.NormalizationVectorUpdater;
+import juicebox.tools.utils.Original.Preprocessor;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;

@@ -24,11 +24,23 @@
 
 package juicebox.tools.utils.Juicer.Arrowhead;
 
+import org.apache.commons.math.linear.RealMatrix;
+
 /**
  * Created by muhammadsaadshamim on 6/3/15.
  */
 public class BlockBuster {
 
 
+    /**
+     *
+     * @param observed
+     * @param varThreshold
+     * @param signThreshold
+     * @return
+     */
+    public static BlockResults blockbuster(RealMatrix observed, double varThreshold, int signThreshold){
+        return new BlockResults(observed, varThreshold, signThreshold, null, null);
+    }
 
 }
