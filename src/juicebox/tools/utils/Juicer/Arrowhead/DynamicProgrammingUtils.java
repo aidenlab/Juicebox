@@ -125,6 +125,6 @@ public class DynamicProgrammingUtils {
      * @return
      */
     public static BlockResults blockbuster(RealMatrix observed, double varThreshold, int signThreshold){
-        return new BlockResults(observed, varThreshold, signThreshold);
+        return new BlockResults(observed, varThreshold, signThreshold, null, null);
     }
 }

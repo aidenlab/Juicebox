@@ -38,51 +38,32 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class BinaryConnectedComponents {
 
-    public static List<Set<Point>> detection(RealMatrix image) {
-        int r = image.getRowDimension();
-        int c = image.getColumnDimension();
+    private static Integer nextLabel = 0;
 
-        RealMatrix labels = MatrixTools.cleanArray2DMatrix(r, c);
+    public static List<Set<Point>> detection(double[][] image, int threshold) {
+        int r = image.length;
+        int c = image[0].length;
+
+        int[][] labels = new int[r][c];
 
         List<IndexNode> indices = new ArrayList<IndexNode>();
         indices.add(new IndexNode(-1));
-        int nextLabel = 1;
-        RealMatrix neighborLabels;
-
+        nextLabel = 1;
 
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < c; j++) {
-                if (image.getEntry(i, j) > 0) {
-
-                    // 8 - point connectivity
-                    neighborLabels = labels.getSubMatrix(
+                if (image[i][j] > threshold) {
+                    processNeighbors(labels, indices, i, j,
                             Math.max(i - 1, 0), Math.min(i + 1, r - 1), Math.max(j - 1, 0), Math.min(j + 1, c - 1));
-
-                    // 0 means none found
-                    int lowestLabel = (int) MatrixTools.minimumPositive(neighborLabels);
-                    Set<Integer> allPosVals = positiveValues(neighborLabels);
-
-                    if (lowestLabel <= 0) {
-                        lowestLabel = nextLabel;
-                        indices.add(new IndexNode(lowestLabel));
-                        nextLabel++;
-                    }
-
-                    labels.setEntry(i, j, lowestLabel);
-                    IndexNode current = indices.get(lowestLabel);
-                    current.addPoint(new Point(i, j));
-
-                    for (Integer k : allPosVals) {
-                        IndexNode other = indices.get(k);
-                        other.addConnections(current);
-                        current.addConnections(other);
-                    }
                 }
             }
         }
 
+        return processLabeledIndices(indices);
+    }
 
-        List<Set<Point>> cleanedUpComponents = new ArrayList<Set<Point>>();
+    private static List<Set<Point>> processLabeledIndices(List<IndexNode> indices) {
+        List<Set<Point>> components = new ArrayList<Set<Point>>();
         for (int i = 1; i < nextLabel; i++) {
             IndexNode current = indices.get(i);
             if (current.hasNotBeenIndexed()) {
@@ -102,11 +83,65 @@ public class BinaryConnectedComponents {
                         }
                     }
                 }
-                cleanedUpComponents.add(points);
+                components.add(points);
+            }
+        }
+        return components;
+    }
+
+    private static void processNeighbors(int[][] labels, List<IndexNode> indices, int i, int j,
+                                         int left, int right, int top, int bottom) {
+
+        // 8 - point connectivity
+        int[][] neighborLabels = getSubMatrix(labels, left, right, top, bottom);
+
+        // 0 means none found
+        Set<Integer> allPosVals = positiveValues(neighborLabels);
+
+        int lowestLabel = 0;
+        if(allPosVals.size() > 0)
+            lowestLabel = Collections.min(new ArrayList<Integer>(allPosVals));
+
+        if (lowestLabel <= 0) {
+            lowestLabel = nextLabel;
+            indices.add(new IndexNode(lowestLabel));
+            nextLabel++;
+        }
+
+        labels[i][j] = lowestLabel;
+        IndexNode current = indices.get(lowestLabel);
+        current.addPoint(new Point(i, j));
+
+        for (Integer k : allPosVals) {
+            IndexNode other = indices.get(k);
+            other.addConnections(current);
+            current.addConnections(other);
+        }
+
+    }
+
+    private static int[][] getSubMatrix(int[][] matrix, int left, int right, int top, int bottom) {
+        int[][] subMatrix = new int[right-left+1][bottom-top+1];
+
+        for(int i = 0; i < subMatrix.length; i++){
+            for(int j = 0; j < subMatrix[0].length; j++){
+                subMatrix[i][j] = matrix[left+i][top+j];
             }
         }
 
-        return cleanedUpComponents;
+        return subMatrix;
+    }
+
+    private static Set<Integer> positiveValues(int[][] matrix) {
+        Set<Integer> values = new HashSet<Integer>();
+        for (int[] row : matrix) {
+            for (int val : row) {
+                if (val > 0) {
+                    values.add(val);
+                }
+            }
+        }
+        return values;
     }
 
     private static Set<Integer> positiveValues(RealMatrix matrix) {
