@@ -191,7 +191,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
-            private static final long serialVersionUID = 421L;
+            private static final long serialVersionUID = 422L;
 
             @Override
             public Component getTreeCellRendererComponent(JTree tree,
