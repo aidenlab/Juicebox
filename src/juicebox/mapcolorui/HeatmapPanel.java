@@ -1471,8 +1471,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mainWindow.repaintTrackPanels();
                 //
 
-            } else if (true){
-                return;
             } else {
                     setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }

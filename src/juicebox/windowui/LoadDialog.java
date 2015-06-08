@@ -39,7 +39,7 @@ import java.util.List;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = 421L;
     private final boolean success;
     private final MainWindow mainWindow;
     private JTree tree;
@@ -156,15 +156,16 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         fTextField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 collapseAll(tree);
-                Enumeration en = top.preorderEnumeration();
+                @SuppressWarnings("unchecked")
+                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
                 if (!fTextField.getText().isEmpty()) {
                     String[] searchStrings = fTextField.getText().split(",");
                     colorSearchStrings(searchStrings); //Coloring text that matches input
                     while (en.hasMoreElements()) {
-                        Object leaf = en.nextElement();
+                        DefaultMutableTreeNode leaf = en.nextElement();
                         String str = leaf.toString();
                         for (String term : searchStrings) {
-                            if (str.toLowerCase().contains(term.toLowerCase())) {
+                            if (str.contains(term)) {
                                 expandToWantedNode(leaf);
                                 break;
                             }
@@ -176,8 +177,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     }
 
-    private void expandToWantedNode(Object obj) {
-        DefaultMutableTreeNode dNode = (DefaultMutableTreeNode) obj;
+    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
             TreePath path = new TreePath(dNode.getPath());
@@ -190,6 +190,9 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
 
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
+
+            private static final long serialVersionUID = 421L;
+
             @Override
             public Component getTreeCellRendererComponent(JTree tree,
                                                           Object value, boolean sel, boolean expanded, boolean leaf,
