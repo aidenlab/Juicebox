@@ -317,10 +317,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 loops.addAll(customLoops);
             }
 
-            if (loops != null && loops.size() > 0) {
-                FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
-                        highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
-            }
+            FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
+                    highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
 
             if (zoomRectangle != null) {
                 ((Graphics2D) g).draw(zoomRectangle);
@@ -331,15 +329,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
         }
-        //UNCOMMENT TO OUTLINE "selected" BIN
-//        if(hic.getSelectedBin() != null) {
-//            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
-//            int pY = (int) ((hic.getSelectedBin().y - hic.yContext.getBinOrigin()) * hic.yContext.getScaleFactor());
-//            int w = (int) hic.xContext.getScaleFactor() - 1;
-//            int h = (int) hic.yContext.getScaleFactor() - 1;
-//            g.setColor(Color.green);
-//            g.drawRect(pX, pY, w, h);
-//        }
+        //UNCOMMENT TO OUTLINE "selected" BIN TODO - is this safe to delete?
+        //        if(hic.getSelectedBin() != null) {
+        //            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
+        //            int pY = (int) ((hic.getSelectedBin().y - hic.yContext.getBinOrigin()) * hic.yContext.getScaleFactor());
+        //            int w = (int) hic.xContext.getScaleFactor() - 1;
+        //            int h = (int) hic.yContext.getScaleFactor() - 1;
+        //            g.setColor(Color.green);
+        //            g.drawRect(pX, pY, w, h);
+        //        }
     }
 
     private int getTickWidth(Graphics g) {
