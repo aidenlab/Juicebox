@@ -325,7 +325,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             if (loops != null && loops.size() > 0) {
                 FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
-                        highlightedFeature, showFeatureHighlight);
+                        highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
             }
 
             if (zoomRectangle != null) {
@@ -693,6 +693,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 showFeatureHighlight = true;
                 highlightedFeature = mostRecentRectFeaturePair;
+                repaint();
             }
         });
 
@@ -701,6 +702,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showFeatureHighlight = !showFeatureHighlight;
+                repaint();
             }
         });
 
@@ -709,6 +711,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 highlightedFeature = null;
+                repaint();
             }
         });
 
@@ -1184,6 +1187,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             mostRecentRectFeaturePair = null;
             for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
                 if (loop.getFirst().contains(x, y)) {
+                    // TODO - why is this code duplicated in this file?
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(loop.getSecond().tooltipText());
                     txt.append("</span>");

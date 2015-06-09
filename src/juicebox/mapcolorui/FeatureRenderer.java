@@ -48,7 +48,8 @@ public class FeatureRenderer {
     public static void render(Graphics2D loopGraphics, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               List<Pair<Rectangle, Feature2D>> drawnLoopFeatures,
-                              Pair<Rectangle, Feature2D> highlightedFeature, boolean showFeatureHighlight) {
+                              Pair<Rectangle, Feature2D> highlightedFeature, boolean showFeatureHighlight,
+                              int maxWidth, int maxHeight) {
 
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();
@@ -59,6 +60,7 @@ public class FeatureRenderer {
 
             loopGraphics.setColor(feature.getColor());
 
+            // TODO this seems wrong. why is w added to y and not to x? bug/error?
             int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
             int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
             int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
@@ -138,11 +140,11 @@ public class FeatureRenderer {
             int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
             int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 
-            loopGraphics.setColor(Color.GREEN);
-            loopGraphics.drawLine(x, y, x, y + w);
-            loopGraphics.drawLine(x, y + w, x + h, y + w);
-            loopGraphics.drawLine(x, y, x + h, y);
-            loopGraphics.drawLine(x + h, y, x + h, y + w);
+            loopGraphics.setColor(Color.BLACK);
+            loopGraphics.drawLine(0, y, maxWidth, y);
+            loopGraphics.drawLine(x, 0, x, maxHeight);
+            loopGraphics.drawLine(0, y+w, maxWidth, y+w);
+            loopGraphics.drawLine(x+h, 0, x+h, maxHeight);
 
         }
         loopGraphics.dispose();
