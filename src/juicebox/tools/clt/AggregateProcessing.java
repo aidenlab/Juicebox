@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.Common.ArrayTools;
 
 import java.io.IOException;
 
@@ -36,36 +37,6 @@ public class AggregateProcessing {
 
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
-
-                /*
-            RealMatrix rm = new Array2DRowRealMatrix(new double[][]
-                    {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
-                            {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
-                            {0.5269,    0.4317,    0.3724,    0.9203,    0.5479},
-                            {0.4168,    0.0155,    0.1981,    0.0527,    0.9427},
-                            {0.6569,    0.9841,    0.4897,    0.7379,    0.4177}});
-
-            rm = new Array2DRowRealMatrix(new double[][]
-                    {       {1,0,0,0,0,0,0,0},
-                            {0,1,0,0,0,0,0,0},
-                            {0,2,0,0,0,0,0,0},
-                            {0,0,1,0,0,0,0,0},
-                            {0,0,0,1,0,0,1,0},
-                            {0,0,0,0,1,0,0,0},
-                            {3,0,0,1,0,0,0,0},
-                            {1,1,1,0,0,0,0,0}});
-
-            //System.out.println(BinaryConnectedComponents.detection(rm.getData(), 0));
-
-            String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/chr_17.bin"};
-
-            String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/expected_17.bin"};
-
-            String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "17", "17", "BP", "50000", "/Users/muhammadsaadshamim/Desktop/pycuda/testing/kr_17.bin"};
-                */
 
         String[] l2 = {"hiccups",
                 "-r", "50000",
@@ -78,10 +49,6 @@ public class AggregateProcessing {
         HiCTools.main(l2);
         time = (System.currentTimeMillis() - time) / 1000;
         System.out.println("Total time " + time);
-        //HiCTools.main(l5);
-        //HiCTools.main(l6);
-        //HiCTools.main(l3);
-        //GPUTesting.test();
 
 
     }

@@ -306,10 +306,12 @@ public class HiCCUPS extends JuiceboxCLT {
 
     private void calculateThresholdAndFDR(int index, int width, int fdr, int[][] rcsHist,
                                           float[] threshold, float[][] fdrLog) {
+        System.out.println("");
+        System.out.println("index is "+index);
         System.out.println("rcsHist is "+rcsHist[index][0]);
         if (rcsHist[index][0] > 0) {
             float[] expected = ArrayTools.doubleArrayToFloatArray(
-                    ArrayTools.generateScaledPoissonPMF(index, rcsHist[index][0], width));
+                    ArrayTools.generateScaledPoissonPDF(index, rcsHist[index][0], width));
             float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
             // TODO starting at 1 because 0 should never return true (theoretically) but actually is.
             // TODO Maybe because of rounding? needs further investigation
@@ -322,8 +324,6 @@ public class HiCCUPS extends JuiceboxCLT {
             }
 
 
-            System.out.println("");
-            System.out.println("index is "+index);
             for (int j = (int)threshold[index]; j < width; j++) {
                 float sum1 = rcsExpected[j];
                 float sum2 = rcsHist[index][j];

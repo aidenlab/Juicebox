@@ -24,6 +24,9 @@
 
 package juicebox.tools.utils.Common;
 
+import org.apache.commons.math.distribution.PoissonDistribution;
+import org.apache.commons.math.distribution.PoissonDistributionImpl;
+
 /**
  * Created by muhammadsaadshamim on 5/12/15.
  */
@@ -62,32 +65,25 @@ public class ArrayTools {
     }
 
     /**
-     * poisson.pmf(k) = exp(-mu) * mu**k / k!
+     * poisson.pdf(k) = exp(-mu) * mu**k / k!
      *
      * @param index
      * @param total
      * @param w2
      * @return
      */
-    public static double[] generateScaledPoissonPMF(int index, float total, int w2) {
-        // TODO optimize because poisson calculation repeated multiple times
-
+    public static double[] generateScaledPoissonPDF(int index, float total, int w2) {
         double mu = Math.pow(2.0,(index + 1.0) / 3.0);
-        double[] poissonPMF = new double[w2];
-        poissonPMF[0] = Math.exp(-mu)*total; // the total is for scaling
+        double[] poissonPDF = new double[w2];
 
-        double totalSum = poissonPMF[0];
+        PoissonDistributionImpl poissonDistribution = new PoissonDistributionImpl(mu);
 
         // use dynamic programming to grow poisson PMF
-        for (int k = 1; k < w2; k++){
-            poissonPMF[k] = poissonPMF[k-1] * mu / k;
-            totalSum += poissonPMF[k];
+        for (int k = 0; k < w2; k++){
+            poissonPDF[k] = poissonDistribution.probability(k)*total; // the total is for scaling
         }
-        System.out.println("Poisson mult by total");
-        System.out.println(total);
-        System.out.println(totalSum);
 
-        return poissonPMF;
+        return poissonPDF;
     }
 
     public static float[] doubleArrayToFloatArray(double[] doubleArray){
