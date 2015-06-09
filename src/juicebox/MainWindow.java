@@ -30,10 +30,8 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
-import juicebox.track.Feature.CustomAnnotation;
-import juicebox.track.Feature.CustomAnnotationHandler;
-import juicebox.track.Feature.Feature2D;
-import juicebox.track.Feature.Feature2DList;
+import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.track.Feature.*;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackLabelPanel;
@@ -113,10 +111,13 @@ public class MainWindow extends JFrame {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
 
-    // meh
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
-
+    public static JMenuItem exportAnnotationsMI;
+    public static JMenuItem undoMI;
+    public static boolean unsavedEdits;
+    public static JMenuItem loadLastMI;
+    private static File temp;
 
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
@@ -133,9 +134,8 @@ public class MainWindow extends JFrame {
 
         hic = new HiC(this);
 
-        // meh: create new feature list
-        customAnnotations = new CustomAnnotation();
-        customAnnotationHandler = new CustomAnnotationHandler(hic);
+        customAnnotations = new CustomAnnotation("1");
+        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
 
         initComponents();
         createCursors();
@@ -163,8 +163,12 @@ public class MainWindow extends JFrame {
                 CommandListener.start(theInstance.hic);
             }
         };
-
+        if (unsavedEditsExist()) {
+            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
+                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+        }
         SwingUtilities.invokeAndWait(runnable);
+
     }
 
     private static void initApplication() {
@@ -1765,10 +1769,83 @@ public class MainWindow extends JFrame {
         loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
         annotationsMenu.add(loadEncodeMI);
 
-//        // meh annotations menu
-//        final JMenuItem customAnnotationMenu = new JMenuItem("Custom Annotations");
-//        annotationsMenu.add(customAnnotationMenu);
-//
+        // Annotations Menu Items
+        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
+        exportAnnotationsMI = new JMenuItem("Export...");
+        loadLastMI = new JMenuItem("Load Last");
+        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
+        undoMI = new JMenuItem("Undo Annotation");
+        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
+
+        // Annotate Item Actions
+        exportAnnotationsMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveAnnotationsDialog(customAnnotations);
+            }
+        });
+
+        loadLastMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
+                        hic.getChromosomes(), false, 0, 0, 0), "1");
+                temp.delete();
+                loadLastMI.setEnabled(false);
+            }
+        });
+
+        mergeVisibleMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = customAnnotationHandler.addVisibleLoops(customAnnotations);
+            }
+        });
+
+        clearCurrentMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int n = JOptionPane.showConfirmDialog(
+                        MainWindow.getInstance(),
+                        "Are you sure you want to clear all custom annotations?",
+                        "Confirm",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (n == JOptionPane.YES_OPTION) {
+                    //TODO: do something with the saving... just update temp?
+                    customAnnotations.clearAnnotations();
+                    exportAnnotationsMI.setEnabled(false);
+                    loadLastMI.setEnabled(false);
+                    repaint();
+                }
+            }
+        });
+
+        undoMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotationHandler.undo(customAnnotations);
+                repaint();
+            }
+        });
+        undoMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+
+        //Add annotate menu items
+        customAnnotationMenu.add(exportAnnotationsMI);
+        customAnnotationMenu.add(mergeVisibleMI);
+        customAnnotationMenu.add(undoMI);
+        customAnnotationMenu.add(clearCurrentMI);
+        if (unsavedEdits){
+            customAnnotationMenu.add(loadLastMI);
+            loadLastMI.setEnabled(true);
+        }
+
+        exportAnnotationsMI.setEnabled(false);
+        undoMI.setEnabled(false);
+
+        annotationsMenu.add(customAnnotationMenu);
+
+
 //        final JMenuItem annotate = new JMenuItem("Annotate Mode");
 //        customAnnotationMenu.add(annotate);
 //
@@ -1903,6 +1980,14 @@ public class MainWindow extends JFrame {
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         return menuBar;
+    }
+
+    private static boolean unsavedEditsExist() {
+        String tempPath = "/unsaved-hiC-annotations1";
+        temp = HiCFileTools.openTempFile(tempPath);
+        unsavedEdits = temp.exists();
+        return unsavedEdits;
+
     }
 
     private void loadNormalizationVector(File file) throws IOException {

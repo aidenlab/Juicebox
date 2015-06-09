@@ -141,6 +141,17 @@ public class HiC {
         encodeAction = eAction;
     }
 
+    public List<Feature2DList> getAllVisibleLoopLists() {
+        if (!showLoops) return null;
+        List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
+        for (Feature2DList list : loopLists.values()) {
+            if (list.isVisible()) {
+                visibleLoopList.add(list);
+            }
+        }
+        return visibleLoopList;
+    }
+
     public List<Feature2D> getVisibleLoopList(int chrIdx1, int chrIdx2) {
         if (!showLoops) return null;
         List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();

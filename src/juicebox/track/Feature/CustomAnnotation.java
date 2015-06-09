@@ -24,6 +24,12 @@
 
 package juicebox.track.Feature;
 
+import juicebox.tools.utils.Common.HiCFileTools;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,54 +40,94 @@ import java.util.Map;
 public class CustomAnnotation {
 
     Feature2DList customAnnotationList;
-    boolean isVisible, unsavedEdits;
-    //String lastItem;
+    boolean isVisible, unsavedEdits, firstSave;
     Feature2D lastItem;
     int lastChr1Idx, lastChr2Idx;
+    String id;
+    private PrintWriter tempWriter;
+    private File tempFile;
 
-    public CustomAnnotation () {
+    public CustomAnnotation (String id) {
+        this.id = id;
         isVisible = true;
-        unsavedEdits = false;
-        lastItem = null;
+        firstSave = true;
+        reset();
+    }
 
+    public CustomAnnotation (Feature2DList inputList, String id) {
+        this.id = id;
+        isVisible = true;
+        firstSave = true;
+        reset();
+        this.customAnnotationList = inputList;
+    }
+
+    // Clear all annotations
+    private void reset(){
+        firstSave = true;
+        lastChr1Idx = -1;
+        lastChr2Idx = -1;
+        lastItem = null;
+        unsavedEdits = false;
         customAnnotationList = new Feature2DList();
+    }
+
+    public void clearAnnotations(){
+        reset();
+        deleteTempFile();
     }
 
     //add annotation to feature2D list
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
         if (feature == null){
-            System.out.println("feature is null. why?");
+            return;
         }
-        customAnnotationList.add(chr1Idx, chr2Idx, feature);
 
-        System.out.println("Added new feature! ");
-        for (Feature2D featureTest : customAnnotationList.get(chr1Idx, chr2Idx)){
-            System.out.println(featureTest.toString());
-        }
+        customAnnotationList.add(chr1Idx, chr2Idx, feature);
 
         lastChr1Idx = chr1Idx;
         lastChr2Idx = chr2Idx;
         lastItem = feature;
-        //lastItem = getIdentifier(feature);
+
+        // Autosave the information
         unsavedEdits = true;
+        if (firstSave){
+            makeTempFile();
+            firstSave = false;
+        }
+        updateAutoSave();
     }
 
-    //set show loops
+    // Requires that lastItem is not null
+    private void makeTempFile(){
+        String prefix = "unsaved-hiC-annotations" + id;
+        tempFile = HiCFileTools.openTempFile(prefix);
+        tempWriter = HiCFileTools.openWriter(tempFile);
+        tempWriter.println(Feature2D.getOutputFileHeader());
+        System.out.println("Made temp file " + tempFile.getAbsolutePath());
+    }
+
+    private void deleteTempFile(){
+        System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
+        tempWriter.close();
+        tempFile.delete();
+    }
+
+    // Set show loops
     public void setShowCustom (boolean newStatus){
         isVisible = newStatus;
     }
 
-    //get visible loop list (note: only one)
+    // Get visible loop list (note: only one)
     public List<Feature2D> getVisibleLoopList(int chrIdx1, int chrIdx2) {
         if (this.isVisible && customAnnotationList.isVisible()) {
-
             return customAnnotationList.get(chrIdx1, chrIdx2);
         }
-        //return null;
+        // Empty to prevent null pointer exception
         return new ArrayList<Feature2D>();
     }
 
-    // Creates unique identifier based on start and end positions.
+    // Creates unique identifier for Feature2D based on start and end positions.
     private String getIdentifier(Feature2D feature){
         return "" + feature.getStart1() + feature.getEnd1() + feature.getStart2() + feature.getEnd2();
     }
@@ -89,42 +135,50 @@ public class CustomAnnotation {
     // Undo last move
     public void undo() {
         removeFromList(lastChr1Idx, lastChr2Idx, lastItem);
-//        List<Feature2D> lastList;
-//        lastList = customAnnotationList.get(lastChr1Idx, lastChr1Idx);
-//        for (Feature2D feature : lastList){
-//            if (getIdentifier(feature) == lastItem){
-//                //TODO: might not work, if object pointers incorrect
-//                lastList.remove(feature);
-//            }
-//        }
-//        unsavedEdits = true;
+    }
+
+    /**
+     * Export feature list to given file path
+     */
+    private int updateAutoSave() {
+        if (unsavedEdits && lastItem != null){
+            return customAnnotationList.autoSaveNew(tempWriter, lastItem);
+        }
+        return -1;
+    }
+
+    /**
+     * Export feature list to given file path, including header
+     */
+    private int reSaveAll() {
+        deleteTempFile();
+        makeTempFile();
+        return customAnnotationList.autoSaveAll(tempWriter);
     }
 
     private void removeFromList(int idx1, int idx2, Feature2D feature){
-        List<Feature2D> lastList;
-        String featureIdentifier = getIdentifier(feature);
-        lastList = customAnnotationList.get(idx1, idx2);
-        for (Feature2D aFeature : lastList){
-            if (featureIdentifier.compareTo(getIdentifier(aFeature)) == 0){
-                //TODO: might not work, if object pointers incorrect
-                lastList.remove(feature);
+        Feature2D lastFeature;
+            if (idx1 > 0 && idx2 > 0) {
+                List<Feature2D> lastList;
+                String featureIdentifier = getIdentifier(feature);
+                lastList = customAnnotationList.get(idx1, idx2);
+                unsavedEdits = lastList.remove(feature);
             }
-        }
-        unsavedEdits = true;
+        reSaveAll();
     }
 
     // Export annotations
-    public void exportAnnotations (String outputFilePath){
+    public int exportAnnotations (String outputFilePath){
+        int ok;
+        ok = customAnnotationList.exportFeatureList(outputFilePath);
+        if (ok < 0)
+            return ok;
         unsavedEdits = false;
-        customAnnotationList.exportFeatureList(outputFilePath);
+        return ok;
     }
 
-    // Clear all annotations
-    public void clearAnnotations(){
-        lastItem = null;
-        unsavedEdits = false;
-        customAnnotationList = new Feature2DList();
-        //TODO: add something that pops up if unsavedEdits is true
+    public void addVisibleToCustom(Feature2DList newAnnotations){
+        customAnnotationList.add(newAnnotations);
     }
 
     public boolean hasUnsavedEdits(){

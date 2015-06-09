@@ -49,6 +49,9 @@ public class HiCFileTools {
      * @return Chromosome lengths
      * @throws java.io.IOException if chromosome length file not found
      */
+
+    public static String tempPath = System.getProperty("user.dir");
+
     public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 
         InputStream is = null;
@@ -187,11 +190,38 @@ public class HiCFileTools {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
             return out;
         } catch (IOException e) {
-            System.out.println("I/O error opening file: "+fileName);
+            System.out.println("I/O error opening file: "+ fileName);
             System.exit(0);
         }
         return null;
     }
+
+    public static PrintWriter openWriter(File file){
+        try{
+            //create a temp file
+            return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
+        } catch (IOException e) {
+            System.out.println("I/O error opening file temp file for AutoSave. ");
+            System.exit(0);
+        }
+        return null;
+    }
+
+    public static File openTempFile(String prefix) {
+        //try{
+            //create a temp file
+            String pathName = tempPath + "/" + prefix + ".txt";
+            File temp = new File(pathName);
+            //File temp = File.createTempFile(prefix, ".tmp");
+            return temp;
+//        } catch (IOException e) {
+//            System.out.println("I/O error opening file temp file for AutoSave. ");
+//            System.exit(0);
+//        }
+//        return null;
+    }
+
+
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,

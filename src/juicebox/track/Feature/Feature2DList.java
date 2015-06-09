@@ -230,25 +230,64 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public void exportFeatureList(String outputFilePath) {
-        PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
+    public int exportFeatureList(String outputFilePath) {
+        if (featureList != null && featureList.size() > 0) {
 
-        Feature2D featureZero = extractSingleFeature();
-        outputFile.println(featureZero.getOutputFileHeader());
+            PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
 
-        for (String key : featureList.keySet()) {
-            for (Feature2D feature : featureList.get(key)) {
-                outputFile.println(feature);
+            Feature2D featureZero = extractSingleFeature();
+            outputFile.println(featureZero.getOutputFileHeader());
+
+            for (String key : featureList.keySet()) {
+                for (Feature2D feature : featureList.get(key)) {
+                    outputFile.println(feature);
+                }
             }
+            outputFile.close();
+
+            return 0;
         }
-        outputFile.close();
+        return -1;
+    }
+
+    /**
+     * Export feature list to given file path
+     *
+     * @param outputFile
+     */
+    public int autoSaveNew(PrintWriter outputFile, Feature2D feature) {
+
+        if (featureList != null && featureList.size() > 0) {
+            outputFile.println(feature);
+            return 0;
+        }
+        return -1;
+    }
+
+    /**
+     * Export feature list to given file path
+     *
+     * @param outputFile
+     */
+    public int autoSaveAll(PrintWriter outputFile) {
+        if (featureList != null && featureList.size() > 0) {
+
+            for (String key : featureList.keySet()) {
+                for (Feature2D feature : featureList.get(key)) {
+                    outputFile.println(feature);
+                }
+            }
+
+            return 0;
+        }
+        return -1;
     }
 
     /**
      * Get first feature found
      * @return feature
      */
-    private Feature2D extractSingleFeature() {
+    public Feature2D extractSingleFeature() {
         for (String key : featureList.keySet()) {
             for (Feature2D feature : featureList.get(key)) {
                 return feature;

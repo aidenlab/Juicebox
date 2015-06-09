@@ -77,7 +77,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final HeatmapRenderer renderer;
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
-    private boolean isRegion;
     /**
      * Chromosome boundaries in kbases for whole genome view.
      */
@@ -97,7 +96,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * @param hic
      */
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
-        isRegion = false;
         this.mainWindow = mainWindow;
         this.hic = hic;
         renderer = new HeatmapRenderer(mainWindow, hic);
@@ -310,17 +308,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Render loops
             drawnLoopFeatures.clear();
 
-            //ever null?
             List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            //zero or more
+            // customLoops is array with zero or more loops
             List<Feature2D> customLoops = mainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            if (loops == null) {
+            if (loops == null){
                 loops = customLoops;
             } else {
-                //System.out.println("hic visible loops:" + loops.toString());
-                //System.out.println("custom loops: " + customLoops.toString());
                 loops.addAll(customLoops);
-                //System.out.println("combined: " + loops.toString());
             }
 
             if (loops != null && loops.size() > 0) {
@@ -479,95 +473,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     public void clearTileCache() {
         tileCache.clear();
     }
-
-//    //helper for getannotatemenu
-//    private int geneXPos(int x){
-//        final MatrixZoomData zd = hic.getZd();
-//        if (zd == null) return -1;
-//        HiCGridAxis xGridAxis = zd.getXGridAxis();
-//        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-//        return xGridAxis.getGenomicStart(binX) + 1;
-//    }
-//
-//    //helper for getannotatemenu
-//    private int geneYPos(int y){
-//        final MatrixZoomData zd = hic.getZd();
-//        if (zd == null) return -1;
-//        HiCGridAxis yGridAxis = zd.getYGridAxis();
-//        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-//        return yGridAxis.getGenomicStart(binY) + 1;
-//    }
-
-//    JidePopupMenu getAnnotateMenu(){
-//
-//        JidePopupMenu menu = new JidePopupMenu();
-////        //meh!
-////        final int start1 = geneXPos(annotateRectangle.x);
-////        final int start2 = geneYPos(annotateRectangle.y);
-////        final int end1 = geneXPos(annotateRectangle.x + annotateRectangle.height);
-////        final int end2 = geneYPos(annotateRectangle.y + annotateRectangle.width);
-////        final int chr1Idx = hic.getXContext().getChromosome().getIndex();
-////        final int chr2Idx = hic.getYContext().getChromosome().getIndex();
-////        final String chr1 = hic.getXContext().getChromosome().getName();
-////        final String chr2 = hic.getYContext().getChromosome().getName();
-//
-//        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
-//        mi.setSelected(straightEdgeEnabled);
-//        mi.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                if (mi.isSelected()) {
-//                    straightEdgeEnabled = true;
-//                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-//                } else {
-//                    straightEdgeEnabled = false;
-//                    hic.setCursorPoint(null);
-//                    setCursor(Cursor.getDefaultCursor());
-//                    repaint();
-//                    mainWindow.repaintTrackPanels();
-//                }
-//            }
-//        });
-//
-//        //meh
-//        // Make selected region an annotated peak
-//        final JMenuItem mi2 = new JMenuItem("Annotate Peak");
-//
-//        mi2.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-////                System.out.println("MY STUFF:");
-////                System.out.println("chr1 " + chr1);
-////                System.out.println("start1 " + start1);
-////                System.out.println("end1 " + end1);
-////                System.out.println("chr1Idx " + chr1Idx);
-////                System.out.println("chr2 " + chr2);
-////                System.out.println("start2 " + start2);
-////                System.out.println("end2 " + end2);
-//                Feature2D newFeature = new Feature2D(Feature2D.peak, chr1, start1, end1, chr2, start2, end2,
-//                        java.awt.Color.orange, new HashMap<String,String>());
-//                mainWindow.customAnnotations.add(chr1Idx, chr2Idx, newFeature);
-//            }
-//        });
-//
-//        // Make selected region an annotated contact domain
-//            // Fit by diagonal
-//
-//        // Make selected region a generic feature
-//
-////        public static String peak = "Peak";
-////        public static String domain = "Contact domain";
-////        public static String generic = "Feature";
-//
-//        if (hic != null) {
-//            menu.add(mi);
-//            menu.add(mi2);
-//        }
-//
-//
-//        return menu;
-//
-//    }
 
     JidePopupMenu getPopupMenu() {
 
@@ -1434,7 +1339,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if (straightEdgeEnabled) {
+            if (straightEdgeEnabled || e.isShiftDown()) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             } else {
                 setCursor(Cursor.getDefaultCursor());
@@ -1444,7 +1349,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
-            if (straightEdgeEnabled) {
+            if (straightEdgeEnabled || e.isShiftDown()) {
                 mainWindow.repaintTrackPanels();
             }
         }
@@ -1462,17 +1367,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Priority is right click
             if (e.isPopupTrigger()) {
                 getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
-                // Alt down for zoom
+            // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
-                //meh
-            } else if (e.isShiftDown()) {
+            //meh
+            } else if (e.isShiftDown()){
                 dragMode = DragMode.ANNOTATE;
                 mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
                 mainWindow.customAnnotationHandler.doPeak();
 
                 //
-                straightEdgeEnabled = true;
+                //straightEdgeEnabled = true;
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 //
 
@@ -1511,23 +1416,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
-                //meh - NOW pops up menu, not custom and doesn't take in information
+            //meh - NOW pops up menu, not custom and doesn't take in information
             } else if (dragMode == DragMode.ANNOTATE) {
                 mainWindow.customAnnotationHandler.addFeature(mainWindow.customAnnotations);
                 dragMode = DragMode.NONE;
 
                 //
-                zoomRectangle = null;
-                lastMousePoint = null;
-                straightEdgeEnabled = false;
+                annotateRectangle = null;
+                //zoomRectangle = null;
+                //lastMousePoint = null;
+                //straightEdgeEnabled = false;
                 hic.setCursorPoint(null);
                 setCursor(Cursor.getDefaultCursor());
                 repaint();
-                mainWindow.repaintTrackPanels();
+                //mainWindow.repaintTrackPanels();
                 //
 
             } else {
-                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                    setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }
         }
 
@@ -1603,43 +1509,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     break;
                 // meh
                 case ANNOTATE:
-//                    lastRectangle = annotateRectangle;
-//
-//                    if (deltaX == 0 || deltaY == 0) {
-//                        return;
-//                    }
-//
-//                    // Constrain aspect ratio of zoom rectangle to that of panel
-////                    double aspectRatio2 = (double) getWidth() / getHeight();
-////                    if (deltaX * aspectRatio2 > deltaY) {
-////                        deltaY = (int) (deltaX / aspectRatio2);
-////                    } else {
-////                        deltaX = (int) (deltaY * aspectRatio2);
-////                    }
-//
-//                    x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
-//                    y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
-//                    annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
-//
-//                    damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-//                    damageRect.x--;
-//                    damageRect.y--;
-//                    damageRect.width += 2;
-//                    damageRect.height += 2;
-//                    paintImmediately(damageRect);
-                    isRegion = true;
-                    mainWindow.customAnnotationHandler.doDomain();
-                    Rectangle newRect = mainWindow.customAnnotationHandler.updateSelectionRegion(lastMousePoint.x,
-                            lastMousePoint.y, deltaX, deltaY);
-                    if (newRect != null) {
-                        paintImmediately(newRect);
-                    }
-                    break;
-                //finish drawing rectangle
-                default:
+                    lastRectangle = annotateRectangle;
 
-                    // int dx = (int) (deltaX * hic.xContext.getScale());
-                    // int dy = (int) (deltaY * hic.yContext.getScale());
+                    if (deltaX == 0 || deltaY == 0) {
+                        return;
+                    }
+
+                    x = deltaX > 0 ? lastMousePoint.x : lastMousePoint.x + deltaX;
+                    y = deltaY > 0 ? lastMousePoint.y : lastMousePoint.y + deltaY;
+                    annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+
+                    damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+                    damageRect.x--;
+                    damageRect.y--;
+                    damageRect.width += 2;
+                    damageRect.height += 2;
+                    paintImmediately(damageRect);
+                    mainWindow.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    break;
+                default:
                     lastMousePoint = e.getPoint();    // Always save the last Point
 
                     double deltaXBins = -deltaX / hic.getScaleFactor();
@@ -1758,7 +1646,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mainWindow.updateToolTipText(toolTipText(e.getX(), e.getY()));
 
 
-                if (straightEdgeEnabled) {
+                if (straightEdgeEnabled || e.isShiftDown()) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
 

@@ -41,8 +41,8 @@ public class FeatureRenderer {
     // TODO make these variables accessible as user options
     // the other day, Erez mentioned his preferred was everything in lower left
     // can change for future.
-    private static final boolean onlyPlotUpperRight = true;
-    private static final boolean onlyPlotLowerLeft = true;
+    private static final boolean onlyPlotUpperRight = false;
+    private static final boolean onlyPlotLowerLeft = false;
     private static final boolean allowUpperRightLoops = true;
 
     public static void render(Graphics2D loopGraphics, List<Feature2D> loops, MatrixZoomData zd,
