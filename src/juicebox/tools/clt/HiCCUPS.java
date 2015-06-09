@@ -247,7 +247,7 @@ public class HiCCUPS extends JuiceboxCLT {
             if (runNum == 0) {
 
                 long thresh_time0 = System.currentTimeMillis();
-                System.out.print(histBL);
+                //System.out.print(histBL);
 
                 runZeroProcessHistogram(histBL, w1, w2, fdr, thresholdBL, fdrLogBL);
                 runZeroProcessHistogram(histDonut, w1, w2, fdr, thresholdDonut, fdrLogDonut);
@@ -306,9 +306,9 @@ public class HiCCUPS extends JuiceboxCLT {
 
     private void calculateThresholdAndFDR(int index, int width, int fdr, int[][] rcsHist,
                                           float[] threshold, float[][] fdrLog) {
-        System.out.println("");
-        System.out.println("index is "+index);
-        System.out.println("rcsHist is "+rcsHist[index][0]);
+        //System.out.println("");
+        //System.out.println("index is "+index);
+        //System.out.println("rcsHist is "+rcsHist[index][0]);
         if (rcsHist[index][0] > 0) {
             float[] expected = ArrayTools.doubleArrayToFloatArray(
                     ArrayTools.generateScaledPoissonPDF(index, rcsHist[index][0], width));

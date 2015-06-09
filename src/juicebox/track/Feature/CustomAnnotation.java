@@ -103,7 +103,13 @@ public class CustomAnnotation {
         String prefix = "unsaved-hiC-annotations" + id;
         tempFile = HiCFileTools.openTempFile(prefix);
         tempWriter = HiCFileTools.openWriter(tempFile);
-        tempWriter.println(Feature2D.getOutputFileHeader());
+        
+        Feature2D singleFeature = customAnnotationList.extractSingleFeature();
+        if(singleFeature == null){
+            tempWriter.println(Feature2D.getDefaultOutputFileHeader());
+        } else {
+            tempWriter.println(singleFeature.getOutputFileHeader());
+        }
         System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 

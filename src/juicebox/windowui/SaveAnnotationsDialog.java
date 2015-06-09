@@ -40,6 +40,8 @@ import java.util.Date;
  */
 public class SaveAnnotationsDialog extends JFileChooser {
 
+    private static final long serialVersionUID = 1299313L;
+
     public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {
         super();
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());

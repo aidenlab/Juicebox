@@ -55,7 +55,7 @@ public class Feature2D {
     private final int start2;
     private final int end2;
     private Color color;
-    private static Map<String, String> attributes;
+    private Map<String, String> attributes;
     private final String featureName;
 
 
@@ -212,7 +212,11 @@ public class Feature2D {
         return txt.toString();
     }
 
-    public static String getOutputFileHeader(){
+    public static String getDefaultOutputFileHeader() {
+        return "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    }
+
+    public String getOutputFileHeader(){
         String output = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
@@ -238,6 +242,10 @@ public class Feature2D {
         }
 
         return output;
+    }
+
+    public String getAttribute(String key) {
+        return attributes.get(key);
     }
 
     public float getFloatAttribute(String key) {
