@@ -47,15 +47,13 @@ public class FeatureRenderer {
 
     public static void render(Graphics2D loopGraphics, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
-                              List<Pair<Rectangle, Feature2D>> drawnLoopFeatures) {
+                              List<Pair<Rectangle, Feature2D>> drawnLoopFeatures,
+                              Pair<Rectangle, Feature2D> highlightedFeature, boolean showFeatureHighlight) {
 
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();
         HiCGridAxis yAxis = zd.getYGridAxis();
         boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
-
-
-
 
         for (Feature2D feature : loops) {
 
@@ -124,6 +122,28 @@ public class FeatureRenderer {
                 }
                 drawnLoopFeatures.add(new Pair<Rectangle, Feature2D>(new Rectangle(x - 1, y - 1, w + 2, h + 2), feature));
             }
+        }
+
+        if(highlightedFeature != null && showFeatureHighlight){
+            Feature2D feature = highlightedFeature.getSecond();
+            loopGraphics.setColor(feature.getColor());
+
+            int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
+            int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
+            int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
+            int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
+
+            int x = (int) ((binStart1 - binOriginX) * scaleFactor);
+            int y = (int) ((binStart2 - binOriginY) * scaleFactor);
+            int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+            int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+
+            loopGraphics.setColor(Color.GREEN);
+            loopGraphics.drawLine(x, y, x, y + w);
+            loopGraphics.drawLine(x, y + w, x + h, y + w);
+            loopGraphics.drawLine(x, y, x + h, y);
+            loopGraphics.drawLine(x + h, y, x + h, y + w);
+
         }
         loopGraphics.dispose();
     }

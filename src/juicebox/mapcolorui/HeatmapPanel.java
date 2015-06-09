@@ -53,7 +53,6 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -85,6 +84,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private int[] chromosomeBoundaries;
     private boolean straightEdgeEnabled = false;
 
+    /**
+     * feature highlight related variables
+     */
+    private boolean showFeatureHighlight = true;
+    private boolean mouseIsOverFeature = false;
+    private Pair<Rectangle, Feature2D> highlightedFeature = null;
+    private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
+
+    /**
+     * @param mainWindow
+     * @param hic
+     */
     public HeatmapPanel(MainWindow mainWindow, HiC hic) {
         isRegion = false;
         this.mainWindow = mainWindow;
@@ -303,7 +314,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
             //zero or more
             List<Feature2D> customLoops = mainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            if (loops == null){
+            if (loops == null) {
                 loops = customLoops;
             } else {
                 //System.out.println("hic visible loops:" + loops.toString());
@@ -313,7 +324,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
             if (loops != null && loops.size() > 0) {
-                FeatureRenderer.render((Graphics2D)g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures);
+                FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
+                        highlightedFeature, showFeatureHighlight);
             }
 
             if (zoomRectangle != null) {
@@ -675,6 +687,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+        final JCheckBoxMenuItem mi85 = new JCheckBoxMenuItem("Highlight Feature");
+        mi85.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showFeatureHighlight = true;
+                highlightedFeature = mostRecentRectFeaturePair;
+            }
+        });
+
+        final JCheckBoxMenuItem mi86 = new JCheckBoxMenuItem("Toggle Feature Highlight");
+        mi86.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showFeatureHighlight = !showFeatureHighlight;
+            }
+        });
+
+        final JCheckBoxMenuItem mi87 = new JCheckBoxMenuItem("Remove Highlight");
+        mi87.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightedFeature = null;
+            }
+        });
+
         final JCheckBoxMenuItem mi9 = new JCheckBoxMenuItem("Generate 1D Tracks");
         mi9.addActionListener(new ActionListener() {
             @Override
@@ -692,6 +729,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi6);
             menu.add(mi7);
             menu.add(mi8);
+            if (mostRecentRectFeaturePair != null) {//mouseIsOverFeature
+                menu.add(mi85);
+            }
+            if (highlightedFeature != null) {
+                menu.add(mi86);
+                menu.add(mi87);
+            }
             //menu.add(mi9);
         }
 
@@ -916,7 +960,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(loop.getSecond().tooltipText());
                     txt.append("</span>");
-
                 }
             }
 
@@ -1132,17 +1175,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
                     }
-
                 }
-
-
             }
 
+            Point currMouse = new Point(x, y);
+            double minDistance = Double.POSITIVE_INFINITY;
+            mouseIsOverFeature = false;
+            mostRecentRectFeaturePair = null;
             for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
                 if (loop.getFirst().contains(x, y)) {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(loop.getSecond().tooltipText());
                     txt.append("</span>");
+
+                    double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        mostRecentRectFeaturePair = loop;
+                    }
+                    mouseIsOverFeature = true;
 
                 }
             }
@@ -1407,11 +1458,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Priority is right click
             if (e.isPopupTrigger()) {
                 getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
-            // Alt down for zoom
+                // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
-            //meh
-            } else if (e.isShiftDown()){
+                //meh
+            } else if (e.isShiftDown()) {
                 dragMode = DragMode.ANNOTATE;
                 mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
                 mainWindow.customAnnotationHandler.doPeak();
@@ -1456,7 +1507,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
-            //meh - NOW pops up menu, not custom and doesn't take in information
+                //meh - NOW pops up menu, not custom and doesn't take in information
             } else if (dragMode == DragMode.ANNOTATE) {
                 mainWindow.customAnnotationHandler.addFeature(mainWindow.customAnnotations);
                 dragMode = DragMode.NONE;
@@ -1472,7 +1523,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //
 
             } else {
-                    setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }
         }
 
@@ -1576,11 +1627,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     mainWindow.customAnnotationHandler.doDomain();
                     Rectangle newRect = mainWindow.customAnnotationHandler.updateSelectionRegion(lastMousePoint.x,
                             lastMousePoint.y, deltaX, deltaY);
-                    if (newRect != null){
+                    if (newRect != null) {
                         paintImmediately(newRect);
                     }
                     break;
-                    //finish drawing rectangle
+                //finish drawing rectangle
                 default:
 
                     // int dx = (int) (deltaX * hic.xContext.getScale());
