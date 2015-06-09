@@ -1339,7 +1339,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if (straightEdgeEnabled || e.isShiftDown()) {
+            if (straightEdgeEnabled) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             } else {
                 setCursor(Cursor.getDefaultCursor());
@@ -1349,7 +1349,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
-            if (straightEdgeEnabled || e.isShiftDown()) {
+            if (straightEdgeEnabled) {
                 mainWindow.repaintTrackPanels();
             }
         }
@@ -1381,13 +1381,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 //
 
-
-//                //mainWindow.customAnnotationHandler.isEnabled()){
-//                if (mainWindow.customAnnotationHandler.isPeak()){
-//                    mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
-//                } else {
-//                    dragMode = DragMode.ANNOTATE;
-//                }
             } else {
                 dragMode = DragMode.PAN;
                 setCursor(MainWindow.fistCursor);
@@ -1420,15 +1413,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (dragMode == DragMode.ANNOTATE) {
                 mainWindow.customAnnotationHandler.addFeature(mainWindow.customAnnotations);
                 dragMode = DragMode.NONE;
-
-                //
                 annotateRectangle = null;
-                //zoomRectangle = null;
-                //lastMousePoint = null;
-                //straightEdgeEnabled = false;
+                lastMousePoint = null;
+                zoomRectangle = null;
+
+
                 hic.setCursorPoint(null);
                 setCursor(Cursor.getDefaultCursor());
                 repaint();
+                mainWindow.repaintTrackPanels();
+
+
+
+
+                //hic.setCursorPoint(null);
+                //setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+
+                //
+                //straightEdgeEnabled = false;
+
+                //hic.setCursorPoint(null);
+                //setCursor(Cursor.getDefaultCursor());
+                //repaint();
                 //mainWindow.repaintTrackPanels();
                 //
 
@@ -1507,7 +1513,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     paintImmediately(damageRect);
 
                     break;
-                // meh
                 case ANNOTATE:
                     lastRectangle = annotateRectangle;
 
@@ -1619,17 +1624,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
 
                 }
-                //else {
-
-//                    if (hic.getXContext() == null) return;
-//
-//                    int binX = (int) (hic.getXContext().getBinOrigin() + eF.getX() / hic.getScaleFactor());
-//                    int binY = (int) (hic.getYContext().getBinOrigin() + eF.getY() / hic.getScaleFactor());
-//
-//                    hic.setSelectedBin(new Point(binX, binY));
-//                    repaint();
-
-                // }
             }
         }
 
@@ -1645,36 +1639,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (hic.getXContext() != null && hic.getZd() != null) {
                 mainWindow.updateToolTipText(toolTipText(e.getX(), e.getY()));
 
-
                 if (straightEdgeEnabled || e.isShiftDown()) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
-
-//                        // Main panel
-//                        Rectangle damageRectX = new Rectangle();
-//                        damageRectX.x = (lastCursorPoint != null ? Math.min(lastCursorPoint.x, e.getX()) : e.getX()) - 1;
-//                        damageRectX.y = 0;
-//                        damageRectX.width = lastCursorPoint == null ? 2 : Math.abs(e.getX() - lastCursorPoint.x) + 2;
-//                        damageRectX.height = getHeight();
-//                        paintImmediately(damageRectX);
-//
-//                        Rectangle damageRectY = new Rectangle();
-//                        damageRectY.x = 0;
-//                        damageRectY.y = (lastCursorPoint != null ? Math.min(lastCursorPoint.y, e.getY()) : e.getY()) - 1;
-//                        damageRectY.width = getWidth();
-//                        damageRectY.height = lastCursorPoint == null ? 2 : Math.abs(e.getY() - lastCursorPoint.y) + 2;
-//                        paintImmediately(damageRectY);
-//
-//                        // Track panels
-//                        damageRectX.height = mainWindow.trackPanelX.getHeight();
-//                        mainWindow.trackPanelX.paintImmediately(damageRectX);
-//
-//                        damageRectY.width = mainWindow.trackPanelY.getWidth();
-//                        mainWindow.trackPanelY.paintImmediately(damageRectY);
-
                         repaint();
                         mainWindow.repaintTrackPanels();
                     }
+                } else {
+                    hic.setCursorPoint(null);
+                    setCursor(Cursor.getDefaultCursor());
+                    repaint();
                 }
             }
         }
