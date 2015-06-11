@@ -77,12 +77,12 @@ public class FeatureRenderer {
 
                 if (onlyPlotLowerLeft) {
                     //loopGraphics.setColor(Color.green);
-                    loopGraphics.drawLine(x, y, x, y + w);
-                    loopGraphics.drawLine(x, y + w, x + h, y + w);
+                    loopGraphics.drawLine(x, y, x, y + h);
+                    loopGraphics.drawLine(x, y + h, x + w, y + h);
                 } else if (onlyPlotUpperRight) {
                     //loopGraphics.setColor(Color.blue);
-                    loopGraphics.drawLine(x, y, x + h, y);
-                    loopGraphics.drawLine(x + h, y, x + h, y + w);
+                    loopGraphics.drawLine(x, y, x + w, y);
+                    loopGraphics.drawLine(x + w, y, x + w, y + h);
                 } else {
                     //loopGraphics.setColor(Color.yellow);
                     loopGraphics.drawRect(x, y, w, h);
@@ -91,11 +91,11 @@ public class FeatureRenderer {
                 if (w > 5) {
                     // Thick line if there is room. TODO double check +/- 1
                     if (onlyPlotLowerLeft) {
-                        loopGraphics.drawLine(x + 1, y + 1, x + 1, y + w + 1);
-                        loopGraphics.drawLine(x + 1, y + w + 1, x + h + 1, y + w + 1);
+                        loopGraphics.drawLine(x + 1, y + 1, x + 1, y + h + 1);
+                        loopGraphics.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
                     } else if (onlyPlotUpperRight) {
-                        loopGraphics.drawLine(x + 1, y + 1, x + h + 1, y + 1);
-                        loopGraphics.drawLine(x + h + 1, y + 1, x + h + 1, y + w - 1);
+                        loopGraphics.drawLine(x + 1, y + 1, x + w + 1, y + 1);
+                        loopGraphics.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
                     } else {
                         loopGraphics.drawRect(x + 1, y + 1, w - 2, h - 2);
                     }
@@ -142,14 +142,14 @@ public class FeatureRenderer {
             loopGraphics.setColor(Color.BLACK);
             if(HiCFileTools.equivalentChromosome(feature.getChr1(),zd.getChr1())){
                 int x = (int) ((binStart1 - binOriginX) * scaleFactor);
-                int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+                int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
                 loopGraphics.drawLine(x, 0, x, maxHeight);
                 loopGraphics.drawLine(x+h, 0, x+h, maxHeight);
             }
             if(HiCFileTools.equivalentChromosome(feature.getChr2(),zd.getChr2())){
                 int y = (int) ((binStart2 - binOriginY) * scaleFactor);
-                int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+                int w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 
                 loopGraphics.drawLine(0, y, maxWidth, y);
                 loopGraphics.drawLine(0, y+w, maxWidth, y+w);
