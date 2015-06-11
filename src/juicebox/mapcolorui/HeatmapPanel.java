@@ -472,6 +472,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
         tileCache.clear();
     }
 
+    private void launchColorSelectionMenu(Pair<Rectangle, Feature2D> selectedFeaturePair) {
+        JColorChooser colorChooser = new JColorChooser(selectedFeaturePair.getSecond().getColor());
+        JDialog dialog = JColorChooser.createDialog(new JPanel(null), "Dialog Title", true, colorChooser,
+                (ActionListener)null, (ActionListener)null);
+        dialog.setVisible(true);
+        Color c = colorChooser.getColor();
+        if(c != null) {
+            selectedFeaturePair.getSecond().setColor(c);
+        }
+    }
+
     JidePopupMenu getPopupMenu() {
 
         JidePopupMenu menu = new JidePopupMenu();
@@ -625,7 +636,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             }
         });
+        final JCheckBoxMenuItem mi10 = new JCheckBoxMenuItem("Configure Feature");
+        mi10.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Pair<Rectangle, Feature2D> featureCopy =
+                        new Pair<Rectangle, Feature2D>(mostRecentRectFeaturePair.getFirst(), mostRecentRectFeaturePair.getSecond());
 
+                launchColorSelectionMenu(featureCopy);
+            }
+        });
         if (hic != null) {
             //    menu.add(mi2);
             menu.add(mi3);
@@ -637,6 +657,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi8);
             if (mostRecentRectFeaturePair != null) {//mouseIsOverFeature
                 menu.add(mi85);
+                menu.add(mi10);
             }
             if (highlightedFeature != null) {
                 menu.add(mi86);
