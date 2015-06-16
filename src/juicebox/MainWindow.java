@@ -86,7 +86,8 @@ public class MainWindow extends JFrame {
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    private static String currentlyLoadedFiles = "";
+    private static String currentlyLoadedMainFiles = "";
+    private static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -114,7 +115,7 @@ public class MainWindow extends JFrame {
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
     public static JMenuItem exportAnnotationsMI;
-    public static JMenuItem undoMI;
+    public static JMenuItem undoMenuItem;
     public static boolean unsavedEdits;
     public static JMenuItem loadLastMI;
     private static File temp;
@@ -397,7 +398,11 @@ public class MainWindow extends JFrame {
         }
 
 
-        if (newFilesToBeLoaded.equals(currentlyLoadedFiles)) {
+        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
+            return;
+        }
+        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
         }
@@ -497,8 +502,11 @@ public class MainWindow extends JFrame {
 
             goPanel.setEnabled(true);
 
-            if (!control) {
-                currentlyLoadedFiles = newFilesToBeLoaded;
+            if (control) {
+                currentlyLoadedControlFiles = newFilesToBeLoaded;
+            }
+            else {
+                currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
             //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
@@ -683,13 +691,19 @@ public class MainWindow extends JFrame {
     }
 
     public void loadFromURLActionPerformed(boolean control) {
-        String url = JOptionPane.showInputDialog("Enter URL: ");
-        if (url != null) {
+        String urlString = JOptionPane.showInputDialog("Enter URLs (seperated by commas): ");
+        if (urlString != null) {
             try {
-                String path = (new URL(url)).getPath();
-                safeLoad(Arrays.asList(url), control, path);
+                String[] urls = urlString.split(",");
+                List<String> urlList = new ArrayList<String>();
+                String title = "";
+                for(String url : urls){
+                    urlList.add(url);
+                    title += (new URL(url)).getPath() + " ";
+                }
+                safeLoad(urlList, control, title);
             } catch (MalformedURLException e1) {
-                JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error while trying to load " + urlString, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -1774,7 +1788,7 @@ public class MainWindow extends JFrame {
         exportAnnotationsMI = new JMenuItem("Export...");
         loadLastMI = new JMenuItem("Load Last");
         final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
-        undoMI = new JMenuItem("Undo Annotation");
+        undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
 
         // Annotate Item Actions
@@ -1789,7 +1803,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
-                        hic.getChromosomes(), false, 0, 0, 0), "1");
+                        hic.getChromosomes(), false, 0, 0, 0, true), "1");
                 temp.delete();
                 loadLastMI.setEnabled(false);
             }
@@ -1821,19 +1835,19 @@ public class MainWindow extends JFrame {
             }
         });
 
-        undoMI.addActionListener(new ActionListener() {
+        undoMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 customAnnotationHandler.undo(customAnnotations);
                 repaint();
             }
         });
-        undoMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
 
         //Add annotate menu items
         customAnnotationMenu.add(exportAnnotationsMI);
         customAnnotationMenu.add(mergeVisibleMI);
-        customAnnotationMenu.add(undoMI);
+        customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
         if (unsavedEdits){
             customAnnotationMenu.add(loadLastMI);
@@ -1841,7 +1855,7 @@ public class MainWindow extends JFrame {
         }
 
         exportAnnotationsMI.setEnabled(false);
-        undoMI.setEnabled(false);
+        undoMenuItem.setEnabled(false);
 
         annotationsMenu.add(customAnnotationMenu);
 

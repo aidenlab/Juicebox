@@ -45,7 +45,7 @@ public class Feature2DList {
     /**
      * List of 2D features stored by chromosome
      */
-    private final Map<String, List<Feature2D>> featureList;
+    private Map<String, List<Feature2D>> featureList;
 
     /*
      * Metrics resulting from APA filtering
@@ -167,17 +167,19 @@ public class Feature2DList {
         filterMetrics = new HashMap<String, Integer[]>();
         Set<String> keys = featureList.keySet();
 
+        HashMap<String, List<Feature2D>> newFeatureList = new HashMap<String, List<Feature2D>>();
         for (String key : keys) {
-            List<Feature2D> features = featureList.remove(key);
+            List<Feature2D> features = featureList.get(key);
             List<Feature2D> uniqueFeatures = filterFeaturesByUniqueness(features);
             List<Feature2D> filteredUniqueFeatures = filterFeaturesBySize(uniqueFeatures,
                     minPeakDist, maxPeakDist, resolution);
 
 
-            featureList.put(key, filteredUniqueFeatures);
+            newFeatureList.put(key, filteredUniqueFeatures);
             filterMetrics.put(key,
                     new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
         }
+        featureList = new HashMap<String, List<Feature2D>>(newFeatureList);
     }
 
     /**

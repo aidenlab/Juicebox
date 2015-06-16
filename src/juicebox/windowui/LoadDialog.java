@@ -26,7 +26,6 @@ package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.MainWindow;
-
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -43,20 +42,15 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private final boolean success;
     private final MainWindow mainWindow;
     private JTree tree;
-    private JButton cancelButton;
     private JSplitButton openButton;
+    private JMenuItem openButton30;
+    private JButton cancelButton;
     private JButton localButton;
-    private JMenuItem openURL; //TODO Is this safe to remove?
-    private JMenuItem open30;
+    private JButton urlButton;
     private JTextField fTextField;
-
     private static boolean actionLock = false;
-
-    private final String[] searchColors = {"red", "blue", "green", "cyan",
-            "orange", "magenta", "pink"};
-
-
     private boolean control;
+    private final String[] searchHighlightColors = {"#ff0000","#00ff00","#0000ff","#ff00ff","#00ffff","#ff9900","#ff66ff","#ffff00"};
 
     public LoadDialog(MainWindow mainWindow, Properties properties) {
         super(mainWindow, "Select file(s) to open");
@@ -112,21 +106,18 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             add(panel, BorderLayout.CENTER);
         }
         JPanel buttonPanel = new JPanel();
-        openButton = new JSplitButton("Open MAPQ > 0");
-        openButton.addActionListener(this);
-        openButton.setEnabled(false);
 
-        JPopupMenu popupMenu = new JPopupMenu("Popup Menu");
-        open30 = new JMenuItem("Open MAPQ \u2265 30");
-        open30.addActionListener(this);
-        popupMenu.add(open30);
-        popupMenu.setEnabled(false);
-        open30.setEnabled(false);
-        openButton.setComponentPopupMenu(popupMenu);
+        openButton = createMAPQ0Button("Open (MAPQ > 0)");
+        openButton.setEnabled(false);
+        openButton30 = createMAPQ30Menu(openButton, "Open (MAPQ \u2265 30)");
 
         localButton = new JButton("Local...");
         localButton.addActionListener(this);
         localButton.setPreferredSize(new Dimension((int) localButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
+
+        urlButton = new JButton("URL...");
+        urlButton.addActionListener(this);
+        urlButton.setPreferredSize(new Dimension((int) urlButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(this);
@@ -134,10 +125,11 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
         buttonPanel.add(openButton);
         buttonPanel.add(localButton);
+        buttonPanel.add(urlButton);
         buttonPanel.add(cancelButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
-        Dimension minimumSize = new Dimension(500, 400);
+        Dimension minimumSize = new Dimension(700, 400);
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
@@ -177,6 +169,23 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     }
 
+    private JSplitButton createMAPQ0Button(String buttonText){
+        JSplitButton button = new JSplitButton(buttonText);
+        button.addActionListener(this);
+        return button;
+    }
+
+    private JMenuItem createMAPQ30Menu(JSplitButton button, String button30Text) {
+        JMenuItem button30 = new JMenuItem(button30Text);
+        button30.addActionListener(this);
+        button30.setEnabled(false);
+        JPopupMenu popupMenu = new JPopupMenu("MAPQ ≥ 30 Menu");
+        popupMenu.add(button30);
+        popupMenu.setEnabled(false);
+        button.setComponentPopupMenu(popupMenu);
+        return button30;
+    }
+
     private void expandToWantedNode(DefaultMutableTreeNode dNode) {
         if (dNode != null) {
             tree.setExpandsSelectedPaths(true);
@@ -194,16 +203,13 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             private static final long serialVersionUID = 422L;
 
             @Override
-            public Component getTreeCellRendererComponent(JTree tree,
-                                                          Object value, boolean sel, boolean expanded, boolean leaf,
-                                                          int row, boolean hasFocus) {
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
+                                                          boolean leaf, int row, boolean hasFocus) {
                 String text = value.toString();
-                String html = "<html>";
-                for (int i = 0; i < parts.length; i++) {
-                    String searchColor = searchColors[i];
-                    text = text.replaceAll(parts[i], "<font color = \"" + searchColor + "\" >" + parts[i] + "</font>");
+                for (int i = 0; i < Math.min(parts.length, searchHighlightColors.length); i++) {
+                    text = text.replaceAll(parts[i], "<font color=\"" + searchHighlightColors[i] + "\">" + parts[i] + "</font>");
                 }
-                html = html + text + "</html>";
+                String html = "<html>" + text + "</html>";
 
                 return super.getTreeCellRendererComponent(
                         tree, html, sel, expanded, leaf, row, hasFocus);
@@ -286,13 +292,13 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             openButton.setEnabled(true);
 
             if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")) {    // maternal paternal
-                open30.setEnabled(false);
+                openButton30.setEnabled(false);
             } else {
-                open30.setEnabled(true);
+                openButton30.setEnabled(true);
             }
         } else {
             openButton.setEnabled(false);
-            open30.setEnabled(false);
+            openButton30.setEnabled(false);
         }
     }
 
@@ -303,13 +309,12 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 actionLock = true;
                 if (e.getSource() == openButton) {
                     loadFiles(tree.getSelectionPaths(), null);
-                } else if (e.getSource() == open30) {
+                } else if (e.getSource() == openButton30) {
                     loadFiles(tree.getSelectionPaths(), "30");
-                }
-                if (e.getSource() == localButton) {
+                } else if (e.getSource() == localButton) {
                     mainWindow.loadMenuItemActionPerformed(control);
                     setVisible(false);
-                } else if (e.getSource() == openURL) {
+                } else if (e.getSource() == urlButton) {
                     mainWindow.loadFromURLActionPerformed(control);
                     setVisible(false);
                 } else if (e.getSource() == cancelButton) {

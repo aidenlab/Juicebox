@@ -310,7 +310,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
             // customLoops is array with zero or more loops
-            List<Feature2D> customLoops = mainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+            List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
             if (loops == null){
                 loops = customLoops;
             } else {
@@ -1392,8 +1392,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //meh
             } else if (e.isShiftDown()){
                 dragMode = DragMode.ANNOTATE;
-                mainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
-                mainWindow.customAnnotationHandler.doPeak();
+                MainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
+                MainWindow.customAnnotationHandler.doPeak();
 
                 //
                 //straightEdgeEnabled = true;
@@ -1430,7 +1430,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
             //meh - NOW pops up menu, not custom and doesn't take in information
             } else if (dragMode == DragMode.ANNOTATE) {
-                mainWindow.customAnnotationHandler.addFeature(mainWindow.customAnnotations);
+                MainWindow.customAnnotationHandler.addFeature(MainWindow.customAnnotations);
                 dragMode = DragMode.NONE;
                 annotateRectangle = null;
                 lastMousePoint = null;
@@ -1549,7 +1549,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     damageRect.width += 2;
                     damageRect.height += 2;
                     paintImmediately(damageRect);
-                    mainWindow.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    MainWindow.customAnnotationHandler.updateSelectionRegion(damageRect);
                     break;
                 default:
                     lastMousePoint = e.getPoint();    // Always save the last Point

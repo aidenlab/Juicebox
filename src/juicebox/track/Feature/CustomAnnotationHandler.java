@@ -140,8 +140,8 @@ public class CustomAnnotationHandler {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
-        mainWindow.exportAnnotationsMI.setEnabled(true);
-        mainWindow.undoMI.setEnabled(true);
+        MainWindow.exportAnnotationsMI.setEnabled(true);
+        MainWindow.undoMenuItem.setEnabled(true);
         String chr1 = hic.getXContext().getChromosome().getName();
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -212,7 +212,7 @@ public class CustomAnnotationHandler {
 
     public void undo(CustomAnnotation customAnnotations){
         customAnnotations.undo();
-        mainWindow.undoMI.setEnabled(false);
+        MainWindow.undoMenuItem.setEnabled(false);
     }
 
     private boolean nearDiagonal(int x, int y){

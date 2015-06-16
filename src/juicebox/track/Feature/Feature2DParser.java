@@ -44,7 +44,8 @@ public class Feature2DParser {
 
     public static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
                                               boolean generateAPAFiltering,
-                                              double minPeakDist, double maxPeakDist, int resolution) {
+                                              double minPeakDist, double maxPeakDist, int resolution,
+                                              boolean loadAttributes) {
 
         Feature2DList newList = new Feature2DList();
         int attCol = 7;
@@ -88,8 +89,10 @@ public class Feature2DParser {
                 Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
 
                 Map<String, String> attrs = new LinkedHashMap<String, String>();
-                for (int i = attCol; i < tokens.length; i++) {
-                    attrs.put(headers[i], tokens[i]);
+                if (loadAttributes){
+                    for (int i = attCol; i < tokens.length; i++) {
+                        attrs.put(headers[i], tokens[i]);
+                    }
                 }
 
                 Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
