@@ -289,4 +289,15 @@ public class HiCFileTools {
         }
         return null;
     }
+
+    public static double[] extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
+        ExpectedValueFunction expectedValueFunction = ds.getExpectedValues(zoom, normalization);
+        int n = expectedValueFunction.getLength();
+
+        double[] expectedVector = new double[n];
+        for (int i = 0; i < n; i++) {
+            expectedVector[i] = expectedValueFunction.getExpectedValue(index, i);
+        }
+        return  expectedVector;
+    }
 }

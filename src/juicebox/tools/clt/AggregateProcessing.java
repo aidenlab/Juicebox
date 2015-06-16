@@ -38,18 +38,49 @@ public class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
+        /*
+        String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17.bin"};
+
+        String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17exp"};
+
+        String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17norm"};
+
+        HiCTools.main(l4);
+        HiCTools.main(l5);
+        HiCTools.main(l6);
+
+
+
+        http://adam.bcma.bcm.edu/hiseq/
+        */
+
+        /*
         String[] l2 = {"hiccups",
                 "-r", "50000",
                 "-c", "17",
+                "-m", "90",
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/pycuda/jcuda/file1",
-                "/Users/muhammadsaadshamim/Desktop/pycuda/jcuda/file2"};
+                "/Users/muhammadsaadshamim/Desktop/j3/out1",
+                "/Users/muhammadsaadshamim/Desktop/j3/out2"};
 
         long time = System.currentTimeMillis();
         HiCTools.main(l2);
         time = (System.currentTimeMillis() - time) / 1000;
-        System.out.println("Total time " + time);
+        long mins = time/60;
+        long secs = time % 60;
+        System.out.println("Total time " + mins + " min "+ secs + " sec");
+        */
 
+
+        String[] l1 = {"apa","-r","5000",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/GSE63525_GM12878_primary+replicate_HiCCUPS_looplist_with_motifs.txt",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/1358"};
+
+        HiCTools.main(l1);
 
     }
 }
@@ -58,6 +89,8 @@ public class AggregateProcessing {
          * Example: this dumps data of each chromosome
          * for 5 single cell Hi-C experiments
          * at 5, 10, and 25 kb resolutions
+         *
+         * https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
          */
         /*
 

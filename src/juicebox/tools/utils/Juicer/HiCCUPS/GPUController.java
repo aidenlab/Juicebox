@@ -52,39 +52,38 @@ public class GPUController {
                 KernelLauncher.compile(kernelCode, GPUKernel.kernelName);
 
         kernelLauncher.setBlockSize(blockSize, blockSize, 1);
-        int gridSize = (matrixSize / blockSize) + 1;
+        int gridSize = (matrixSize / blockSize); // removed the +1
         kernelLauncher.setGridSize(gridSize, gridSize);
 
         //grid = new int[]{, (matrixSize / blockSize) + 1};
     }
 
-    public GPUOutputContainer process(MatrixZoomData zd, NormalizationVector krNormalizationVector, double[] expectedKRVector,
+    public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
                                       int[] rowBounds, int[] columnBounds, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH,float[] thresholdV,
-                                      float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType) {
+                                      float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType)
+            throws NegativeArraySizeException
+    {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
-        
+
         float[] observedVals = ArrayTools.doubleArrayToFloatArray(
                 MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData));
 
         // slice KR vector to localized region
 
-        float[] distanceExpectedKRVector = ArrayTools.doubleArrayToFloatArray(expectedKRVector);
-
-
+        float[] distanceExpectedKRVector = ArrayTools.doubleArrayToFloatArray(expectedVector);
 
         float[] kr1CPU = ArrayTools.doubleArrayToFloatArray(
-                MatrixTools.sliceFromVector(krNormalizationVector, rowBounds[0], rowBounds[1]));
+                MatrixTools.sliceFromVector(normalizationVector, rowBounds[0], rowBounds[1]));
         float[] kr2CPU = ArrayTools.doubleArrayToFloatArray(
-                MatrixTools.sliceFromVector(krNormalizationVector, columnBounds[0], columnBounds[1]));
+                MatrixTools.sliceFromVector(normalizationVector, columnBounds[0], columnBounds[1]));
+
         boundRowIndex[0] = rowBounds[0];
         boundColumnIndex[0] = columnBounds[0];
 
         long gpu_time1 = System.currentTimeMillis();
-
-
 
         // transfer host (CPU) memory to device (GPU) memory
         CUdeviceptr observedKRGPU = GPUHelper.allocateInput(observedVals);
@@ -164,10 +163,6 @@ public class GPUController {
         cuMemcpyDtoH(Pointer.to(binVResult), binVGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(observedResult), observedGPU, flattenedSize * Sizeof.FLOAT);
         cuMemcpyDtoH(Pointer.to(peakResult), peakGPU, flattenedSize * Sizeof.FLOAT);
-
-
-
-
 
         long gpu_time2 = System.currentTimeMillis();
 

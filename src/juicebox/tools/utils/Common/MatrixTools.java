@@ -128,8 +128,7 @@ public class MatrixTools {
         }
     }
 
-    public static double[] sliceFromVector(NormalizationVector krNormalizationVector, int bound1, int bound2) {
-        double[] vector = krNormalizationVector.getData();
+    public static double[] sliceFromVector(double[]  vector, int bound1, int bound2) {
 
         int n = bound2 - bound1;
         double[] slicedVector = new double[n];

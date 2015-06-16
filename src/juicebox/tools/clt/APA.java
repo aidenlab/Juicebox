@@ -85,8 +85,7 @@ public class APA extends JuiceboxCLT {
 
         //if (files.length > 4)
         //    restrictionSiteFilename = files[4];
-
-        //                 [min value, max value, window, resolution]
+        //[min value, max value, window, resolution]
         Number[] optionalAPAFlags = parser.getAPAOptions();
 
         if (optionalAPAFlags[0] != null)
@@ -122,11 +121,10 @@ public class APA extends JuiceboxCLT {
             HiCZoom zoom = HiCFileTools.getZoomLevel(ds, resolution);
             resolution = zoom.getBinSize();
 
-
             List<Chromosome> chromosomes = ds.getChromosomes();
 
             Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
-                    true, minPeakDist, maxPeakDist, resolution);
+                    true, minPeakDist, maxPeakDist, resolution, false);
 
             for (Chromosome chr : chromosomes) {
                 APADataStack apaDataStack = new APADataStack(L, files[2], files[3]);
@@ -150,8 +148,7 @@ public class APA extends JuiceboxCLT {
                 }
 
                 for (Feature2D loop : loops) {
-                    RealMatrix newData = APAUtils.extractLocalizedData(zd, loop, L, resolution, window);
-                    apaDataStack.addData(newData);
+                    apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window));
                 }
 
                 apaDataStack.updateGenomeWideData();

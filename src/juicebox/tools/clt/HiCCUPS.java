@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 /**
  * Created by muhammadsaadshamim on 1/20/15.
  */
@@ -65,7 +64,7 @@ public class HiCCUPS extends JuiceboxCLT {
 
     private static int regionWidth = 50; // 500 original
     private static int regionMargin = 20;
-    private static int matrixSize = regionWidth + regionMargin + regionMargin;
+    private static int matrixSize = 50;
     private static int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
     private static int window = 20;
     private static int peakWidth = 5;
@@ -75,7 +74,7 @@ public class HiCCUPS extends JuiceboxCLT {
     }
 
     public HiCCUPS() {
-        super("hiccups [-r resolution] [-c chromosome] <hic file> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
+        super("hiccups [-r resolution] [-c chromosome] [-m matrix_size] <hic file> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
         // -i input file custom
     }
 
@@ -94,6 +93,7 @@ public class HiCCUPS extends JuiceboxCLT {
 
         Set<String> specifiedChromosomes = parser.getChromosomeOption();
         Set<String> specifiedResolutions = parser.getMultipleResolutionOptions();
+        int specifiedMatrixSize = parser.getMatrixSizeOption();
 
         if (specifiedResolutions != null) {
             resolutions = new int[specifiedResolutions.size()];
@@ -109,12 +109,20 @@ public class HiCCUPS extends JuiceboxCLT {
             chromosomesSpecified = new HashSet<String>(specifiedChromosomes);
             chrSpecified = true;
         }
+
+        // TODO should not allow matrix size less than 41
+        if(specifiedMatrixSize > 0){
+            regionWidth = specifiedMatrixSize - regionMargin - regionMargin;
+            matrixSize = specifiedMatrixSize;
+        }
+        System.out.println("Using Matrix Size "+ matrixSize);
     }
 
     @Override
     public void run() {
 
         try {
+
             System.out.println("Accessing " + inputHiCFileName);
             DatasetReaderV2 reader = new DatasetReaderV2(inputHiCFileName);
             Dataset ds = reader.read();
@@ -190,8 +198,10 @@ public class HiCCUPS extends JuiceboxCLT {
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
                 NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
-                NormalizationVector normalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, NormalizationType.KR);
-                double[] expectedVector = ds.getExpectedValues(zoom, preferredNormalization).getExpectedValues();
+                double[] normalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom,
+                        NormalizationType.KR).getData();
+                double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
+                        zoom, preferredNormalization);
 
                 // need overall bounds for the chromosome
                 int chrLength = chromosome.getLength();
@@ -206,6 +216,7 @@ public class HiCCUPS extends JuiceboxCLT {
                     for (int j = i; j < (chrMatrixWdith / regionWidth) + 1; j++){
                         int[] columnBounds = calculateRegionBounds(j, regionWidth, regionMargin, matrixSize, chrMatrixWdith);
 
+                        // TODO should not run if region within bounds is empty i.e. does not contain even a single pixel
                         GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
                                 rowBounds, columnBounds, matrixSize,
                                 thresholdBL, thresholdDonut, thresholdH, thresholdV,

@@ -135,10 +135,10 @@ public class HiCCUPSUtils {
                 +"\t"+feature.getAttribute(BINBL)
                 +"\t"+feature.getAttribute(BINDONUT)
                 +"\t"+feature.getAttribute(BINH)
-                +"\t"+feature.getAttribute(BINV)/*
+                +"\t"+feature.getAttribute(BINV)
                 +"\t"+feature.getAttribute(FDRBL)
                 +"\t"+feature.getAttribute(FDRDONUT)
                 +"\t"+feature.getAttribute(FDRH)
-                +"\t"+feature.getAttribute(FDRV)*/;
+                +"\t"+feature.getAttribute(FDRV);
     }
 }

@@ -90,12 +90,12 @@ public class HiCTools {
 
         private Option resolutionOption = null;
         private Option multipleResolutionsOption = null;
+        private Option matrixSizeOption = null;
 
         // APA options
         private Option apaMinValOption = null;
         private Option apaMaxValOption = null;
         private Option apaWindowOption = null;
-        private Set<Integer> multipleResolutionOptions;
 
 
         CommandLineParser() {
@@ -112,6 +112,7 @@ public class HiCTools {
 
             resolutionOption = addIntegerOption('r', "resolution");
             multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
+            matrixSizeOption = addIntegerOption('m', "minCountThreshold");
 
             //apa <-m minval> <-x maxval> <-w window>  <-r resolution>
             apaMinValOption = addDoubleOption('n', "minimum value");
@@ -188,6 +189,11 @@ public class HiCTools {
         public Set<String> getMultipleResolutionOptions() {
             Object opt = getOptionValue(multipleResolutionsOption);
             return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
+        }
+
+        public int getMatrixSizeOption() {
+            Object opt = getOptionValue(matrixSizeOption);
+            return opt == null ? 0 : ((Number) opt).intValue();
         }
     }
 }
