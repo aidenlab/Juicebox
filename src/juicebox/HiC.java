@@ -634,7 +634,7 @@ public class HiC {
         }
 
 
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true);
+        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0);
         loopLists.put(path, newList);
     }
 

@@ -681,6 +681,7 @@ public class ResourceTree {
 
             if (resource.isSelected()) {
                 resourceLocators.add(resource.getResourceLocator());
+
             }
         }
         return resourceLocators;

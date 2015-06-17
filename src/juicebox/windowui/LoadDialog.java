@@ -196,8 +196,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     //Overriding in order to change text color
     private void colorSearchStrings(final String[] parts) {
-
-
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
             private static final long serialVersionUID = 422L;

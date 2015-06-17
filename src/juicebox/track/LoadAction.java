@@ -199,6 +199,7 @@ public class LoadAction extends AbstractAction {
         mainWindow.executeLongRunningTask(runnable, "safe load nodes");
     }
 
+
     private List<ResourceLocator> unsafeLoadNodes(String xmlFile) {
 
         ResourceTree resourceTree = hic.getResourceTree();

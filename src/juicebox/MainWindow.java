@@ -94,6 +94,8 @@ public class MainWindow extends JFrame {
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static JideButton refreshButton;
+    private static JMenuItem saveStateTest;
+    private static RecentMenu previousStates;
 
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
@@ -537,6 +539,7 @@ public class MainWindow extends JFrame {
         updateThumbnail();
     }
 
+
     public void setNormalizationDisplayState() {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
@@ -871,6 +874,9 @@ public class MainWindow extends JFrame {
     public RecentMenu getRecentStateMenu() {
         return recentLocationMenu;
     }
+    public RecentMenu getPrevousStateMenu(){
+        return previousStates;
+    }
 
     int i = 0, j = 0;
 
@@ -974,7 +980,15 @@ public class MainWindow extends JFrame {
         colorRangeSlider.setUpperValue(5);
 
     }
+//--------------------------------SetdisplayOptionComboBox----------------
+    public void setDisplayBox(int indx){
+        displayOptionComboBox.setSelectedIndex(indx);
+    }
 
+//----------------------------SetNormalization Box-----------------------
+    public void setNormalizationBox(int indx){
+        normalizationComboBox.setSelectedIndex(indx);
+    }
 
     private void initComponents() {
 
@@ -1047,7 +1061,7 @@ public class MainWindow extends JFrame {
         JPanel chrLabelPanel = new JPanel();
         JLabel chrLabel = new JLabel("Chromosomes");
         chrLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        chrLabelPanel.setBackground(new Color(204, 204, 204));
+        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
         chrLabelPanel.setLayout(new BorderLayout());
         chrLabelPanel.add(chrLabel, BorderLayout.CENTER);
         chrSelectionPanel.add(chrLabelPanel, BorderLayout.PAGE_START);
@@ -1104,7 +1118,7 @@ public class MainWindow extends JFrame {
         displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
         displayOptionPanel.setLayout(new BorderLayout());
         JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
+        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
         displayOptionLabelPanel.setLayout(new BorderLayout());
 
         JLabel displayOptionLabel = new JLabel("Show");
@@ -1139,7 +1153,7 @@ public class MainWindow extends JFrame {
         normalizationPanel.setLayout(new BorderLayout());
 
         JPanel normalizationLabelPanel = new JPanel();
-        normalizationLabelPanel.setBackground(new Color(204, 204, 204));
+        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
         normalizationLabelPanel.setLayout(new BorderLayout());
 
         JLabel normalizationLabel = new JLabel("Normalization");
@@ -1343,7 +1357,7 @@ public class MainWindow extends JFrame {
             }
         });
         JPanel colorLabelPanel = new JPanel();
-        colorLabelPanel.setBackground(new Color(204, 204, 204));
+        colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
         colorLabelPanel.setLayout(new BorderLayout());
         colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
 
@@ -1545,9 +1559,17 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
+    public String getColorRangeValues(){
 
+        int iMin = colorRangeSlider.getMinimum();
+        int lowValue = colorRangeSlider.getLowerValue();
+        int upValue = colorRangeSlider.getUpperValue();
+        int iMax = colorRangeSlider.getMaximum();
+        String values = iMin+"$$"+lowValue+"$$"+upValue+"$$"+iMax;
 
+        return values;
 
+    }
 
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED ||
@@ -1592,7 +1614,6 @@ public class MainWindow extends JFrame {
             labelTable.put(lValue, LoTickLabel);
             labelTable.put(uValue, UpTickLabel);
             labelTable.put(iMax, maxTickLabel);
-
 
             colorRangeSlider.setLabelTable(labelTable);
 
@@ -1974,6 +1995,29 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(saveLocationList);
 
 
+        //---Save State test-----
+        saveStateTest = new JMenuItem();
+        saveStateTest.setText("Save current state");
+        saveStateTest.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent location to the menu
+                String stateString = hic.saveState();
+                try {
+                    hic.writeState();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                String stateDescriptionString = hic.getDefaultLocationDescription();
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved state:", stateDescriptionString);
+                if (null != stateDescription) {
+                    getPrevousStateMenu().addEntry(stateDescription + "@@" + stateString, true);
+                }
+            }
+        });
+        saveStateTest.setEnabled(true);
+        bookmarksMenu.add(saveStateTest);
+
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
 
             private static final long serialVersionUID = 1234L;
@@ -1989,6 +2033,22 @@ public class MainWindow extends JFrame {
         recentLocationMenu.setMnemonic('S');
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
+
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentLocationEntityNode) {
+
+            private static final long serialVersionUID = 1234L;
+
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                hic.reloadPreviousState(hic.currentStates);
+                setNormalizationDisplayState();
+                colorRangeSliderUpdateToolTip();
+            }
+        };
+        previousStates.setEnabled(true);
+        bookmarksMenu.add(previousStates);
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);

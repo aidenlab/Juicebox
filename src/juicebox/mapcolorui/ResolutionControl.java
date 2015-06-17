@@ -26,6 +26,7 @@ package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
@@ -80,10 +81,10 @@ public class ResolutionControl extends JPanel {
 
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        resolutionLabel.setBackground(new Color(204, 204, 204));
+        resolutionLabel.setBackground(HiCGlobals.backgroundColor);
 
         JPanel resolutionLabelPanel = new JPanel();
-        resolutionLabelPanel.setBackground(new Color(204, 204, 204));
+        resolutionLabelPanel.setBackground(HiCGlobals.backgroundColor);
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 

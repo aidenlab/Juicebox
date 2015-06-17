@@ -120,7 +120,6 @@ public class HiCTrackManager {
                         MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
                     }
                 }
-
             }
         }
         mainWindow.updateTrackPanel();
@@ -137,6 +136,7 @@ public class HiCTrackManager {
         String path = locator.getPath();
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
+        System.out.println("path: "+path);
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
@@ -194,6 +194,7 @@ public class HiCTrackManager {
                 //TrackProperties trackProperties = getTrackProperties(header);
             } else {
                 log.error("Error loading track: " + path);
+                System.out.println("path: "+path);//DEBUGGING
                 File file = new File(path);
                 JOptionPane.showMessageDialog(mainWindow, "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
                 hic.removeTrack(new HiCFeatureTrack(hic, locator, null));
@@ -233,6 +234,10 @@ public class HiCTrackManager {
 
     public List<HiCTrack> getLoadedTracks() {
         return loadedTracks;
+    }
+
+    public Map<NormalizationType, HiCTrack> getCoverageTracks() {
+        return coverageTracks;
     }
 
     public void clearTracks() {

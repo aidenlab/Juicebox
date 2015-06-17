@@ -27,6 +27,7 @@ package juicebox.windowui;
 import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -65,7 +66,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         setBorder(LineBorder.createGrayLineBorder());
         setLayout(new BorderLayout());
         JPanel goLabelPanel = new JPanel();
-        goLabelPanel.setBackground(new Color(204, 204, 204));
+        goLabelPanel.setBackground(HiCGlobals.backgroundColor);
         goLabelPanel.setLayout(new BorderLayout());
         JLabel goLabel = new JLabel("Goto");
         goLabel.setHorizontalAlignment(SwingConstants.CENTER);
