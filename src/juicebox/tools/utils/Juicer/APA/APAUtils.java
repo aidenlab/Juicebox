@@ -111,10 +111,7 @@ public class APAUtils {
     }
 
     public static RealMatrix standardNormalization(RealMatrix matrix) {
-        RealMatrix normeddata = MatrixTools.cleanArray2DMatrix(matrix.getRowDimension(),
-                matrix.getColumnDimension()).add(matrix);
-        normeddata.scalarMultiply(1. / Math.max(1., MatrixTools.mean(matrix)));
-        return normeddata;
+        return matrix.copy().scalarMultiply(1. / Math.max(1., MatrixTools.mean(matrix)));
     }
 
 
@@ -124,15 +121,12 @@ public class APAUtils {
         double centerVal = matrix.getEntry(center, center);
 
         if (centerVal == 0) {
-            centerVal = MatrixTools.minimumPositive(matrix.getData());
+            centerVal = MatrixTools.minimumPositive(matrix);
             if (centerVal == 0)
                 centerVal = 1;
         }
 
-        RealMatrix normeddata = MatrixTools.cleanArray2DMatrix(matrix.getRowDimension(),
-                matrix.getColumnDimension()).add(matrix);
-        normeddata.scalarMultiply(1. / centerVal);
-        return normeddata;
+        return matrix.copy().scalarMultiply(1. / centerVal);
     }
 
     public static double peakEnhancement(RealMatrix matrix) {
