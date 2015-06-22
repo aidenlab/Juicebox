@@ -41,11 +41,15 @@ public class StatPercentile {
 
     // TODO optimize using binary search
     // TODO actually could be much more optimized since same vals are queried
-    public double evaluate(double val) {
+    public double evaluate(double val){
+        return internalEvaluate(val)*100;
+    }
+
+    private double internalEvaluate(double val) {
         for(int i = 0; i < statsData.length; i++){
             if(statsData[i] >= val){
                 if(statsData[i] > val){
-                    return Math.max(0.0,100.0*i/statsData.length);
+                    return Math.max(0.0,i/statsData.length);
                 }
                 else{
                     double percentile = 0;

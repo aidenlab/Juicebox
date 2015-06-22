@@ -37,6 +37,7 @@ import juicebox.track.Feature.Feature2D;
 import juicebox.track.Feature.Feature2DList;
 import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
@@ -61,7 +62,7 @@ public class APA extends JuiceboxCLT {
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
     Set<String> givenChromosomes = null;
-    //int width = 6; //size of boxes
+    public static int regionWidth = 6; //size of boxes
     //int peakwidth = 2; //for enrichment calculation of crosshair norm
     private int[] resolutions = new int[]{25000, 10000};
     private final boolean saveAllData = true;
@@ -155,19 +156,28 @@ public class APA extends JuiceboxCLT {
 
                         MatrixZoomData zd = matrix.getZoomData(zoom);
 
+                        System.out.println("CHR "+chr.getName() +" "+chr.getIndex());
                         List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
+                        if(loops == null || loops.size() == 0) {
+                            System.out.println("CHR " + chr.getName() + " " + chr.getIndex() + " - no loops found or other error");
+                            continue;
+                        }
+
                         Integer[] peakNumbers = loopList.getFilterMetrics(chr);
 
                         if (loops.size() != peakNumbers[0])
                             System.out.println("Error reading stat numbers fro " + chr);
 
                         for (int i = 0; i < peakNumbers.length; i++) {
-                            System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
+                            //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
                             gwPeakNumbers[i] += peakNumbers[i];
                         }
 
+                        //System.out.println("Loop");
                         for (Feature2D loop : loops) {
-                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window));
+                            //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
+                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
+                                    NormalizationType.NONE));
                         }
 
                         apaDataStack.updateGenomeWideData();

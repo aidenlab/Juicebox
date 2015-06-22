@@ -164,7 +164,7 @@ public class APAUtils {
 
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
-                                                  int L, int resolution, int window) {
+                                                  int L, int resolution, int window, NormalizationType norm) {
         int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopX - (window + 1);
@@ -172,8 +172,7 @@ public class APAUtils {
         int binYStart = loopY - (window + 1);
         int binYEnd = loopY + (window + 1);
 
-        Set<Block> blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
-                NormalizationType.NONE));
+        Set<Block> blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm));
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(L, L);
 

@@ -103,7 +103,7 @@ public class Feature2D {
     public int getMidPt2() { return midPoint(start2, end2);}
 
     private int midPoint(int start, int end) {
-        return start + (end - start)/2;
+        return (int) (start + (end - start)/2.0);
     }
 
     public void setColor(Color color){

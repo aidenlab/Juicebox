@@ -206,13 +206,15 @@ public class Feature2DList {
         ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
 
         for (Feature2D feature : features) {
-            int xMidPt = feature.getMidPt1();
-            int yMidPt = feature.getMidPt2();
-            int dist = Math.abs(xMidPt - yMidPt);
+            double xMidPt = feature.getMidPt1();
+            double yMidPt = feature.getMidPt2();
+            int dist = (int)Math.round(Math.abs(xMidPt - yMidPt)/resolution);
 
-            if (dist >= minPeakDist * resolution)
-                if (dist <= maxPeakDist * resolution)
+            if (dist >= minPeakDist) {
+                if (dist <= maxPeakDist) {
                     sizeFilteredFeatures.add(feature);
+                }
+            }
         }
         return new ArrayList<Feature2D>(sizeFilteredFeatures);
     }
