@@ -62,6 +62,10 @@ public class MatrixTools {
         return presetValueMatrix(rows, cols, 1);
     }
 
+    public static double minimumPositive(RealMatrix data) {
+        return minimumPositive(data.getData());
+    }
+
     public static double minimumPositive(double[][] data) {
         double minVal = Double.MAX_VALUE;
         for (double[] row : data) {
@@ -74,12 +78,6 @@ public class MatrixTools {
             minVal = 0;
         return minVal;
     }
-
-    public static double minimumPositive(RealMatrix data) {
-        return minimumPositive(data.getData());
-    }
-
-
 
     /**
      * Flatten a 2D double matrix into a double array
@@ -421,5 +419,15 @@ public class MatrixTools {
                 if(generator.nextBoolean())
                     matrix.setEntry(r, c, 1);
         return matrix;
+    }
+
+    public static void print(RealMatrix matrix) {
+        double[][] data = matrix.getData();
+        for(double[] row : data){
+            for(double entry : row){
+                System.out.print(entry + " ");
+            }
+            System.out.println("");
+        }
     }
 }

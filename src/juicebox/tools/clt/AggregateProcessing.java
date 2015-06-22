@@ -52,8 +52,6 @@ public class AggregateProcessing {
         HiCTools.main(l5);
         HiCTools.main(l6);
 
-
-
         http://adam.bcma.bcm.edu/hiseq/
         */
 
@@ -75,10 +73,27 @@ public class AggregateProcessing {
         */
 
 
-        String[] l1 = {"apa","-r","5000",
+        /*   String[] l1 = {"apa",
+                "-r","25000,10000,5000",
+                "-c","1,2,3",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic,http://adam.bcma.bcm.edu/hiseq/GM12878.hic,http://adam.bcma.bcm.edu/hiseq/GM12878_30.hic",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/GSE63525_GM12878_primary+replicate_HiCCUPS_looplist_with_motifs.txt",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/newtesting"};
+
+
+        String[] l1 = {"dump","observed", "NONE", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "2", "2", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/Leviathan/apa/gm12878/counts_2.txt"};
+
+        String[] l2 = {"dump","observed", "NONE", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "3", "3", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/Leviathan/apa/gm12878/counts_3.txt"};
+
+                */
+        String[] l1 = {"apa",
+                "-r","25000",
+                "-c","1,2,3",
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/Elena_APA/GSE63525_GM12878_primary+replicate_HiCCUPS_looplist_with_motifs.txt",
-                "/Users/muhammadsaadshamim/Desktop/Elena_APA/1358"};
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/newtesting2"};
 
         HiCTools.main(l1);
 
