@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.Juicer.APA;
 
+import juicebox.tools.clt.APA;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
@@ -33,7 +34,7 @@ import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
  */
 public class APARegionStatistics {
 
-    public static int regionWidth = 6;
+    //public static int regionWidth = 6;
     //width of boxes
     //int totWidth = x.getColumnDimension();
     //float widthp5 = width + .5f;
@@ -45,8 +46,10 @@ public class APARegionStatistics {
 
     public APARegionStatistics(RealMatrix data) {
         int max = data.getColumnDimension();
-        int mdpt = max/2;
-        double centralVal = data.getEntry(mdpt, mdpt);
+        int midPoint = max/2;
+        double centralVal = data.getEntry(midPoint, midPoint);
+
+        int regionWidth = APA.regionWidth;
 
         /** NOTE - indices are inclusive in java, but in python the second index is not inclusive */
 
