@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Original;
+package juicebox.tools.utils.original;
 
 //import juicebox.MainWindow;
 

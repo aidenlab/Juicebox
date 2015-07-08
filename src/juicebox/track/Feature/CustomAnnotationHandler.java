@@ -22,16 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.Feature;
+package juicebox.track.feature;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.MatrixZoomData;
-import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.track.HiCGridAxis;
 
 import java.awt.*;
-import java.awt.List;
 import java.io.PrintWriter;
 import java.util.*;
 

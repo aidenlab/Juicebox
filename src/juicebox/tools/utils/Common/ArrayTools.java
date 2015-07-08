@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Common;
+package juicebox.tools.utils.common;
 
-import org.apache.commons.math.distribution.PoissonDistribution;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
+
+import java.util.Arrays;
 
 /**
  * Created by muhammadsaadshamim on 5/12/15.
@@ -68,22 +69,21 @@ public class ArrayTools {
      * poisson.pdf(k) = exp(-mu) * mu**k / k!
      *
      * @param index
-     * @param total
-     * @param w2
+     * @param width
      * @return
      */
-    public static double[] generateScaledPoissonPDF(int index, float total, int w2) {
+    public static double[] generatePoissonPMF(int index, int width) {
         double mu = Math.pow(2.0,(index + 1.0) / 3.0);
-        double[] poissonPDF = new double[w2];
+        double[] poissonPMF = new double[width];
 
         PoissonDistributionImpl poissonDistribution = new PoissonDistributionImpl(mu);
 
         // use dynamic programming to grow poisson PMF
-        for (int k = 0; k < w2; k++){
-            poissonPDF[k] = poissonDistribution.probability(k)*total; // the total is for scaling
+        for (int k = 0; k < width; k++){
+            poissonPMF[k] = poissonDistribution.probability(k); // the total is for scaling
         }
 
-        return poissonPDF;
+        return poissonPMF;
     }
 
     public static float[] doubleArrayToFloatArray(double[] doubleArray){
@@ -134,5 +134,45 @@ public class ArrayTools {
             array2[i] = array[n-i];
         }
         return array2;
+    }
+
+    public static float[] newValueInitializedFloatArray(int n, float val) {
+        float[] array = new float[n];
+        Arrays.fill(array, val);
+        return array;
+    }
+
+    public static int[][] makeReverse2DCumulativeArray(int[][] hist) {
+        int[][] rcsHist = new int[hist.length][hist[0].length];
+        for (int i = 0; i < hist.length; i++) {
+            rcsHist[i] = ArrayTools.makeReverseCumulativeArray(hist[i]);
+        }
+        return rcsHist;
+    }
+
+    public static float[] scalarMultiplyArray(int scaleFactor, float[] array) {
+        float[] scaledArray = newValueInitializedFloatArray(array.length, scaleFactor);
+        for (int i=0; i<array.length; i++) {
+            scaledArray[i] *= array[i];
+        }
+        return scaledArray;
+    }
+
+    /**
+     * Assumes array passed in is <= length, otherwise indexOutOfBounds error will be thrown
+     * @param original
+     * @param length
+     * @param val
+     * @return
+     */
+    public static float[] padEndOfArray(float[] original, int length, float val) {
+        float[] paddedArray = new float[length];
+        for(int i = 0; i < original.length; i++){
+            paddedArray[i] = original[i];
+        }
+        for(int i = original.length; i < length; i++){
+            paddedArray[i] = val;
+        }
+        return paddedArray;
     }
 }

@@ -22,17 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.HiCCUPS;
+package juicebox.tools.utils.juicer.hiccups;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
-import jcuda.driver.JCudaDriver;
-import jcuda.utils.KernelLauncher;
-import juicebox.tools.utils.Common.MatrixTools;
+import juicebox.tools.utils.common.MatrixTools;
 
-import java.awt.*;
-import java.util.Arrays;
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.driver.JCudaDriver.cuMemFree;
 
@@ -47,7 +43,6 @@ public class GPUHelper {
         return dOutput;
     }
 
-    //public static CUdeviceptr allocateInput(Pointer ptr, int size, int typeSize){
     public static CUdeviceptr allocateInput(float[] input){
         int typeSize = Sizeof.FLOAT;
         Pointer ptr = Pointer.to(input);
