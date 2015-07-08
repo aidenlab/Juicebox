@@ -24,14 +24,12 @@
 
 package juicebox.windowui;
 
-import juicebox.DirectoryManager;
 import juicebox.MainWindow;
-import juicebox.track.Feature.CustomAnnotation;
+import juicebox.track.feature.CustomAnnotation;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

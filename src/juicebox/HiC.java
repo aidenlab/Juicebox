@@ -26,11 +26,11 @@
 package juicebox;
 
 import juicebox.data.*;
-import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
-import juicebox.track.Feature.Feature2D;
-import juicebox.track.Feature.Feature2DList;
-import juicebox.track.Feature.Feature2DParser;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;

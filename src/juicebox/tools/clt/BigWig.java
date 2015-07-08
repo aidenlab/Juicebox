@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.Original.BigWigUtils;
+import juicebox.tools.utils.original.BigWigUtils;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;

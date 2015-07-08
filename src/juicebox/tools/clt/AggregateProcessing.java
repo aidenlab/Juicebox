@@ -26,7 +26,6 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.Common.ArrayTools;
 
 import java.io.IOException;
 
