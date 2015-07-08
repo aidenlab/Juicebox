@@ -42,6 +42,8 @@ import java.awt.event.MouseMotionAdapter;
  *  alpha value to create the disabled look.
  */
 public class DisabledGlassPane extends JComponent implements KeyListener {
+
+    private static final long serialVersionUID = 383899L;
     private final JLabel message = new JLabel();
 
     public DisabledGlassPane() {
