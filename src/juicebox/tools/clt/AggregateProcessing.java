@@ -35,16 +35,115 @@ import java.io.IOException;
 public class AggregateProcessing {
 
 
-
-
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        String[] l1 = {"apa","-r","5000",
-                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
-                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
-                "/Users/muhammadsaadshamim/Desktop/apaTest1"};
+        /*
+        String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17.bin"};
 
+        String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17exp"};
+
+        String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "17", "17", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/pycuda/25k_new/python/chr17norm"};
+
+        HiCTools.main(l4);
+        HiCTools.main(l5);
+        HiCTools.main(l6);
+
+        http://adam.bcma.bcm.edu/hiseq/
+        */
+
+
+        String[] l1 = {"hiccups",
+                "-r", "50000",
+                "-c", "1",
+                "-m", "100",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out1_100",
+                "/Users/muhammadsaadshamim/Desktop/j3/out2_100"};
+        String[] l2 = {"hiccups",
+                "-r", "50000",
+                "-c", "1",
+                "-m", "90",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out1_90",
+                "/Users/muhammadsaadshamim/Desktop/j3/out2_90"};
+        String[] l3 = {"hiccups",
+                "-r", "50000",
+                "-c", "1",
+                "-m", "80",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out1_80",
+                "/Users/muhammadsaadshamim/Desktop/j3/out2_80"};
+        String[] l4 = {"hiccups",
+                "-r", "50000",
+                "-c", "1",
+                "-m", "60",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out1_60",
+                "/Users/muhammadsaadshamim/Desktop/j3/out2_60"};
+
+        long time = System.currentTimeMillis();
         HiCTools.main(l1);
+        time = (System.currentTimeMillis() - time) / 1000;
+        long mins = time/60;
+        long secs = time%60;
+        System.out.println("Total time " + mins + " min "+ secs + " sec");
+
+        time = System.currentTimeMillis();
+        HiCTools.main(l2);
+        time = (System.currentTimeMillis() - time) / 1000;
+        mins = time/60;
+        secs = time%60;
+        System.out.println("Total time " + mins + " min "+ secs + " sec");
+
+        time = System.currentTimeMillis();
+        HiCTools.main(l3);
+        time = (System.currentTimeMillis() - time) / 1000;
+        mins = time/60;
+        secs = time%60;
+        System.out.println("Total time " + mins + " min "+ secs + " sec");
+
+        time = System.currentTimeMillis();
+        HiCTools.main(l4);
+        time = (System.currentTimeMillis() - time) / 1000;
+        mins = time/60;
+        secs = time%60;
+        System.out.println("Total time " + mins + " min "+ secs + " sec");
+        /*
+
+
+           String[] l0 = {"apa",
+                "-r","25000,10000,5000",
+                "-c","1,2,3",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic,http://adam.bcma.bcm.edu/hiseq/GM12878.hic,http://adam.bcma.bcm.edu/hiseq/GM12878_30.hic",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/GSE63525_GM12878_primary+replicate_HiCCUPS_looplist_with_motifs.txt",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/newtesting"};
+
+        String[] l1 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/perseus/chr1.bin"};
+
+        String[] l2 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/perseus/norm1"};
+
+        String[] l3 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/perseus/exp1"};
+
+
+        String[] l4 = {"apa",
+                "-r","50000",
+                "-c","17,18",
+                //"http://adam.bcma.bcm.edu/miseq/HIC1357.hic,http://adam.bcma.bcm.edu/miseq/HIC1357_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1358.hic,http://adam.bcma.bcm.edu/miseq/HIC1358_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1359.hic,http://adam.bcma.bcm.edu/miseq/HIC1359_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1360.hic,http://adam.bcma.bcm.edu/miseq/HIC1360_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1361.hic,http://adam.bcma.bcm.edu/miseq/HIC1361_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1362.hic,http://adam.bcma.bcm.edu/miseq/HIC1362_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1363.hic,http://adam.bcma.bcm.edu/miseq/HIC1363_30.hic",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/all_loops.txt",
+                "/Users/muhammadsaadshamim/Desktop/Elena_APA/newt"};
+
+        long time = System.currentTimeMillis();
+        HiCTools.main(l3);
+        time = System.currentTimeMillis() - time;
+        System.out.println("Total time (ms): "+time);
+        */
 
     }
 }
@@ -53,8 +152,61 @@ public class AggregateProcessing {
          * Example: this dumps data of each chromosome
          * for 5 single cell Hi-C experiments
          * at 5, 10, and 25 kb resolutions
+         *
+         * https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
          */
+
         /*
+
+
+        String[] l1 = {"apa","-r","5000",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
+                "/Users/muhammadsaadshamim/Desktop/apaTest1"};
+
+        String[] l2 = {"hiccups",
+                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
+                "/Users/muhammadsaadshamim/Desktop/156_fdr",
+                "/Users/muhammadsaadshamim/Desktop/156_peaks"};
+
+        String[] l3 = {"hiccups",
+                "-r","50000",
+                "-c","21",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/GM12878/21_fdr",
+                "/Users/muhammadsaadshamim/Desktop/GM12878/21_peaks"};
+
+
+        //dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]
+        String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21.bin"};
+
+        String[] l5 = {"dump","expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21exp.bin"};
+
+        String[] l6 = {"dump","norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "21", "21", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/GM12878/21py/chr21norm.bin"};
+
+
+        RealMatrix rm = new Array2DRowRealMatrix(new double[][]
+            {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
+                {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
+                {0.5269,    0.4317,    0.3724,    0.9203,    0.5479},
+                {0.4168,    0.0155,    0.1981,    0.0527,    0.9427},
+                {0.6569,    0.9841,    0.4897,    0.7379,    0.4177}});
+
+        rm = new Array2DRowRealMatrix(new double[][]
+                {       {1,0,0,0,0,0,0,0},
+                        {0,1,0,0,0,0,0,0},
+                        {0,2,0,0,0,0,0,0},
+                        {0,0,1,0,0,0,0,0},
+                        {0,0,0,1,0,0,1,0},
+                        {0,0,0,0,1,0,0,0},
+                        {3,0,0,1,0,0,0,0},
+                        {1,1,1,0,0,0,0,0}});
+
+
+
         String[] chrs = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","X"};
         String[] kbs = {"5","10","25"};
 
@@ -127,11 +279,7 @@ public class AggregateProcessing {
 
         String[][] cmds = {l1, l2, l3, l4, l5, l6};
 
-        // ? HiCTools.main(l1);
-        //HiCTools.main(l2);  // worked
-        //HiCTools.main(l3);
-        // ? HiCTools.main(l4);
-        //HiCTools.main(l5);
+        //HiCTools.main(l1);
         //HiCTools.main(l6);
 
         String[] l7 = { "pre",

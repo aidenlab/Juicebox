@@ -24,9 +24,9 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.AsciiToBinConverter;
+import juicebox.tools.utils.original.AsciiToBinConverter;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.Common.CommonTools;
+import juicebox.tools.utils.common.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class PairsToBin extends JuiceboxCLT {
 
     @Override
     public void run() throws IOException {
-        List<Chromosome> chromosomes = CommonTools.loadChromosomes(genomeId);
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
         AsciiToBinConverter.convert(ifile, ofile, chromosomes);
     }
 }

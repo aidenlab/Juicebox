@@ -30,6 +30,8 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.track.feature.*;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackLabelPanel;
@@ -84,7 +86,8 @@ public class MainWindow extends JFrame {
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    private static String currentlyLoadedFile = "";
+    private static String currentlyLoadedMainFiles = "";
+    private static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -109,6 +112,14 @@ public class MainWindow extends JFrame {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
 
+    public static CustomAnnotation customAnnotations;
+    public static CustomAnnotationHandler customAnnotationHandler;
+    public static JMenuItem exportAnnotationsMI;
+    public static JMenuItem undoMenuItem;
+    public static boolean unsavedEdits;
+    public static JMenuItem loadLastMI;
+    private static File temp;
+
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
@@ -123,6 +134,9 @@ public class MainWindow extends JFrame {
     private MainWindow() {
 
         hic = new HiC(this);
+
+        customAnnotations = new CustomAnnotation("1");
+        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
 
         initComponents();
         createCursors();
@@ -150,8 +164,12 @@ public class MainWindow extends JFrame {
                 CommandListener.start(theInstance.hic);
             }
         };
-
+        if (unsavedEditsExist()) {
+            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
+                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+        }
         SwingUtilities.invokeAndWait(runnable);
+
     }
 
     private static void initApplication() {
@@ -372,10 +390,20 @@ public class MainWindow extends JFrame {
 
     private void unsafeload(final List<String> files, final boolean control) throws IOException {
 
-        String file = files.get(0);
+        String newFilesToBeLoaded = "";
+        boolean allFilesAreHiC = true;
+        for(String file : files){
+            newFilesToBeLoaded += file;
+            allFilesAreHiC &= file.endsWith(".hic");
+        }
 
-        if (file.equals(currentlyLoadedFile)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File already loaded");
+
+        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
+            return;
+        }
+        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
         }
 
@@ -385,7 +413,7 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
         hic.setNormalizationType(NormalizationType.NONE);
 
-        if (file.endsWith("hic")) {
+        if (allFilesAreHiC) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
             Dataset dataset;
@@ -474,13 +502,15 @@ public class MainWindow extends JFrame {
 
             goPanel.setEnabled(true);
 
-            if (!control) {
-                currentlyLoadedFile = file;
+            if (control) {
+                currentlyLoadedControlFiles = newFilesToBeLoaded;
+            }
+            else {
+                currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
             //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
-
         }
     }
 
@@ -661,13 +691,19 @@ public class MainWindow extends JFrame {
     }
 
     public void loadFromURLActionPerformed(boolean control) {
-        String url = JOptionPane.showInputDialog("Enter URL: ");
-        if (url != null) {
+        String urlString = JOptionPane.showInputDialog("Enter URLs (seperated by commas): ");
+        if (urlString != null) {
             try {
-                String path = (new URL(url)).getPath();
-                safeLoad(Arrays.asList(url), control, path);
+                String[] urls = urlString.split(",");
+                List<String> urlList = new ArrayList<String>();
+                String title = "";
+                for(String url : urls){
+                    urlList.add(url);
+                    title += (new URL(url)).getPath() + " ";
+                }
+                safeLoad(urlList, control, title);
             } catch (MalformedURLException e1) {
-                JOptionPane.showMessageDialog(this, "Error while trying to load " + url, "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error while trying to load " + urlString, "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -1730,6 +1766,7 @@ public class MainWindow extends JFrame {
         });
         fileMenu.add(exit);
 
+        // "Annotations" menu items
         annotationsMenu = new JMenu("Annotations");
 
         JMenuItem newLoadMI = new JMenuItem();
@@ -1746,6 +1783,125 @@ public class MainWindow extends JFrame {
         loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
         annotationsMenu.add(loadEncodeMI);
 
+        // Annotations Menu Items
+        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
+        exportAnnotationsMI = new JMenuItem("Export...");
+        loadLastMI = new JMenuItem("Load Last");
+        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
+        undoMenuItem = new JMenuItem("Undo Annotation");
+        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
+
+        // Annotate Item Actions
+        exportAnnotationsMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveAnnotationsDialog(customAnnotations);
+            }
+        });
+
+        loadLastMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
+                        hic.getChromosomes(), false, 0, 0, 0, true), "1");
+                temp.delete();
+                loadLastMI.setEnabled(false);
+            }
+        });
+
+        mergeVisibleMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = customAnnotationHandler.addVisibleLoops(customAnnotations);
+            }
+        });
+
+        clearCurrentMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int n = JOptionPane.showConfirmDialog(
+                        MainWindow.getInstance(),
+                        "Are you sure you want to clear all custom annotations?",
+                        "Confirm",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (n == JOptionPane.YES_OPTION) {
+                    //TODO: do something with the saving... just update temp?
+                    customAnnotations.clearAnnotations();
+                    exportAnnotationsMI.setEnabled(false);
+                    loadLastMI.setEnabled(false);
+                    repaint();
+                }
+            }
+        });
+
+        undoMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotationHandler.undo(customAnnotations);
+                repaint();
+            }
+        });
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+
+        //Add annotate menu items
+        customAnnotationMenu.add(exportAnnotationsMI);
+        customAnnotationMenu.add(mergeVisibleMI);
+        customAnnotationMenu.add(undoMenuItem);
+        customAnnotationMenu.add(clearCurrentMI);
+        if (unsavedEdits){
+            customAnnotationMenu.add(loadLastMI);
+            loadLastMI.setEnabled(true);
+        }
+
+        exportAnnotationsMI.setEnabled(false);
+        undoMenuItem.setEnabled(false);
+
+        annotationsMenu.add(customAnnotationMenu);
+
+
+//        final JMenuItem annotate = new JMenuItem("Annotate Mode");
+//        customAnnotationMenu.add(annotate);
+//
+//        // Add peak annotations
+//        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
+//        final JCheckBoxMenuItem annotatePeak = new JCheckBoxMenuItem("Loops");
+//
+//        annotatePeak.setSelected(false);
+//        annotatePeak.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doPeak();
+//            }
+//        });
+//        annotatePeak.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0));
+//        annotate.add(annotatePeak);
+//
+//        // Add domain annotations
+//        final JCheckBoxMenuItem annotateDomain = new JCheckBoxMenuItem("Domains");
+//
+//        annotateDomain.setSelected(false);
+//        annotateDomain.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doDomain();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
+//        annotate.add(annotateDomain);
+//
+//        // Add generic annotations
+//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic Feature");
+//
+//        annotateGeneric.setSelected(false);
+//        annotateGeneric.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doGeneric();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
+//        annotate.add(annotateDomain);
 
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
 
@@ -1760,6 +1916,21 @@ public class MainWindow extends JFrame {
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 
         annotationsMenu.add(showLoopsItem);
+
+        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
+
+        showCustomLoopsItem.setSelected(true);
+        showCustomLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                repaint();
+            }
+        });
+        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+
+        annotationsMenu.add(showCustomLoopsItem);
+        // meh
 
         annotationsMenu.setEnabled(false);
 
@@ -1823,6 +1994,14 @@ public class MainWindow extends JFrame {
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         return menuBar;
+    }
+
+    private static boolean unsavedEditsExist() {
+        String tempPath = "/unsaved-hiC-annotations1";
+        temp = HiCFileTools.openTempFile(tempPath);
+        unsavedEdits = temp.exists();
+        return unsavedEdits;
+
     }
 
     private void loadNormalizationVector(File file) throws IOException {

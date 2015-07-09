@@ -25,9 +25,9 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.NormalizationVectorUpdater;
-import juicebox.tools.utils.Preprocessor;
-import juicebox.tools.utils.Common.CommonTools;
+import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.utils.original.Preprocessor;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -55,7 +55,7 @@ public class PreProcessing extends JuiceboxCLT {
             throw new IOException("1");
         }
 
-        List<Chromosome> chromosomes = CommonTools.loadChromosomes(genomeId);
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
 
         for (Chromosome c : chromosomes) {
             if (c != null)

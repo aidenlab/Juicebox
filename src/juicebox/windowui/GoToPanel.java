@@ -49,6 +49,7 @@ import java.util.zip.GZIPInputStream;
  * Created by nchernia on 4/2/15.
  */
 public class GoToPanel extends JPanel implements ActionListener, FocusListener {
+    static final long serialVersionUID = -687479198135033L;
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;

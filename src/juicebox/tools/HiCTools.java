@@ -69,7 +69,9 @@ public class HiCTools {
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                     e.printStackTrace();
-                    System.exit(-7); // error running the code, these shouldn't occur (error checking should be added)
+                    System.exit(-7);
+                    // error running the code, these shouldn't occur i.e. error checking
+                    // should be added within each CLT for better error tracing
                 }
         } catch (Exception e) {
             CLTFactory.usage();
@@ -78,101 +80,143 @@ public class HiCTools {
     }
 
     public static class CommandLineParser extends CmdLineParser {
+
+        // boolean
         private Option diagonalsOption = null;
-        private Option chromosomeOption = null;
-        private Option countThresholdOption = null;
         private Option helpOption = null;
+        private Option removeCacheMemoryOption = null;
+
+        // String
         private Option fragmentOption = null;
         private Option tmpDirOption = null;
         private Option statsOption = null;
         private Option graphOption = null;
-        private Option mapqOption = null;
 
-        // APA options
+        // ints
+        private Option apaWindowOption = null;
+        private Option countThresholdOption = null;
+        private Option mapqOption = null;
+        private Option matrixSizeOption = null;
+
+        // doubles
         private Option apaMinValOption = null;
         private Option apaMaxValOption = null;
-        private Option apaWindowOption = null;
-        private Option apaResolutionOption = null;
 
-
+        // sets of strings
+        private Option multipleChromosomesOption = null;
+        private Option multipleResolutionsOption = null;
 
         CommandLineParser() {
 
             diagonalsOption = addBooleanOption('d', "diagonals");
-            chromosomeOption = addStringOption('c', "chromosomes");
-            countThresholdOption = addIntegerOption('m', "minCountThreshold");
+            helpOption = addBooleanOption('h', "help");
+            removeCacheMemoryOption = addBooleanOption('x', "remove memory cache");
+
             fragmentOption = addStringOption('f', "restriction fragment site file");
             tmpDirOption = addStringOption('t', "tmpDir");
-            helpOption = addBooleanOption('h', "help");
             statsOption = addStringOption('s', "statistics text file");
             graphOption = addStringOption('g', "graph text file");
-            mapqOption = addIntegerOption('q', "mapping quality threshold");
 
-            //apa <-m minval> <-x maxval> <-w window>  <-r resolution>
+            apaWindowOption = addIntegerOption('w', "window");
+            countThresholdOption = addIntegerOption('m', "minCountThreshold");
+            mapqOption = addIntegerOption('q', "mapping quality threshold");
+            matrixSizeOption = addIntegerOption('m', "minCountThreshold (HiCCUPS)");
+
             apaMinValOption = addDoubleOption('n', "minimum value");
             apaMaxValOption = addDoubleOption('x', "maximum value");
-            apaWindowOption = addIntegerOption('w', "window");
-            apaResolutionOption = addIntegerOption('r', "resolution");
+
+            multipleChromosomesOption = addStringOption('c', "chromosomes");
+            multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
         }
 
-        public Number[] getAPAOptions(){
-            Number[] apaFlagValues = new Number[4];
-
-            Object[] apaOptions = {getOptionValue(apaMinValOption), getOptionValue(apaMaxValOption),
-                    getOptionValue(apaWindowOption), getOptionValue(apaResolutionOption)};
-
-            for(int i = 0; i < apaOptions.length; i++) {
-                if (apaOptions[i] != null)
-                    apaFlagValues[i] = ((Number) apaOptions[i]);
-                else
-                    apaFlagValues[i] = null;
-            }
-            return apaFlagValues;
+        /** boolean flags */
+        private boolean optionToBoolean(Option option){
+            Object opt = getOptionValue(option);
+            return opt != null && (Boolean) opt;
         }
 
         public boolean getHelpOption() {
-            Object opt = getOptionValue(helpOption);
-            return opt != null && (Boolean) opt;
+            return optionToBoolean(helpOption);
         }
 
         public boolean getDiagonalsOption() {
-            Object opt = getOptionValue(diagonalsOption);
-            return opt != null && (Boolean) opt;
+            return optionToBoolean(diagonalsOption);
         }
 
-        public Set<String> getChromosomeOption() {
-            Object opt = getOptionValue(chromosomeOption);
-            return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
+        public boolean useCacheMemory() {
+            return optionToBoolean(removeCacheMemoryOption);
+        }
+
+        /** String flags */
+        private String optionToString(Option option){
+            Object opt = getOptionValue(option);
+            return opt == null ? null : opt.toString();
         }
 
         public String getFragmentOption() {
-            Object opt = getOptionValue(fragmentOption);
-            return opt == null ? null : opt.toString();
+            return optionToString(fragmentOption);
         }
 
         public String getStatsOption() {
-            Object opt = getOptionValue(statsOption);
-            return opt == null ? null : opt.toString();
+            return optionToString(statsOption);
         }
 
         public String getGraphOption() {
-            Object opt = getOptionValue(graphOption);
-            return opt == null ? null : opt.toString();
+            return optionToString(graphOption);
         }
 
         public String getTmpdirOption() {
-            Object opt = getOptionValue(tmpDirOption);
-            return opt == null ? null : opt.toString();
+            return optionToString(tmpDirOption);
+        }
+
+        /** int flags */
+        private int optionToInt(Option option){
+            Object opt = getOptionValue(option);
+            return opt == null ? 0 : ((Number) opt).intValue();
+        }
+
+        public int getAPAWindowSizeOption() {
+            return optionToInt(apaWindowOption);
         }
 
         public int getCountThresholdOption() {
-            Object opt = getOptionValue(countThresholdOption);
-            return opt == null ? 0 : ((Number) opt).intValue();
+            return optionToInt(countThresholdOption);
         }
 
         public int getMapqThresholdOption() {
-            Object opt = getOptionValue(mapqOption);
-            return opt == null ? 0 : ((Number) opt).intValue();
+            return optionToInt(mapqOption);
+        }
+
+        public int getMatrixSizeOption() {
+            return optionToInt(matrixSizeOption);
+        }
+
+        /** double flags */
+        private double optionToDouble(Option option){
+            Object opt = getOptionValue(option);
+            return opt == null ? 0 : ((Number) opt).doubleValue();
+        }
+
+        public double getAPAMinVal() {
+            return optionToInt(apaMinValOption);
+        }
+
+        public double getAPAMaxVal() {
+            return optionToInt(apaMaxValOption);
+        }
+
+        /** String Set flags */
+        private Set<String> optionToStringSet(Option option){
+            Object opt = getOptionValue(option);
+            return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
+        }
+
+        public Set<String> getChromosomeOption() {
+            return optionToStringSet(multipleChromosomesOption);
+        }
+
+        public Set<String> getMultipleResolutionOptions() {
+            return optionToStringSet(multipleResolutionsOption);
         }
     }
 }

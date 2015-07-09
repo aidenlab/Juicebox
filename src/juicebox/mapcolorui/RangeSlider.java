@@ -42,6 +42,8 @@ import java.io.Serializable;
  */
 public class RangeSlider extends JSlider implements Serializable {
 
+    private static final long serialVersionUID = 37389L;
+
     private RangeSliderUI rangeSliderUI;
 
     private boolean colorIsOE = false;

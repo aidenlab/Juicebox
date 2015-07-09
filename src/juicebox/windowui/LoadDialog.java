@@ -24,40 +24,33 @@
 
 package juicebox.windowui;
 
+import com.jidesoft.swing.JideBoxLayout;
 import juicebox.MainWindow;
-
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = 421L;
     private final boolean success;
     private final MainWindow mainWindow;
     private JTree tree;
-    private JButton cancelButton;
     private JSplitButton openButton;
-    //private JSplitButton localButton;
+    private JMenuItem openButton30;
+    private JButton cancelButton;
     private JButton localButton;
-    private JMenuItem openURL;
-    private JMenuItem open30;
-
+    private JButton urlButton;
+    private JTextField fTextField;
     private static boolean actionLock = false;
-
     private boolean control;
+    private final String[] searchHighlightColors = {"#ff0000","#00ff00","#0000ff","#ff00ff","#00ffff","#ff9900","#ff66ff","#ffff00"};
 
     public LoadDialog(MainWindow mainWindow, Properties properties) {
         super(mainWindow, "Select file(s) to open");
@@ -65,8 +58,9 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         this.mainWindow = mainWindow;
 
         //Create the nodes.
-        DefaultMutableTreeNode top =
+        final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", "root", ""));
+
         if (properties != null) {
             if (!createNodes(top, properties)) {
                 dispose();
@@ -98,60 +92,129 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                     }
                 }
             });
-
             //Create the scroll pane and add the tree to it.
             JScrollPane treeView = new JScrollPane(tree);
             treeView.setPreferredSize(new Dimension(400, 400));
             JPanel centerPanel = new JPanel(new BorderLayout());
             centerPanel.add(treeView, BorderLayout.CENTER);
             add(centerPanel, BorderLayout.CENTER);
-        }
-        else {
+        } else {
             JLabel label = new JLabel("Can't find properties file; no online maps to load");
             label.setHorizontalAlignment(JLabel.CENTER);
-            JPanel panel=new JPanel(new BorderLayout());
+            JPanel panel = new JPanel(new BorderLayout());
             panel.add(label, BorderLayout.CENTER);
             add(panel, BorderLayout.CENTER);
         }
         JPanel buttonPanel = new JPanel();
 
-        openButton = new JSplitButton("Open MAPQ > 0");
-        openButton.addActionListener(this);
+        openButton = createMAPQ0Button("Open (MAPQ > 0)");
         openButton.setEnabled(false);
-
-        JPopupMenu popupMenu = new JPopupMenu("Popup Menu");
-        open30 = new JMenuItem("Open MAPQ \u2265 30");
-        open30.addActionListener(this);
-        popupMenu.add(open30);
-        popupMenu.setEnabled(false);
-        open30.setEnabled(false);
-        openButton.setComponentPopupMenu(popupMenu);
+        openButton30 = createMAPQ30Menu(openButton, "Open (MAPQ \u2265 30)");
 
         localButton = new JButton("Local...");
         localButton.addActionListener(this);
         localButton.setPreferredSize(new Dimension((int) localButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
-        /*JPopupMenu popupMenu1 = new JPopupMenu("Popup1");
-        openURL = new JMenuItem("Load URL...");
-        openURL.addActionListener(this);
-        popupMenu1.add(openURL);
-        localButton.setComponentPopupMenu(popupMenu1);
-          */
+        urlButton = new JButton("URL...");
+        urlButton.addActionListener(this);
+        urlButton.setPreferredSize(new Dimension((int) urlButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
+
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(this);
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
 
         buttonPanel.add(openButton);
         buttonPanel.add(localButton);
-
+        buttonPanel.add(urlButton);
         buttonPanel.add(cancelButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
-        Dimension minimumSize = new Dimension(400, 400);
+        Dimension minimumSize = new Dimension(700, 400);
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
         success = true;
+
+        final JLabel fLabel = new JLabel();
+        fTextField = new JTextField();
+        fLabel.setText("Filter:");
+        fTextField.setToolTipText("Case Sensitive Search");
+        fTextField.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
+        buttonPanel.add(fLabel, JideBoxLayout.FIX);
+        buttonPanel.add(fTextField, JideBoxLayout.VARY);
+
+        //*********************SEARCH FILTER*******************************
+
+        fTextField.addKeyListener(new KeyAdapter() {
+            public void keyReleased(KeyEvent e) {
+                collapseAll(tree);
+                @SuppressWarnings("unchecked")
+                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
+                if (!fTextField.getText().isEmpty()) {
+                    String[] searchStrings = fTextField.getText().split(",");
+                    colorSearchStrings(searchStrings); //Coloring text that matches input
+                    while (en.hasMoreElements()) {
+                        DefaultMutableTreeNode leaf = en.nextElement();
+                        String str = leaf.toString();
+                        for (String term : searchStrings) {
+                            if (str.contains(term)) {
+                                expandToWantedNode(leaf);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    }
+
+    private JSplitButton createMAPQ0Button(String buttonText){
+        JSplitButton button = new JSplitButton(buttonText);
+        button.addActionListener(this);
+        return button;
+    }
+
+    private JMenuItem createMAPQ30Menu(JSplitButton button, String button30Text) {
+        JMenuItem button30 = new JMenuItem(button30Text);
+        button30.addActionListener(this);
+        button30.setEnabled(false);
+        JPopupMenu popupMenu = new JPopupMenu("MAPQ ≥ 30 Menu");
+        popupMenu.add(button30);
+        popupMenu.setEnabled(false);
+        button.setComponentPopupMenu(popupMenu);
+        return button30;
+    }
+
+    private void expandToWantedNode(DefaultMutableTreeNode dNode) {
+        if (dNode != null) {
+            tree.setExpandsSelectedPaths(true);
+            TreePath path = new TreePath(dNode.getPath());
+            tree.scrollPathToVisible(path);
+        }
+    }
+
+    //Overriding in order to change text color
+    private void colorSearchStrings(final String[] parts) {
+
+
+        tree.setCellRenderer(new DefaultTreeCellRenderer() {
+
+            private static final long serialVersionUID = 422L;
+
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
+                                                          boolean leaf, int row, boolean hasFocus) {
+                String text = value.toString();
+                for (int i = 0; i < Math.min(parts.length, searchHighlightColors.length); i++) {
+                    text = text.replaceAll(parts[i], "<font color=\"" + searchHighlightColors[i] + "\">" + parts[i] + "</font>");
+                }
+                String html = "<html>" + text + "</html>";
+
+                return super.getTreeCellRendererComponent(
+                        tree, html, sel, expanded, leaf, row, hasFocus);
+            }
+        });
     }
 
     public void setControl(boolean control) {
@@ -162,12 +225,28 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         return success;
     }
 
+    public static TreePath getPath(TreeNode treeNode) {
+        List<Object> nodes = new ArrayList<Object>();
+        if (treeNode != null) {
+            nodes.add(treeNode);
+            treeNode = treeNode.getParent();
+            while (treeNode != null) {
+                nodes.add(0, treeNode);
+                treeNode = treeNode.getParent();
+            }
+        }
+
+        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
     private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
         // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
         // TreeSet is sorted, so properties file is implemented in order
         TreeSet<String> keys = new TreeSet<String>(properties.stringPropertyNames());
         HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<String, DefaultMutableTreeNode>();
         hashMap.put(((ItemInfo) top.getUserObject()).uid, top);
+        //HashMap<String, DefaultMutableTreeNode> tempHash = new HashMap<String, DefaultMutableTreeNode>();
+        //tempHash.put(((ItemInfo) top.getUserObject()).uid, top);
 
         for (String key : keys) {
             String value = properties.getProperty(key);
@@ -213,13 +292,13 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             openButton.setEnabled(true);
 
             if (((ItemInfo) node.getUserObject()).itemName.contains("aternal")) {    // maternal paternal
-                open30.setEnabled(false);
+                openButton30.setEnabled(false);
             } else {
-                open30.setEnabled(true);
+                openButton30.setEnabled(true);
             }
         } else {
             openButton.setEnabled(false);
-            open30.setEnabled(false);
+            openButton30.setEnabled(false);
         }
     }
 
@@ -230,13 +309,12 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 actionLock = true;
                 if (e.getSource() == openButton) {
                     loadFiles(tree.getSelectionPaths(), null);
-                } else if (e.getSource() == open30) {
+                } else if (e.getSource() == openButton30) {
                     loadFiles(tree.getSelectionPaths(), "30");
-                }
-                if (e.getSource() == localButton) {
+                } else if (e.getSource() == localButton) {
                     mainWindow.loadMenuItemActionPerformed(control);
                     setVisible(false);
-                } else if (e.getSource() == openURL) {
+                } else if (e.getSource() == urlButton) {
                     mainWindow.loadFromURLActionPerformed(control);
                     setVisible(false);
                 } else if (e.getSource() == cancelButton) {
@@ -280,6 +358,14 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         //code to add a recent file to the menu
         mainWindow.getRecentMapMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
         mainWindow.safeLoad(urls, control, title);
+    }
+
+    private void collapseAll(JTree tree) {
+        int row = tree.getRowCount() - 1;
+        while (row >= 0) {
+            tree.collapseRow(row);
+            row--;
+        }
     }
 
 

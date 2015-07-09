@@ -27,9 +27,9 @@ package juicebox.tools.clt;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.data.*;
-import juicebox.tools.utils.ExpectedValueCalculation;
+import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.NormalizationCalculations;
+import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -163,7 +163,7 @@ public class Dump extends JuiceboxCLT {
             if (args.length == idx + 5) {
                 includeIntra = true;
             }
-        } else if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
+        } else{// if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
 
             if (args.length == idx + 5) {
                 ofile = args[idx + 4];
@@ -178,114 +178,132 @@ public class Dump extends JuiceboxCLT {
 
         //*****************************************************
         if ((type.equals("observed") || type.equals("norm")) && chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
-            if (zoom.getUnit() == HiC.Unit.FRAG) {
-                System.err.println("All versus All currently not supported on fragment resolution");
-                System.exit(1);
-            }
-
-            // Build a "whole-genome" matrix
-            ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeList, zoom, includeIntra);
-
-            int totalSize = 0;
-            for (Chromosome c1 : chromosomeList) {
-                if (c1.getName().equals(Globals.CHR_ALL)) continue;
-                totalSize += c1.getLength() / zoom.getBinSize() + 1;
-            }
-
-
-            NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-            double[] vector = calculations.getNorm(norm);
-
-            if (type.equals("norm")) {
-
-                ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeList, zoom.getBinSize(), null, NormalizationType.GW_KR);
-                int addY = 0;
-                // Loop through chromosomes
-                for (Chromosome chr : chromosomeList) {
-
-                    if (chr.getName().equals(Globals.CHR_ALL)) continue;
-                    final int chrIdx = chr.getIndex();
-                    Matrix matrix = dataset.getMatrix(chr, chr);
-
-                    if (matrix == null) continue;
-                    MatrixZoomData zd = matrix.getZoomData(zoom);
-                    Iterator<ContactRecord> iter = zd.contactRecordIterator();
-                    while (iter.hasNext()) {
-                        ContactRecord cr = iter.next();
-                        int x = cr.getBinX();
-                        int y = cr.getBinY();
-                        final float counts = cr.getCounts();
-                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                            double value = counts / (vector[x + addY] * vector[y + addY]);
-                            evKR.addDistance(chrIdx, x, y, value);
-                        }
-                    }
-
-                    addY += chr.getLength() / zoom.getBinSize() + 1;
-                }
-                evKR.computeDensity();
-                double[] exp = evKR.getDensityAvg();
-                System.out.println(binSize + "\t" + vector.length + "\t" + exp.length);
-                for (double aVector : vector) {
-                    System.out.println(aVector);
-                }
-
-                for (double aVector : exp) {
-                    System.out.println(aVector);
-                }
-            } else {   // type == "observed"
-
-                for (ContactRecord cr : recordArrayList) {
-                    int x = cr.getBinX();
-                    int y = cr.getBinY();
-                    float value = cr.getCounts();
-
-                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                        value = (float) (value / (vector[x] * vector[y]));
-                    } else {
-                        value = Float.NaN;
-                    }
-
-                    System.out.println(x + "\t" + y + "\t" + value);
-                }
-            }
+            dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, type, binSize);
         }
-
-        //***********************
         else if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
             dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, type, ofile);
         } else if (type.equals("norm") || type.equals("expected") || type.equals("eigenvector")) {
-            PrintWriter pw = new PrintWriter(System.out);
-            if (type.equals("norm")) {
-                NormalizationVector nv = dataset.getNormalizationVector(chromosomeMap.get(chr1).getIndex(), zoom, norm);
-                if (nv == null) {
-                    System.err.println("Norm not available at " + chr1 + " " + binSize + " " + unit + " " + norm);
-                    System.exit(-1);
-                }
-                dumpVector(pw, nv.getData(), false);
-
-            } else if (type.equals("expected")) {
-                final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
-                if (df == null) {
-                    System.err.println("Expected not available at " + chr1 + " " + binSize + " " + unit + " " + norm);
-                    System.exit(-1);
-                }
-                int length = df.getLength();
-                if (chr1.equals("All")) { // removed cast to ExpectedValueFunctionImpl
-                    dumpVector(pw, df.getExpectedValues(), false);
-                } else {
-                    Chromosome c = chromosomeMap.get(chr1);
-                    for (int i = 0; i < length; i++) {
-                        pw.println((float) df.getExpectedValue(c.getIndex(), i));
-                    }
-                    pw.flush();
-                    pw.close();
-                }
-            } else if (type.equals("eigenvector")) {
-                dumpVector(pw, dataset.getEigenvector(chromosomeMap.get(chr1), zoom, 0, norm), true);
-            }
+            dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, type, ofile, binSize, unit);
         }
 
+    }
+
+    private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,
+                                           boolean includeIntra, HiCZoom zoom, NormalizationType norm,
+                                           String type, int binSize) {
+        if (zoom.getUnit() == HiC.Unit.FRAG) {
+            System.err.println("All versus All currently not supported on fragment resolution");
+            System.exit(1);
+        }
+
+        // Build a "whole-genome" matrix
+        ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeList, zoom, includeIntra);
+
+        int totalSize = 0;
+        for (Chromosome c1 : chromosomeList) {
+            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+            totalSize += c1.getLength() / zoom.getBinSize() + 1;
+        }
+
+
+        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
+        double[] vector = calculations.getNorm(norm);
+
+        if (type.equals("norm")) {
+
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeList, zoom.getBinSize(), null, NormalizationType.GW_KR);
+            int addY = 0;
+            // Loop through chromosomes
+            for (Chromosome chr : chromosomeList) {
+
+                if (chr.getName().equals(Globals.CHR_ALL)) continue;
+                final int chrIdx = chr.getIndex();
+                Matrix matrix = dataset.getMatrix(chr, chr);
+
+                if (matrix == null) continue;
+                MatrixZoomData zd = matrix.getZoomData(zoom);
+                Iterator<ContactRecord> iter = zd.contactRecordIterator();
+                while (iter.hasNext()) {
+                    ContactRecord cr = iter.next();
+                    int x = cr.getBinX();
+                    int y = cr.getBinY();
+                    final float counts = cr.getCounts();
+                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                        double value = counts / (vector[x + addY] * vector[y + addY]);
+                        evKR.addDistance(chrIdx, x, y, value);
+                    }
+                }
+
+                addY += chr.getLength() / zoom.getBinSize() + 1;
+            }
+            evKR.computeDensity();
+            double[] exp = evKR.getDensityAvg();
+            System.out.println(binSize + "\t" + vector.length + "\t" + exp.length);
+            for (double aVector : vector) {
+                System.out.println(aVector);
+            }
+
+            for (double aVector : exp) {
+                System.out.println(aVector);
+            }
+        } else {   // type == "observed"
+
+            for (ContactRecord cr : recordArrayList) {
+                int x = cr.getBinX();
+                int y = cr.getBinY();
+                float value = cr.getCounts();
+
+                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                    value = (float) (value / (vector[x] * vector[y]));
+                } else {
+                    value = Float.NaN;
+                }
+
+                System.out.println(x + "\t" + y + "\t" + value);
+            }
+        }
+    }
+
+    private static void dumpGeneralVector(Dataset dataset, String chr, Chromosome chromosome,
+                                   NormalizationType norm, HiCZoom zoom, String type, String ofile,
+                                   int binSize, HiC.Unit unit) throws IOException{
+        PrintWriter pw;
+
+        if (ofile != null && ofile.length() > 0) {
+            pw = new PrintWriter(new FileOutputStream(ofile));
+        }
+        else {
+            pw = new PrintWriter(System.out);
+        }
+
+
+        if (type.equals("norm")) {
+            NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
+            if (nv == null) {
+                System.err.println("Norm not available at " + chr + " " + binSize + " " + unit + " " + norm);
+                System.exit(-1);
+            }
+            dumpVector(pw, nv.getData(), false);
+
+        } else if (type.equals("expected")) {
+            final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
+            if (df == null) {
+                System.err.println("Expected not available at " + chr + " " + binSize + " " + unit + " " + norm);
+                System.exit(-1);
+            }
+            int length = df.getLength();
+            if (chr.equals("All")) { // removed cast to ExpectedValueFunctionImpl
+                dumpVector(pw, df.getExpectedValues(), false);
+            } else {
+                for (int i = 0; i < length; i++) {
+                    pw.println((float) df.getExpectedValue(chromosome.getIndex(), i));
+                }
+                pw.flush();
+                pw.close();
+            }
+        } else if (type.equals("eigenvector")) {
+            dumpVector(pw, dataset.getEigenvector(chromosome, zoom, 0, norm), true);
+        }
     }
 
 
@@ -328,30 +346,23 @@ public class Dump extends JuiceboxCLT {
      * @param center Mean centers if true
      */
     static public void dumpVector(PrintWriter pw, double[] vector, boolean center) {
-        double sum = 0;
+        double mean = 0;
         if (center) {
             int count = 0;
-            /*
-            for (int idx = 0; idx < vector.length; idx++) {
-                if (!Double.isNaN(vector[idx])) {
-                    sum += vector[idx];
-                    count++;
-                }
-            }
-            */
+            double total = 0;
 
             for (double element : vector) {
                 if (!Double.isNaN(element)) {
-                    sum += element;
+                    total += element;
                     count++;
                 }
             }
 
-            sum = sum / count; // sum is now mean
+            mean = total / count; // sum is now mean
         }
         // print out vector
         for (double element : vector) {
-            pw.println(element - sum);
+            pw.println(element - mean);
         }
         pw.flush();
         pw.close();
@@ -376,7 +387,7 @@ public class Dump extends JuiceboxCLT {
         BufferedOutputStream bos = null;
         PrintWriter txtWriter = null;
 
-
+        // TODO should add check to ensure directory for file exists otherwise mkdir?
         if (ofile != null) {
             if(ofile.endsWith(".bin")){
                 bos = new BufferedOutputStream(new FileOutputStream(ofile));

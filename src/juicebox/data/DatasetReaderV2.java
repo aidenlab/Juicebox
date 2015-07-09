@@ -29,7 +29,7 @@ import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
-import juicebox.tools.utils.Preprocessor;
+import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
