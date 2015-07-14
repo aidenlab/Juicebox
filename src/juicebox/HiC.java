@@ -744,7 +744,7 @@ public class HiC {
         }
     }
     //reloading the previous state
-    //------------------------------------TODO load previous state------------------------------
+    //TODO--Use XML File instead
     public void setReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor,
                                MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
 

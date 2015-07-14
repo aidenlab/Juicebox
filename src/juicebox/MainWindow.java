@@ -2176,7 +2176,7 @@ public class MainWindow extends JFrame {
             public void onSelectPosition(String mapPath) {
                 hic.getMapPath(mapPath);
                 hic.clearTracksForReloadState();
-                hic.reloadPreviousState(hic.currentStates);
+                hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
                 updateThumbnail();
                 previousStates.setSelected(true);
             }

@@ -69,7 +69,7 @@ public class ReloadPreviousState {
 
     public String reload(File currentInfo) {
         String result = "OK";
-
+ //TODO---USE XML File instead
         try {
             BufferedReader buffRead = new BufferedReader(new FileReader(currentInfo));
             String command;
