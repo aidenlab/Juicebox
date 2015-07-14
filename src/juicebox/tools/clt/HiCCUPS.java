@@ -27,11 +27,11 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.Common.ArrayTools;
-import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.Juicer.HiCCUPS.GPUController;
-import juicebox.tools.utils.Juicer.HiCCUPS.GPUOutputContainer;
-import juicebox.track.Feature.Feature2DList;
+import juicebox.tools.utils.common.ArrayTools;
+import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.juicer.hiccups.GPUController;
+import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -62,19 +62,21 @@ public class HiCCUPS extends JuiceboxCLT {
     // TODO dimensions should be variably set
     private static int w1 = 40, w2 = 10000;
 
-    private static int regionWidth = 50; // 500 original
-    private static int regionMargin = 20;
-    private static int matrixSize = 50;
+    
+    private static final int regionMargin = 20;
+    private static final int totalMargin = 2*regionMargin;
+    private static int matrixSize = 512;// 540 original
+    private static int regionWidth = matrixSize - totalMargin;
     private static int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
-    private static int window = 20;
-    private static int peakWidth = 5;
+    private static int window = 3;
+    private static int peakWidth = 1;
 
     private static int divisor() {
         return (window - peakWidth) * (window + peakWidth);
     }
 
     public HiCCUPS() {
-        super("hiccups [-r resolution] [-c chromosome] [-m matrix_size] <hic file> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
+        super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
         // -i input file custom
     }
 
@@ -110,10 +112,9 @@ public class HiCCUPS extends JuiceboxCLT {
             chrSpecified = true;
         }
 
-        // TODO should not allow matrix size less than 41
-        if(specifiedMatrixSize > 0){
-            regionWidth = specifiedMatrixSize - regionMargin - regionMargin;
+        if(specifiedMatrixSize > 2*regionMargin){
             matrixSize = specifiedMatrixSize;
+            regionWidth = specifiedMatrixSize - totalMargin;
         }
         System.out.println("Using Matrix Size "+ matrixSize);
     }
@@ -174,14 +175,16 @@ public class HiCCUPS extends JuiceboxCLT {
         float[][] fdrLogDonut = new float[w1][w2];
         float[][] fdrLogH = new float[w1][w2];
         float[][] fdrLogV = new float[w1][w2];
-        float[] thresholdBL = new float[w1];
-        float[] thresholdDonut = new float[w1];
-        float[] thresholdH = new float[w1];
-        float[] thresholdV = new float[w1];
+        float[] thresholdBL = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
+        float[] thresholdDonut = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
+        float[] thresholdH = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
+        float[] thresholdV = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
         float[] boundRowIndex = new float[1];
         float[] boundColumnIndex = new float[1];
 
-        GPUController gpuController = new GPUController(window, matrixSize, peakWidth, divisor());
+
+
+        GPUController gpuController = new GPUController(window, matrixSize, peakWidth, regionMargin, divisor());
 
         Feature2DList globalList = new Feature2DList();
 
@@ -210,38 +213,40 @@ public class HiCCUPS extends JuiceboxCLT {
                 System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
 
 
-                for (int i = 0; i < (chrMatrixWdith / regionWidth) + 1; i++) {
-                    int[] rowBounds = calculateRegionBounds(i, regionWidth, regionMargin, matrixSize, chrMatrixWdith);
+                for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
+                    int[] rowBounds = calculateRegionBounds(i, regionWidth, regionMargin, chrMatrixWdith);
 
-                    for (int j = i; j < (chrMatrixWdith / regionWidth) + 1; j++){
-                        int[] columnBounds = calculateRegionBounds(j, regionWidth, regionMargin, matrixSize, chrMatrixWdith);
+                    if(rowBounds[4] < chrMatrixWdith - regionMargin) {
+                        for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
+                            int[] columnBounds = calculateRegionBounds(j, regionWidth, regionMargin, chrMatrixWdith);
 
-                        // TODO should not run if region within bounds is empty i.e. does not contain even a single pixel
-                        GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
-                                rowBounds, columnBounds, matrixSize,
-                                thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                boundRowIndex, boundColumnIndex, preferredNormalization);
+                            if (columnBounds[4] < chrMatrixWdith - regionMargin) {
+                                GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
+                                        rowBounds, columnBounds, matrixSize,
+                                        thresholdBL, thresholdDonut, thresholdH, thresholdV,
+                                        boundRowIndex, boundColumnIndex, preferredNormalization);
 
-                        int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + peakWidth + 2;
+                                int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + peakWidth + 2;
 
-                        if (runNum == 0) {
+                                if (runNum == 0) {
 
-                            gpuOutputs.cleanUpBinNans();
-                            gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
-                            gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
+                                    gpuOutputs.cleanUpBinNans();
+                                    gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
+                                    gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
 
 
+                                } else { // runNum = 1
 
-                        } else { // runNum = 1
+                                    gpuOutputs.cleanUpPeakNaNs();
+                                    gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
 
-                            gpuOutputs.cleanUpPeakNaNs();
-                            gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
+                                    Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
+                                            w1, w2, rowBounds[4], columnBounds[4], resolution);
+                                    peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
 
-                            Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
-                                    w1, w2, rowBounds[4], columnBounds[4], resolution);
-                            peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-
-                            globalList.add(peaksList);
+                                    globalList.add(peaksList);
+                                }
+                            }
                         }
                     }
                 }
@@ -258,12 +263,19 @@ public class HiCCUPS extends JuiceboxCLT {
             if (runNum == 0) {
 
                 long thresh_time0 = System.currentTimeMillis();
-                //System.out.print(histBL);
 
-                runZeroProcessHistogram(histBL, w1, w2, fdr, thresholdBL, fdrLogBL);
-                runZeroProcessHistogram(histDonut, w1, w2, fdr, thresholdDonut, fdrLogDonut);
-                runZeroProcessHistogram(histH, w1, w2, fdr, thresholdH, fdrLogH);
-                runZeroProcessHistogram(histV, w1, w2, fdr, thresholdV, fdrLogV);
+                int[][] rcsHistBL = ArrayTools.makeReverse2DCumulativeArray(histBL);
+                int[][] rcsHistDonut = ArrayTools.makeReverse2DCumulativeArray(histDonut);
+                int[][] rcsHistH = ArrayTools.makeReverse2DCumulativeArray(histH);
+                int[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
+
+                for (int i = 0; i < w1; i++) {
+                    float[] unitPoissonPMF = ArrayTools.doubleArrayToFloatArray(ArrayTools.generatePoissonPMF(i, w2));
+                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistBL, thresholdBL, fdrLogBL);
+                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistDonut, thresholdDonut, fdrLogDonut);
+                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistH, thresholdH, fdrLogH);
+                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistV, thresholdV, fdrLogV);
+                }
 
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
@@ -283,69 +295,43 @@ public class HiCCUPS extends JuiceboxCLT {
 
 
 
-    private int[] calculateRegionBounds(int index, int regionWidth, int regionMargin, int matrixSize, int chrMatrixWdith) {
+    private int[] calculateRegionBounds(int index, int regionWidth, int regionMargin, int chrMatrixWidth) {
 
-        int bound1R = Math.max((index * regionWidth), 0);
-        int bound2R = Math.min((index + 1) * regionWidth, chrMatrixWdith);
-        int bound1 = Math.max((index * regionWidth) - regionMargin, 0);
-        int bound2 = Math.min(((index + 1) * regionWidth) + regionMargin, chrMatrixWdith);
-        if (bound1 == 0) {
-            bound2 = matrixSize;
-        }
-        if (bound2 == chrMatrixWdith) {
-            bound1 = chrMatrixWdith - matrixSize;
-        }
+        int bound1R = Math.min(regionMargin + (index * regionWidth), chrMatrixWidth - regionMargin);
+        int bound1 = bound1R - regionMargin;
+        int bound2R = Math.min(bound1R + regionWidth, chrMatrixWidth - regionMargin);
+        int bound2 = bound2R + regionMargin;
+
         int diff1 = bound1R - bound1;
         int diff2 = bound2 - bound2R;
 
         return new int[]{bound1, bound2, diff1, diff2, bound1R, bound2R};
     }
 
-
-    private void runZeroProcessHistogram(int[][] hist, int w1, int w2, int fdr, float[] threshold, float[][] fdrLog) {
-
-        int[][] rcsHist = new int[w1][w2];
-        for (int i = 0; i < w1; i++) {
-            rcsHist[i] = ArrayTools.makeReverseCumulativeArray(hist[i]);
-        }
-
-        for (int i = 0; i < w1; i++) {
-            calculateThresholdAndFDR(i, w2, fdr, rcsHist, threshold, fdrLog);
-        }
-
-    }
-
-    private void calculateThresholdAndFDR(int index, int width, int fdr, int[][] rcsHist,
-                                          float[] threshold, float[][] fdrLog) {
+    private void calculateThresholdAndFDR(int index, int width, int fdr, float[] poissonPMF,
+                                          int[][] rcsHist, float[] threshold, float[][] fdrLog) {
         //System.out.println("");
         //System.out.println("index is "+index);
         //System.out.println("rcsHist is "+rcsHist[index][0]);
         if (rcsHist[index][0] > 0) {
-            float[] expected = ArrayTools.doubleArrayToFloatArray(
-                    ArrayTools.generateScaledPoissonPDF(index, rcsHist[index][0], width));
+            float[] expected = ArrayTools.scalarMultiplyArray(rcsHist[index][0], poissonPMF);
             float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
-            // TODO starting at 1 because 0 should never return true (theoretically) but actually is.
-            // TODO Maybe because of rounding? needs further investigation
-            // TODO fix error
-            for (int j = 1; j < width; j++) {
+            for (int j = 0; j < width; j++) {
                 if (fdr * rcsExpected[j] <= rcsHist[index][j]) {
                     threshold[index] = (j - 1);
                     break;
                 }
             }
 
-
             for (int j = (int)threshold[index]; j < width; j++) {
                 float sum1 = rcsExpected[j];
                 float sum2 = rcsHist[index][j];
                 if (sum2 > 0) {
-                    fdrLog[index][j] = (sum1 / (sum2 * 1f));
+                    fdrLog[index][j] = sum1/sum2;
                 } else {
                     break;
                 }
             }
-        } else {
-            threshold[index] = width;
         }
     }
 }

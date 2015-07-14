@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.HiCCUPS;
+package juicebox.tools.utils.juicer.hiccups;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;

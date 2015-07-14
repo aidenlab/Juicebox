@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents;
+package juicebox.tools.utils.juicer.arrowhead.connectedcomponents;
 
 import org.apache.commons.math.linear.RealMatrix;
 

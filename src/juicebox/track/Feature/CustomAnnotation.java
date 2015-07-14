@@ -22,17 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.Feature;
+package juicebox.track.feature;
 
-import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.common.HiCFileTools;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Marie on 6/3/15.

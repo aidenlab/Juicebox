@@ -1290,7 +1290,7 @@ public class HeatChart {
 	private void saveGraphicJpeg(BufferedImage chart, File outputFile, float quality) throws IOException {
 		// Setup correct compression for jpeg.
 		Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
-		ImageWriter writer = (ImageWriter) iter.next();
+		ImageWriter writer = iter.next();
 		ImageWriteParam iwp = writer.getDefaultWriteParam();
 		iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		iwp.setCompressionQuality(quality);

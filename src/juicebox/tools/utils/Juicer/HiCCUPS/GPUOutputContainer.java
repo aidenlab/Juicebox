@@ -22,13 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.HiCCUPS;
+package juicebox.tools.utils.juicer.hiccups;
 
-import juicebox.tools.utils.Common.ArrayTools;
-import juicebox.track.Feature.Feature2DList;
-
-import java.util.ArrayList;
-import java.util.List;
+import juicebox.tools.utils.common.ArrayTools;
+import juicebox.track.feature.Feature2DList;
 
 /**
  * Created by muhammadsaadshamim on 5/12/15.
