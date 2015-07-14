@@ -147,7 +147,7 @@ public class HiCCUPS extends JuiceboxCLT {
             }
 
         } catch (IOException e) {
-            System.out.println("Unable to run HiCCUPS");
+            System.out.println("Unable to run hiccups");
             e.printStackTrace();
             System.exit(-3);
         }

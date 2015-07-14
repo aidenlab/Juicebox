@@ -607,7 +607,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JCheckBoxMenuItem mi85 = new JCheckBoxMenuItem("Highlight Feature");
+        final JCheckBoxMenuItem mi85 = new JCheckBoxMenuItem("Highlight feature");
         mi85.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -617,7 +617,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JCheckBoxMenuItem mi86 = new JCheckBoxMenuItem("Toggle Feature Highlight");
+        final JCheckBoxMenuItem mi86 = new JCheckBoxMenuItem("Toggle feature Highlight");
         mi86.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -642,7 +642,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             }
         });
-        final JCheckBoxMenuItem mi10 = new JCheckBoxMenuItem("Configure Feature");
+        final JCheckBoxMenuItem mi10 = new JCheckBoxMenuItem("Configure feature");
         mi10.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
