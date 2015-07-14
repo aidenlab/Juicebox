@@ -2047,7 +2047,7 @@ public class MainWindow extends JFrame {
 //        annotate.add(annotateDomain);
 //
 //        // Add generic annotations
-//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic Feature");
+//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic feature");
 //
 //        annotateGeneric.setSelected(false);
 //        annotateGeneric.addActionListener(new ActionListener() {
@@ -2131,7 +2131,7 @@ public class MainWindow extends JFrame {
         //---Save State test-----
         saveStateForReload = new JMenuItem();
         saveStateForReload.setText("Save current state");
-            saveStateForReload.addActionListener(new ActionListener() {
+        saveStateForReload.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
                     //code to add a recent location to the menu
@@ -2170,15 +2170,13 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(recentLocationMenu);
 
         previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
-
+            //TODO----Update serialVersionUID----
             private static final long serialVersionUID = 1235L;
 
             public void onSelectPosition(String mapPath) {
                 hic.getMapPath(mapPath);
                 hic.clearTracksForReloadState();
                 hic.reloadPreviousState(hic.currentStates);
-                //repaint();
-                //setNormalizationDisplayState();
                 updateThumbnail();
                 previousStates.setSelected(true);
             }
@@ -2190,10 +2188,6 @@ public class MainWindow extends JFrame {
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         return menuBar;
-    }
-
-    public boolean isRefreshTest(){
-        return refreshTest.isSelected();
     }
 
     public boolean isReloadState(){

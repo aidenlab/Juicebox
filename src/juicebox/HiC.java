@@ -27,18 +27,15 @@ package juicebox;
 
 import juicebox.data.*;
 import juicebox.encode.EncodeFileBrowser;
-import juicebox.encode.EncodeFileRecord;
 import juicebox.mapcolorui.HeatmapRenderer;
-import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
-import juicebox.track.HiCDataSource;
-import juicebox.track.Feature.Feature2D;
-import juicebox.track.Feature.Feature2DList;
-import juicebox.track.Feature.Feature2DParser;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.feature.genome.ChromosomeNameComparator;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -119,14 +116,13 @@ public class HiC {
 
     public void clearTracksForReloadState(){
 
-        /*for(HiCTrack trackToRemove : trackManager.getLoadedTracks()){
+        for(HiCTrack trackToRemove : trackManager.getLoadedTracks()){
             if(trackToRemove.getName().equals("eigenvector")){
                 eigenvectorTrack = null;
             }else {
                 trackManager.removeTrack(trackToRemove);
             }
-        }*/
-        eigenvectorTrack = null;
+        }
         trackManager.clearTracks();
         loopLists.clear();
         mainWindow.updateTrackPanel();
@@ -229,15 +225,6 @@ public class HiC {
         trackManager.loadCoverageTrack(no);
     }
 
-    public List<String> getTrackLabels(){
-        List<HiCTrack> tracks = getLoadedTracks();
-        List<String> trackLabels = new ArrayList<String>();
-        for(HiCTrack track: tracks){
-            trackLabels.add(track.getName());
-        }
-        return trackLabels;
-    }
-
     public void removeTrack(HiCTrack track) {
         if (resourceTree != null) resourceTree.remove(track.getLocator());
         if (encodeAction != null) encodeAction.remove(track.getLocator());
@@ -287,10 +274,7 @@ public class HiC {
         Matrix matrix = getMatrix();
         if (matrix == null || zoom == null) {
             return null;
-        }//else if (mainWindow.isReloadState()){
-            //return getZoomDataForReloadState();
-        //}
-        else {
+        } else {
             return matrix.getZoomData(zoom);
         }
     }
@@ -684,8 +668,6 @@ public class HiC {
         }
 
         Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true);
-
-
         loopLists.put(path, newList);
     }
 
@@ -770,12 +752,6 @@ public class HiC {
         String delimeter = "@@";
         String[] temp = mapURL.split(delimeter);
         resetMap(temp);
-        System.out.println("load map");
-        /*try{
-            Thread.sleep(20000);
-        } catch(Exception e){
-            e.printStackTrace();
-        }*/
 
             //if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
 
@@ -793,7 +769,6 @@ public class HiC {
                 System.out.println("select chromosome");
                 if (eigenvectorTrack != null) {
                     eigenvectorTrack.forceRefresh();
-                    System.out.println("Eigenvector Refresh");
                 }
             //}
 
@@ -805,23 +780,17 @@ public class HiC {
                 xContext.setZoom(newZoom);
                 yContext.setZoom(newZoom);
                 mainWindow.updateZoom(newZoom);
-                System.out.println("zoom");
             }
 
             setScaleFactor(scalefactor);
             xContext.setBinOrigin(xOrigin);
             yContext.setBinOrigin(yOrigin);
-            System.out.println("scaleFactor");
             mainWindow.setDisplayBox(displaySelection.ordinal());
-            System.out.println("setDisplay");
             mainWindow.setNormalizationBox(normSelection.ordinal());
-            System.out.println("setNormalization");
             mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
-            System.out.println("updateColor");
 
             if (!trackNames.isEmpty()) {
-                System.out.println("trackNames: " + trackNames);
-                ArrayList<String> newLoadTracks = new ArrayList<String>();
+                //System.out.println("trackNames: " + trackNames); for debugging
                 encodeFileBrowser = EncodeFileBrowser.getInstance(dataset.getGenomeId());
                 for (String currentTrackName : trackNames) {
                     if (currentTrackName.equals("Eigenvector")) {
@@ -833,16 +802,10 @@ public class HiC {
                         loadLoopList(currentTrackName);
                     } else if (currentTrackName.contains("goldenPath")||currentTrackName.toLowerCase().contains("ensembl")) {
                         loadHostedTracks(encodeFileBrowser.checkEncodeTracks(currentTrackName));
-                        //loadTrack(currentTrackName);
                     } else {
-                        newLoadTracks.add(currentTrackName);
                         loadTrack(currentTrackName);
-                        //loadHostedTracks(resourceTree.checkNodesForReloadState(currentTrackName));
                     }
                 }
-
-                //loadHostedTracks(resourceTree.checkNodesForReloadState(newLoadTracks));
-                //trackManager.safeTrackLoad(resourceTree.checkNodesForReloadState(newLoadTracks));
             }
 
             /*try {
@@ -917,9 +880,9 @@ public class HiC {
                 trackManager.getReloadTracks(getLoadedTracks());
 
                 for(HiCTrack track: currentTracks) {
-                    System.out.println("trackLocator: "+track.getLocator());
+                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
+                    //System.out.println("track name: " + track.getName());
                     currentTrack+=track.getLocator()+"$$";
-                    System.out.println("track name: " + track.getName());
                 }
                 System.out.println("CurrentTrack: "+ currentTrack);
 
@@ -932,9 +895,9 @@ public class HiC {
                 trackManager.getReloadTracks(getLoadedTracks());
 
                 for(HiCTrack track: currentTracks) {
-                    System.out.println("trackLocator: "+track.getLocator());
+                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
+                    //System.out.println("track name: "+track.getName());
                     currentTrack+=track.getLocator()+"$$";
-                    System.out.println("track name: "+track.getName());
                 }
                 System.out.println("CurrentTrack: "+ currentTrack);
 
@@ -945,8 +908,8 @@ public class HiC {
                 //loops true & tracks false
             } else if(getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()){
 
-                System.out.println(dataset.getPeaks().toString());
-                System.out.println(dataset.getBlocks().toString());
+                //System.out.println(dataset.getPeaks().toString());
+                //System.out.println(dataset.getBlocks().toString()); for debugging
                 buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                         zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                         getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
@@ -964,7 +927,7 @@ public class HiC {
             //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
             // normalization type,color range values, basic tracks, coverage tracks)
             buffWriter.close();
-            System.out.println("stuff saved");
+            System.out.println("stuff saved"); //check
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -992,11 +955,6 @@ public class HiC {
     }
 
     public void reloadPreviousState(File tempState){
-        ReloadPreviousState rld = new ReloadPreviousState(this);
-        rld.reload(tempState);
-    }
-
-    public void testRefresh(File tempState){
         ReloadPreviousState rld = new ReloadPreviousState(this);
         rld.reload(tempState);
     }
