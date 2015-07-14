@@ -24,11 +24,17 @@
 
 package juicebox.windowui;
 
+import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +49,7 @@ public abstract class RecentMenu extends JMenu {
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private List<String> m_items = new ArrayList<String>();
+    File currentStates = new File(HiCGlobals.stateFileName);
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);
@@ -83,13 +90,28 @@ public abstract class RecentMenu extends JMenu {
                 removeAll();
                 m_items = new ArrayList<String>();
                 setEnabled(false);
+                try {
+                    BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                    bWriter.close();
+                } catch(IOException ex){
+                    ex.printStackTrace();
+                }
             }
         });
         addSeparator();
         add(clearMapList);
     }
 
-
+    public String getRecentMapName(){
+        String recentMapName = "";
+        /*String delimeter = "@@";
+        String[] temp;*/
+        if(m_items.get(0)!=null && !m_items.get(0).equals("")){
+            //temp = m_items.get(0).split(delimeter);
+            recentMapName += m_items.get(0);
+        }
+        return recentMapName;
+    }
     /**
      * Add new recent entry, update file and menu
      *

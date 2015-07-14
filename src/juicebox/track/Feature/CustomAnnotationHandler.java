@@ -53,7 +53,7 @@ public class CustomAnnotationHandler {
 
     enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
 
-    public CustomAnnotationHandler(MainWindow mainWIndow, HiC hic){
+    public CustomAnnotationHandler(MainWindow mainWindow, HiC hic){
         this.mainWindow = mainWindow;
         this.hic = hic;
         featureType = FeatureType.NONE;

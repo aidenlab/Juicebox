@@ -358,6 +358,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         mainWindow.safeLoad(urls, control, title);
     }
 
+
     private void collapseAll(JTree tree) {
         int row = tree.getRowCount() - 1;
         while (row >= 0) {
@@ -365,6 +366,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             row--;
         }
     }
+
 
 
     private class ItemInfo {

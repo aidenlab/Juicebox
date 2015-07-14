@@ -193,8 +193,8 @@ public class ResolutionControl extends JPanel {
                         unsafeStateChanged(eF);
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");
-                //runnable.run();
+                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
+                runnable.run();
             }
 
             private void unsafeStateChanged(ChangeEvent e) {
@@ -266,7 +266,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider.setPaintTicks(true);
         resolutionSlider.setSnapToTicks(true);
         resolutionSlider.setPaintLabels(true);
-        resolutionSlider.setMinorTickSpacing(1);
+        resolutionSlider.setMinorTickSpacing(1); //TODO******   UNCOMMENT  ******
 
         // Create labels
         Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();
@@ -288,7 +288,7 @@ public class ResolutionControl extends JPanel {
         // Really we should find the closest matching resolution
         int newIdx = Math.min(currentIdx, maxIdx);
         HiCZoom newZoom = idxZoomMap.get(newIdx);
-        setZoom(newZoom);
+        setZoom(newZoom); //TODO******   UNCOMMENT  ******
 
     }
 

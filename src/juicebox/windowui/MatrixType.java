@@ -43,4 +43,15 @@ public enum MatrixType {
         return value;
     }
 
+    public static MatrixType enumValueFromString(String text) {
+        if (text != null) {
+            for (MatrixType matrix : MatrixType.values()) {
+                if (text.equalsIgnoreCase(matrix.value)) {
+                    return matrix;
+                }
+            }
+        }
+        return null;
+    }
+
 }

@@ -26,6 +26,10 @@ package juicebox.mapcolorui;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.Dataset;
+import juicebox.data.Matrix;
+import juicebox.data.MatrixZoomData;
+import juicebox.windowui.HiCZoom;
 
 import javax.swing.*;
 import java.awt.*;
@@ -108,11 +112,28 @@ public class ThumbnailPanel extends JComponent implements Serializable {
     }
 
     double xScale() {
-        return (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
+        MatrixZoomData matrixZoomData;
+        if(hic.getZd() == null && mainWindow.isReloadState()){
+            matrixZoomData = hic.getZoomDataForReloadState();
+        }
+        else {
+            matrixZoomData = hic.getZd();
+        }
+
+        return (double) matrixZoomData.getXGridAxis().getBinCount() / getWidth();
+
     }
 
     double yScale() {
-        return (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
+        MatrixZoomData matrixZoomData;
+        if(hic.getZd() == null && mainWindow.isReloadState()){
+            matrixZoomData = hic.getZoomDataForReloadState();
+        }
+        else {
+            matrixZoomData = hic.getZd();
+        }
+        return (double) matrixZoomData.getYGridAxis().getBinCount() / getHeight();
+
     }
 
 
@@ -135,6 +156,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
         if (image != null) {
             g.drawImage(image, 0, 0, null);
             renderVisibleWindow((Graphics2D) g);
+            //TODO******   UNCOMMENT  ******
         }
     }
 

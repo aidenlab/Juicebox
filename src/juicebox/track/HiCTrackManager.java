@@ -43,12 +43,11 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Jim Robinson
@@ -62,6 +61,7 @@ public class HiCTrackManager {
     //static String path = "/Users/jrobinso/Documents/IGV/hg19_encode.xml";
 
     private final java.util.List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
+    private final List<HiCTrack> reloadTrackNames = new ArrayList<HiCTrack>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<NormalizationType, HiCTrack>();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -69,6 +69,7 @@ public class HiCTrackManager {
     public HiCTrackManager(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
         this.hic = hic;
+
     }
 
     public void loadTrack(final String path) {
@@ -136,12 +137,12 @@ public class HiCTrackManager {
         String path = locator.getPath();
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
-        System.out.println("path: "+path);
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
         if (!extension.equals(".gz")) {
             locator.setType(extension);
+
         }
         else {
             // setting type to be the extension before the .gz
@@ -243,6 +244,18 @@ public class HiCTrackManager {
     public void clearTracks() {
         loadedTracks.clear();
     }
+
+    public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks){
+        Iterator<HiCTrack> iterator = reloadTracks.iterator();
+        while(iterator.hasNext())
+            reloadTrackNames.add(iterator.next());
+        return reloadTrackNames;
+    }
+
+    public List<HiCTrack> getReloadTrackNames(){
+        return reloadTrackNames;
+    }
+
 
     private Genome loadGenome() {
         String genomePath;

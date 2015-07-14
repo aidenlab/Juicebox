@@ -105,14 +105,16 @@ public class CategoryPanel extends JPanel {
 
     }
 
-    Collection<String> getSelectedTracks() {
+    public Collection<String> getSelectedTracks() {
         List<String> selectedTracks = new ArrayList<String>();
         for (Component c : listPanel.getComponents()) {
             if (c instanceof JCheckBox && ((JCheckBox) c).isSelected()) {
                 selectedTracks.add(((JCheckBox) c).getText());
+
             }
         }
         return selectedTracks;
+
     }
 
 
