@@ -120,7 +120,7 @@ public class HiCTools {
             apaWindowOption = addIntegerOption('w', "window");
             countThresholdOption = addIntegerOption('m', "minCountThreshold");
             mapqOption = addIntegerOption('q', "mapping quality threshold");
-            matrixSizeOption = addIntegerOption('m', "minCountThreshold (HiCCUPS)");
+            matrixSizeOption = addIntegerOption('m', "minCountThreshold (hiccups)");
 
             apaMinValOption = addDoubleOption('n', "minimum value");
             apaMaxValOption = addDoubleOption('x', "maximum value");

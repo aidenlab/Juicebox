@@ -27,14 +27,14 @@ package juicebox;
 
 import com.google.common.base.CharMatcher;
 import juicebox.data.*;
+import juicebox.encode.EncodeFileBrowser;
+import juicebox.mapcolorui.HeatmapRenderer;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.MatrixType;
-import juicebox.windowui.NormalizationType;
+import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ResourceLocator;
@@ -42,9 +42,8 @@ import com.google.common.base.Splitter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.*;
+import java.util.*;
 import java.util.List;
 import java.util.Map;
 
@@ -69,11 +68,21 @@ public class HiC {
     private Dataset dataset;
     private Dataset controlDataset;
     private HiCZoom zoom;
+    private MatrixZoomData matrixForReloadState;
     private Context xContext;
     private Context yContext;
     private boolean showLoops;
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private HeatmapRenderer heatmapRenderer;
+    private List<HiCTrack> trackLabels;
+    File currentStates = new File(HiCGlobals.stateFileName);
+    private static String mapName;
+    private static String stateID;
+    private static String mapPath;
 
+    private EncodeFileBrowser encodeFileBrowser;
+    private TrackConfigDialog configDialog;
+    private HiCTrack hiCTrack;
 
     private EigenvectorTrack eigenvectorTrack;
     private ResourceTree resourceTree;
@@ -108,6 +117,21 @@ public class HiC {
         loopLists.clear();
         showLoops = true;
     }
+
+    public void clearTracksForReloadState(){
+
+        for(HiCTrack trackToRemove : trackManager.getLoadedTracks()){
+            if(trackToRemove.getName().equals("eigenvector")){
+                eigenvectorTrack = null;
+            }else {
+                trackManager.removeTrack(trackToRemove);
+            }
+        }
+        trackManager.clearTracks();
+        loopLists.clear();
+        mainWindow.updateTrackPanel();
+    }
+
 
     public double getScaleFactor() {
         return scaleFactor;
@@ -237,6 +261,17 @@ public class HiC {
 
     public HiCZoom getZoom() {
         return zoom;
+    }
+
+    public MatrixZoomData setZoomDataForReloadState(HiCZoom newZoom, Chromosome crX,Chromosome crY){
+
+        Matrix matrix = dataset.getMatrix(crX,crY);
+        matrixForReloadState = matrix.getZoomData(newZoom);
+        return matrix.getZoomData(newZoom);
+    }
+
+    public MatrixZoomData getZoomDataForReloadState(){
+        return matrixForReloadState;
     }
 
     public MatrixZoomData getZd() {
@@ -541,7 +576,6 @@ public class HiC {
      * @param newBinY new location Y
      */
     private void moveTo(double newBinX, double newBinY) {
-
         MatrixZoomData zd = getZd();
 
         final double wBins = (mainWindow.getHeatmapPanel().getWidth() / getScaleFactor());
@@ -728,6 +762,7 @@ public class HiC {
      * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
      * heatmap panel.
      */
+    //reloading the previous location
     public void setState(String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor) {
 
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
@@ -741,7 +776,6 @@ public class HiC {
                 log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
                 return;
             }
-
 
             this.xContext = new Context(chrX);
             this.yContext = new Context(chrY);
@@ -770,6 +804,105 @@ public class HiC {
         }
 
     }
+    public void storeMapName(){
+        mapName=mainWindow.getRecentMapMenu().getRecentMapName();
+    }
+    public void storeStateID(){
+        stateID=mainWindow.getPrevousStateMenu().getRecentMapName();
+    }
+    public String getMapPath(String currentMapPath){
+        mapPath = currentMapPath;
+        return mapPath;
+    }
+    public String currentMapName(){
+        System.out.println(mapPath);
+        return mapPath;
+    }
+
+    public void resetMap(String[] temp){
+        boolean control = isControlLoaded();
+        List<String> files = new ArrayList<String>();
+        files.add(temp[1]);
+        System.out.println(mainWindow.getTitle());
+        if(!mainWindow.getTitle().contains(temp[0])){
+            System.out.println("titles don't match");
+            mainWindow.safeLoadForReloadState(files, control, temp[0]);
+            //mainWindow.updateTitle(control,temp[0]);
+        }
+    }
+    //reloading the previous state
+    //TODO--Use XML File instead
+    public void setReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor,
+                               MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
+
+        boolean control = isControlLoaded();
+        String delimeter = "@@";
+        String[] temp = mapURL.split(delimeter);
+        resetMap(temp);
+
+            //if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
+
+                Chromosome chrX = HiCFileTools.getChromosomeNamed(chrXName, chromosomes);
+                Chromosome chrY = HiCFileTools.getChromosomeNamed(chrYName, chromosomes);
+
+                if (chrX == null || chrY == null) {
+                    //Chromosomes do not appear to exist in current map.
+                    log.info("Chromosome(s) not found.");
+                    log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
+                    return;
+                }
+                setSelectedChromosomes(chrX,chrY);
+                mainWindow.setSelectedChromosomesNoRefresh(chrX, chrY);
+                System.out.println("select chromosome");
+                if (eigenvectorTrack != null) {
+                    eigenvectorTrack.forceRefresh();
+                }
+            //}
+
+           HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+            if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
+                //TODO******   UNCOMMENT  ******
+                setZoomDataForReloadState(newZoom,chrX,chrY);
+                zoom = newZoom;
+                xContext.setZoom(newZoom);
+                yContext.setZoom(newZoom);
+                mainWindow.updateZoom(newZoom);
+            }
+
+            setScaleFactor(scalefactor);
+            xContext.setBinOrigin(xOrigin);
+            yContext.setBinOrigin(yOrigin);
+            mainWindow.setDisplayBox(displaySelection.ordinal());
+            mainWindow.setNormalizationBox(normSelection.ordinal());
+            mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
+
+            if (!trackNames.isEmpty()) {
+                //System.out.println("trackNames: " + trackNames); for debugging
+                encodeFileBrowser = EncodeFileBrowser.getInstance(dataset.getGenomeId());
+                for (String currentTrackName : trackNames) {
+                    if (currentTrackName.equals("Eigenvector")) {
+                        loadEigenvectorTrack();
+                    } else if (currentTrackName.toLowerCase().contains("coverage") || currentTrackName.toLowerCase().contains("balanced") || currentTrackName.equals("Loaded")) {
+                        loadCoverageTrack(NormalizationType.enumValueFromString(currentTrackName));
+                    } else if (currentTrackName.contains("peaks") || currentTrackName.contains("blocks") || currentTrackName.contains("superloop")) {
+                        resourceTree.checkNodesForReloadState(currentTrackName);
+                        loadLoopList(currentTrackName);
+                    } else if (currentTrackName.contains("goldenPath")||currentTrackName.toLowerCase().contains("ensembl")) {
+                        loadHostedTracks(encodeFileBrowser.checkEncodeTracks(currentTrackName));
+                    } else {
+                        loadTrack(currentTrackName);
+                    }
+                }
+            }
+
+            /*try {
+                mainWindow.refresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }*/
+    }
+
+    //TODO--------UPDATE TRACK NAMES--------
 
     public void broadcastState() {
         String xChr = xContext.getChromosome().getName();
@@ -818,6 +951,75 @@ public class HiC {
         // CommandBroadcaster.broadcast(command);
     }
 
+    public void writeState() throws IOException{
+        try {
+            BufferedWriter buffWriter = new BufferedWriter(new FileWriter(currentStates,true));
+            String xChr = xContext.getChromosome().getName();
+            String yChr = yContext.getChromosome().getName();
+            String colorVals = mainWindow.getColorRangeValues();
+            List<HiCTrack> currentTracks = getLoadedTracks();
+            String currentTrack = "";
+            storeMapName();
+            buffWriter.newLine();
+
+            //tracks true & loops true
+            if(currentTracks!=null && !currentTracks.isEmpty() && getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()) {
+                trackManager.getReloadTracks(getLoadedTracks());
+
+                for(HiCTrack track: currentTracks) {
+                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
+                    //System.out.println("track name: " + track.getName());
+                    currentTrack+=track.getLocator()+"$$";
+                }
+                System.out.println("CurrentTrack: "+ currentTrack);
+
+                buffWriter.write(stateID + "--currentState:$$" + mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
+                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
+                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
+                        + "$$" + colorVals + "$$" + currentTrack + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
+            }//tracks true & loops false
+            else if(currentTracks!=null && !currentTracks.isEmpty()) {
+                trackManager.getReloadTracks(getLoadedTracks());
+
+                for(HiCTrack track: currentTracks) {
+                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
+                    //System.out.println("track name: "+track.getName());
+                    currentTrack+=track.getLocator()+"$$";
+                }
+                System.out.println("CurrentTrack: "+ currentTrack);
+
+                buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
+                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
+                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
+                        + "$$" + colorVals + "$$" + currentTrack);
+                //loops true & tracks false
+            } else if(getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()){
+
+                //System.out.println(dataset.getPeaks().toString());
+                //System.out.println(dataset.getBlocks().toString()); for debugging
+                buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
+                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
+                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
+                        + "$$" + colorVals + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
+
+            }
+            else{ //false & false
+                buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
+                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
+                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
+                        + "$$" + colorVals);
+            }
+            //TODO--------------------Check if loaded tracks is null or not---------------------------
+
+            //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
+            // normalization type,color range values, basic tracks, coverage tracks)
+            buffWriter.close();
+            System.out.println("stuff saved"); //check
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
     public String getDefaultLocationDescription() {
 
         String xChr = xContext.getChromosome().getName();
@@ -837,6 +1039,11 @@ public class HiC {
 
         return command;
         // CommandBroadcaster.broadcast(command);
+    }
+
+    public void reloadPreviousState(File tempState){
+        ReloadPreviousState rld = new ReloadPreviousState(this);
+        rld.reload(tempState);
     }
 
     public void restoreState(String cmd) {

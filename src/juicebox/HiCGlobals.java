@@ -24,6 +24,8 @@
 
 package juicebox;
 
+import java.awt.*;
+
 /**
  * @author Muhammad Shamim
  * @date 11/25/14
@@ -49,6 +51,9 @@ public class HiCGlobals {
     public static String topChromosomeColor = "#0000FF";
     public static String leftChromosomeColor = "#009900";
 
+    public static final Color backgroundColor = new  Color(204,204,204);
+
+    public static final String stateFileName = "CurrentJuiceboxStates";
     // Feature2D hover text
     public static boolean allowSpacingBetweenFeatureText = true;
 

@@ -47,4 +47,15 @@ public enum NormalizationType {
         return label;
     }
 
+    public static NormalizationType enumValueFromString(String text) {
+        if (text != null) {
+            for (NormalizationType norm : NormalizationType.values()) {
+                if (text.equalsIgnoreCase(norm.label)) {
+                    return norm;
+                }
+            }
+        }
+        return null;
+    }
+
 }

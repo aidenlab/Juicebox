@@ -220,7 +220,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
 
 
-                    g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    //if (mainWindow.isRefreshTest()) {
+                        g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    //}
+                    //TODO ******** UNCOMMENT *******
 
                     // Uncomment to draw tile grid (for debugging)
                     //g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
@@ -254,90 +257,93 @@ public class HeatmapPanel extends JComponent implements Serializable {
             boolean isWholeGenome = (hic.getXContext().getChromosome().getName().equals("All") &&
                     hic.getYContext().getChromosome().getName().equals("All"));
 
+            //if (mainWindow.isRefreshTest()) {
+                // Draw grid
+                if (isWholeGenome) {
+                    Color color = g.getColor();
+                    g.setColor(Color.LIGHT_GRAY);
 
-            // Draw grid
-            if (isWholeGenome) {
-                Color color = g.getColor();
-                g.setColor(Color.LIGHT_GRAY);
+                    List<Chromosome> chromosomes = hic.getChromosomes();
+                    // Index 0 is whole genome
+                    int xGenomeCoord = 0;
+                    int x = 0;
+                    for (int i = 1; i < chromosomes.size(); i++) {
+                        Chromosome c = chromosomes.get(i);
+                        xGenomeCoord += (c.getLength() / 1000);
+                        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
+                        x = (int) (xBin * scaleFactor);
+                        g.drawLine(x, 0, x, getTickHeight(g));
+                    }
 
-                List<Chromosome> chromosomes = hic.getChromosomes();
-                // Index 0 is whole genome
-                int xGenomeCoord = 0;
-                int x = 0;
-                for (int i = 1; i < chromosomes.size(); i++) {
-                    Chromosome c = chromosomes.get(i);
-                    xGenomeCoord += (c.getLength() / 1000);
-                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
-                    x = (int) (xBin * scaleFactor);
-                    g.drawLine(x, 0, x, getTickHeight(g));
+
+                    int yGenomeCoord = 0;
+                    int y = 0;
+                    for (int i = 1; i < chromosomes.size(); i++) {
+                        Chromosome c = chromosomes.get(i);
+                        yGenomeCoord += (c.getLength() / 1000);
+                        int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
+                        y = (int) (yBin * hic.getScaleFactor());
+                        g.drawLine(0, y, getTickWidth(g), y);
+                    }
+
+                    g.setColor(color);
+
+                    //Cover gray background for the empty parts of the matrix:
+                    g.setColor(Color.white);
+                    g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
+                    g.fillRect(0, getTickWidth(g), getHeight(), getWidth());
+                    g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
+                }
+
+                Point cursorPoint = hic.getCursorPoint();
+                if (cursorPoint != null) {
+                    g.setColor(MainWindow.RULER_LINE_COLOR);
+                    g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
+                    g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
                 }
 
 
-                int yGenomeCoord = 0;
-                int y = 0;
-                for (int i = 1; i < chromosomes.size(); i++) {
-                    Chromosome c = chromosomes.get(i);
-                    yGenomeCoord += (c.getLength() / 1000);
-                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
-                    y = (int) (yBin * hic.getScaleFactor());
-                    g.drawLine(0, y, getTickWidth(g), y);
+                if (allTilesNull) {
+                    g.setFont(FontManager.getFont(12));
+                    GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
+
+                } else {
+                    // Render loops
+                    drawnLoopFeatures.clear();
+
+                    List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                    // customLoops is array with zero or more loops
+                    List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                    if (loops == null) {
+                        loops = customLoops;
+                    } else {
+                        loops.addAll(customLoops);
+                    }
+
+                    FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
+                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+
+                    if (zoomRectangle != null) {
+                        ((Graphics2D) g).draw(zoomRectangle);
+                    }
+
+                    if (annotateRectangle != null) {
+                        ((Graphics2D) g).draw(annotateRectangle);
+                    }
+
                 }
-
-                g.setColor(color);
-
-                //Cover gray background for the empty parts of the matrix:
-                g.setColor(Color.white);
-                g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
-                g.fillRect(0, getTickWidth(g), getHeight(), getWidth());
-                g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
-            }
-
-            Point cursorPoint = hic.getCursorPoint();
-            if (cursorPoint != null) {
-                g.setColor(MainWindow.RULER_LINE_COLOR);
-                g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
-                g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
-            }
+            //}
+            //UNCOMMENT TO OUTLINE "selected" BIN TODO - is this safe to delete?
+            //        if(hic.getSelectedBin() != null) {
+            //            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
+            //            int pY = (int) ((hic.getSelectedBin().y - hic.yContext.getBinOrigin()) * hic.yContext.getScaleFactor());
+            //            int w = (int) hic.xContext.getScaleFactor() - 1;
+            //            int h = (int) hic.yContext.getScaleFactor() - 1;
+            //            g.setColor(Color.green);
+            //            g.drawRect(pX, pY, w, h);
+            //        }
 
         }
-        if (allTilesNull) {
-            g.setFont(FontManager.getFont(12));
-            GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
-
-        } else {
-            // Render loops
-            drawnLoopFeatures.clear();
-
-            List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            // customLoops is array with zero or more loops
-            List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            if (loops == null){
-                loops = customLoops;
-            } else {
-                loops.addAll(customLoops);
-            }
-
-            FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
-                    highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
-
-            if (zoomRectangle != null) {
-                ((Graphics2D) g).draw(zoomRectangle);
-            }
-
-            if (annotateRectangle != null) {
-                ((Graphics2D) g).draw(annotateRectangle);
-            }
-
-        }
-        //UNCOMMENT TO OUTLINE "selected" BIN TODO - is this safe to delete?
-        //        if(hic.getSelectedBin() != null) {
-        //            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
-        //            int pY = (int) ((hic.getSelectedBin().y - hic.yContext.getBinOrigin()) * hic.yContext.getScaleFactor());
-        //            int w = (int) hic.xContext.getScaleFactor() - 1;
-        //            int h = (int) hic.yContext.getScaleFactor() - 1;
-        //            g.setColor(Color.green);
-        //            g.drawRect(pX, pY, w, h);
-        //        }
     }
 
     private int getTickWidth(Graphics g) {
@@ -601,7 +607,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JCheckBoxMenuItem mi85 = new JCheckBoxMenuItem("Highlight Feature");
+        final JCheckBoxMenuItem mi85 = new JCheckBoxMenuItem("Highlight feature");
         mi85.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -611,7 +617,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JCheckBoxMenuItem mi86 = new JCheckBoxMenuItem("Toggle Feature Highlight");
+        final JCheckBoxMenuItem mi86 = new JCheckBoxMenuItem("Toggle feature Highlight");
         mi86.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -636,7 +642,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             }
         });
-        final JCheckBoxMenuItem mi10 = new JCheckBoxMenuItem("Configure Feature");
+        final JCheckBoxMenuItem mi10 = new JCheckBoxMenuItem("Configure feature");
         mi10.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

@@ -62,8 +62,11 @@ public class ResourceTree {
     private DefaultMutableTreeNode oneDFeatureRoot;
     private LinkedHashSet<ResourceLocator> newLocators;
     private LinkedHashSet<ResourceLocator> deselectedLocators;
+    private List<ResourceLocator> checkedTracks;
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
     private File openAnnotationPath = null;
+    private HiCTrack hiCTrack;
+    private HiC hic;
 
     public ResourceTree(HiC hic, Document document) {
         dialog = null;
@@ -681,10 +684,43 @@ public class ResourceTree {
 
             if (resource.isSelected()) {
                 resourceLocators.add(resource.getResourceLocator());
+
             }
         }
         return resourceLocators;
     }
+    //TODO------------------------
+    public List<ResourceLocator> checkNodesForReloadState(String track){
+
+        checkedTracks = new ArrayList<ResourceLocator>();
+        Enumeration<?> en = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
+        //skip root
+        en.nextElement();
+            while (en.hasMoreElements()) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
+                CheckableResource resource = (CheckableResource) node.getUserObject();
+                if(node.isLeaf()) {
+                    if(resource.dataResourceLocator.getPath()!=null) {
+                        if (resource.dataResourceLocator.getPath().contains(track)) {
+                            resource.setSelected(true);
+                            resource.setEnabled(true);
+                            checkedTracks.add(resource.dataResourceLocator);
+                            System.out.println("name: "+resource.dataResourceLocator.getName()+"trackName: "
+                                    +resource.getResourceLocator().getTrackName());
+
+                        }
+                    }
+                }
+                else if(ResourceEditor.hasSelectedChildren(node)){
+                    resource.setSelected(true);
+                    resource.setEnabled(true);
+                }
+
+            }
+
+        return checkedTracks;
+    }
+
 
     /**
      * Expands tree.

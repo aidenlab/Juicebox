@@ -81,6 +81,7 @@ public class MainWindow extends JFrame {
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
+    private static final String recentStateEntityNode = "hicStateRecent";
     public static Cursor fistCursor; // for panning
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
@@ -94,6 +95,10 @@ public class MainWindow extends JFrame {
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static JideButton refreshButton;
+    private static JMenuItem saveStateForReload;
+    private static RecentMenu previousStates;
+    private static JMenuItem refreshTest;
+    File currentStates = new File("testStates");
 
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
@@ -126,6 +131,7 @@ public class MainWindow extends JFrame {
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
     private double colorRangeScaleFactor = 1;
+    private double colorRangeScaleFactorForReload = 1;
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
     private int[] colorValuesToRestore = null;
@@ -213,48 +219,6 @@ public class MainWindow extends JFrame {
         return resolutionSlider.isResolutionLocked();
     }
 
-    public void updateColorSlider(double min, double max, double value) {
-        // We need to scale min and max to integers for the slider to work.  Scale such that there are
-        // 100 divisions between max and 0
-
-        colorRangeScaleFactor = 100.0 / max;
-
-        colorRangeSlider.setSnapToTicks(true);
-        colorRangeSlider.setPaintLabels(true);
-
-        int iMin = (int) (colorRangeScaleFactor * min);
-        int iMax = (int) (colorRangeScaleFactor * max);
-        int uValue = (int) (colorRangeScaleFactor * value);
-
-        colorRangeSlider.setLowerValue(0);
-        colorRangeSlider.setMinimum(iMin);
-        colorRangeSlider.setUpperValue(uValue);
-        colorRangeSlider.setMaximum(iMax);
-
-
-        //Change slider lables to reflect change:
-        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-
-        Font f = FontManager.getFont(8);
-
-        final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
-        minTickLabel.setFont(f);
-        final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
-        maxTickLabel.setFont(f);
-        final JLabel LoTickLabel = new JLabel(String.valueOf(0));
-        LoTickLabel.setFont(f);
-        final JLabel UpTickLabel = new JLabel(String.valueOf((int) value));
-        UpTickLabel.setFont(f);
-
-        labelTable.put(0, LoTickLabel);
-        labelTable.put(iMin, minTickLabel);
-        labelTable.put(uValue, UpTickLabel);
-        labelTable.put(iMax, maxTickLabel);
-
-
-        colorRangeSlider.setLabelTable(labelTable);
-    }
-
     public void updateColorSlider(double min, double lower, double upper, double max) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
@@ -293,7 +257,11 @@ public class MainWindow extends JFrame {
         labelTable.put(lValue, LoTickLabel);
         labelTable.put(uValue, UpTickLabel);
 
+
         colorRangeSlider.setLabelTable(labelTable);
+        //TODO******   UNCOMMENT  ******
+        colorRangeSliderUpdateToolTip();
+
     }
 
     public void createCursors() {
@@ -316,7 +284,6 @@ public class MainWindow extends JFrame {
     }
 
     public void updateZoom(HiCZoom newZoom) {
-
         resolutionSlider.setZoom(newZoom);
         resolutionSlider.reset();
     }
@@ -417,14 +384,14 @@ public class MainWindow extends JFrame {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
             Dataset dataset;
-           // try {
-                dataset = reader.read();
-           // }
-           // catch (IOException error) {
-           //     JOptionPane.showMessageDialog(MainWindow.this,
-           //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
-           //     return;
-           // }
+            // try {
+            dataset = reader.read();
+            // }
+            // catch (IOException error) {
+            //     JOptionPane.showMessageDialog(MainWindow.this,
+            //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
+            //     return;
+            // }
 
             if (dataset.getVersion() <= 1) {
                 JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
@@ -437,6 +404,7 @@ public class MainWindow extends JFrame {
                 options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
                         MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
             } else {
+
                 hic.reset();
 
                 hic.setDataset(dataset);
@@ -484,12 +452,175 @@ public class MainWindow extends JFrame {
 
                 resolutionSlider.reset();
                 unsafeRefreshChromosomes();
+
             }
             displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
             displayOptionComboBox.setSelectedIndex(0);
             chrBox1.setEnabled(true);
             chrBox2.setEnabled(true);
             refreshButton.setEnabled(true);
+
+            setColorRangeSliderVisible(true);
+            colorRangeSlider.setDisplayToBlank(false);
+            plusButton.setEnabled(true);
+            minusButton.setEnabled(true);
+            annotationsMenu.setEnabled(true);
+
+            saveLocationList.setEnabled(true);
+            recentLocationMenu.setEnabled(true);
+
+            goPanel.setEnabled(true);
+
+            if (control) {
+                currentlyLoadedControlFiles = newFilesToBeLoaded;
+            }
+            else {
+                currentlyLoadedMainFiles = newFilesToBeLoaded;
+            }
+            //refresh(); // an additional refresh seems to remove the upper left black corner
+        } else {
+            JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
+        }
+    }
+
+    public void safeLoadForReloadState(final List<String> files, final boolean control, final String title) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                String resetTitle;
+                if (control) resetTitle = controlTitle;
+                else resetTitle = datasetTitle;
+
+                try {
+                    unsafeLoadforReloadState(files, control);
+                    updateThumbnail();
+                    refresh();
+                    if (control) controlTitle = title;
+                    else datasetTitle = title;
+                    updateTitle();
+                } catch (IOException error) {
+                    log.error("Error loading hic file", error);
+                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
+                    if (!control) hic.reset();
+                    updateThumbnail();
+                    if (control) controlTitle = resetTitle;
+                    else datasetTitle = resetTitle;
+                    updateTitle();
+                } catch (Exception error) {
+                    error.printStackTrace();
+                }
+            }
+
+        };
+        executeLongRunningTask(runnable, "MainWindow safe load");
+    }
+
+    private void unsafeLoadforReloadState(final List<String> files, final boolean control) throws IOException {
+
+        String newFilesToBeLoaded = "";
+        boolean allFilesAreHiC = true;
+        for(String file : files){
+            newFilesToBeLoaded += file;
+            allFilesAreHiC &= file.endsWith(".hic");
+        }
+
+
+        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
+            return;
+        }
+        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
+            return;
+        }
+
+        colorValuesToRestore = null;
+        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+        mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
+        hic.setNormalizationType(NormalizationType.NONE);
+
+        if (allFilesAreHiC) {
+            DatasetReader reader = DatasetReaderFactory.getReader(files);
+            if (reader == null) return;
+            Dataset dataset;
+            // try {
+            dataset = reader.read();
+            // }
+            // catch (IOException error) {
+            //     JOptionPane.showMessageDialog(MainWindow.this,
+            //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
+            //     return;
+            // }
+
+            if (dataset.getVersion() <= 1) {
+                JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
+                return;
+            }
+            if(!isReloadState()) {
+
+                MatrixType[] options;
+                if (control) {
+                    hic.setControlDataset(dataset);
+                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
+                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                } else {
+
+                    hic.reset();
+
+                    hic.setDataset(dataset);
+
+                    setChromosomes(dataset.getChromosomes());
+
+                    chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
+
+                    chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
+
+                    String[] normalizationOptions;
+                    if (dataset.getVersion() < 6) {
+                        normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
+                    } else {
+                        ArrayList<String> tmp = new ArrayList<String>();
+                        tmp.add(NormalizationType.NONE.getLabel());
+                        for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
+                            tmp.add(t.getLabel());
+                        }
+
+                        normalizationOptions = tmp.toArray(new String[tmp.size()]);
+                        //tmp.add(NormalizationType.LOADED.getLabel());
+
+                    }
+
+                    if (normalizationOptions.length == 1) {
+                        normalizationComboBox.setEnabled(false);
+                    } else {
+                        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
+                        normalizationComboBox.setSelectedIndex(0);
+                        normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
+                    }
+
+                    if (hic.isControlLoaded()) {
+                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
+                                MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                    } else {
+                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+                    }
+
+
+                    hic.resetContexts();
+                    updateTrackPanel();
+                    resolutionSlider.unit = HiC.Unit.BP;
+
+                    resolutionSlider.reset();
+                    unsafeRefreshChromosomes();
+
+                }
+                displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+                displayOptionComboBox.setSelectedIndex(0);
+            }
+            chrBox1.setEnabled(true);
+            chrBox2.setEnabled(true);
+            refreshButton.setEnabled(true);
+            normalizationComboBox.setEnabled(true);
 
             setColorRangeSliderVisible(true);
             colorRangeSlider.setDisplayToBlank(false);
@@ -537,6 +668,7 @@ public class MainWindow extends JFrame {
         updateThumbnail();
     }
 
+
     public void setNormalizationDisplayState() {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
@@ -562,6 +694,7 @@ public class MainWindow extends JFrame {
         normalizationComboBox.setEnabled(!wholeGenome);
         displayOptionComboBox.setEnabled(true);
     }
+
 
     public void repaintTrackPanels() {
         trackPanelX.repaint();
@@ -794,7 +927,7 @@ public class MainWindow extends JFrame {
         if (activateOE) {
             resetOEColorRangeSlider();
         } else {
-            resetRegularColorRangeSlider();
+            resetRegularColorRangeSlider(); //TODO******   UNCOMMENT  ******
         }
 
         plusButton.setEnabled(activateOE || isObservedOrControl);
@@ -814,6 +947,7 @@ public class MainWindow extends JFrame {
 
         hic.setDisplayOption(option);
         refresh(); // necessary to invalidate minimap when changing view
+        //TODO******   UNCOMMENT  ******
     }
 
     private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
@@ -837,6 +971,7 @@ public class MainWindow extends JFrame {
         final NormalizationType passChosen = chosen;
         hic.setNormalizationType(passChosen);
         refreshMainOnly();
+        //TODO******   UNCOMMENT  ******
     }
 
     /**
@@ -870,6 +1005,9 @@ public class MainWindow extends JFrame {
 
     public RecentMenu getRecentStateMenu() {
         return recentLocationMenu;
+    }
+    public RecentMenu getPrevousStateMenu(){
+        return previousStates;
     }
 
     int i = 0, j = 0;
@@ -975,6 +1113,15 @@ public class MainWindow extends JFrame {
 
     }
 
+    //--------------------------------SetdisplayOptionComboBox----------------
+    public void setDisplayBox(int indx){
+        displayOptionComboBox.setSelectedIndex(indx);
+    }
+
+    //----------------------------SetNormalization Box-----------------------
+    public void setNormalizationBox(int indx){
+        normalizationComboBox.setSelectedIndex(indx);
+    }
 
     private void initComponents() {
 
@@ -1047,7 +1194,7 @@ public class MainWindow extends JFrame {
         JPanel chrLabelPanel = new JPanel();
         JLabel chrLabel = new JLabel("Chromosomes");
         chrLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        chrLabelPanel.setBackground(new Color(204, 204, 204));
+        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
         chrLabelPanel.setLayout(new BorderLayout());
         chrLabelPanel.add(chrLabel, BorderLayout.CENTER);
         chrSelectionPanel.add(chrLabelPanel, BorderLayout.PAGE_START);
@@ -1104,7 +1251,7 @@ public class MainWindow extends JFrame {
         displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
         displayOptionPanel.setLayout(new BorderLayout());
         JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(new Color(204, 204, 204));
+        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
         displayOptionLabelPanel.setLayout(new BorderLayout());
 
         JLabel displayOptionLabel = new JLabel("Show");
@@ -1139,7 +1286,7 @@ public class MainWindow extends JFrame {
         normalizationPanel.setLayout(new BorderLayout());
 
         JPanel normalizationLabelPanel = new JPanel();
-        normalizationLabelPanel.setBackground(new Color(204, 204, 204));
+        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
         normalizationLabelPanel.setLayout(new BorderLayout());
 
         JLabel normalizationLabel = new JLabel("Normalization");
@@ -1332,7 +1479,7 @@ public class MainWindow extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 //No double click here...
                 if (e.getClickCount() == 1 && colorRangeSlider.isEnabled()) {
-                        processClick();
+                    processClick();
                 }
             }
 
@@ -1343,7 +1490,7 @@ public class MainWindow extends JFrame {
             }
         });
         JPanel colorLabelPanel = new JPanel();
-        colorLabelPanel.setBackground(new Color(204, 204, 204));
+        colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
         colorLabelPanel.setLayout(new BorderLayout());
         colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
 
@@ -1532,7 +1679,7 @@ public class MainWindow extends JFrame {
             }
         } catch (Exception error) {
             log.error("Can't find properties file for loading list", error);
-        //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
+            //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -1545,9 +1692,19 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
+    public String getColorRangeValues(){
 
+        System.out.println("colorRangeScaleFactor: "+colorRangeScaleFactor);
 
+        int iMin = colorRangeSlider.getMinimum();
+        int lowValue = colorRangeSlider.getLowerValue();
+        int upValue = colorRangeSlider.getUpperValue();
+        int iMax = colorRangeSlider.getMaximum();
+        String values = iMin+"$$"+lowValue+"$$"+upValue+"$$"+iMax;
 
+        return values;
+
+    }
 
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED ||
@@ -1592,7 +1749,6 @@ public class MainWindow extends JFrame {
             labelTable.put(lValue, LoTickLabel);
             labelTable.put(uValue, UpTickLabel);
             labelTable.put(iMax, maxTickLabel);
-
 
             colorRangeSlider.setLabelTable(labelTable);
 
@@ -1891,7 +2047,7 @@ public class MainWindow extends JFrame {
 //        annotate.add(annotateDomain);
 //
 //        // Add generic annotations
-//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic Feature");
+//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic feature");
 //
 //        annotateGeneric.setSelected(false);
 //        annotateGeneric.addActionListener(new ActionListener() {
@@ -1972,7 +2128,30 @@ public class MainWindow extends JFrame {
         });
         saveLocationList.setEnabled(false);
         bookmarksMenu.add(saveLocationList);
+        //---Save State test-----
+        saveStateForReload = new JMenuItem();
+        saveStateForReload.setText("Save current state");
+        saveStateForReload.addActionListener(new ActionListener() {
 
+                public void actionPerformed(ActionEvent e) {
+                    //code to add a recent location to the menu
+                    String stateDescriptionString = hic.getDefaultLocationDescription();
+                    String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                            "Enter description for saved state:", stateDescriptionString);
+                    if (null != stateDescription) {
+                        getPrevousStateMenu().addEntry(stateDescription, true);
+                    }
+                    hic.storeStateID();
+                    try {
+                        hic.writeState();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+            });
+
+        saveStateForReload.setEnabled(true);
+        bookmarksMenu.add(saveStateForReload);
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
 
@@ -1990,10 +2169,29 @@ public class MainWindow extends JFrame {
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
 
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
+            //TODO----Update serialVersionUID----
+            private static final long serialVersionUID = 1235L;
+
+            public void onSelectPosition(String mapPath) {
+                hic.getMapPath(mapPath);
+                hic.clearTracksForReloadState();
+                hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
+                updateThumbnail();
+                previousStates.setSelected(true);
+            }
+        };
+        previousStates.setEnabled(true);
+        bookmarksMenu.add(previousStates);
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         return menuBar;
+    }
+
+    public boolean isReloadState(){
+        return previousStates.isSelected();
     }
 
     private static boolean unsavedEditsExist() {

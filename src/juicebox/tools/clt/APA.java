@@ -190,7 +190,7 @@ public class APA extends JuiceboxCLT {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Unable to extract APA data");
+            System.out.println("Unable to extract apa data");
             e.printStackTrace();
             System.exit(-3);
         }

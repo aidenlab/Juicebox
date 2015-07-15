@@ -26,6 +26,7 @@ package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
@@ -80,10 +81,10 @@ public class ResolutionControl extends JPanel {
 
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        resolutionLabel.setBackground(new Color(204, 204, 204));
+        resolutionLabel.setBackground(HiCGlobals.backgroundColor);
 
         JPanel resolutionLabelPanel = new JPanel();
-        resolutionLabelPanel.setBackground(new Color(204, 204, 204));
+        resolutionLabelPanel.setBackground(HiCGlobals.backgroundColor);
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
@@ -192,8 +193,8 @@ public class ResolutionControl extends JPanel {
                         unsafeStateChanged(eF);
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");
-                //runnable.run();
+                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
+                runnable.run();
             }
 
             private void unsafeStateChanged(ChangeEvent e) {
@@ -265,7 +266,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider.setPaintTicks(true);
         resolutionSlider.setSnapToTicks(true);
         resolutionSlider.setPaintLabels(true);
-        resolutionSlider.setMinorTickSpacing(1);
+        resolutionSlider.setMinorTickSpacing(1); //TODO******   UNCOMMENT  ******
 
         // Create labels
         Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();
@@ -287,7 +288,7 @@ public class ResolutionControl extends JPanel {
         // Really we should find the closest matching resolution
         int newIdx = Math.min(currentIdx, maxIdx);
         HiCZoom newZoom = idxZoomMap.get(newIdx);
-        setZoom(newZoom);
+        setZoom(newZoom); //TODO******   UNCOMMENT  ******
 
     }
 

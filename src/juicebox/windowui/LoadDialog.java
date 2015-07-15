@@ -196,8 +196,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     //Overriding in order to change text color
     private void colorSearchStrings(final String[] parts) {
-
-
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
             private static final long serialVersionUID = 422L;
@@ -360,6 +358,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         mainWindow.safeLoad(urls, control, title);
     }
 
+
     private void collapseAll(JTree tree) {
         int row = tree.getRowCount() - 1;
         while (row >= 0) {
@@ -367,6 +366,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             row--;
         }
     }
+
 
 
     private class ItemInfo {

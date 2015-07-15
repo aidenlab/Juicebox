@@ -35,7 +35,7 @@ public class CLTFactory {
     private final static String[] nameToCommandLineTool = {
             //        "addGWNorm",    "juicebox.tools.clt.AddGWNorm",         "addGWNorm <input_HiC_file> <min resolution>",
             //        "addNorm",      "juicebox.tools.clt.AddNorm",           "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
-            //        "apa",          "juicebox.tools.clt.APA",               "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
+            //        "apa",          "juicebox.tools.clt.apa",               "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
             //        "arrowhead",    "juicebox.tools.Arrowhead",             "arrowhead <input_HiC_file> <resolution>",
             //        "bigWig",       "juicebox.tools.clt.BigWig",            "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
             //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
@@ -43,7 +43,7 @@ public class CLTFactory {
             //        "calcKR",       "juicebox.tools.clt.CalcKR",            "calcKR <input_HiC_file>",
             "dump",         "juicebox.tools.clt.Dump",              "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
             //        "fragmentToBed","juicebox.tools.clt.FragmentToBed",     "fragmentToBed <fragmentFile>",
-            //        "hiccups",      "juicebox.tools.clt.HiCCUPS",           "",
+            //        "hiccups",      "juicebox.tools.clt.hiccups",           "",
             //        "pairsToBin",   "juicebox.tools.clt.PairsToBin",        "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
             //        "db",           "juicebox.tools.clt.SQLDatabase",       "db <frag|annot|update> [items]",
             "pre",          "juicebox.tools.clt.PreProcessing",     "pre <options> <infile> <outfile> <genomeID>"

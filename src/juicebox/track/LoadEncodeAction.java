@@ -75,7 +75,7 @@ public class LoadEncodeAction extends AbstractAction {
         this.genome = null;
 
     }
-
+//TODO-----Will this be used in the future--------
     private LoadEncodeAction(String s, Component owner, HiC hic, String genome) {
         super(s);
         this.owner = owner;
@@ -155,6 +155,7 @@ public class LoadEncodeAction extends AbstractAction {
         }
 
     }
+
 
     public void remove(ResourceLocator locator) {
         try {

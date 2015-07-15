@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.util.HashMap;
 
 /**
  * @author Jim Robinson
@@ -53,6 +54,7 @@ public class TrackConfigDialog extends JDialog {
     private JRadioButton meanRB;
     private JRadioButton maxRB;
     private JTextField nameField;
+    private HiCTrackManager trackManager;
 
 
     public TrackConfigDialog(Frame owner, HiCTrack track) {
@@ -120,6 +122,7 @@ public class TrackConfigDialog extends JDialog {
         return canceled;
     }
 
+
     private void okButtonActionPerformed(ActionEvent e) {
 
         if (validateNumeric(minYField.getText()) && validateNumeric(maxYField.getText())) {
@@ -145,6 +148,27 @@ public class TrackConfigDialog extends JDialog {
     private void cancelButtonActionPerformed(ActionEvent e) {
         canceled = true;
         setVisible(false);
+    }
+
+    public Color getReloadColors(String temp){
+        HashMap<String,Color> reloadColors = new HashMap<String, Color>();
+        for(HiCTrack tracks: trackManager.getReloadTrackNames()){
+            reloadColors.put(tracks.getName(),tracks.getPosColor());
+        }
+        return reloadColors.get(temp);
+    }
+
+    public void setStateForReloadTracks(String currentTrack){
+
+        for(HiCTrack tracks: trackManager.getReloadTrackNames()){
+            String trackName = tracks.getName();
+            System.out.println(trackName);
+            if(tracks.getLocator().getPath().contains(currentTrack)){
+                tracks.setColor(getReloadColors(trackName));
+                System.out.println("match");
+                tracks.setName(trackName);
+            }
+        }
     }
 
     private void initComponents() {
