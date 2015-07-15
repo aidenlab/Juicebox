@@ -557,10 +557,18 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             Preprocessor.IndexEntry idx = blockIndex.get(blockNumber);
             if (idx != null) {
 
+                //System.out.println(" blockIndexPosition:" + idx.position);
+
                 byte[] compressedBytes = new byte[idx.size];
                 stream.seek(idx.position);
                 stream.readFully(compressedBytes);
-
+//                System.out.println();
+//                System.out.print("ID: ");
+//                System.out.print(idx.id);
+//                System.out.print(" Pos: ");
+//                System.out.print(idx.position);
+//                System.out.print(" Size: ");
+//                System.out.println(idx.size);
                 byte[] buffer;
 
                 try {

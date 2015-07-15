@@ -46,6 +46,8 @@ public class DisabledGlassPane extends JComponent implements KeyListener {
     private static final long serialVersionUID = 383899L;
     private final JLabel message = new JLabel();
 
+    private static final long serialVersionUID = 5393484427189897719L;
+
     public DisabledGlassPane() {
         //  Set glass pane properties
 

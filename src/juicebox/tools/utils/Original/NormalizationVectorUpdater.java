@@ -65,7 +65,16 @@ public class NormalizationVectorUpdater {
 
     public static void updateHicFile(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
+
+        System.gc();
+
         Dataset ds = reader.read();
+
+        if (reader.getVersion() < 5) {
+            throw new RuntimeException("This file is version " + reader.getVersion() +
+                    ". Only versions 5 and greater are supported at this time.");
+        }
+        
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
 
@@ -120,8 +129,9 @@ public class NormalizationVectorUpdater {
                 }
 
             }
-            System.out.println();
+
             System.out.print("Calculating norms for zoom " + zoom);
+            System.out.println();
 
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
             if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
@@ -254,6 +264,14 @@ public class NormalizationVectorUpdater {
     public static void addGWNorm(String path, int genomeWideResolution) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
+
+
+        if (reader.getVersion() < 5) {
+            throw new RuntimeException("This file is version " + reader.getVersion() +
+                    ". Only versions 5 and greater are supported at this time.");
+        }
+        
+        
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
         List<Chromosome> chromosomes = ds.getChromosomes();
@@ -308,8 +326,9 @@ public class NormalizationVectorUpdater {
                 }
 
             }
-            System.out.println();
+
             System.out.print("Calculating norms for zoom " + zoom);
+            System.out.println();
 
             /*
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate

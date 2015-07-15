@@ -154,7 +154,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
-
         // Same scale used for X & Y (square pixels)
         final double scaleFactor = hic.getScaleFactor();
 
@@ -219,6 +218,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         ySrc1 -= bottomExcess;
                         yDest1 = (int) ((tile.bTop + imageHeight - binOriginY - bottomExcess) * scaleFactor);
                     }
+
 
                     g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
 

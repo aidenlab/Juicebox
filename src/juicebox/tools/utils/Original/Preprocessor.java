@@ -34,11 +34,14 @@ import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.collections.DownsampledDoubleArrayList;
+import java.util.concurrent.*;
 
 import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.Deflater;
 
 /**
@@ -79,6 +82,11 @@ public class Preprocessor {
     private long masterIndexPositionPosition;
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
+
+    //Used for multi-thread write method
+    final ExecutorService executorService = Executors.newFixedThreadPool(20);
+    ExecutorCompletionService ecs = new ExecutorCompletionService(executorService);
+    private final Lock lock = new ReentrantLock();
 
     public Preprocessor(File outputFile, String genomeId, List<Chromosome> chromosomes) {
         this.genomeId = genomeId;
@@ -219,6 +227,10 @@ public class Preprocessor {
             writeFooter();
 
 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         } finally {
             if (los != null)
                 los.close();
@@ -299,10 +311,10 @@ public class Preprocessor {
         }
     }
 
-    private void writeBody(String inputFile) throws IOException {
+    private void writeBody(String inputFile) throws IOException, ExecutionException, InterruptedException {
         MatrixPP wholeGenomeMatrix = computeWholeGenomeMatrix(inputFile);
 
-        writeMatrix(wholeGenomeMatrix);
+        writeMatrix(wholeGenomeMatrix,true);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
                 new BinPairIterator(inputFile, chromosomeIndexes) :
@@ -352,10 +364,10 @@ public class Preprocessor {
                     // Starting a new matrix
                     if (currentMatrix != null) {
                         currentMatrix.parsingComplete();
-                        writeMatrix(currentMatrix);
+                        writeMatrix(currentMatrix, true);
                         writtenMatrices.add(currentMatrixKey);
                         currentMatrix = null;
-                        System.gc();
+                        //System.gc();
                         //System.out.println("Available memory: " + RuntimeUtils.getAvailableMemory());
                     }
 
@@ -378,7 +390,7 @@ public class Preprocessor {
 
         if (currentMatrix != null) {
             currentMatrix.parsingComplete();
-            writeMatrix(currentMatrix);
+            writeMatrix(currentMatrix,true);
         }
 
         if (iter != null) iter.close();
@@ -545,7 +557,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         los.write(bytes);
     }
 
-    public synchronized void writeMatrix(MatrixPP matrix) throws IOException {
+    public void writeMatrix(MatrixPP matrix, boolean concurent) throws IOException, ExecutionException, InterruptedException {
 
         long position = los.getWrittenCount();
 
@@ -569,20 +581,62 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         int size = (int) (los.getWrittenCount() - position);
         matrixPositions.put(matrix.getKey(), new IndexEntry(position, size));
 
+
+        int countZd = 0;
         for (MatrixZoomDataPP zd : matrix.getZoomData()) {
             if (zd != null) {
-                List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks();
-                zd.updateIndexPositions(blockIndex);
+                if (concurent)
+                {
+                    BufferedByteWriter zdBuffer = new BufferedByteWriter();
+                    //Submit Zd merge and update as a new thread:
+                    final Future<String> future =  ecs.submit(new concurentZdTask(zd, zdBuffer));
+                    countZd ++;
+                }
+                else
+                {
+                    BufferedByteWriter zdBuffer = new BufferedByteWriter();
+                    List<IndexEntry> blockIndex = zd.mergeAndWriteBlocks(zdBuffer);
+                    zd.updateIndexPositions(blockIndex,zdBuffer);
+                }
             }
+        }
+
+        //Wait for all Zd analysis threads to complete:
+        for(int i = 0; i < countZd; ++i) {
+            final Future<String> future = ecs.take();
         }
 
         System.out.print(".");
     }
 
+
+    public class concurentZdTask implements Callable<String> {
+
+        private final MatrixZoomDataPP zd;
+        private final BufferedByteWriter zdBuffer;
+
+        public concurentZdTask(MatrixZoomDataPP zd, BufferedByteWriter zdBuffer) {
+            this.zd = zd;
+            this.zdBuffer = zdBuffer;
+        }
+
+        @Override
+        public String call() throws Exception {
+            processZdPart(zd, zdBuffer);
+            return "OK";
+        }
+    }
+
+    public void processZdPart(MatrixZoomDataPP zd, BufferedByteWriter buffer) throws IOException {
+
+            List<IndexEntry> indexList = zd.mergeAndWriteBlocks(buffer);
+            zd.updateIndexPositions(indexList, buffer);
+    }
+
     private void writeZoomHeader(MatrixZoomDataPP zd) throws IOException {
 
         int numberOfBlocks = zd.blockNumbers.size();
-        los.writeString(zd.getUnit());  // Unit, ether "BP" or "FRAG"
+        los.writeString(zd.getUnit());  // Unit, either "BP" or "FRAG"
         los.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
         los.writeFloat((float) zd.getSum());      // sum
         los.writeFloat((float) zd.getOccupiedCellCount());
@@ -595,10 +649,12 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         zd.blockIndexPosition = los.getWrittenCount();
 
+        //System.out.println("Header:" + zd.blockIndexPosition);
+
         // Placeholder for block index
         for (int i = 0; i < numberOfBlocks; i++) {
             los.writeInt(0);
-            los.writeLong(0l);
+            los.writeLong(1234l);
             los.writeInt(0);
         }
 
@@ -610,9 +666,12 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
      * @param zd     Matrix zoom data
      * @param block       Block to write
      * @param sampledData Array to hold a sample of the data (to compute statistics)
+     * @param bufferOut buffer to store output
      * @throws IOException
      */
-    private void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData) throws IOException {
+    private void writeBlock(MatrixZoomDataPP zd, BlockPP block, DownsampledDoubleArrayList sampledData, BufferedByteWriter bufferOut) throws IOException {
+
+        //System.out.println("binSize:" + zd.binSize + " blockIndexPosition:" + zd.blockIndexPosition);
 
         final Map<Point, ContactCount> records = block.getContactRecordMap();//   getContactRecords();
 
@@ -768,9 +827,10 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         byte[] bytes = buffer.getBytes();
         byte[] compressedBytes = compress(bytes);
-        los.write(compressedBytes);
+        bufferOut.put(compressedBytes);
 
     }
+
 
     public void setTmpdir(String tmpDirName) {
 
@@ -789,12 +849,18 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         statsFileName = statsOption;
     }
 
-    private synchronized byte[] compress(byte[] data) {
+    private byte[] compress(byte[] data) {
+        Deflater localCompressor;
+        localCompressor = new Deflater();
+        localCompressor.setLevel(Deflater.BEST_COMPRESSION);
+        localCompressor.setStrategy(Deflater.FILTERED);
+        //localCompressor.setStrategy(Deflater.HUFFMAN_ONLY);
 
         // Give the compressor the data to compress
-        compressor.reset();
-        compressor.setInput(data);
-        compressor.finish();
+
+        localCompressor.reset();
+        localCompressor.setInput(data);
+        localCompressor.finish();
 
         // Create an expandable byte array to hold the compressed data.
         // You cannot use an array that's the same size as the orginal because
@@ -804,8 +870,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         // Compress the data
         byte[] buf = new byte[1024];
-        while (!compressor.finished()) {
-            int count = compressor.deflate(buf);
+        while (!localCompressor.finished()) {
+            int count = localCompressor.deflate(buf);
             bos.write(buf, 0, count);
         }
         try {
@@ -829,7 +895,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     public static class IndexEntry {
         public final long position;
         public final int size;
-        int id;
+        public int id;
 
         IndexEntry(int id, long position, int size) {
             this.id = id;
@@ -1356,15 +1422,20 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
                 blocks.clear();
 
-            } finally {
+            }
+            catch(IOException ex){
+                System.out.println (ex.toString());
+                System.out.println("Could not use file " + file);
+            }
+            finally {
                 if (los != null) los.close();
 
             }
         }
 
-
         // Merge and write out blocks one at a time.
-        private List<IndexEntry> mergeAndWriteBlocks() throws IOException {
+        private List<IndexEntry> mergeAndWriteBlocks(BufferedByteWriter buffer) throws IOException {
+
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
             List<BlockQueue> activeList = new ArrayList<BlockQueue>();
@@ -1388,6 +1459,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 throw new RuntimeException("No reads in Hi-C contact matrices. This could be because the MAPQ filter is set too high (-q) or because all reads map to the same fragment.");
             }
 
+            int bufferSize =0;
             do {
                 Collections.sort(activeList, new Comparator<BlockQueue>() {
                     @Override
@@ -1419,9 +1491,15 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 }
 
                 // Output block
-                long position = los.getWrittenCount();
-                writeBlock(this, currentBlock, sampledData);
-                int size = (int) (los.getWrittenCount() - position);
+                //long position = los.getWrittenCount();
+                long position = 0;
+                writeBlock(this, currentBlock, sampledData, buffer);
+
+                byte[] bytes = buffer.getBytes();
+                int size = bytes.length - bufferSize;
+                bufferSize += size;
+
+                //int size = (int) (los.getWrittenCount() - position);
 
                 indexEntries.add(new IndexEntry(num, position, size));
 
@@ -1456,11 +1534,23 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             }
         }
 
-        public void updateIndexPositions(List<IndexEntry> blockIndex) throws IOException {
+        public void updateIndexPositions(List<IndexEntry> blockIndex, BufferedByteWriter zdBuffer) throws IOException {
 
+            lock.lock();
+            long WritePosition;
+            long losPos;
+
+            //write buffer
+            WritePosition = los.getWrittenCount();
+
+            byte[] bytes = zdBuffer.getBytes();
+            int size = bytes.length;
+            los.write(bytes);
             // Temporarily close output stream.  Remember position
-            long losPos = los.getWrittenCount();
+            losPos = los.getWrittenCount();
+            los.flush();
             los.close();
+            los = null;
 
             RandomAccessFile raf = null;
             try {
@@ -1474,20 +1564,35 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 BufferedByteWriter buffer = new BufferedByteWriter();
                 for (IndexEntry aBlockIndex : blockIndex) {
                     buffer.putInt(aBlockIndex.id);
-                    buffer.putLong(aBlockIndex.position);
+                    buffer.putLong(WritePosition);
+                    //System.out.println("Update: " + blockIndexPosition + " WritePos " + WritePosition);
                     buffer.putInt(aBlockIndex.size);
+                    WritePosition += aBlockIndex.size;
                 }
                 raf.write(buffer.getBytes());
+                raf.close();
+                raf = null;
+            }
+            catch(Exception e){
+                e.printStackTrace();
 
-            } finally {
+            }finally {
 
-                if (raf != null) raf.close();
+                try{
+                    if (raf != null) raf.close();
 
-                // Restore
-                FileOutputStream fos = new FileOutputStream(outputFile, true);
-                fos.getChannel().position(losPos);
-                los = new LittleEndianOutputStream(new BufferedOutputStream(fos));
-                los.setWrittenCount(losPos);
+                    // Restore
+                    FileOutputStream fos = new FileOutputStream(outputFile, true);
+                    fos.getChannel().position(losPos);
+                    los = new LittleEndianOutputStream(new BufferedOutputStream(fos));
+                    los.setWrittenCount(losPos);
+                    lock.unlock();
+                }
+                catch (Exception e)
+                {
+                    lock.unlock();
+                    e.printStackTrace();
+                }
 
             }
         }
