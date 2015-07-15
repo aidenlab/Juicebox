@@ -684,41 +684,40 @@ public class ResourceTree {
 
             if (resource.isSelected()) {
                 resourceLocators.add(resource.getResourceLocator());
-
             }
         }
         return resourceLocators;
     }
-    //TODO------------------------
-    public List<ResourceLocator> checkNodesForReloadState(String track){
+    //TODO------------------------------
+    public void trackNameForReloadState (String track){
 
+        String newName = "";
         checkedTracks = new ArrayList<ResourceLocator>();
         Enumeration<?> en = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         //skip root
         en.nextElement();
-            while (en.hasMoreElements()) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
-                CheckableResource resource = (CheckableResource) node.getUserObject();
-                if(node.isLeaf()) {
-                    if(resource.dataResourceLocator.getPath()!=null) {
-                        if (resource.dataResourceLocator.getPath().contains(track)) {
-                            resource.setSelected(true);
-                            resource.setEnabled(true);
-                            checkedTracks.add(resource.dataResourceLocator);
-                            System.out.println("name: "+resource.dataResourceLocator.getName()+"trackName: "
-                                    +resource.getResourceLocator().getTrackName());
-
+        while (en.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
+            CheckableResource resource = (CheckableResource) node.getUserObject();
+            if(node.isLeaf()) {
+                if(resource.dataResourceLocator.getPath()!=null) {
+                    if (resource.dataResourceLocator.getPath().contains(track)) {
+                        resource.setSelected(true);
+                        resource.setEnabled(true);
+                        checkedTracks.add(resource.dataResourceLocator);
+                        newName = resource.dataResourceLocator.getName();
+                        //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
+                        for(HiCTrack currentTrack: hic.getLoadedTracks()){
+                            currentTrack.setName(newName);
                         }
                     }
                 }
-                else if(ResourceEditor.hasSelectedChildren(node)){
-                    resource.setSelected(true);
-                    resource.setEnabled(true);
-                }
-
             }
-
-        return checkedTracks;
+            else if(ResourceEditor.hasSelectedChildren(node)){
+                resource.setSelected(true);
+                resource.setEnabled(true);
+            }
+        }
     }
 
 
