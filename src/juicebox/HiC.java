@@ -500,8 +500,6 @@ public class HiC {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-
-
     }
 
     public void centerFragment(int fragmentX, int fragmentY) {
@@ -728,7 +726,6 @@ public class HiC {
         return mapPath;
     }
     public String currentMapName(){
-        System.out.println(mapPath);
         return mapPath;
     }
 
@@ -774,7 +771,6 @@ public class HiC {
 
            HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
             if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
-                //TODO******   UNCOMMENT  ******
                 setZoomDataForReloadState(newZoom,chrX,chrY);
                 zoom = newZoom;
                 xContext.setZoom(newZoom);
@@ -791,22 +787,31 @@ public class HiC {
 
             if (!trackNames.isEmpty()) {
                 //System.out.println("trackNames: " + trackNames); for debugging
-                encodeFileBrowser = EncodeFileBrowser.getInstance(dataset.getGenomeId());
                 for (String currentTrackName : trackNames) {
-                    if (currentTrackName.equals("Eigenvector")) {
+                    String[] tempTrackName = currentTrackName.split("\\&\\&");
+                    if (tempTrackName[0].equals("Eigenvector")) {
                         loadEigenvectorTrack();
-                    } else if (currentTrackName.toLowerCase().contains("coverage") || currentTrackName.toLowerCase().contains("balanced") || currentTrackName.equals("Loaded")) {
-                        loadCoverageTrack(NormalizationType.enumValueFromString(currentTrackName));
-                    } else if (currentTrackName.contains("peaks") || currentTrackName.contains("blocks") || currentTrackName.contains("superloop")) {
-                        resourceTree.checkNodesForReloadState(currentTrackName);
-                        loadLoopList(currentTrackName);
+                    } else if (tempTrackName[0].toLowerCase().contains("coverage") || tempTrackName[0].toLowerCase().contains("balanced")
+                            || tempTrackName[0].equals("Loaded")) {
+                        loadCoverageTrack(NormalizationType.enumValueFromString(tempTrackName[0]));
+                    } else if (tempTrackName[0].contains("peaks") || tempTrackName[0].contains("blocks") || tempTrackName[0].contains("superloop")) {
+                        resourceTree.trackNameForReloadState(tempTrackName[0]);
+                        loadLoopList(tempTrackName[0]);
                     } else if (currentTrackName.contains("goldenPath")||currentTrackName.toLowerCase().contains("ensembl")) {
-                        loadHostedTracks(encodeFileBrowser.checkEncodeTracks(currentTrackName));
+                        loadTrack(tempTrackName[0]);
                     } else {
-                        loadTrack(currentTrackName);
+                        loadTrack(tempTrackName[0]);
+                    }
+                    //renaming
+                    for(HiCTrack loadedTrack: getLoadedTracks()){
+                        if(tempTrackName[0].contains(loadedTrack.getName())){
+                            loadedTrack.setName(tempTrackName[1]);
+                        }
                     }
                 }
+
             }
+        mainWindow.updateTrackPanel();
 
             /*try {
                 mainWindow.refresh();
@@ -877,34 +882,30 @@ public class HiC {
 
             //tracks true & loops true
             if(currentTracks!=null && !currentTracks.isEmpty() && getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()) {
-                trackManager.getReloadTracks(getLoadedTracks());
 
                 for(HiCTrack track: currentTracks) {
                     //System.out.println("trackLocator: "+track.getLocator()); for debugging
-                    //System.out.println("track name: " + track.getName());
-                    currentTrack+=track.getLocator()+"$$";
+                    System.out.println("track name: " + track.getName());
+                    currentTrack+="$$"+track.getLocator()+"&&"+track.getName();
                 }
-                System.out.println("CurrentTrack: "+ currentTrack);
 
                 buffWriter.write(stateID + "--currentState:$$" + mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                         zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                         getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals + "$$" + currentTrack + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
+                        + "$$" + colorVals + currentTrack + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
             }//tracks true & loops false
             else if(currentTracks!=null && !currentTracks.isEmpty()) {
-                trackManager.getReloadTracks(getLoadedTracks());
 
                 for(HiCTrack track: currentTracks) {
                     //System.out.println("trackLocator: "+track.getLocator()); for debugging
-                    //System.out.println("track name: "+track.getName());
-                    currentTrack+=track.getLocator()+"$$";
+                    System.out.println("track name: "+track.getName());
+                    currentTrack+="$$"+track.getLocator()+"&&"+track.getName();
                 }
-                System.out.println("CurrentTrack: "+ currentTrack);
 
                 buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                         zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                         getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals + "$$" + currentTrack);
+                        + "$$" + colorVals + currentTrack);
                 //loops true & tracks false
             } else if(getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()){
 
@@ -922,7 +923,6 @@ public class HiC {
                         getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
                         + "$$" + colorVals);
             }
-            //TODO--------------------Check if loaded tracks is null or not---------------------------
 
             //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
             // normalization type,color range values, basic tracks, coverage tracks)
