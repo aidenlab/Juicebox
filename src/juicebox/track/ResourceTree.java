@@ -62,7 +62,6 @@ public class ResourceTree {
     private DefaultMutableTreeNode oneDFeatureRoot;
     private LinkedHashSet<ResourceLocator> newLocators;
     private LinkedHashSet<ResourceLocator> deselectedLocators;
-    private List<ResourceLocator> checkedTracks;
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
     private File openAnnotationPath = null;
     private HiCTrack hiCTrack;
@@ -688,11 +687,9 @@ public class ResourceTree {
         }
         return resourceLocators;
     }
-    //TODO------------------------------
-    public void trackNameForReloadState (String track){
+    //TODO------------------------------Check Tracks
+    public void checkTrackBoxesForReloadState(String track){
 
-        String newName = "";
-        checkedTracks = new ArrayList<ResourceLocator>();
         Enumeration<?> en = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         //skip root
         en.nextElement();
@@ -701,15 +698,10 @@ public class ResourceTree {
             CheckableResource resource = (CheckableResource) node.getUserObject();
             if(node.isLeaf()) {
                 if(resource.dataResourceLocator.getPath()!=null) {
-                    if (resource.dataResourceLocator.getPath().contains(track)) {
+                    if (resource.dataResourceLocator.getName().contains(track)) {
                         resource.setSelected(true);
                         resource.setEnabled(true);
-                        checkedTracks.add(resource.dataResourceLocator);
-                        newName = resource.dataResourceLocator.getName();
                         //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
-                        for(HiCTrack currentTrack: hic.getLoadedTracks()){
-                            currentTrack.setName(newName);
-                        }
                     }
                 }
             }

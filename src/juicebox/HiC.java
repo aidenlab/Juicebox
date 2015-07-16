@@ -73,6 +73,7 @@ public class HiC {
     private HeatmapRenderer heatmapRenderer;
     private List<HiCTrack> trackLabels;
     File currentStates = new File(HiCGlobals.stateFileName);
+    //File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private static String mapName;
     private static String stateID;
     private static String mapPath;
@@ -116,7 +117,8 @@ public class HiC {
 
     public void clearTracksForReloadState(){
 
-        for(HiCTrack trackToRemove : trackManager.getLoadedTracks()){
+        ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
+        for(HiCTrack trackToRemove : tracksToRemove){
             if(trackToRemove.getName().equals("eigenvector")){
                 eigenvectorTrack = null;
             }else {
@@ -741,7 +743,7 @@ public class HiC {
         }
     }
     //reloading the previous state
-    //TODO--Use XML File instead
+    // TODO--Use XML File instead
     public void setReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor,
                                MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
 
@@ -785,17 +787,18 @@ public class HiC {
             mainWindow.setNormalizationBox(normSelection.ordinal());
             mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
 
+            LoadAction loadAction = new LoadAction("Check track boxes", mainWindow, this);
             if (!trackNames.isEmpty()) {
                 //System.out.println("trackNames: " + trackNames); for debugging
                 for (String currentTrackName : trackNames) {
-                    String[] tempTrackName = currentTrackName.split("\\&\\&");
+                    String[] tempTrackName = currentTrackName.split("\\*\\*\\*");
                     if (tempTrackName[0].equals("Eigenvector")) {
                         loadEigenvectorTrack();
                     } else if (tempTrackName[0].toLowerCase().contains("coverage") || tempTrackName[0].toLowerCase().contains("balanced")
                             || tempTrackName[0].equals("Loaded")) {
                         loadCoverageTrack(NormalizationType.enumValueFromString(tempTrackName[0]));
                     } else if (tempTrackName[0].contains("peaks") || tempTrackName[0].contains("blocks") || tempTrackName[0].contains("superloop")) {
-                        resourceTree.trackNameForReloadState(tempTrackName[0]);
+                        resourceTree.checkTrackBoxesForReloadState(tempTrackName[0]);
                         loadLoopList(tempTrackName[0]);
                     } else if (currentTrackName.contains("goldenPath")||currentTrackName.toLowerCase().contains("ensembl")) {
                         loadTrack(tempTrackName[0]);
@@ -807,6 +810,7 @@ public class HiC {
                         if(tempTrackName[0].contains(loadedTrack.getName())){
                             loadedTrack.setName(tempTrackName[1]);
                         }
+                        loadAction.checkBoxesForReload(tempTrackName[1]);
                     }
                 }
 
@@ -868,6 +872,11 @@ public class HiC {
         return command;
         // CommandBroadcaster.broadcast(command);
     }
+// Creating XML file
+   /* public void createXMLForReload(File tempState){
+        XMLForReloadState xml = new XMLForReloadState();
+        xml.begin();
+    }*/
 
     public void writeState() throws IOException{
         try {
@@ -886,7 +895,7 @@ public class HiC {
                 for(HiCTrack track: currentTracks) {
                     //System.out.println("trackLocator: "+track.getLocator()); for debugging
                     System.out.println("track name: " + track.getName());
-                    currentTrack+="$$"+track.getLocator()+"&&"+track.getName();
+                    currentTrack+="$$"+track.getLocator()+"***"+track.getName();
                 }
 
                 buffWriter.write(stateID + "--currentState:$$" + mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
@@ -899,7 +908,7 @@ public class HiC {
                 for(HiCTrack track: currentTracks) {
                     //System.out.println("trackLocator: "+track.getLocator()); for debugging
                     System.out.println("track name: "+track.getName());
-                    currentTrack+="$$"+track.getLocator()+"&&"+track.getName();
+                    currentTrack+="$$"+track.getLocator()+"***"+track.getName();
                 }
 
                 buffWriter.write(stateID+"--currentState:$$"+ mapName + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
@@ -925,9 +934,11 @@ public class HiC {
             }
 
             //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
-            // normalization type,color range values, basic tracks, coverage tracks)
+            // normalization type,color range values, tracks")
             buffWriter.close();
             System.out.println("stuff saved"); //check
+            //createXMLForReload(currentStates);
+
         }catch (IOException e){
             e.printStackTrace();
         }
