@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.track.Feature;
+package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 

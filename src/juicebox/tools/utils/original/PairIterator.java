@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.tools.utils.Original;
+package juicebox.tools.utils.original;
 
 import java.util.Iterator;
 

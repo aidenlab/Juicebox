@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.Feature;
+package juicebox.track.feature;
 
-import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.Juicer.HiCCUPS.HiCCUPSUtils;
+import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;

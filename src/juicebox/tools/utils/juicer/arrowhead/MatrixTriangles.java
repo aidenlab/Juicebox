@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.Arrowhead;
+package juicebox.tools.utils.juicer.arrowhead;
 
-import juicebox.tools.utils.Common.MatrixTools;
-import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
+import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.juicer.arrowhead.connectedcomponents.BinaryConnectedComponents;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;

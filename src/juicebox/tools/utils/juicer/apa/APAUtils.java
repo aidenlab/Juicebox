@@ -22,14 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.APA;
+package juicebox.tools.utils.juicer.apa;
 
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.Common.MatrixTools;
-import juicebox.tools.utils.Common.StatPercentile;
-import juicebox.track.Feature.Feature2D;
+import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.common.StatPercentile;
+import juicebox.track.feature.Feature2D;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;

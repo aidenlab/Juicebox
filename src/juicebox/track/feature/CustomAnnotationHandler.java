@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.Feature;
+package juicebox.track.feature;
 
 import juicebox.HiC;
 import juicebox.MainWindow;

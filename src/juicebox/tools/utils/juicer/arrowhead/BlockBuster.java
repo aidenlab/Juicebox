@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.Arrowhead;
+package juicebox.tools.utils.juicer.arrowhead;
 
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 

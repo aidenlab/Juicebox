@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents;
+package juicebox.tools.utils.juicer.arrowhead.connectedcomponents;
 
 import java.awt.*;
 import java.util.HashSet;
