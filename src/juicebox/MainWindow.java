@@ -124,6 +124,8 @@ public class MainWindow extends JFrame {
     public static boolean unsavedEdits;
     public static JMenuItem loadLastMI;
     private static File temp;
+    public static Color hicMapColor = Color.red;
+    public static boolean preDefMapColor = false;
 
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
@@ -158,6 +160,8 @@ public class MainWindow extends JFrame {
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
 
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
+
+        hicMapColor = Color.red;
     }
 
     public static void main(String[] args) throws IOException, InvocationTargetException, InterruptedException {
@@ -695,7 +699,6 @@ public class MainWindow extends JFrame {
         displayOptionComboBox.setEnabled(true);
     }
 
-
     public void repaintTrackPanels() {
         trackPanelX.repaint();
         trackPanelY.repaint();
@@ -706,6 +709,10 @@ public class MainWindow extends JFrame {
         repaint();
         updateThumbnail();
         //System.err.println(heatmapPanel.getSize());
+    }
+
+    public void refreshMapcolors(){
+        this.unsafeDisplayOptionComboBoxActionPerformed();
     }
 
     public void refreshMainOnly() {
@@ -865,7 +872,7 @@ public class MainWindow extends JFrame {
         String newTitle = datasetTitle;
         if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
         // TODO decide on title displayed in Juicebox
-        setTitle(HiCGlobals.juiceboxTitle+newTitle);
+        setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
 
@@ -879,11 +886,17 @@ public class MainWindow extends JFrame {
         double min = colorRangeSlider.getLowerValue() / colorRangeScaleFactor;
         double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
-        heatmapPanel.setObservedRange(min, max);
-
         if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
+        }
+        else if(MainWindow.preDefMapColor)
+        {
+            heatmapPanel.setPreDefRange(min, max);
+        }
+        else
+        {
+            heatmapPanel.setObservedRange(min, max);
         }
     }
 
@@ -899,16 +912,16 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void safeDisplayOptionComboBoxActionPerformed(final ActionEvent e) {
+    public void safeDisplayOptionComboBoxActionPerformed() {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeDisplayOptionComboBoxActionPerformed(e);
+                unsafeDisplayOptionComboBoxActionPerformed();
             }
         };
         executeLongRunningTask(runnable, "DisplayOptionsComboBox");
     }
 
-    private void unsafeDisplayOptionComboBoxActionPerformed(ActionEvent e) {
+    private void unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
         if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
@@ -919,15 +932,17 @@ public class MainWindow extends JFrame {
 
         // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
         boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
+        boolean activatePreDef = preDefMapColor;
         boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
 
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE);
+        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE || activatePreDef);
         colorRangeSlider.setDisplayToOE(activateOE);
+        colorRangeSlider.setDisplayToPreDef(activatePreDef);
 
         if (activateOE) {
             resetOEColorRangeSlider();
         } else {
-            resetRegularColorRangeSlider(); //TODO******   UNCOMMENT  ******
+            resetRegularColorRangeSlider();
         }
 
         plusButton.setEnabled(activateOE || isObservedOrControl);
@@ -947,7 +962,7 @@ public class MainWindow extends JFrame {
 
         hic.setDisplayOption(option);
         refresh(); // necessary to invalidate minimap when changing view
-        //TODO******   UNCOMMENT  ******
+
     }
 
     private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
@@ -971,7 +986,6 @@ public class MainWindow extends JFrame {
         final NormalizationType passChosen = chosen;
         hic.setNormalizationType(passChosen);
         refreshMainOnly();
-        //TODO******   UNCOMMENT  ******
     }
 
     /**
@@ -1083,6 +1097,16 @@ public class MainWindow extends JFrame {
             //refreshChromosomes();
             //setInitialZoom();
             colorRangeSlider.setDisplayToBlank(false);
+            if(preDefMapColor)
+            {
+                colorRangeSlider.setDisplayToPreDef(true);
+                colorRangeSlider.setDisplayToOE(false);
+            }
+            else
+            {
+                colorRangeSlider.setDisplayToPreDef(false);
+                colorRangeSlider.setDisplayToOE(false);
+            }
             colorRangeSlider.setMinimum(colorValuesToRestore[0]);
             colorRangeSlider.setMaximum(colorValuesToRestore[1]);
             colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
@@ -1265,7 +1289,7 @@ public class MainWindow extends JFrame {
         displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                safeDisplayOptionComboBoxActionPerformed(e);
+                safeDisplayOptionComboBoxActionPerformed();
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -1519,7 +1543,9 @@ public class MainWindow extends JFrame {
         plusButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                colorRangeSlider.setMaximum(colorRangeSlider.getMaximum() * 2);
+
+                colorRangeSlider.setMaximum(Math.min(colorRangeSlider.getMaximum() * 2,(Integer.MAX_VALUE)));
+
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
@@ -1765,6 +1791,7 @@ public class MainWindow extends JFrame {
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
+        safeDisplayOptionComboBoxActionPerformed();
     }
 
     private JMenuBar createMenuBar() {

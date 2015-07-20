@@ -124,6 +124,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     }
 
+    public void setPreDefRange(double min, double max) {
+        renderer.setPreDefRange(min, max);
+        clearTileCache();
+        repaint();
+
+    }
+
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
     }
@@ -218,6 +225,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         ySrc1 -= bottomExcess;
                         yDest1 = (int) ((tile.bTop + imageHeight - binOriginY - bottomExcess) * scaleFactor);
                     }
+
 
 
                     //if (mainWindow.isRefreshTest()) {

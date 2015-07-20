@@ -288,7 +288,7 @@ public class ResolutionControl extends JPanel {
         // Really we should find the closest matching resolution
         int newIdx = Math.min(currentIdx, maxIdx);
         HiCZoom newZoom = idxZoomMap.get(newIdx);
-        setZoom(newZoom); //TODO******   UNCOMMENT  ******
+        setZoom(newZoom);
 
     }
 

@@ -46,6 +46,7 @@ public class RangeSlider extends JSlider implements Serializable {
     private RangeSliderUI rangeSliderUI;
 
     private boolean colorIsOE = false;
+    private boolean colorIsPreDef = false;
     private boolean colorIsBlank = false;
 
     /**
@@ -137,6 +138,15 @@ public class RangeSlider extends JSlider implements Serializable {
     public void setDisplayToOE(boolean colorIsOE) {
         this.colorIsOE = colorIsOE;
         rangeSliderUI.setDisplayToOE(colorIsOE);
+    }
+
+    public void setDisplayToPreDef(boolean colorIsPreDef) {
+        this.colorIsPreDef = colorIsPreDef;
+        rangeSliderUI.setDisplayToPreDef(colorIsPreDef);
+    }
+
+    public String getDisplayColorsString(){
+        return rangeSliderUI.getColorsAsText();
     }
 
     public void setDisplayToBlank(boolean colorIsBlank) {

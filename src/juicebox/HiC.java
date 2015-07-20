@@ -84,6 +84,7 @@ public class HiC {
     private TrackConfigDialog configDialog;
     private HiCTrack hiCTrack;
 
+
     private EigenvectorTrack eigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
@@ -671,91 +672,8 @@ public class HiC {
             return;
         }
 
-
-        Feature2DList newList = new Feature2DList();
-
-        try {
-            br = ParsingUtils.openBufferedReader(path);
-            String nextLine;
-
-            // header
-            nextLine = br.readLine();
-            //String[] headers = Globals.tabPattern.split(nextLine);
-            List<String> headers = MY_SPLITTER.splitToList(nextLine);
-
-            int errorCount = 0;
-            int lineNum = 1;
-            while ((nextLine = br.readLine()) != null) {
-                lineNum++;
-                //String[] tokens = Globals.tabPattern.split(nextLine);
-                List<String> tokens = MY_SPLITTER.splitToList(nextLine);
-                if (tokens.size() > headers.size()) {
-                    throw new IOException("Improperly formatted file");
-                }
-                if (tokens.size() < 6) {
-                    continue;
-                }
-
-                String chr1Name, chr2Name;
-                int start1, end1, start2, end2;
-                try {
-                    chr1Name = tokens.get(0);
-                    start1 = Integer.parseInt(tokens.get(1));
-                    end1 = Integer.parseInt(tokens.get(2));
-
-                    chr2Name = tokens.get(3);
-                    start2 = Integer.parseInt(tokens.get(4));
-                    end2 = Integer.parseInt(tokens.get(5));
-                } catch (Exception e) {
-                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
-                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
-                }
-
-
-                Color c = tokens.size() > 6 ? ColorUtilities.stringToColor(tokens.get(6)) : Color.black;
-
-                Map<String, String> attrs = new LinkedHashMap<String, String>();
-                for (int i = attCol; i < tokens.size(); i++) {
-
-                    attrs.put(headers.get(i), tokens.get(i));
-                }
-
-                Chromosome chr1 = this.getChromosomeNamed(chr1Name);
-                Chromosome chr2 = this.getChromosomeNamed(chr2Name);
-                if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        log.debug("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        log.debug("Maximum error count exceeded.  Further errors will not be logged");
-                    }
-
-                    errorCount++;
-                    continue;
-                }
-
-                int featureNameSepindex = path.lastIndexOf("_");
-                String featureName = path.substring(featureNameSepindex + 1);
-
-                if (featureName.equals("blocks.txt")) {
-                    featureName = Feature2D.domain;
-                } else if (featureName.equals("peaks.txt")) {
-                    featureName = Feature2D.peak;
-                } else {
-                    featureName = Feature2D.generic;
-                }
-                // Convention is chr1 is lowest "index". Swap if necessary
-                Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
-
-                newList.add(chr1.getIndex(), chr2.getIndex(), feature);
-
-            }
-            loopLists.put(path, newList);
-        } finally {
-            if (br != null) br.close();
-        }
-
+        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true);
+        loopLists.put(path, newList);
     }
 
     /**

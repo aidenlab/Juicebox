@@ -93,3 +93,4 @@ public class OEColorScale implements ColorScale {
         OEColorScale.max = Math.log(max);
     }
 }
+

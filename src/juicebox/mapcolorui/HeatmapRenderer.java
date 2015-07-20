@@ -55,14 +55,84 @@ public class HeatmapRenderer {
     private final MainWindow mainWindow;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
+    private final PreDefColorScale preDefColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
     private ContinuousColorScale observedColorScale;
+    private Color curHiCColor = Color.white;
 
     public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
         this.mainWindow = mainWindow;
 
         oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();
+
+//        preDefColorScale = new PreDefColorScale("RGB",
+//                new Color[]{
+//                        new Color(0, 255, 0),
+//                        new Color(0, 0, 255),
+//                        new Color(255, 0, 0)
+//                },
+//                // elevation
+//                new int[]{
+//                        0,
+//                        50,
+//                        100
+//                }
+//        );
+
+        preDefColorScale = new PreDefColorScale("Template",
+                new Color[]{
+                        new Color(18, 129, 242),
+                        new Color(113, 153, 89),
+                        new Color(117, 170, 101),
+                        new Color(149, 190, 113),
+                        new Color(178, 214, 117),
+                        new Color(202, 226, 149),
+                        new Color(222, 238, 161),
+                        new Color(242, 238, 161),
+                        new Color(238, 222, 153),
+                        new Color(242, 206, 133),
+                        new Color(234, 182, 129),
+                        new Color(218, 157, 121),
+                        new Color(194, 141, 125),
+                        new Color(214, 157, 145),
+                        new Color(226, 174, 165),
+                        new Color(222, 186, 182),
+                        new Color(238, 198, 210),
+                        new Color(255, 206, 226),
+                        new Color(250, 218, 234),
+                        new Color(255, 222, 230),
+                        new Color(255, 230, 242),
+                        new Color(255, 242, 255),
+                        new Color(255,0,0)
+                },
+                // elevation
+                new int[]{
+                        -1,
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        100
+                }
+        );
     }
 
     public boolean render(int originX,
@@ -213,20 +283,33 @@ public class HeatmapRenderer {
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
 
-            //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
-            observedColorScale = observedColorScaleMap.get(key);
-            if (observedColorScale == null) {
-                double percentile = wholeGenome ? 99 : 95;
-                float max = computePercentile(blocks, percentile);
-
-                //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
-                observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
-                observedColorScaleMap.put(key, observedColorScale);
-                //mainWindow.updateColorSlider(0, 2 * max, max);
-
+            if (mainWindow.hicMapColor != curHiCColor)
+            {
+                curHiCColor = mainWindow.hicMapColor;
+                observedColorScaleMap.clear();
             }
 
-            cs = observedColorScale;
+            if(MainWindow.preDefMapColor)
+            {
+                cs = preDefColorScale;
+            }
+            else
+            {
+                //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
+                observedColorScale = observedColorScaleMap.get(key);
+                if (observedColorScale == null) {
+                    double percentile = wholeGenome ? 99 : 95;
+                    float max = computePercentile(blocks, percentile);
+
+                    //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
+                    observedColorScale = new ContinuousColorScale(0, max, Color.white, MainWindow.hicMapColor);
+                    observedColorScaleMap.put(key, observedColorScale);
+                    //mainWindow.updateColorSlider(0, 2 * max, max);
+
+                }
+                cs = observedColorScale;
+            }
+
         } else {
             cs = oeColorScale;
         }
@@ -238,8 +321,13 @@ public class HeatmapRenderer {
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
-            if (observedColorScale != null) {
+
+            if ((observedColorScale != null) ){
                 mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
+            }
+            if(mainWindow.preDefMapColor)
+            {
+                mainWindow.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
         }
     }
@@ -307,13 +395,16 @@ public class HeatmapRenderer {
         }
     }
 
-
     public void setObservedRange(double min, double max) {
         if (observedColorScale == null) {
             observedColorScale = new ContinuousColorScale(min, max, Color.white, Color.red);
         }
         observedColorScale.setNegEnd(min);
         observedColorScale.setPosEnd(max);
+    }
+
+    public void setPreDefRange(double min, double max) {
+        ((PreDefColorScale) preDefColorScale).setPreDefRange(min, max);
     }
 
     public void setOEMax(double max) {

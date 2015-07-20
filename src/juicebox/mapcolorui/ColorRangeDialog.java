@@ -122,6 +122,15 @@ public class ColorRangeDialog extends JDialog {
         JPanel contentPanel = new JPanel();
         JPanel panel2 = new JPanel();
         JLabel label4 = new JLabel();
+
+        final JPanel  panel5 = new JPanel();
+        JLabel label5 = new JLabel();
+
+        final JPanel  panel6 = new JPanel();
+        JLabel label6 = new JLabel();
+
+        final JPanel  panel7 = new JPanel();
+
         minimumField = new JTextField();
         JPanel panel1 = new JPanel();
         JLabel label2 = new JLabel();
@@ -170,6 +179,9 @@ public class ColorRangeDialog extends JDialog {
         }
         contentPanel.add(panel2);
 
+
+
+
         panel1.setLayout(new FlowLayout(FlowLayout.LEADING));
 
         //---- label2 ----
@@ -202,6 +214,74 @@ public class ColorRangeDialog extends JDialog {
         });
 
         contentPanel.add(panel1);
+
+
+        //======== panel5 ========
+        panel5.setLayout(new FlowLayout(FlowLayout.LEADING));
+        label5.setText("Set main map color:");
+        panel5.add(label5);
+
+        final JButton colorChooserButton = new JButton("Choose color");
+        colorChooserButton.setSize(50, 50);
+        colorChooserButton.setForeground(MainWindow.hicMapColor);
+
+        colorChooserButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Color color = JColorChooser.showDialog(panel5, "Choose a color", colorChooserButton.getForeground());
+                colorChooserButton.setForeground(color);
+                MainWindow.hicMapColor = color;
+                //System.out.println("The selected color was:" + color);
+            }
+        });
+
+        colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+        panel5.add(colorChooserButton);
+
+        contentPanel.add(panel5);
+
+        //======== panel6 ========
+        panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
+        label6.setText("Load custom range:");
+        panel6.add(label6);
+
+        final JTextField preText = new JTextField();
+        preText.setPreferredSize(new Dimension(200,20));
+
+        class CheckboxAction extends AbstractAction {
+            public CheckboxAction(String text) {
+                super(text);
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JCheckBox cbLog = (JCheckBox) e.getSource();
+                if (cbLog.isSelected()) {
+                    MainWindow.preDefMapColor = true;
+                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+                    preText.setText(colorSlider.getDisplayColorsString());
+                    preText.setEnabled(MainWindow.preDefMapColor);
+                } else {
+                    MainWindow.preDefMapColor = false;
+                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+                    preText.setEnabled(MainWindow.preDefMapColor);
+                }
+            }
+        }
+
+        JCheckBox preCB = new JCheckBox(new CheckboxAction("Preset Map"));
+        preCB.setSelected(MainWindow.preDefMapColor);
+
+        panel6.add(preCB);
+        contentPanel.add(panel6);
+
+        //======== panel6 ========
+        panel7.setLayout(new FlowLayout(FlowLayout.LEADING));
+
+        preText.setEnabled(MainWindow.preDefMapColor);
+        panel7.add(preText);
+        contentPanel.add(panel7);
+
 
         dialogPane.add(contentPanel, BorderLayout.CENTER);
 
