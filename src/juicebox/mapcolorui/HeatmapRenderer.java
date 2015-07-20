@@ -283,9 +283,9 @@ public class HeatmapRenderer {
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
 
-            if (mainWindow.hicMapColor != curHiCColor)
+            if (MainWindow.hicMapColor != curHiCColor)
             {
-                curHiCColor = mainWindow.hicMapColor;
+                curHiCColor = MainWindow.hicMapColor;
                 observedColorScaleMap.clear();
             }
 
@@ -325,7 +325,7 @@ public class HeatmapRenderer {
             if ((observedColorScale != null) ){
                 mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
             }
-            if(mainWindow.preDefMapColor)
+            if(MainWindow.preDefMapColor)
             {
                 mainWindow.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
