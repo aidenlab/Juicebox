@@ -23,16 +23,16 @@
  */
 
 
-package juicebox.tools.utils.Juicer.HiCCUPS;
+package juicebox.tools.utils.juicer.hiccups;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
 import jcuda.utils.KernelLauncher;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.Common.ArrayTools;
-import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.Common.MatrixTools;
+import juicebox.tools.utils.common.ArrayTools;
+import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;

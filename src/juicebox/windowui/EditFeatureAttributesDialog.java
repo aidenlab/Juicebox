@@ -28,8 +28,8 @@ package juicebox.windowui;
  * Created by Marie on 6/25/15.
  */
 
-    import juicebox.track.Feature.CustomAnnotation;
-    import juicebox.track.Feature.Feature2D;
+    import juicebox.track.feature.CustomAnnotation;
+    import juicebox.track.feature.Feature2D;
 
     import javax.swing.*;
     import java.beans.*; //property change stuff

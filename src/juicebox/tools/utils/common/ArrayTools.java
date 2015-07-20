@@ -22,8 +22,7 @@
  *  THE SOFTWARE.
  */
 
-
-package juicebox.tools.utils.Common;
+package juicebox.tools.utils.common;
 
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 

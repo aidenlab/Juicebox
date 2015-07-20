@@ -25,7 +25,7 @@
 package juicebox.tools.clt;
 
 import com.google.common.base.CharMatcher;
-import juicebox.tools.utils.Original.FragmentCalculation;
+import juicebox.tools.utils.original.FragmentCalculation;
 import juicebox.tools.HiCTools;
 import org.broad.igv.feature.LocusScore;
 import org.broad.igv.track.WindowFunction;

@@ -30,7 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
-import juicebox.track.Feature.Feature2D;
+import juicebox.track.feature.Feature2D;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
