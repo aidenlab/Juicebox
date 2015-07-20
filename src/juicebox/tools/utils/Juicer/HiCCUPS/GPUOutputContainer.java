@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.hiccups;
+package juicebox.tools.utils.Juicer.HiCCUPS;
 
 import juicebox.tools.utils.Common.ArrayTools;
 import juicebox.track.Feature.Feature2DList;
