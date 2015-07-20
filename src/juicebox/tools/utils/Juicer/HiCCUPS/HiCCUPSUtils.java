@@ -22,9 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.hiccups;
+package juicebox.tools.utils.Juicer.hiccups;
 
-import juicebox.track.feature.Feature2D;
+import juicebox.track.Feature.Feature2D;
 
 import java.awt.*;
 import java.util.HashMap;

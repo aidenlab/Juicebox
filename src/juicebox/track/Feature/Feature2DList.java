@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.feature;
+package juicebox.track.Feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
-import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.Juicer.hiccups.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
@@ -87,11 +87,17 @@ public class Feature2DList {
      *
      * @param chr1Idx First chromosome index
      * @param chr2Idx Second chromosome index
-     * @param feature Feature to add
+     * @param feature feature to add
      */
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
 
         String key = getKey(chr1Idx, chr2Idx);
+        addByKey(key,feature);
+
+    }
+
+    public void addByKey(String key, Feature2D feature){
+
         List<Feature2D> loops = featureList.get(key);
         if (loops == null) {
             loops = new ArrayList<Feature2D>();
@@ -354,10 +360,92 @@ public class Feature2DList {
     }
 
     /**
+     * Adds features to appropriate chromosome pair list if same
+     * or similar point not already in list;
+     * key stored so that first chromosome always less than second
+     *
+     * @param inputList
+     * @return
+     */
+    public void addUnique(Feature2DList inputList) {
+
+        Set<String> inputKeySet = inputList.getKeySet();
+
+        for(String inputKey : inputKeySet){
+            List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
+
+            List<Feature2D> features = featureList.get(inputKey);
+            if (features == null) {
+                features = new ArrayList<Feature2D>();
+                features.addAll(inputFeatures);
+                featureList.put(inputKey, features);
+            } else {
+                //features.addAll(inputFeatures);
+                addAllUnique(inputFeatures, features);
+            }
+        }
+    }
+
+    public Feature2DList getOverlap(Feature2DList inputList) {
+        Feature2DList output = new Feature2DList();
+        Set<String> inputKeySet = inputList.getKeySet();
+        for(String inputKey : inputKeySet){
+            List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
+            // there are features in both lists
+            List<Feature2D> myFeatures = featureList.get(inputKey);
+            if (myFeatures != null) {
+                for (Feature2D myFeature : myFeatures){
+                    if (doesOverlap(myFeature, inputFeatures)) {
+                        output.addByKey(inputKey, myFeature);
+                    }
+                }
+            }
+        }
+        return output;
+    }
+
+    // Compares a feature against all other featuers in list
+    private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures){
+        boolean repeat = false;
+        for (Feature2D existingFeature : existingFeatures){
+            if (existingFeature.overlapsWith(feature)){
+                repeat = true;
+            }
+        }
+        return repeat;
+    }
+    // Iterate through new features and see if there is any overlap
+    // TODO: implement this more efficiently
+    private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures){
+        for (Feature2D inputFeature : inputFeatures){
+            // Compare input with existing points
+            if (!doesOverlap(inputFeature, existingFeatures)) {
+                existingFeatures.add(inputFeature);
+            }
+
+        }
+
+    }
+
+    public void addAttributeFieldToAll(String newAttributeName, String newAttributeValue) {
+        Set<String> inputKeySet = getKeySet();
+        for (String inputKey : inputKeySet) {
+            List<Feature2D> myFeatures = getFeatureList(inputKey);
+            if (myFeatures != null) {
+                for (Feature2D feature : myFeatures) {
+                    if (feature.getAttribute(newAttributeName) == null)
+                        feature.addFeature(newAttributeName, newAttributeValue);
+                }
+            }
+        }
+    }
+
+
+    /**
      * Get all keys (chromosome pairs) for hashmap
      * @return keySet
      */
-    private Set<String> getKeySet() {
+    protected Set<String> getKeySet() {
         return featureList.keySet();
     }
 
@@ -366,7 +454,7 @@ public class Feature2DList {
      * @param key
      * @return
      */
-    private List<Feature2D> getFeatureList(String key){
+    protected List<Feature2D> getFeatureList(String key){
         return featureList.get(key);
     }
 

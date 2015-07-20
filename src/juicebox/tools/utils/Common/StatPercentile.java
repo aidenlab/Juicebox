@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.common;
+package juicebox.tools.utils.Common;
 
 import java.util.Arrays;
 

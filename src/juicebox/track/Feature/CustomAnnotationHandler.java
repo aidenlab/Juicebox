@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.feature;
+package juicebox.track.Feature;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 
@@ -144,6 +145,7 @@ public class CustomAnnotationHandler {
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
+        HashMap<String,String> attributes = new HashMap<String,String>();
 
         switch (featureType) {
             case GENERIC:
@@ -152,7 +154,7 @@ public class CustomAnnotationHandler {
                 end1 = geneXPos(selectionRegion.x + selectionRegion.width, 0);
                 end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
                 newFeature = new Feature2D(Feature2D.generic, chr1, start1, end1, chr2, start2, end2,
-                        java.awt.Color.orange, new HashMap<String,String>());
+                        java.awt.Color.orange, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case PEAK:
@@ -168,24 +170,73 @@ public class CustomAnnotationHandler {
                     end2 = geneYPos(selectionPoint.y, peakDisplacement);
                 }
 
+                //UNCOMMENT to take out annotation data
+                boolean exportData = true;
+                if (exportData == true){
+                int tempBinX0 = getXBin(selectionPoint.x);
+                int tempBinY0 = getYBin(selectionPoint.y);
+                int tempBinX, tempBinY;
+                final MatrixZoomData zd = hic.getZd();
+
+                float totObserved = 0;
+                float totExpected = 0;
+                int count = 0;
+                float observedValue;
+
+                    MatrixZoomData controlZD = hic.getControlZd();
+                    for (int i = -1*peakDisplacement; i <= peakDisplacement; i ++){
+                        tempBinX = tempBinX0 + i;
+                        for (int j = -1*peakDisplacement; j <= peakDisplacement; j++){
+                            tempBinY = tempBinY0 + j;
+                            observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
+
+                            double ev = 0;
+                            ExpectedValueFunction df = hic.getExpectedValues();
+                            if (df != null) {
+                                    int distance = Math.abs(tempBinX - tempBinY);
+                                    ev = df.getExpectedValue(chr1Idx, distance);
+
+                            } else {
+                                ev = zd.getAverageCount();
+                            }
+                            totObserved += observedValue;
+                            totExpected += ev;
+                            count++;
+                        }
+                    }
+                    // Uncomment to add attributes
+//                    attributes.put("Mean_Observed", "" + (totObserved / count));
+//                    attributes.put("Mean_Expected", "" + (totExpected / count));
+                }
+
                 newFeature = new Feature2D(Feature2D.peak, chr1, start1, end1, chr2, start2, end2,
-                        Color.DARK_GRAY, new HashMap<String,String>());
+                        Color.DARK_GRAY, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case DOMAIN:
                 start1 = geneXPos(selectionRegion.x, 0);
                 end1 = geneXPos(selectionRegion.x + selectionRegion.width, 0);
 
+                // Snap if close to diagonal
                 if (chr1Idx == chr2Idx && nearDiagonal(selectionRegion.x, selectionRegion.y)){
-                    start2 = start1;
-                    end2 = end1;
+                    // Snap to min of horizontal stretch and vertical stretch
+                    if (selectionRegion.width <= selectionRegion.y) {
+                        start2 = start1;
+                        end2 = end1;
+                    } else {
+                        start2 = geneYPos(selectionRegion.y, 0);
+                        end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
+                        start1 = start2;
+                        end1 = end2;
+                    }
+                // Otherwise record as drawn
                 } else {
                     start2 = geneYPos(selectionRegion.y, 0);
                     end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
                 }
 
                 newFeature = new Feature2D(Feature2D.domain, chr1, start1, end1, chr2, start2, end2,
-                        Color.GREEN, new HashMap<String,String>());
+                        Color.GREEN, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             default:

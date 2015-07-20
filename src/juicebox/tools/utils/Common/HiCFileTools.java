@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.common;
+package juicebox.tools.utils.Common;
 
 import juicebox.data.*;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;

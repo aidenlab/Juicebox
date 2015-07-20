@@ -25,8 +25,8 @@
 package juicebox.windowui;
 
 import juicebox.MainWindow;
-import juicebox.track.feature.CustomAnnotation;
-
+import juicebox.track.Feature.CustomAnnotation;
+import juicebox.track.Feature.Feature2DList;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
@@ -39,9 +39,23 @@ import java.util.Date;
 public class SaveAnnotationsDialog extends JFileChooser {
 
     private static final long serialVersionUID = 1299313L;
+    private CustomAnnotation annotations;
+    private Feature2DList otherList = null;
 
     public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {
         super();
+        this.annotations = customAnnotations;
+        menuOptions();
+    }
+
+    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, Feature2DList otherList) {
+        super();
+        this.annotations = customAnnotations;
+        this.otherList = otherList;
+        menuOptions();
+    }
+
+    private void menuOptions() {
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         setSelectedFile(new File("Author-" + timeStamp + ".txt"));
 
@@ -59,9 +73,14 @@ public class SaveAnnotationsDialog extends JFileChooser {
                 if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                     return;
             }
-            if (customAnnotations.exportAnnotations(outputPath) < 0) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
-                        JOptionPane.ERROR_MESSAGE);
+            if (otherList == null) {
+                if (annotations.exportAnnotations(outputPath) < 0) {
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                if (annotations.exportOverlap(otherList, outputPath) < 0) {
+                }
             }
 
         }

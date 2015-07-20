@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.feature;
+package juicebox.track.Feature;
 
 import juicebox.HiCGlobals;
 
@@ -46,7 +46,7 @@ public class Feature2D {
 
     public static String peak = "Peak";
     public static String domain = "Contact domain";
-    public static String generic = "Feature";
+    public static String generic = "feature";
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final String chr1;
     private final int start1;
@@ -244,9 +244,17 @@ public class Feature2D {
         return output;
     }
 
+    public ArrayList<String> getAttributeKeys(){
+        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        Collections.sort(keys);
+        return keys;
+    }
+
     public String getAttribute(String key) {
         return attributes.get(key);
     }
+
+    public void setAttribute(String key, String newVal) {attributes.put(key, newVal);}
 
     public float getFloatAttribute(String key) {
         return Float.parseFloat(attributes.get(key));
@@ -255,4 +263,21 @@ public class Feature2D {
     public void addFeature(String key, String value) {
         attributes.put(key, value);
     }
+
+    public boolean overlapsWith(Feature2D otherFeature){
+
+        float window1 = (otherFeature.getEnd1() - otherFeature.getStart1()) / 2;
+        float window2 = (otherFeature.getEnd2() - otherFeature.getStart2()) / 2;
+
+        int midOther1 = otherFeature.getMidPt1();
+        int midOther2 = otherFeature.getMidPt2();
+
+        if (midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1)){
+            if (midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

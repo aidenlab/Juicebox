@@ -22,9 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.feature;
+package juicebox.track.Feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -43,6 +43,7 @@ public class CustomAnnotation {
     String id;
     private PrintWriter tempWriter;
     private File tempFile;
+    private ArrayList<String> attributeKeys;
 
     public CustomAnnotation (String id) {
         this.id = id;
@@ -67,6 +68,7 @@ public class CustomAnnotation {
         lastItem = null;
         unsavedEdits = false;
         customAnnotationList = new Feature2DList();
+        attributeKeys = new ArrayList<String>();
     }
 
     public void clearAnnotations(){
@@ -79,6 +81,15 @@ public class CustomAnnotation {
         if (feature == null){
             return;
         }
+        // Add attributes to feature
+        List<String> featureKeys = feature.getAttributeKeys();
+        for (String customKey : attributeKeys){
+            if (!featureKeys.contains(customKey)) {
+                feature.addFeature(customKey, "null");
+                System.out.println("Added" + customKey);
+            }
+        }
+        getAndAddAttributes(featureKeys);
 
         customAnnotationList.add(chr1Idx, chr2Idx, feature);
 
@@ -180,8 +191,43 @@ public class CustomAnnotation {
         return ok;
     }
 
+    // Note assumes that all attributes are already correctly formatted. Ok to assume
+    // because loaded list must have consistent formatting.
     public void addVisibleToCustom(Feature2DList newAnnotations){
-        customAnnotationList.add(newAnnotations);
+        Feature2D featureZero = newAnnotations.extractSingleFeature();
+        // Add attributes to feature
+        List<String> featureKeys = featureZero.getAttributeKeys();
+        for (String customKey : attributeKeys){
+            if (!featureKeys.contains(customKey)) {
+                newAnnotations.addAttributeFieldToAll(customKey, "null");
+            }
+        }
+        getAndAddAttributes(featureKeys);
+        customAnnotationList.addUnique(newAnnotations);
+    }
+
+    public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath){
+        int ok;
+        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath);
+        if (ok < 0)
+            return ok;
+        unsavedEdits = false;
+        return ok;
+    }
+
+    private void getAndAddAttributes(List<String> featureKeys){
+        // Add feature's unique attributes to all others
+        for (String key : featureKeys){
+            if (!attributeKeys.contains(key)) {
+                attributeKeys.add(key);
+                customAnnotationList.addAttributeFieldToAll(key, "null");
+            }
+        }
+    }
+
+    public void changeAllAttributeValues(String key, String newValue){
+        attributeKeys.add(key);
+        customAnnotationList.addAttributeFieldToAll(key, newValue);
     }
 
     public boolean hasUnsavedEdits(){

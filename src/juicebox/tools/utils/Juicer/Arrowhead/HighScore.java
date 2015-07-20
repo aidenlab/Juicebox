@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.arrowhead;
+package juicebox.tools.utils.Juicer.arrowhead;
 
 /**
  * Wrapper for arrowhead blockbuster results

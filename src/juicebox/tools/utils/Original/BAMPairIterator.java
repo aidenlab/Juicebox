@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.Original;
 
 import htsjdk.samtools.util.CloseableIterator;
 import org.broad.igv.sam.Alignment;
