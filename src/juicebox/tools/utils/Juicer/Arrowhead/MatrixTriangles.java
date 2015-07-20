@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.arrowhead;
+package juicebox.tools.utils.Juicer.Arrowhead;
 
 import juicebox.tools.utils.Common.MatrixTools;
-import juicebox.tools.utils.Juicer.arrowhead.connectedcomponents.BinaryConnectedComponents;
+import juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents.BinaryConnectedComponents;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;
@@ -158,7 +158,7 @@ class MatrixTriangles {
      * @param varThreshold
      * @param signThreshold
      */
-    public void thresholdScoreValues(double varThreshold, int signThreshold) {
+    public void thresholdScoreValues(float varThreshold, float signThreshold) {
         if(blockScoresNotCalculated){
             System.out.println("Block scores not calculated");
             System.exit(-5);
@@ -197,7 +197,7 @@ class MatrixTriangles {
      * @param loSign
      * @param threshold
      */
-    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, int threshold) {
+    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, float threshold) {
         for (int i = 0; i < matrix.getRowDimension(); i++) {
             for (int j = 0; j < matrix.getColumnDimension(); j++) {
                 if ((-upSign.getEntry(i, j)) < threshold || loSign.getEntry(i, j) < threshold) {
@@ -210,21 +210,15 @@ class MatrixTriangles {
     /**
      * extract block scores from regions specified in the provided list
      *
-     * @param indexList
      * @return
      */
-    public double[] extractScoresUsingList(List<Integer[]> indexList) {
+    public void updateScoresUsingList(ArrowheadScoreList scoreList) {
         if(blockScoresNotCalculated){
             System.out.println("Block scores not calculated");
             System.exit(-5);
         }
 
-        double[] scores = new double[indexList.size()];
-        for (int i = 0; i < scores.length; i++) {
-            Integer[] indices = indexList.get(i);
-            scores[i] = MatrixTools.calculateMax(blockScore.getSubMatrix(indices[0], indices[1], indices[2], indices[3]));
-        }
-        return scores;
+        scoreList.updateActiveIndexScores(blockScore);
     }
 
     public List<Set<Point>> extractConnectedComponents() {

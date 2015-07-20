@@ -22,15 +22,15 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.Juicer.arrowhead;
+package juicebox.tools.utils.Juicer.Arrowhead;
 
 /**
  * Wrapper for arrowhead blockbuster results
  * Created by muhammadsaadshamim on 6/8/15.
  */
 class HighScore {
-    private final int i;
-    private final int j;
+    private int i;
+    private int j;
     private final double score;
     private final double uVarScore;
     private final double lVarScore;
@@ -50,5 +50,10 @@ class HighScore {
 
     public String toString() {
         return "" + i + "\t" + j + "\t" + score + "\t" + uVarScore + "\t" + lVarScore + "\t" + upSign + "\t" + loSign;
+    }
+
+    public void offsetIndex(int offset) {
+        this.i += offset;
+        this.j += offset;
     }
 }
