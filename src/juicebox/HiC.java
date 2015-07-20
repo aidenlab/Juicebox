@@ -787,7 +787,9 @@ public class HiC {
             mainWindow.setNormalizationBox(normSelection.ordinal());
             mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
 
+            LoadEncodeAction loadEncodeAction = new LoadEncodeAction("Check Encode boxes", mainWindow, this);
             LoadAction loadAction = new LoadAction("Check track boxes", mainWindow, this);
+
             if (!trackNames.isEmpty()) {
                 //System.out.println("trackNames: " + trackNames); for debugging
                 for (String currentTrackName : trackNames) {
@@ -802,6 +804,7 @@ public class HiC {
                         loadLoopList(tempTrackName[0]);
                     } else if (currentTrackName.contains("goldenPath")||currentTrackName.toLowerCase().contains("ensembl")) {
                         loadTrack(tempTrackName[0]);
+                        loadEncodeAction.checkEncodeBoxes(tempTrackName[1]);
                     } else {
                         loadTrack(tempTrackName[0]);
                     }

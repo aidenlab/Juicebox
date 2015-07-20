@@ -257,23 +257,17 @@ public class EncodeFileBrowser extends JDialog {
         return selectedRecords;
     }
 
-    public List<ResourceLocator> checkEncodeTracks(String track){
-        List<ResourceLocator> encodeTracks = new ArrayList<ResourceLocator>();
+    public void checkEncodeTracks(String track){
         List<EncodeFileRecord> allRecords = model.getRecords();
         int rowCount = table.getRowCount();
 
         for (int i=0; i<rowCount; i++){
             int modelIdx = table.convertRowIndexToModel(i);
             EncodeFileRecord record = allRecords.get(modelIdx);
-            if(record.getPath().contains(track)){
+            if(record.getTrackName().contains(track)){
                 record.setSelected(true);
-                encodeTracks.add(new ResourceLocator(record.getPath()));
-                ResourceLocator rl = new ResourceLocator(record.getPath());
-                rl.setName(record.getTrackName());
-                System.out.println("path: "+record.getPath() + ", name: "+ record.getTrackName());
             }
         }
-        return encodeTracks;
     }
 
     public void remove(ResourceLocator locator) {
