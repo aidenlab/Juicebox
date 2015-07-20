@@ -304,8 +304,8 @@ class RangeSliderUI extends BasicSliderUI {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsPreDef, gradientColorsPreDef);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length-1], rightSide);
             } else {
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, gradientColors);
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, Color.RED, rightSide);
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{Color.WHITE, MainWindow.hicMapColor});
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, MainWindow.hicMapColor, rightSide);
             }
 
 
