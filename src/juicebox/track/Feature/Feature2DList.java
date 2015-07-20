@@ -25,7 +25,7 @@
 package juicebox.track.Feature;
 
 import juicebox.tools.utils.Common.HiCFileTools;
-import juicebox.tools.utils.Juicer.hiccups.HiCCUPSUtils;
+import juicebox.tools.utils.Juicer.HiCCUPS.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;

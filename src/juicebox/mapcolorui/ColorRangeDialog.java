@@ -249,6 +249,9 @@ public class ColorRangeDialog extends JDialog {
         preText.setPreferredSize(new Dimension(200,20));
 
         class CheckboxAction extends AbstractAction {
+
+            private static final long serialVersionUID = 12319723L;
+
             public CheckboxAction(String text) {
                 super(text);
             }

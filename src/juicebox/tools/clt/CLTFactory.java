@@ -123,11 +123,6 @@ public class CLTFactory {
             return new SQLDatabase();
         }
 
-        //MEH TEST CODE
-        else if (cmd.equals("loopAnalysis".toLowerCase())){
-            return new LoopAnalysis();
-        }
-
 
         return null;
     }
