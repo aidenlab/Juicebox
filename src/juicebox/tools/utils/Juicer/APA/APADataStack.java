@@ -22,6 +22,7 @@
  *  THE SOFTWARE.
  */
 
+
 package juicebox.tools.utils.Juicer.APA;
 
 import juicebox.tools.utils.Common.MatrixTools;
