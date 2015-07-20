@@ -34,6 +34,8 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.swing.*;
@@ -171,6 +173,16 @@ public class LoadAction extends AbstractAction {
 
     }
 
+    public String getXmlUrl(){
+        String genome = hic.getDataset().getGenomeId();
+        if (genome == null) {
+            genome = "hg19";
+        }
+
+        String xmlURL = "tracksMenu_" + genome + ".xml";
+        return xmlURL;
+    }
+
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (hic.getDataset() == null) {
@@ -199,6 +211,18 @@ public class LoadAction extends AbstractAction {
         mainWindow.executeLongRunningTask(runnable, "safe load nodes");
     }
 
+    public void checkBoxesForReload(String track){
+        ResourceTree resourceTree = hic.getResourceTree();
+        try {
+            if (resourceTree == null) {
+                Document tempDoc = createMasterDocument(getXmlUrl());
+                resourceTree = new ResourceTree(hic,tempDoc);
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        resourceTree.checkTrackBoxesForReloadState(track);
+    }
 
     private List<ResourceLocator> unsafeLoadNodes(String xmlFile) {
 

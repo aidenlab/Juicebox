@@ -1720,8 +1720,6 @@ public class MainWindow extends JFrame {
 
     public String getColorRangeValues(){
 
-        System.out.println("colorRangeScaleFactor: "+colorRangeScaleFactor);
-
         int iMin = colorRangeSlider.getMinimum();
         int lowValue = colorRangeSlider.getLowerValue();
         int upValue = colorRangeSlider.getUpperValue();

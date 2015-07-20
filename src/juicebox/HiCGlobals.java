@@ -54,6 +54,7 @@ public class HiCGlobals {
     public static final Color backgroundColor = new  Color(204,204,204);
 
     public static final String stateFileName = "CurrentJuiceboxStates";
+    public static final String xmlFileName = "JuiceboxStatesForExport.xml";
     // Feature2D hover text
     public static boolean allowSpacingBetweenFeatureText = true;
 
