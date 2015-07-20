@@ -22,7 +22,8 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.arrowhead.connectedcomponents;
+
+package juicebox.tools.utils.Juicer.Arrowhead.ConnectedComponents;
 
 import java.awt.*;
 import java.util.HashSet;

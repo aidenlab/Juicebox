@@ -29,11 +29,11 @@ import com.google.common.base.CharMatcher;
 import juicebox.data.*;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.mapcolorui.HeatmapRenderer;
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.track.*;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
+import juicebox.track.Feature.Feature2D;
+import juicebox.track.Feature.Feature2DList;
+import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -76,7 +76,7 @@ public class HiC {
     private HeatmapRenderer heatmapRenderer;
     private List<HiCTrack> trackLabels;
     File currentStates = new File(HiCGlobals.stateFileName);
-    //File currentStatesToXML = new File(HiCGlobals.xmlFileName);
+    File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private static String mapName;
     private static String stateID;
     private static String mapPath;
@@ -749,8 +749,26 @@ public class HiC {
     }
     //reloading the previous state
     // TODO--Use XML File instead
-    public void setReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor,
-                               MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
+    public void safeSetReloadState(final String mapURL , final String chrXName, final String chrYName, final String unitName, final int binSize,
+                                   final double xOrigin, final double yOrigin, final double scalefactor,
+                                   final MatrixType displaySelection, final NormalizationType normSelection, final double minColor,
+                                   final double lowColor, final double upColor, final double maxColor, final ArrayList<String> trackNames){
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    unsafeSetReloadState(mapURL , chrXName,  chrYName, unitName,binSize, xOrigin, yOrigin, scalefactor,
+                            displaySelection, normSelection, minColor, lowColor, upColor, maxColor,trackNames);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
+    }
+    public void unsafeSetReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize,
+                                     double xOrigin, double yOrigin, double scalefactor,
+                               MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,
+                                     double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
 
         boolean control = isControlLoaded();
         String delimeter = "@@";
@@ -881,10 +899,10 @@ public class HiC {
         // CommandBroadcaster.broadcast(command);
     }
 // Creating XML file
-   /* public void createXMLForReload(File tempState){
+    public void createXMLForReload(File tempState){
         XMLForReloadState xml = new XMLForReloadState();
         xml.begin();
-    }*/
+    }
 
     public void writeState() throws IOException{
         try {
@@ -945,7 +963,7 @@ public class HiC {
             // normalization type,color range values, tracks")
             buffWriter.close();
             System.out.println("stuff saved"); //check
-            //createXMLForReload(currentStates);
+            createXMLForReload(currentStates);
 
         }catch (IOException e){
             e.printStackTrace();

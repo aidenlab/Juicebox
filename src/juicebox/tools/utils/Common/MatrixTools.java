@@ -22,9 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.common;
+package juicebox.tools.utils.Common;
 
-import juicebox.tools.utils.juicer.apa.APARegionStatistics;
+import juicebox.tools.utils.Juicer.APA.APARegionStatistics;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -53,7 +53,7 @@ public class MatrixTools {
     }
 
     public static RealMatrix ones(int n) {
-        return ones(n,n);
+        return ones(n, n);
     }
 
     private static RealMatrix ones(int rows, int cols) {
@@ -205,7 +205,7 @@ public class MatrixTools {
      */
     public static RealMatrix extractDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
-        RealMatrix diagonal = MatrixTools.cleanArray2DMatrix(n,n);
+        RealMatrix diagonal = MatrixTools.cleanArray2DMatrix(n, n);
         for(int i = 0; i < n; i ++){
             diagonal.setEntry(i,i,matrix.getEntry(i,i));
         }
@@ -238,7 +238,7 @@ public class MatrixTools {
      */
     public static RealMatrix flipAcrossAntiDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
-        RealMatrix antiDiagFlippedMatrix = cleanArray2DMatrix(n,n);
+        RealMatrix antiDiagFlippedMatrix = cleanArray2DMatrix(n, n);
         int maxIndex = n-1;
         for(int i = 0; i < n; i++){
             for(int j = 0; j < n; j++){
@@ -393,7 +393,7 @@ public class MatrixTools {
      * @return max
      */
     public static double calculateMax(RealMatrix matrix) {
-        double max = matrix.getEntry(0,0);
+        double max = matrix.getEntry(0, 0);
         for(int i = 0; i < matrix.getRowDimension(); i++){
             for(int j = 0; j < matrix.getColumnDimension(); j++){
                 double val = matrix.getEntry(i,j);
@@ -427,5 +427,9 @@ public class MatrixTools {
             }
             System.out.println("");
         }
+    }
+
+    public static RealMatrix getSubMatrix(RealMatrix matrix, int[] indices) {
+        return matrix.getSubMatrix(indices[0], indices[1], indices[2], indices[3]);
     }
 }

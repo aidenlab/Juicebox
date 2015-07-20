@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.apa;
+package juicebox.tools.utils.Juicer.APA;
 
 import juicebox.tools.clt.APA;
 import org.apache.commons.math.linear.RealMatrix;

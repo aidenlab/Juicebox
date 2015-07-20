@@ -22,9 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.apa;
 
-import juicebox.tools.utils.common.MatrixTools;
+package juicebox.tools.utils.Juicer.APA;
+
+import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.File;

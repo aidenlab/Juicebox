@@ -30,12 +30,15 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
-import juicebox.tools.utils.common.HiCFileTools;
-import juicebox.track.feature.*;
+import juicebox.tools.utils.Common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
+import juicebox.track.Feature.CustomAnnotation;
+import juicebox.track.Feature.CustomAnnotationHandler;
+import juicebox.track.Feature.Feature2DList;
+import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
@@ -1636,7 +1639,8 @@ public class MainWindow extends JFrame {
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(210, 490);
+        //*Dimension prefSize = new Dimension(210, 490);
+        Dimension prefSize = new Dimension(210, 390);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
         JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
@@ -1650,6 +1654,7 @@ public class MainWindow extends JFrame {
         tooltipPanel.setBorder(null);
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
+
         //======== xPlotPanel ========
 //
 //        xPlotPanel = new JPanel();
@@ -1729,7 +1734,6 @@ public class MainWindow extends JFrame {
         return values;
 
     }
-
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED ||
                 hic.getDisplayOption() == MatrixType.CONTROL ||
@@ -1967,6 +1971,7 @@ public class MainWindow extends JFrame {
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
+        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
         loadLastMI = new JMenuItem("Load Last");
         final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
         undoMenuItem = new JMenuItem("Undo Annotation");
@@ -1977,6 +1982,17 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new SaveAnnotationsDialog(customAnnotations);
+            }
+        });
+
+        exportOverlapMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
+                if (loops.size() != 1)
+                    JOptionPane.showMessageDialog(MainWindow.this, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
+                else
+                    new SaveAnnotationsDialog(customAnnotations, loops.get(0));
             }
         });
 
@@ -2027,6 +2043,7 @@ public class MainWindow extends JFrame {
 
         //Add annotate menu items
         customAnnotationMenu.add(exportAnnotationsMI);
+        customAnnotationMenu.add(exportOverlapMI);
         customAnnotationMenu.add(mergeVisibleMI);
         customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
@@ -2039,7 +2056,6 @@ public class MainWindow extends JFrame {
         undoMenuItem.setEnabled(false);
 
         annotationsMenu.add(customAnnotationMenu);
-
 
 //        final JMenuItem annotate = new JMenuItem("Annotate Mode");
 //        customAnnotationMenu.add(annotate);

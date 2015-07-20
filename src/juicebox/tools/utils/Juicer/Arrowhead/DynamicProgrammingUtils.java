@@ -22,9 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.arrowhead;
+package juicebox.tools.utils.Juicer.Arrowhead;
 
-import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 /**

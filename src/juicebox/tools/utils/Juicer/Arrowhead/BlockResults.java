@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.arrowhead;
+package juicebox.tools.utils.Juicer.Arrowhead;
 
-import juicebox.tools.utils.common.ArrayTools;
-import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.Common.ArrayTools;
+import juicebox.tools.utils.Common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;
@@ -38,17 +38,10 @@ import java.util.Set;
  */
 public class BlockResults {
 
-    private final List<HighScore> results;
-    private final double[] scoreList1;
-    private final double[] scoreList2;
+    private List<HighScore> results = new ArrayList<HighScore>();
 
-    public BlockResults(RealMatrix observed, double varThreshold, int signThreshold,
-                        List<Integer[]> givenList1, List<Integer[]> givenList2) {
-
-        if (givenList1 == null)
-            givenList1 = new ArrayList<Integer[]>();
-        if (givenList2 == null)
-            givenList2 = new ArrayList<Integer[]>();
+    public BlockResults(RealMatrix observed, float varThreshold, float signThreshold,
+                        ArrowheadScoreList givenList1, ArrowheadScoreList givenList2) {
 
         int n = Math.min(observed.getRowDimension(), observed.getColumnDimension());
         int gap = 7;
@@ -58,14 +51,24 @@ public class BlockResults {
 
         triangles.generateBlockScoreCalculations();
 
-        scoreList1 = triangles.extractScoresUsingList(givenList1);
-        scoreList2 = triangles.extractScoresUsingList(givenList2);
+        triangles.updateScoresUsingList(givenList1);
+        triangles.updateScoresUsingList(givenList2);
 
         triangles.thresholdScoreValues(varThreshold, signThreshold);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
 
         results = triangles.calculateResults(connectedComponents);
+        plotArrowheadFigures();
+    }
+
+    /**
+     * TODO
+     */
+    private void plotArrowheadFigures() {
+
+
+        // TODO
     }
 
     /**
@@ -109,18 +112,7 @@ public class BlockResults {
         return results;
     }
 
-    /**
-     * @return list1 corresponding scores
-     */
-    public double[] getScoreList1() {
-        return scoreList1;
+    public int size() {
+        return results.size();
     }
-
-    /**
-     * @return list2 corresponding scores
-     */
-    public double[] getScoreList2() {
-        return scoreList2;
-    }
-
 }

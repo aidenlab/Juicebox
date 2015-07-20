@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.Original;
 
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.windowui.NormalizationType;

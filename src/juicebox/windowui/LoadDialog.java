@@ -350,6 +350,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             if (ext != null) {
                 toadd = toadd.replace(".hic", "_" + ext + ".hic");
             }
+            System.out.println("New URL: " + toadd);
             urls.add(toadd);
         }
 

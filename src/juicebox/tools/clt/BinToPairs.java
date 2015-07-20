@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.original.AsciiToBinConverter;
+import juicebox.tools.utils.Original.AsciiToBinConverter;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;

@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.hiccups;
+package juicebox.tools.utils.Juicer.HiCCUPS;
 
 /**
  * Created by muhammadsaadshamim on 5/11/15.

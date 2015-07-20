@@ -22,9 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.feature;
+package juicebox.track.Feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.Common.HiCFileTools;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;

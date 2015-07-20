@@ -30,12 +30,12 @@ import juicebox.data.DatasetReaderV2;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.HiCFileTools;
-import juicebox.tools.utils.juicer.apa.APADataStack;
-import juicebox.tools.utils.juicer.apa.APAUtils;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
+import juicebox.tools.utils.Common.HiCFileTools;
+import juicebox.tools.utils.Juicer.APA.APADataStack;
+import juicebox.tools.utils.Juicer.APA.APAUtils;
+import juicebox.track.Feature.Feature2D;
+import juicebox.track.Feature.Feature2DList;
+import juicebox.track.Feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -54,7 +54,7 @@ public class APA extends JuiceboxCLT {
     private String[] files;
 
     public APA() {
-        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        super("APA [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
     }
 
     //defaults
@@ -89,6 +89,7 @@ public class APA extends JuiceboxCLT {
         //if (files.length > 4)
         //    restrictionSiteFilename = files[4];
         //[min value, max value, window, resolution]
+
 
         minPeakDist = parser.getAPAMinVal();
         if (minPeakDist == 0)
@@ -190,7 +191,7 @@ public class APA extends JuiceboxCLT {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Unable to extract apa data");
+            System.out.println("Unable to extract APA data");
             e.printStackTrace();
             System.exit(-3);
         }

@@ -22,12 +22,12 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.juicer.hiccups;
+package juicebox.tools.utils.Juicer.HiCCUPS;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
-import juicebox.tools.utils.common.MatrixTools;
+import juicebox.tools.utils.Common.MatrixTools;
 
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.driver.JCudaDriver.cuMemFree;

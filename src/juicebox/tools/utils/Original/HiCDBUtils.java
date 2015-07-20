@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.Original;
 
 import org.broad.igv.Globals;
 import org.broad.igv.util.ParsingUtils;
