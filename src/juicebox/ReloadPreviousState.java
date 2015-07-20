@@ -103,7 +103,7 @@ public class ReloadPreviousState {
                                 for (int i = 15; i < fileSize; i++) {
                                     tracks.add(args.get(i));
                                 }
-                                hic.setReloadState(hicURL, chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor, displayOption, normType
+                                hic.safeSetReloadState(hicURL, chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor, displayOption, normType
                                         , minColorVal, lowerColorVal, upperColorVal, maxColorVal, tracks);
                             } else {
                                 result = "Not enough parameters";
