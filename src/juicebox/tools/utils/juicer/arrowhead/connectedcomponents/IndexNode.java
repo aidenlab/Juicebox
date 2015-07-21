@@ -22,40 +22,51 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+package juicebox.tools.utils.juicer.arrowhead.connectedcomponents;
 
-import java.io.IOException;
+import java.awt.*;
+import java.util.HashSet;
+import java.util.Set;
 
+/**
+ * Created by muhammadsaadshamim on 6/5/15.
+ */
+class IndexNode {
+    private final int n;
+    private final Set<IndexNode> connectedNodes = new HashSet<IndexNode>();
+    private boolean hasNotBeenIndexed = true;
+    private final Set<Point> matrixIndices = new HashSet<Point>();
 
-public class AddGWNorm extends JuiceboxCLT {
-
-    private String file;
-    private int genomeWideResolution = -100;
-
-    public AddGWNorm(){
-        super("addGWNorm <input_HiC_file> <min resolution>");
+    public IndexNode(int n) {
+        this.n = n;
     }
 
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            throw new IOException("1");
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.valueOf(args[2]);
-        } catch (NumberFormatException error) {
-            throw new IOException("1");
-        }
+    public void addConnections(IndexNode node) {
+        connectedNodes.add(node);
     }
 
-    @Override
-    public void run() throws IOException {
-        NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
+    public void addPoint(Point point) {
+        matrixIndices.add(point);
+    }
+
+    public Set<Point> getMatrixIndices() {
+        return matrixIndices;
+    }
+
+    public void index() {
+        hasNotBeenIndexed = false;
+    }
+
+    public boolean hasNotBeenIndexed() {
+        return hasNotBeenIndexed;
+    }
+
+    public Set<IndexNode> getConnectedNodes() {
+        return connectedNodes;
+    }
+
+    public int getIndex() {
+        return n;
     }
 }

@@ -90,6 +90,10 @@ public class ColorRangeDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Must enter a number", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        if (max < min) {
+            JOptionPane.showMessageDialog(this, "Maximum may not be less than minimum", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         int iMin;
         int iMax;

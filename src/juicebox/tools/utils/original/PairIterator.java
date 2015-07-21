@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,40 +22,23 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+package juicebox.tools.utils.original;
 
-import java.io.IOException;
+import java.util.Iterator;
 
+/**
+ * @author Jim Robinson
+ * @date 9/24/11
+ */
+public interface PairIterator extends Iterator<AlignmentPair> {
+    boolean hasNext();
 
-public class AddGWNorm extends JuiceboxCLT {
+    AlignmentPair next();
 
-    private String file;
-    private int genomeWideResolution = -100;
+    void remove();
 
-    public AddGWNorm(){
-        super("addGWNorm <input_HiC_file> <min resolution>");
-    }
+    void close();
 
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            throw new IOException("1");
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.valueOf(args[2]);
-        } catch (NumberFormatException error) {
-            throw new IOException("1");
-        }
-    }
-
-    @Override
-    public void run() throws IOException {
-        NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
-    }
+    void push(AlignmentPair pair);
 }

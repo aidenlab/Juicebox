@@ -22,40 +22,38 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.utils.juicer.arrowhead;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+/**
+ * Wrapper for arrowhead blockbuster results
+ * Created by muhammadsaadshamim on 6/8/15.
+ */
+class HighScore {
+    private int i;
+    private int j;
+    private final double score;
+    private final double uVarScore;
+    private final double lVarScore;
+    private final double upSign;
+    private final double loSign;
 
-import java.io.IOException;
-
-
-public class AddGWNorm extends JuiceboxCLT {
-
-    private String file;
-    private int genomeWideResolution = -100;
-
-    public AddGWNorm(){
-        super("addGWNorm <input_HiC_file> <min resolution>");
+    public HighScore(int i, int j, double score, double uVarScore, double lVarScore,
+                     double upSign, double loSign) {
+        this.i = i;
+        this.j = j;
+        this.score = score;
+        this.uVarScore = uVarScore;
+        this.lVarScore = lVarScore;
+        this.upSign = upSign;
+        this.loSign = loSign;
     }
 
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
-        if (args.length != 3) {
-            throw new IOException("1");
-        }
-        file = args[1];
-
-        try {
-            genomeWideResolution = Integer.valueOf(args[2]);
-        } catch (NumberFormatException error) {
-            throw new IOException("1");
-        }
+    public String toString() {
+        return "" + i + "\t" + j + "\t" + score + "\t" + uVarScore + "\t" + lVarScore + "\t" + upSign + "\t" + loSign;
     }
 
-    @Override
-    public void run() throws IOException {
-        NormalizationVectorUpdater.addGWNorm(file, genomeWideResolution);
+    public void offsetIndex(int offset) {
+        this.i += offset;
+        this.j += offset;
     }
 }

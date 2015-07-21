@@ -25,8 +25,8 @@
 package juicebox.windowui;
 
 import juicebox.MainWindow;
-import juicebox.track.Feature.CustomAnnotation;
-import juicebox.track.Feature.Feature2DList;
+import juicebox.track.feature.CustomAnnotation;
+import juicebox.track.feature.Feature2DList;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
