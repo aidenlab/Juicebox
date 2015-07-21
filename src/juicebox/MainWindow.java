@@ -468,6 +468,7 @@ public class MainWindow extends JFrame {
             refreshButton.setEnabled(true);
 
             setColorRangeSliderVisible(true);
+            setResolutionSliderVisible(true);
             colorRangeSlider.setDisplayToBlank(false);
             plusButton.setEnabled(true);
             minusButton.setEnabled(true);
@@ -630,6 +631,7 @@ public class MainWindow extends JFrame {
             normalizationComboBox.setEnabled(true);
 
             setColorRangeSliderVisible(true);
+            setResolutionSliderVisible(true);
             colorRangeSlider.setDisplayToBlank(false);
             plusButton.setEnabled(true);
             minusButton.setEnabled(true);
@@ -1511,8 +1513,9 @@ public class MainWindow extends JFrame {
             }
 
             private void processClick(){
-                setColorRangeSliderVisible(false);
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
+                setColorRangeSliderVisible(false);
+                setResolutionSliderVisible(false);
                 rangeDialog.setVisible(true);
             }
         });
@@ -1792,6 +1795,16 @@ public class MainWindow extends JFrame {
             colorRangeLabel.setForeground(Color.BLUE);
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
+        }
+        safeDisplayOptionComboBoxActionPerformed();
+    }
+
+    public void setResolutionSliderVisible(boolean state) {
+        resolutionSlider.setEnabled(state);
+        if (state) {
+            resolutionSlider.setForeground(Color.BLUE);
+        } else {
+            resolutionSlider.setForeground(Color.BLACK);
         }
         safeDisplayOptionComboBoxActionPerformed();
     }

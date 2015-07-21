@@ -70,6 +70,8 @@ public class ColorRangeDialog extends JDialog {
             maximumField.setText(df2.format(colorSlider.getMaximum() / colorRangeFactor));
         }
         //tickSpacingField.setText(df.format(colorSlider.getMajorTickSpacing() / colorRangeFactor));
+        maximumField.requestFocusInWindow();
+
     }
 
 
@@ -101,6 +103,7 @@ public class ColorRangeDialog extends JDialog {
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
         MainWindow.getInstance().setColorRangeSliderVisible(true);
+        MainWindow.getInstance().setResolutionSliderVisible(true);
         setVisible(false);
         //double tickSpacing = Double.parseDouble(tickSpacingField.getText());
         //int iTickSpacing = (int) Math.max(1, (colorRangeFactor * tickSpacing));
@@ -111,6 +114,7 @@ public class ColorRangeDialog extends JDialog {
 
     private void cancelButtonActionPerformed(ActionEvent e) {
         MainWindow.getInstance().setColorRangeSliderVisible(true);
+        MainWindow.getInstance().setResolutionSliderVisible(true);
         setVisible(false);
     }
 
@@ -322,6 +326,7 @@ public class ColorRangeDialog extends JDialog {
         contentPane.add(dialogPane, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(getOwner());
+        //maximumField.requestFocusInWindow();
     }
 
 }
