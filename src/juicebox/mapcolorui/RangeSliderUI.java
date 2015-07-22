@@ -234,7 +234,14 @@ class RangeSliderUI extends BasicSliderUI {
     }
 
 
-    public String getColorsAsText() {return gradientColorsPreDef.toString();}
+    public String getColorsAsText() {
+        String tmpStr = "";
+        for (int idx=0;idx<gradientColorsPreDef.length-1;idx++)
+        {
+            tmpStr = tmpStr + "Color("+ gradientColorsPreDef[idx].getRed() + "," + gradientColorsPreDef[idx].getGreen() + "," + gradientColorsPreDef[idx].getBlue() +"),";
+        }
+        return tmpStr;
+    }
 
     /**
      * Paints the slider.  The selected thumb is always painted on top of the
