@@ -42,9 +42,14 @@ import java.util.Set;
 public class BlockResults {
 
     private List<HighScore> results = new ArrayList<HighScore>();
+    private ArrowheadScoreList internalList;
+    private ArrowheadScoreList internalControl;
 
     public BlockResults(RealMatrix observed, float varThreshold, float signThreshold,
-                        ArrowheadScoreList givenList1, ArrowheadScoreList givenList2) {
+                        ArrowheadScoreList list, ArrowheadScoreList control) {
+
+        internalList = list.deepCopy();
+        internalControl = control.deepCopy();
 
         int n = Math.min(observed.getRowDimension(), observed.getColumnDimension());
         int gap = 7;
@@ -54,8 +59,8 @@ public class BlockResults {
 
         triangles.generateBlockScoreCalculations();
 
-        triangles.updateScoresUsingList(givenList1);
-        triangles.updateScoresUsingList(givenList2);
+        triangles.updateScoresUsingList(internalList);
+        triangles.updateScoresUsingList(internalControl);
 
         triangles.thresholdScoreValues(varThreshold, signThreshold);
 
@@ -119,5 +124,19 @@ public class BlockResults {
 
     public int size() {
         return results.size();
+    }
+
+    public ArrowheadScoreList getInternalList() {
+        return internalList;
+    }
+
+    public ArrowheadScoreList getInternalControl() {
+        return internalControl;
+    }
+
+    public void offsetResultsIndex(int offset){
+        for(HighScore score : results){
+            score.offsetIndex(offset);
+        }
     }
 }

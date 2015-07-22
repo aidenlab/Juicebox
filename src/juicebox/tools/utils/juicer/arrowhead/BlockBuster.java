@@ -30,16 +30,12 @@ import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 6/3/15.
  */
 public class BlockBuster {
-
 
     /**
      * should be called separately for each chromosome
@@ -49,34 +45,36 @@ public class BlockBuster {
     public static void blockbuster(MatrixZoomData zd, int chrLength, ArrowheadScoreList list, ArrowheadScoreList control){
 
         // int chrLength = chromosome.getLength();
-
         float signThreshold = 0.4f;
         float varThreshold = 1000f;
 
-        List<HighScore> results = callSubBlockbuster(zd, chrLength, varThreshold, signThreshold, list, control);
+        CumulativeBlockResults results = callSubBlockbuster(zd, chrLength, varThreshold, signThreshold, list, control);
 
-        while(results.size() == 0 && signThreshold > 0){
+        while(results.getCumulativeResults().size() == 0 && signThreshold > 0){
             signThreshold = signThreshold - 0.1f;
             results = callSubBlockbuster(zd, chrLength, varThreshold, signThreshold, list, control);
         }
 
         // high variance threshold, fewer blocks, high confidence
-        List<HighScore> highConfidenceResults = callSubBlockbuster(zd, chrLength, 0.2f, 0.5f, null, null);
+        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, chrLength, 0.2f, 0.5f, null, null);
 
-        List<HighScore> uniqueBlocks = orderedSetDifference(results, highConfidenceResults);
+        List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
+                , highConfidenceResults.getCumulativeResults());
         List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
+        appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
 
-        appendNonConflictingBlocks(highConfidenceResults, filteredUniqueBlocks);
+        results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
+        results.mergeScores();
 
-        // TODO
-        //diffBetweenResults(results, highConfidenceResults);
+        if(results.getCumulativeResults().size() > 0){
+
+        }
 
     }
 
     private static void appendNonConflictingBlocks(List<HighScore> mainList, List<HighScore> possibleAdditions) {
 
         Map<Integer, HighScore> blockEdges = new HashMap<Integer, HighScore>();
-
         for(HighScore score : mainList){
             blockEdges.put(score.getI(), score);
             blockEdges.put(score.getJ(), score);
@@ -85,9 +83,10 @@ public class BlockBuster {
         for(HighScore score : possibleAdditions){
             boolean doesNotConflict = true;
 
-            for(int k = score.getI(); k <= score.getJ() && doesNotConflict; k++){
+            for(int k = score.getI(); k <= score.getJ(); k++){
                 if(blockEdges.containsKey(k)){
                     doesNotConflict = false;
+                    break;
                 }
             }
 
@@ -111,12 +110,16 @@ public class BlockBuster {
         return filteredList;
     }
 
-    public static List<HighScore> orderedSetDifference(List<HighScore> largerList, List<HighScore> shorterList) {
+    public static List<HighScore> orderedSetDifference(List<HighScore> longerList, List<HighScore> shorterList) {
+
+        // remove duplicates
+        Set<HighScore> longerSet = new HashSet<HighScore>(longerList);
+        Set<HighScore> shorterSet = new HashSet<HighScore>(shorterList);
 
         List<HighScore> diffList = new ArrayList<HighScore>();
 
-        for(HighScore score : largerList){
-            if(!shorterList.contains(score)){
+        for(HighScore score : longerSet){
+            if(!shorterSet.contains(score)){
                 diffList.add(score);
             }
         }
@@ -124,10 +127,10 @@ public class BlockBuster {
         return diffList;
     }
 
-    private static List<HighScore> callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,
+    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,
                                                    ArrowheadScoreList list, ArrowheadScoreList control) {
 
-        List<HighScore> cumulativeResults = new ArrayList<HighScore>();
+        CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
 
         for(int limStart = 0; limStart < chrLength; limStart += 1000){
             int limEnd = Math.min(limStart + 2000, chrLength);
@@ -139,26 +142,12 @@ public class BlockBuster {
             RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,
                     limStart, limEnd, n, n, NormalizationType.KR);
 
-            List<HighScore> results = (new BlockResults(observed, varThreshold, signThreshold, list, control)).getResults();
-            offsetResultsIndex(results, limStart);
+            BlockResults results = (new BlockResults(observed, varThreshold, signThreshold, list, control));
+            results.offsetResultsIndex(limStart);
 
-            cumulativeResults.addAll(results);
+            cumulativeBlockResults.add(results);
             System.out.print(".");
         }
-        return cumulativeResults;
+        return cumulativeBlockResults;
     }
-
-    private static void offsetResultsIndex(List<HighScore> scores, int offset) {
-        for(HighScore score : scores){
-            score.offsetIndex(offset);
-        }
-    }
-
-
-    // for repeat values - select max score
-    // remove repeats
-    private void cleanScores(){
-
-    }
-
 }
