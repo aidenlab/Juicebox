@@ -56,4 +56,16 @@ class HighScore {
         this.i += offset;
         this.j += offset;
     }
+
+    public int getWidth() {
+        return Math.abs(j-i);
+    }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getJ() {
+        return j;
+    }
 }

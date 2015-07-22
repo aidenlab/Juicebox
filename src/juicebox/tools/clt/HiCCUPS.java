@@ -24,6 +24,8 @@
 
 package juicebox.tools.clt;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.HiCTools;
@@ -270,7 +272,7 @@ public class HiCCUPS extends JuiceboxCLT {
                 int[][] rcsHistV = ArrayTools.makeReverse2DCumulativeArray(histV);
 
                 for (int i = 0; i < w1; i++) {
-                    float[] unitPoissonPMF = ArrayTools.doubleArrayToFloatArray(ArrayTools.generatePoissonPMF(i, w2));
+                    float[] unitPoissonPMF = Floats.toArray(Doubles.asList(ArrayTools.generatePoissonPMF(i, w2)));
                     calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistBL, thresholdBL, fdrLogBL);
                     calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistDonut, thresholdDonut, fdrLogDonut);
                     calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistH, thresholdH, fdrLogH);

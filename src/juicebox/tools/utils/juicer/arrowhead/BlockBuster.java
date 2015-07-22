@@ -25,12 +25,15 @@
 package juicebox.tools.utils.juicer.arrowhead;
 
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by muhammadsaadshamim on 6/3/15.
@@ -60,10 +63,65 @@ public class BlockBuster {
         // high variance threshold, fewer blocks, high confidence
         List<HighScore> highConfidenceResults = callSubBlockbuster(zd, chrLength, 0.2f, 0.5f, null, null);
 
+        List<HighScore> uniqueBlocks = orderedSetDifference(results, highConfidenceResults);
+        List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
+
+        appendNonConflictingBlocks(highConfidenceResults, filteredUniqueBlocks);
 
         // TODO
         //diffBetweenResults(results, highConfidenceResults);
 
+    }
+
+    private static void appendNonConflictingBlocks(List<HighScore> mainList, List<HighScore> possibleAdditions) {
+
+        Map<Integer, HighScore> blockEdges = new HashMap<Integer, HighScore>();
+
+        for(HighScore score : mainList){
+            blockEdges.put(score.getI(), score);
+            blockEdges.put(score.getJ(), score);
+        }
+
+        for(HighScore score : possibleAdditions){
+            boolean doesNotConflict = true;
+
+            for(int k = score.getI(); k <= score.getJ() && doesNotConflict; k++){
+                if(blockEdges.containsKey(k)){
+                    doesNotConflict = false;
+                }
+            }
+
+            if(doesNotConflict){
+                mainList.add(score);
+                blockEdges.put(score.getI(), score);
+                blockEdges.put(score.getJ(), score);
+            }
+        }
+    }
+
+    private static List<HighScore> filterBlocksBySize(List<HighScore> largerList, int minWidth) {
+        List<HighScore> filteredList = new ArrayList<HighScore>();
+
+        for(HighScore score : largerList){
+            if(score.getWidth() > minWidth){
+                filteredList.add(score);
+            }
+        }
+
+        return filteredList;
+    }
+
+    public static List<HighScore> orderedSetDifference(List<HighScore> largerList, List<HighScore> shorterList) {
+
+        List<HighScore> diffList = new ArrayList<HighScore>();
+
+        for(HighScore score : largerList){
+            if(!shorterList.contains(score)){
+                diffList.add(score);
+            }
+        }
+
+        return diffList;
     }
 
     private static List<HighScore> callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,

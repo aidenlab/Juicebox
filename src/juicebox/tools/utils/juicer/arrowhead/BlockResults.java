@@ -24,12 +24,15 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Doubles;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -87,8 +90,10 @@ public class BlockResults {
             window = Math.min(window, n);
 
             double[] row = observed.getRow(i);
-            double[] A = ArrayTools.flipArray(ArrayTools.extractArray(row, i - window, i - gap));
-            double[] B = ArrayTools.extractArray(row, i + gap, i + window);
+
+            // in MATLAB second index inclusive, but for java need +1
+            double[] A = Doubles.toArray(Lists.reverse(Doubles.asList(Arrays.copyOfRange(row, i - window, i - gap + 1))));
+            double[] B = Arrays.copyOfRange(row, i + gap, i + window + 1);
 
             double[] preference = new double[A.length];
             for (int j = 0; j < A.length; j++) {
