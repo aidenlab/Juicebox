@@ -1550,7 +1550,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                colorRangeSlider.setMaximum(Math.min(colorRangeSlider.getMaximum() * 2,(Integer.MAX_VALUE)));
+                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2,1),(Integer.MAX_VALUE)));
 
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
