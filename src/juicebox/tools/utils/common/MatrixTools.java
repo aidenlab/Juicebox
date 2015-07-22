@@ -124,18 +124,6 @@ public class MatrixTools {
         }
     }
 
-    public static double[] sliceFromVector(double[]  vector, int bound1, int bound2) {
-
-        int n = bound2 - bound1;
-        double[] slicedVector = new double[n];
-
-        for(int i = 0; i < n; i++){
-            slicedVector[i] = vector[bound1+i];
-        }
-
-        return slicedVector;
-    }
-
     public static float[][] reshapeFlatMatrix(float[] flatMatrix, int n) {
         float[][] squareMatrix = new float[n][n];
 

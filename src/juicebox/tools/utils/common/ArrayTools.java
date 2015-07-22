@@ -24,6 +24,10 @@
 
 package juicebox.tools.utils.common;
 
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.util.Arrays;
@@ -39,30 +43,6 @@ public class ArrayTools {
             System.arraycopy(original[i], 0, copy[i], 0, original[i].length);
         }
         return copy;
-    }
-
-    public static int arrayMax(int[] array) {
-        int max = array[0];
-        for (int val : array)
-            if (val > max)
-                max = val;
-        return max;
-    }
-
-    public static double arrayMax(double[] array) {
-        double max = array[0];
-        for (double val : array)
-            if (val > max)
-                max = val;
-        return max;
-    }
-
-    public static int arrayMin(int[] array) {
-        int min = array[0];
-        for (int val : array)
-            if (val < min)
-                min = val;
-        return min;
     }
 
     /**
@@ -86,15 +66,6 @@ public class ArrayTools {
         return poissonPMF;
     }
 
-    public static float[] doubleArrayToFloatArray(double[] doubleArray){
-        float[] floatArray = new float[doubleArray.length];
-        for (int i = 0 ; i < doubleArray.length; i++)
-        {
-            floatArray[i] = (float) doubleArray[i];
-        }
-        return floatArray;
-    }
-
     public static float[] makeReverseCumulativeArray(float[] inputArray) {
         float[] outputArray = new float[inputArray.length];
         float total = 0f;
@@ -113,27 +84,6 @@ public class ArrayTools {
             outputArray[i] = total;
         }
         return outputArray;
-    }
-
-    /**
-     * inclusive both ends
-     * @param array
-     * @param start index
-     * @param end index (inclusive)
-     */
-    public static double[] extractArray(double[] array, int start, int end) {
-        double[] array2 = new double[end - start + 1];
-        System.arraycopy(array, start, array2, 0, array2.length);
-        return array2;
-    }
-
-    public static double[] flipArray(double[] array) {
-        int n = array.length;
-        double[] array2 = new double[n];
-        for(int i = 0; i < n; i++){
-            array2[i] = array[n-i];
-        }
-        return array2;
     }
 
     public static float[] newValueInitializedFloatArray(int n, float val) {

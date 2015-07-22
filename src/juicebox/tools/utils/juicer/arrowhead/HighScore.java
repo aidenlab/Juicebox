@@ -56,4 +56,61 @@ class HighScore {
         this.i += offset;
         this.j += offset;
     }
+
+    public int getWidth() {
+        return Math.abs(j-i);
+    }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getJ() {
+        return j;
+    }
+
+    private double getLoSign() {
+        return loSign;
+    }
+
+    private double getScore() {
+        return score;
+    }
+
+    private double getuVarScore() {
+        return uVarScore;
+    }
+
+    private double getlVarScore() {
+        return lVarScore;
+    }
+
+    private double getUpSign() {
+        return upSign;
+    }
+
+    @Override
+    public boolean equals(Object object){
+        if (this == object)
+            return true;
+        if (object == null)
+            return false;
+        if (getClass() != object.getClass())
+            return false;
+        final HighScore o = (HighScore) object;
+        return i == o.getI()
+                && j == o.getJ()
+                && score == o.getScore()
+                && uVarScore == o.getuVarScore()
+                && lVarScore == o.getlVarScore()
+                && upSign == o.getUpSign()
+                && loSign == o.loSign;
+    }
+
+    @Override
+    public int hashCode(){
+        return 7*(i+j)*(int)Math.floor(score+uVarScore+lVarScore+upSign+loSign);
+    }
+
+
 }

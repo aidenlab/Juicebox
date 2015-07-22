@@ -212,6 +212,10 @@
       <zipfileset dir="${juicebox.output.dir}"/>
       <zipfileset src="${basedir}/lib/igv.jar"/>
       <zipfileset src="${basedir}/lib/htsjdk-1.123.jar"/>
+      <zipfileset src="${basedir}/lib/guava-18.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda-0.7.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcudaUtils-0.0.4.jar"/>
+      <zipfileset src="${basedir}/lib/lwjgl.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
   </target>
@@ -224,6 +228,10 @@
       <zipfileset dir="${juicebox.output.dir}"/>
       <zipfileset src="${basedir}/lib/igv.jar"/>
       <zipfileset src="${basedir}/lib/htsjdk-1.123.jar"/>
+      <zipfileset src="${basedir}/lib/guava-18.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda-0.7.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcudaUtils-0.0.4.jar"/>
+      <zipfileset src="${basedir}/lib/lwjgl.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox_CLT.jar"/>
   </target>

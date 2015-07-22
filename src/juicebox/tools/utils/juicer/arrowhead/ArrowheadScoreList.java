@@ -24,23 +24,42 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import juicebox.tools.clt.Arrowhead;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 7/20/15.
  */
 public class ArrowheadScoreList {
 
-    private Set<ArrowheadScore> arrowheadScores = new HashSet<ArrowheadScore>();
+    private List<ArrowheadScore> arrowheadScores = new ArrayList<ArrowheadScore>();
+
+    public ArrowheadScoreList() {}
+
+    public ArrowheadScoreList(Set<int[]> indicesSet) {
+        for(int[] indices : indicesSet){
+            arrowheadScores.add(new ArrowheadScore(indices));
+        }
+    }
+
+    private ArrowheadScoreList(List<ArrowheadScore> dataList) {
+        for(ArrowheadScore data : dataList){
+            arrowheadScores.add(new ArrowheadScore(data));
+        }
+    }
+
+    public ArrowheadScoreList deepCopy() {
+        return new ArrowheadScoreList(arrowheadScores);
+    }
 
     public void updateActiveIndexScores(RealMatrix blockScore) {
 
         for (ArrowheadScore score : arrowheadScores) {
             if (score.isActive) {
-                score.setScore(MatrixTools.calculateMax(MatrixTools.getSubMatrix(blockScore, score.indices)));
+                score.updateScore(MatrixTools.calculateMax(MatrixTools.getSubMatrix(blockScore, score.indices)));
             }
         }
     }
@@ -57,27 +76,65 @@ public class ArrowheadScoreList {
         }
     }
 
+    public void addAll(ArrowheadScoreList arrowheadScoreList) {
+        arrowheadScores.addAll(arrowheadScoreList.arrowheadScores);
+    }
+
+    public void mergeScores() {
+        List<ArrowheadScore> mergedScores = new ArrayList<ArrowheadScore>();
+
+        for(ArrowheadScore aScore : arrowheadScores){
+            boolean valueNotFound = true;
+            for(ArrowheadScore mScore : mergedScores){
+                if(aScore.equivalentTo(mScore)){
+                    mScore.updateScore(aScore.score);
+                    valueNotFound = false;
+                    break;
+                }
+            }
+
+            if(valueNotFound){
+                mergedScores.add(aScore);
+            }
+        }
+        arrowheadScores = mergedScores;
+    }
+
 
     private class ArrowheadScore{
         private int[] indices = new int[4];
         private double score = Double.NaN;
         private boolean isActive = false;
 
-        public void setScore(double score) {
+        public ArrowheadScore(int[] indices){
+            System.arraycopy(indices, 0, this.indices, 0, 4);
+        }
+
+        // use for deep copying
+        public ArrowheadScore(ArrowheadScore arrowheadScore){
+            System.arraycopy(arrowheadScore.indices, 0, this.indices, 0, 4);
+            this.score = arrowheadScore.score;
+            this.isActive = arrowheadScore.isActive;
+        }
+
+        public void updateScore(double score) {
             if(Double.isNaN(this.score))
                 this.score = score;
             else if(!Double.isNaN(score))
                 this.score = Math.max(score, this.score);
         }
 
+        // fully contained within bounds
         public boolean isWithin(int limStart, int limEnd) {
-
             boolean containedInBounds = true;
             for(int index : indices){
-                containedInBounds &= index >= limStart && index <= limEnd;
+                containedInBounds = containedInBounds && index >= limStart && index <= limEnd;
             }
-
             return containedInBounds;
+        }
+
+        public boolean equivalentTo(ArrowheadScore mScore) {
+            return Arrays.equals(indices,mScore.indices);
         }
     }
 }

@@ -25,6 +25,8 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
@@ -35,6 +37,9 @@ import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
+
+import java.util.Arrays;
+
 import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 
 public class GPUController {
@@ -67,13 +72,15 @@ public class GPUController {
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
 
-        float[] observedVals = ArrayTools.doubleArrayToFloatArray(MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData));
+
+        float[] observedVals = Floats.toArray(Doubles.asList(MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData)));
 
         // slice KR vector to localized region
-        float[] distanceExpectedKRVector = ArrayTools.doubleArrayToFloatArray(expectedVector);
+        float[] distanceExpectedKRVector = Floats.toArray(Doubles.asList(expectedVector));
 
-        float[] kr1CPU = ArrayTools.doubleArrayToFloatArray(MatrixTools.sliceFromVector(normalizationVector, rowBounds[0], rowBounds[1]));
-        float[] kr2CPU = ArrayTools.doubleArrayToFloatArray(MatrixTools.sliceFromVector(normalizationVector, columnBounds[0], columnBounds[1]));
+
+        float[] kr1CPU = Floats.toArray(Doubles.asList(Arrays.copyOfRange(normalizationVector, rowBounds[0], rowBounds[1])));
+        float[] kr2CPU = Floats.toArray(Doubles.asList(Arrays.copyOfRange(normalizationVector, columnBounds[0], columnBounds[1])));
 
         if(kr1CPU.length < matrixSize)
             kr1CPU = ArrayTools.padEndOfArray(kr1CPU, matrixSize, Float.NaN);
