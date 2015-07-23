@@ -37,7 +37,7 @@ import org.w3c.dom.*;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class readXMLForReload {
+public class ReadXMLForReload {
 
     private HiC hic;
 
@@ -61,7 +61,7 @@ public class readXMLForReload {
     private String LoadedTrackNames = null;
     private String[] infoForReload;
 
-    public readXMLForReload(HiC hic){this.hic = hic;}
+    public ReadXMLForReload(HiC hic){this.hic = hic;}
 
 
     public boolean readXML(String xml, String mapSelection) {
