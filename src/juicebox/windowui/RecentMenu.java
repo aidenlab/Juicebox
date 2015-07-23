@@ -50,6 +50,7 @@ public abstract class RecentMenu extends JMenu {
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private List<String> m_items = new ArrayList<String>();
     File currentStates = new File(HiCGlobals.stateFileName);
+    File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);
@@ -92,6 +93,8 @@ public abstract class RecentMenu extends JMenu {
                 setEnabled(false);
                 try {
                     BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                    BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML,false));
+                    buffWriter.close();
                     bWriter.close();
                 } catch(IOException ex){
                     ex.printStackTrace();

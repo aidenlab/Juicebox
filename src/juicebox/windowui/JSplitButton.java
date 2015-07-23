@@ -42,7 +42,7 @@ import java.awt.image.BufferedImage;
  */
 public class JSplitButton extends AbstractButton implements Accessible {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 249426086343067971L;
     private static final String uiClassID = "ButtonUI";
     private static final int DEFAULT_POPUP_ICON_LENGTH = 10;
     private static final String ALWAYS_SHOWS_POPUP_CHANGED_PROPERTY =
@@ -679,7 +679,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
 
     private class AccessibleJSplitButton extends AccessibleAbstractButton {
 
-        private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 4456023430055534939L;
 
         /* (non-Javadoc)
          * @see javax.swing.JComponent.

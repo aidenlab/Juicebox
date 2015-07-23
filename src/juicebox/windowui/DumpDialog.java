@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class DumpDialog extends JFileChooser {
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = -9074804975107889779L;
     private JComboBox<String> box;
 
     /**

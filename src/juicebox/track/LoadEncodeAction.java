@@ -52,7 +52,7 @@ import java.util.List;
 public class LoadEncodeAction extends AbstractAction {
 
     private static final Logger log = Logger.getLogger(LoadEncodeAction.class);
-    private static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = 3033491284874081821L;
     private static final Map<String, Color> colors;
 
     static {
@@ -177,6 +177,7 @@ public class LoadEncodeAction extends AbstractAction {
     public void remove(ResourceLocator locator) {
         try {
             EncodeFileBrowser browser = EncodeFileBrowser.getInstance(genome);
+            assert browser != null;
             browser.remove(locator);
             loadedLocators.remove(locator);
         } catch (IOException e) {

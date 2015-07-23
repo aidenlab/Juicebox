@@ -42,7 +42,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 public class ResolutionControl extends JPanel {
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = -5982918928089196379L;
     private final ImageIcon lockOpenIcon;
     private final ImageIcon lockIcon;
     private final HiC hic;

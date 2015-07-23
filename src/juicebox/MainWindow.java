@@ -102,6 +102,10 @@ public class MainWindow extends JFrame {
     private static RecentMenu previousStates;
     private static JMenuItem refreshTest;
     File currentStates = new File("testStates");
+    private static JMenuItem exportMapAsFile;
+    private static JMenuItem importMapAsFile;
+    private static JMenuItem emailMap;
+    File fileForExport = new File(HiCGlobals.xmlFileName);
 
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
@@ -2187,22 +2191,23 @@ public class MainWindow extends JFrame {
         saveStateForReload.setText("Save current state");
         saveStateForReload.addActionListener(new ActionListener() {
 
-                public void actionPerformed(ActionEvent e) {
-                    //code to add a recent location to the menu
-                    String stateDescriptionString = hic.getDefaultLocationDescription();
-                    String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                            "Enter description for saved state:", stateDescriptionString);
-                    if (null != stateDescription) {
-                        getPrevousStateMenu().addEntry(stateDescription, true);
-                    }
-                    hic.storeStateID();
-                    try {
-                        hic.writeState();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent location to the menu
+                String stateDescriptionString = hic.getDefaultLocationDescription();
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved state:", stateDescriptionString);
+                if (null != stateDescription) {
+                    getPrevousStateMenu().addEntry(stateDescription, true);
                 }
-            });
+                hic.storeStateID();
+                try {
+                    hic.writeState();
+                    hic.writeStateForXML();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
 
         saveStateForReload.setEnabled(true);
         bookmarksMenu.add(saveStateForReload);
@@ -2231,6 +2236,7 @@ public class MainWindow extends JFrame {
                 hic.getMapPath(mapPath);
                 hic.clearTracksForReloadState();
                 hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
+                hic.readXML(mapPath);
                 updateThumbnail();
                 previousStates.setSelected(true);
             }
@@ -2238,9 +2244,29 @@ public class MainWindow extends JFrame {
         previousStates.setEnabled(true);
         bookmarksMenu.add(previousStates);
 
+        //---Export Menu-----
+        JMenu exportMenu = new JMenu("Share HiC Maps");
+
+        //---Export Maps----
+        exportMapAsFile = new JMenuItem();
+        exportMapAsFile.setText("Export Saved HiC Maps");
+        exportMapAsFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveFileDialog(fileForExport,previousStates.getItemCount());
+            }
+        });
+        exportMenu.add(exportMapAsFile);
+
+        //---Import Maps----
+        importMapAsFile = new JMenuItem();
+        importMapAsFile.setText("Import HiC Map From File");
+
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
+        menuBar.add(exportMenu);
         return menuBar;
     }
 

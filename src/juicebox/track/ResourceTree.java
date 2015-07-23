@@ -853,7 +853,7 @@ public class ResourceTree {
     static class ResourceEditor extends AbstractCellEditor
             implements TreeCellEditor {
 
-        private static final long serialVersionUID = 42L;
+        private static final long serialVersionUID = -5631405993171929756L;
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
 

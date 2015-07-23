@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SaveImageDialog extends JFileChooser {
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = -611947177404923808L;
     private JTextField width;
     private JTextField height;
 

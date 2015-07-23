@@ -46,8 +46,8 @@ public class XMLForReloadState {
 
     BufferedReader bufferedReader;
     StreamResult streamResult;
-    TransformerHandler transformerHandler;
     File currentStates = new File(HiCGlobals.stateFileName);
+    File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     Document xmlDoc;
     Element root;
@@ -58,9 +58,8 @@ public class XMLForReloadState {
 
     public void begin() {
         try {
-            bufferedReader = new BufferedReader(new FileReader(currentStates));
+            bufferedReader = new BufferedReader(new FileReader(JuiceboxStatesXML));
             streamResult = new StreamResult(currentStatesToXML);
-            //openXml();
             initXML();
             String str;
             String temp = bufferedReader.readLine();
@@ -74,34 +73,9 @@ public class XMLForReloadState {
         }
     }
 
-    /*public void openXml() throws ParserConfigurationException, TransformerConfigurationException, SAXException {
-
-        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-        transformerHandler = tf.newTransformerHandler();
-
-        // pretty XML output
-        Transformer serializer = transformerHandler.getTransformer();
-        serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-        transformerHandler.setResult(streamResult);
-        transformerHandler.startDocument();
-        transformerHandler.startElement(null, null, "Saved HiC States", null);
-    }
-
-    public void process(String s) throws SAXException {
-        transformerHandler.startElement(null, null, "State", null);
-        transformerHandler.characters(s.toCharArray(), 0, s.length());
-        transformerHandler.endElement(null, null, "State");
-    }
-
-    public void closeXml() throws SAXException {
-        transformerHandler.endElement(null, null, "Saved HiC States");
-        transformerHandler.endDocument();
-    }*/
 
     public void initXML() throws ParserConfigurationException{
-        // JAXP + DOM
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         DOMImplementation impl = builder.getDOMImplementation();
@@ -111,115 +85,131 @@ public class XMLForReloadState {
     }
 
     public void convert(String s) {
-        // Since the separator character "|" has special meaning
-        // with regular expression, we need to escape it.
-        String [] elements = s.split("\\$\\$");
-        String [] title = elements[0].split("--");
+
+        String[] elements = s.split("\\$\\$");
+        String[] title = elements[0].split("--");
+        String[] mapName = elements[1].split("\\@\\@");
         Element e0 = xmlDoc.createElement("STATE");
+        e0.setAttribute("SelectedPath",title[0]);
 
-        Element eMP = xmlDoc.createElement("MapPath");
+        Element eMapPath = xmlDoc.createElement("MapPath");
         Node nMP = xmlDoc.createTextNode(title[0]);
-        eMP.appendChild(nMP);
+        eMapPath.appendChild(nMP);
 
-        Element e1 = xmlDoc.createElement("Map");
-        Node n1 = xmlDoc.createTextNode(elements[1]);
-        e1.appendChild(n1);
+        Element eMap = xmlDoc.createElement("Map");
+        Node n1a = xmlDoc.createTextNode(mapName[0]);
+        eMap.appendChild(n1a);
 
-        Element e2 = xmlDoc.createElement("XChromosome");
+        Element eMapURL = xmlDoc.createElement("MapURL");
+        Node n1b = xmlDoc.createTextNode(mapName[1]);
+        eMapURL.appendChild(n1b);
+
+        Element XChromosome = xmlDoc.createElement("XChromosome");
         Node  n2 = xmlDoc.createTextNode(elements[2]);
-        e2.appendChild(n2);
+        XChromosome.appendChild(n2);
 
-        Element e3 = xmlDoc.createElement("YChromosome");
+        Element eYChromosome = xmlDoc.createElement("YChromosome");
         Node  n3 = xmlDoc.createTextNode(elements[3]);
-        e3.appendChild(n3);
+        eYChromosome.appendChild(n3);
 
-        Element e4 = xmlDoc.createElement("UnitName");
+        Element eUnitName = xmlDoc.createElement("UnitName");
         Node  n4 = xmlDoc.createTextNode(elements[4]);
-        e4.appendChild(n4);
+        eUnitName.appendChild(n4);
 
-        Element e5 = xmlDoc.createElement("BinSize");
+        Element eBinSize = xmlDoc.createElement("BinSize");
         Node  n5 = xmlDoc.createTextNode(elements[5]);
-        e5.appendChild(n5);
+        eBinSize.appendChild(n5);
 
-        Element e6 = xmlDoc.createElement("xOrigin");
+        Element eXOrigin = xmlDoc.createElement("xOrigin");
         Node  n6 = xmlDoc.createTextNode(elements[6]);
-        e6.appendChild(n6);
+        eXOrigin.appendChild(n6);
 
-        Element e7 = xmlDoc.createElement("yOrigin");
+        Element eYOrigin = xmlDoc.createElement("yOrigin");
         Node  n7 = xmlDoc.createTextNode(elements[7]);
-        e7.appendChild(n7);
+        eYOrigin.appendChild(n7);
 
-        Element e8 = xmlDoc.createElement("ScaleFactor");
+        Element eScaleFactor = xmlDoc.createElement("ScaleFactor");
         Node  n8 = xmlDoc.createTextNode(elements[8]);
-        e8.appendChild(n8);
+        eScaleFactor.appendChild(n8);
 
-        Element e9 = xmlDoc.createElement("DisplayOption");
+        Element eDisplayOption = xmlDoc.createElement("DisplayOption");
         Node  n9 = xmlDoc.createTextNode(elements[9]);
-        e9.appendChild(n9);
+        eDisplayOption.appendChild(n9);
 
-        Element e10 = xmlDoc.createElement("NormalizationType");
+        Element eNormalizationType = xmlDoc.createElement("NormalizationType");
         Node  n10 = xmlDoc.createTextNode(elements[10]);
-        e10.appendChild(n10);
+        eNormalizationType.appendChild(n10);
 
-        Element e11 = xmlDoc.createElement("MinColorVal");
+        Element eMinColorVal = xmlDoc.createElement("MinColorVal");
         Node  n11 = xmlDoc.createTextNode(elements[11]);
-        e11.appendChild(n11);
+        eMinColorVal.appendChild(n11);
 
-        Element e12 = xmlDoc.createElement("LowerColorVal");
+        Element eLowerColorVal = xmlDoc.createElement("LowerColorVal");
         Node  n12 = xmlDoc.createTextNode(elements[12]);
-        e12.appendChild(n12);
+        eLowerColorVal.appendChild(n12);
 
-        Element e13 = xmlDoc.createElement("UpperColorVal");
+        Element eUpperColorVal = xmlDoc.createElement("UpperColorVal");
         Node  n13 = xmlDoc.createTextNode(elements[13]);
-        e13.appendChild(n13);
+        eUpperColorVal.appendChild(n13);
 
-        Element e14 = xmlDoc.createElement("MaxColorVal");
+        Element eMaxColorVal = xmlDoc.createElement("MaxColorVal");
         Node  n14 = xmlDoc.createTextNode(elements[14]);
-        e14.appendChild(n14);
+        eMaxColorVal.appendChild(n14);
 
-        String tracks = "";
+        e0.appendChild(eMapPath);
+        e0.appendChild(eMap);
+        e0.appendChild(eMapURL);
+        e0.appendChild(XChromosome);
+        e0.appendChild(eYChromosome);
+        e0.appendChild(eUnitName);
+        e0.appendChild(eBinSize);
+        e0.appendChild(eXOrigin);
+        e0.appendChild(eYOrigin);
+        e0.appendChild(eScaleFactor);
+        e0.appendChild(eDisplayOption);
+        e0.appendChild(eNormalizationType);
+        e0.appendChild(eMinColorVal);
+        e0.appendChild(eLowerColorVal);
+        e0.appendChild(eUpperColorVal);
+        e0.appendChild(eMaxColorVal);
 
-        for(int i = 15; i<elements.length; i++){
-            tracks+=elements[i]+"$$";
+        //If tracks are loaded
+        if(elements.length >15 ) {
+            Element eLoadedTrackURLS = xmlDoc.createElement("LoadedTrackURLS");
+            Node n15 = xmlDoc.createTextNode(elements[15]);
+            eLoadedTrackURLS.appendChild(n15);
+
+            Element eLoadedTrackNames = xmlDoc.createElement("LoadedTrackNames");
+            Node n16 = xmlDoc.createTextNode(elements[16]);
+            eLoadedTrackNames.appendChild(n16);
+
+            e0.appendChild(eLoadedTrackURLS);
+            e0.appendChild(eLoadedTrackNames);
+        }
+        else{
+            Element eLoadedTrackURLS = xmlDoc.createElement("LoadedTrackURLS");
+            Node n15 = xmlDoc.createTextNode("none");
+            eLoadedTrackURLS.appendChild(n15);
+
+            Element eLoadedTrackNames = xmlDoc.createElement("LoadedTrackNames");
+            Node n16 = xmlDoc.createTextNode("none");
+            eLoadedTrackNames.appendChild(n16);
+
+            e0.appendChild(eLoadedTrackURLS);
+            e0.appendChild(eLoadedTrackNames);
         }
 
-        Element e15 = xmlDoc.createElement("LoadedTracks");
-        Node  n15 = xmlDoc.createTextNode(tracks);
-        e15.appendChild(n15);
-
-        e0.appendChild(eMP);
-        e0.appendChild(e1);
-        e0.appendChild(e2);
-        e0.appendChild(e3);
-        e0.appendChild(e4);
-        e0.appendChild(e5);
-        e0.appendChild(e6);
-        e0.appendChild(e7);
-        e0.appendChild(e8);
-        e0.appendChild(e9);
-        e0.appendChild(e10);
-        e0.appendChild(e11);
-        e0.appendChild(e12);
-        e0.appendChild(e13);
-        e0.appendChild(e14);
-        e0.appendChild(e15);
         root.appendChild(e0);
     }
 
-    public void writeXML() throws TransformerConfigurationException,
-            TransformerException {
+    public void writeXML() throws TransformerException {
         DOMSource domSource = new DOMSource(xmlDoc);
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();
-        //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.setOutputProperty(OutputKeys.METHOD, "xml");
         transformer.setOutputProperty(OutputKeys.ENCODING,"ISO-8859-1");
-        // we want to pretty format the XML output
-        // note : this is broken in jdk1.5 beta!
-        transformer.setOutputProperty
-                ("{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        //
         transformer.transform(domSource, streamResult);
 
     }

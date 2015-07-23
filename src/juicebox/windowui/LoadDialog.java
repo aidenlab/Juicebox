@@ -38,7 +38,7 @@ import java.util.List;
 
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
-    private static final long serialVersionUID = 421L;
+    private static final long serialVersionUID = 3238446384712613064L;
     private final boolean success;
     private final MainWindow mainWindow;
     private JTree tree;
@@ -198,7 +198,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private void colorSearchStrings(final String[] parts) {
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
-            private static final long serialVersionUID = 422L;
 
             @Override
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
