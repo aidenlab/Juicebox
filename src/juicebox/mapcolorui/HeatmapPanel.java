@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,12 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
-import juicebox.track.feature.Feature2D;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.Feature2D;
+import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
-import juicebox.windowui.EditFeatureAttributesDialog;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -46,7 +46,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -488,7 +491,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void launchColorSelectionMenu(Pair<Rectangle, Feature2D> selectedFeaturePair) {
         JColorChooser colorChooser = new JColorChooser(selectedFeaturePair.getSecond().getColor());
         JDialog dialog = JColorChooser.createDialog(new JPanel(null), "feature Color Selection", true, colorChooser,
-                (ActionListener)null, (ActionListener)null);
+                null, null);
         dialog.setVisible(true);
         Color c = colorChooser.getColor();
         if(c != null) {
@@ -496,7 +499,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    JidePopupMenu getPopupMenu() {
+    private JidePopupMenu getPopupMenu() {
 
         JidePopupMenu menu = new JidePopupMenu();
 
@@ -671,7 +674,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 new EditFeatureAttributesDialog(mostRecentRectFeaturePair.getSecond(),
-                        mainWindow.customAnnotations);
+                        MainWindow.customAnnotations);
             }
         });
 

@@ -35,13 +35,13 @@ import java.util.Map;
  * Created by muhammadsaadshamim on 6/8/15.
  */
 public class HighScore implements Comparable<HighScore>{
-    private int i;
-    private int j;
     private final double score;
     private final double uVarScore;
     private final double lVarScore;
     private final double upSign;
     private final double loSign;
+    private int i;
+    private int j;
 
     public HighScore(int i, int j, double score, double uVarScore, double lVarScore,
                      double upSign, double loSign) {
@@ -52,6 +52,10 @@ public class HighScore implements Comparable<HighScore>{
         this.lVarScore = lVarScore;
         this.upSign = upSign;
         this.loSign = loSign;
+    }
+
+    private static int compare(double x, double y) {
+        return (x < y) ? -1 : ((x == y) ? 0 : 1);
     }
 
     public String toString() {
@@ -118,7 +122,6 @@ public class HighScore implements Comparable<HighScore>{
         return 7*(i+j)*(int)Math.floor(score+uVarScore+lVarScore+upSign+loSign);
     }
 
-
     @Override
     public int compareTo(HighScore o) {
         return compare(this.sortValue(), o.sortValue());
@@ -126,10 +129,6 @@ public class HighScore implements Comparable<HighScore>{
 
     private double sortValue() {
         return uVarScore + lVarScore;
-    }
-
-    public static int compare(double x, double y) {
-        return (x < y) ? -1 : ((x == y) ? 0 : 1);
     }
 
     public Feature2D toFeature2D(String chrName, int res) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,8 +48,8 @@ public abstract class RecentMenu extends JMenu {
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private List<String> m_items = new ArrayList<String>();
-    File currentStates = new File(HiCGlobals.stateFileName);
-    File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private File currentStates = new File(HiCGlobals.stateFileName);
+    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -393,7 +393,7 @@ public class Preprocessor {
      * @return Matrix with counts in each bin
      * @throws IOException
      */
-    public MatrixPP computeWholeGenomeMatrix(String file) throws IOException {
+    private MatrixPP computeWholeGenomeMatrix(String file) throws IOException {
 
 
         MatrixPP matrix;
@@ -482,7 +482,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
     }
 
-    public void updateMasterIndex() throws IOException {
+    private void updateMasterIndex() throws IOException {
         RandomAccessFile raf = null;
         try {
             raf = new RandomAccessFile(outputFile, "rw");
@@ -499,7 +499,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     }
 
 
-    public void writeFooter() throws IOException {
+    private void writeFooter() throws IOException {
 
         // Index
         BufferedByteWriter buffer = new BufferedByteWriter();
@@ -545,7 +545,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         los.write(bytes);
     }
 
-    public synchronized void writeMatrix(MatrixPP matrix) throws IOException {
+    private synchronized void writeMatrix(MatrixPP matrix) throws IOException {
 
         long position = los.getWrittenCount();
 
@@ -818,7 +818,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         return bos.toByteArray();
     }
 
-    static interface BlockQueue {
+    interface BlockQueue {
 
         void advance() throws IOException;
 

@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
-import juicebox.tools.clt.Arrowhead;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -42,12 +41,6 @@ public class ArrowheadScoreList {
     private List<ArrowheadScore> arrowheadScores = new ArrayList<ArrowheadScore>();
 
     public ArrowheadScoreList() {}
-
-    public ArrowheadScoreList(Set<int[]> indicesSet) {
-        for(int[] indices : indicesSet){
-            arrowheadScores.add(new ArrowheadScore(indices));
-        }
-    }
 
     private ArrowheadScoreList(List<ArrowheadScore> dataList) {
         for(ArrowheadScore data : dataList){

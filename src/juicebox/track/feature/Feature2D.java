@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,8 @@ import java.util.Map;
  */
 public class Feature2D {
 
+    private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
     public static String peak = "Peak";
     public static String domain = "Contact domain";
     public static String generic = "feature";
@@ -55,10 +57,9 @@ public class Feature2D {
     private final String chr2;
     private final int start2;
     private final int end2;
+    private final String featureName;
     private Color color;
     private Map<String, String> attributes;
-    private final String featureName;
-
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -71,6 +72,10 @@ public class Feature2D {
         this.end2 = end2;
         this.color = (c == null ? Color.black : c);
         this.attributes = attributes;
+    }
+
+    public static String getDefaultOutputFileHeader() {
+        return genericHeader;
     }
 
     public String getFeatureName(){ return featureName; }
@@ -107,18 +112,13 @@ public class Feature2D {
         return (int) (start + (end - start)/2.0);
     }
 
-    public void setColor(Color color){
-        this.color = color;
-    }
-
     public Color getColor() {
         return color;
     }
 
-
-
-
-    private static final String[] categories = new String[] {"observed", "coordinate","enriched","expected", "fdr"};
+    public void setColor(Color color) {
+        this.color = color;
+    }
 
     public String tooltipText() {
 
@@ -213,12 +213,8 @@ public class Feature2D {
         return txt.toString();
     }
 
-    public static String getDefaultOutputFileHeader() {
-        return "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
-    }
-
     public String getOutputFileHeader(){
-        String output = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+        String output = genericHeader;
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);

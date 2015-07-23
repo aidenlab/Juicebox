@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,6 +66,43 @@ public class Feature2DList {
     }
 
     /**
+     * remove duplicates by using a hashset intermediate
+     *
+     * @param features
+     * @return
+     */
+    private static ArrayList<Feature2D> filterFeaturesByUniqueness(List<Feature2D> features) {
+        return new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+    }
+
+    /**
+     * Size filtering of loops
+     *
+     * @param features
+     * @param minPeakDist
+     * @param maxPeakDist
+     * @return
+     */
+    private static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
+                                                             double minPeakDist, double maxPeakDist, int resolution) {
+
+        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
+
+        for (Feature2D feature : features) {
+            double xMidPt = feature.getMidPt1();
+            double yMidPt = feature.getMidPt2();
+            int dist = (int) Math.round(Math.abs(xMidPt - yMidPt) / resolution);
+
+            if (dist >= minPeakDist) {
+                if (dist <= maxPeakDist) {
+                    sizeFilteredFeatures.add(feature);
+                }
+            }
+        }
+        return new ArrayList<Feature2D>(sizeFilteredFeatures);
+    }
+
+    /**
      * Returns list of features on this chromosome pair
      *
      * @param chr1Idx First chromosome index
@@ -96,7 +133,7 @@ public class Feature2DList {
 
     }
 
-    public void addByKey(String key, Feature2D feature){
+    private void addByKey(String key, Feature2D feature) {
 
         List<Feature2D> loops = featureList.get(key);
         if (loops == null) {
@@ -189,43 +226,6 @@ public class Feature2DList {
     }
 
     /**
-     * remove duplicates by using a hashset intermediate
-     *
-     * @param features
-     * @return
-     */
-    private static ArrayList<Feature2D> filterFeaturesByUniqueness(List<Feature2D> features) {
-        return new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
-    }
-
-    /**
-     * Size filtering of loops
-     *
-     * @param features
-     * @param minPeakDist
-     * @param maxPeakDist
-     * @return
-     */
-    private static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
-                                                             double minPeakDist, double maxPeakDist, int resolution) {
-
-        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
-
-        for (Feature2D feature : features) {
-            double xMidPt = feature.getMidPt1();
-            double yMidPt = feature.getMidPt2();
-            int dist = (int)Math.round(Math.abs(xMidPt - yMidPt)/resolution);
-
-            if (dist >= minPeakDist) {
-                if (dist <= maxPeakDist) {
-                    sizeFilteredFeatures.add(feature);
-                }
-            }
-        }
-        return new ArrayList<Feature2D>(sizeFilteredFeatures);
-    }
-
-    /**
      * [NumUniqueFiltered, NumUnique, NumTotal]
      *
      * @param chr
@@ -299,12 +299,7 @@ public class Feature2DList {
      * @return feature
      */
     public Feature2D extractSingleFeature() {
-        for (String key : featureList.keySet()) {
-            for (Feature2D feature : featureList.get(key)) {
-                return feature;
-            }
-        }
-        return null;
+        return featureList.get(featureList.keySet().iterator().next()).iterator().next();
     }
 
     /*
@@ -445,7 +440,7 @@ public class Feature2DList {
      * Get all keys (chromosome pairs) for hashmap
      * @return keySet
      */
-    protected Set<String> getKeySet() {
+    private Set<String> getKeySet() {
         return featureList.keySet();
     }
 
@@ -454,7 +449,7 @@ public class Feature2DList {
      * @param key
      * @return
      */
-    protected List<Feature2D> getFeatureList(String key){
+    private List<Feature2D> getFeatureList(String key) {
         return featureList.get(key);
     }
 

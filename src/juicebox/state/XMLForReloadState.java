@@ -24,18 +24,24 @@
 
 package juicebox.state;
 
-import java.io.*;
-
 import juicebox.HiCGlobals;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.*;
+import javax.xml.transform.stream.StreamResult;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 
 
 /**
@@ -44,13 +50,13 @@ import javax.xml.transform.stream.*;
 public class XMLForReloadState {
 
 
-    BufferedReader bufferedReader;
-    StreamResult streamResult;
     File currentStates = new File(HiCGlobals.stateFileName);
-    File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
-    File currentStatesToXML = new File(HiCGlobals.xmlFileName);
-    Document xmlDoc;
-    Element root;
+    private BufferedReader bufferedReader;
+    private StreamResult streamResult;
+    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private File currentStatesToXML = new File(HiCGlobals.xmlFileName);
+    private Document xmlDoc;
+    private Element root;
 
     public static void main (String args[]) {
         new XMLForReloadState().begin();
@@ -74,7 +80,7 @@ public class XMLForReloadState {
     }
 
 
-    public void initXML() throws ParserConfigurationException{
+    private void initXML() throws ParserConfigurationException {
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -84,7 +90,7 @@ public class XMLForReloadState {
         root = xmlDoc.getDocumentElement();
     }
 
-    public void convert(String s) {
+    private void convert(String s) {
 
         String[] elements = s.split("\\$\\$");
         String[] title = elements[0].split("--");
@@ -202,7 +208,7 @@ public class XMLForReloadState {
         root.appendChild(e0);
     }
 
-    public void writeXML() throws TransformerException {
+    private void writeXML() throws TransformerException {
         DOMSource domSource = new DOMSource(xmlDoc);
         TransformerFactory tf = TransformerFactory.newInstance();
         Transformer transformer = tf.newTransformer();

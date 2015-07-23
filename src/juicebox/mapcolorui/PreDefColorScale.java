@@ -26,12 +26,9 @@ package juicebox.mapcolorui;
 
 import org.broad.igv.renderer.ColorScale;
 
-import java.awt.Color;
-
+import java.awt.*;
 import java.util.ArrayList;
-
 import java.util.Collections;
-
 import java.util.List;
 
 
@@ -40,15 +37,68 @@ import java.util.List;
  */
 
 public class PreDefColorScale implements ColorScale{
-    private List<ColorMapEntry> colorList;
-    private String name;
     public static int defaultMaxPreDefVal = 5;
     private static double max;
     private static double min;
+    private List<ColorMapEntry> colorList;
+    private String name;
 
     // Private ctor to enforce use of create
     private PreDefColorScale() {
         super();
+    }
+
+    /**
+     * Creates a color map using the given colors/score values.
+     * Both arrays must have same length.
+     *
+     * @param name   the name of the color map
+     * @param colors the array containing the colors
+     * @param score  the score values
+     * @return the color map
+     */
+    public PreDefColorScale(String name, Color[] colors, int[] score) {
+        if (colors == null) {
+            throw new IllegalArgumentException("colors can't be null");
+        }
+        if (score == null) {
+            throw new IllegalArgumentException("score can't be null");
+        }
+
+
+        if (colors.length != score.length) {
+            throw new IllegalArgumentException("Arrays colors and score must have same length: " + colors.length + " vs " + score.length);
+        }
+
+        colorList = new ArrayList<ColorMapEntry>();
+
+        for (int i = 0; i < score.length; i++) {
+            colorList.add(new ColorMapEntry(colors[i], score[i]));
+        }
+
+        // sort by score
+        Collections.sort(colorList);
+    }
+
+    private static Color smooth(java.awt.Color c1, java.awt.Color c2, double ratio) {
+        double r1 = 1 - ratio;
+        // clip
+        if (r1 < 0) r1 = 0d;
+        if (r1 > 1) r1 = 1d;
+        double r2 = 1 - r1;
+
+        int r = (int) Math.round((r1 * c1.getRed()) + (r2 * c2.getRed()));
+        int g = (int) Math.round((r1 * c1.getGreen()) + (r2 * c2.getGreen()));
+        int b = (int) Math.round((r1 * c1.getBlue()) + (r2 * c2.getBlue()));
+        return new Color(r, g, b);
+    }
+
+    public static double getMinimum() {
+        return min;
+    }
+
+    public static double getMaximum() {
+        return max;
     }
 
     public void setPreDefRange(double minCount, double maxCount) {
@@ -140,53 +190,6 @@ public class PreDefColorScale implements ColorScale{
         throw new RuntimeException("No Color found for given score " + score);
     }
 
-    public static Color smooth(java.awt.Color c1, java.awt.Color c2, double ratio) {
-        double r1 = 1 -ratio;
-        // clip
-        if (r1 < 0) r1 = 0d;
-        if (r1 > 1) r1 = 1d;
-        double r2 = 1 - r1;
-
-        int r = (int) Math.round((r1 * c1.getRed()) + (r2 * c2.getRed()));
-        int g = (int) Math.round((r1 * c1.getGreen()) + (r2 * c2.getGreen()));
-        int b = (int) Math.round((r1 * c1.getBlue()) + (r2 * c2.getBlue()));
-        return new Color(r, g, b);
-    }
-
-    /**
-     * Creates a color map using the given colors/score values.
-     * Both arrays must have same length.
-     *
-     * @param name the name of the color map
-     * @param colors the array containing the colors
-     * @param score the score values
-     * @return the color map
-     */
-    public PreDefColorScale(String name, Color[] colors, int[] score) {
-        if (colors == null)
-        {
-            throw new IllegalArgumentException("colors can't be null");
-        }
-        if (score == null)
-        {
-            throw new IllegalArgumentException("score can't be null");
-        }
-
-
-        if (colors.length != score.length) {
-            throw new IllegalArgumentException("Arrays colors and score must have same length: " + colors.length + " vs " + score.length);
-        }
-
-        colorList = new ArrayList<ColorMapEntry>();
-
-        for (int i = 0; i < score.length; i++) {
-            colorList.add(new ColorMapEntry(colors[i], score[i]));
-        }
-
-        // sort by score
-        Collections.sort(colorList);
-    }
-
     public Color getColor(String symbol) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
@@ -203,17 +206,9 @@ public class PreDefColorScale implements ColorScale{
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public static double getMinimum() {
-        return min;
-    }
-
-    public static double getMaximum() {
-        return max;
-    }
-
     class ColorMapEntry implements Comparable<ColorMapEntry> {
-        private double score; // limit
         private final Color color;
+        private double score; // limit
 
         public ColorMapEntry(Color color, double score) {
             super();

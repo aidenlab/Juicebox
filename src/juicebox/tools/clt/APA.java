@@ -51,23 +51,20 @@ import java.util.Set;
  */
 public class APA extends JuiceboxCLT {
 
+    public static final int regionWidth = 6; //size of boxes
+    private final boolean saveAllData = true;
     private String[] files;
-
-    public APA() {
-        super("APA [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
-    }
-
     //defaults
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
-    Set<String> givenChromosomes = null;
-    public static int regionWidth = 6; //size of boxes
+    private Set<String> givenChromosomes = null;
     //int peakwidth = 2; //for enrichment calculation of crosshair norm
     private int[] resolutions = new int[]{25000, 10000};
-    private final boolean saveAllData = true;
 
-    private final String workingdirectory = System.getProperty("user.dir");
+    public APA() {
+        super("APA [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+    }
 
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {

@@ -30,6 +30,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +51,7 @@ public class HiCFileTools {
      * @throws java.io.IOException if chromosome length file not found
      */
 
-    public static String tempPath = System.getProperty("user.dir");
+    private static String tempPath = System.getProperty("user.dir");
 
     public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 
@@ -187,8 +188,7 @@ public class HiCFileTools {
     public static PrintWriter openWriter(String fileName) {
         try {
             File file = new File(fileName);
-            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
-            return out;
+            return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
             System.out.println("I/O error opening file: "+ fileName);
             System.exit(0);
@@ -211,9 +211,8 @@ public class HiCFileTools {
         //try{
             //create a temp file
             String pathName = tempPath + "/" + prefix + ".txt";
-            File temp = new File(pathName);
-            //File temp = File.createTempFile(prefix, ".tmp");
-            return temp;
+        //File temp = File.createTempFile(prefix, ".tmp");
+        return new File(pathName);
 //        } catch (IOException e) {
 //            System.out.println("I/O error opening file temp file for AutoSave. ");
 //            System.exit(0);

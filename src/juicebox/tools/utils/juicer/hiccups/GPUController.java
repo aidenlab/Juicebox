@@ -32,6 +32,7 @@ import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
 import jcuda.utils.KernelLauncher;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.clt.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.common.MatrixTools;
@@ -45,12 +46,11 @@ import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 public class GPUController {
 
     private static final int blockSize = 16;  //number of threads in block
-    private static String kernelCode;
 
     private KernelLauncher kernelLauncher;
 
-    public GPUController(int window, int matrixSize, int peakWidth, int bufferWidth, int divisor) {
-        kernelCode = GPUKernel.kernelCode(window, matrixSize, peakWidth, bufferWidth, divisor);
+    public GPUController(int window, int matrixSize, int peakWidth, int divisor) {
+        String kernelCode = GPUKernel.kernelCode(window, matrixSize, peakWidth, HiCCUPS.regionMargin, divisor);
         kernelLauncher =
                 KernelLauncher.compile(kernelCode, GPUKernel.kernelName);
 

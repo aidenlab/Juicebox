@@ -64,7 +64,7 @@ public class MatrixTools {
         return minimumPositive(data.getData());
     }
 
-    public static double minimumPositive(double[][] data) {
+    private static double minimumPositive(double[][] data) {
         double minVal = Double.MAX_VALUE;
         for (double[] row : data) {
             for (double val : row) {

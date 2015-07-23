@@ -24,14 +24,9 @@
 
 package juicebox.tools.utils.common;
 
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
-import com.google.common.primitives.Ints;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 5/12/15.
@@ -85,7 +80,7 @@ public class ArrayTools {
         return outputArray;
     }
 
-    public static int[] makeReverseCumulativeArray(int[] inputArray) {
+    private static int[] makeReverseCumulativeArray(int[] inputArray) {
         int[] outputArray = new int[inputArray.length];
         int total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {

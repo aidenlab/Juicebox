@@ -259,6 +259,8 @@ public class ColorRangeDialog extends JDialog {
 
         JCheckBox preCB = new JCheckBox(new AbstractAction("Preset Map") {
 
+            private static final long serialVersionUID = 4201L;
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 JCheckBox cbLog = (JCheckBox) e.getSource();

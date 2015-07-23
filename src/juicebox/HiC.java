@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,27 +26,33 @@
 package juicebox;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.mapcolorui.HeatmapRenderer;
+import juicebox.state.ReadXMLForReload;
 import juicebox.state.ReloadPreviousState;
 import juicebox.state.XMLForReloadState;
-import juicebox.state.ReadXMLForReload;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
-import juicebox.windowui.*;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ResourceLocator;
-import com.google.common.base.Splitter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,9 +65,15 @@ import java.util.Map;
 public class HiC {
 
     private static final Logger log = Logger.getLogger(HiC.class);
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private static String mapName;
+    private static String stateID;
+    private static String mapPath;
     private final MainWindow mainWindow;
     private final Map<String, Feature2DList> loopLists;
     private final HiCTrackManager trackManager;
+    File currentStates = new File(HiCGlobals.stateFileName);
+    File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -75,16 +87,9 @@ public class HiC {
     private Context xContext;
     private Context yContext;
     private boolean showLoops;
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
     private HeatmapRenderer heatmapRenderer;
     private List<HiCTrack> trackLabels;
-    File currentStates = new File(HiCGlobals.stateFileName);
-    File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
-    File currentStatesToXML = new File(HiCGlobals.xmlFileName);
-    private static String mapName;
-    private static String stateID;
-    private static String mapPath;
-
+    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private EncodeFileBrowser encodeFileBrowser;
     private TrackConfigDialog configDialog;
     private HiCTrack hiCTrack;
@@ -270,7 +275,7 @@ public class HiC {
         return zoom;
     }
 
-    public MatrixZoomData setZoomDataForReloadState(HiCZoom newZoom, Chromosome crX,Chromosome crY){
+    private MatrixZoomData setZoomDataForReloadState(HiCZoom newZoom, Chromosome crX, Chromosome crY) {
 
         Matrix matrix = dataset.getMatrix(crX,crY);
         matrixForReloadState = matrix.getZoomData(newZoom);
@@ -669,7 +674,7 @@ public class HiC {
 
     }
 
-    public void loadLoopList(String path) throws IOException {
+    public void loadLoopList(String path) {
 
         if (loopLists.get(path) != null) {
             loopLists.get(path).setVisible(true);
@@ -726,7 +731,8 @@ public class HiC {
         }
 
     }
-    public void storeMapName(){
+
+    private void storeMapName() {
         mapName=mainWindow.getRecentMapMenu().getRecentMapName();
     }
     public void storeStateID(){
@@ -740,7 +746,7 @@ public class HiC {
         return mapPath;
     }
 
-    public void resetMap(String[] temp){
+    private void resetMap(String[] temp) {
         boolean control = isControlLoaded();
         List<String> files = new ArrayList<String>();
         files.add(temp[1]);
@@ -768,10 +774,11 @@ public class HiC {
         };
         mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
     }
-    public void unsafeSetReloadState(String mapURL ,String chrXName, String chrYName, String unitName, int binSize,
-                                     double xOrigin, double yOrigin, double scalefactor,
-                                     MatrixType displaySelection,NormalizationType normSelection,double minColor,double lowColor,
-                                     double upColor,double maxColor,ArrayList<String> trackNames) throws IOException{
+
+    private void unsafeSetReloadState(String mapURL, String chrXName, String chrYName, String unitName, int binSize,
+                                      double xOrigin, double yOrigin, double scalefactor,
+                                      MatrixType displaySelection, NormalizationType normSelection, double minColor, double lowColor,
+                                      double upColor, double maxColor, ArrayList<String> trackNames) throws IOException {
 
         boolean control = isControlLoaded();
         String delimeter = "@@";
@@ -949,7 +956,7 @@ public class HiC {
                 }
 
             }
-        } catch (IOException e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -996,7 +1003,7 @@ public class HiC {
             yChr = "chr" + yChr;
         }
 
-        String command = "setstate " +
+        return "setstate " +
                 xChr + " " +
                 yChr + " " +
                 zoom.getUnit().toString() + " " +
@@ -1004,12 +1011,10 @@ public class HiC {
                 xContext.getBinOrigin() + " " +
                 yContext.getBinOrigin() + " " +
                 getScaleFactor();
-
-        return command;
         // CommandBroadcaster.broadcast(command);
     }
     // Creating XML file
-    public void createXMLForReload(File tempState){
+    private void createXMLForReload(File tempState) {
         XMLForReloadState xml = new XMLForReloadState();
         xml.begin();
     }
@@ -1019,7 +1024,7 @@ public class HiC {
         readFile.readXML(HiCGlobals.xmlFileName, mapPath);
     }
 
-    public void writeState() throws IOException{
+    public void writeState() {
         try {
             BufferedWriter buffWriter = new BufferedWriter(new FileWriter(currentStates,true));
             String xChr = xContext.getChromosome().getName();
@@ -1085,7 +1090,7 @@ public class HiC {
         }
     }
 
-    public void writeStateForXML() throws IOException{
+    public void writeStateForXML() {
         try {
             BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML,true));
             String xChr = xContext.getChromosome().getName();
@@ -1166,12 +1171,10 @@ public class HiC {
             yChr = "chr" + yChr;
         }
 
-        String command = xChr + "@" +
+        return xChr + "@" +
                 (long) (xContext.getBinOrigin() * zoom.getBinSize()) + "_" +
                 yChr + "@" +
                 (long) (yContext.getBinOrigin() * zoom.getBinSize());
-
-        return command;
         // CommandBroadcaster.broadcast(command);
     }
 
@@ -1191,8 +1194,6 @@ public class HiC {
             broadcastState();
         }
     }
-
-    public enum Unit {BP, FRAG}
 
     public int validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
@@ -1245,5 +1246,7 @@ public class HiC {
         binSizeDictionary.put("2f", 2);
         binSizeDictionary.put("1f", 1);
     }
+
+    public enum Unit {BP, FRAG}
 }
 

@@ -147,7 +147,7 @@ public class BlockBuster {
         return filteredList;
     }
 
-    public static List<HighScore> orderedSetDifference(List<HighScore> longerList, List<HighScore> shorterList) {
+    private static List<HighScore> orderedSetDifference(List<HighScore> longerList, List<HighScore> shorterList) {
 
         // remove duplicates
         Set<HighScore> longerSet = new HashSet<HighScore>(longerList);

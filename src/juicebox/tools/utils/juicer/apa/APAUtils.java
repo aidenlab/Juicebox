@@ -44,22 +44,6 @@ import java.util.Set;
  */
 public class APAUtils {
 
-    private final static double epsilon = 1e-6;
-
-    /**
-     * creates a range of integers
-     *
-     * @param start
-     * @param stop
-     * @return
-     */
-    private static int[] range(int start, int stop) {
-        int[] result = new int[stop - start];// TODO think a +1 is missing (stop inclusive?)
-        for (int i = 0; i < stop - start; i++)
-            result[i] = start + i;
-        return result;
-    }
-
     /**
      * @param filename
      * @param matrix

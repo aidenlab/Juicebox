@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -145,7 +145,7 @@ public class HiCFragmentAxis implements HiCGridAxis {
      * @param position The genome position to search for within that array
      * @return The fragment location such that position >= sites[retVal-1] and position <  sites[retVal]
      */
-    public int getFragmentNumberForGenomicPosition(int position) {
+    private int getFragmentNumberForGenomicPosition(int position) {
 
         int lo = 0;
         int hi = sites.length - 1;

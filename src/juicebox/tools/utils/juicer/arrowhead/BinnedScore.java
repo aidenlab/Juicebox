@@ -56,6 +56,15 @@ public class BinnedScore {
         appendDataValues(score);
     }
 
+    public static List<HighScore> convertBinnedScoresToHighScores(List<BinnedScore> binnedScores) {
+
+        List<HighScore> highScores = new ArrayList<HighScore>();
+        for (BinnedScore score : binnedScores) {
+            highScores.add(score.convertToHighScore());
+        }
+        return highScores;
+    }
+
     public boolean isNear(HighScore score) {
         return (Math.abs(minX - score.getI()) < distanceThreshold || Math.abs(maxX - score.getI()) < distanceThreshold)
                 && (Math.abs(minY - score.getJ()) < distanceThreshold || Math.abs(maxY - score.getJ()) < distanceThreshold);
@@ -81,15 +90,6 @@ public class BinnedScore {
         loSigns.add(score.getLoSign());
     }
 
-    public static List<HighScore> convertBinnedScoresToHighScores(List<BinnedScore> binnedScores) {
-
-        List<HighScore> highScores = new ArrayList<HighScore>();
-        for(BinnedScore score : binnedScores){
-            highScores.add(score.convertToHighScore());
-        }
-        return highScores;
-    }
-
     private HighScore convertToHighScore() {
         HighScore highScore = new HighScore(maxX, maxY,
                 ArrayTools.mean(Doubles.toArray(scores)),
@@ -97,6 +97,6 @@ public class BinnedScore {
                 ArrayTools.mean(Doubles.toArray(lVarScores)),
                 ArrayTools.mean(Doubles.toArray(upSigns)),
                 ArrayTools.mean(Doubles.toArray(loSigns)));
-        return null;
+        return highScore;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -132,7 +132,7 @@ public class HiCLayout implements LayoutManager2,
     public void addLayoutComponent(Component comp, Object constraints) {
         synchronized (comp.getTreeLock()) {
             if ((constraints == null) || (constraints instanceof String)) {
-                addLayoutComponent((String) constraints, comp);
+                addLayoutComponent((String) constraints, comp); //TODO is deprecated
             } else {
                 throw new IllegalArgumentException("cannot add to layout: constraint must be a string (or null)");
             }

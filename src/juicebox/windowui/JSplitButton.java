@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -227,7 +227,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getIcon()
      * @see JSplitButton#setPopupIcon(Icon)
      */
-    public Icon getPopupIcon() {
+    private Icon getPopupIcon() {
         return popupButton.getIcon();
     }
 
@@ -261,7 +261,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getDisabledIcon()
      * @see JSplitButton#setDisabledPopupIcon(Icon)
      */
-    public Icon getDisabledPopupIcon() {
+    private Icon getDisabledPopupIcon() {
         return popupButton.getDisabledIcon();
     }
 
@@ -295,7 +295,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getDisabledSelectedIcon()
      * @see JSplitButton#setDisabledSelectedPopupIcon(Icon)
      */
-    public Icon getDisabledSelectedPopupIcon() {
+    private Icon getDisabledSelectedPopupIcon() {
         return popupButton.getDisabledSelectedIcon();
     }
 
@@ -325,7 +325,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getPressedIcon()
      * @see JSplitButton#setPressedPopupIcon(Icon)
      */
-    public Icon getPressedPopupIcon() {
+    private Icon getPressedPopupIcon() {
         return popupButton.getPressedIcon();
     }
 
@@ -353,7 +353,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getRolloverIcon()
      * @see JSplitButton#setRolloverPopupIcon(Icon)
      */
-    public Icon getRolloverPopupIcon() {
+    private Icon getRolloverPopupIcon() {
         return popupButton.getRolloverIcon();
     }
 
@@ -381,7 +381,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getRolloverSelectedIcon()
      * @see JSplitButton#setRolloverSelectedPopupIcon(Icon)
      */
-    public Icon getRolloverSelectedPopupIcon() {
+    private Icon getRolloverSelectedPopupIcon() {
         return popupButton.getRolloverSelectedIcon();
     }
 
@@ -409,7 +409,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getSelectedIcon()
      * @see JSplitButton#setSelectedPopupIcon(Icon)
      */
-    public Icon getSelectedPopupIcon() {
+    private Icon getSelectedPopupIcon() {
         return popupButton.getSelectedIcon();
     }
 
@@ -438,7 +438,7 @@ public class JSplitButton extends AbstractButton implements Accessible {
      * @see AbstractButton#getText()
      * @see JSplitButton#setMainText(String)
      */
-    public String getMainText() {
+    private String getMainText() {
         return mainButton.getText();
     }
 

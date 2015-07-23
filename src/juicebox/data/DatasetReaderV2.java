@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,8 +100,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     }
 
-    public MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
-                                             LittleEndianInputStream dis) throws IOException {
+    private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
+                                              LittleEndianInputStream dis) throws IOException {
 
         HiC.Unit unit = HiC.Unit.valueOf(dis.readString());
         dis.readInt();                // Old "zoom" index -- not used

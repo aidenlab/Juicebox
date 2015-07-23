@@ -141,7 +141,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
 
-    public void parsePositionText() {
+    private void parsePositionText() {
         //Expected format: <chr>:<start>-<end>:<resolution>
 
         String delimiters = "\\s+|:\\s*|\\-\\s*";

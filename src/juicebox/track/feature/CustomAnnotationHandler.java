@@ -32,13 +32,14 @@ import juicebox.track.HiCGridAxis;
 
 import java.awt.*;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.HashMap;
 
 /**
  * Created by Marie on 6/4/15.
  */
 public class CustomAnnotationHandler {
 
+    String id;
     // displacement in terms of gene pos
     private int peakDisplacement = 3;
     private PrintWriter outputFile;
@@ -47,12 +48,9 @@ public class CustomAnnotationHandler {
     private Rectangle selectionRegion;
     private Point selectionPoint;
     private HiC hic;
-    FeatureType featureType;
+    private FeatureType featureType;
     private boolean hasPoint, hasRegion;
-    MainWindow mainWindow;
-    String id;
-
-    enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
+    private MainWindow mainWindow;
 
     public CustomAnnotationHandler(MainWindow mainWindow, HiC hic){
         this.mainWindow = mainWindow;
@@ -70,17 +68,11 @@ public class CustomAnnotationHandler {
     }
 
     public boolean isEnabled() {
-        if (featureType != FeatureType.NONE){
-            return true;
-        }
-        return false;
+        return featureType != FeatureType.NONE;
     }
 
     public boolean isPeak() {
-        if (featureType == FeatureType.PEAK){
-            return true;
-        }
-        return false;
+        return featureType == FeatureType.PEAK;
     }
 
     public void doGeneric(){
@@ -91,7 +83,7 @@ public class CustomAnnotationHandler {
         featureType = FeatureType.PEAK;
     }
 
-    public void doDomain(){
+    private void doDomain() {
         featureType = FeatureType.DOMAIN;
     }
 
@@ -172,7 +164,7 @@ public class CustomAnnotationHandler {
 
                 //UNCOMMENT to take out annotation data
                 boolean exportData = true;
-                if (exportData == true){
+                if (exportData) {
                 int tempBinX0 = getXBin(selectionPoint.x);
                 int tempBinY0 = getYBin(selectionPoint.y);
                 int tempBinX, tempBinY;
@@ -268,10 +260,7 @@ public class CustomAnnotationHandler {
         int start1 = getXBin(x);
         int start2 = getYBin(y);
 
-        if (Math.abs(start1 - start2) < threshold){
-            return true;
-        }
-        return false;
+        return Math.abs(start1 - start2) < threshold;
     }
 
     private int getXBin(int x){
@@ -299,6 +288,8 @@ public class CustomAnnotationHandler {
         int binY = getYBin(y) + displacement;
         return yGridAxis.getGenomicStart(binY) + 1;
     }
+
+    enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
 
 
 }

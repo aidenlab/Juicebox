@@ -29,8 +29,6 @@ import juicebox.MainWindow;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by Zulkifl on 7/23/2015.
@@ -72,8 +70,6 @@ public class SaveFileDialog extends JFileChooser {
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
-
         }
-
     }
 }

@@ -36,11 +36,14 @@ import java.util.List;
  */
 public class CustomAnnotation {
 
-    Feature2DList customAnnotationList;
-    boolean isVisible, unsavedEdits, firstSave;
-    Feature2D lastItem;
-    int lastChr1Idx, lastChr2Idx;
-    String id;
+    private Feature2DList customAnnotationList;
+    private boolean isVisible;
+    private boolean unsavedEdits;
+    private boolean firstSave;
+    private Feature2D lastItem;
+    private int lastChr1Idx;
+    private int lastChr2Idx;
+    private String id;
     private PrintWriter tempWriter;
     private File tempFile;
     private ArrayList<String> attributeKeys;

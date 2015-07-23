@@ -115,7 +115,6 @@ public class APARegionStatistics {
     }
 
     public double[] getRegionCornerValues() {
-        double[] cornerValues = {peak2UL, peak2UR, peak2LL, peak2LR};
-        return cornerValues;
+        return new double[]{peak2UL, peak2UR, peak2LL, peak2LR};
     }
 }

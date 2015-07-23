@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,7 @@ package juicebox.mapcolorui;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.data.Dataset;
-import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.windowui.HiCZoom;
 
 import javax.swing.*;
 import java.awt.*;
@@ -111,7 +108,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
         });
     }
 
-    double xScale() {
+    private double xScale() {
         MatrixZoomData matrixZoomData;
         if(hic.getZd() == null && mainWindow.isReloadState()){
             matrixZoomData = hic.getZoomDataForReloadState();
@@ -124,7 +121,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
     }
 
-    double yScale() {
+    private double yScale() {
         MatrixZoomData matrixZoomData;
         if(hic.getZd() == null && mainWindow.isReloadState()){
             matrixZoomData = hic.getZoomDataForReloadState();

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.MainWindow;
+
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -39,8 +40,10 @@ import java.util.List;
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
     private static final long serialVersionUID = 3238446384712613064L;
+    private static boolean actionLock = false;
     private final boolean success;
     private final MainWindow mainWindow;
+    private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private JTree tree;
     private JSplitButton openButton;
     private JMenuItem openButton30;
@@ -48,9 +51,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JButton localButton;
     private JButton urlButton;
     private JTextField fTextField;
-    private static boolean actionLock = false;
     private boolean control;
-    private final String[] searchHighlightColors = {"#ff0000","#00ff00","#0000ff","#ff00ff","#00ffff","#ff9900","#ff66ff","#ffff00"};
 
     public LoadDialog(MainWindow mainWindow, Properties properties) {
         super(mainWindow, "Select file(s) to open");
@@ -169,6 +170,20 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     }
 
+    public static TreePath getPath(TreeNode treeNode) {
+        List<Object> nodes = new ArrayList<Object>();
+        if (treeNode != null) {
+            nodes.add(treeNode);
+            treeNode = treeNode.getParent();
+            while (treeNode != null) {
+                nodes.add(0, treeNode);
+                treeNode = treeNode.getParent();
+            }
+        }
+
+        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
     private JSplitButton createMAPQ0Button(String buttonText){
         JSplitButton button = new JSplitButton(buttonText);
         button.addActionListener(this);
@@ -198,6 +213,10 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private void colorSearchStrings(final String[] parts) {
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
+            private static final long serialVersionUID = 4231L;
+
+
+
 
             @Override
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
@@ -220,20 +239,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
     public boolean getSuccess() {
         return success;
-    }
-
-    public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<Object>();
-        if (treeNode != null) {
-            nodes.add(treeNode);
-            treeNode = treeNode.getParent();
-            while (treeNode != null) {
-                nodes.add(0, treeNode);
-                treeNode = treeNode.getParent();
-            }
-        }
-
-        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
     private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
