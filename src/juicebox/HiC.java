@@ -29,6 +29,9 @@ import com.google.common.base.CharMatcher;
 import juicebox.data.*;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.mapcolorui.HeatmapRenderer;
+import juicebox.state.ReloadPreviousState;
+import juicebox.state.XMLForReloadState;
+import juicebox.state.readXMLForReload;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
@@ -1013,7 +1016,7 @@ public class HiC {
 
     public void readXML(String mapPath){
         readXMLForReload readFile = new readXMLForReload(this);
-        readFile.readXML(HiCGlobals.xmlFileName,mapPath);
+        readFile.readXML(HiCGlobals.xmlFileName, mapPath);
     }
 
     public void writeState() throws IOException{

@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox;
+package juicebox.state;
 
 /**
  * Created by Zulkifl on 7/20/2015.

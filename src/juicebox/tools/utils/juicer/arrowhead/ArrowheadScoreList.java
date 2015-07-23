@@ -26,9 +26,13 @@ package juicebox.tools.utils.juicer.arrowhead;
 
 import juicebox.tools.clt.Arrowhead;
 import juicebox.tools.utils.common.MatrixTools;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
 import org.apache.commons.math.linear.RealMatrix;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 7/20/15.
@@ -100,6 +104,14 @@ public class ArrowheadScoreList {
         arrowheadScores = mergedScores;
     }
 
+    public Feature2DList toFeature2DList(int chrIndex, String chrName) {
+        Feature2DList feature2DList = new Feature2DList();
+        for(ArrowheadScore score : arrowheadScores) {
+            feature2DList.add(chrIndex, chrIndex, score.toFeature2D(chrName));
+        }
+        return feature2DList;
+    }
+
 
     private class ArrowheadScore{
         private int[] indices = new int[4];
@@ -135,6 +147,13 @@ public class ArrowheadScoreList {
 
         public boolean equivalentTo(ArrowheadScore mScore) {
             return Arrays.equals(indices,mScore.indices);
+        }
+
+        public Feature2D toFeature2D(String chrName) {
+            Map<String,String> attributes = new HashMap<String, String>();
+            attributes.put("score",Double.toString(score));
+            return new Feature2D(Feature2D.generic, chrName, indices[0], indices[1],
+                    chrName, indices[2], indices[3], Color.yellow, attributes);
         }
     }
 }

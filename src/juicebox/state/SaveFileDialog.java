@@ -22,7 +22,9 @@
  *  THE SOFTWARE.
  */
 
-package juicebox;
+package juicebox.state;
+
+import juicebox.MainWindow;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

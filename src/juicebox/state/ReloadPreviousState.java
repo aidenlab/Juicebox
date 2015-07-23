@@ -23,9 +23,11 @@
  */
 
 
-package juicebox;
+package juicebox.state;
 
 
+import juicebox.CommandExecutor;
+import juicebox.HiC;
 import juicebox.data.Matrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;

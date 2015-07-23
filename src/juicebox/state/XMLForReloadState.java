@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox;
+package juicebox.state;
 
 import java.io.*;
 
+import juicebox.HiCGlobals;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,7 +36,6 @@ import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.*;
-import javax.xml.transform.sax.*;
 
 
 /**
@@ -90,7 +90,7 @@ public class XMLForReloadState {
         String[] title = elements[0].split("--");
         String[] mapName = elements[1].split("\\@\\@");
         Element e0 = xmlDoc.createElement("STATE");
-        e0.setAttribute("SelectedPath",title[0]);
+        e0.setAttribute("SelectedPath", title[0]);
 
         Element eMapPath = xmlDoc.createElement("MapPath");
         Node nMP = xmlDoc.createTextNode(title[0]);

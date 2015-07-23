@@ -31,6 +31,7 @@ import com.google.common.primitives.Ints;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 5/12/15.
@@ -43,6 +44,14 @@ public class ArrayTools {
             System.arraycopy(original[i], 0, copy[i], 0, original[i].length);
         }
         return copy;
+    }
+
+    public static double mean(double[] doubles) {
+        double sum = 0;
+        for(double d : doubles){
+            sum += d;
+        }
+        return sum/doubles.length;
     }
 
     /**

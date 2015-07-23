@@ -25,8 +25,9 @@
 package juicebox.tools.utils.juicer.arrowhead;
 
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -42,7 +43,8 @@ public class BlockBuster {
      *
      * @return
      */
-    public static void blockbuster(MatrixZoomData zd, int chrLength, ArrowheadScoreList list, ArrowheadScoreList control){
+    public static void run(int chrIndex, String chrName, int chrLength, int resolution, String outputPath,
+                                   MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control){
 
         // int chrLength = chromosome.getLength();
         float signThreshold = 0.4f;
@@ -70,6 +72,41 @@ public class BlockBuster {
 
         }
 
+        List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
+        binnedScores = binScoresByDistance(binnedScores, 10);
+        Collections.sort(binnedScores, Collections.reverseOrder());
+
+        Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
+        Feature2DList blockResultScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                chrName, results.getCumulativeInternalList());
+        Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                chrName, results.getCumulativeInternalControl());
+
+        blockResults.exportFeatureList(outputPath+"_blocks");
+        blockResultScores.exportFeatureList(outputPath+"_scores");
+        blockResultControlScores.exportFeatureList(outputPath+"_control_scores");
+
+    }
+
+    private static List<HighScore> binScoresByDistance(List<HighScore> results, int dist) {
+
+        List<BinnedScore> binnedScores = new ArrayList<BinnedScore>();
+        for(HighScore score : results){
+            boolean scoreNotAssigned = true;
+            for(BinnedScore binnedScore : binnedScores){
+                if(binnedScore.isNear(score)){
+                    binnedScore.addScoreToBin(score);
+                    scoreNotAssigned = false;
+                    break;
+                }
+            }
+
+            if(scoreNotAssigned){
+                binnedScores.add(new BinnedScore(score,dist));
+            }
+        }
+
+        return BinnedScore.convertBinnedScoresToHighScores(binnedScores);
     }
 
     private static void appendNonConflictingBlocks(List<HighScore> mainList, List<HighScore> possibleAdditions) {

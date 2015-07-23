@@ -30,6 +30,7 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.state.SaveFileDialog;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;

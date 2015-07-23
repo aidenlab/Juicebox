@@ -25,9 +25,13 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.tools.HiCTools;
+import juicebox.tools.utils.common.ArrayTools;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created for testing multiple CLTs at once
@@ -38,9 +42,9 @@ public class AggregateProcessing {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
 
-        String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
-        HiCTools.main(l4);
+        //String[] l4 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+        //        "X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
+        //HiCTools.main(l4);
 
         // http://adam.bcma.bcm.edu/hiseq/
 
