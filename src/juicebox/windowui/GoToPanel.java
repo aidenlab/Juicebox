@@ -55,7 +55,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
-    private HiC hic;
+    private final HiC hic;
     private String genomeID;
     private HashMap<String, GeneLocation> geneLocationHashMap = null;
 
@@ -467,8 +467,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private class GeneLocation {
-        private String chromosome;
-        private int centerPosition;
+        private final String chromosome;
+        private final int centerPosition;
 
         private GeneLocation(String chromosome, int centerPosition) {
             this.chromosome = chromosome;

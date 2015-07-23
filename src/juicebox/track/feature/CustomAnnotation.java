@@ -36,6 +36,7 @@ import java.util.List;
  */
 public class CustomAnnotation {
 
+    private final String id;
     private Feature2DList customAnnotationList;
     private boolean isVisible;
     private boolean unsavedEdits;
@@ -43,7 +44,6 @@ public class CustomAnnotation {
     private Feature2D lastItem;
     private int lastChr1Idx;
     private int lastChr2Idx;
-    private String id;
     private PrintWriter tempWriter;
     private File tempFile;
     private ArrayList<String> attributeKeys;

@@ -35,23 +35,23 @@ import java.util.Map;
  */
 public class HiCCUPSUtils {
 
-    private static String OBSERVED = "observed";
-    private static String PEAK = "peak";
+    private static final String OBSERVED = "observed";
+    private static final String PEAK = "peak";
 
-    private static String EXPECTEDBL = "expectedBL";
-    private static String EXPECTEDDONUT = "expectedDonut";
-    private static String EXPECTEDH = "expectedH";
-    private static String EXPECTEDV = "expectedV";
+    private static final String EXPECTEDBL = "expectedBL";
+    private static final String EXPECTEDDONUT = "expectedDonut";
+    private static final String EXPECTEDH = "expectedH";
+    private static final String EXPECTEDV = "expectedV";
 
-    private static String BINBL = "binBL";
-    private static String BINDONUT = "binDonut";
-    private static String BINH = "binH";
-    private static String BINV = "binV";
+    private static final String BINBL = "binBL";
+    private static final String BINDONUT = "binDonut";
+    private static final String BINH = "binH";
+    private static final String BINV = "binV";
 
-    private static String FDRBL = "fdrBL";
-    private static String FDRDONUT = "fdrDonut";
-    private static String FDRH = "fdrH";
-    private static String FDRV = "fdrV";
+    private static final String FDRBL = "fdrBL";
+    private static final String FDRDONUT = "fdrDonut";
+    private static final String FDRH = "fdrH";
+    private static final String FDRV = "fdrV";
 
     /**
      * Generate a Feature2D peak for a possible peak location from HiCCUPS

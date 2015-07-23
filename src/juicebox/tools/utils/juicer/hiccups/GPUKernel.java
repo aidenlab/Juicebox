@@ -24,12 +24,14 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import juicebox.tools.clt.HiCCUPS;
+
 /**
  * Created by muhammadsaadshamim on 5/11/15.
  */
-public class GPUKernel {
+class GPUKernel {
 
-    public static String kernelName = "BasicPeakCallingKernel";
+        public static final String kernelName = "BasicPeakCallingKernel";
 
     /**
      * HiCCUPS Kernel Code
@@ -40,7 +42,7 @@ public class GPUKernel {
      * @param divisor
      * @return CUDA kernel code as string
      */
-    public static String kernelCode(int window, int matrixSize, int peakWidth, int bufferWidth, int divisor) {
+    public static String kernelCode(int window, int matrixSize, int peakWidth, int divisor) {
         return "extern \"C\"\n" +
                 "__global__ void BasicPeakCallingKernel(float *c, float *expectedbl, float *expecteddonut, float *expectedh, float *expectedv, float *observed, float *b_bl, float *b_donut, float *b_h, float *b_v, float *p, float *tbl, float *td, float *th, float *tv, float *d, float *kr1, float *kr2, float *bound1, float *bound3)\n" +
                 "{\n" +
@@ -71,7 +73,7 @@ public class GPUKernel {
                 "    int wsize = " + window + ";\n" +
                 "    int msize = " + matrixSize + ";\n" +
                 "    int pwidth = " + peakWidth + ";\n" +
-                "    int buffer_width = " + bufferWidth + ";\n" +
+                "    int buffer_width = " + HiCCUPS.regionMargin + ";\n" +
                 "    //int dvisor = " + divisor + ";\n" +
                 "    int diff = bound1[0] - bound3[0];\n" +
                 "    int diagDist = abs(t_row+diff-t_col);\n" +

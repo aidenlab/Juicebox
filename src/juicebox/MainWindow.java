@@ -135,9 +135,9 @@ public class MainWindow extends JFrame {
     private static JMenu annotationsMenu;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
+    private final File fileForExport = new File(HiCGlobals.xmlFileName);
     File currentStates = new File("testStates");
     int i = 0, j = 0;
-    private File fileForExport = new File(HiCGlobals.xmlFileName);
     private double colorRangeScaleFactor = 1;
     private double colorRangeScaleFactorForReload = 1;
     private HiCZoom initialZoom;

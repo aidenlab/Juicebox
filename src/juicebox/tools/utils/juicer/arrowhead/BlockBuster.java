@@ -69,23 +69,20 @@ public class BlockBuster {
         results.mergeScores();
 
         if(results.getCumulativeResults().size() > 0){
+            List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
+            binnedScores = binScoresByDistance(binnedScores, 10);
+            Collections.sort(binnedScores, Collections.reverseOrder());
 
+            Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
+            Feature2DList blockResultScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                    chrName, results.getCumulativeInternalList());
+            Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                    chrName, results.getCumulativeInternalControl());
+
+            blockResults.exportFeatureList(outputPath + "_blocks");
+            blockResultScores.exportFeatureList(outputPath + "_scores");
+            blockResultControlScores.exportFeatureList(outputPath + "_control_scores");
         }
-
-        List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
-        binnedScores = binScoresByDistance(binnedScores, 10);
-        Collections.sort(binnedScores, Collections.reverseOrder());
-
-        Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
-        Feature2DList blockResultScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
-                chrName, results.getCumulativeInternalList());
-        Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
-                chrName, results.getCumulativeInternalControl());
-
-        blockResults.exportFeatureList(outputPath+"_blocks");
-        blockResultScores.exportFeatureList(outputPath+"_scores");
-        blockResultControlScores.exportFeatureList(outputPath+"_control_scores");
-
     }
 
     private static List<HighScore> binScoresByDistance(List<HighScore> results, int dist) {

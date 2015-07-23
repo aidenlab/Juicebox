@@ -47,9 +47,9 @@ public abstract class RecentMenu extends JMenu {
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+    private final File currentStates = new File(HiCGlobals.stateFileName);
+    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private List<String> m_items = new ArrayList<String>();
-    private File currentStates = new File(HiCGlobals.stateFileName);
-    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);

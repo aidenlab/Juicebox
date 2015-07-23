@@ -28,7 +28,7 @@ package juicebox.tools.clt;
 /**
  * Created by muhammadsaadshamim on 7/22/15.
  */
-public class UnitTests {
+class UnitTests {
 
     // TODO
     public void testCLT() {

@@ -41,7 +41,12 @@ public class APARegionStatistics {
     //private int mdpt, max;
     //private double centralVal;
 
-    private double peak2mean, peak2UL, peak2UR, peak2LL, peak2LR, ZscoreLL;
+    private final double peak2mean;
+    private final double peak2UL;
+    private final double peak2UR;
+    private final double peak2LL;
+    private final double peak2LR;
+    private final double ZscoreLL;
 
     public APARegionStatistics(RealMatrix data) {
         int max = data.getColumnDimension();

@@ -50,11 +50,11 @@ import java.io.FileReader;
 public class XMLForReloadState {
 
 
+    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private final File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     File currentStates = new File(HiCGlobals.stateFileName);
     private BufferedReader bufferedReader;
     private StreamResult streamResult;
-    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
-    private File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private Document xmlDoc;
     private Element root;
 

@@ -39,18 +39,18 @@ import java.util.HashMap;
  */
 public class CustomAnnotationHandler {
 
-    String id;
     // displacement in terms of gene pos
-    private int peakDisplacement = 3;
-    private PrintWriter outputFile;
+    private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
-    private int threshold = 10;
+    private final int threshold = 10;
+    private final HiC hic;
+    private final MainWindow mainWindow;
+    String id;
+    private PrintWriter outputFile;
     private Rectangle selectionRegion;
     private Point selectionPoint;
-    private HiC hic;
     private FeatureType featureType;
     private boolean hasPoint, hasRegion;
-    private MainWindow mainWindow;
 
     public CustomAnnotationHandler(MainWindow mainWindow, HiC hic){
         this.mainWindow = mainWindow;

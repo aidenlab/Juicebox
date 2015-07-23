@@ -51,7 +51,7 @@ public class HiCFileTools {
      * @throws java.io.IOException if chromosome length file not found
      */
 
-    private static String tempPath = System.getProperty("user.dir");
+    private static final String tempPath = System.getProperty("user.dir");
 
     public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 

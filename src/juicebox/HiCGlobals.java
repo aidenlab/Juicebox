@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,23 +40,18 @@ public class HiCGlobals {
 
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
-
-    // Juicebox version (for display purposes only)
-    private static double versionNum = 1.1;
-
-    // Juicebox title
-    public static String juiceboxTitle = "[Juicebox "+versionNum+"] Hi-C Map: ";
-
     // for plotting
-    public static String topChromosomeColor = "#0000FF";
-    public static String leftChromosomeColor = "#009900";
-
+    public static final String topChromosomeColor = "#0000FF";
+    public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new  Color(204,204,204);
-
     public static final String stateFileName = "CurrentJuiceboxStates";
     public static final String xmlFileName = "JuiceboxStatesForExport.xml";
     // Feature2D hover text
-    public static boolean allowSpacingBetweenFeatureText = true;
+    public static final boolean allowSpacingBetweenFeatureText = true;
+    // Juicebox version (for display purposes only)
+    private static final double versionNum = 1.1;
+    // Juicebox title
+    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < 5) {

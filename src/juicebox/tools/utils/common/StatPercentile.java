@@ -31,7 +31,7 @@ import java.util.Arrays;
  */
 public class StatPercentile {
 
-    private double[] statsData;
+    private final double[] statsData;
 
     public StatPercentile(double[] data){
         statsData = new double[data.length];

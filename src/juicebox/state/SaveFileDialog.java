@@ -36,7 +36,7 @@ import java.io.File;
 public class SaveFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = 2910799798390074194L;
-    private File fileForExport;
+    private final File fileForExport;
     private int numStates = 0;
 
 

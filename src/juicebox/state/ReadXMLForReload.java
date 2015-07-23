@@ -28,18 +28,20 @@ package juicebox.state;
  * Created by Zulkifl on 7/20/2015.
  */
 
-import javax.xml.parsers.*;
 import juicebox.HiC;
-import org.apache.commons.math.stat.descriptive.rank.Max;
-import org.apache.commons.math.stat.descriptive.rank.Min;
-import org.xml.sax.*;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class ReadXMLForReload {
 
-    private HiC hic;
+    private final HiC hic;
 
     private String mapPath = null;
     private String Map = null;

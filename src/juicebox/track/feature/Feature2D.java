@@ -45,11 +45,11 @@ import java.util.Map;
  */
 public class Feature2D {
 
+    public static final String peak = "Peak";
+    public static final String domain = "Contact domain";
+    public static final String generic = "feature";
     private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
-    public static String peak = "Peak";
-    public static String domain = "Contact domain";
-    public static String generic = "feature";
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final String chr1;
     private final int start1;
@@ -58,8 +58,8 @@ public class Feature2D {
     private final int start2;
     private final int end2;
     private final String featureName;
+    private final Map<String, String> attributes;
     private Color color;
-    private Map<String, String> attributes;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -77,8 +77,6 @@ public class Feature2D {
     public static String getDefaultOutputFileHeader() {
         return genericHeader;
     }
-
-    public String getFeatureName(){ return featureName; }
 
     public String getChr1() {
         return chr1;

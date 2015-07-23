@@ -46,15 +46,15 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     private static final long serialVersionUID = 3432096869822002860L;
     private final String defaultNewAttributeName = "<Attribute Name>";
     private final String defaultNewAttributeValue = "<Attribute Value>";
+    private final HashMap<String, JTextField> textFields;
+    private final Feature2D feature;
+    private final CustomAnnotation customAnnotations;
+    private final ArrayList<String> attributeKeys;
+    private final JCheckBox echoOption;
+    private final JOptionPane optionPane;
+    private final String btnString1 = "Enter";
+    private final String btnString2 = "Cancel";
     private String typedText = null;
-    private HashMap<String, JTextField> textFields;
-    private Feature2D feature;
-    private CustomAnnotation customAnnotations;
-    private ArrayList<String> attributeKeys;
-    private JCheckBox echoOption;
-    private JOptionPane optionPane;
-    private String btnString1 = "Enter";
-    private String btnString2 = "Cancel";
 
     /**
      * Creates the reusable dialog.
@@ -123,8 +123,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                  * we're going to change the JOptionPane's
                  * value property.
                  */
-                optionPane.setValue(new Integer(
-                        JOptionPane.CLOSED_OPTION));
+                optionPane.setValue(JOptionPane.CLOSED_OPTION);
             }
         });
 

@@ -32,18 +32,18 @@ import juicebox.track.feature.Feature2DList;
  */
 public class GPUOutputContainer {
 
-    private float[][] observed;
-    private float[][] peak;
-    private float[][] binBL;
-    private float[][] binDonut;
-    private float[][] binH;
-    private float[][] binV;
-    private float[][] expectedBL;
-    private float[][] expectedDonut;
-    private float[][] expectedH;
-    private float[][] expectedV;
-    private int numRows;
-    private int numColumns;
+    private final float[][] observed;
+    private final float[][] peak;
+    private final float[][] binBL;
+    private final float[][] binDonut;
+    private final float[][] binH;
+    private final float[][] binV;
+    private final float[][] expectedBL;
+    private final float[][] expectedDonut;
+    private final float[][] expectedH;
+    private final float[][] expectedV;
+    private final int numRows;
+    private final int numColumns;
 
 
     public GPUOutputContainer(float[][] observed, float[][] peak,

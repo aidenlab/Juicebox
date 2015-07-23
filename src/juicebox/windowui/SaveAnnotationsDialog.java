@@ -27,6 +27,7 @@ package juicebox.windowui;
 import juicebox.MainWindow;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.Feature2DList;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
@@ -39,7 +40,7 @@ import java.util.Date;
 public class SaveAnnotationsDialog extends JFileChooser {
 
     private static final long serialVersionUID = -6338086600062738308L;
-    private CustomAnnotation annotations;
+    private final CustomAnnotation annotations;
     private Feature2DList otherList = null;
 
     public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {

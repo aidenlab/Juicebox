@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.track.TrackPanel;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
@@ -38,7 +37,6 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * @author Jim Robinson

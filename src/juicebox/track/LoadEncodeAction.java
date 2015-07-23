@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,16 @@
 
 package juicebox.track;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import juicebox.HiC;
 import juicebox.data.Dataset;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.encode.EncodeFileRecord;
-import juicebox.encode.EncodeTableModel;
 import org.apache.log4j.Logger;
 import org.broad.igv.track.AttributeManager;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
-import javax.xml.crypto.Data;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;

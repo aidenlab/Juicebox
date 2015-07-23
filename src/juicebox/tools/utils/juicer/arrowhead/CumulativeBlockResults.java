@@ -30,11 +30,11 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 7/22/15.
  */
-public class CumulativeBlockResults {
+class CumulativeBlockResults {
 
+    private final ArrowheadScoreList cumulativeInternalList = new ArrowheadScoreList();
+    private final ArrowheadScoreList cumulativeInternalControl = new ArrowheadScoreList();
     private List<HighScore> cumulativeResults = new ArrayList<HighScore>();
-    private ArrowheadScoreList cumulativeInternalList = new ArrowheadScoreList();
-    private ArrowheadScoreList cumulativeInternalControl = new ArrowheadScoreList();
 
     public void add(BlockResults blockResults) {
         cumulativeResults.addAll(blockResults.getResults());
@@ -50,12 +50,12 @@ public class CumulativeBlockResults {
         return cumulativeResults;
     }
 
-    public ArrowheadScoreList getCumulativeInternalList() {
-        return cumulativeInternalList;
-    }
-
     public void setCumulativeResults(List<HighScore> cumulativeResults) {
         this.cumulativeResults = new ArrayList<HighScore>(cumulativeResults);
+    }
+
+    public ArrowheadScoreList getCumulativeInternalList() {
+        return cumulativeInternalList;
     }
 
     public void mergeScores() {

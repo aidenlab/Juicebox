@@ -123,7 +123,7 @@ public class BinaryConnectedComponents {
         int[][] subMatrix = new int[right-left+1][bottom-top+1];
 
         for(int i = 0; i < subMatrix.length; i++){
-            System.arraycopy(matrix[left + i], top + 0, subMatrix[i], 0, subMatrix[0].length);
+            System.arraycopy(matrix[left + i], top, subMatrix[i], 0, subMatrix[0].length);
         }
 
         return subMatrix;

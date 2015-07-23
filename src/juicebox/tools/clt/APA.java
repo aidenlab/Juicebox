@@ -69,8 +69,6 @@ public class APA extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
 
-        System.out.println(args);
-
         if (!(args.length > 3 && args.length < 6)) {
             throw new IOException("1");
         }

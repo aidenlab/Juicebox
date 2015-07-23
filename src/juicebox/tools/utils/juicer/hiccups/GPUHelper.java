@@ -30,12 +30,11 @@ import jcuda.driver.CUdeviceptr;
 import juicebox.tools.utils.common.MatrixTools;
 
 import static jcuda.driver.JCudaDriver.*;
-import static jcuda.driver.JCudaDriver.cuMemFree;
 
 /**
  * Created by muhammadsaadshamim on 5/8/15.
  */
-public class GPUHelper {
+class GPUHelper {
 
     public static CUdeviceptr allocateOutput(int size, int typeSize) {
         CUdeviceptr dOutput = new CUdeviceptr();

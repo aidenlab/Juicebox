@@ -121,9 +121,7 @@ public class ArrayTools {
      */
     public static float[] padEndOfArray(float[] original, int length, float val) {
         float[] paddedArray = new float[length];
-        for(int i = 0; i < original.length; i++){
-            paddedArray[i] = original[i];
-        }
+        System.arraycopy(original, 0, paddedArray, 0, original.length);
         for(int i = original.length; i < length; i++){
             paddedArray[i] = val;
         }

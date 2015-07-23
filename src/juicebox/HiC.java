@@ -69,10 +69,12 @@ public class HiC {
     private static String mapName;
     private static String stateID;
     private static String mapPath;
+    final File currentStates = new File(HiCGlobals.stateFileName);
     private final MainWindow mainWindow;
     private final Map<String, Feature2DList> loopLists;
     private final HiCTrackManager trackManager;
-    File currentStates = new File(HiCGlobals.stateFileName);
+    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
     File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private double scaleFactor;
     private String xPosition;
@@ -89,12 +91,9 @@ public class HiC {
     private boolean showLoops;
     private HeatmapRenderer heatmapRenderer;
     private List<HiCTrack> trackLabels;
-    private File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private EncodeFileBrowser encodeFileBrowser;
     private TrackConfigDialog configDialog;
     private HiCTrack hiCTrack;
-
-
     private EigenvectorTrack eigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
@@ -104,7 +103,6 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
 
     public HiC(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -767,7 +765,7 @@ public class HiC {
                 try {
                     unsafeSetReloadState(mapURL , chrXName,  chrYName, unitName,binSize, xOrigin, yOrigin, scalefactor,
                             displaySelection, normSelection, minColor, lowColor, upColor, maxColor,trackNames);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -778,7 +776,7 @@ public class HiC {
     private void unsafeSetReloadState(String mapURL, String chrXName, String chrYName, String unitName, int binSize,
                                       double xOrigin, double yOrigin, double scalefactor,
                                       MatrixType displaySelection, NormalizationType normSelection, double minColor, double lowColor,
-                                      double upColor, double maxColor, ArrayList<String> trackNames) throws IOException {
+                                      double upColor, double maxColor, ArrayList<String> trackNames) {
 
         boolean control = isControlLoaded();
         String delimeter = "@@";

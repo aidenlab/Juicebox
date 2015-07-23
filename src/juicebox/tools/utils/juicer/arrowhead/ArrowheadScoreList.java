@@ -107,7 +107,7 @@ public class ArrowheadScoreList {
 
 
     private class ArrowheadScore{
-        private int[] indices = new int[4];
+        private final int[] indices = new int[4];
         private double score = Double.NaN;
         private boolean isActive = false;
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,11 +43,12 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Jim Robinson
@@ -246,9 +247,8 @@ public class HiCTrackManager {
     }
 
     public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks){
-        Iterator<HiCTrack> iterator = reloadTracks.iterator();
-        while(iterator.hasNext())
-            reloadTrackNames.add(iterator.next());
+        for (HiCTrack reloadTrack : reloadTracks)
+            reloadTrackNames.add(reloadTrack);
         return reloadTrackNames;
     }
 

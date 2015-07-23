@@ -34,18 +34,18 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 7/22/15.
  */
-public class BinnedScore {
+class BinnedScore {
 
+    private final int distanceThreshold;
+    private final List<Double> scores = new ArrayList<Double>();
+    private final List<Double> uVarScores = new ArrayList<Double>();
+    private final List<Double> lVarScores = new ArrayList<Double>();
+    private final List<Double> upSigns = new ArrayList<Double>();
+    private final List<Double> loSigns = new ArrayList<Double>();
     private int minX;
     private int maxX;
     private int minY;
     private int maxY;
-    private int distanceThreshold;
-    private List<Double> scores = new ArrayList<Double>();
-    private List<Double> uVarScores = new ArrayList<Double>();
-    private List<Double> lVarScores = new ArrayList<Double>();
-    private List<Double> upSigns = new ArrayList<Double>();
-    private List<Double> loSigns = new ArrayList<Double>();
 
     public BinnedScore(HighScore score, int distanceThreshold) {
         minX = score.getI();
