@@ -40,24 +40,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Created by nchernia on 4/2/15.
  */
 public class GoToPanel extends JPanel implements ActionListener, FocusListener {
-    static final long serialVersionUID = -687479198135033L;
+    private static final long serialVersionUID = -6639157254305571236L;
+    private static final Logger log = Logger.getLogger(GoToPanel.class);
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
     private HiC hic;
     private String genomeID;
     private HashMap<String, GeneLocation> geneLocationHashMap = null;
-    private static final Logger log = Logger.getLogger(GoToPanel.class);
 
     public GoToPanel(HiC hic) {
         super();
@@ -457,6 +457,15 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         MainWindow.getInstance().setNormalizationDisplayState();
     }
 
+    public void focusGained(FocusEvent event) {
+        if (event.getSource() == positionChrLeft) positionChrLeft.setBackground(Color.white);
+        else if (event.getSource() == positionChrTop) positionChrTop.setBackground(Color.white);
+    }
+
+    public void focusLost(FocusEvent event) {
+
+    }
+
     private class GeneLocation {
         private String chromosome;
         private int centerPosition;
@@ -465,14 +474,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             this.chromosome = chromosome;
             this.centerPosition = centerPosition;
         }
-    }
-
-    public void focusGained(FocusEvent event) {
-        if (event.getSource() == positionChrLeft) positionChrLeft.setBackground(Color.white);
-        else if (event.getSource() == positionChrTop) positionChrTop.setBackground(Color.white);
-    }
-    public void focusLost(FocusEvent event) {
-
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,14 +79,23 @@ public class MainWindow extends JFrame {
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final int BIN_PIXEL_WIDTH = 1;
+    private static final long serialVersionUID = -3654174199024388185L;
     private static final Logger log = Logger.getLogger(MainWindow.class);
-    private static final long serialVersionUID = 1428522656885950466L;
     private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
+    private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
     public static Cursor fistCursor; // for panning
+    public static CustomAnnotation customAnnotations;
+    public static CustomAnnotationHandler customAnnotationHandler;
+    public static JMenuItem exportAnnotationsMI;
+    public static JMenuItem undoMenuItem;
+    public static boolean unsavedEdits;
+    public static JMenuItem loadLastMI;
+    public static Color hicMapColor = Color.red;
+    public static boolean preDefMapColor = false;
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
@@ -102,12 +111,9 @@ public class MainWindow extends JFrame {
     private static JMenuItem saveStateForReload;
     private static RecentMenu previousStates;
     private static JMenuItem refreshTest;
-    File currentStates = new File("testStates");
     private static JMenuItem exportMapAsFile;
     private static JMenuItem importMapAsFile;
     private static JMenuItem emailMap;
-    File fileForExport = new File(HiCGlobals.xmlFileName);
-
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JideButton plusButton;
@@ -124,22 +130,14 @@ public class MainWindow extends JFrame {
     private static ThumbnailPanel thumbnailPanel;
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
-
-    public static CustomAnnotation customAnnotations;
-    public static CustomAnnotationHandler customAnnotationHandler;
-    public static JMenuItem exportAnnotationsMI;
-    public static JMenuItem undoMenuItem;
-    public static boolean unsavedEdits;
-    public static JMenuItem loadLastMI;
     private static File temp;
-    public static Color hicMapColor = Color.red;
-    public static boolean preDefMapColor = false;
-
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
-    private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
+    File currentStates = new File("testStates");
+    File fileForExport = new File(HiCGlobals.xmlFileName);
+    int i = 0, j = 0;
     private double colorRangeScaleFactor = 1;
     private double colorRangeScaleFactorForReload = 1;
     private HiCZoom initialZoom;
@@ -219,6 +217,14 @@ public class MainWindow extends JFrame {
 
     private static MainWindow createMainWindow() {
         return new MainWindow();
+    }
+
+    private static boolean unsavedEditsExist() {
+        String tempPath = "/unsaved-hiC-annotations1";
+        temp = HiCFileTools.openTempFile(tempPath);
+        unsavedEdits = temp.exists();
+        return unsavedEdits;
+
     }
 
     public void updateToolTipText(String s) {
@@ -682,7 +688,6 @@ public class MainWindow extends JFrame {
         updateThumbnail();
     }
 
-
     public void setNormalizationDisplayState() {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
@@ -885,7 +890,6 @@ public class MainWindow extends JFrame {
         setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-
     private void exitActionPerformed() {
         setVisible(false);
         dispose();
@@ -1030,11 +1034,10 @@ public class MainWindow extends JFrame {
     public RecentMenu getRecentStateMenu() {
         return recentLocationMenu;
     }
+
     public RecentMenu getPrevousStateMenu(){
         return previousStates;
     }
-
-    int i = 0, j = 0;
 
     private void showDisabledGlassPane(String caller) {
         //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
@@ -1722,7 +1725,6 @@ public class MainWindow extends JFrame {
         }
     }
 
-
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
     }
@@ -1742,6 +1744,7 @@ public class MainWindow extends JFrame {
         return values;
 
     }
+
     private void colorRangeSliderUpdateToolTip() {
         if (hic.getDisplayOption() == MatrixType.OBSERVED ||
                 hic.getDisplayOption() == MatrixType.CONTROL ||
@@ -1843,8 +1846,6 @@ public class MainWindow extends JFrame {
         fileMenu.add(loadControlFromList);
 
         recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
-
-            private static final long serialVersionUID = 3412L;
 
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
@@ -2151,7 +2152,6 @@ public class MainWindow extends JFrame {
 
         JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {
-            private static final long serialVersionUID = 42L;
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -2215,8 +2215,6 @@ public class MainWindow extends JFrame {
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
 
-            private static final long serialVersionUID = 1234L;
-
             public void onSelectPosition(String mapPath) {
                 String delimiter = "@@";
                 String[] temp;
@@ -2230,8 +2228,6 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(recentLocationMenu);
 
         previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
-            //TODO----Update serialVersionUID----
-            private static final long serialVersionUID = 1235L;
 
             public void onSelectPosition(String mapPath) {
                 hic.getMapPath(mapPath);
@@ -2273,14 +2269,6 @@ public class MainWindow extends JFrame {
 
     public boolean isReloadState(){
         return previousStates.isSelected();
-    }
-
-    private static boolean unsavedEditsExist() {
-        String tempPath = "/unsaved-hiC-annotations1";
-        temp = HiCFileTools.openTempFile(tempPath);
-        unsavedEdits = temp.exists();
-        return unsavedEdits;
-
     }
 
     private void loadNormalizationVector(File file) throws IOException {
