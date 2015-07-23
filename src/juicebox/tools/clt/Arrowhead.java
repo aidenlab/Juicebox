@@ -70,10 +70,6 @@ public class Arrowhead extends JuiceboxCLT {
     @Override
     public void run() throws IOException {
 
-        System.err.println("This method is not currently implemented.");
-        System.exit(1);
-
-
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         DatasetReaderV2 reader = new DatasetReaderV2(file);
 

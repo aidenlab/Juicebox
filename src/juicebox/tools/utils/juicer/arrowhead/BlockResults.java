@@ -96,6 +96,7 @@ class BlockResults {
             double[] row = observed.getRow(i);
 
             // in MATLAB second index inclusive, but for java need +1
+            System.out.println("n " + n + " i " + i + " window " + window + " gap " + gap);
             double[] A = Doubles.toArray(Lists.reverse(Doubles.asList(Arrays.copyOfRange(row, i - window, i - gap + 1))));
             double[] B = Arrays.copyOfRange(row, i + gap, i + window + 1);
 
