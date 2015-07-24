@@ -26,6 +26,14 @@ package juicebox.windowui;
 
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -184,6 +192,30 @@ public abstract class RecentMenu extends JMenu {
      * @param mapPath The file that was selected.
      */
     public abstract void onSelectPosition(String mapPath);
+
+  /*  //TODO--- Update recent menu when HiC states are imported
+    public void updateNamesFromImport(String importedFile){
+        Document doc;
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+            doc = documentBuilder.parse(importedFile);
+            Element element = doc.getDocumentElement();
+            NodeList nodeList = element.getElementsByTagName("MapPath");
+            for(int i=0; i<nodeList.getLength(); i++){
+                System.out.println(nodeList.item(i));
+            }
+
+        } catch (ParserConfigurationException pce){
+            pce.printStackTrace();
+        } catch (SAXException se){
+            se.printStackTrace();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+    }*/
 
 
 }

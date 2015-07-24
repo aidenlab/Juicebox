@@ -29,6 +29,10 @@ import juicebox.MainWindow;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 /**
  * Created by Zulkifl on 7/23/2015.
@@ -36,22 +40,18 @@ import java.io.File;
 public class SaveFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = 2910799798390074194L;
-    private final File fileForExport;
     private int numStates = 0;
 
 
     public SaveFileDialog(File fileToSave, int savedStates) {
         super();
-        this.fileForExport = fileToSave;
         numStates = savedStates;
-        saveFile(fileToSave);
+        saveFile(fileToSave,savedStates);
 
     }
 
-    private void saveFile(File fileSave) {
-        //String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        //fileSave.renameTo(new File("Saved HiC Files- " + timeStamp + ".xml"));
-        setSelectedFile(fileSave);
+    private void saveFile(File fileToSave, int numMaps) {
+
         setCurrentDirectory(new File(System.getProperty("user.dir")));
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "XML Files", "xml", "XML");
@@ -59,16 +59,37 @@ public class SaveFileDialog extends JFileChooser {
         int actionDialog = showSaveDialog(MainWindow.getInstance());
         if (actionDialog == JFileChooser.APPROVE_OPTION) {
             File file = getSelectedFile();
-            String savedFilePath = fileSave.getAbsolutePath();
-            if (file.exists()) {
-                if(numStates > 0) {
-                    actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
-                    if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
-                        return;
-                } else if (numStates == 0) {
+            try {
+                copyFile(fileToSave, file);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+            if (numMaps == 0) {
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), "No saved HiC maps to export", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
+            }
+        }
+
+    private static void copyFile(File sourceFile, File destFile) throws IOException {
+        if(!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        }
+        finally {
+            if(source != null) {
+                source.close();
+            }
+            if(destination != null) {
+                destination.close();
             }
         }
     }

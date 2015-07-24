@@ -30,6 +30,7 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.state.ImportFileDialog;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
@@ -49,6 +50,7 @@ import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
+import sun.applet.Main;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -2249,28 +2251,38 @@ public class MainWindow extends JFrame {
         bookmarksMenu.add(previousStates);
 
         //---Export Menu-----
-        JMenu exportMenu = new JMenu("Share HiC Maps");
+        JMenu shareMenu = new JMenu("Share States");
 
         //---Export Maps----
         exportMapAsFile = new JMenuItem();
-        exportMapAsFile.setText("Export Saved HiC Maps");
+        exportMapAsFile.setText("Export Saved States");
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new SaveFileDialog(fileForExport,previousStates.getItemCount());
             }
         });
-        exportMenu.add(exportMapAsFile);
+
 
         //---Import Maps----
-        importMapAsFile = new JMenuItem();
-        importMapAsFile.setText("Import HiC Map From File");
+        /*importMapAsFile = new JMenuItem();
+        importMapAsFile.setText("Import State From File");
+        importMapAsFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new ImportFileDialog(fileForExport, MainWindow.getInstance());
+            }
+        });*/
 
+
+        //Add menu items
+        shareMenu.add(exportMapAsFile);
+        //shareMenu.add(importMapAsFile);
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
-        menuBar.add(exportMenu);
+        menuBar.add(shareMenu);
         return menuBar;
     }
 

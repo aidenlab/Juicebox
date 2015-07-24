@@ -78,114 +78,114 @@ public class ReadXMLForReload {
             // XML file
             dom = db.parse(xml);
 
-            Element doc = dom.getDocumentElement();
+            Element element = dom.getDocumentElement();
             NodeList nodeList = dom.getElementsByTagName("STATE");
             for (int i = 0; i < nodeList.getLength(); i++) {
                 if (nodeList.item(i).getAttributes().getNamedItem("SelectedPath").toString().contains(mapSelection)) {
 
-                    mapPath = getTextValue(mapPath, doc, "MapPath");
+                    mapPath = getTextValue(mapPath, element, "MapPath");
                     if (mapPath != null) {
                         if (!mapPath.isEmpty())
                             infoForReload[0] = mapPath;
                     }
 
-                    Map = getTextValue(Map, doc, "Map");
+                    Map = getTextValue(Map, element, "Map");
                     if (Map != null) {
                         if (!Map.isEmpty())
                             infoForReload[1] = Map;
                     }
 
-                    MapURL = getTextValue(MapURL, doc, "MapURL");
+                    MapURL = getTextValue(MapURL, element, "MapURL");
                     if (MapURL != null) {
                         if (!MapURL.isEmpty())
                             infoForReload[2] = MapURL;
                     }
 
-                    XChromosome = getTextValue(XChromosome, doc, "XChromosome");
+                    XChromosome = getTextValue(XChromosome, element, "XChromosome");
                     if (XChromosome != null) {
                         if (!XChromosome.isEmpty())
                             infoForReload[3] = XChromosome;
                     }
 
-                    YChromosome = getTextValue(YChromosome, doc, "YChromosome");
+                    YChromosome = getTextValue(YChromosome, element, "YChromosome");
                     if (YChromosome != null) {
                         if (!YChromosome.isEmpty())
                             infoForReload[4] = YChromosome;
                     }
 
-                    UnitName = getTextValue(UnitName, doc, "UnitName");
+                    UnitName = getTextValue(UnitName, element, "UnitName");
                     if (UnitName != null) {
                         if (!UnitName.isEmpty())
                             infoForReload[5] = UnitName;
                     }
 
-                    BinSize = getTextValue(BinSize, doc, "BinSize");
+                    BinSize = getTextValue(BinSize, element, "BinSize");
                     if (BinSize != null) {
                         if (!BinSize.isEmpty())
                             infoForReload[6] = BinSize;
                     }
 
-                    xOrigin = getTextValue(xOrigin, doc, "xOrigin");
+                    xOrigin = getTextValue(xOrigin, element, "xOrigin");
                     if (xOrigin != null) {
                         if (!xOrigin.isEmpty())
                             infoForReload[7] = xOrigin;
                     }
 
-                    yOrigin = getTextValue(yOrigin, doc, "yOrigin");
+                    yOrigin = getTextValue(yOrigin, element, "yOrigin");
                     if (yOrigin != null) {
                         if (!yOrigin.isEmpty())
                             infoForReload[8] = yOrigin;
                     }
 
-                    ScaleFactor = getTextValue(ScaleFactor, doc, "ScaleFactor");
+                    ScaleFactor = getTextValue(ScaleFactor, element, "ScaleFactor");
                     if (ScaleFactor != null) {
                         if (!ScaleFactor.isEmpty())
                             infoForReload[9] = ScaleFactor;
                     }
 
-                    DisplayOption = getTextValue(DisplayOption, doc, "DisplayOption");
+                    DisplayOption = getTextValue(DisplayOption, element, "DisplayOption");
                     if (DisplayOption != null) {
                         if (!DisplayOption.isEmpty())
                             infoForReload[10] = DisplayOption;
                     }
 
-                    NormalizationType = getTextValue(NormalizationType, doc, "NormalizationType");
+                    NormalizationType = getTextValue(NormalizationType, element, "NormalizationType");
                     if (NormalizationType != null) {
                         if (!NormalizationType.isEmpty())
                             infoForReload[11] = NormalizationType;
                     }
 
-                    MinColorVal = getTextValue(MinColorVal, doc, "MinColorVal");
+                    MinColorVal = getTextValue(MinColorVal, element, "MinColorVal");
                     if (MinColorVal != null) {
                         if (!MinColorVal.isEmpty())
                             infoForReload[12] = MinColorVal;
                     }
 
-                    LowerColorVal = getTextValue(LowerColorVal, doc, "LowerColorVal");
+                    LowerColorVal = getTextValue(LowerColorVal, element, "LowerColorVal");
                     if (LowerColorVal != null) {
                         if (!LowerColorVal.isEmpty())
                             infoForReload[13] = LowerColorVal;
                     }
 
-                    UpperColorVal = getTextValue(UpperColorVal, doc, "UpperColorVal");
+                    UpperColorVal = getTextValue(UpperColorVal, element, "UpperColorVal");
                     if (UpperColorVal != null) {
                         if (!UpperColorVal.isEmpty())
                             infoForReload[14] = UpperColorVal;
                     }
 
-                    MaxColorVal = getTextValue(MaxColorVal, doc, "MaxColorVal");
+                    MaxColorVal = getTextValue(MaxColorVal, element, "MaxColorVal");
                     if (MaxColorVal != null) {
                         if (!MaxColorVal.isEmpty())
                             infoForReload[15] = MaxColorVal;
                     }
 
-                    LoadedTrackURLS = getTextValue(LoadedTrackURLS, doc, "LoadedTrackURLS");
+                    LoadedTrackURLS = getTextValue(LoadedTrackURLS, element, "LoadedTrackURLS");
                     if (LoadedTrackURLS != null) {
                         if (!LoadedTrackURLS.isEmpty())
                             infoForReload[16] = LoadedTrackURLS;
                     }
 
-                    LoadedTrackNames = getTextValue(LoadedTrackNames, doc, "LoadedTrackNames");
+                    LoadedTrackNames = getTextValue(LoadedTrackNames, element, "LoadedTrackNames");
                     if (LoadedTrackNames != null) {
                         if (!LoadedTrackNames.isEmpty())
                             infoForReload[17] = LoadedTrackNames;
