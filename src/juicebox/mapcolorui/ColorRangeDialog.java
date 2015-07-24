@@ -49,6 +49,8 @@ public class ColorRangeDialog extends JDialog {
     private final boolean isObserved;
     private JTextField minimumField;
     private JTextField maximumField;
+    public  Color[] tmpCol = new Color[24];
+
 
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
         super(owner);
@@ -135,9 +137,6 @@ public class ColorRangeDialog extends JDialog {
         JLabel label5 = new JLabel();
 
         final JPanel  panel6 = new JPanel();
-        JLabel label6 = new JLabel();
-
-        final JPanel  panel7 = new JPanel();
 
         minimumField = new JTextField();
         JPanel panel1 = new JPanel();
@@ -186,9 +185,6 @@ public class ColorRangeDialog extends JDialog {
 
         }
         contentPanel.add(panel2);
-
-
-
 
         panel1.setLayout(new FlowLayout(FlowLayout.LEADING));
 
@@ -245,17 +241,24 @@ public class ColorRangeDialog extends JDialog {
 
         colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
         panel5.add(colorChooserButton);
-
         contentPanel.add(panel5);
+
+        final JButton paletteChooserButton = new JButton("Choose palette");
+        paletteChooserButton.setSize(50, 50);
+        paletteChooserButton.setForeground(MainWindow.hicMapColor);
+
+        paletteChooserButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MultiColorPicker palletePick = new MultiColorPicker();
+                palletePick.initValue(MainWindow.getInstance().preDefMapColorPalette);
+            }
+        });
+
+        paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
 
         //======== panel6 ========
         panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
-        label6.setText("Load custom range:");
-        panel6.add(label6);
-
-        final JTextField preText = new JTextField();
-        preText.setPreferredSize(new Dimension(200,20));
-
         class CheckboxAction extends AbstractAction {
 
             private static final long serialVersionUID = 12319723L;
@@ -270,12 +273,11 @@ public class ColorRangeDialog extends JDialog {
                 if (cbLog.isSelected()) {
                     MainWindow.preDefMapColor = true;
                     colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    preText.setText(colorSlider.getDisplayColorsString());
-                    preText.setEnabled(MainWindow.preDefMapColor);
+                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
                 } else {
                     MainWindow.preDefMapColor = false;
                     colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    preText.setEnabled(MainWindow.preDefMapColor);
+                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
                 }
             }
         }
@@ -284,15 +286,8 @@ public class ColorRangeDialog extends JDialog {
         preCB.setSelected(MainWindow.preDefMapColor);
 
         panel6.add(preCB);
+        panel6.add(paletteChooserButton);
         contentPanel.add(panel6);
-
-        //======== panel6 ========
-        panel7.setLayout(new FlowLayout(FlowLayout.LEADING));
-
-        preText.setEnabled(MainWindow.preDefMapColor);
-        panel7.add(preText);
-        contentPanel.add(panel7);
-
 
         dialogPane.add(contentPanel, BorderLayout.CENTER);
 

@@ -57,29 +57,54 @@ class RangeSliderUI extends BasicSliderUI {
     private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
 
-    private final Color[] gradientColorsPreDef = {new Color(18, 129, 242),
-            new Color(113, 153, 89),
-            new Color(117, 170, 101),
-            new Color(149, 190, 113),
-            new Color(178, 214, 117),
-            new Color(202, 226, 149),
-            new Color(222, 238, 161),
-            new Color(242, 238, 161),
-            new Color(238, 222, 153),
-            new Color(242, 206, 133),
-            new Color(234, 182, 129),
-            new Color(218, 157, 121),
-            new Color(194, 141, 125),
-            new Color(214, 157, 145),
-            new Color(226, 174, 165),
-            new Color(222, 186, 182),
-            new Color(238, 198, 210),
-            new Color(255, 206, 226),
-            new Color(250, 218, 234),
-            new Color(255, 222, 230),
-            new Color(255, 230, 242),
+    private final Color[] gradientColorsPreDef = {
             new Color(255, 242, 255),
-            new Color(255,0,0)};
+            new Color(255, 230, 242),
+            new Color(255, 222, 230),
+            new Color(250, 218, 234),
+            new Color(255, 206, 226),
+            new Color(238, 198, 210),
+            new Color(222, 186, 182),
+            new Color(226, 174, 165),
+            new Color(214, 157, 145),
+            new Color(194, 141, 125),
+            new Color(218, 157, 121),
+            new Color(234, 182, 129),
+            new Color(242, 206, 133),
+            new Color(238, 222, 153),
+            new Color(242, 238, 161),
+            new Color(222, 238, 161),
+            new Color(202, 226, 149),
+            new Color(178, 214, 117),
+            new Color(149, 190, 113),
+            new Color(117, 170, 101),
+            new Color(113, 153, 89),
+            new Color(18, 129, 242),
+            new Color(255, 0, 0)
+    };
+//            {new Color(18, 129, 242),
+//            new Color(113, 153, 89),
+//            new Color(117, 170, 101),
+//            new Color(149, 190, 113),
+//            new Color(178, 214, 117),
+//            new Color(202, 226, 149),
+//            new Color(222, 238, 161),
+//            new Color(242, 238, 161),
+//            new Color(238, 222, 153),
+//            new Color(242, 206, 133),
+//            new Color(234, 182, 129),
+//            new Color(218, 157, 121),
+//            new Color(194, 141, 125),
+//            new Color(214, 157, 145),
+//            new Color(226, 174, 165),
+//            new Color(222, 186, 182),
+//            new Color(238, 198, 210),
+//            new Color(255, 206, 226),
+//            new Color(250, 218, 234),
+//            new Color(255, 222, 230),
+//            new Color(255, 230, 242),
+//            new Color(255, 242, 255),
+//            new Color(255,0,0)};
     private final float[] fractionsPreDef = {0.0f,
             0.15f,
             0.2f,
@@ -403,7 +428,7 @@ class RangeSliderUI extends BasicSliderUI {
     }
 
     /**
-     * Moves the selected thumb in the specified direction by a block increment.
+     * Moves the selected thumb in the specified direction by a block preview.
      * This method is called when the user presses the Page Up or Down keys.
      */
     public void scrollByBlock(int direction) {
@@ -425,7 +450,7 @@ class RangeSliderUI extends BasicSliderUI {
     }
 
     /**
-     * Moves the selected thumb in the specified direction by a unit increment.
+     * Moves the selected thumb in the specified direction by a unit preview.
      * This method is called when the user presses one of the arrow keys.
      */
     public void scrollByUnit(int direction) {
