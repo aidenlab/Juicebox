@@ -259,7 +259,6 @@ public class ColorRangeDialog extends JDialog {
 
         //======== panel6 ========
         panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
-        class CheckboxAction extends AbstractAction {
 
         JCheckBox preCB = new JCheckBox(new AbstractAction("Preset Map") {
 
