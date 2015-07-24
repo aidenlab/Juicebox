@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,11 +96,11 @@ public class AlignmentPair {
         return strand1;
     }
 
-    public int getStrand1AsInt() {
+    private int getStrand1AsInt() {
         return strand1 ? 0 : 16;          // 0 is the forward strand, so true; 16 is the reverse strand
     }
 
-    public int getStrand2AsInt() {
+    private int getStrand2AsInt() {
         return strand2 ? 0 : 16;       // 0 is the forward strand, so true; 16 is the reverse strand
     }
 

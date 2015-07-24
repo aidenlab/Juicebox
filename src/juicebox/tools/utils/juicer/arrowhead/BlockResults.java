@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer.arrowhead;
 
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
-import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -39,11 +38,11 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-public class BlockResults {
+class BlockResults {
 
+    private final ArrowheadScoreList internalList;
+    private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
-    private ArrowheadScoreList internalList;
-    private ArrowheadScoreList internalControl;
 
     public BlockResults(RealMatrix observed, float varThreshold, float signThreshold,
                         ArrowheadScoreList list, ArrowheadScoreList control) {
@@ -97,6 +96,7 @@ public class BlockResults {
             double[] row = observed.getRow(i);
 
             // in MATLAB second index inclusive, but for java need +1
+            System.out.println("n " + n + " i " + i + " window " + window + " gap " + gap);
             double[] A = Doubles.toArray(Lists.reverse(Doubles.asList(Arrays.copyOfRange(row, i - window, i - gap + 1))));
             double[] B = Arrays.copyOfRange(row, i + gap, i + window + 1);
 
@@ -120,10 +120,6 @@ public class BlockResults {
      */
     public List<HighScore> getResults() {
         return results;
-    }
-
-    public int size() {
-        return results.size();
     }
 
     public ArrowheadScoreList getInternalList() {

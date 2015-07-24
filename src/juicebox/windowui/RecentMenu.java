@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,14 @@ package juicebox.windowui;
 
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -34,7 +42,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,8 +55,9 @@ public abstract class RecentMenu extends JMenu {
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
+    private final File currentStates = new File(HiCGlobals.stateFileName);
+    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private List<String> m_items = new ArrayList<String>();
-    File currentStates = new File(HiCGlobals.stateFileName);
 
     public RecentMenu(String name, int count, String prefEntry) {
         super(name);
@@ -92,6 +100,8 @@ public abstract class RecentMenu extends JMenu {
                 setEnabled(false);
                 try {
                     BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                    BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML,false));
+                    buffWriter.close();
                     bWriter.close();
                 } catch(IOException ex){
                     ex.printStackTrace();
@@ -182,6 +192,30 @@ public abstract class RecentMenu extends JMenu {
      * @param mapPath The file that was selected.
      */
     public abstract void onSelectPosition(String mapPath);
+
+  /*  //TODO--- Update recent menu when HiC states are imported
+    public void updateNamesFromImport(String importedFile){
+        Document doc;
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+            doc = documentBuilder.parse(importedFile);
+            Element element = doc.getDocumentElement();
+            NodeList nodeList = element.getElementsByTagName("MapPath");
+            for(int i=0; i<nodeList.getLength(); i++){
+                System.out.println(nodeList.item(i));
+            }
+
+        } catch (ParserConfigurationException pce){
+            pce.printStackTrace();
+        } catch (SAXException se){
+            se.printStackTrace();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+
+    }*/
 
 
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.data.ExpectedValueFunction;
-import org.broad.igv.ui.util.MessageUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -47,7 +46,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class QCDialog extends JDialog {
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = -436533197805525691L;
     private static final long[] logXAxis = {10, 12, 15, 19, 23, 28, 35, 43, 53, 66, 81, 100, 123, 152, 187, 231,
             285, 351, 433, 534, 658, 811, 1000, 1233,
             1520, 1874, 2310, 2848, 3511, 4329, 5337, 6579, 8111, 10000, 12328, 15199, 18738, 23101, 28480, 35112,

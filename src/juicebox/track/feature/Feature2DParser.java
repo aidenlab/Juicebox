@@ -25,6 +25,8 @@
 package juicebox.track.feature;
 
 import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
+import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;
@@ -137,5 +139,22 @@ public class Feature2DParser {
             newList.apaFiltering(minPeakDist, maxPeakDist, resolution);
 
         return newList;
+    }
+
+    public static Feature2DList parseHighScoreList(int chrIndex, String chrName, int resolution, List<HighScore> binnedScores) {
+        Feature2DList feature2DList = new Feature2DList();
+
+        for(HighScore score : binnedScores){
+            feature2DList.add(chrIndex, chrIndex, score.toFeature2D(chrName, resolution));
+        }
+
+        return feature2DList;
+    }
+
+    public static Feature2DList parseArrowheadScoreList(int chrIndex, String chrName,
+                                                        ArrowheadScoreList scoreList) {
+        Feature2DList feature2DList = new Feature2DList();
+        feature2DList.add(scoreList.toFeature2DList(chrIndex, chrName));
+        return feature2DList;
     }
 }

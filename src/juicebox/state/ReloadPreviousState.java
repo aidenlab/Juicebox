@@ -23,15 +23,14 @@
  */
 
 
-package juicebox;
+package juicebox.state;
 
 
-import juicebox.data.Matrix;
-import juicebox.windowui.HiCZoom;
+import juicebox.CommandExecutor;
+import juicebox.HiC;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
-import org.broad.igv.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -119,6 +118,48 @@ public class ReloadPreviousState {
             e.printStackTrace();
             //result = "Error: " + e.getMessage();
         }
+
+        return result;
+
+    }
+
+    public String reloadXML(String[] infoForReload) {
+        String result = "OK";
+        //TODO---USE XML File instead
+        String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
+         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
+         String[] trackURLsAndNames = new String[2];
+        log.debug("Executing: " + infoForReload);
+        if (infoForReload.length > 0) {
+            int fileSize = infoForReload.length;
+            if (infoForReload.length > 14) {
+                initialInfo[0] = infoForReload[1]; //HiC Map Name
+                initialInfo[1] = infoForReload[2]; //hicURL
+                initialInfo[2] = infoForReload[3]; //xChr
+                initialInfo[3] = infoForReload[4]; //yChr
+                initialInfo[4] = infoForReload[5]; //unitSize
+                int binSize = Integer.parseInt(infoForReload[6]);
+                doubleInfo[0] = Double.parseDouble(infoForReload[7]); //xOrigin
+                doubleInfo[1] = Double.parseDouble(infoForReload[8]); //yOrigin
+                doubleInfo[2] = Double.parseDouble(infoForReload[9]); //ScaleFactor
+                MatrixType displayOption = MatrixType.valueOf(infoForReload[10].toUpperCase());
+                NormalizationType normType = NormalizationType.valueOf(infoForReload[11].toUpperCase());
+                doubleInfo[3] = Double.parseDouble(infoForReload[12]); //minColorVal
+                doubleInfo[4] = Double.parseDouble(infoForReload[13]); //lowerColorVal
+                doubleInfo[5] = Double.parseDouble(infoForReload[14]); //upperColorVal
+                doubleInfo[6] = Double.parseDouble(infoForReload[15]); //maxColorVal
+                trackURLsAndNames[0] = (infoForReload[16]);
+                trackURLsAndNames[1] = (infoForReload[17]);
+
+
+                                hic.unsafeSetReloadStateFromXML(initialInfo,binSize,doubleInfo,displayOption,normType,trackURLsAndNames);
+
+                            } else {
+                                result = "Not enough parameters";
+                            }
+                    } else {
+                        result = "Unknown command string";
+                    }
 
         return result;
 

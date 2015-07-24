@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -261,11 +261,9 @@ public class ColorRangeDialog extends JDialog {
         panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
         class CheckboxAction extends AbstractAction {
 
-            private static final long serialVersionUID = 12319723L;
+        JCheckBox preCB = new JCheckBox(new AbstractAction("Preset Map") {
 
-            public CheckboxAction(String text) {
-                super(text);
-            }
+            private static final long serialVersionUID = 4201L;
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -280,9 +278,8 @@ public class ColorRangeDialog extends JDialog {
                     paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
                 }
             }
-        }
+        });
 
-        JCheckBox preCB = new JCheckBox(new CheckboxAction("Preset Map"));
         preCB.setSelected(MainWindow.preDefMapColor);
 
         panel6.add(preCB);

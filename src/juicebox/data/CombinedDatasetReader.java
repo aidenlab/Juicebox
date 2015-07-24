@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -502,7 +502,7 @@ public class CombinedDatasetReader implements DatasetReader {
      * @param blockList Blocks to merge
      * @return new Block
      */
-    Block mergeBlocks(List<Block> blockList) {
+    private Block mergeBlocks(List<Block> blockList) {
         // First combine contact records for all blocks
         final Block firstBlock = blockList.get(0);
         int repSize = firstBlock.getContactRecords().size();

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,6 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
 import org.w3c.dom.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.swing.*;
@@ -173,14 +171,13 @@ public class LoadAction extends AbstractAction {
 
     }
 
-    public String getXmlUrl(){
+    private String getXmlUrl() {
         String genome = hic.getDataset().getGenomeId();
         if (genome == null) {
             genome = "hg19";
         }
 
-        String xmlURL = "tracksMenu_" + genome + ".xml";
-        return xmlURL;
+        return "tracksMenu_" + genome + ".xml";
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -404,7 +404,7 @@ public class HeatmapRenderer {
     }
 
     public void setPreDefRange(double min, double max) {
-        ((PreDefColorScale) preDefColorScale).setPreDefRange(min, max);
+        preDefColorScale.setPreDefRange(min, max);
     }
 
     public void setOEMax(double max) {

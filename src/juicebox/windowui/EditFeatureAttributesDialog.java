@@ -28,179 +28,187 @@ package juicebox.windowui;
  * Created by Marie on 6/25/15.
  */
 
-    import juicebox.track.feature.CustomAnnotation;
-    import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.CustomAnnotation;
+import juicebox.track.feature.Feature2D;
 
-    import javax.swing.*;
-    import java.beans.*; //property change stuff
-    import java.awt.event.*;
-    import java.util.ArrayList;
-    import java.util.HashMap;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /* 1.4 example used by DialogDemo.java. */
-    public class EditFeatureAttributesDialog extends JDialog
-            implements ActionListener,
-            PropertyChangeListener {
-        private String typedText = null;
-        private HashMap<String, JTextField> textFields;
-        private Feature2D feature;
-        private CustomAnnotation customAnnotations;
-        private ArrayList<String> attributeKeys;
-        private JCheckBox echoOption;
+public class EditFeatureAttributesDialog extends JDialog implements ActionListener, PropertyChangeListener {
+    private static final long serialVersionUID = 3432096869822002860L;
+    private final String defaultNewAttributeName = "<Attribute Name>";
+    private final String defaultNewAttributeValue = "<Attribute Value>";
+    private final HashMap<String, JTextField> textFields;
+    private final Feature2D feature;
+    private final CustomAnnotation customAnnotations;
+    private final ArrayList<String> attributeKeys;
+    private final JCheckBox echoOption;
+    private final JOptionPane optionPane;
+    private final String btnString1 = "Enter";
+    private final String btnString2 = "Cancel";
+    private String typedText = null;
 
-        private JOptionPane optionPane;
+    /**
+     * Creates the reusable dialog.
+     */
+    public EditFeatureAttributesDialog(Feature2D feature, CustomAnnotation customAnnotations) {
+        super();
 
-        private String btnString1 = "Enter";
-        private String btnString2 = "Cancel";
-        private final String defaultNewAttributeName = "<Attribute Name>";
-        private final String defaultNewAttributeValue = "<Attribute Value>";
+        this.customAnnotations = customAnnotations;
+        this.feature = feature;
+        setTitle("Attribute Editor");
 
-        /**
-         * Returns null if the typed string was invalid;
-         * otherwise, returns the string as the user entered it.
-         */
-        public String getValidatedText() {
-            return typedText;
+        textFields = new HashMap<String, JTextField>();
+
+        attributeKeys = feature.getAttributeKeys();
+        Object[] array = new Object[2 * (attributeKeys.size() + 2)];
+        int count = 0;
+
+        //Create an array of the text and components to be displayed.
+        for (String key : attributeKeys) {
+            //Register an event handler that puts the text into the option pane.
+            JTextField textField = new JTextField(10);
+            textField.setText(feature.getAttribute(key));
+            textField.addActionListener(this);
+            textFields.put(key, textField);
+            array[count++] = key + ":";
+            array[count++] = textField;
         }
 
-        /** Creates the reusable dialog. */
-        public EditFeatureAttributesDialog(Feature2D feature, CustomAnnotation customAnnotations) {
-            super();
+        // Add panes to input new attribute
+        attributeKeys.add("New Field Name");
+        JTextField textField = new JTextField(10);
+        textField.setText(defaultNewAttributeName);
+        textField.addActionListener(this);
+        textFields.put("New Field Name", textField);
+        JTextField textField2 = new JTextField(10);
+        textField2.setText(defaultNewAttributeValue);
+        textField2.addActionListener(this);
+        textFields.put("New Field Value", textField2);
+        echoOption = new JCheckBox("Set value as default for new attribute");
 
-            this.customAnnotations = customAnnotations;
-            this.feature = feature;
-            setTitle("Attribute Editor");
-
-            textFields = new HashMap<String, JTextField>();
-
-            attributeKeys = feature.getAttributeKeys();
-            Object[] array = new Object[2 * (attributeKeys.size() + 2)];
-            int count = 0;
-
-            //Create an array of the text and components to be displayed.
-            for (String key : attributeKeys) {
-                //Register an event handler that puts the text into the option pane.
-                JTextField textField = new JTextField(10);
-                textField.setText(feature.getAttribute(key));
-                textField.addActionListener(this);
-                textFields.put(key, textField);
-                array[count++] = key + ":";
-                array[count++] = textField;
-            }
-
-            // Add panes to input new attribute
-            attributeKeys.add("New Field Name");
-            JTextField textField = new JTextField(10);
-            textField.setText(defaultNewAttributeName);
-            textField.addActionListener(this);
-            textFields.put("New Field Name", textField);
-            JTextField textField2 = new JTextField(10);
-            textField2.setText(defaultNewAttributeValue);
-            textField2.addActionListener(this);
-            textFields.put("New Field Value", textField2);
-            echoOption = new JCheckBox("Set value as default for new attribute");
-
-            array[count++] = "Add Attribute:";
-            array[count++] = textField;
-            array[count++] = textField2;
-            array[count] = echoOption;
+        array[count++] = "Add Attribute:";
+        array[count++] = textField;
+        array[count++] = textField2;
+        array[count] = echoOption;
 
 
-            Object[] options = {btnString1, btnString2};
+        Object[] options = {btnString1, btnString2};
 
-            //Create the JOptionPane.
-            optionPane = new JOptionPane(array,
-                    JOptionPane.QUESTION_MESSAGE,
-                    JOptionPane.YES_NO_OPTION,
-                    null,
-                    options,
-                    options[0]);
+        //Create the JOptionPane.
+        optionPane = new JOptionPane(array,
+                JOptionPane.QUESTION_MESSAGE,
+                JOptionPane.YES_NO_OPTION,
+                null,
+                options,
+                options[0]);
 
-            //Make this dialog display it.
-            setContentPane(optionPane);
+        //Make this dialog display it.
+        setContentPane(optionPane);
 
-            //Handle window closing correctly.
-            setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-            addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent we) {
+        //Handle window closing correctly.
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
                 /*
                  * Instead of directly closing the window,
                  * we're going to change the JOptionPane's
                  * value property.
                  */
-                    optionPane.setValue(new Integer(
-                            JOptionPane.CLOSED_OPTION));
-                }
-            });
+                optionPane.setValue(JOptionPane.CLOSED_OPTION);
+            }
+        });
 
-            //Register an event handler that reacts to option pane state changes.
-            optionPane.addPropertyChangeListener(this);
-            pack();
-            setLocationRelativeTo(null);
-            setVisible(true);
-        }
+        //Register an event handler that reacts to option pane state changes.
+        optionPane.addPropertyChangeListener(this);
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
 
-        /** This method handles events for the text field. */
-        public void actionPerformed(ActionEvent e) {
-            optionPane.setValue(btnString1);
-        }
+    /**
+     * Returns null if the typed string was invalid;
+     * otherwise, returns the string as the user entered it.
+     */
+    public String getValidatedText() {
+        return typedText;
+    }
 
-        /** This method reacts to state changes in the option pane. */
-        public void propertyChange(PropertyChangeEvent e) {
-            String prop = e.getPropertyName();
+    /**
+     * This method handles events for the text field.
+     */
+    public void actionPerformed(ActionEvent e) {
+        optionPane.setValue(btnString1);
+    }
 
-            if (isVisible()
-                    && (e.getSource() == optionPane)
-                    && (JOptionPane.VALUE_PROPERTY.equals(prop) ||
-                    JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
-                Object value = optionPane.getValue();
+    /**
+     * This method reacts to state changes in the option pane.
+     */
+    public void propertyChange(PropertyChangeEvent e) {
+        String prop = e.getPropertyName();
 
-                if (value == JOptionPane.UNINITIALIZED_VALUE) {
-                    //ignore reset
-                    return;
-                }
+        if (isVisible()
+                && (e.getSource() == optionPane)
+                && (JOptionPane.VALUE_PROPERTY.equals(prop) ||
+                JOptionPane.INPUT_VALUE_PROPERTY.equals(prop))) {
+            Object value = optionPane.getValue();
 
-                optionPane.setValue(
-                        JOptionPane.UNINITIALIZED_VALUE);
+            if (value == JOptionPane.UNINITIALIZED_VALUE) {
+                //ignore reset
+                return;
+            }
 
-                if (btnString1.equals(value)) {
-                    for (String key : attributeKeys) {
-                        typedText = textFields.get(key).getText();
-                        if (typedText != null) {
-                            // New Attribute
-                            if (key.equals("New Field Name")){
-                                String newAttributeText = textFields.get("New Field Value").getText();
-                                // If added new attribute with valid field
-                                if (!typedText.equals(defaultNewAttributeName) && typedText != null) {
-                                    if (!newAttributeText.equals(defaultNewAttributeValue) &&
-                                            newAttributeText != null) {
-                                        if (echoOption.isSelected()) {
-                                            customAnnotations.changeAllAttributeValues(typedText, newAttributeText);
-                                        } else {
-                                            customAnnotations.changeAllAttributeValues(typedText, "null");
-                                            feature.setAttribute(typedText, newAttributeText);
-                                        }
+            optionPane.setValue(
+                    JOptionPane.UNINITIALIZED_VALUE);
+
+            if (btnString1.equals(value)) {
+                for (String key : attributeKeys) {
+                    typedText = textFields.get(key).getText();
+                    if (typedText != null) {
+                        // New Attribute
+                        if (key.equals("New Field Name")) {
+                            String newAttributeText = textFields.get("New Field Value").getText();
+                            // If added new attribute with valid field
+                            if (!typedText.equals(defaultNewAttributeName) && typedText != null) {
+                                if (!newAttributeText.equals(defaultNewAttributeValue) &&
+                                        newAttributeText != null) {
+                                    if (echoOption.isSelected()) {
+                                        customAnnotations.changeAllAttributeValues(typedText, newAttributeText);
+                                    } else {
+                                        customAnnotations.changeAllAttributeValues(typedText, "null");
+                                        feature.setAttribute(typedText, newAttributeText);
                                     }
                                 }
+                            }
                             // Update old attribute
-                            } else {
-                                // If text changed in already existing attributes, change value
-                                if (!typedText.equals(feature.getAttribute(key))) {
-                                    feature.setAttribute(key, typedText);
-                                }
+                        } else {
+                            // If text changed in already existing attributes, change value
+                            if (!typedText.equals(feature.getAttribute(key))) {
+                                feature.setAttribute(key, typedText);
                             }
                         }
                     }
                 }
-                typedText = null;
-                clearAndHide();
             }
-        }
-
-        /** This method clears the dialog and hides it. */
-        public void clearAndHide() {
-            //textField.setText(null);
-            setVisible(false);
+            typedText = null;
+            clearAndHide();
         }
     }
+
+    /**
+     * This method clears the dialog and hides it.
+     */
+    private void clearAndHide() {
+        //textField.setText(null);
+        setVisible(false);
+    }
+}
 

@@ -29,14 +29,16 @@ import jcuda.Sizeof;
 import jcuda.driver.CUdeviceptr;
 import jcuda.driver.JCudaDriver;
 import jcuda.utils.KernelLauncher;
+
 import java.util.Arrays;
-import static jcuda.driver.JCudaDriver.*;
+
 import static jcuda.driver.JCudaDriver.cuMemFree;
+import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 
 /**
  * Created by muhammadsaadshamim on 5/7/15.
  */
-public class GPUTesting {
+class GPUTesting {
 
     public static void test() {
         JCudaDriver.setExceptionsEnabled(true);

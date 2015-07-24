@@ -24,10 +24,6 @@
 
 package juicebox.tools.utils.common;
 
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Floats;
-import com.google.common.primitives.Ints;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.util.Arrays;
@@ -43,6 +39,14 @@ public class ArrayTools {
             System.arraycopy(original[i], 0, copy[i], 0, original[i].length);
         }
         return copy;
+    }
+
+    public static double mean(double[] doubles) {
+        double sum = 0;
+        for(double d : doubles){
+            sum += d;
+        }
+        return sum/doubles.length;
     }
 
     /**
@@ -76,7 +80,7 @@ public class ArrayTools {
         return outputArray;
     }
 
-    public static int[] makeReverseCumulativeArray(int[] inputArray) {
+    private static int[] makeReverseCumulativeArray(int[] inputArray) {
         int[] outputArray = new int[inputArray.length];
         int total = 0;
         for (int i = inputArray.length - 1; i > -1; i--) {
@@ -117,9 +121,7 @@ public class ArrayTools {
      */
     public static float[] padEndOfArray(float[] original, int length, float val) {
         float[] paddedArray = new float[length];
-        for(int i = 0; i < original.length; i++){
-            paddedArray[i] = original[i];
-        }
+        System.arraycopy(original, 0, paddedArray, 0, original.length);
         for(int i = original.length; i < length; i++){
             paddedArray[i] = val;
         }

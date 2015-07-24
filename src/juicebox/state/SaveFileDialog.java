@@ -22,68 +22,75 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.windowui;
+package juicebox.state;
 
 import juicebox.MainWindow;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.Feature2DList;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 /**
- * Created by Marie on 6/5/15.
+ * Created by Zulkifl on 7/23/2015.
  */
-public class SaveAnnotationsDialog extends JFileChooser {
+public class SaveFileDialog extends JFileChooser {
 
-    private static final long serialVersionUID = -6338086600062738308L;
-    private final CustomAnnotation annotations;
-    private Feature2DList otherList = null;
+    private static final long serialVersionUID = 2910799798390074194L;
+    private int numStates = 0;
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {
+
+    public SaveFileDialog(File fileToSave, int savedStates) {
         super();
-        this.annotations = customAnnotations;
-        menuOptions();
+        numStates = savedStates;
+        saveFile(fileToSave,savedStates);
+
     }
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, Feature2DList otherList) {
-        super();
-        this.annotations = customAnnotations;
-        this.otherList = otherList;
-        menuOptions();
-    }
-
-    private void menuOptions() {
-        String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        setSelectedFile(new File("Author-" + timeStamp + ".txt"));
+    private void saveFile(File fileToSave, int numMaps) {
 
         setCurrentDirectory(new File(System.getProperty("user.dir")));
-
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "Text Files", "txt", "text");
+                "XML Files", "xml", "XML");
         setFileFilter(filter);
         int actionDialog = showSaveDialog(MainWindow.getInstance());
         if (actionDialog == JFileChooser.APPROVE_OPTION) {
             File file = getSelectedFile();
-            String outputPath = file.getAbsolutePath();
-            if (file.exists()) {
-                actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
-                if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
-                    return;
+            try {
+                copyFile(fileToSave, file);
+            } catch (IOException e){
+                e.printStackTrace();
             }
-            if (otherList == null) {
-                if (annotations.exportAnnotations(outputPath) < 0) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
+            if (numMaps == 0) {
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No saved HiC maps to export", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
-            } else {
-                if (annotations.exportOverlap(otherList, outputPath) < 0) {
-                }
             }
+        }
 
+    private static void copyFile(File sourceFile, File destFile) throws IOException {
+        if(!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        }
+        finally {
+            if(source != null) {
+                source.close();
+            }
+            if(destination != null) {
+                destination.close();
+            }
         }
     }
 }

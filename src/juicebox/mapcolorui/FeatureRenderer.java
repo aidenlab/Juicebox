@@ -26,8 +26,8 @@ package juicebox.mapcolorui;
 
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.HiCFileTools;
-import juicebox.track.feature.Feature2D;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.Feature2D;
 import org.broad.igv.util.Pair;
 
 import java.awt.*;
@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 6/4/15.
  */
-public class FeatureRenderer {
+class FeatureRenderer {
 
     // TODO make these variables accessible as user options
     // the other day, Erez mentioned his preferred was everything in lower left

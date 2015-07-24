@@ -30,7 +30,7 @@ import org.apache.commons.math.linear.RealMatrix;
 /**
  * Created by muhammadsaadshamim on 6/3/15.
  */
-public class DynamicProgrammingUtils {
+class DynamicProgrammingUtils {
 
 
     /**

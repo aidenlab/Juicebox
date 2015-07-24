@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ public class SymmetricMatrix implements BasicMatrix {
 
     }
 
-    int getIdx(int i, int j) {
+    private int getIdx(int i, int j) {
 
         return (i < j) ?
                 i * dim - (i - 1) * i / 2 + j - i :
@@ -137,7 +137,7 @@ public class SymmetricMatrix implements BasicMatrix {
         return upperValue;
     }
 
-    void computePercentiles() {
+    private void computePercentiles() {
 
         // Statistics, other attributes
         DoubleArrayList flattenedDataList = new DoubleArrayList(data.length);

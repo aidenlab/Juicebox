@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -172,8 +172,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
-        Color topTick = new Color(00, 00, 255);
-        Color leftTick = new Color(00, 128, 00);
+        Color topTick = new Color(0, 0, 255);
+        Color leftTick = new Color(0, 128, 0);
 
 
         if (w < 50 || hic.getScaleFactor() == 0) {

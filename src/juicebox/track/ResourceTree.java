@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -661,7 +661,7 @@ public class ResourceTree {
 
     }
 
-    public void addBack(ResourceLocator locator) {
+    private void addBack(ResourceLocator locator) {
         Enumeration<?> enumeration = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         // skip root
         enumeration.nextElement();
@@ -734,27 +734,27 @@ public class ResourceTree {
     /**
      *
      */
-    static interface SelectableResource extends DataResource {
+    interface SelectableResource extends DataResource {
 
-        public boolean isSelected();
+        boolean isSelected();
 
-        public void setSelected(boolean newValue);
+        void setSelected(boolean newValue);
     }
 
     /**
      *
      */
-    static interface DataResource {
+    interface DataResource {
 
-        public ResourceLocator getResourceLocator();
+        ResourceLocator getResourceLocator();
 
-        public String getText();
+        String getText();
 
-        public void setText(String newValue);
+        void setText(String newValue);
 
-        public boolean isEnabled();
+        boolean isEnabled();
 
-        public void setEnabled(boolean value);
+        void setEnabled(boolean value);
     }
 
     /**
@@ -853,7 +853,7 @@ public class ResourceTree {
     static class ResourceEditor extends AbstractCellEditor
             implements TreeCellEditor {
 
-        private static final long serialVersionUID = 42L;
+        private static final long serialVersionUID = -5631405993171929756L;
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
 

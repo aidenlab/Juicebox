@@ -40,7 +40,7 @@ import java.text.DecimalFormat;
  * Helper class to wrap heat map plotting and handle APA plots
  * The static plot method should be called all the necessary inputs.
  */
-public class APAPlotter {
+class APAPlotter {
 
     /** APA heat map plots range between red (max value) and white (0) */
     private static final Color[] gradientColors = {Color.RED, Color.WHITE};

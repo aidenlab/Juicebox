@@ -64,7 +64,7 @@ public class MatrixTools {
         return minimumPositive(data.getData());
     }
 
-    public static double minimumPositive(double[][] data) {
+    private static double minimumPositive(double[][] data) {
         double minVal = Double.MAX_VALUE;
         for (double[] row : data) {
             for (double val : row) {
@@ -128,9 +128,7 @@ public class MatrixTools {
         float[][] squareMatrix = new float[n][n];
 
         for(int i = 0; i < n; i++){
-            for(int j = 0; j < n; j++){
-                squareMatrix[i][j] = flatMatrix[i*n+j];
-            }
+            System.arraycopy(flatMatrix, i * n, squareMatrix[i], 0, n);
         }
         return squareMatrix;
     }
@@ -153,9 +151,7 @@ public class MatrixTools {
         float[][] extractedRegion = new float[numRows][numColumns];
 
         for(int i = 0; i < numRows; i++){
-            for(int j = 0; j < numColumns; j++){
-                extractedRegion[i][j] = matrix[r1+i][c1+j];
-            }
+            System.arraycopy(matrix[r1 + i], c1, extractedRegion[i], 0, numColumns);
         }
 
         return extractedRegion;

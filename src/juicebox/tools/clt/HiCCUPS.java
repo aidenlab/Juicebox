@@ -27,7 +27,10 @@ package juicebox.tools.clt;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.Dataset;
+import juicebox.data.DatasetReaderV2;
+import juicebox.data.Matrix;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.HiCFileTools;
@@ -38,6 +41,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -50,42 +54,36 @@ import java.util.Set;
  */
 public class HiCCUPS extends JuiceboxCLT {
 
-    private int[] resolutions = new int[]{25000, 10000, 5000};
-
-    private boolean chrSpecified = false;
-    Set<String> chromosomesSpecified = new HashSet<String>();
-
-    private String inputHiCFileName;
-    private String outputFDRFileName;
-    private String outputEnrichedFileName;
-
+    public static final int regionMargin = 20;
+    private static final int totalMargin = 2 * regionMargin;
     // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
     // w2 (10000) corresponds to the number of reads (so it can't handle pixels with more than 10,000 reads)
     // TODO dimensions should be variably set
-    private static int w1 = 40, w2 = 10000;
-
-    
-    private static final int regionMargin = 20;
-    private static final int totalMargin = 2*regionMargin;
+    private static final int w1 = 40;
+    private static final int w2 = 10000;
+    private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
+    private static final int window = 3;
+    private static final int peakWidth = 1;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private static int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
-    private static int window = 3;
-    private static int peakWidth = 1;
-
-    private static int divisor() {
-        return (window - peakWidth) * (window + peakWidth);
-    }
+    private int[] resolutions = new int[]{25000, 10000, 5000};
+    private boolean chrSpecified = false;
+    private Set<String> chromosomesSpecified = new HashSet<String>();
+    private String inputHiCFileName;
+    private String outputFDRFileName;
+    private String outputEnrichedFileName;
 
     public HiCCUPS() {
         super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
         // -i input file custom
     }
 
+    private static int divisor() {
+        return (window - peakWidth) * (window + peakWidth);
+    }
+
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        // read
-        System.out.println(args);
 
         if (!(args.length == 4)) {
             throw new IOException("1");
@@ -185,8 +183,7 @@ public class HiCCUPS extends JuiceboxCLT {
         float[] boundColumnIndex = new float[1];
 
 
-
-        GPUController gpuController = new GPUController(window, matrixSize, peakWidth, regionMargin, divisor());
+        GPUController gpuController = new GPUController(window, matrixSize, peakWidth, divisor());
 
         Feature2DList globalList = new Feature2DList();
 
@@ -216,11 +213,11 @@ public class HiCCUPS extends JuiceboxCLT {
 
 
                 for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
-                    int[] rowBounds = calculateRegionBounds(i, regionWidth, regionMargin, chrMatrixWdith);
+                    int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
 
                     if(rowBounds[4] < chrMatrixWdith - regionMargin) {
                         for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
-                            int[] columnBounds = calculateRegionBounds(j, regionWidth, regionMargin, chrMatrixWdith);
+                            int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
 
                             if (columnBounds[4] < chrMatrixWdith - regionMargin) {
                                 GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
@@ -296,8 +293,7 @@ public class HiCCUPS extends JuiceboxCLT {
     }
 
 
-
-    private int[] calculateRegionBounds(int index, int regionWidth, int regionMargin, int chrMatrixWidth) {
+    private int[] calculateRegionBounds(int index, int regionWidth, int chrMatrixWidth) {
 
         int bound1R = Math.min(regionMargin + (index * regionWidth), chrMatrixWidth - regionMargin);
         int bound1 = bound1R - regionMargin;

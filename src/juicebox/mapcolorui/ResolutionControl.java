@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,19 +30,23 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
 public class ResolutionControl extends JPanel {
-    static final long serialVersionUID = 42L;
+    private static final long serialVersionUID = -5982918928089196379L;
     private final ImageIcon lockOpenIcon;
     private final ImageIcon lockIcon;
     private final HiC hic;
@@ -52,6 +56,9 @@ public class ResolutionControl extends JPanel {
     private final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
     public HiC.Unit unit = HiC.Unit.BP;
+    private boolean resolutionLocked = false;
+    private JSlider resolutionSlider;
+    private int lastValue = 0;
 
     {
         bpLabelMap = new Hashtable<Integer, String>();
@@ -66,10 +73,6 @@ public class ResolutionControl extends JPanel {
         bpLabelMap.put(5000, "5 KB");
         bpLabelMap.put(1000, "1 KB");
     }
-
-    private boolean resolutionLocked = false;
-    private JSlider resolutionSlider;
-    private int lastValue = 0;
 
     public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel) {
 
@@ -293,7 +296,7 @@ public class ResolutionControl extends JPanel {
     }
 
 
-    String sizeToLabel(int binSize) {
+    private String sizeToLabel(int binSize) {
 
         if (unit == HiC.Unit.FRAG) {
             return binSize + " f";

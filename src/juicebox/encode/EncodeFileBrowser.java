@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package juicebox.encode;
 
 import com.jidesoft.swing.JideBoxLayout;
-import juicebox.track.LoadEncodeAction;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.IGV;

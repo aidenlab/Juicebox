@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -150,7 +150,7 @@ public class TrackConfigDialog extends JDialog {
         setVisible(false);
     }
 
-    public Color getReloadColors(String temp){
+    private Color getReloadColors(String temp) {
         HashMap<String,Color> reloadColors = new HashMap<String, Color>();
         for(HiCTrack tracks: trackManager.getReloadTrackNames()){
             reloadColors.put(tracks.getName(),tracks.getPosColor());
