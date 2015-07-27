@@ -7,56 +7,20 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="lib" level="project" />
+    <orderEntry type="library" exported="" name="lib" level="project" />
+    <orderEntry type="library" exported="" name="jogl" level="project" />
+    <orderEntry type="library" exported="" name="lwjgl" level="project" />
+    <orderEntry type="library" exported="" name="broadinstitute" level="project" />
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/guava-18.0.jar!/" />
+          <root url="file://$MODULE_DIR$/lib/general" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/lib/general" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jcuda-0.7.0.jar!/" />
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://$MODULE_DIR$/lib/jcuda-0.7.0.jar!/doc" />
-        </JAVADOC>
-        <NATIVE>
-          <root url="file://$MODULE_DIR$/lib" />
-          <root url="file://$MODULE_DIR$/lib" />
-          <root url="file://$MODULE_DIR$/lib" />
-          <root url="file://$MODULE_DIR$/lib" />
-          <root url="file://$MODULE_DIR$/lib" />
-          <root url="file://$MODULE_DIR$/lib" />
-        </NATIVE>
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/jcudaUtils-0.0.4.jar!/" />
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://$MODULE_DIR$/lib/jcudaUtils-0.0.4.jar!/doc" />
-        </JAVADOC>
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/jcudaUtils-0.0.4.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/igv.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" exported="" name="jcuda" level="project" />
   </component>
 </module>

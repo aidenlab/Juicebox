@@ -6,8 +6,11 @@
         <element id="file-copy" path="$PROJECT_DIR$/src/resources/MANIFEST.MF" />
       </element>
       <element id="module-output" name="Juicebox" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/igv.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/htsjdk-1.123.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/broadinstitute/igv.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/broadinstitute/htsjdk-1.123.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/general/guava-18.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jcuda/jcuda-0.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jcuda/jcudaUtils-0.0.4.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
