@@ -35,8 +35,8 @@ public class CLTFactory {
     private final static String[] nameToCommandLineTool = {
             //        "addGWNorm",    "juicebox.tools.clt.AddGWNorm",         "addGWNorm <input_HiC_file> <min resolution>",
             //        "addNorm",      "juicebox.tools.clt.AddNorm",           "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
-            //        "APA",          "juicebox.tools.clt.APA",               "APA <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
-            //        "arrowhead",    "juicebox.tools.Arrowhead",             "arrowhead <input_HiC_file> <resolution>",
+            //        "apa",          "juicebox.tools.clt.apa",               "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
+            //        "arrowhead",    "juicebox.tools.arrowhead",             "arrowhead <input_HiC_file> <resolution>",
             //        "bigWig",       "juicebox.tools.clt.BigWig",            "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
             //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
             //        "bpToFrag",     "juicebox.tools.clt.BPToFragment",      "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
@@ -92,7 +92,7 @@ public class CLTFactory {
         else if(cmd.equals("addNorm".toLowerCase())){
             return new AddNorm();
         }
-        else if(cmd.equals("APA")){
+        else if(cmd.equals("apa")){
             return new APA();
         }
         else if(cmd.equals("arrowhead")){

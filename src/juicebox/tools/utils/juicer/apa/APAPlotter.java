@@ -37,12 +37,12 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 
 /**
- * Helper class to wrap heat map plotting and handle APA plots
+ * Helper class to wrap heat map plotting and handle apa plots
  * The static plot method should be called all the necessary inputs.
  */
 class APAPlotter {
 
-    /** APA heat map plots range between red (max value) and white (0) */
+    /** apa heat map plots range between red (max value) and white (0) */
     private static final Color[] gradientColors = {Color.RED, Color.WHITE};
     private static final float[] gradientFractions = {0.0f, 1.0f};
 
@@ -60,7 +60,7 @@ class APAPlotter {
     private static int numDivisions = 6;
 
     /**
-     * Method for plotting APA data
+     * Method for plotting apa data
      *
      * @param data for heat map
      * @param axesRange initial values and increments to annotate axes [x0, dx, y0, dy]
@@ -101,7 +101,7 @@ class APAPlotter {
             plotColorScaleValues(g2, map);
 
 
-            // top left, top right, bottom left, bottom right values (from APA)
+            // top left, top right, bottom left, bottom right values (from apa)
 
             drawCornerRegions(g2, map, new Dimension(APA.regionWidth, APA.regionWidth),
                     apaStats.getRegionCornerValues());
@@ -115,7 +115,7 @@ class APAPlotter {
     }
 
     /**
-     * Initialize dimensions used for plotting APA data
+     * Initialize dimensions used for plotting apa data
      * @param heatMap object
      */
     private static void initializeSizes(HeatChart heatMap) {
@@ -223,13 +223,13 @@ class APAPlotter {
     }
 
     /**
-     * Draw the corner boxes and their values as calculated by APA overlayed above the existing heat map
+     * Draw the corner boxes and their values as calculated by apa overlayed above the existing heat map
      *
      * @param g2 graphics2D oObject
      * @param map heat map object
      * @param regionCellDimensions dimensions for the corner regions to be plotted in units of cells, not pixels
      *                             where each cell corresponds to a data point, usually 20px-by-20px (default)
-     * @param regionAPAValues APA results for each region in order of TL TR BL BR
+     * @param regionAPAValues apa results for each region in order of TL TR BL BR
      */
     private static void drawCornerRegions(Graphics2D g2, HeatChart map, Dimension regionCellDimensions,
                                           double[] regionAPAValues) {

@@ -54,7 +54,7 @@ public class HiCCUPSUtils {
     private static final String FDRV = "fdrV";
 
     /**
-     * Generate a Feature2D peak for a possible peak location from HiCCUPS
+     * Generate a Feature2D peak for a possible peak location from hiccups
      * @param chrName
      * @param observed
      * @param peak

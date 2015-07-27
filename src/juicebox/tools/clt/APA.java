@@ -63,7 +63,7 @@ public class APA extends JuiceboxCLT {
     private int[] resolutions = new int[]{25000, 10000};
 
     public APA() {
-        super("APA [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
     }
 
     @Override
@@ -186,7 +186,7 @@ public class APA extends JuiceboxCLT {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Unable to extract APA data");
+            System.out.println("Unable to extract apa data");
             e.printStackTrace();
             System.exit(-3);
         }

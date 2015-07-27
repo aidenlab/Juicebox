@@ -48,7 +48,7 @@ public class Feature2DList {
     private Map<String, List<Feature2D>> featureList;
 
     /*
-     * Metrics resulting from APA filtering
+     * Metrics resulting from apa filtering
      */
     private Map<String, Integer[]> filterMetrics;
 

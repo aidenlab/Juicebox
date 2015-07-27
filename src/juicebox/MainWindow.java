@@ -30,7 +30,6 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
-import juicebox.state.ImportFileDialog;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
@@ -94,8 +93,6 @@ public class MainWindow extends JFrame {
     public static CustomAnnotationHandler customAnnotationHandler;
     public static JMenuItem exportAnnotationsMI;
     public static JMenuItem undoMenuItem;
-    public static Color hicMapColor = Color.red;
-    public static boolean preDefMapColor = false;
     private static boolean unsavedEdits;
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu;

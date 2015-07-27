@@ -34,7 +34,7 @@ class GPUKernel {
         public static final String kernelName = "BasicPeakCallingKernel";
 
     /**
-     * HiCCUPS Kernel Code
+     * hiccups Kernel Code
      *
      * @param window
      * @param matrixSize
