@@ -250,8 +250,8 @@ public class Feature2DList {
 
             for (String key : featureList.keySet()) {
                 for (Feature2D feature : featureList.get(key)) {
-                    //outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                    outputFile.println(feature);
+                    outputFile.println(HiCCUPSUtils.oldOutput(feature));
+                    //outputFile.println(feature);
                 }
             }
             outputFile.close();
