@@ -57,8 +57,8 @@ class RangeSliderUI extends BasicSliderUI {
     private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
 
-    private final Color[] gradientColorsPreDef = {
-            new Color(255, 242, 255),
+    private Color[] gradientColorsPreDef =
+            {new Color(255, 242, 255),
             new Color(255, 230, 242),
             new Color(255, 222, 230),
             new Color(250, 218, 234),
@@ -105,7 +105,8 @@ class RangeSliderUI extends BasicSliderUI {
 //            new Color(255, 230, 242),
 //            new Color(255, 242, 255),
 //            new Color(255,0,0)};
-    private final float[] fractionsPreDef = {0.0f,
+    private float[] fractionsPreDef =
+            {0.0f,
             0.15f,
             0.2f,
             0.25f,
@@ -478,9 +479,17 @@ class RangeSliderUI extends BasicSliderUI {
     public void setDisplayToPreDef(boolean isPreDef) {
 
         this.colorIsPreDef = isPreDef;
-        //PreDefColorScale.resetMax();
-        this.preDefColorMax = PreDefColorScale.defaultMaxPreDefVal;
+        int colorArraySize = MainWindow.preDefMapColorFractions.size();
+        gradientColorsPreDef =  MainWindow.preDefMapColorGradient.toArray(new Color[colorArraySize]);
 
+        fractionsPreDef = new float[colorArraySize];
+        int i = 0;
+
+        for (Float f : MainWindow.preDefMapColorFractions) {
+            fractionsPreDef[i++] = (f != null ? f : Float.NaN);
+        }
+
+        this.preDefColorMax = PreDefColorScale.defaultMaxPreDefVal;
     }
 
     public void setDisplayToBlank(boolean isBlank) {

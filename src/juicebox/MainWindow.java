@@ -49,7 +49,6 @@ import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
-import sun.applet.Main;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -132,7 +131,8 @@ public class MainWindow extends JFrame {
     private static File temp;
     public static Color hicMapColor = Color.red;
     public static boolean preDefMapColor = false;
-    public static Color[] preDefMapColorPalette = new Color[24];
+    public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
+    public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
 
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
@@ -1164,8 +1164,35 @@ public class MainWindow extends JFrame {
     }
 
     private void initComponents() {
-
         System.out.println("Initializing Components");
+
+        preDefMapColorGradient.add(new Color(255, 242, 255));
+        preDefMapColorGradient.add(new Color(255, 242, 255));
+        preDefMapColorGradient.add(new Color(255, 230, 242));
+        preDefMapColorGradient.add(new Color(255, 222, 230));
+        preDefMapColorGradient.add(new Color(250, 218, 234));
+        preDefMapColorGradient.add(new Color(255, 206, 226));
+        preDefMapColorGradient.add(new Color(238, 198, 210));
+        preDefMapColorGradient.add(new Color(222, 186, 182));
+        preDefMapColorGradient.add(new Color(226, 174, 165));
+        preDefMapColorGradient.add(new Color(214, 157, 145));
+        preDefMapColorGradient.add(new Color(194, 141, 125));
+        preDefMapColorGradient.add(new Color(218, 157, 121));
+        preDefMapColorGradient.add(new Color(234, 182, 129));
+        preDefMapColorGradient.add(new Color(242, 206, 133));
+        preDefMapColorGradient.add(new Color(238, 222, 153));
+        preDefMapColorGradient.add(new Color(242, 238, 161));
+        preDefMapColorGradient.add(new Color(222, 238, 161));
+        preDefMapColorGradient.add(new Color(202, 226, 149));
+        preDefMapColorGradient.add(new Color(178, 214, 117));
+        preDefMapColorGradient.add(new Color(149, 190, 113));
+        preDefMapColorGradient.add(new Color(117, 170, 101));
+        preDefMapColorGradient.add(new Color(113, 153, 89));
+        preDefMapColorGradient.add(new Color(18, 129, 242));
+        preDefMapColorGradient.add(new Color(255, 0, 0));
+        preDefMapColorGradient.add(new Color(0, 0, 0));
+
+
 
         //size of the screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1701,31 +1728,6 @@ public class MainWindow extends JFrame {
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
-
-        preDefMapColorPalette[0] =  new Color(255, 242, 255);
-        preDefMapColorPalette[1] =  new Color(255, 230, 242);
-        preDefMapColorPalette[2] =  new Color(255, 222, 230);
-        preDefMapColorPalette[3] =  new Color(250, 218, 234);
-        preDefMapColorPalette[4] =  new Color(255, 206, 226);
-        preDefMapColorPalette[5] =  new Color(238, 198, 210);
-        preDefMapColorPalette[6] =  new Color(222, 186, 182);
-        preDefMapColorPalette[7] =  new Color(226, 174, 165);
-        preDefMapColorPalette[8] =  new Color(214, 157, 145);
-        preDefMapColorPalette[9] =  new Color(194, 141, 125);
-        preDefMapColorPalette[10] =  new Color(218, 157, 121);
-        preDefMapColorPalette[11] =  new Color(234, 182, 129);
-        preDefMapColorPalette[12] =  new Color(242, 206, 133);
-        preDefMapColorPalette[13] =  new Color(238, 222, 153);
-        preDefMapColorPalette[14] =  new Color(242, 238, 161);
-        preDefMapColorPalette[15] =  new Color(222, 238, 161);
-        preDefMapColorPalette[16] =  new Color(202, 226, 149);
-        preDefMapColorPalette[17] =  new Color(178, 214, 117);
-        preDefMapColorPalette[18] =  new Color(149, 190, 113);
-        preDefMapColorPalette[19] =  new Color(117, 170, 101);
-        preDefMapColorPalette[20] =  new Color(113, 153, 89);
-        preDefMapColorPalette[21] =  new Color(18, 129, 242);
-        preDefMapColorPalette[22] =  new Color(255, 0, 0);
-        preDefMapColorPalette[23] =  new Color(0, 0, 0);
 
         initializeGlassPaneListening();
 

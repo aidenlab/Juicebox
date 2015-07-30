@@ -24,6 +24,10 @@
 
 package juicebox.mapcolorui;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Range;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.Block;
@@ -39,10 +43,8 @@ import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author jrobinso
@@ -55,7 +57,7 @@ public class HeatmapRenderer {
     private final MainWindow mainWindow;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
-    private final PreDefColorScale preDefColorScale;
+    private PreDefColorScale preDefColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
     private ContinuousColorScale observedColorScale;
     private Color curHiCColor = Color.white;
@@ -66,44 +68,30 @@ public class HeatmapRenderer {
         oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();
 
-//        preDefColorScale = new PreDefColorScale("RGB",
-//                new Color[]{
-//                        new Color(0, 255, 0),
-//                        new Color(0, 0, 255),
-//                        new Color(255, 0, 0)
-//                },
-//                // elevation
-//                new int[]{
-//                        0,
-//                        50,
-//                        100
-//                }
-//        );
-
         preDefColorScale = new PreDefColorScale("Template",
                 new Color[]{
-                        new Color(255, 242, 255),
-                        new Color(255, 230, 242),
-                        new Color(255, 222, 230),
-                        new Color(250, 218, 234),
-                        new Color(255, 206, 226),
-                        new Color(238, 198, 210),
-                        new Color(222, 186, 182),
-                        new Color(226, 174, 165),
-                        new Color(214, 157, 145),
-                        new Color(194, 141, 125),
-                        new Color(218, 157, 121),
-                        new Color(234, 182, 129),
-                        new Color(242, 206, 133),
-                        new Color(238, 222, 153),
-                        new Color(242, 238, 161),
-                        new Color(222, 238, 161),
-                        new Color(202, 226, 149),
-                        new Color(178, 214, 117),
-                        new Color(149, 190, 113),
-                        new Color(117, 170, 101),
-                        new Color(113, 153, 89),
                         new Color(18, 129, 242),
+                        new Color(113, 153, 89),
+                        new Color(117, 170, 101),
+                        new Color(149, 190, 113),
+                        new Color(178, 214, 117),
+                        new Color(202, 226, 149),
+                        new Color(222, 238, 161),
+                        new Color(242, 238, 161),
+                        new Color(238, 222, 153),
+                        new Color(242, 206, 133),
+                        new Color(234, 182, 129),
+                        new Color(218, 157, 121),
+                        new Color(194, 141, 125),
+                        new Color(214, 157, 145),
+                        new Color(226, 174, 165),
+                        new Color(222, 186, 182),
+                        new Color(238, 198, 210),
+                        new Color(255, 206, 226),
+                        new Color(250, 218, 234),
+                        new Color(255, 222, 230),
+                        new Color(255, 230, 242),
+                        new Color(255, 242, 255),
                         new Color(255,0,0)
                 },
                 // elevation
@@ -327,6 +315,7 @@ public class HeatmapRenderer {
             }
             if(MainWindow.preDefMapColor)
             {
+                updatePreDefColors();
                 mainWindow.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
         }
@@ -413,5 +402,26 @@ public class HeatmapRenderer {
 
     public void reset() {
         observedColorScaleMap.clear();
+    }
+
+    private void updatePreDefColors()
+    {
+        int arrSize = MainWindow.preDefMapColorGradient.size();
+
+        ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
+        Integer[] arrTmp = set.toArray(new Integer[arrSize]);
+        final int[] arrScores = new int[arrSize];
+
+        for (int idx=0;idx<arrSize; idx++)
+        {
+            arrScores[idx] = arrTmp[idx];
+        }
+
+        preDefColorScale.updateColors(
+
+                (Color[]) MainWindow.preDefMapColorGradient.toArray(new Color[arrSize]),
+                arrScores
+
+        );
     }
 }

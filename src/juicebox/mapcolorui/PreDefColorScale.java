@@ -58,26 +58,7 @@ public class PreDefColorScale implements ColorScale{
      * @return the color map
      */
     public PreDefColorScale(String name, Color[] colors, int[] score) {
-        if (colors == null) {
-            throw new IllegalArgumentException("colors can't be null");
-        }
-        if (score == null) {
-            throw new IllegalArgumentException("score can't be null");
-        }
-
-
-        if (colors.length != score.length) {
-            throw new IllegalArgumentException("Arrays colors and score must have same length: " + colors.length + " vs " + score.length);
-        }
-
-        colorList = new ArrayList<ColorMapEntry>();
-
-        for (int i = 0; i < score.length; i++) {
-            colorList.add(new ColorMapEntry(colors[i], score[i]));
-        }
-
-        // sort by score
-        Collections.sort(colorList);
+        updateColors(colors,score);
     }
 
     private static Color smooth(java.awt.Color c1, java.awt.Color c2, double ratio) {
@@ -190,22 +171,6 @@ public class PreDefColorScale implements ColorScale{
         throw new RuntimeException("No Color found for given score " + score);
     }
 
-    public Color getColor(String symbol) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public Color getNoDataColor() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public String asString() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    public boolean isDefault() {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     class ColorMapEntry implements Comparable<ColorMapEntry> {
         private final Color color;
         private double score; // limit
@@ -232,5 +197,45 @@ public class PreDefColorScale implements ColorScale{
         public int compareTo(ColorMapEntry o) {
             return (int)(this.score - o.score);
         }
+    }
+
+    public void updateColors(Color[] colors, int[] score)
+    {
+        if (colors == null) {
+            throw new IllegalArgumentException("colors can't be null");
+        }
+        if (score == null) {
+            throw new IllegalArgumentException("score can't be null");
+        }
+
+
+        if (colors.length != score.length) {
+            throw new IllegalArgumentException("Arrays colors and score must have same length: " + colors.length + " vs " + score.length);
+        }
+
+        colorList = new ArrayList<ColorMapEntry>();
+
+        for (int i = 0; i < score.length; i++) {
+            colorList.add(new ColorMapEntry(colors[i], score[i]));
+        }
+
+        // sort by score
+        Collections.sort(colorList);
+    }
+
+    public Color getColor(String symbol) {
+        return null;
+    }
+
+    public Color getNoDataColor() {
+        return null;
+    }
+
+    public String asString() {
+        return null;
+    }
+
+    public boolean isDefault() {
+        return false;
     }
 }

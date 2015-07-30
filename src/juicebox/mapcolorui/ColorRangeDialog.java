@@ -50,6 +50,7 @@ public class ColorRangeDialog extends JDialog {
     private JTextField minimumField;
     private JTextField maximumField;
     public  Color[] tmpCol = new Color[24];
+    private static MultiColorPickerDialog gradientPick;
 
 
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
@@ -222,17 +223,15 @@ public class ColorRangeDialog extends JDialog {
 
         //======== panel5 ========
         panel5.setLayout(new FlowLayout(FlowLayout.LEADING));
-        label5.setText("Set main map color:");
-        panel5.add(label5);
 
-        final JButton colorChooserButton = new JButton("Choose color");
+        final JButton colorChooserButton = new JButton("Map color");
         colorChooserButton.setSize(50, 50);
         colorChooserButton.setForeground(MainWindow.hicMapColor);
 
         colorChooserButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Color color = JColorChooser.showDialog(panel5, "Choose a color", colorChooserButton.getForeground());
+                Color color = JColorChooser.showDialog(panel5, "Map color", colorChooserButton.getForeground());
                 colorChooserButton.setForeground(color);
                 MainWindow.hicMapColor = color;
                 //System.out.println("The selected color was:" + color);
@@ -240,34 +239,49 @@ public class ColorRangeDialog extends JDialog {
         });
 
         colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-        panel5.add(colorChooserButton);
         contentPanel.add(panel5);
 
-        final JButton paletteChooserButton = new JButton("Choose palette");
+        final JButton paletteChooserButton = new JButton("Create gradient");
         paletteChooserButton.setSize(50, 50);
         paletteChooserButton.setForeground(MainWindow.hicMapColor);
 
         paletteChooserButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MultiColorPicker palletePick = new MultiColorPicker();
-                palletePick.initValue(MainWindow.getInstance().preDefMapColorPalette);
+                gradientPick = new MultiColorPickerDialog();
+                gradientPick.initValue((Color[]) MainWindow.preDefMapColorGradient.toArray(new Color[MainWindow.preDefMapColorGradient.size()]));
             }
         });
 
         paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
 
         //======== panel6 ========
-        panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
 
-        JCheckBox preCB = new JCheckBox(new AbstractAction("Preset Map") {
-
+        JRadioButton rColor = new JRadioButton(new AbstractAction("Color"){
             private static final long serialVersionUID = 4201L;
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                JCheckBox cbLog = (JCheckBox) e.getSource();
-                if (cbLog.isSelected()) {
+                JRadioButton rLog = (JRadioButton) e.getSource();
+                if (rLog.isSelected()) {
+                    MainWindow.preDefMapColor = false;
+                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
+                } else {
+                    MainWindow.preDefMapColor = true;
+                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
+                }
+            }
+        });
+        rColor.setSelected(true);
+        JRadioButton rGradient = new JRadioButton(new AbstractAction("Gradient"){
+            private static final long serialVersionUID = 4202L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JRadioButton rLog = (JRadioButton) e.getSource();
+                if (rLog.isSelected()) {
                     MainWindow.preDefMapColor = true;
                     colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
                     paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
@@ -278,10 +292,15 @@ public class ColorRangeDialog extends JDialog {
                 }
             }
         });
+        ButtonGroup group = new ButtonGroup();
+        group.add(rColor);
+        group.add(rGradient);
 
-        preCB.setSelected(MainWindow.preDefMapColor);
+        panel5.add(rColor);
+        panel5.add(colorChooserButton);
+        panel6.add(rGradient);
 
-        panel6.add(preCB);
+        panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
         panel6.add(paletteChooserButton);
         contentPanel.add(panel6);
 
