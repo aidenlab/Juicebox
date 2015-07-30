@@ -751,7 +751,6 @@ public class HiC {
         System.out.println(mainWindow.getTitle());
         if(!mainWindow.getTitle().contains(temp[0])){
             mainWindow.safeLoadForReloadState(files, control, temp[0]);
-            //mainWindow.updateTitle(control,temp[0]);
         }
     }
     //reloading the previous state
@@ -849,12 +848,6 @@ public class HiC {
 
         }
         mainWindow.updateTrackPanel();
-
-            /*try {
-                mainWindow.refresh();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }*/
     }
 
 
@@ -889,6 +882,8 @@ public class HiC {
             //Chromosomes do not appear to exist in current map.
             log.info("Chromosome(s) not found.");
             log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
+            JOptionPane.showMessageDialog(mainWindow, "Error:\n" + "Chromosome(s) not found. Please check chromosome" , "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
         setSelectedChromosomes(chrX,chrY);
@@ -905,6 +900,9 @@ public class HiC {
             xContext.setZoom(newZoom);
             yContext.setZoom(newZoom);
             mainWindow.updateZoom(newZoom);
+        } else{
+            JOptionPane.showMessageDialog(mainWindow, "Error:\n" + "Please check zoom data" , "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
 
         setScaleFactor(scalefactor);
@@ -917,7 +915,6 @@ public class HiC {
         LoadEncodeAction loadEncodeAction = new LoadEncodeAction("Check Encode boxes", mainWindow, this);
         LoadAction loadAction = new LoadAction("Check track boxes", mainWindow, this);
 
-
         String[] trackURLs = tracks[0].split("\\,");
         String[] trackNames = tracks[1].split("\\,");
 
@@ -925,24 +922,24 @@ public class HiC {
             if (tracks.length > 0 && !tracks[1].contains("none")) {
                 //System.out.println("trackNames: " + trackNames); for debugging
                 for(int i=0; i<trackURLs.length; i++) {
-                    String currentTrack = trackURLs[i].trim();
-                    if (!currentTrack.isEmpty()) {
-                        if (currentTrack.equals("Eigenvector")) {
-                            loadEigenvectorTrack();
-                        } else if (currentTrack.toLowerCase().contains("coverage") || currentTrack.toLowerCase().contains("balanced")
-                                || currentTrack.equals("Loaded")) {
-                            loadCoverageTrack(NormalizationType.enumValueFromString(currentTrack));
-                        } else if (currentTrack.contains("peaks") || currentTrack.contains("blocks") || currentTrack.contains("superloop")) {
-                            resourceTree.checkTrackBoxesForReloadState(currentTrack.trim());
-                            loadLoopList(currentTrack);
-                        } else if (currentTrack.contains("goldenPath") || currentTrack.toLowerCase().contains("ensembl")) {
-                            loadTrack(currentTrack);
-                            loadEncodeAction.checkEncodeBoxes(trackNames[i].trim());
-                        } else {
-                            loadTrack(currentTrack);
-                            loadAction.checkBoxesForReload(trackNames[i].trim());
-                        }
-                        //renaming
+                        String currentTrack = trackURLs[i].trim();
+                        if (!currentTrack.isEmpty()) {
+                            if (currentTrack.equals("Eigenvector")) {
+                                loadEigenvectorTrack();
+                            } else if (currentTrack.toLowerCase().contains("coverage") || currentTrack.toLowerCase().contains("balanced")
+                                    || currentTrack.equals("Loaded")) {
+                                loadCoverageTrack(NormalizationType.enumValueFromString(currentTrack));
+                            } else if (currentTrack.contains("peaks") || currentTrack.contains("blocks") || currentTrack.contains("superloop")) {
+                                resourceTree.checkTrackBoxesForReloadState(currentTrack.trim());
+                                loadLoopList(currentTrack);
+                            } else if (currentTrack.contains("goldenPath") || currentTrack.toLowerCase().contains("ensembl")) {
+                                loadTrack(currentTrack);
+                                loadEncodeAction.checkEncodeBoxes(trackNames[i].trim());
+                            } else {
+                                loadTrack(currentTrack);
+                                loadAction.checkBoxesForReload(trackNames[i].trim());
+                            }
+                            //renaming
                     }
                 }
                 for(HiCTrack loadedTrack: getLoadedTracks()){
@@ -960,11 +957,6 @@ public class HiC {
 
         mainWindow.updateTrackPanel();
 
-            /*try {
-                mainWindow.refresh();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }*/
     }
 
     public void broadcastState() {

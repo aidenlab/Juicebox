@@ -28,10 +28,12 @@ package juicebox.state;
 
 import juicebox.CommandExecutor;
 import juicebox.HiC;
+import juicebox.MainWindow;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -133,33 +135,36 @@ public class ReloadPreviousState {
         if (infoForReload.length > 0) {
             int fileSize = infoForReload.length;
             if (infoForReload.length > 14) {
-                initialInfo[0] = infoForReload[1]; //HiC Map Name
-                initialInfo[1] = infoForReload[2]; //hicURL
-                initialInfo[2] = infoForReload[3]; //xChr
-                initialInfo[3] = infoForReload[4]; //yChr
-                initialInfo[4] = infoForReload[5]; //unitSize
-                int binSize = Integer.parseInt(infoForReload[6]);
-                doubleInfo[0] = Double.parseDouble(infoForReload[7]); //xOrigin
-                doubleInfo[1] = Double.parseDouble(infoForReload[8]); //yOrigin
-                doubleInfo[2] = Double.parseDouble(infoForReload[9]); //ScaleFactor
-                MatrixType displayOption = MatrixType.valueOf(infoForReload[10].toUpperCase());
-                NormalizationType normType = NormalizationType.valueOf(infoForReload[11].toUpperCase());
-                doubleInfo[3] = Double.parseDouble(infoForReload[12]); //minColorVal
-                doubleInfo[4] = Double.parseDouble(infoForReload[13]); //lowerColorVal
-                doubleInfo[5] = Double.parseDouble(infoForReload[14]); //upperColorVal
-                doubleInfo[6] = Double.parseDouble(infoForReload[15]); //maxColorVal
-                trackURLsAndNames[0] = (infoForReload[16]);
-                trackURLsAndNames[1] = (infoForReload[17]);
+                try {
+                    initialInfo[0] = infoForReload[1]; //HiC Map Name
+                    initialInfo[1] = infoForReload[2]; //hicURL
+                    initialInfo[2] = infoForReload[3]; //xChr
+                    initialInfo[3] = infoForReload[4]; //yChr
+                    initialInfo[4] = infoForReload[5]; //unitSize
+                    int binSize = Integer.parseInt(infoForReload[6]); //binSize
+                    doubleInfo[0] = Double.parseDouble(infoForReload[7]); //xOrigin
+                    doubleInfo[1] = Double.parseDouble(infoForReload[8]); //yOrigin
+                    doubleInfo[2] = Double.parseDouble(infoForReload[9]); //ScaleFactor
+                    MatrixType displayOption = MatrixType.valueOf(infoForReload[10].toUpperCase());
+                    NormalizationType normType = NormalizationType.valueOf(infoForReload[11].toUpperCase());
+                    doubleInfo[3] = Double.parseDouble(infoForReload[12]); //minColorVal
+                    doubleInfo[4] = Double.parseDouble(infoForReload[13]); //lowerColorVal
+                    doubleInfo[5] = Double.parseDouble(infoForReload[14]); //upperColorVal
+                    doubleInfo[6] = Double.parseDouble(infoForReload[15]); //maxColorVal
+                    trackURLsAndNames[0] = (infoForReload[16]); //trackURLs
+                    trackURLsAndNames[1] = (infoForReload[17]); //trackNames
 
-
-                                hic.unsafeSetReloadStateFromXML(initialInfo,binSize,doubleInfo,displayOption,normType,trackURLsAndNames);
-
-                            } else {
-                                result = "Not enough parameters";
-                            }
-                    } else {
-                        result = "Unknown command string";
-                    }
+                    hic.unsafeSetReloadStateFromXML(initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
+                } catch(NumberFormatException nfe){
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                }
+                } else {
+                    result = "Not enough parameters";
+                }
+                } else {
+                    result = "Unknown command string";
+                }
 
         return result;
 
