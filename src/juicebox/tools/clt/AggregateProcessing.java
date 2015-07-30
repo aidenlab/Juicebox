@@ -39,7 +39,7 @@ public class AggregateProcessing {
 
 
             String[] l4 = {"arrowhead", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "/Users/muhammadsaadshamim/Desktop/j3/out", "50000"};
+                    "/Users/muhammadsaadshamim/Desktop/j3/out7", "5000"};
             //"X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
             HiCTools.main(l4);
 

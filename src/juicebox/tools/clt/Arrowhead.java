@@ -87,6 +87,7 @@ public class Arrowhead extends JuiceboxCLT {
             Matrix matrix = ds.getMatrix(chr, chr);
 
             if (matrix == null) continue;
+            System.out.println("\nProcessing " + chr.getName());
             MatrixZoomData zd = matrix.getZoomData(zoom);
             ArrowheadScoreList list = new ArrowheadScoreList();
             ArrowheadScoreList control = new ArrowheadScoreList();

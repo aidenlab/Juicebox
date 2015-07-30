@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -41,6 +42,7 @@ import java.util.*;
 
 /**
  * @author jrobinso
+ * @modified mshamim
  * @since Aug 12, 2010
  */
 public class Dataset {
@@ -58,6 +60,7 @@ public class Dataset {
     String genomeId;
     String restrictionEnzyme = null;
     List<HiCZoom> bpZooms;
+    List<Integer> bpZoomResolutions;
     List<HiCZoom> fragZooms;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
@@ -194,6 +197,9 @@ public class Dataset {
         return unit == HiC.Unit.BP ? bpZooms.get(index) : fragZooms.get(index);
     }
 
+    public HiCZoom getZoomForBPResolution(Integer resolution) {
+        return getZoom(HiC.Unit.BP, bpZoomResolutions.indexOf(resolution));
+    }
 
     public ExpectedValueFunction getExpectedValues(HiCZoom zoom, NormalizationType type) {
         if (expectedValueFunctionMap == null || zoom == null || type == null) return null;
@@ -682,19 +688,10 @@ public class Dataset {
 
     public void setBpZooms(int[] bpBinSizes) {
 
-        // Limit resolution in restricted mode
-        int n = bpBinSizes.length;
-//        if (MainWindow.isRestricted()) {
-//            for (int i = 0; i < bpBinSizes.length; i++) {
-//                if (bpBinSizes[i] < 25000) {
-//                    n = i;
-//                    break;
-//                }
-//            }
-//        }
+        bpZoomResolutions = Ints.asList(bpBinSizes);
 
-        this.bpZooms = new ArrayList<HiCZoom>(n);
-        for (int bpBinSize : bpBinSizes) {
+        this.bpZooms = new ArrayList<HiCZoom>(bpBinSizes.length);
+        for (int bpBinSize : bpZoomResolutions) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
 
@@ -739,6 +736,7 @@ public class Dataset {
         final HiC.Unit currentUnit = zoom.getUnit();
         List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? bpZooms : fragZooms;
 
+        // TODO MSS - is there a reason not to just rewrite this using indexOf? cleaner?
         if (b) {
             for (int i = 0; i < zoomList.size() - 1; i++) {
                 if (zoom.equals(zoomList.get(i))) return zoomList.get(i + 1);
@@ -889,5 +887,4 @@ public class Dataset {
         }
         attributes.put(key, value);
     }
-
 }

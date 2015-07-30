@@ -38,6 +38,10 @@ import java.util.*;
  */
 public class BlockBuster {
 
+    private static int matrixWidth = 400;
+    private static int increment = matrixWidth / 2;
+
+
     /**
      * should be called separately for each chromosome
      *
@@ -48,17 +52,19 @@ public class BlockBuster {
 
         // int chrLength = chromosome.getLength();
         float signThreshold = 0.4f;
-        float varThreshold = 1000f;
+        float varThreshold = (float) increment;
 
-        CumulativeBlockResults results = callSubBlockbuster(zd, chrLength, varThreshold, signThreshold, list, control);
+        int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
+
+        CumulativeBlockResults results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
 
         while(results.getCumulativeResults().size() == 0 && signThreshold > 0){
             signThreshold = signThreshold - 0.1f;
-            results = callSubBlockbuster(zd, chrLength, varThreshold, signThreshold, list, control);
+            results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
         }
 
         // high variance threshold, fewer blocks, high confidence
-        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, chrLength, 0.2f, 0.5f, null, null);
+        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution, 0.2f, 0.5f, new ArrowheadScoreList(), new ArrowheadScoreList());
 
         List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
                 , highConfidenceResults.getCumulativeResults());
@@ -79,9 +85,9 @@ public class BlockBuster {
             Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
                     chrName, results.getCumulativeInternalControl());
 
-            blockResults.exportFeatureList(outputPath + "_blocks");
-            blockResultScores.exportFeatureList(outputPath + "_scores");
-            blockResultControlScores.exportFeatureList(outputPath + "_control_scores");
+            blockResults.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_blocks", false);
+            blockResultScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_scores", false);
+            blockResultControlScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_control_scores", false);
         }
     }
 
@@ -166,11 +172,13 @@ public class BlockBuster {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
 
-        for(int limStart = 0; limStart < chrLength; limStart += 1000){
-            int limEnd = Math.min(limStart + 2000, chrLength);
+        for (int limStart = 0; limStart < chrLength; limStart += increment) {
+            int limEnd = Math.min(limStart + matrixWidth, chrLength);
 
             list.setActiveListElements(limStart, limEnd);
             control.setActiveListElements(limStart, limEnd);
+
+            // TODO how did limStart > limEnd not cause error?
 
             int n = limEnd - limStart + 1;
             RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,

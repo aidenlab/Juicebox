@@ -35,8 +35,9 @@ import org.broad.igv.util.ParsingUtils;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by muhammadsaadshamim on 6/1/15.
@@ -47,7 +48,7 @@ public class Feature2DParser {
     public static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
                                               boolean generateAPAFiltering,
                                               double minPeakDist, double maxPeakDist, int resolution,
-                                              boolean loadAttributes) {
+                                              boolean loadAttributes, FeatureFilter apaFilter) {
 
         Feature2DList newList = new Feature2DList();
         int attCol = 7;
@@ -136,7 +137,7 @@ public class Feature2DParser {
         }
 
         if(generateAPAFiltering)
-            newList.apaFiltering(minPeakDist, maxPeakDist, resolution);
+            newList.filterLists(apaFilter);
 
         return newList;
     }

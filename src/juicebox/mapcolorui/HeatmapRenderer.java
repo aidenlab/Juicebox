@@ -43,8 +43,10 @@ import org.broad.igv.renderer.ContinuousColorScale;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jrobinso
@@ -57,8 +59,8 @@ public class HeatmapRenderer {
     private final MainWindow mainWindow;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
-    private PreDefColorScale preDefColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
+    private PreDefColorScale preDefColorScale;
     private ContinuousColorScale observedColorScale;
     private Color curHiCColor = Color.white;
 
@@ -417,11 +419,6 @@ public class HeatmapRenderer {
             arrScores[idx] = arrTmp[idx];
         }
 
-        preDefColorScale.updateColors(
-
-                (Color[]) MainWindow.preDefMapColorGradient.toArray(new Color[arrSize]),
-                arrScores
-
-        );
+        preDefColorScale.updateColors(MainWindow.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
     }
 }

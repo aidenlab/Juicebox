@@ -36,6 +36,7 @@ import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -44,10 +45,7 @@ import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 1/20/15.
@@ -64,6 +62,7 @@ public class HiCCUPS extends JuiceboxCLT {
     private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
     private static final int window = 3;
     private static final int peakWidth = 1;
+    private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
     private int[] resolutions = new int[]{25000, 10000, 5000};
@@ -72,9 +71,11 @@ public class HiCCUPS extends JuiceboxCLT {
     private String inputHiCFileName;
     private String outputFDRFileName;
     private String outputEnrichedFileName;
+    private String outputFinalLoopListFileName;
 
     public HiCCUPS() {
-        super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>");
+        super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>\n" +
+                "hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <finalLoopsList>");
         // -i input file custom
     }
 
@@ -85,13 +86,20 @@ public class HiCCUPS extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
 
-        if (!(args.length == 4)) {
+        if (args.length == 4) {
+            dataShouldBePostProcessed = false;
+        } else if (!(args.length == 3)) {
             throw new IOException("1");
         }
 
         inputHiCFileName = args[1];
-        outputFDRFileName = args[2];
-        outputEnrichedFileName = args[3];
+        if (dataShouldBePostProcessed) {
+            outputFinalLoopListFileName = args[2];
+        } else {
+            outputFDRFileName = args[2];
+            outputEnrichedFileName = args[3];
+        }
+
 
         Set<String> specifiedChromosomes = parser.getChromosomeOption();
         Set<String> specifiedResolutions = parser.getMultipleResolutionOptions();
@@ -136,14 +144,18 @@ public class HiCCUPS extends JuiceboxCLT {
                 commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
                         commonChromosomes));
 
-            Set<HiCZoom> actualResolutionsFound = new HashSet<HiCZoom>();
-
-            for (int resolution : resolutions) {
-                actualResolutionsFound.add(HiCFileTools.getZoomLevel(ds, resolution));
+            Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
+            for (int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+                looplists.put(resolution, runHiccupsProcessing(ds, resolution, commonChromosomes));
             }
 
-            for (HiCZoom zoom : actualResolutionsFound) {
-                runHiccupsProcessing(ds, zoom, commonChromosomes);
+            if (dataShouldBePostProcessed) {
+                for (int res : looplists.keySet()) {
+                    HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds);
+                }
+
+                Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(new ArrayList<Feature2DList>(looplists.values()));
+                finalList.exportFeatureList(outputFinalLoopListFileName, false);
             }
 
         } catch (IOException e) {
@@ -156,13 +168,14 @@ public class HiCCUPS extends JuiceboxCLT {
     /**
      * 
      * @param ds
-     * @param zoom
+     * @param resolution
      * @param commonChromosomes
      */
-    private void runHiccupsProcessing(Dataset ds, HiCZoom zoom, List<Chromosome> commonChromosomes) {
+    private Feature2DList runHiccupsProcessing(Dataset ds, int resolution, List<Chromosome> commonChromosomes) {
 
         long begin_time = System.currentTimeMillis();
-        int resolution = zoom.getBinSize();
+
+        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
 
         PrintWriter outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + resolution);
 
@@ -276,10 +289,6 @@ public class HiCCUPS extends JuiceboxCLT {
                     calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistV, thresholdV, fdrLogV);
                 }
 
-                for (int i = 0; i < w1; i++) {
-                    outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
-                }
-
                 long thresh_time1 = System.currentTimeMillis();
                 System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0) + "ms");
             }
@@ -287,9 +296,15 @@ public class HiCCUPS extends JuiceboxCLT {
         long final_time = System.currentTimeMillis();
         System.out.println("Total time: " + (final_time - begin_time));
 
-        globalList.exportFeatureList(outputEnrichedFileName + "_" + resolution);
+        if (!dataShouldBePostProcessed) {
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + resolution, true);
+            for (int i = 0; i < w1; i++) {
+                outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
+            }
+        }
 
         outputFDR.close();
+        return globalList;
     }
 
 

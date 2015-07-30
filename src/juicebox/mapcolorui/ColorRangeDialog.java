@@ -42,15 +42,15 @@ import java.text.ParseException;
 public class ColorRangeDialog extends JDialog {
 
     private static final long serialVersionUID = -2570891809264626823L;
+    private static MultiColorPickerDialog gradientPick;
     private final RangeSlider colorSlider;
     private final double colorRangeFactor;
     private final DecimalFormat df1;
     private final DecimalFormat df2;
     private final boolean isObserved;
+    public  Color[] tmpCol = new Color[24];
     private JTextField minimumField;
     private JTextField maximumField;
-    public  Color[] tmpCol = new Color[24];
-    private static MultiColorPickerDialog gradientPick;
 
 
     public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
@@ -249,7 +249,7 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gradientPick = new MultiColorPickerDialog();
-                gradientPick.initValue((Color[]) MainWindow.preDefMapColorGradient.toArray(new Color[MainWindow.preDefMapColorGradient.size()]));
+                gradientPick.initValue(MainWindow.preDefMapColorGradient.toArray(new Color[MainWindow.preDefMapColorGradient.size()]));
             }
         });
 

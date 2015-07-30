@@ -35,6 +35,7 @@ import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -182,5 +183,31 @@ public class APAUtils {
 
         //System.out.println((System.nanoTime()-time)/1000000000.);
         return data;
+    }
+
+    /**
+     * Size filtering of loops
+     *
+     * @param features
+     * @param minPeakDist
+     * @param maxPeakDist
+     * @return
+     */
+    public static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
+                                                            double minPeakDist, double maxPeakDist, int resolution) {
+        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
+
+        for (Feature2D feature : features) {
+            double xMidPt = feature.getMidPt1();
+            double yMidPt = feature.getMidPt2();
+            int dist = (int) Math.round(Math.abs(xMidPt - yMidPt) / resolution);
+
+            if (dist >= minPeakDist) {
+                if (dist <= maxPeakDist) {
+                    sizeFilteredFeatures.add(feature);
+                }
+            }
+        }
+        return new ArrayList<Feature2D>(sizeFilteredFeatures);
     }
 }

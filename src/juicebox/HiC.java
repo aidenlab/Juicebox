@@ -679,7 +679,7 @@ public class HiC {
             return;
         }
 
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true);
+        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true, null);
         loopLists.put(path, newList);
     }
 
@@ -1193,8 +1193,6 @@ public class HiC {
         }
     }
 
-    public enum Unit {BP, FRAG}
-
     public int validateBinSize(String key) {
         if (binSizeDictionary.containsKey(key)) {
             return Integer.valueOf(String.valueOf(binSizeDictionary.get(key)));
@@ -1246,5 +1244,7 @@ public class HiC {
         binSizeDictionary.put("2f", 2);
         binSizeDictionary.put("1f", 1);
     }
+
+    public enum Unit {BP, FRAG}
 }
 

@@ -24,10 +24,14 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import juicebox.data.Dataset;
 import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.FeatureFilter;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -139,5 +143,38 @@ public class HiCCUPSUtils {
                 +"\t"+feature.getAttribute(FDRDONUT)
                 +"\t"+feature.getAttribute(FDRH)
                 +"\t"+feature.getAttribute(FDRV);
+    }
+
+    public static void postProcessLoops(Feature2DList list, final int resolution, final Dataset ds) {
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return removeLowMapQ(chr, resolution, ds, feature2DList);
+            }
+        });
+
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return coalescePixelsToCentroid(resolution, feature2DList);
+            }
+        });
+    }
+
+
+    private static List<Feature2D> removeLowMapQ(String chr, int res, Dataset ds, List<Feature2D> list) {
+        return null;
+    }
+
+    private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList) {
+
+        return null;
+    }
+
+    public static Feature2DList mergeAllResolutions(List<Feature2DList> hiccupsLooplists) {
+        if (hiccupsLooplists.size() == 1)
+            return hiccupsLooplists.get(0);
+
+        return null;
     }
 }

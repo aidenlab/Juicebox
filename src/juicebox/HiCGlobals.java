@@ -40,16 +40,20 @@ public class HiCGlobals {
 
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
+
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new  Color(204,204,204);
     public static final String stateFileName = "CurrentJuiceboxStates";
     public static final String xmlFileName = "JuiceboxStatesForExport.xml";
+
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
+
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.1;
+
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
 

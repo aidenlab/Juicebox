@@ -93,22 +93,24 @@ class BlockResults {
             int window = Math.min(n - i - gap, i - gap);
             window = Math.min(window, n);
 
-            double[] row = observed.getRow(i);
+            // TODO MSS Arrowhead fix window bug after MATLAB testing done
+            if (window >= gap) {
+                double[] row = observed.getRow(i);
 
-            // in MATLAB second index inclusive, but for java need +1
-            System.out.println("n " + n + " i " + i + " window " + window + " gap " + gap);
-            double[] A = Doubles.toArray(Lists.reverse(Doubles.asList(Arrays.copyOfRange(row, i - window, i - gap + 1))));
-            double[] B = Arrays.copyOfRange(row, i + gap, i + window + 1);
+                // in MATLAB second index inclusive, but for java need +1
+                double[] A = Doubles.toArray(Lists.reverse(Doubles.asList(Arrays.copyOfRange(row, i - window, i - gap + 1))));
+                double[] B = Arrays.copyOfRange(row, i + gap, i + window + 1);
 
-            double[] preference = new double[A.length];
-            for (int j = 0; j < A.length; j++) {
-                preference[j] = (A[j] - B[j]) / (A[j] + B[j]);
-            }
+                double[] preference = new double[A.length];
+                for (int j = 0; j < A.length; j++) {
+                    preference[j] = (A[j] - B[j]) / (A[j] + B[j]);
+                }
 
-            int index = 0;
-            for (int j = i + gap; j < i + window + 1; j++) {
-                dUpstream.setEntry(i, j, preference[index]);
-                index++;
+                int index = 0;
+                for (int j = i + gap; j < i + window + 1; j++) {
+                    dUpstream.setEntry(i, j, preference[index]);
+                    index++;
+                }
             }
         }
 

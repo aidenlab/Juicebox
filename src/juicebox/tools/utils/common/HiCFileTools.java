@@ -32,10 +32,7 @@ import org.apache.commons.math.linear.RealMatrix;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -106,20 +103,39 @@ public class HiCFileTools {
         }
     }
 
-    public static HiCZoom getZoomLevel(Dataset ds, int resolution) {
-        List<HiCZoom> resolutions = ds.getBpZooms();
-        HiCZoom zoom = resolutions.get(0);
-        int currentDistance = Math.abs(zoom.getBinSize() - resolution);
-        // Loop through resolutions
-        for (HiCZoom subZoom : resolutions) {
-            int newDistance = Math.abs(subZoom.getBinSize() - resolution);
-            if (newDistance < currentDistance) {
-                currentDistance = newDistance;
-                zoom = subZoom;
-            }
+
+    /**
+     * Given an array of possible resolutions, returns the actual resolutions available in the dataset
+     *
+     * @param ds
+     * @param resolutions
+     * @return finalResolutions Set
+     */
+    public static Set<Integer> filterResolutions(Dataset ds, int[] resolutions) {
+
+        TreeSet<Integer> resSet = new TreeSet<Integer>();
+        for (HiCZoom zoom : ds.getBpZooms()) {
+            resSet.add(zoom.getBinSize());
         }
-        return zoom;
+
+        Set<Integer> finalResolutions = new HashSet<Integer>();
+        for (int res : resolutions) {
+            finalResolutions.add(closestValue(res, resSet));
+        }
+
+        return finalResolutions;
     }
+
+    private static int closestValue(int val, TreeSet<Integer> valSet) {
+        int floorVal = valSet.floor(val);
+        int ceilVal = valSet.ceiling(val);
+
+        if (ceilVal - val < val - floorVal)
+            return ceilVal;
+
+        return floorVal;
+    }
+
 
     /**
      * Set intersection
@@ -235,8 +251,9 @@ public class HiCFileTools {
             blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
                     normalizationType));
         }
-        catch (Exception e){
-            System.out.println("You do not have "+normalizationType+" normalized maps available at this resolution");
+        catch (Exception e) {
+            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region");
+            System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
             e.printStackTrace();
             System.exit(-6);
         }
@@ -299,4 +316,6 @@ public class HiCFileTools {
         }
         return  expectedVector;
     }
+
+
 }

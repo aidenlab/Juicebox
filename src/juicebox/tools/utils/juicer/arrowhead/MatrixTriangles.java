@@ -117,7 +117,7 @@ class MatrixTriangles {
         for(int a = 0; a < n; a++){
             for(int b = a+1; b < n; b++){
                 int val = (int)Math.floor((b - a + 1) / 2);
-                int endpt = Math.min(2 * b - a, n);
+                int endpt = Math.min(2 * b - a, n - 1);
                 loCount.setEntry(a, b, loCount.getEntry(a, b - 1)+uCount.getEntry(b, endpt)-rCount.getEntry(a + val, b));
                 lo.setEntry(a, b, lo.getEntry(a, b - 1)+uSum.getEntry(b,endpt)-rSum.getEntry(a + val, b));
                 loSign.setEntry(a, b, loSign.getEntry(a,b-1)+uSign.getEntry(b, endpt)-rSign.getEntry(a + val, b));

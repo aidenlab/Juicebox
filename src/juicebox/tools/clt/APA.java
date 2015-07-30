@@ -36,15 +36,14 @@ import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.track.feature.FeatureFilter;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * TODO - once fully debugged, change notation convention from underscore to camelcase (match the rest of the files)
@@ -119,7 +118,6 @@ public class APA extends JuiceboxCLT {
         try {
             String[] hicFiles = files[0].split(",");
             for (String hicFile : hicFiles) {
-                for (int resolution : resolutions) {
 
                     Integer[] gwPeakNumbers = new Integer[3];
                     for (int i = 0; i < gwPeakNumbers.length; i++)
@@ -129,18 +127,39 @@ public class APA extends JuiceboxCLT {
                     DatasetReaderV2 reader = new DatasetReaderV2(hicFile);
                     Dataset ds = reader.read();
                     HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+                for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+
 
                     // select zoom level closest to the requested one
-                    HiCZoom zoom = HiCFileTools.getZoomLevel(ds, resolution);
-                    resolution = zoom.getBinSize();
+                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
 
                     List<Chromosome> chromosomes = ds.getChromosomes();
                     if (givenChromosomes != null)
                         chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
                                 chromosomes));
 
+                    // Metrics resulting from apa filtering
+                    final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
+
+
                     Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
-                            true, minPeakDist, maxPeakDist, resolution, false);
+                            true, minPeakDist, maxPeakDist, resolution, false,
+                            new FeatureFilter() {
+                                // Remove duplicates and filters by size
+                                // also save internal metrics for these measures
+                                @Override
+                                public List<Feature2D> filter(String chr, List<Feature2D> features) {
+
+                                    List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+                                    List<Feature2D> filteredUniqueFeatures = APAUtils.filterFeaturesBySize(uniqueFeatures,
+                                            minPeakDist, maxPeakDist, resolution);
+
+                                    filterMetrics.put(chr,
+                                            new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
+
+                                    return filteredUniqueFeatures;
+                                }
+                            });
 
                     for (Chromosome chr : chromosomes) {
                         APADataStack apaDataStack = new APADataStack(L, files[2] , (hicFile+"_"+resolution).replace("/","_"));
@@ -159,7 +178,8 @@ public class APA extends JuiceboxCLT {
                             continue;
                         }
 
-                        Integer[] peakNumbers = loopList.getFilterMetrics(chr);
+                        Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr, chr));
+
 
                         if (loops.size() != peakNumbers[0])
                             System.out.println("Error reading stat numbers fro " + chr);

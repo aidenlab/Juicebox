@@ -92,6 +92,10 @@ public class MainWindow extends JFrame {
     public static CustomAnnotationHandler customAnnotationHandler;
     public static JMenuItem exportAnnotationsMI;
     public static JMenuItem undoMenuItem;
+    public static Color hicMapColor = Color.red;
+    public static boolean preDefMapColor = false;
+    public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
+    public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
     private static boolean unsavedEdits;
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu;
@@ -129,18 +133,12 @@ public class MainWindow extends JFrame {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
     private static File temp;
-    public static Color hicMapColor = Color.red;
-    public static boolean preDefMapColor = false;
-    public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
-    public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
-
     private static JPanel hiCPanel;
     private static JMenu annotationsMenu;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
     private final File fileForExport = new File(HiCGlobals.xmlFileName);
     File currentStates = new File("testStates");
-    int i = 0, j = 0;
     private double colorRangeScaleFactor = 1;
     private double colorRangeScaleFactorForReload = 1;
     private HiCZoom initialZoom;
@@ -1511,7 +1509,7 @@ public class MainWindow extends JFrame {
         colorRangeLabel.addMouseListener(new MouseAdapter() {
             private Font original;
 
-            @SuppressWarnings({"unchecked","rawtypes"})
+            @SuppressWarnings({"unchecked", "rawtypes"})
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (colorRangeSlider.isEnabled()) {
@@ -1550,7 +1548,7 @@ public class MainWindow extends JFrame {
                 }
             }
 
-            private void processClick(){
+            private void processClick() {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
                 setColorRangeSliderVisible(false);
                 setResolutionSliderVisible(false);
@@ -1588,7 +1586,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2,1),(Integer.MAX_VALUE)));
+                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
 
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
@@ -2046,7 +2044,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
-                        hic.getChromosomes(), false, 0, 0, 0, true), "1");
+                        hic.getChromosomes(), false, 0, 0, 0, true, null), "1");
                 temp.delete();
                 loadLastMI.setEnabled(false);
             }
@@ -2214,6 +2212,7 @@ public class MainWindow extends JFrame {
                 }
             }
         });
+
         saveLocationList.setEnabled(false);
         bookmarksMenu.add(saveLocationList);
         //---Save State test-----
@@ -2303,10 +2302,27 @@ public class MainWindow extends JFrame {
         shareMenu.add(exportMapAsFile);
         //shareMenu.add(importMapAsFile);
 
+        /*
+        //---3D Model Menu-----
+        JMenu toolsMenu = new JMenu("Tools");
+        //---Export Maps----
+        JMenuItem launch3DModel = new JMenuItem();
+        launch3DModel.setText("Visualize 3D Model");
+        launch3DModel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Launcher demo = new Launcher();
+                demo.setVisible(true);
+            }
+        });
+        toolsMenu.add(launch3DModel);
+        */
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(shareMenu);
+        //menuBar.add(toolsMenu);
         return menuBar;
     }
 

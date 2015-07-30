@@ -47,11 +47,6 @@ public class Feature2DList {
      */
     private Map<String, List<Feature2D>> featureList;
 
-    /*
-     * Metrics resulting from apa filtering
-     */
-    private Map<String, Integer[]> filterMetrics;
-
     /**
      * Visibility as set by user
      */
@@ -66,40 +61,36 @@ public class Feature2DList {
     }
 
     /**
-     * remove duplicates by using a hashset intermediate
+     * Helper method to get the key, lowest ordinal chromosome first
      *
-     * @param features
-     * @return
+     * @param chr1Idx First chromosome index
+     * @param chr2Idx Second chromosome index
+     * @return key
      */
-    private static ArrayList<Feature2D> filterFeaturesByUniqueness(List<Feature2D> features) {
-        return new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+    private static String getKey(int chr1Idx, int chr2Idx) {
+
+        int c1;
+        int c2;
+        if (chr1Idx < chr2Idx) {
+            c1 = chr1Idx;
+            c2 = chr2Idx;
+        } else {
+            c1 = chr2Idx;
+            c2 = chr1Idx;
+        }
+
+        return "" + c1 + "_" + c2;
     }
 
     /**
-     * Size filtering of loops
+     * Helper method to get the key given chromosomes
      *
-     * @param features
-     * @param minPeakDist
-     * @param maxPeakDist
-     * @return
+     * @param chr1 First chromosome
+     * @param chr2 Second chromosome
+     * @return key
      */
-    private static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
-                                                             double minPeakDist, double maxPeakDist, int resolution) {
-
-        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
-
-        for (Feature2D feature : features) {
-            double xMidPt = feature.getMidPt1();
-            double yMidPt = feature.getMidPt2();
-            int dist = (int) Math.round(Math.abs(xMidPt - yMidPt) / resolution);
-
-            if (dist >= minPeakDist) {
-                if (dist <= maxPeakDist) {
-                    sizeFilteredFeatures.add(feature);
-                }
-            }
-        }
-        return new ArrayList<Feature2D>(sizeFilteredFeatures);
+    public static String getKey(Chromosome chr1, Chromosome chr2) {
+        return getKey(chr1.getIndex(), chr2.getIndex());
     }
 
     /**
@@ -165,95 +156,30 @@ public class Feature2DList {
     }
 
     /**
-     * Helper method to get the key, lowest ordinal chromosome first
-     *
-     * @param chr1Idx First chromosome index
-     * @param chr2Idx Second chromosome index
-     * @return key
-     */
-    private String getKey(int chr1Idx, int chr2Idx) {
-
-        int c1;
-        int c2;
-        if (chr1Idx < chr2Idx) {
-            c1 = chr1Idx;
-            c2 = chr2Idx;
-        } else {
-            c1 = chr2Idx;
-            c2 = chr1Idx;
-        }
-
-        return "" + c1 + "_" + c2;
-    }
-
-    /**
-     * Helper method to get the key given chromosomes
-     *
-     * @param chr1 First chromosome
-     * @param chr2 Second chromosome
-     * @return key
-     */
-    private String getKey(Chromosome chr1, Chromosome chr2) {
-        return getKey(chr1.getIndex(), chr2.getIndex());
-    }
-
-    /**
-     * Remove duplicates and filters by size
-     * Also save internal metrics for these measures
-     *
-     * @param minPeakDist
-     * @param maxPeakDist
-     * @param resolution
-     */
-    public void apaFiltering(double minPeakDist, double maxPeakDist, int resolution) {
-
-        filterMetrics = new HashMap<String, Integer[]>();
-        Set<String> keys = featureList.keySet();
-
-        HashMap<String, List<Feature2D>> newFeatureList = new HashMap<String, List<Feature2D>>();
-        for (String key : keys) {
-            List<Feature2D> features = featureList.get(key);
-            List<Feature2D> uniqueFeatures = filterFeaturesByUniqueness(features);
-            List<Feature2D> filteredUniqueFeatures = filterFeaturesBySize(uniqueFeatures,
-                    minPeakDist, maxPeakDist, resolution);
-
-
-            newFeatureList.put(key, filteredUniqueFeatures);
-            filterMetrics.put(key,
-                    new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
-        }
-        featureList = new HashMap<String, List<Feature2D>>(newFeatureList);
-    }
-
-    /**
-     * [NumUniqueFiltered, NumUnique, NumTotal]
-     *
-     * @param chr
-     * @return
-     */
-    public Integer[] getFilterMetrics(Chromosome chr) {
-        return filterMetrics.get(getKey(chr, chr));
-    }
-
-    /**
      * Export feature list to given file path
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath) {
+    public int exportFeatureList(String outputFilePath, final boolean useOldHiccupsOutput) {
         if (featureList != null && featureList.size() > 0) {
 
-            PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
+            final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
 
             Feature2D featureZero = extractSingleFeature();
             outputFile.println(featureZero.getOutputFileHeader());
 
-            for (String key : featureList.keySet()) {
-                for (Feature2D feature : featureList.get(key)) {
-                    outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                    //outputFile.println(feature);
+            processLists(new FeatureFunction() {
+                @Override
+                public void process(String chr, List<Feature2D> feature2DList) {
+                    for (Feature2D feature : feature2DList) {
+                        if (useOldHiccupsOutput)
+                            outputFile.println(HiCCUPSUtils.oldOutput(feature));
+                        else
+                            outputFile.println(feature);
+                    }
                 }
-            }
+            });
+
             outputFile.close();
 
             return 0;
@@ -306,12 +232,15 @@ public class Feature2DList {
      * Set color for the features
      * @param color
      */
-    public void setColor(Color color){
-        for (String key : featureList.keySet()) {
-            for (Feature2D feature : featureList.get(key)) {
-                feature.setColor(color);
+    public void setColor(final Color color) {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    feature.setColor(color);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -321,12 +250,16 @@ public class Feature2DList {
      * @param fdrLogH
      * @param fdrLogV
      */
-    public void calculateFDR(float[][] fdrLogBL, float[][] fdrLogDonut, float[][] fdrLogH, float[][] fdrLogV) {
-        for (String key : featureList.keySet()) {
-            for (Feature2D feature : featureList.get(key)) {
-                HiCCUPSUtils.calculateFDR(feature, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+    public void calculateFDR(final float[][] fdrLogBL, final float[][] fdrLogDonut,
+                             final float[][] fdrLogH, final float[][] fdrLogV) {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    HiCCUPSUtils.calculateFDR(feature, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                }
             }
-        }
+        });
     }
 
     /**
@@ -409,6 +342,7 @@ public class Feature2DList {
         }
         return repeat;
     }
+
     // Iterate through new features and see if there is any overlap
     // TODO: implement this more efficiently
     private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures){
@@ -422,17 +356,16 @@ public class Feature2DList {
 
     }
 
-    public void addAttributeFieldToAll(String newAttributeName, String newAttributeValue) {
-        Set<String> inputKeySet = getKeySet();
-        for (String inputKey : inputKeySet) {
-            List<Feature2D> myFeatures = getFeatureList(inputKey);
-            if (myFeatures != null) {
-                for (Feature2D feature : myFeatures) {
+    public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
                     if (feature.getAttribute(newAttributeName) == null)
                         feature.addFeature(newAttributeName, newAttributeValue);
                 }
             }
-        }
+        });
     }
 
 
@@ -452,5 +385,29 @@ public class Feature2DList {
     private List<Feature2D> getFeatureList(String key) {
         return featureList.get(key);
     }
+
+    /**
+     * pass interface implementing a filter for features
+     *
+     * @param filter
+     */
+    public void filterLists(FeatureFilter filter) {
+        for (String chr : featureList.keySet()) {
+            featureList.put(chr, filter.filter(chr, featureList.get(chr)));
+        }
+    }
+
+    /**
+     * pass interface implementing a process for all features
+     * TODO - alter above functions to use this
+     *
+     * @param function
+     */
+    public void processLists(FeatureFunction function) {
+        for (String chr : featureList.keySet()) {
+            function.process(chr, featureList.get(chr));
+        }
+    }
+
 
 }
