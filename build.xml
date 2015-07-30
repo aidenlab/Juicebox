@@ -210,12 +210,12 @@
     <jar destfile="${temp.jar.path.Juicebox.jar}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF">
       <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
       <zipfileset dir="${juicebox.output.dir}"/>
-      <zipfileset src="${basedir}/lib/igv.jar"/>
-      <zipfileset src="${basedir}/lib/htsjdk-1.123.jar"/>
-      <zipfileset src="${basedir}/lib/guava-18.0.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda-0.7.0.jar"/>
-      <zipfileset src="${basedir}/lib/jcudaUtils-0.0.4.jar"/>
-      <zipfileset src="${basedir}/lib/lwjgl.jar"/>
+      <zipfileset src="/lib/broad/igv.jar"/>
+      <zipfileset src="/lib/broad/htsjdk-1.123.jar"/>
+      <zipfileset src="/lib/google/guava-18.0.jar"/>
+      <zipfileset src="/lib/jcuda/jcuda-0.7.0.jar"/>
+      <zipfileset src="/lib/jcuda/jcudaUtils-0.0.4.jar"/>
+      <zipfileset src="/lib/lwjgl/lwjgl.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
   </target>
@@ -226,12 +226,12 @@
     <jar destfile="${temp.jar.path.Juicebox.jar2}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF">
       <zipfileset file="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
       <zipfileset dir="${juicebox.output.dir}"/>
-      <zipfileset src="${basedir}/lib/igv.jar"/>
-      <zipfileset src="${basedir}/lib/htsjdk-1.123.jar"/>
-      <zipfileset src="${basedir}/lib/guava-18.0.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda-0.7.0.jar"/>
-      <zipfileset src="${basedir}/lib/jcudaUtils-0.0.4.jar"/>
-      <zipfileset src="${basedir}/lib/lwjgl.jar"/>
+      <zipfileset src="/lib/broad/igv.jar"/>
+      <zipfileset src="/lib/broad/htsjdk-1.123.jar"/>
+      <zipfileset src="/lib/google/guava-18.0.jar"/>
+      <zipfileset src="/lib/jcuda/jcuda-0.7.0.jar"/>
+      <zipfileset src="/lib/jcuda/jcudaUtils-0.0.4.jar"/>
+      <zipfileset src="/lib/lwjgl/lwjgl.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox_CLT.jar"/>
   </target>
