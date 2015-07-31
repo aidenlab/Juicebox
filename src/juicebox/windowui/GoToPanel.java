@@ -351,7 +351,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             outBinSize = 250000;
         }
 
-        hic.setState(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
+        hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
         if (outBinTop > 0 && outBinLeft > 0) {
             hic.centerBP(outBinTop, outBinLeft);
         }
@@ -381,7 +381,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
                 return;
             }
-            hic.setState(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
+            hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
             hic.centerBP(location1.centerPosition, location2.centerPosition);
             MainWindow.getInstance().setNormalizationDisplayState();
         }
@@ -452,7 +452,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setState(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
+        hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
         hic.centerBP(location1.centerPosition, location2.centerPosition);
         MainWindow.getInstance().setNormalizationDisplayState();
     }

@@ -23,12 +23,60 @@
  */
 
 package juicebox.state;
+import juicebox.HiCGlobals;
+import juicebox.MainWindow;
+import juicebox.HiC;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import sun.applet.Main;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
 
 /**
  * Created by Zulkifl on 7/31/2015.
  */
+
+
 public class Slideshow {
 
+    private static MainWindow mainWindow;
+    private static String statesForSlideshow = HiCGlobals.xmlFileName;
+    private static HiC hic;
+
+
     public static void viewShow() {
+         try {
+             ArrayList<String> savedStatePaths = new ArrayList<String>();
+            Document dom;
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = null;
+            db = dbf.newDocumentBuilder();
+            dom = db.parse(statesForSlideshow);
+            NodeList nodeList = dom.getElementsByTagName("STATE");
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
+            }
+             System.out.println(savedStatePaths);
+
+
+             /*for(String mapPath: savedStatePaths){
+
+             }*/
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

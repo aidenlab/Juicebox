@@ -104,8 +104,8 @@ public class MainWindow extends JFrame {
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    private static String currentlyLoadedMainFiles = "";
-    private static String currentlyLoadedControlFiles = "";
+    public static String currentlyLoadedMainFiles = "";
+    public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -2206,7 +2206,7 @@ public class MainWindow extends JFrame {
         saveLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
-                String stateString = hic.saveState();
+                String stateString = hic.saveLocation();
                 String stateDescriptionString = hic.getDefaultLocationDescription();
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
                         "Enter description for saved location:", stateDescriptionString);
@@ -2225,16 +2225,13 @@ public class MainWindow extends JFrame {
 
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
-                String stateDescriptionString = hic.getDefaultLocationDescription();
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved state:", stateDescriptionString);
+                        "Enter description for saved state:", hic.getDefaultLocationDescription());
                 if (null != stateDescription) {
                     getPrevousStateMenu().addEntry(stateDescription, true);
                 }
-                hic.storeStateID();
                 try {
-                    hic.writeState();
-                    hic.writeStateForXML();
+                    hic.writeStateForXML(stateDescription);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -2252,7 +2249,7 @@ public class MainWindow extends JFrame {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-                hic.restoreState(temp[1]);//temp[1]
+                hic.restoreLocation(temp[1]);//temp[1]
                 setNormalizationDisplayState();
             }
         };
@@ -2265,10 +2262,8 @@ public class MainWindow extends JFrame {
             private static final long serialVersionUID = 4205L;
 
             public void onSelectPosition(String mapPath) {
-                hic.getMapPath(mapPath);
                 hic.clearTracksForReloadState();
-                //hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
-                hic.readXML(mapPath);
+                hic.readStateFromXML(mapPath);
                 updateThumbnail();
                 previousStates.setSelected(true);
             }
@@ -2304,7 +2299,7 @@ public class MainWindow extends JFrame {
 
 
         //---Slideshow----
-        //ALL YOURE MARIE
+        //ALL YOUR'S MARIE
         slideShow = new JMenuItem();
         slideShow.setText("View Slideshow");
         slideShow.addActionListener(new ActionListener() {
@@ -2313,6 +2308,7 @@ public class MainWindow extends JFrame {
                 Slideshow.viewShow();
             }
         });
+        bookmarksMenu.add(slideShow);
 
 
 

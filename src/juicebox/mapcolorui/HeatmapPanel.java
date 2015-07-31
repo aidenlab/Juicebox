@@ -557,7 +557,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         mi3.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                hic.broadcastState();
+                hic.broadcastLocation();
             }
         });
 
@@ -568,7 +568,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 final boolean isLinked = mi4.isSelected();
                 if (isLinked) {
-                    hic.broadcastState();
+                    hic.broadcastLocation();
                 }
                 hic.setLinkedMode(isLinked);
             }

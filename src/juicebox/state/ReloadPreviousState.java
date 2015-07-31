@@ -68,63 +68,6 @@ public class ReloadPreviousState {
     }
 
 
-    public String reload(File currentInfo) {
-        String result = "OK";
- //TODO---USE XML File instead
-        try {
-            BufferedReader buffRead = new BufferedReader(new FileReader(currentInfo));
-            String command;
-            while((command = buffRead.readLine()) != null) {
-                if (command.contains(hic.currentMapName())) {
-                    String delimiter = "\\$\\$";
-                    String[] stateArray;
-                    stateArray = command.split(delimiter);
-                    List<String> args = getArgs(stateArray);
-                    ArrayList<String> tracks = new ArrayList<String>();
-                    log.debug("Executing: " + command);
-                    if (args.size() > 0) {
-                        int fileSize = args.size();
-                        String cmd = args.get(0).toLowerCase();
-                        if (cmd.contains("currentstate:")) {
-                            if (args.size() > 14) {
-                                String hicURL = args.get(1);
-                                String chrXName = args.get(2);
-                                String chrYName = args.get(3);
-                                String unitName = args.get(4);
-                                int binSize = Integer.parseInt(args.get(5));
-                                double xOrigin = Double.parseDouble(args.get(6));
-                                double yOrigin = Double.parseDouble(args.get((7)));
-                                double scaleFactor = Double.parseDouble(args.get(8));
-                                MatrixType displayOption = MatrixType.valueOf(args.get((9)).toUpperCase());
-                                NormalizationType normType = NormalizationType.valueOf(args.get((10)).toUpperCase());
-                                double minColorVal = Double.parseDouble(args.get((11)));
-                                double lowerColorVal = Double.parseDouble(args.get((12)));
-                                double upperColorVal = Double.parseDouble(args.get((13)));
-                                double maxColorVal = Double.parseDouble(args.get((14)));
-                                for (int i = 15; i < fileSize; i++) {
-                                    tracks.add(args.get(i));
-                                }
-                                hic.safeSetReloadState(hicURL, chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor, displayOption, normType
-                                        , minColorVal, lowerColorVal, upperColorVal, maxColorVal, tracks);
-                            } else {
-                                result = "Not enough parameters";
-                            }
-                        }
-                    } else {
-                        result = "Unknown command string";
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            //result = "Error: " + e.getMessage();
-        }
-
-        return result;
-
-    }
-
     public String reloadXML(String[] infoForReload) {
         String result = "OK";
         //TODO---USE XML File instead
@@ -154,7 +97,7 @@ public class ReloadPreviousState {
                     trackURLsAndNames[0] = (infoForReload[16]); //trackURLs
                     trackURLsAndNames[1] = (infoForReload[17]); //trackNames
 
-                    hic.unsafeSetReloadStateFromXML(initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
+                    hic.safeSetReloadStateFromXML(initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
                 } catch(NumberFormatException nfe){
                         JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
                                 JOptionPane.ERROR_MESSAGE);
