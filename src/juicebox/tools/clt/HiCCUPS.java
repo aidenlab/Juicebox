@@ -43,9 +43,11 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 1/20/15.
@@ -62,6 +64,15 @@ public class HiCCUPS extends JuiceboxCLT {
     private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
     private static final int window = 3;
     private static final int peakWidth = 1;
+    public static int krNeighborhood = 5;
+    public static int originalPixelClusterRadius = 20000; //TODO --> 10000?
+    public static int pixelClusterRadius = originalPixelClusterRadius;
+    public static Color defaultPeakColor = Color.cyan;
+    public static boolean shouldColorBeScaledByFDR = false;
+    public static double fdrsum = 0.02;
+    public static double oeThreshold1 = 1.5;
+    public static double oeThreshold2 = 1.75;
+    public static double oeThreshold3 = 2;
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
@@ -151,7 +162,8 @@ public class HiCCUPS extends JuiceboxCLT {
 
             if (dataShouldBePostProcessed) {
                 for (int res : looplists.keySet()) {
-                    HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds);
+                    pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+                    HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
                 }
 
                 Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(new ArrayList<Feature2DList>(looplists.values()));

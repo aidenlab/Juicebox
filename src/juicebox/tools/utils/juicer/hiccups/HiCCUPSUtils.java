@@ -25,21 +25,23 @@
 package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.data.Dataset;
+import juicebox.tools.clt.HiCCUPS;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.FeatureFilter;
+import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by muhammadsaadshamim on 6/2/15.
  */
 public class HiCCUPSUtils {
 
-    private static final String OBSERVED = "observed";
+    public static final String OBSERVED = "observed";
     private static final String PEAK = "peak";
 
     private static final String EXPECTEDBL = "expectedBL";
@@ -56,6 +58,11 @@ public class HiCCUPSUtils {
     private static final String FDRDONUT = "fdrDonut";
     private static final String FDRH = "fdrH";
     private static final String FDRV = "fdrV";
+
+    private static final String RADIUS = "radius";
+    private static final String CENTROID1 = "centroid1";
+    private static final String CENTROID2 = "centroid2";
+    private static final String NUMCOLLAPSED = "numCollapsed";
 
     /**
      * Generate a Feature2D peak for a possible peak location from hiccups
@@ -116,10 +123,10 @@ public class HiCCUPSUtils {
         int binV = (int) feature.getFloatAttribute(BINV);
 
         if(binBL >= 0  && binDonut >= 0  && binH >= 0  && binV >= 0  && observed >= 0) {
-            feature.addFeature(FDRBL, String.valueOf(fdrLogBL[binBL][observed]));
-            feature.addFeature(FDRDONUT, String.valueOf(fdrLogDonut[binDonut][observed]));
-            feature.addFeature(FDRH, String.valueOf(fdrLogH[binH][observed]));
-            feature.addFeature(FDRV, String.valueOf(fdrLogV[binV][observed]));
+            feature.addAttribute(FDRBL, String.valueOf(fdrLogBL[binBL][observed]));
+            feature.addAttribute(FDRDONUT, String.valueOf(fdrLogDonut[binDonut][observed]));
+            feature.addAttribute(FDRH, String.valueOf(fdrLogH[binH][observed]));
+            feature.addAttribute(FDRV, String.valueOf(fdrLogV[binV][observed]));
         }
         else{
             System.out.println("Error in calculateFDR binBL=" + binBL + " binDonut=" + binDonut +" binH=" + binH +
@@ -145,11 +152,18 @@ public class HiCCUPSUtils {
                 +"\t"+feature.getAttribute(FDRV);
     }
 
-    public static void postProcessLoops(Feature2DList list, final int resolution, final Dataset ds) {
+    public static void postProcessLoops(Feature2DList list, final int resolution,
+                                        final Dataset ds, final List<Chromosome> chromosomes) {
+
+        final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
+        for (Chromosome chr : chromosomes) {
+            chrNameToIndex.put(chr.getName(), chr.getIndex());
+        }
+
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return removeLowMapQ(chr, resolution, ds, feature2DList);
+                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList);
             }
         });
 
@@ -162,19 +176,148 @@ public class HiCCUPSUtils {
     }
 
 
-    private static List<Feature2D> removeLowMapQ(String chr, int res, Dataset ds, List<Feature2D> list) {
-        return null;
+    private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list) {
+
+        double[] normalizationVector = ds.getNormalizationVector(chrIndex, ds.getZoomForBPResolution(res),
+                NormalizationType.KR).getData();
+        List<Feature2D> features = new ArrayList<Feature2D>();
+
+
+        for (Feature2D feature : list) {
+            int index1 = feature.getStart1() / res, index2 = feature.getStart2() / res;
+            if (nearbyValuesClear(normalizationVector, index1) && nearbyValuesClear(normalizationVector, index2)) {
+                features.add(feature);
+            }
+        }
+
+        return features;
     }
 
+    private static boolean nearbyValuesClear(double[] normalizationVector, int index) {
+        for (int i = index - HiCCUPS.krNeighborhood; i <= index + HiCCUPS.krNeighborhood; i++) {
+            if (Double.isNaN(normalizationVector[i]))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param resolution
+     * @param feature2DList
+     * @return
+     */
     private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList) {
 
-        return null;
+        LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(feature2DList);
+        List<Feature2D> coalesced = new ArrayList<Feature2D>();
+
+        while (!feature2DList.isEmpty()) {
+
+            Collections.sort(featureLL);
+            Collections.reverse(featureLL);
+
+            Feature2D pixel = featureLL.pollFirst();
+            List<Feature2D> pixelList = new ArrayList<Feature2D>();
+            pixelList.add(pixel);
+
+            int pixelListX = pixel.getStart1();
+            int pixelListY = pixel.getStart2();
+
+            int r = 0;
+            for (Feature2D px : featureLL) {
+                // TODO should likely reduce radius or at least start with default?
+                if (hypotneuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
+                    pixelList.add(px);
+                    pixelListX = mean(pixelList, 1);
+                    pixelListY = mean(pixelList, 2);
+
+                    r = 0;
+                    for (Feature2D px2 : pixelList) {
+                        int rPrime = hypotneuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
+                        if (rPrime > r)
+                            r = rPrime;
+                    }
+                    HiCCUPS.pixelClusterRadius = HiCCUPS.originalPixelClusterRadius + r;
+                }
+            }
+
+            pixel.setEnd1(pixel.getStart1() + resolution);
+            pixel.setEnd2(pixel.getStart2() + resolution);
+            pixel.addAttribute(RADIUS, String.valueOf(r));
+            pixel.addAttribute(CENTROID1, String.valueOf(pixelListX + resolution / 2));
+            pixel.addAttribute(CENTROID2, String.valueOf(pixelListY + resolution / 2));
+            pixel.addAttribute(NUMCOLLAPSED, String.valueOf(pixelList.size()));
+
+            for (Feature2D px : pixelList) {
+                featureLL.remove(px);
+            }
+
+            setPixelColor(pixel);
+
+            if (fdrThresholdsSatisfied(pixel))
+                coalesced.add(pixel);
+        }
+
+        return coalesced;
+    }
+
+    private static void setPixelColor(Feature2D pixel) {
+        Color c = HiCCUPS.defaultPeakColor;
+        if (HiCCUPS.shouldColorBeScaledByFDR) {
+            double fdr = -Math.floor(Math.log10(
+                    Math.max(pixel.getFloatAttribute(BINBL), pixel.getFloatAttribute(BINDONUT))));
+            fdr = Math.max(Math.min(fdr, 10), 0) / 10;
+            c = new Color((int) (fdr * c.getRed()), (int) (fdr * c.getGreen()), (int) (fdr * c.getBlue()));
+        }
+        pixel.setColor(c);
+    }
+
+    private static boolean fdrThresholdsSatisfied(Feature2D pixel) {
+        double f = HiCCUPS.fdrsum;
+        double t1 = HiCCUPS.oeThreshold1;
+        double t2 = HiCCUPS.oeThreshold2;
+        double t3 = HiCCUPS.oeThreshold3;
+
+        int observed = (int) pixel.getFloatAttribute(OBSERVED);
+        int numCollapsed = (int) pixel.getFloatAttribute(NUMCOLLAPSED);
+
+        float expectedBL = pixel.getFloatAttribute(EXPECTEDBL);
+        float expectedDonut = pixel.getFloatAttribute(EXPECTEDDONUT);
+        float expectedH = pixel.getFloatAttribute(EXPECTEDH);
+        float expectedV = pixel.getFloatAttribute(EXPECTEDV);
+
+        float fdrBL = pixel.getFloatAttribute(FDRBL);
+        float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
+        float fdrH = pixel.getFloatAttribute(FDRH);
+        float fdrV = pixel.getFloatAttribute(FDRV);
+
+        return observed > t2 * expectedBL
+                && observed > t2 * expectedDonut
+                && observed > t1 * expectedH
+                && observed > t1 * expectedV
+                && (observed > t3 * expectedBL || observed > t3 * expectedDonut)
+                && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f);
+    }
+
+    private static int mean(List<Feature2D> pixelList, int i) {
+        int n = pixelList.size();
+        double total = 0;
+        for (Feature2D px : pixelList) {
+            if (i == 1)
+                total += px.getStart1();
+            else if (i == 2)
+                total += px.getStart2();
+        }
+        return (int) (total / n);
+    }
+
+    private static int hypotneuse(int x, int y) {
+        return (int) Math.sqrt(x * x + y * y);
     }
 
     public static Feature2DList mergeAllResolutions(List<Feature2DList> hiccupsLooplists) {
         if (hiccupsLooplists.size() == 1)
             return hiccupsLooplists.get(0);
-
         return null;
     }
 }

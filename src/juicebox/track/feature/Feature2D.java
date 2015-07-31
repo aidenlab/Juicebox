@@ -26,6 +26,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -35,15 +36,11 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * chr1	x1	x2	chr2	y1	y2	color	observed	bl expected	donut expected	bl fdr	donut fdr
  *
  * @author jrobinso
- *         Date: 5/22/13
- *         Time: 8:51 AM
- *         <p/>
- *         Chr Chr pos pos observed expected1 expected2 fdr
+ * @modified mshamim, mhoeger
  */
-public class Feature2D {
+public class Feature2D implements Comparable<Feature2D> {
 
     public static final String peak = "Peak";
     public static final String domain = "Contact domain";
@@ -53,12 +50,12 @@ public class Feature2D {
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final String chr1;
     private final int start1;
-    private final int end1;
     private final String chr2;
     private final int start2;
-    private final int end2;
     private final String featureName;
     private final Map<String, String> attributes;
+    private int end1;
+    private int end2;
     private Color color;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
@@ -98,8 +95,16 @@ public class Feature2D {
         return end1;
     }
 
+    public void setEnd1(int end1) {
+        this.end1 = end1;
+    }
+
     public int getEnd2() {
         return end2;
+    }
+
+    public void setEnd2(int end2) {
+        this.end2 = end2;
     }
 
     public int getMidPt1() { return midPoint(start1, end1);}
@@ -255,10 +260,16 @@ public class Feature2D {
         return Float.parseFloat(attributes.get(key));
     }
 
-    public void addFeature(String key, String value) {
+    public void addAttribute(String key, String value) {
         attributes.put(key, value);
     }
 
+    /**
+     * TODO description
+     *
+     * @param otherFeature
+     * @return
+     */
     public boolean overlapsWith(Feature2D otherFeature){
 
         float window1 = (otherFeature.getEnd1() - otherFeature.getStart1()) / 2;
@@ -275,4 +286,8 @@ public class Feature2D {
         return false;
     }
 
+    @Override
+    public int compareTo(Feature2D o) {
+        return Integer.parseInt(getAttribute(HiCCUPSUtils.OBSERVED)) - Integer.parseInt(o.getAttribute(HiCCUPSUtils.OBSERVED));
+    }
 }

@@ -38,7 +38,7 @@ import java.util.List;
  * Visibility depends on user selection.
  *
  * @author Neva Durand
- * @modified Muhammad Shamim
+ * @modified Muhammad Shamim, Marie Hoeger
  */
 public class Feature2DList {
 
@@ -362,7 +362,7 @@ public class Feature2DList {
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
                     if (feature.getAttribute(newAttributeName) == null)
-                        feature.addFeature(newAttributeName, newAttributeValue);
+                        feature.addAttribute(newAttributeName, newAttributeValue);
                 }
             }
         });

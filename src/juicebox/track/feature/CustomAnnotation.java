@@ -88,7 +88,7 @@ public class CustomAnnotation {
         List<String> featureKeys = feature.getAttributeKeys();
         for (String customKey : attributeKeys){
             if (!featureKeys.contains(customKey)) {
-                feature.addFeature(customKey, "null");
+                feature.addAttribute(customKey, "null");
                 System.out.println("Added" + customKey);
             }
         }
