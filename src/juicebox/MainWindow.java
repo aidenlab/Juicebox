@@ -32,6 +32,7 @@ import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
 import juicebox.state.ImportFileDialog;
 import juicebox.state.SaveFileDialog;
+import juicebox.state.Slideshow;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -116,6 +117,7 @@ public class MainWindow extends JFrame {
     private static JMenuItem refreshTest;
     private static JMenuItem exportMapAsFile;
     private static JMenuItem importMapAsFile;
+    private static JMenuItem slideShow;
     private static JMenuItem emailMap;
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
@@ -2299,6 +2301,19 @@ public class MainWindow extends JFrame {
                 importMapAsFile.setSelected(true);
             }
         });
+
+
+        //---Slideshow----
+        //ALL YOURE MARIE
+        slideShow = new JMenuItem();
+        slideShow.setText("View Slideshow");
+        slideShow.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Slideshow.viewShow();
+            }
+        });
+
 
 
         //Add menu items
