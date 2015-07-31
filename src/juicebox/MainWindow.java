@@ -30,6 +30,7 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
+import juicebox.state.ImportFileDialog;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
@@ -2264,7 +2265,7 @@ public class MainWindow extends JFrame {
             public void onSelectPosition(String mapPath) {
                 hic.getMapPath(mapPath);
                 hic.clearTracksForReloadState();
-                hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
+                //hic.reloadPreviousState(hic.currentStates); //TODO use XML file instead
                 hic.readXML(mapPath);
                 updateThumbnail();
                 previousStates.setSelected(true);
@@ -2288,19 +2289,21 @@ public class MainWindow extends JFrame {
 
 
         //---Import Maps----
-        /*importMapAsFile = new JMenuItem();
+        importMapAsFile = new JMenuItem();
         importMapAsFile.setText("Import State From File");
         importMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new ImportFileDialog(fileForExport, MainWindow.getInstance());
+                previousStates.setEnabled(true);
+                importMapAsFile.setSelected(true);
             }
-        });*/
+        });
 
 
         //Add menu items
         shareMenu.add(exportMapAsFile);
-        //shareMenu.add(importMapAsFile);
+        shareMenu.add(importMapAsFile);
 
         /*
         //---3D Model Menu-----
@@ -2329,6 +2332,7 @@ public class MainWindow extends JFrame {
     public boolean isReloadState(){
         return previousStates.isSelected();
     }
+    public boolean isFileImported(){return importMapAsFile.isSelected();}
 
     private void loadNormalizationVector(File file) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));

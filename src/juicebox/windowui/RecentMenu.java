@@ -193,18 +193,58 @@ public abstract class RecentMenu extends JMenu {
      */
     public abstract void onSelectPosition(String mapPath);
 
-  /*  //TODO--- Update recent menu when HiC states are imported
+    //TODO--- Update recent menu when HiC states are imported
     public void updateNamesFromImport(String importedFile){
         Document doc;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        for (int c = 0; c < m_maxItems; c++) {
+            prefs.remove(m_entry + c);
+        }
+        //clear the existing items
+        removeAll();
+        m_items = new ArrayList<String>();
+        //import names to previous states menu
         try {
             DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
             doc = documentBuilder.parse(importedFile);
             Element element = doc.getDocumentElement();
-            NodeList nodeList = element.getElementsByTagName("MapPath");
+            NodeList nodeList = element.getElementsByTagName("STATE");
             for(int i=0; i<nodeList.getLength(); i++){
-                System.out.println(nodeList.item(i));
+                String importedMapPath = nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue();
+                m_items.add(importedMapPath);
             }
+
+            if (this.m_items.size() > this.m_maxItems) {
+                this.m_items.remove(this.m_items.size() - 1);
+            }
+            for (String m_item : this.m_items) {
+
+                if (!m_item.equals("")) {
+                    JMenuItem menuItem = new JMenuItem(m_item);
+                    menuItem.setVisible(true);
+                    menuItem.setToolTipText(m_item);
+                    menuItem.setActionCommand(m_item);
+                    //menuItem.setActionMap();
+                    menuItem.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent actionEvent) {
+                            onSelectPosition(actionEvent.getActionCommand());
+                        }
+                    });
+                    //menuItem.addMouseListener(new MouseListener() );
+                    this.add(menuItem);
+                }
+
+            }
+
+            for (int i = 0; i < this.m_maxItems; i++) {
+                if (i < this.m_items.size()) {
+                    prefs.put(this.m_entry + i, this.m_items.get(i));
+                } else {
+                    prefs.remove(this.m_entry + i);
+                }
+            }
+
+            addClearItem();
 
         } catch (ParserConfigurationException pce){
             pce.printStackTrace();
@@ -215,7 +255,7 @@ public abstract class RecentMenu extends JMenu {
         }
 
 
-    }*/
+    }
 
 
 }
