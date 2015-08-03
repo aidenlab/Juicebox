@@ -65,7 +65,7 @@ import java.util.List;
 public class ImportFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = -1038991737399792883L;
-    private File currentJuiceboxStates = new File(HiCGlobals.xmlFileName);
+    private File currentJuiceboxStates = new File(HiCGlobals.xmlSavedStatesFileName);
     private MainWindow mainWindow;
     private File originalStates = new File("OriginalJuiceboxSavedStates.xml");
 
@@ -85,7 +85,7 @@ public class ImportFileDialog extends JFileChooser {
         if(actionDialog == APPROVE_OPTION){
             File importedFile = getSelectedFile();
             String path = importedFile.getAbsolutePath();
-            mainWindow.getPrevousStateMenu().updateNamesFromImport(path);
+            //mainWindow.getPrevousStateMenu().updateNamesFromImport(path); OLD TODO Delete
 
             try {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
