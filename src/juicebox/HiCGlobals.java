@@ -50,7 +50,7 @@ public class HiCGlobals {
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.1;
+    private static final double versionNum = 1.2;
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";

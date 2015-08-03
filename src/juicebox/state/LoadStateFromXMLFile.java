@@ -26,7 +26,6 @@ package juicebox.state;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.state.XMLFileParser;
 import juicebox.track.HiCTrack;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;

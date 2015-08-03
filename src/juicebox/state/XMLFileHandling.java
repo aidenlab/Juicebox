@@ -53,7 +53,7 @@ public class XMLFileHandling {
         String currentTrack = "";
         String currentTrackName = "";
 
-        String mapNameAndURLs = mainWindow.getTitle().replace(HiCGlobals.juiceboxTitle,"") + "@@" + MainWindow.currentlyLoadedMainFiles;
+        String mapNameAndURLs = mainWindow.getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + MainWindow.currentlyLoadedMainFiles;
 
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +

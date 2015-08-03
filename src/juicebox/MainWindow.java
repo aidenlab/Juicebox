@@ -648,7 +648,6 @@ public class MainWindow extends JFrame {
     }
 
 
-
     private void chrBox1ActionPerformed(ActionEvent e) {
         if (chrBox1.getSelectedIndex() == 0) {
             chrBox2.setSelectedIndex(0);
@@ -805,7 +804,6 @@ public class MainWindow extends JFrame {
         getContentPane().invalidate();
         repaint();
     }
-
 
 
     public void setDisplayBox(int indx) {
@@ -1233,7 +1231,6 @@ public class MainWindow extends JFrame {
     }
 
 
-
     private JMenuBar createMenuBar() {
 
 
@@ -1646,7 +1643,7 @@ public class MainWindow extends JFrame {
         slideShow.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Slideshow.viewShow(MainWindow.getInstance(),hic);
+                Slideshow.viewShow(MainWindow.getInstance(), hic);
             }
         });
         bookmarksMenu.add(slideShow);
