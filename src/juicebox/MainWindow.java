@@ -30,9 +30,7 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
-import juicebox.state.ImportFileDialog;
-import juicebox.state.SaveFileDialog;
-import juicebox.state.Slideshow;
+import juicebox.state.*;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -74,9 +72,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/**
- * @author James Robinson
- */
 public class MainWindow extends JFrame {
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
@@ -98,14 +93,14 @@ public class MainWindow extends JFrame {
     public static boolean preDefMapColor = false;
     public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
     public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
+    public static String currentlyLoadedMainFiles = "";
+    public static String currentlyLoadedControlFiles = "";
     private static boolean unsavedEdits;
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    public static String currentlyLoadedMainFiles = "";
-    public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -140,7 +135,7 @@ public class MainWindow extends JFrame {
     private static JMenu annotationsMenu;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
-    private final File fileForExport = new File(HiCGlobals.xmlFileName);
+    private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
     File currentStates = new File("testStates");
     private double colorRangeScaleFactor = 1;
     private double colorRangeScaleFactorForReload = 1;
@@ -148,6 +143,8 @@ public class MainWindow extends JFrame {
     private boolean tooltipAllowedToUpdated = true;
     private int[] colorValuesToRestore = null;
     private Properties properties;
+    private LoadEncodeAction encodeAction;
+    private LoadAction trackLoadAction;
 
     private MainWindow() {
 
@@ -349,40 +346,41 @@ public class MainWindow extends JFrame {
     public void safeLoad(final List<String> files, final boolean control, final String title) {
         Runnable runnable = new Runnable() {
             public void run() {
-                String resetTitle;
-                if (control) resetTitle = controlTitle;
-                else resetTitle = datasetTitle;
-
-                try {
-                    unsafeload(files, control);
-                    updateThumbnail();
-                    refresh();
-                    if (control) controlTitle = title;
-                    else datasetTitle = title;
-                    updateTitle();
-                } catch (IOException error) {
-                    log.error("Error loading hic file", error);
-                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                    if (!control) hic.reset();
-                    updateThumbnail();
-                    if (control) controlTitle = resetTitle;
-                    else datasetTitle = resetTitle;
-                    updateTitle();
-                } catch (Exception error) {
-                    error.printStackTrace();
-                }
+                unsafeLoadWithTitleFix(files, control, title);
             }
 
         };
         executeLongRunningTask(runnable, "MainWindow safe load");
     }
 
-    private void unsafeload(final List<String> files, final boolean control) throws IOException {
+    public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title) {
+        String resetTitle = datasetTitle;
+        if (control) resetTitle = controlTitle;
 
-        System.out.println(System.currentTimeMillis());
+        try {
+            unsafeLoad(files, control);
+            updateThumbnail();
+            refresh();
+            if (control) controlTitle = title;
+            else datasetTitle = title;
+            updateTitle();
+        } catch (IOException e) {
+            log.error("Error loading hic file", e);
+            JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
+            if (!control) hic.reset();
+            updateThumbnail();
+            if (control) controlTitle = resetTitle;
+            else datasetTitle = resetTitle;
+            updateTitle();
+        }
+    }
+
+    private void unsafeLoad(final List<String> files, final boolean control) throws IOException {
+
+
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
-        for(String file : files){
+        for (String file : files) {
             newFilesToBeLoaded += file;
             allFilesAreHiC &= file.endsWith(".hic");
         }
@@ -391,8 +389,7 @@ public class MainWindow extends JFrame {
         if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
-        }
-        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
         }
@@ -435,7 +432,6 @@ public class MainWindow extends JFrame {
                 setChromosomes(dataset.getChromosomes());
 
                 chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
                 chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
                 String[] normalizationOptions;
@@ -497,172 +493,7 @@ public class MainWindow extends JFrame {
 
             if (control) {
                 currentlyLoadedControlFiles = newFilesToBeLoaded;
-            }
-            else {
-                currentlyLoadedMainFiles = newFilesToBeLoaded;
-            }
-            //refresh(); // an additional refresh seems to remove the upper left black corner
-        } else {
-            JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
-        }
-        System.out.println(System.currentTimeMillis());
-    }
-
-    public void safeLoadForReloadState(final List<String> files, final boolean control, final String title) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                String resetTitle;
-                if (control) resetTitle = controlTitle;
-                else resetTitle = datasetTitle;
-
-                try {
-                    unsafeLoadforReloadState(files, control);
-                    updateThumbnail();
-                    refresh();
-                    if (control) controlTitle = title;
-                    else datasetTitle = title;
-                    updateTitle();
-                } catch (IOException error) {
-                    log.error("Error loading hic file", error);
-                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                    if (!control) hic.reset();
-                    updateThumbnail();
-                    if (control) controlTitle = resetTitle;
-                    else datasetTitle = resetTitle;
-                    updateTitle();
-                } catch (Exception error) {
-                    error.printStackTrace();
-                }
-            }
-
-        };
-        executeLongRunningTask(runnable, "MainWindow safe load");
-    }
-
-    private void unsafeLoadforReloadState(final List<String> files, final boolean control) throws IOException {
-
-        String newFilesToBeLoaded = "";
-        boolean allFilesAreHiC = true;
-        for(String file : files){
-            newFilesToBeLoaded += file;
-            allFilesAreHiC &= file.endsWith(".hic");
-        }
-
-
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        }
-        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        }
-
-        colorValuesToRestore = null;
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
-        hic.setNormalizationType(NormalizationType.NONE);
-
-        if (allFilesAreHiC) {
-            DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) return;
-            Dataset dataset;
-            // try {
-            dataset = reader.read();
-            // }
-            // catch (IOException error) {
-            //     JOptionPane.showMessageDialog(MainWindow.this,
-            //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
-            //     return;
-            // }
-
-            if (dataset.getVersion() <= 1) {
-                JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
-                return;
-            }
-            if(!isReloadState()) {
-
-                MatrixType[] options;
-                if (control) {
-                    hic.setControlDataset(dataset);
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                } else {
-
-                    hic.reset();
-
-                    hic.setDataset(dataset);
-
-                    setChromosomes(dataset.getChromosomes());
-
-                    chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
-                    chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
-                    String[] normalizationOptions;
-                    if (dataset.getVersion() < 6) {
-                        normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                    } else {
-                        ArrayList<String> tmp = new ArrayList<String>();
-                        tmp.add(NormalizationType.NONE.getLabel());
-                        for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                            tmp.add(t.getLabel());
-                        }
-
-                        normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                        //tmp.add(NormalizationType.LOADED.getLabel());
-
-                    }
-
-                    if (normalizationOptions.length == 1) {
-                        normalizationComboBox.setEnabled(false);
-                    } else {
-                        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
-                        normalizationComboBox.setSelectedIndex(0);
-                        normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
-                    }
-
-                    if (hic.isControlLoaded()) {
-                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                                MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                    } else {
-                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
-                    }
-
-
-                    hic.resetContexts();
-                    updateTrackPanel();
-                    resolutionSlider.unit = HiC.Unit.BP;
-
-                    resolutionSlider.reset();
-                    unsafeRefreshChromosomes();
-
-                }
-                displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
-                displayOptionComboBox.setSelectedIndex(0);
-            }
-            chrBox1.setEnabled(true);
-            chrBox2.setEnabled(true);
-            refreshButton.setEnabled(true);
-            normalizationComboBox.setEnabled(true);
-
-            setColorRangeSliderVisible(true);
-            setResolutionSliderVisible(true);
-            colorRangeSlider.setDisplayToBlank(false);
-            plusButton.setEnabled(true);
-            minusButton.setEnabled(true);
-            annotationsMenu.setEnabled(true);
-
-            saveLocationList.setEnabled(true);
-            recentLocationMenu.setEnabled(true);
-
-            goPanel.setEnabled(true);
-
-            if (control) {
-                currentlyLoadedControlFiles = newFilesToBeLoaded;
-            }
-            else {
+            } else {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
             //refresh(); // an additional refresh seems to remove the upper left black corner
@@ -732,7 +563,7 @@ public class MainWindow extends JFrame {
         //System.err.println(heatmapPanel.getSize());
     }
 
-    public void refreshMapcolors(){
+    public void refreshMapcolors() {
         this.unsafeDisplayOptionComboBoxActionPerformed();
     }
 
@@ -858,7 +689,7 @@ public class MainWindow extends JFrame {
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<String>();
                 String title = "";
-                for(String url : urls){
+                for (String url : urls) {
                     urlList.add(url);
                     title += (new URL(url)).getPath() + " ";
                 }
@@ -909,13 +740,9 @@ public class MainWindow extends JFrame {
         if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
-        }
-        else if(MainWindow.preDefMapColor)
-        {
+        } else if (MainWindow.preDefMapColor) {
             heatmapPanel.setPreDefRange(min, max);
-        }
-        else
-        {
+        } else {
             heatmapPanel.setObservedRange(min, max);
         }
     }
@@ -1041,10 +868,6 @@ public class MainWindow extends JFrame {
         return recentLocationMenu;
     }
 
-    public RecentMenu getPrevousStateMenu(){
-        return previousStates;
-    }
-
     private void showDisabledGlassPane(String caller) {
         //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
@@ -1116,13 +939,10 @@ public class MainWindow extends JFrame {
             //refreshChromosomes();
             //setInitialZoom();
             colorRangeSlider.setDisplayToBlank(false);
-            if(preDefMapColor)
-            {
+            if (preDefMapColor) {
                 colorRangeSlider.setDisplayToPreDef(true);
                 colorRangeSlider.setDisplayToOE(false);
-            }
-            else
-            {
+            } else {
                 colorRangeSlider.setDisplayToPreDef(false);
                 colorRangeSlider.setDisplayToOE(false);
             }
@@ -1157,12 +977,12 @@ public class MainWindow extends JFrame {
     }
 
     //--------------------------------SetdisplayOptionComboBox----------------
-    public void setDisplayBox(int indx){
+    public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
     }
 
     //----------------------------SetNormalization Box-----------------------
-    public void setNormalizationBox(int indx){
+    public void setNormalizationBox(int indx) {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
@@ -1194,7 +1014,6 @@ public class MainWindow extends JFrame {
         preDefMapColorGradient.add(new Color(18, 129, 242));
         preDefMapColorGradient.add(new Color(255, 0, 0));
         preDefMapColorGradient.add(new Color(0, 0, 0));
-
 
 
         //size of the screen
@@ -1304,7 +1123,7 @@ public class MainWindow extends JFrame {
                 refreshButtonActionPerformed();
             }
         });
-        refreshButton.setPreferredSize(new Dimension(24,24));
+        refreshButton.setPreferredSize(new Dimension(24, 24));
         chrButtonPanel.add(refreshButton);
 
         chrBox1.setEnabled(false);
@@ -1762,7 +1581,7 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
-    public String getColorRangeValues(){
+    public String getColorRangeValues() {
 
         int iMin = colorRangeSlider.getMinimum();
         int lowValue = colorRangeSlider.getLowerValue();
@@ -2004,17 +1823,13 @@ public class MainWindow extends JFrame {
         annotationsMenu = new JMenu("Annotations");
 
         JMenuItem newLoadMI = new JMenuItem();
-        newLoadMI.setAction(new LoadAction("Load Basic Annotations...", this, hic));
+        trackLoadAction = new LoadAction("Load Basic Annotations...", this, hic);
+        newLoadMI.setAction(trackLoadAction);
         annotationsMenu.add(newLoadMI);
 
-        /*
-        JMenuItem loadSpecificMI = new JMenuItem();
-        loadSpecificMI.setAction(new LoadEncodeAction("Load Tracks by Cell Type...", this, hic, "hic"));
-        annotationsMenu.add(loadSpecificMI);
-        */
-
         JMenuItem loadEncodeMI = new JMenuItem();
-        loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
+        encodeAction = new LoadEncodeAction("Load ENCODE Tracks...", this, hic);
+        loadEncodeMI.setAction(encodeAction);
         annotationsMenu.add(loadEncodeMI);
 
         // Annotations Menu Items
@@ -2096,7 +1911,7 @@ public class MainWindow extends JFrame {
         customAnnotationMenu.add(mergeVisibleMI);
         customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
-        if (unsavedEdits){
+        if (unsavedEdits) {
             customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
         }
@@ -2208,10 +2023,9 @@ public class MainWindow extends JFrame {
         saveLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
-                String stateString = hic.saveLocation();
-                String stateDescriptionString = hic.getDefaultLocationDescription();
+                String stateString = hic.getLocationDescription();
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved location:", stateDescriptionString);
+                        "Enter description for saved location:", hic.getDefaultLocationDescription());
                 if (null != stateDescription) {
                     getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
                 }
@@ -2229,11 +2043,11 @@ public class MainWindow extends JFrame {
                 //code to add a recent location to the menu
                 String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
                         "Enter description for saved state:", hic.getDefaultLocationDescription());
-                if (null != stateDescription) {
-                    getPrevousStateMenu().addEntry(stateDescription, true);
+                if (stateDescription != null && stateDescription.length() > 0) {
+                    previousStates.addEntry(stateDescription, true);
                 }
                 try {
-                    hic.writeStateForXML(stateDescription);
+                    XMLFileHandling.addNewStateToXML(stateDescription, hic, MainWindow.this);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -2264,10 +2078,7 @@ public class MainWindow extends JFrame {
             private static final long serialVersionUID = 4205L;
 
             public void onSelectPosition(String mapPath) {
-                hic.clearTracksForReloadState();
-                hic.readStateFromXML(mapPath);
-                updateThumbnail();
-                previousStates.setSelected(true);
+                LoadStateFromXMLFile.reloadSelectedState(mapPath, MainWindow.this, hic);
             }
         };
         previousStates.setEnabled(true);
@@ -2282,7 +2093,7 @@ public class MainWindow extends JFrame {
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport,previousStates.getItemCount());
+                new SaveFileDialog(fileForExport);
             }
         });
 
@@ -2294,7 +2105,6 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new ImportFileDialog(fileForExport, MainWindow.getInstance());
-                previousStates.setEnabled(true);
                 importMapAsFile.setSelected(true);
             }
         });
@@ -2311,7 +2121,6 @@ public class MainWindow extends JFrame {
             }
         });
         bookmarksMenu.add(slideShow);
-
 
 
         //Add menu items
@@ -2341,11 +2150,6 @@ public class MainWindow extends JFrame {
         //menuBar.add(toolsMenu);
         return menuBar;
     }
-
-    public boolean isReloadState(){
-        return previousStates.isSelected();
-    }
-    public boolean isFileImported(){return importMapAsFile.isSelected();}
 
     private void loadNormalizationVector(File file) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
@@ -2393,6 +2197,25 @@ public class MainWindow extends JFrame {
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
         this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
+    }
+
+    public void updateNamesFromImport(String path) {
+        previousStates.updateNamesFromImport(path);
+    }
+
+    public LoadAction getTrackLoadAction() {
+        return trackLoadAction;
+    }
+
+    public LoadEncodeAction getEncodeAction() {
+        return encodeAction;
+    }
+
+    /**
+     * TODO - called by loading of state, need to decide what options are clickable
+     */
+    public void enableAllOptionsButtons() {
+        // TODO zgire
     }
 }
 

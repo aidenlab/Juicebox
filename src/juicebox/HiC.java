@@ -28,7 +28,6 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
-import juicebox.state.LoadStateFromXMLFile;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
@@ -43,7 +42,6 @@ import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,13 +58,10 @@ public class HiC {
     private static final Logger log = Logger.getLogger(HiC.class);
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
-    final File currentStates = new File(HiCGlobals.stateFileName);
     private final MainWindow mainWindow;
     private final Map<String, Feature2DList> loopLists;
     private final HiCTrackManager trackManager;
-    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
-    //File currentStatesToXML = new File(HiCGlobals.xmlFileName);
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -262,17 +257,6 @@ public class HiC {
 
     public HiCZoom getZoom() {
         return zoom;
-    }
-
-    private MatrixZoomData setZoomDataForReloadState(HiCZoom newZoom, Chromosome crX, Chromosome crY) {
-
-        Matrix matrix = dataset.getMatrix(crX, crY);
-        matrixForReloadState = matrix.getZoomData(newZoom);
-        return matrix.getZoomData(newZoom);
-    }
-
-    public MatrixZoomData getZoomDataForReloadState() {
-        return matrixForReloadState;
     }
 
     public MatrixZoomData getZd() {
