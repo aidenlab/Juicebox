@@ -379,6 +379,7 @@ public class MainWindow extends JFrame {
 
     private void unsafeload(final List<String> files, final boolean control) throws IOException {
 
+        System.out.println(System.currentTimeMillis());
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
         for(String file : files){
@@ -504,6 +505,7 @@ public class MainWindow extends JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
         }
+        System.out.println(System.currentTimeMillis());
     }
 
     public void safeLoadForReloadState(final List<String> files, final boolean control, final String title) {
