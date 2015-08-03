@@ -129,7 +129,7 @@ public class TrackPanel extends JPanel {
                     if (r.contains(mouseEvent.getPoint())) {
 
                         HiCTrack track = p.getSecond();
-                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this);
+                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, mainWindow);
                         menu.show(mouseEvent.getComponent(), mouseEvent.getX(), mouseEvent.getY());
                         repaint();
 

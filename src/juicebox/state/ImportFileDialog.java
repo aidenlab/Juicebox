@@ -82,7 +82,7 @@ public class ImportFileDialog extends JFileChooser {
                 "XML Files", "xml", "XML");
         setFileFilter(filter);
 
-        int actionDialog = showOpenDialog(MainWindow.getInstance());
+        int actionDialog = showOpenDialog(mainWindow);
         if (actionDialog == APPROVE_OPTION) {
             File importedFile = getSelectedFile();
             String path = importedFile.getAbsolutePath();
@@ -97,10 +97,10 @@ public class ImportFileDialog extends JFileChooser {
                 builder.parse(new InputSource(path));
                 copyFile(currentFile, originalStates);
                 copyFile(importedFile, currentFile);
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Importing File:\n" + importedFile.getName(), "Opening",
+                JOptionPane.showMessageDialog(mainWindow, "Importing File:\n" + importedFile.getName(), "Opening",
                         JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while importing file:\n" + e.getMessage(), "Error",
+                JOptionPane.showMessageDialog(mainWindow, "Error while importing file:\n" + e.getMessage(), "Error",
                         JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }

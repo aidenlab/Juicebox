@@ -53,9 +53,9 @@ public class ColorRangeDialog extends JDialog {
     private JTextField maximumField;
 
 
-    public ColorRangeDialog(Frame owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
+    public ColorRangeDialog(MainWindow owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
         super(owner);
-        initComponents(isObserved);
+        initComponents(isObserved, owner);
         this.colorSlider = colorSlider;
         if (!isObserved) colorRangeFactor = 8;
         this.colorRangeFactor = colorRangeFactor;
@@ -78,7 +78,7 @@ public class ColorRangeDialog extends JDialog {
     }
 
 
-    private void okButtonActionPerformed(ActionEvent e) {
+    private void okButtonActionPerformed(ActionEvent e, MainWindow mainWindow) {
         double max = 0;
         double min = 0;
 
@@ -109,8 +109,8 @@ public class ColorRangeDialog extends JDialog {
         }
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
-        MainWindow.getInstance().setColorRangeSliderVisible(true);
-        MainWindow.getInstance().setResolutionSliderVisible(true);
+        mainWindow.setColorRangeSliderVisible(true);
+        mainWindow.setResolutionSliderVisible(true);
         setVisible(false);
         //double tickSpacing = Double.parseDouble(tickSpacingField.getText());
         //int iTickSpacing = (int) Math.max(1, (colorRangeFactor * tickSpacing));
@@ -119,13 +119,13 @@ public class ColorRangeDialog extends JDialog {
 
     }
 
-    private void cancelButtonActionPerformed(ActionEvent e) {
-        MainWindow.getInstance().setColorRangeSliderVisible(true);
-        MainWindow.getInstance().setResolutionSliderVisible(true);
+    private void cancelButtonActionPerformed(ActionEvent e, MainWindow mainWindow) {
+        mainWindow.setColorRangeSliderVisible(true);
+        mainWindow.setResolutionSliderVisible(true);
         setVisible(false);
     }
 
-    private void initComponents(final boolean isObserved) {
+    private void initComponents(final boolean isObserved, final MainWindow mainWindow) {
 
         JPanel dialogPane = new JPanel();
         JPanel panel3 = new JPanel();
@@ -316,7 +316,7 @@ public class ColorRangeDialog extends JDialog {
         okButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                okButtonActionPerformed(e);
+                okButtonActionPerformed(e, mainWindow);
             }
         });
         buttonBar.add(okButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
@@ -328,7 +328,7 @@ public class ColorRangeDialog extends JDialog {
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cancelButtonActionPerformed(e);
+                cancelButtonActionPerformed(e, mainWindow);
             }
         });
         buttonBar.add(cancelButton, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,

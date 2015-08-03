@@ -43,20 +43,20 @@ public class SaveAnnotationsDialog extends JFileChooser {
     private final CustomAnnotation annotations;
     private Feature2DList otherList = null;
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {
+    public SaveAnnotationsDialog(MainWindow mainWindow, CustomAnnotation customAnnotations) {
         super();
         this.annotations = customAnnotations;
-        menuOptions();
+        menuOptions(mainWindow);
     }
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, Feature2DList otherList) {
+    public SaveAnnotationsDialog(MainWindow mainWindow, CustomAnnotation customAnnotations, Feature2DList otherList) {
         super();
         this.annotations = customAnnotations;
         this.otherList = otherList;
-        menuOptions();
+        menuOptions(mainWindow);
     }
 
-    private void menuOptions() {
+    private void menuOptions(MainWindow mainWindow) {
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         setSelectedFile(new File("Author-" + timeStamp + ".txt"));
 
@@ -65,18 +65,18 @@ public class SaveAnnotationsDialog extends JFileChooser {
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "Text Files", "txt", "text");
         setFileFilter(filter);
-        int actionDialog = showSaveDialog(MainWindow.getInstance());
+        int actionDialog = showSaveDialog(mainWindow);
         if (actionDialog == JFileChooser.APPROVE_OPTION) {
             File file = getSelectedFile();
             String outputPath = file.getAbsolutePath();
             if (file.exists()) {
-                actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
+                actionDialog = JOptionPane.showConfirmDialog(mainWindow, "Replace existing file?");
                 if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                     return;
             }
             if (otherList == null) {
                 if (annotations.exportAnnotations(outputPath) < 0) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
+                    JOptionPane.showMessageDialog(mainWindow, "No annotations to output", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             } else {

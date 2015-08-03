@@ -166,7 +166,6 @@ public class MainWindow extends JFrame {
 
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
-
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
 
         hicMapColor = Color.red;
@@ -1846,7 +1845,7 @@ public class MainWindow extends JFrame {
         exportAnnotationsMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveAnnotationsDialog(customAnnotations);
+                new SaveAnnotationsDialog(MainWindow.this, customAnnotations);
             }
         });
 
@@ -1857,7 +1856,7 @@ public class MainWindow extends JFrame {
                 if (loops.size() != 1)
                     JOptionPane.showMessageDialog(MainWindow.this, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
                 else
-                    new SaveAnnotationsDialog(customAnnotations, loops.get(0));
+                    new SaveAnnotationsDialog(MainWindow.this, customAnnotations, loops.get(0));
             }
         });
 
@@ -1882,7 +1881,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int n = JOptionPane.showConfirmDialog(
-                        MainWindow.getInstance(),
+                        MainWindow.this,
                         "Are you sure you want to clear all custom annotations?",
                         "Confirm",
                         JOptionPane.YES_NO_OPTION);
@@ -2094,7 +2093,7 @@ public class MainWindow extends JFrame {
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport);
+                new SaveFileDialog(fileForExport, MainWindow.this);
             }
         });
 
@@ -2105,7 +2104,7 @@ public class MainWindow extends JFrame {
         importMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new ImportFileDialog(fileForExport, MainWindow.getInstance());
+                new ImportFileDialog(fileForExport, MainWindow.this);
                 importMapAsFile.setSelected(true);
             }
         });

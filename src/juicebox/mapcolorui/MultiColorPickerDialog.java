@@ -55,8 +55,6 @@ public class MultiColorPickerDialog extends JDialog {
         setLayout(new BoxLayout(getContentPane(), 1));
         final Color defaultColor = getBackground();
 
-        MainWindow.getInstance();
-
         chooser.setSize(new Dimension(690, 270));
         chooserPanel.setMaximumSize(new Dimension(690, 270));
 
