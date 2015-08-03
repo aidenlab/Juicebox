@@ -23,13 +23,15 @@
  */
 
 package juicebox.state;
-
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.HiC;
+import juicebox.windowui.RecentMenu;
+import org.lwjgl.Sys;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import sun.applet.Main;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
@@ -49,18 +51,19 @@ import java.util.ArrayList;
 
 public class Slideshow {
 
+    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
     final static JFrame carouselFrame = new JFrame();
     final static JPanel nextPanel = new JPanel(new BorderLayout());
     final static JPanel prevPanel = new JPanel(new BorderLayout());
-    final static JButton nextButton = new JButton("Next State");
-    final static JButton prevButton = new JButton("Previous State");
-    private static MainWindow mainWindow;
-    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
-    private static HiC hic;
+    final static JPanel labelPanel = new JPanel(new BorderLayout());
+    final static JButton nextButton = new JButton("\u25BA");
+    final static JButton prevButton = new JButton("\u25C4");
 
-    public static void viewShow() {
-        try {
-            ArrayList<String> savedStatePaths = new ArrayList<String>();
+
+
+    public static void viewShow(final MainWindow mainWindow, final HiC hiC) {
+         try {
+             final ArrayList<String> savedStatePaths = new ArrayList<String>();
             Document dom;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
@@ -70,31 +73,55 @@ public class Slideshow {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
             }
-            System.out.println(savedStatePaths);
+             System.out.println(savedStatePaths);
+             final int numSlides = savedStatePaths.size();
 
-            carouselFrame.setLayout(new FlowLayout());
-            carouselFrame.setResizable(true);
-            carouselFrame.setVisible(true);
-            carouselFrame.setSize(200, 200);
-            carouselFrame.add(nextPanel);
-            carouselFrame.add(prevPanel);
+             final JLabel slideLabel = new JLabel(savedStatePaths.get(0));
 
-            nextPanel.add(nextButton, BorderLayout.EAST);
-            nextPanel.setVisible(true);
+             carouselFrame.setLayout(new FlowLayout());
+             carouselFrame.setResizable(true);
+             carouselFrame.setVisible(true);
+             carouselFrame.setSize(400, 100);
+             carouselFrame.add(prevPanel);
+             carouselFrame.add(labelPanel);
+             carouselFrame.add(nextPanel);
 
-            prevPanel.add(prevButton, BorderLayout.WEST);
-            prevPanel.setVisible(false);
+             prevPanel.add(prevButton,BorderLayout.EAST);
+             prevPanel.setVisible(true);
 
-            nextButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    prevPanel.setVisible(true);
-                }
-            });
+             labelPanel.add(slideLabel, BorderLayout.CENTER);
+             labelPanel.setVisible(true);
 
-             /*for(String mapPath: savedStatePaths){
+             nextPanel.add(nextButton,BorderLayout.WEST);
+             nextPanel.setVisible(true);
 
-             }*/
+
+             prevButton.addActionListener(new ActionListener() {
+                 @Override
+                 public void actionPerformed(ActionEvent e) {
+                     int counter = savedStatePaths.indexOf(slideLabel.getText());
+                     if(counter >= 0 ) {
+                         counter = ((counter-1) + numSlides)%numSlides;
+                         slideLabel.setText(savedStatePaths.get(counter));
+                         LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter),mainWindow,hiC);
+                     }
+                 }
+             });
+
+
+             nextButton.addActionListener(new ActionListener() {
+                 @Override
+                 public void actionPerformed(ActionEvent e) {
+                     int counter = savedStatePaths.indexOf(slideLabel.getText());
+                     if(counter < numSlides){
+                         counter = (counter+1)%numSlides;
+                         slideLabel.setText(savedStatePaths.get(counter));
+                         LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter),mainWindow,hiC);
+                     }
+                 }
+             });
+
+
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {
