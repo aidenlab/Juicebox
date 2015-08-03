@@ -32,6 +32,7 @@ import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -69,6 +70,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
+    private boolean warningShown = false;
     /**
      * Image tile width in pixels
      */
@@ -656,7 +658,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-
         final JMenuItem mi10_1 = new JMenuItem("Change Color");
         mi10_1.addActionListener(new ActionListener() {
             @Override
@@ -678,9 +679,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+        final JMenuItem mi10_3 = new JMenuItem("Remove");
+        mi10_3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                featureOptionMenuEnabled = false;
+                int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                MainWindow.customAnnotations.removeFromList(chr1Idx, chr2Idx, mostRecentRectFeaturePair.getSecond());
+            }
+        });
+
         final JMenu configureFeatureMenu = new JMenu("Configure feature");
         configureFeatureMenu.add(mi10_1);
         configureFeatureMenu.add(mi10_2);
+        configureFeatureMenu.add(mi10_3);
 
         if (hic != null) {
             //    menu.add(mi2);
@@ -1200,7 +1213,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
+            // Shift down for annotation
             } else if (e.isShiftDown()){
+                if (MainWindow.hasUnsavedAnnotations() && !warningShown) {
+                    JOptionPane.showMessageDialog(mainWindow, "Warning: There are unsaved hand annotations from your previous session. \n" +
+                            "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+                    warningShown = true;
+                }
                 dragMode = DragMode.ANNOTATE;
                 MainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
                 MainWindow.customAnnotationHandler.doPeak();

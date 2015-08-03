@@ -44,7 +44,6 @@ public class CustomAnnotationHandler {
     // threshold in terms of pixel pos
     private final int threshold = 10;
     private final HiC hic;
-    private final MainWindow mainWindow;
     String id;
     private PrintWriter outputFile;
     private Rectangle selectionRegion;
@@ -52,8 +51,7 @@ public class CustomAnnotationHandler {
     private FeatureType featureType;
     private boolean hasPoint, hasRegion;
 
-    public CustomAnnotationHandler(MainWindow mainWindow, HiC hic){
-        this.mainWindow = mainWindow;
+    public CustomAnnotationHandler(HiC hic){
         this.hic = hic;
         featureType = FeatureType.NONE;
         resetSelection();

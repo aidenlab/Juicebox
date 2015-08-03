@@ -46,7 +46,6 @@ public class Feature2DParser {
 
 
     public static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
-                                              boolean generateAPAFiltering,
                                               double minPeakDist, double maxPeakDist, int resolution,
                                               boolean loadAttributes, FeatureFilter apaFilter) {
 
@@ -136,7 +135,7 @@ public class Feature2DParser {
             ec.printStackTrace();
         }
 
-        if(generateAPAFiltering)
+        if(apaFilter != null)
             newList.filterLists(apaFilter);
 
         return newList;

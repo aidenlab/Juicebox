@@ -173,14 +173,14 @@ public class CustomAnnotation {
         return customAnnotationList.autoSaveAll(tempWriter);
     }
 
-    private void removeFromList(int idx1, int idx2, Feature2D feature){
+    public void removeFromList(int idx1, int idx2, Feature2D feature) {
         Feature2D lastFeature;
-            if (idx1 > 0 && idx2 > 0) {
-                List<Feature2D> lastList;
-                String featureIdentifier = getIdentifier(feature);
-                lastList = customAnnotationList.get(idx1, idx2);
-                unsavedEdits = lastList.remove(feature);
-            }
+        if (idx1 > 0 && idx2 > 0) {
+            List<Feature2D> lastList;
+            String featureIdentifier = getIdentifier(feature);
+            lastList = customAnnotationList.get(idx1, idx2);
+            unsavedEdits = lastList.remove(feature);
+        }
         reSaveAll();
     }
 
