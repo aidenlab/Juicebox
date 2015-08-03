@@ -23,7 +23,7 @@
  */
 
 
-package juicebox.state;
+package juicebox.state.archive;
 
 
 import juicebox.CommandExecutor;

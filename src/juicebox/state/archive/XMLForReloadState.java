@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.state;
+package juicebox.state.archive;
 
 import juicebox.HiCGlobals;
 import org.w3c.dom.DOMImplementation;
