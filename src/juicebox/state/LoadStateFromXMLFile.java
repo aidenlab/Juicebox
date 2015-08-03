@@ -53,7 +53,7 @@ public class LoadStateFromXMLFile {
         mainWindow.refresh();
     }
 
-    private static void loadSavedStatePreliminaryStep(String[] infoForReload, HiC hic, MainWindow mainWindow) throws IOException{
+    private static void loadSavedStatePreliminaryStep(String[] infoForReload, HiC hic, MainWindow mainWindow) throws IOException {
         String result = "OK";
         String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
@@ -96,8 +96,8 @@ public class LoadStateFromXMLFile {
     }
 
     private static void safeLoadStateFromXML(final HiC hic, final MainWindow mainWindow, final String[] initialInfo,
-                                     final int binSize, final double[] doubleInfo, final MatrixType displaySelection,
-                                     final NormalizationType normSelection, final String[] tracks) {
+                                             final int binSize, final double[] doubleInfo, final MatrixType displaySelection,
+                                             final NormalizationType normSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
@@ -112,8 +112,8 @@ public class LoadStateFromXMLFile {
     }
 
     private static void unsafeLoadStateFromXML(MainWindow mainWindow, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
-                                              MatrixType displaySelection, NormalizationType normSelection,
-                                              String[] tracks) {
+                                               MatrixType displaySelection, NormalizationType normSelection,
+                                               String[] tracks) {
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
         String chrXName = initialInfo[2];

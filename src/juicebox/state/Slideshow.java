@@ -23,9 +23,10 @@
  */
 
 package juicebox.state;
+
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.HiC;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -48,19 +49,18 @@ import java.util.ArrayList;
 
 public class Slideshow {
 
-    private static MainWindow mainWindow;
-    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
-    private static HiC hic;
     final static JFrame carouselFrame = new JFrame();
     final static JPanel nextPanel = new JPanel(new BorderLayout());
     final static JPanel prevPanel = new JPanel(new BorderLayout());
     final static JButton nextButton = new JButton("Next State");
     final static JButton prevButton = new JButton("Previous State");
-
+    private static MainWindow mainWindow;
+    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
+    private static HiC hic;
 
     public static void viewShow() {
-         try {
-             ArrayList<String> savedStatePaths = new ArrayList<String>();
+        try {
+            ArrayList<String> savedStatePaths = new ArrayList<String>();
             Document dom;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
@@ -70,27 +70,27 @@ public class Slideshow {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
             }
-             System.out.println(savedStatePaths);
+            System.out.println(savedStatePaths);
 
-             carouselFrame.setLayout(new FlowLayout());
-             carouselFrame.setResizable(true);
-             carouselFrame.setVisible(true);
-             carouselFrame.setSize(200, 200);
-             carouselFrame.add(nextPanel);
-             carouselFrame.add(prevPanel);
+            carouselFrame.setLayout(new FlowLayout());
+            carouselFrame.setResizable(true);
+            carouselFrame.setVisible(true);
+            carouselFrame.setSize(200, 200);
+            carouselFrame.add(nextPanel);
+            carouselFrame.add(prevPanel);
 
-             nextPanel.add(nextButton,BorderLayout.EAST);
-             nextPanel.setVisible(true);
+            nextPanel.add(nextButton, BorderLayout.EAST);
+            nextPanel.setVisible(true);
 
-             prevPanel.add(prevButton,BorderLayout.WEST);
-             prevPanel.setVisible(false);
+            prevPanel.add(prevButton, BorderLayout.WEST);
+            prevPanel.setVisible(false);
 
-             nextButton.addActionListener(new ActionListener() {
-                 @Override
-                 public void actionPerformed(ActionEvent e) {
-                     prevPanel.setVisible(true);
-                 }
-             });
+            nextButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    prevPanel.setVisible(true);
+                }
+            });
 
              /*for(String mapPath: savedStatePaths){
 
