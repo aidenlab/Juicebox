@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,10 @@ import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.SparseSymmetricMatrix;
 import org.broad.igv.util.ParsingUtils;
+
 import java.io.*;
 import java.util.Scanner;
 import java.util.StringTokenizer;
-
 
 
 /**

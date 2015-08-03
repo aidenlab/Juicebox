@@ -45,7 +45,7 @@ public class MatrixTools {
     }
 
     public static RealMatrix cleanArray2DMatrix(int n) {
-        return cleanArray2DMatrix(n,n);
+        return cleanArray2DMatrix(n, n);
     }
 
     public static RealMatrix cleanArray2DMatrix(int rows, int cols) {
@@ -79,6 +79,7 @@ public class MatrixTools {
 
     /**
      * Flatten a 2D double matrix into a double array
+     *
      * @param matrix
      * @return 1D double array in row major order
      */
@@ -89,8 +90,8 @@ public class MatrixTools {
         double[] flattenedMatrix = new double[numElements];
 
         int index = 0;
-        for(int i = 0; i < m; i++){
-        //for (double[] row : matrix.getData()) {
+        for (int i = 0; i < m; i++) {
+            //for (double[] row : matrix.getData()) {
             System.arraycopy(matrix.getRow(i), 0, flattenedMatrix, index, n);
             index += n;
         }
@@ -127,7 +128,7 @@ public class MatrixTools {
     public static float[][] reshapeFlatMatrix(float[] flatMatrix, int n) {
         float[][] squareMatrix = new float[n][n];
 
-        for(int i = 0; i < n; i++){
+        for (int i = 0; i < n; i++) {
             System.arraycopy(flatMatrix, i * n, squareMatrix[i], 0, n);
         }
         return squareMatrix;
@@ -150,7 +151,7 @@ public class MatrixTools {
         int numColumns = c2 - c1;
         float[][] extractedRegion = new float[numRows][numColumns];
 
-        for(int i = 0; i < numRows; i++){
+        for (int i = 0; i < numRows; i++) {
             System.arraycopy(matrix[r1 + i], c1, extractedRegion[i], 0, numColumns);
         }
 
@@ -174,9 +175,9 @@ public class MatrixTools {
         int numColumns = c2 - c1;
         RealMatrix extractedRegion = cleanArray2DMatrix(numRows, numColumns);
 
-        for(int i = 0; i < numRows; i++){
-            for(int j = 0; j < numColumns; j++){
-                extractedRegion.setEntry(i,j, matrix.getEntry(r1+i,c1+j));
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numColumns; j++) {
+                extractedRegion.setEntry(i, j, matrix.getEntry(r1 + i, c1 + j));
             }
         }
         return extractedRegion;
@@ -184,31 +185,33 @@ public class MatrixTools {
 
     /**
      * Returns the values along the diagonal of the matrix
+     *
      * @param matrix
      * @return diagonal
      */
     public static RealMatrix extractDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
         RealMatrix diagonal = MatrixTools.cleanArray2DMatrix(n, n);
-        for(int i = 0; i < n; i ++){
-            diagonal.setEntry(i,i,matrix.getEntry(i,i));
+        for (int i = 0; i < n; i++) {
+            diagonal.setEntry(i, i, matrix.getEntry(i, i));
         }
         return diagonal;
     }
 
     /**
      * Returns the values along the diagonal of the matrix
+     *
      * @param matrix
      * @return diagonal
      */
     public static RealMatrix makeSymmetricMatrix(RealMatrix matrix) {
         RealMatrix symmetricMatrix = extractDiagonal(matrix);
         int n = symmetricMatrix.getRowDimension();
-        for(int i = 0; i < n; i++){
-            for(int j = i+1; j < n; j++){
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
                 double val = matrix.getEntry(i, j);
-                symmetricMatrix.setEntry(i,j,val);
-                symmetricMatrix.setEntry(j,i,val);
+                symmetricMatrix.setEntry(i, j, val);
+                symmetricMatrix.setEntry(j, i, val);
             }
         }
 
@@ -217,16 +220,17 @@ public class MatrixTools {
 
     /**
      * Returns the matrix flipped across the antidiagonal
+     *
      * @param matrix
      * @return antiDiagFlippedMatrix
      */
     public static RealMatrix flipAcrossAntiDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
         RealMatrix antiDiagFlippedMatrix = cleanArray2DMatrix(n, n);
-        int maxIndex = n-1;
-        for(int i = 0; i < n; i++){
-            for(int j = 0; j < n; j++){
-                antiDiagFlippedMatrix.setEntry(maxIndex-j,maxIndex-i, matrix.getEntry(i,j));
+        int maxIndex = n - 1;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                antiDiagFlippedMatrix.setEntry(maxIndex - j, maxIndex - i, matrix.getEntry(i, j));
             }
         }
         return antiDiagFlippedMatrix;
@@ -234,15 +238,16 @@ public class MatrixTools {
 
     /**
      * Returns the matrix flipped Left-Right
+     *
      * @param matrix
      * @return leftRightFlippedMatrix
      */
     public static RealMatrix flipLeftRight(RealMatrix matrix) {
         int r = matrix.getRowDimension(), c = matrix.getColumnDimension();
-        RealMatrix leftRightFlippedMatrix = cleanArray2DMatrix(r,c);
-        for(int i = 0; i < r; i++){
-            for(int j = 0; j < c; j++){
-                leftRightFlippedMatrix.setEntry(i, c-1-j, matrix.getEntry(i,j));
+        RealMatrix leftRightFlippedMatrix = cleanArray2DMatrix(r, c);
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                leftRightFlippedMatrix.setEntry(i, c - 1 - j, matrix.getEntry(i, j));
             }
         }
         return leftRightFlippedMatrix;
@@ -250,15 +255,16 @@ public class MatrixTools {
 
     /**
      * Returns the matrix flipped Top-Bottom
+     *
      * @param matrix
      * @return topBottomFlippedMatrix
      */
     public static RealMatrix flipTopBottom(RealMatrix matrix) {
         int r = matrix.getRowDimension(), c = matrix.getColumnDimension();
-        RealMatrix topBottomFlippedMatrix = cleanArray2DMatrix(r,c);
-        for(int i = 0; i < r; i++){
-            for(int j = 0; j < c; j++){
-                topBottomFlippedMatrix.setEntry(r-1-i, j, matrix.getEntry(i,j));
+        RealMatrix topBottomFlippedMatrix = cleanArray2DMatrix(r, c);
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                topBottomFlippedMatrix.setEntry(r - 1 - i, j, matrix.getEntry(i, j));
             }
         }
         return topBottomFlippedMatrix;
@@ -266,6 +272,7 @@ public class MatrixTools {
 
     /**
      * Element-wise multiplication of matrices i.e. M.*N in Matlab
+     *
      * @param matrix1
      * @param matrix2
      * @return elementwiseMultipliedMatrix
@@ -286,6 +293,7 @@ public class MatrixTools {
 
     /**
      * Element-wise division of matrices i.e. M./N in Matlab
+     *
      * @param matrix1
      * @param matrix2
      * @return elementwiseMultipliedMatrix
@@ -306,14 +314,15 @@ public class MatrixTools {
 
     /**
      * Set NaNs in matrix to given value
+     *
      * @param matrix
      * @param val
      */
     public static void setNaNs(RealMatrix matrix, int val) {
-        for(int i = 0; i < matrix.getRowDimension(); i++){
-            for(int j = 0; j < matrix.getColumnDimension(); j++){
-                if(Double.isNaN(matrix.getEntry(i,j))){
-                    matrix.setEntry(i,j,val);
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (Double.isNaN(matrix.getEntry(i, j))) {
+                    matrix.setEntry(i, j, val);
                 }
             }
         }
@@ -324,21 +333,21 @@ public class MatrixTools {
      * val > 0 : 1
      * val = 0 : 0
      * val < 0 : -1
+     *
      * @param matrix
      * @return signMatrix
      */
     public static RealMatrix sign(RealMatrix matrix) {
         int r = matrix.getRowDimension();
         int c = matrix.getColumnDimension();
-        RealMatrix signMatrix = cleanArray2DMatrix(r,c);
-        for(int i = 0; i < r; i++){
-            for(int j = 0; j < c; j++){
-                double val = matrix.getEntry(i,j);
-                if(val > 0){
-                    matrix.setEntry(i,j,1);
-                }
-                else if(val < 0){
-                    matrix.setEntry(i,j,-1);
+        RealMatrix signMatrix = cleanArray2DMatrix(r, c);
+        for (int i = 0; i < r; i++) {
+            for (int j = 0; j < c; j++) {
+                double val = matrix.getEntry(i, j);
+                if (val > 0) {
+                    matrix.setEntry(i, j, 1);
+                } else if (val < 0) {
+                    matrix.setEntry(i, j, -1);
                 }
             }
         }
@@ -347,15 +356,16 @@ public class MatrixTools {
 
     /**
      * Replace all of a given value in a matrix with a new value
+     *
      * @param matrix
      * @param initialVal
      * @param newVal
      */
     public static void replaceValue(RealMatrix matrix, int initialVal, int newVal) {
-        for(int i = 0; i < matrix.getRowDimension(); i++){
-            for(int j = 0; j < matrix.getColumnDimension(); j++){
-                if(matrix.getEntry(i,j) == initialVal){
-                    matrix.setEntry(i,j,newVal);
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (matrix.getEntry(i, j) == initialVal) {
+                    matrix.setEntry(i, j, newVal);
                 }
             }
         }
@@ -363,25 +373,27 @@ public class MatrixTools {
 
     /**
      * Normalize matrix by dividing by max element
+     *
      * @param matrix
      * @return matrix * (1/max_element)
      */
     public static RealMatrix normalizeByMax(RealMatrix matrix) {
         double max = calculateMax(matrix);
-        return matrix.scalarMultiply(1/max);
+        return matrix.scalarMultiply(1 / max);
     }
 
     /**
      * Calculate max element in matrix
+     *
      * @param matrix
      * @return max
      */
     public static double calculateMax(RealMatrix matrix) {
         double max = matrix.getEntry(0, 0);
-        for(int i = 0; i < matrix.getRowDimension(); i++){
-            for(int j = 0; j < matrix.getColumnDimension(); j++){
-                double val = matrix.getEntry(i,j);
-                if(max < val){
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                double val = matrix.getEntry(i, j);
+                if (max < val) {
                     max = val;
                 }
             }
@@ -390,7 +402,7 @@ public class MatrixTools {
     }
 
     public static RealMatrix randomUnitMatrix(int n) {
-        return randomUnitMatrix(n,n);
+        return randomUnitMatrix(n, n);
     }
 
     private static RealMatrix randomUnitMatrix(int rows, int cols) {
@@ -398,15 +410,15 @@ public class MatrixTools {
         RealMatrix matrix = cleanArray2DMatrix(rows, cols);
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
-                if(generator.nextBoolean())
+                if (generator.nextBoolean())
                     matrix.setEntry(r, c, 1);
         return matrix;
     }
 
     public static void print(RealMatrix matrix) {
         double[][] data = matrix.getData();
-        for(double[] row : data){
-            for(double entry : row){
+        for (double[] row : data) {
+            for (double entry : row) {
                 System.out.print(entry + " ");
             }
             System.out.println("");

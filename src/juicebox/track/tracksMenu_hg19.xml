@@ -1,7 +1,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+  ~ Copyright (c) 2011-2015 Broad Institute, Aiden Lab
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -176,7 +176,8 @@
                   path="http://igvdata.broadinstitute.org/data/hg19/encode/broadHistone/wgEncodeBroadHistoneHuvecPol2bStdSig.wig.tdf"></Resource>
     </Category>
     <Category trackLine='viewLimits=0:25' name="IMR90/NHLF" version="1">
-        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=NHLF" scaleType=log' name="NHLF RNA-seq"  color="149,128,255"
+        <Resource trackLine='viewLimits=0:1000 meta="type=RNA;cell line=NHLF" scaleType=log' name="NHLF RNA-seq"
+                  color="149,128,255"
                   path="http://hicfiles.s3.amazonaws.com/external/NHLF_RnaSeq_summed.bw"/>
         <Resource color="255,128,128" trackLine='viewLimits=0:25 meta="type=DnaseI;cell line=NHLF"'
                   name="NHLF DnaseI"

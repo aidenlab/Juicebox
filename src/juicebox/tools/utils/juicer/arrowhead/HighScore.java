@@ -34,7 +34,7 @@ import java.util.Map;
  * Wrapper for arrowhead blockbuster results
  * Created by muhammadsaadshamim on 6/8/15.
  */
-public class HighScore implements Comparable<HighScore>{
+public class HighScore implements Comparable<HighScore> {
     private final double score;
     private final double uVarScore;
     private final double lVarScore;
@@ -68,7 +68,7 @@ public class HighScore implements Comparable<HighScore>{
     }
 
     public int getWidth() {
-        return Math.abs(j-i);
+        return Math.abs(j - i);
     }
 
     public int getI() {
@@ -100,7 +100,7 @@ public class HighScore implements Comparable<HighScore>{
     }
 
     @Override
-    public boolean equals(Object object){
+    public boolean equals(Object object) {
         if (this == object)
             return true;
         if (object == null)
@@ -118,8 +118,8 @@ public class HighScore implements Comparable<HighScore>{
     }
 
     @Override
-    public int hashCode(){
-        return 7*(i+j)*(int)Math.floor(score+uVarScore+lVarScore+upSign+loSign);
+    public int hashCode() {
+        return 7 * (i + j) * (int) Math.floor(score + uVarScore + lVarScore + upSign + loSign);
     }
 
     @Override
@@ -132,12 +132,12 @@ public class HighScore implements Comparable<HighScore>{
     }
 
     public Feature2D toFeature2D(String chrName, int res) {
-        Map<String,String> attributes = new HashMap<String, String>();
-        attributes.put("score",Double.toString(score));
-        attributes.put("uVarScore",Double.toString(uVarScore));
-        attributes.put("lVarScore",Double.toString(lVarScore));
-        attributes.put("upSign",Double.toString(upSign));
-        attributes.put("loSign",Double.toString(loSign));
-        return new Feature2D(Feature2D.generic, chrName, i, i+res, chrName, j, j+res, Color.yellow, attributes);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put("score", Double.toString(score));
+        attributes.put("uVarScore", Double.toString(uVarScore));
+        attributes.put("lVarScore", Double.toString(lVarScore));
+        attributes.put("upSign", Double.toString(upSign));
+        attributes.put("loSign", Double.toString(loSign));
+        return new Feature2D(Feature2D.generic, chrName, i, i + res, chrName, j, j + res, Color.yellow, attributes);
     }
 }

@@ -38,7 +38,7 @@ public class AddNorm extends JuiceboxCLT {
 
     private String file;
 
-    public AddNorm(){
+    public AddNorm() {
         super("addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]");
     }
 

@@ -25,6 +25,7 @@
 package juicebox;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * @author Muhammad Shamim
@@ -44,9 +45,9 @@ public class HiCGlobals {
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
-    public static final Color backgroundColor = new  Color(204,204,204);
+    public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String stateFileName = "CurrentJuiceboxStates";
-    public static final String xmlFileName = "JuiceboxStatesForExport.xml";
+    public static final String xmlSavedStatesFileName = "JuiceboxStatesForExport.xml";
 
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
@@ -56,6 +57,7 @@ public class HiCGlobals {
 
     // Juicebox title
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
+    public static ArrayList<String> savedStatesList = new ArrayList<String>();
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < 5) {

@@ -144,16 +144,15 @@ public class HiCTrackManager {
         if (!extension.equals(".gz")) {
             locator.setType(extension);
 
-        }
-        else {
+        } else {
             // setting type to be the extension before the .gz
-            int index2 = path.substring(0,index).lastIndexOf('.');
-            String str = path.substring(0,index).substring(index2);
+            int index2 = path.substring(0, index).lastIndexOf('.');
+            String str = path.substring(0, index).substring(index2);
             // special exception for refGene.txt.gz
             if (!str.equals(".txt")) locator.setType(str);
         }
 
-        if (pathLC.endsWith(".wig")  ||
+        if (pathLC.endsWith(".wig") ||
                 pathLC.endsWith(".wig.gz")) {
             HiCWigAdapter da = new HiCWigAdapter(hic, path);
             HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
@@ -167,7 +166,7 @@ public class HiCTrackManager {
                 HiCDataTrack hicTrack = new HiCDataTrack(hic, locator, da);
                 loadedTracks.add(hicTrack);
             }
-       } else if (pathLC.endsWith(".bb")) {
+        } else if (pathLC.endsWith(".bb")) {
             try {
                 BigWigDataSource src = new BigWigDataSource(new BBFileReader(locator.getPath()), genome);
                 HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
@@ -196,7 +195,7 @@ public class HiCTrackManager {
                 //TrackProperties trackProperties = getTrackProperties(header);
             } else {
                 log.error("Error loading track: " + path);
-                System.out.println("path: "+path);//DEBUGGING
+                System.out.println("path: " + path);//DEBUGGING
                 File file = new File(path);
                 JOptionPane.showMessageDialog(mainWindow, "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
                 hic.removeTrack(new HiCFeatureTrack(hic, locator, null));
@@ -246,13 +245,13 @@ public class HiCTrackManager {
         loadedTracks.clear();
     }
 
-    public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks){
+    public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks) {
         for (HiCTrack reloadTrack : reloadTracks)
             reloadTrackNames.add(reloadTrack);
         return reloadTrackNames;
     }
 
-    public List<HiCTrack> getReloadTrackNames(){
+    public List<HiCTrack> getReloadTrackNames() {
         return reloadTrackNames;
     }
 
@@ -264,11 +263,9 @@ public class HiCTrackManager {
             if (hic.getDataset() != null) {
                 if (hic.getDataset().getGenomeId().equals("assembly")) {
                     genomePath = "http://hicfiles.s3.amazonaws.com/internal/assembly.genome";
-                }
-                else if (hic.getDataset().getGenomeId().equals("dMel")) {
+                } else if (hic.getDataset().getGenomeId().equals("dMel")) {
                     genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
-                }
-                else {
+                } else {
                     genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";
                 }
             } else {

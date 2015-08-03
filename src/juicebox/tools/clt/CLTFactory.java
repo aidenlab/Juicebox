@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 /**
  * Factory for command line tools to call different functions
+ *
  * @author Muhammad Shamim
  * @since 1/30/2015
  */
@@ -41,12 +42,12 @@ public class CLTFactory {
             //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
             //        "bpToFrag",     "juicebox.tools.clt.BPToFragment",      "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
             //        "calcKR",       "juicebox.tools.clt.CalcKR",            "calcKR <input_HiC_file>",
-            "dump",         "juicebox.tools.clt.Dump",              "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
+            "dump", "juicebox.tools.clt.Dump", "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
             //        "fragmentToBed","juicebox.tools.clt.FragmentToBed",     "fragmentToBed <fragmentFile>",
             //        "hiccups",      "juicebox.tools.clt.hiccups",           "",
             //        "pairsToBin",   "juicebox.tools.clt.PairsToBin",        "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
             //        "db",           "juicebox.tools.clt.SQLDatabase",       "db <frag|annot|update> [items]",
-            "pre",          "juicebox.tools.clt.PreProcessing",     "pre <options> <infile> <outfile> <genomeID>"
+            "pre", "juicebox.tools.clt.PreProcessing", "pre <options> <infile> <outfile> <genomeID>"
     };
 
     public static void usage() {
@@ -80,46 +81,33 @@ public class CLTFactory {
 
         cmd = cmd.toLowerCase();
 
-        if(cmd.equals("pre")){
+        if (cmd.equals("pre")) {
             return new PreProcessing();
-        }
-        else if(cmd.equals("dump")){
+        } else if (cmd.equals("dump")) {
             return new Dump();
-        }
-        else if(cmd.equals("addGWNorm".toLowerCase())){
+        } else if (cmd.equals("addGWNorm".toLowerCase())) {
             return new AddGWNorm();
-        }
-        else if(cmd.equals("addNorm".toLowerCase())){
+        } else if (cmd.equals("addNorm".toLowerCase())) {
             return new AddNorm();
-        }
-        else if(cmd.equals("apa")){
+        } else if (cmd.equals("apa")) {
             return new APA();
-        }
-        else if(cmd.equals("arrowhead")){
+        } else if (cmd.equals("arrowhead")) {
             return new Arrowhead();
-        }
-        else if(cmd.equals("bigWig".toLowerCase())){
+        } else if (cmd.equals("bigWig".toLowerCase())) {
             return new BigWig();
-        }
-        else if(cmd.equals("binToPairs".toLowerCase())){
+        } else if (cmd.equals("binToPairs".toLowerCase())) {
             return new BinToPairs();
-        }
-        else if(cmd.equals("bpToFrag".toLowerCase())){
+        } else if (cmd.equals("bpToFrag".toLowerCase())) {
             return new BPToFragment();
-        }
-        else if(cmd.equals("calcKR".toLowerCase())){
+        } else if (cmd.equals("calcKR".toLowerCase())) {
             return new CalcKR();
-        }
-        else if(cmd.equals("fragmentToBed".toLowerCase())){
+        } else if (cmd.equals("fragmentToBed".toLowerCase())) {
             return new FragmentToBed();
-        }
-        else if(cmd.equals("hiccups")){
+        } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
-        }
-        else if(cmd.equals("pairsToBin".toLowerCase())){
+        } else if (cmd.equals("pairsToBin".toLowerCase())) {
             return new PairsToBin();
-        }
-        else if(cmd.equals("db")){
+        } else if (cmd.equals("db")) {
             return new SQLDatabase();
         }
 

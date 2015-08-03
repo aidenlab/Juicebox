@@ -139,14 +139,14 @@ public class HiCFileTools {
 
     /**
      * Set intersection
-     *
+     * <p/>
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
      *
      * @param set1
      * @param set2
      * @return
      */
-    public static Set<Chromosome> getSetIntersection (Set<Chromosome> set1, Set<Chromosome> set2) {
+    public static Set<Chromosome> getSetIntersection(Set<Chromosome> set1, Set<Chromosome> set2) {
         boolean set1IsLarger = set1.size() > set2.size();
         Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
@@ -197,7 +197,6 @@ public class HiCFileTools {
     }
 
     /**
-     *
      * @param fileName
      * @return
      */
@@ -206,14 +205,14 @@ public class HiCFileTools {
             File file = new File(fileName);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file: "+ fileName);
+            System.out.println("I/O error opening file: " + fileName);
             System.exit(0);
         }
         return null;
     }
 
-    public static PrintWriter openWriter(File file){
-        try{
+    public static PrintWriter openWriter(File file) {
+        try {
             //create a temp file
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
@@ -225,8 +224,8 @@ public class HiCFileTools {
 
     public static File openTempFile(String prefix) {
         //try{
-            //create a temp file
-            String pathName = tempPath + "/" + prefix + ".txt";
+        //create a temp file
+        String pathName = tempPath + "/" + prefix + ".txt";
         //File temp = File.createTempFile(prefix, ".tmp");
         return new File(pathName);
 //        } catch (IOException e) {
@@ -235,7 +234,6 @@ public class HiCFileTools {
 //        }
 //        return null;
     }
-
 
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
@@ -250,8 +248,7 @@ public class HiCFileTools {
         try {
             blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
                     normalizationType));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region");
             System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
             e.printStackTrace();
@@ -260,7 +257,7 @@ public class HiCFileTools {
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
-        if(blocks.size() > 0) {
+        if (blocks.size() > 0) {
             for (Block b : blocks) {
                 for (ContactRecord rec : b.getContactRecords()) {
 
@@ -279,15 +276,15 @@ public class HiCFileTools {
         return data;
     }
 
-    public static NormalizationType determinePreferredNormalization(Dataset ds){
+    public static NormalizationType determinePreferredNormalization(Dataset ds) {
         NormalizationType[] preferredNormalization = new NormalizationType[]{NormalizationType.KR, NormalizationType.VC};
         List<NormalizationType> normalizationTypeList = ds.getNormalizationTypes();
 
         //System.out.println("Norms: "+normalizationTypeList);
 
-        for(NormalizationType normalizationType : preferredNormalization){
-            if(normalizationTypeList.contains(normalizationType)){
-                System.out.println("Selected "+normalizationType+" Normalization");
+        for (NormalizationType normalizationType : preferredNormalization) {
+            if (normalizationTypeList.contains(normalizationType)) {
+                System.out.println("Selected " + normalizationType + " Normalization");
                 return normalizationType;
             }
             System.out.println("Did not find Normalization: " + normalizationType);
@@ -300,7 +297,7 @@ public class HiCFileTools {
 
     public static Chromosome getChromosomeNamed(String chrName, List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
-            if(equivalentChromosome(chrName, chr))
+            if (equivalentChromosome(chrName, chr))
                 return chr;
         }
         return null;
@@ -314,7 +311,7 @@ public class HiCFileTools {
         for (int i = 0; i < n; i++) {
             expectedVector[i] = expectedValueFunction.getExpectedValue(index, i);
         }
-        return  expectedVector;
+        return expectedVector;
     }
 
 

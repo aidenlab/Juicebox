@@ -44,6 +44,7 @@ public class CustomAnnotationHandler {
     // threshold in terms of pixel pos
     private final int threshold = 10;
     private final HiC hic;
+    private final MainWindow mainWindow;
     String id;
     private PrintWriter outputFile;
     private Rectangle selectionRegion;
@@ -51,7 +52,8 @@ public class CustomAnnotationHandler {
     private FeatureType featureType;
     private boolean hasPoint, hasRegion;
 
-    public CustomAnnotationHandler(HiC hic){
+    public CustomAnnotationHandler(MainWindow mainWindow, HiC hic) {
+        this.mainWindow = mainWindow;
         this.hic = hic;
         featureType = FeatureType.NONE;
         resetSelection();
@@ -73,11 +75,11 @@ public class CustomAnnotationHandler {
         return featureType == FeatureType.PEAK;
     }
 
-    public void doGeneric(){
+    public void doGeneric() {
         featureType = FeatureType.GENERIC;
     }
 
-    public void doPeak(){
+    public void doPeak() {
         featureType = FeatureType.PEAK;
     }
 
@@ -86,7 +88,7 @@ public class CustomAnnotationHandler {
     }
 
     // Update selection region from new rectangle
-    public void updateSelectionRegion(Rectangle newRegion){
+    public void updateSelectionRegion(Rectangle newRegion) {
         hasPoint = false;
         hasRegion = true;
         doDomain();
@@ -94,7 +96,7 @@ public class CustomAnnotationHandler {
     }
 
     // Update selection region from new coordinates
-    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY){
+    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
 
         int x2, y2;
         hasPoint = false;
@@ -120,12 +122,12 @@ public class CustomAnnotationHandler {
         return damageRect;
     }
 
-    public void updateSelectionPoint(int x, int y){
+    public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
         hasPoint = true;
     }
 
-    public void addFeature(CustomAnnotation customAnnotations){
+    public void addFeature(CustomAnnotation customAnnotations) {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
@@ -135,7 +137,7 @@ public class CustomAnnotationHandler {
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String,String> attributes = new HashMap<String,String>();
+        HashMap<String, String> attributes = new HashMap<String, String>();
 
         switch (featureType) {
             case GENERIC:
@@ -149,9 +151,9 @@ public class CustomAnnotationHandler {
                 break;
             case PEAK:
                 start1 = geneXPos(selectionPoint.x, -1 * peakDisplacement);
-                end1 = geneXPos(selectionPoint.x,  peakDisplacement);
+                end1 = geneXPos(selectionPoint.x, peakDisplacement);
 
-                if (chr1Idx == chr2Idx && nearDiagonal(selectionPoint.x, selectionPoint.y)){
+                if (chr1Idx == chr2Idx && nearDiagonal(selectionPoint.x, selectionPoint.y)) {
                     start2 = start1;
                     end2 = end1;
                 } else {
@@ -163,28 +165,28 @@ public class CustomAnnotationHandler {
                 //UNCOMMENT to take out annotation data
                 boolean exportData = true;
                 if (exportData) {
-                int tempBinX0 = getXBin(selectionPoint.x);
-                int tempBinY0 = getYBin(selectionPoint.y);
-                int tempBinX, tempBinY;
-                final MatrixZoomData zd = hic.getZd();
+                    int tempBinX0 = getXBin(selectionPoint.x);
+                    int tempBinY0 = getYBin(selectionPoint.y);
+                    int tempBinX, tempBinY;
+                    final MatrixZoomData zd = hic.getZd();
 
-                float totObserved = 0;
-                float totExpected = 0;
-                int count = 0;
-                float observedValue;
+                    float totObserved = 0;
+                    float totExpected = 0;
+                    int count = 0;
+                    float observedValue;
 
                     MatrixZoomData controlZD = hic.getControlZd();
-                    for (int i = -1*peakDisplacement; i <= peakDisplacement; i ++){
+                    for (int i = -1 * peakDisplacement; i <= peakDisplacement; i++) {
                         tempBinX = tempBinX0 + i;
-                        for (int j = -1*peakDisplacement; j <= peakDisplacement; j++){
+                        for (int j = -1 * peakDisplacement; j <= peakDisplacement; j++) {
                             tempBinY = tempBinY0 + j;
                             observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
 
                             double ev = 0;
                             ExpectedValueFunction df = hic.getExpectedValues();
                             if (df != null) {
-                                    int distance = Math.abs(tempBinX - tempBinY);
-                                    ev = df.getExpectedValue(chr1Idx, distance);
+                                int distance = Math.abs(tempBinX - tempBinY);
+                                ev = df.getExpectedValue(chr1Idx, distance);
 
                             } else {
                                 ev = zd.getAverageCount();
@@ -208,7 +210,7 @@ public class CustomAnnotationHandler {
                 end1 = geneXPos(selectionRegion.x + selectionRegion.width, 0);
 
                 // Snap if close to diagonal
-                if (chr1Idx == chr2Idx && nearDiagonal(selectionRegion.x, selectionRegion.y)){
+                if (chr1Idx == chr2Idx && nearDiagonal(selectionRegion.x, selectionRegion.y)) {
                     // Snap to min of horizontal stretch and vertical stretch
                     if (selectionRegion.width <= selectionRegion.y) {
                         start2 = start1;
@@ -219,7 +221,7 @@ public class CustomAnnotationHandler {
                         start1 = start2;
                         end1 = end2;
                     }
-                // Otherwise record as drawn
+                    // Otherwise record as drawn
                 } else {
                     start2 = geneYPos(selectionRegion.y, 0);
                     end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
@@ -234,7 +236,7 @@ public class CustomAnnotationHandler {
         }
     }
 
-    public CustomAnnotation addVisibleLoops(CustomAnnotation customAnnotations){
+    public CustomAnnotation addVisibleLoops(CustomAnnotation customAnnotations) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null || hic.getXContext() == null) return customAnnotations;
 
@@ -243,34 +245,34 @@ public class CustomAnnotationHandler {
         if (customAnnotations == null)
             return null;
 
-        for(Feature2DList list : loops){
+        for (Feature2DList list : loops) {
             customAnnotations.addVisibleToCustom(list);
         }
         return customAnnotations;
     }
 
-    public void undo(CustomAnnotation customAnnotations){
+    public void undo(CustomAnnotation customAnnotations) {
         customAnnotations.undo();
         MainWindow.undoMenuItem.setEnabled(false);
     }
 
-    private boolean nearDiagonal(int x, int y){
+    private boolean nearDiagonal(int x, int y) {
         int start1 = getXBin(x);
         int start2 = getYBin(y);
 
         return Math.abs(start1 - start2) < threshold;
     }
 
-    private int getXBin(int x){
+    private int getXBin(int x) {
         return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
     }
 
-    private int getYBin(int y){
+    private int getYBin(int y) {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
 
     //helper for getannotatemenu
-    private int geneXPos(int x, int displacement){
+    private int geneXPos(int x, int displacement) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return -1;
         HiCGridAxis xGridAxis = zd.getXGridAxis();
@@ -279,7 +281,7 @@ public class CustomAnnotationHandler {
     }
 
     //helper for getannotatemenu
-    private int geneYPos(int y, int displacement){
+    private int geneYPos(int y, int displacement) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return -1;
         HiCGridAxis yGridAxis = zd.getYGridAxis();

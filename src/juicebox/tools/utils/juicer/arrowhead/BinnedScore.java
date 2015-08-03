@@ -71,13 +71,13 @@ class BinnedScore {
     }
 
     public void addScoreToBin(HighScore score) {
-        if(score.getI() < minX)
+        if (score.getI() < minX)
             minX = score.getI();
-        if(score.getI() > maxX)
+        if (score.getI() > maxX)
             maxX = score.getI();
-        if(score.getJ() < minY)
+        if (score.getJ() < minY)
             minY = score.getJ();
-        if(score.getJ() > maxY)
+        if (score.getJ() > maxY)
             maxY = score.getJ();
         appendDataValues(score);
     }

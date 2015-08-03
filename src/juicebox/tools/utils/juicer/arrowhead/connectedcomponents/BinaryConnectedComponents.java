@@ -98,7 +98,7 @@ public class BinaryConnectedComponents {
         Set<Integer> allPosVals = positiveValues(neighborLabels);
 
         int lowestLabel = 0;
-        if(allPosVals.size() > 0)
+        if (allPosVals.size() > 0)
             lowestLabel = Collections.min(new ArrayList<Integer>(allPosVals));
 
         if (lowestLabel <= 0) {
@@ -120,9 +120,9 @@ public class BinaryConnectedComponents {
     }
 
     private static int[][] getSubMatrix(int[][] matrix, int left, int right, int top, int bottom) {
-        int[][] subMatrix = new int[right-left+1][bottom-top+1];
+        int[][] subMatrix = new int[right - left + 1][bottom - top + 1];
 
-        for(int i = 0; i < subMatrix.length; i++){
+        for (int i = 0; i < subMatrix.length; i++) {
             System.arraycopy(matrix[left + i], top, subMatrix[i], 0, subMatrix[0].length);
         }
 

@@ -184,7 +184,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
-    private JSplitButton createMAPQ0Button(String buttonText){
+    private JSplitButton createMAPQ0Button(String buttonText) {
         JSplitButton button = new JSplitButton(buttonText);
         button.addActionListener(this);
         return button;
@@ -214,8 +214,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         tree.setCellRenderer(new DefaultTreeCellRenderer() {
 
             private static final long serialVersionUID = 4231L;
-
-
 
 
             @Override
@@ -371,7 +369,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             row--;
         }
     }
-
 
 
     private class ItemInfo {

@@ -41,6 +41,7 @@ import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.SeekableByteChannel;
 import java.util.*;
 
 //import org.broad.igv.exceptions.HttpResponseException;
@@ -58,6 +59,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
     private final CompressionUtils compressionUtils;
+    private SeekableByteChannel stream2;
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
     private Map<String, Preprocessor.IndexEntry> normVectorIndex;
@@ -72,7 +74,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         super(path);
         this.stream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
-
 
         if (this.stream != null) {
             masterIndex = new HashMap<String, Preprocessor.IndexEntry>();
@@ -430,7 +431,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (version >= 6) {
 
-            dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
+//            dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
+            dis = new LittleEndianInputStream(new BufferedInputStream(stream, 104857600));
 
             try {
                 nExpectedValues = dis.readInt();

@@ -77,8 +77,7 @@ public class LoadAction extends AbstractAction {
             if (xmlDocument != null) {
                 Element global = xmlDocument.getDocumentElement();
                 masterDocument.appendChild(masterDocument.importNode(global, true));
-            }
-            else {
+            } else {
                 masterDocument = null;
             }
         } catch (Exception e) {
@@ -208,14 +207,14 @@ public class LoadAction extends AbstractAction {
         mainWindow.executeLongRunningTask(runnable, "safe load nodes");
     }
 
-    public void checkBoxesForReload(String track){
+    public void checkBoxesForReload(String track) {
         ResourceTree resourceTree = hic.getResourceTree();
         try {
             if (resourceTree == null) {
                 Document tempDoc = createMasterDocument(getXmlUrl());
-                resourceTree = new ResourceTree(hic,tempDoc);
+                resourceTree = new ResourceTree(hic, tempDoc);
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         resourceTree.checkTrackBoxesForReloadState(track);

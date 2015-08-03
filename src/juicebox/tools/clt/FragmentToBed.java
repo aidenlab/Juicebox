@@ -35,25 +35,11 @@ import java.util.regex.Pattern;
 
 public class FragmentToBed extends JuiceboxCLT {
 
-    private String filename;
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private String filename;
 
-    public FragmentToBed(){
+    public FragmentToBed() {
         super("fragmentToBed <fragmentFile>");
-    }
-
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox fragmentToBed <fragmentFile>");
-        if (args.length != 2) {
-            throw new IOException("1");
-        }
-        filename = args[1];
-    }
-
-    @Override
-    public void run() throws IOException {
-        fragToBed(filename);
     }
 
     /**
@@ -92,5 +78,19 @@ public class FragmentToBed extends JuiceboxCLT {
             if (reader != null) reader.close();
         }
 
+    }
+
+    @Override
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+        //setUsage("juicebox fragmentToBed <fragmentFile>");
+        if (args.length != 2) {
+            throw new IOException("1");
+        }
+        filename = args[1];
+    }
+
+    @Override
+    public void run() throws IOException {
+        fragToBed(filename);
     }
 }

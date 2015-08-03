@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,30 +59,30 @@ class RangeSliderUI extends BasicSliderUI {
 
     private Color[] gradientColorsPreDef =
             {new Color(255, 242, 255),
-            new Color(255, 230, 242),
-            new Color(255, 222, 230),
-            new Color(250, 218, 234),
-            new Color(255, 206, 226),
-            new Color(238, 198, 210),
-            new Color(222, 186, 182),
-            new Color(226, 174, 165),
-            new Color(214, 157, 145),
-            new Color(194, 141, 125),
-            new Color(218, 157, 121),
-            new Color(234, 182, 129),
-            new Color(242, 206, 133),
-            new Color(238, 222, 153),
-            new Color(242, 238, 161),
-            new Color(222, 238, 161),
-            new Color(202, 226, 149),
-            new Color(178, 214, 117),
-            new Color(149, 190, 113),
-            new Color(117, 170, 101),
-            new Color(113, 153, 89),
-            new Color(18, 129, 242),
-            new Color(255, 0, 0)
-    };
-//            {new Color(18, 129, 242),
+                    new Color(255, 230, 242),
+                    new Color(255, 222, 230),
+                    new Color(250, 218, 234),
+                    new Color(255, 206, 226),
+                    new Color(238, 198, 210),
+                    new Color(222, 186, 182),
+                    new Color(226, 174, 165),
+                    new Color(214, 157, 145),
+                    new Color(194, 141, 125),
+                    new Color(218, 157, 121),
+                    new Color(234, 182, 129),
+                    new Color(242, 206, 133),
+                    new Color(238, 222, 153),
+                    new Color(242, 238, 161),
+                    new Color(222, 238, 161),
+                    new Color(202, 226, 149),
+                    new Color(178, 214, 117),
+                    new Color(149, 190, 113),
+                    new Color(117, 170, 101),
+                    new Color(113, 153, 89),
+                    new Color(18, 129, 242),
+                    new Color(255, 0, 0)
+            };
+    //            {new Color(18, 129, 242),
 //            new Color(113, 153, 89),
 //            new Color(117, 170, 101),
 //            new Color(149, 190, 113),
@@ -107,28 +107,28 @@ class RangeSliderUI extends BasicSliderUI {
 //            new Color(255,0,0)};
     private float[] fractionsPreDef =
             {0.0f,
-            0.15f,
-            0.2f,
-            0.25f,
-            0.3f,
-            0.325f,
-            0.35f,
-            0.375f,
-            0.4f,
-            0.425f,
-            0.45f,
-            0.5f,
-            0.55f,
-            0.6f,
-            0.65f,
-            0.7f,
-            0.75f,
-            0.8f,
-            0.85f,
-            0.9f,
-            0.925f,
-            0.95f,
-            1.0f};
+                    0.15f,
+                    0.2f,
+                    0.25f,
+                    0.3f,
+                    0.325f,
+                    0.35f,
+                    0.375f,
+                    0.4f,
+                    0.425f,
+                    0.45f,
+                    0.5f,
+                    0.55f,
+                    0.6f,
+                    0.65f,
+                    0.7f,
+                    0.75f,
+                    0.8f,
+                    0.85f,
+                    0.9f,
+                    0.925f,
+                    0.95f,
+                    1.0f};
 
     private boolean colorIsOE = false;
     private boolean colorIsBlank = false;
@@ -262,9 +262,8 @@ class RangeSliderUI extends BasicSliderUI {
 
     public String getColorsAsText() {
         String tmpStr = "";
-        for (int idx=0;idx<gradientColorsPreDef.length-1;idx++)
-        {
-            tmpStr = tmpStr + "Color("+ gradientColorsPreDef[idx].getRed() + "," + gradientColorsPreDef[idx].getGreen() + "," + gradientColorsPreDef[idx].getBlue() +"),";
+        for (int idx = 0; idx < gradientColorsPreDef.length - 1; idx++) {
+            tmpStr = tmpStr + "Color(" + gradientColorsPreDef[idx].getRed() + "," + gradientColorsPreDef[idx].getGreen() + "," + gradientColorsPreDef[idx].getBlue() + "),";
         }
         return tmpStr;
     }
@@ -335,7 +334,7 @@ class RangeSliderUI extends BasicSliderUI {
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.BLUE, leftSide, Color.RED, rightSide);
             } else if (colorIsPreDef) {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsPreDef, gradientColorsPreDef);
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length-1], rightSide);
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length - 1], rightSide);
             } else {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{Color.WHITE, MainWindow.hicMapColor});
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, MainWindow.hicMapColor, rightSide);
@@ -480,7 +479,7 @@ class RangeSliderUI extends BasicSliderUI {
 
         this.colorIsPreDef = isPreDef;
         int colorArraySize = MainWindow.preDefMapColorFractions.size();
-        gradientColorsPreDef =  MainWindow.preDefMapColorGradient.toArray(new Color[colorArraySize]);
+        gradientColorsPreDef = MainWindow.preDefMapColorGradient.toArray(new Color[colorArraySize]);
 
         fractionsPreDef = new float[colorArraySize];
         int i = 0;

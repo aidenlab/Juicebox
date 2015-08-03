@@ -63,10 +63,9 @@ public class GPUController {
 
     public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
                                       int[] rowBounds, int[] columnBounds, int matrixSize,
-                                      float[] thresholdBL, float[] thresholdDonut, float[] thresholdH,float[] thresholdV,
+                                      float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
                                       float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType)
-            throws NegativeArraySizeException
-    {
+            throws NegativeArraySizeException {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
@@ -81,9 +80,9 @@ public class GPUController {
         float[] kr1CPU = Floats.toArray(Doubles.asList(Arrays.copyOfRange(normalizationVector, rowBounds[0], rowBounds[1])));
         float[] kr2CPU = Floats.toArray(Doubles.asList(Arrays.copyOfRange(normalizationVector, columnBounds[0], columnBounds[1])));
 
-        if(kr1CPU.length < matrixSize)
+        if (kr1CPU.length < matrixSize)
             kr1CPU = ArrayTools.padEndOfArray(kr1CPU, matrixSize, Float.NaN);
-        if(kr2CPU.length < matrixSize)
+        if (kr2CPU.length < matrixSize)
             kr2CPU = ArrayTools.padEndOfArray(kr2CPU, matrixSize, Float.NaN);
 
         boundRowIndex[0] = rowBounds[0];
@@ -182,7 +181,7 @@ public class GPUController {
         float[][] expectedDonutDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedDonutResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedHDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedHResult, matrixSize, x1, x2, y1, y2);
         float[][] expectedVDenseCPU = GPUHelper.GPUArraytoCPUMatrix(expectedVResult, matrixSize, x1, x2, y1, y2);
-        
+
         GPUHelper.freeUpMemory(new CUdeviceptr[]{observedKRGPU, expectedDistanceVectorGPU,
                 kr1GPU, kr2GPU, thresholdBLGPU, thresholdDonutGPU, thresholdHGPU,
                 thresholdVGPU, boundRowIndexGPU, boundColumnIndexGPU,

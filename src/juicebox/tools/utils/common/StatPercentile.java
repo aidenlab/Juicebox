@@ -33,7 +33,7 @@ public class StatPercentile {
 
     private final double[] statsData;
 
-    public StatPercentile(double[] data){
+    public StatPercentile(double[] data) {
         statsData = new double[data.length];
         System.arraycopy(data, 0, statsData, 0, data.length);
         Arrays.sort(statsData);
@@ -41,27 +41,26 @@ public class StatPercentile {
 
     // TODO optimize using binary search
     // TODO actually could be much more optimized since same vals are queried
-    public double evaluate(double val){
-        return internalEvaluate(val)*100;
+    public double evaluate(double val) {
+        return internalEvaluate(val) * 100;
     }
 
     private double internalEvaluate(double val) {
-        for(int i = 0; i < statsData.length; i++){
-            if(statsData[i] >= val){
-                if(statsData[i] > val){
-                    return Math.max(0.0,i/statsData.length);
-                }
-                else{
+        for (int i = 0; i < statsData.length; i++) {
+            if (statsData[i] >= val) {
+                if (statsData[i] > val) {
+                    return Math.max(0.0, i / statsData.length);
+                } else {
                     double percentile = 0;
                     int num = 0;
-                    for(int j = i; j < statsData.length; j++){
-                        if(statsData[j] > val){
+                    for (int j = i; j < statsData.length; j++) {
+                        if (statsData[j] > val) {
                             break;
                         }
-                        percentile += ((double)i)/statsData.length;
+                        percentile += ((double) i) / statsData.length;
                         num++;
                     }
-                    return percentile/num;
+                    return percentile / num;
                 }
             }
         }

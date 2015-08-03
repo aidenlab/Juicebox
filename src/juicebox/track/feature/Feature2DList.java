@@ -102,7 +102,7 @@ public class Feature2DList {
      */
     public List<Feature2D> get(int chr1Idx, int chr2Idx) {
         List<Feature2D> returnVal = featureList.get(getKey(chr1Idx, chr2Idx));
-        if (returnVal == null){
+        if (returnVal == null) {
             return new ArrayList<Feature2D>();
         } else {
             return returnVal;
@@ -120,7 +120,7 @@ public class Feature2DList {
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
 
         String key = getKey(chr1Idx, chr2Idx);
-        addByKey(key,feature);
+        addByKey(key, feature);
 
     }
 
@@ -222,6 +222,7 @@ public class Feature2DList {
 
     /**
      * Get first feature found
+     *
      * @return feature
      */
     public Feature2D extractSingleFeature() {
@@ -245,6 +246,7 @@ public class Feature2DList {
 
     /**
      * Calculate FDR values for all peaks
+     *
      * @param fdrLogBL
      * @param fdrLogDonut
      * @param fdrLogH
@@ -273,7 +275,7 @@ public class Feature2DList {
 
         Set<String> inputKeySet = inputList.getKeySet();
 
-        for(String inputKey : inputKeySet){
+        for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
 
             List<Feature2D> features = featureList.get(inputKey);
@@ -299,7 +301,7 @@ public class Feature2DList {
 
         Set<String> inputKeySet = inputList.getKeySet();
 
-        for(String inputKey : inputKeySet){
+        for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
 
             List<Feature2D> features = featureList.get(inputKey);
@@ -317,12 +319,12 @@ public class Feature2DList {
     public Feature2DList getOverlap(Feature2DList inputList) {
         Feature2DList output = new Feature2DList();
         Set<String> inputKeySet = inputList.getKeySet();
-        for(String inputKey : inputKeySet){
+        for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
             // there are features in both lists
             List<Feature2D> myFeatures = featureList.get(inputKey);
             if (myFeatures != null) {
-                for (Feature2D myFeature : myFeatures){
+                for (Feature2D myFeature : myFeatures) {
                     if (doesOverlap(myFeature, inputFeatures)) {
                         output.addByKey(inputKey, myFeature);
                     }
@@ -333,10 +335,10 @@ public class Feature2DList {
     }
 
     // Compares a feature against all other featuers in list
-    private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures){
+    private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures) {
         boolean repeat = false;
-        for (Feature2D existingFeature : existingFeatures){
-            if (existingFeature.overlapsWith(feature)){
+        for (Feature2D existingFeature : existingFeatures) {
+            if (existingFeature.overlapsWith(feature)) {
                 repeat = true;
             }
         }
@@ -345,8 +347,8 @@ public class Feature2DList {
 
     // Iterate through new features and see if there is any overlap
     // TODO: implement this more efficiently
-    private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures){
-        for (Feature2D inputFeature : inputFeatures){
+    private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
+        for (Feature2D inputFeature : inputFeatures) {
             // Compare input with existing points
             if (!doesOverlap(inputFeature, existingFeatures)) {
                 existingFeatures.add(inputFeature);
@@ -371,6 +373,7 @@ public class Feature2DList {
 
     /**
      * Get all keys (chromosome pairs) for hashmap
+     *
      * @return keySet
      */
     private Set<String> getKeySet() {
@@ -379,6 +382,7 @@ public class Feature2DList {
 
     /**
      * Get feature list corresponding to key (chromosome pair)
+     *
      * @param key
      * @return
      */

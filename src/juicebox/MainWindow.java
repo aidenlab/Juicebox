@@ -30,9 +30,7 @@ import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
-import juicebox.state.ImportFileDialog;
-import juicebox.state.SaveFileDialog;
-import juicebox.state.Slideshow;
+import juicebox.state.*;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -51,7 +49,6 @@ import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
-import sun.applet.Main;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -75,15 +72,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/**
- * @author James Robinson
- */
 public class MainWindow extends JFrame {
 
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final int BIN_PIXEL_WIDTH = 1;
     private static final long serialVersionUID = -3654174199024388185L;
     private static final Logger log = Logger.getLogger(MainWindow.class);
+    private static final int recentMapListMaxItems = 10;
+    private static final int recentLocationMaxItems = 20;
+    private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
@@ -96,13 +93,14 @@ public class MainWindow extends JFrame {
     public static boolean preDefMapColor = false;
     public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
     public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
+    public static String currentlyLoadedMainFiles = "";
+    public static String currentlyLoadedControlFiles = "";
     private static boolean unsavedEdits;
     private static JMenuItem loadLastMI;
+    private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
-    public static String currentlyLoadedMainFiles = "";
-    public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
@@ -134,10 +132,10 @@ public class MainWindow extends JFrame {
     private static GoToPanel goPanel;
     private static File temp;
     private static JPanel hiCPanel;
-    private juicebox.MainMenuBar menuBar;
+    private static JMenu annotationsMenu;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
-    private final File fileForExport = new File(HiCGlobals.xmlFileName);
+    private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
     File currentStates = new File("testStates");
     private double colorRangeScaleFactor = 1;
     private double colorRangeScaleFactorForReload = 1;
@@ -145,13 +143,15 @@ public class MainWindow extends JFrame {
     private boolean tooltipAllowedToUpdated = true;
     private int[] colorValuesToRestore = null;
     private Properties properties;
+    private LoadEncodeAction encodeAction;
+    private LoadAction trackLoadAction;
 
     private MainWindow() {
 
         hic = new HiC(this);
 
         customAnnotations = new CustomAnnotation("1");
-        customAnnotationHandler = new CustomAnnotationHandler(hic);
+        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
 
         initComponents();
         createCursors();
@@ -181,7 +181,10 @@ public class MainWindow extends JFrame {
                 CommandListener.start(theInstance.hic);
             }
         };
-        
+        if (unsavedEditsExist()) {
+            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
+                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+        }
         SwingUtilities.invokeAndWait(runnable);
 
     }
@@ -217,11 +220,12 @@ public class MainWindow extends JFrame {
         return new MainWindow();
     }
 
-    public static boolean hasUnsavedAnnotations() {
+    private static boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
         temp = HiCFileTools.openTempFile(tempPath);
         unsavedEdits = temp.exists();
         return unsavedEdits;
+
     }
 
     public void updateToolTipText(String s) {
@@ -342,39 +346,41 @@ public class MainWindow extends JFrame {
     public void safeLoad(final List<String> files, final boolean control, final String title) {
         Runnable runnable = new Runnable() {
             public void run() {
-                String resetTitle;
-                if (control) resetTitle = controlTitle;
-                else resetTitle = datasetTitle;
-
-                try {
-                    unsafeload(files, control);
-                    updateThumbnail();
-                    refresh();
-                    if (control) controlTitle = title;
-                    else datasetTitle = title;
-                    updateTitle();
-                } catch (IOException error) {
-                    log.error("Error loading hic file", error);
-                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                    if (!control) hic.reset();
-                    updateThumbnail();
-                    if (control) controlTitle = resetTitle;
-                    else datasetTitle = resetTitle;
-                    updateTitle();
-                } catch (Exception error) {
-                    error.printStackTrace();
-                }
+                unsafeLoadWithTitleFix(files, control, title);
             }
 
         };
         executeLongRunningTask(runnable, "MainWindow safe load");
     }
 
-    private void unsafeload(final List<String> files, final boolean control) throws IOException {
+    public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title) {
+        String resetTitle = datasetTitle;
+        if (control) resetTitle = controlTitle;
+
+        try {
+            unsafeLoad(files, control);
+            updateThumbnail();
+            refresh();
+            if (control) controlTitle = title;
+            else datasetTitle = title;
+            updateTitle();
+        } catch (IOException e) {
+            log.error("Error loading hic file", e);
+            JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
+            if (!control) hic.reset();
+            updateThumbnail();
+            if (control) controlTitle = resetTitle;
+            else datasetTitle = resetTitle;
+            updateTitle();
+        }
+    }
+
+    private void unsafeLoad(final List<String> files, final boolean control) throws IOException {
+
 
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
-        for(String file : files){
+        for (String file : files) {
             newFilesToBeLoaded += file;
             allFilesAreHiC &= file.endsWith(".hic");
         }
@@ -383,8 +389,7 @@ public class MainWindow extends JFrame {
         if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
-        }
-        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
             return;
         }
@@ -427,7 +432,6 @@ public class MainWindow extends JFrame {
                 setChromosomes(dataset.getChromosomes());
 
                 chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
                 chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
 
                 String[] normalizationOptions;
@@ -480,7 +484,7 @@ public class MainWindow extends JFrame {
             colorRangeSlider.setDisplayToBlank(false);
             plusButton.setEnabled(true);
             minusButton.setEnabled(true);
-            menuBar.enableAnnotations();
+            annotationsMenu.setEnabled(true);
 
             saveLocationList.setEnabled(true);
             recentLocationMenu.setEnabled(true);
@@ -489,174 +493,7 @@ public class MainWindow extends JFrame {
 
             if (control) {
                 currentlyLoadedControlFiles = newFilesToBeLoaded;
-            }
-            else {
-                currentlyLoadedMainFiles = newFilesToBeLoaded;
-            }
-            //refresh(); // an additional refresh seems to remove the upper left black corner
-        } else {
-            JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
-        }
-    }
-
-    public void safeLoadForReloadState(final List<String> files, final boolean control, final String title) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                String resetTitle;
-                if (control) resetTitle = controlTitle;
-                else resetTitle = datasetTitle;
-
-                try {
-                    unsafeLoadforReloadState(files, control);
-                    updateThumbnail();
-                    refresh();
-                    if (control) controlTitle = title;
-                    else datasetTitle = title;
-                    updateTitle();
-                } catch (IOException error) {
-                    log.error("Error loading hic file", error);
-                    JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-                    if (!control) hic.reset();
-                    updateThumbnail();
-                    if (control) controlTitle = resetTitle;
-                    else datasetTitle = resetTitle;
-                    updateTitle();
-                } catch (Exception error) {
-                    error.printStackTrace();
-                }
-            }
-
-        };
-        executeLongRunningTask(runnable, "MainWindow safe load");
-    }
-
-    private void unsafeLoadforReloadState(final List<String> files, final boolean control) throws IOException {
-
-        String newFilesToBeLoaded = "";
-        boolean allFilesAreHiC = true;
-
-        for(String file : files){
-            if (newFilesToBeLoaded.length() > 0)
-                newFilesToBeLoaded += "@@";
-            newFilesToBeLoaded += file;
-            allFilesAreHiC &= file.endsWith(".hic");
-        }
-
-
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        }
-        else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        }
-
-        colorValuesToRestore = null;
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
-        hic.setNormalizationType(NormalizationType.NONE);
-
-        if (allFilesAreHiC) {
-            DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) return;
-            Dataset dataset;
-            // try {
-            dataset = reader.read();
-            // }
-            // catch (IOException error) {
-            //     JOptionPane.showMessageDialog(MainWindow.this,
-            //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
-            //     return;
-            // }
-
-            if (dataset.getVersion() <= 1) {
-                JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
-                return;
-            }
-            if(!isReloadState()) {
-
-                MatrixType[] options;
-                if (control) {
-                    hic.setControlDataset(dataset);
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                } else {
-
-                    hic.reset();
-
-                    hic.setDataset(dataset);
-
-                    setChromosomes(dataset.getChromosomes());
-
-                    chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
-                    chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
-                    String[] normalizationOptions;
-                    if (dataset.getVersion() < 6) {
-                        normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                    } else {
-                        ArrayList<String> tmp = new ArrayList<String>();
-                        tmp.add(NormalizationType.NONE.getLabel());
-                        for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                            tmp.add(t.getLabel());
-                        }
-
-                        normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                        //tmp.add(NormalizationType.LOADED.getLabel());
-
-                    }
-
-                    if (normalizationOptions.length == 1) {
-                        normalizationComboBox.setEnabled(false);
-                    } else {
-                        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
-                        normalizationComboBox.setSelectedIndex(0);
-                        normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
-                    }
-
-                    if (hic.isControlLoaded()) {
-                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                                MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                    } else {
-                        options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
-                    }
-
-
-                    hic.resetContexts();
-                    updateTrackPanel();
-                    resolutionSlider.unit = HiC.Unit.BP;
-
-                    resolutionSlider.reset();
-                    unsafeRefreshChromosomes();
-
-                }
-                displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
-                displayOptionComboBox.setSelectedIndex(0);
-            }
-            chrBox1.setEnabled(true);
-            chrBox2.setEnabled(true);
-            refreshButton.setEnabled(true);
-            normalizationComboBox.setEnabled(true);
-
-            setColorRangeSliderVisible(true);
-            setResolutionSliderVisible(true);
-            colorRangeSlider.setDisplayToBlank(false);
-            plusButton.setEnabled(true);
-            minusButton.setEnabled(true);
-            menuBar.enableAnnotations();
-
-            saveLocationList.setEnabled(true);
-            recentLocationMenu.setEnabled(true);
-
-            goPanel.setEnabled(true);
-
-            if (control) {
-                currentlyLoadedControlFiles = newFilesToBeLoaded;
-            }
-            else {
+            } else {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
             //refresh(); // an additional refresh seems to remove the upper left black corner
@@ -726,7 +563,7 @@ public class MainWindow extends JFrame {
         //System.err.println(heatmapPanel.getSize());
     }
 
-    public void refreshMapcolors(){
+    public void refreshMapcolors() {
         this.unsafeDisplayOptionComboBoxActionPerformed();
     }
 
@@ -852,7 +689,7 @@ public class MainWindow extends JFrame {
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<String>();
                 String title = "";
-                for(String url : urls){
+                for (String url : urls) {
                     urlList.add(url);
                     title += (new URL(url)).getPath() + " ";
                 }
@@ -863,8 +700,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    //meh - delete this method
-    public void loadFromListActionPerformed(boolean control) {
+    private void loadFromListActionPerformed(boolean control) {
 
         if (loadDialog == null) {
             initProperties();
@@ -891,7 +727,7 @@ public class MainWindow extends JFrame {
         setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    public void exitActionPerformed() {
+    private void exitActionPerformed() {
         setVisible(false);
         dispose();
         System.exit(0);
@@ -904,13 +740,9 @@ public class MainWindow extends JFrame {
         if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
             //System.out.println(colorRangeSlider.getUpperValue());
             heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
-        }
-        else if(MainWindow.preDefMapColor)
-        {
+        } else if (MainWindow.preDefMapColor) {
             heatmapPanel.setPreDefRange(min, max);
-        }
-        else
-        {
+        } else {
             heatmapPanel.setObservedRange(min, max);
         }
     }
@@ -1036,10 +868,6 @@ public class MainWindow extends JFrame {
         return recentLocationMenu;
     }
 
-    public RecentMenu getPrevousStateMenu(){
-        return previousStates;
-    }
-
     private void showDisabledGlassPane(String caller) {
         //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
@@ -1111,13 +939,10 @@ public class MainWindow extends JFrame {
             //refreshChromosomes();
             //setInitialZoom();
             colorRangeSlider.setDisplayToBlank(false);
-            if(preDefMapColor)
-            {
+            if (preDefMapColor) {
                 colorRangeSlider.setDisplayToPreDef(true);
                 colorRangeSlider.setDisplayToOE(false);
-            }
-            else
-            {
+            } else {
                 colorRangeSlider.setDisplayToPreDef(false);
                 colorRangeSlider.setDisplayToOE(false);
             }
@@ -1152,12 +977,12 @@ public class MainWindow extends JFrame {
     }
 
     //--------------------------------SetdisplayOptionComboBox----------------
-    public void setDisplayBox(int indx){
+    public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
     }
 
     //----------------------------SetNormalization Box-----------------------
-    public void setNormalizationBox(int indx){
+    public void setNormalizationBox(int indx) {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
@@ -1189,7 +1014,6 @@ public class MainWindow extends JFrame {
         preDefMapColorGradient.add(new Color(18, 129, 242));
         preDefMapColorGradient.add(new Color(255, 0, 0));
         preDefMapColorGradient.add(new Color(0, 0, 0));
-
 
 
         //size of the screen
@@ -1232,10 +1056,9 @@ public class MainWindow extends JFrame {
         bottomPanel.setBackground(Color.white);
 
 
-        menuBar = null;
+        JMenuBar menuBar = null;
         try {
-            menuBar = new juicebox.MainMenuBar(this, hic);
-            //menuBar = createMenuBar();
+            menuBar = createMenuBar();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1300,7 +1123,7 @@ public class MainWindow extends JFrame {
                 refreshButtonActionPerformed();
             }
         });
-        refreshButton.setPreferredSize(new Dimension(24,24));
+        refreshButton.setPreferredSize(new Dimension(24, 24));
         chrButtonPanel.add(refreshButton);
 
         chrBox1.setEnabled(false);
@@ -1510,7 +1333,7 @@ public class MainWindow extends JFrame {
         colorRangeLabel.addMouseListener(new MouseAdapter() {
             private Font original;
 
-            @SuppressWarnings({"unchecked","rawtypes"})
+            @SuppressWarnings({"unchecked", "rawtypes"})
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (colorRangeSlider.isEnabled()) {
@@ -1549,7 +1372,7 @@ public class MainWindow extends JFrame {
                 }
             }
 
-            private void processClick(){
+            private void processClick() {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
                 setColorRangeSliderVisible(false);
                 setResolutionSliderVisible(false);
@@ -1587,7 +1410,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2,1),(Integer.MAX_VALUE)));
+                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
 
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
@@ -1758,7 +1581,7 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
-    public String getColorRangeValues(){
+    public String getColorRangeValues() {
 
         int iMin = colorRangeSlider.getMinimum();
         int lowValue = colorRangeSlider.getLowerValue();
@@ -1841,470 +1664,491 @@ public class MainWindow extends JFrame {
         safeDisplayOptionComboBoxActionPerformed();
     }
 
-    //meh replacing
-//    private JMenuBar createMenuBar() {
-//
-//
-//        JMenuBar menuBar = new JMenuBar();
-//
-//        //======== fileMenu ========
-//        JMenu fileMenu = new JMenu("File");
-//        fileMenu.setMnemonic('F');
-//
-//        //---- Open Map ----
-//        JMenuItem openItem = new JMenuItem("Open...");
-//        openItem.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                loadFromListActionPerformed(false);
-//            }
-//        });
-//        //---- Open Control ----
-//        JMenuItem loadControlFromList = new JMenuItem();
-//        loadControlFromList.setText("Open Control...");
-//        loadControlFromList.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                loadFromListActionPerformed(true);
-//            }
-//        });
-//        //---- Open Recent ----
-//        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
-//            private static final long serialVersionUID = 4202L;
-//            public void onSelectPosition(String mapPath) {
-//                String delimiter = "@@";
-//                String[] temp;
-//                temp = mapPath.split(delimiter);
-//                //initProperties();         // don't know why we're doing this here
-//                loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-//            }
-//        };
-//        recentMapMenu.setMnemonic('R');
-//
-//        //---- Show Metrics ----
-////        JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
-////        showStats.addActionListener(new ActionListener() {
-////            @Override
-////            public void actionPerformed(ActionEvent actionEvent) {
-////                if (hic.getDataset() == null) {
-////                    JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
-////                } else {
-////                    new QCDialog(MainWindow.this, hic, MainWindow.this.getTitle() + " info");
-////                }
-////            }
-////        });
-////        fileMenu.add(showStats);
-//
-//
-//
-//        //---- Export Image ----
-////        JMenuItem saveToImage = new JMenuItem();
-////        saveToImage.setText("Export Image...");
-////        saveToImage.addActionListener(new ActionListener() {
-////            public void actionPerformed(ActionEvent e) {
-////                new SaveImageDialog(null, hic, hiCPanel);
-////            }
-////        });
-////        fileMenu.add(saveToImage);
-//
-//        // TODO: make this an export of the data on screen instead of a GUI for CLT
-//        if (!HiCGlobals.isRestricted) {
-//            JMenuItem dump = new JMenuItem("Export Data...");
-//            dump.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent actionEvent) {
-//                    if (hic.getDataset() == null) {
-//                        JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
-//                    } else {
-//                        new DumpDialog(MainWindow.this, hic);
-//                    }
-//
-//                }
-//            });
-//            fileMenu.add(dump);
-//        }
-//
-//        //---- About ----
-////        JMenuItem creditsMenu = new JMenuItem();
-////        creditsMenu.setText("About");
-////        creditsMenu.addActionListener(new ActionListener() {
-////            public void actionPerformed(ActionEvent e) {
-////                ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
-////                JLabel iconLabel = new JLabel(icon);
-////                JPanel iconPanel = new JPanel(new GridBagLayout());
-////                iconPanel.add(iconLabel);
-////
-////                JPanel textPanel = new JPanel(new GridLayout(0, 1));
-////                textPanel.add(new JLabel("<html><center>" +
-////                        "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
-////                        "Juicebox: Visualization software for Hi-C data" +
-////                        "</h2>" +
-////                        "</center>" +
-////                        "<p>" +
-////                        "Juicebox is Aiden Lab's software for visualizing data from proximity ligation experiments, such as Hi-C, 5C, and Chia-PET.<br>" +
-////                        "Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden. Ongoing development work is carried out by Neva C. Durand,<br>" +
-////                        "Muhammad Shamim, and Ido Machol.<br><br>" +
-////                        "Copyright © 2014. Broad Institute and Aiden Lab" +
-////                        "<br><br>" +
-////                        "If you use Juicebox in your research, please cite:<br><br>" +
-////                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-////                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
-////                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
-////                        "* contributed equally" +
-////                        "</p></html>"));
-////
-////                JPanel mainPanel = new JPanel(new BorderLayout());
-////                mainPanel.add(textPanel);
-////                mainPanel.add(iconPanel, BorderLayout.WEST);
-////
-////                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
-////            }
-////        });
-////        fileMenu.add(creditsMenu);
-//
-//        //---- exit ----
-//        JMenuItem exit = new JMenuItem();
-//        exit.setText("Exit");
-//        exit.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                exitActionPerformed();
-//            }
-//        });
-//
-//        // add menu items
-//        fileMenu.add(openItem);
-//        fileMenu.add(loadControlFromList);
-//        fileMenu.add(recentMapMenu);
-//        fileMenu.addSeparator();
-//        fileMenu.add(exit);
-//
-//        //======== Annotations Menu ========
-//        annotationsMenu = new JMenu("Annotations");
-//
-//        //---- Load Basic ----
-//        JMenuItem newLoadMI = new JMenuItem();
-//        newLoadMI.setAction(new LoadAction("Load Basic Annotations...", this, hic));
-//        annotationsMenu.add(newLoadMI);
-//
-//        //---- Load ENCODE ----
-//        JMenuItem loadEncodeMI = new JMenuItem();
-//        loadEncodeMI.setAction(new LoadEncodeAction("Load ENCODE Tracks...", this, hic));
-//        annotationsMenu.add(loadEncodeMI);
-//
-//        //---- Hand Annotations ----
-//        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
-//        // Import
-//
-//        // Export
-//        exportAnnotationsMI = new JMenuItem("Export...");
-//        exportAnnotationsMI.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                new SaveAnnotationsDialog(customAnnotations);
-//            }
-//        });
-//
-////        // -- export overlap
-////        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-////        exportOverlapMI.addActionListener(new ActionListener() {
-////            @Override
-////            public void actionPerformed(ActionEvent e) {
-////                java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-////                if (loops.size() != 1)
-////                    JOptionPane.showMessageDialog(MainWindow.this, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
-////                else
-////                    new SaveAnnotationsDialog(customAnnotations, loops.get(0));
-////            }
-////        });
-//
-//        // -- merge visible
-//        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
-//        mergeVisibleMI.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotations = customAnnotationHandler.addVisibleLoops(customAnnotations);
-//            }
-//        });
-//
-//        // Undo
-//        undoMenuItem = new JMenuItem("Undo Annotation");
-//        undoMenuItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotationHandler.undo(customAnnotations);
-//                repaint();
-//            }
-//        });
-//        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
-//
-//        // Load Last
-//        loadLastMI = new JMenuItem("Load Last");
-//        loadLastMI.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
-//                        hic.getChromosomes(), 0, 0, 0, true, null), "1");
-//                temp.delete();
-//                loadLastMI.setEnabled(false);
-//            }
-//        });
-//
-//        // Clear All
-//        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
-//        clearCurrentMI.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                int n = JOptionPane.showConfirmDialog(
-//                        MainWindow.getInstance(),
-//                        "Are you sure you want to clear all custom annotations?",
-//                        "Confirm",
-//                        JOptionPane.YES_NO_OPTION);
-//
-//                if (n == JOptionPane.YES_OPTION) {
-//                    //TODO: do something with the saving... just update temp?
-//                    customAnnotations.clearAnnotations();
-//                    exportAnnotationsMI.setEnabled(false);
-//                    loadLastMI.setEnabled(false);
-//                    repaint();
-//                }
-//            }
-//        });
-//
-//        //Add annotate menu items
-//        customAnnotationMenu.add(exportAnnotationsMI);
-//        //-customAnnotationMenu.add(exportOverlapMI);
-//        //-customAnnotationMenu.add(mergeVisibleMI);
-//        customAnnotationMenu.add(undoMenuItem);
-//        if (unsavedEdits){
-//            customAnnotationMenu.add(loadLastMI);
-//            loadLastMI.setEnabled(true);
-//        }
-//        customAnnotationMenu.add(clearCurrentMI);
-//
-//        exportAnnotationsMI.setEnabled(false);
-//        undoMenuItem.setEnabled(false);
-//
-//        annotationsMenu.add(customAnnotationMenu);
-//
-////        final JMenuItem annotate = new JMenuItem("Annotate Mode");
-////        customAnnotationMenu.add(annotate);
-////
-////        // Add peak annotations
-////        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
-////        final JCheckBoxMenuItem annotatePeak = new JCheckBoxMenuItem("Loops");
-////
-////        annotatePeak.setSelected(false);
-////        annotatePeak.addActionListener(new ActionListener() {
-////            @Override
-////            public void actionPerformed(ActionEvent e) {
-////                customAnnotationHandler.doPeak();
-////            }
-////        });
-////        annotatePeak.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0));
-////        annotate.add(annotatePeak);
-////
-////        // Add domain annotations
-////        final JCheckBoxMenuItem annotateDomain = new JCheckBoxMenuItem("Domains");
-////
-////        annotateDomain.setSelected(false);
-////        annotateDomain.addActionListener(new ActionListener() {
-////            @Override
-////            public void actionPerformed(ActionEvent e) {
-////                customAnnotationHandler.doDomain();
-////            }
-////        });
-////        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
-////        annotate.add(annotateDomain);
-////
-////        // Add generic annotations
-////        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic feature");
-////
-////        annotateGeneric.setSelected(false);
-////        annotateGeneric.addActionListener(new ActionListener() {
-////            @Override
-////            public void actionPerformed(ActionEvent e) {
-////                customAnnotationHandler.doGeneric();
-////            }
-////        });
-////        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
-////        annotate.add(annotateDomain);
-//
-//        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
-//
-//        showLoopsItem.setSelected(true);
-//        showLoopsItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                hic.setShowLoops(showLoopsItem.isSelected());
-//                repaint();
-//            }
-//        });
-//        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-//
-//        annotationsMenu.add(showLoopsItem);
-//
-//        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
-//
-//        showCustomLoopsItem.setSelected(true);
-//        showCustomLoopsItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
-//                repaint();
-//            }
-//        });
-//        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-//
-//        annotationsMenu.add(showCustomLoopsItem);
-//        // meh
-//
-//        annotationsMenu.setEnabled(false);
-//
-//        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
-//        loadFromURLItem.addActionListener(new AbstractAction() {
-//
-//            private static final long serialVersionUID = 4203L;
-//
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                if (hic.getDataset() == null) {
-//                    JOptionPane.showMessageDialog(MainWindow.this, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
-//                    return;
-//                }
-//
-//                String url = JOptionPane.showInputDialog("Enter URL: ");
-//                if (url != null) {
-//                    hic.loadTrack(url);
-//
-//                }
-//
-//            }
-//        });
-//
-//        JMenu bookmarksMenu = new JMenu("Bookmarks");
-//        //---- Save location ----
-//        saveLocationList = new JMenuItem();
-//        saveLocationList.setText("Save current location");
-//        saveLocationList.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                //code to add a recent location to the menu
-//                String stateString = hic.saveState();
-//                String stateDescriptionString = hic.getDefaultLocationDescription();
-//                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-//                        "Enter description for saved location:", stateDescriptionString);
-//                if (null != stateDescription) {
-//                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
-//                }
-//            }
-//        });
-//        saveLocationList.setEnabled(false);
-//        bookmarksMenu.add(saveLocationList);
-//        //---Save State test-----
-//        saveStateForReload = new JMenuItem();
-//        saveStateForReload.setText("Save current state");
-//        saveStateForReload.addActionListener(new ActionListener() {
-//
-//            public void actionPerformed(ActionEvent e) {
-//                //code to add a recent location to the menu
-//                String stateDescriptionString = hic.getDefaultLocationDescription();
-//                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-//                        "Enter description for saved state:", stateDescriptionString);
-//                if (null != stateDescription) {
-//                    getPrevousStateMenu().addEntry(stateDescription, true);
-//                }
-//                hic.storeStateID();
-//                try {
-//                    hic.writeState();
-//                    hic.writeStateForXML();
-//                } catch (Exception e1) {
-//                    e1.printStackTrace();
-//                }
-//            }
-//        });
-//
-//        saveStateForReload.setEnabled(true);
-//        bookmarksMenu.add(saveStateForReload);
-//
-//        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
-//
-//            private static final long serialVersionUID = 4204L;
-//
-//            public void onSelectPosition(String mapPath) {
-//                String delimiter = "@@";
-//                String[] temp;
-//                temp = mapPath.split(delimiter);
-//                hic.restoreState(temp[1]);//temp[1]
-//                setNormalizationDisplayState();
-//            }
-//        };
-//        recentLocationMenu.setMnemonic('S');
-//        recentLocationMenu.setEnabled(false);
-//        bookmarksMenu.add(recentLocationMenu);
-//
-//        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
-//
-//            private static final long serialVersionUID = 4205L;
-//
-//            public void onSelectPosition(String mapPath) {
-//                hic.clearTracksForReloadState();
-//                hic.reloadPreviousState(hic.currentStates);
-//                hic.readXML(mapPath);
-//                updateThumbnail();
-//                previousStates.setSelected(true);
-//            }
-//        };
-//        previousStates.setEnabled(true);
-//        bookmarksMenu.add(previousStates);
-//
-//        //---Export Menu-----
-//        JMenu shareMenu = new JMenu("Share States");
-//
-//        //---Export Maps----
-//        exportMapAsFile = new JMenuItem();
-//        exportMapAsFile.setText("Export Saved States");
-//        exportMapAsFile.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                new SaveFileDialog(fileForExport,previousStates.getItemCount());
-//            }
-//        });
-//
-//
-//        //---Import Maps----
-//        /*importMapAsFile = new JMenuItem();
-//        importMapAsFile.setText("Import State From File");
-//        importMapAsFile.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                new ImportFileDialog(fileForExport, MainWindow.getInstance());
-//            }
-//        });*/
-//
-//
-//        //---Slideshow----
-//        //ALL YOURE MARIE
-//        slideShow = new JMenuItem();
-//        slideShow.setText("View Slideshow");
-//        slideShow.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                Slideshow.viewShow();
-//            }
-//        });
-//
-//
-//
-//        //Add menu items
-//        shareMenu.add(exportMapAsFile);
-//        //shareMenu.add(importMapAsFile);
-//
-//        menuBar.add(fileMenu);
-//        menuBar.add(annotationsMenu);
-//        menuBar.add(bookmarksMenu);
-//        menuBar.add(shareMenu);
-//        return menuBar;
-//    }
+    private JMenuBar createMenuBar() {
 
-    public boolean isReloadState(){
-        return previousStates.isSelected();
+
+        JMenuBar menuBar = new JMenuBar();
+
+        //======== fileMenu ========
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic('F');
+
+        //---- openMenuItem ----
+        JMenuItem openItem = new JMenuItem("Open...");
+
+        openItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                loadFromListActionPerformed(false);
+            }
+        });
+        fileMenu.add(openItem);
+
+        JMenuItem loadControlFromList = new JMenuItem();
+        loadControlFromList.setText("Open Control...");
+        loadControlFromList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                loadFromListActionPerformed(true);
+            }
+        });
+        fileMenu.add(loadControlFromList);
+
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
+
+            private static final long serialVersionUID = 4202L;
+
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                //initProperties();         // don't know why we're doing this here
+                loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
+            }
+        };
+        recentMapMenu.setMnemonic('R');
+
+
+        fileMenu.add(recentMapMenu);
+
+       /* JMenuItem localItem = new JMenuItem("Open Local");
+        localItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadMenuItemActionPerformed(false);
+            }
+        });
+        fileMenu.add(localItem);
+        JMenuItem localControlItem = new JMenuItem("Open Local Control");
+        localControlItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadMenuItemActionPerformed(true);
+            }
+        });
+        fileMenu.add(localControlItem);
+       */
+
+
+        fileMenu.addSeparator();
+
+        JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
+        showStats.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (hic.getDataset() == null) {
+                    JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    new QCDialog(MainWindow.this, hic, MainWindow.this.getTitle() + " info");
+                }
+            }
+        });
+
+
+        fileMenu.add(showStats);
+        fileMenu.addSeparator();
+
+        JMenuItem saveToImage = new JMenuItem();
+        saveToImage.setText("Export Image...");
+        saveToImage.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new SaveImageDialog(null, hic, hiCPanel);
+            }
+        });
+        fileMenu.add(saveToImage);
+
+        // TODO: make this an export of the data on screen instead of a GUI for CLT
+        if (!HiCGlobals.isRestricted) {
+            JMenuItem dump = new JMenuItem("Export Data...");
+            dump.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    if (hic.getDataset() == null) {
+                        JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        new DumpDialog(MainWindow.this, hic);
+                    }
+
+                }
+            });
+            fileMenu.add(dump);
+        }
+
+        JMenuItem creditsMenu = new JMenuItem();
+        creditsMenu.setText("About");
+        creditsMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
+                JLabel iconLabel = new JLabel(icon);
+                JPanel iconPanel = new JPanel(new GridBagLayout());
+                iconPanel.add(iconLabel);
+
+                JPanel textPanel = new JPanel(new GridLayout(0, 1));
+                textPanel.add(new JLabel("<html><center>" +
+                        "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
+                        "Juicebox: Visualization software for Hi-C data" +
+                        "</h2>" +
+                        "</center>" +
+                        "<p>" +
+                        "Juicebox is Aiden Lab's software for visualizing data from proximity ligation experiments, such as Hi-C, 5C, and Chia-PET.<br>" +
+                        "Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden. Ongoing development work is carried out by Neva C. Durand,<br>" +
+                        "Muhammad Shamim, and Ido Machol.<br><br>" +
+                        "Copyright © 2014. Broad Institute and Aiden Lab" +
+                        "<br><br>" +
+                        "If you use Juicebox in your research, please cite:<br><br>" +
+                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
+                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
+                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                        "* contributed equally" +
+                        "</p></html>"));
+
+                JPanel mainPanel = new JPanel(new BorderLayout());
+                mainPanel.add(textPanel);
+                mainPanel.add(iconPanel, BorderLayout.WEST);
+
+                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
+            }
+        });
+        fileMenu.add(creditsMenu);
+
+        //---- exit ----
+        JMenuItem exit = new JMenuItem();
+        exit.setText("Exit");
+        exit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                exitActionPerformed();
+            }
+        });
+        fileMenu.add(exit);
+
+        // "Annotations" menu items
+        annotationsMenu = new JMenu("Annotations");
+
+        JMenuItem newLoadMI = new JMenuItem();
+        trackLoadAction = new LoadAction("Load Basic Annotations...", this, hic);
+        newLoadMI.setAction(trackLoadAction);
+        annotationsMenu.add(newLoadMI);
+
+        JMenuItem loadEncodeMI = new JMenuItem();
+        encodeAction = new LoadEncodeAction("Load ENCODE Tracks...", this, hic);
+        loadEncodeMI.setAction(encodeAction);
+        annotationsMenu.add(loadEncodeMI);
+
+        // Annotations Menu Items
+        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
+        exportAnnotationsMI = new JMenuItem("Export...");
+        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
+        loadLastMI = new JMenuItem("Load Last");
+        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
+        undoMenuItem = new JMenuItem("Undo Annotation");
+        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
+
+        // Annotate Item Actions
+        exportAnnotationsMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveAnnotationsDialog(customAnnotations);
+            }
+        });
+
+        exportOverlapMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
+                if (loops.size() != 1)
+                    JOptionPane.showMessageDialog(MainWindow.this, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
+                else
+                    new SaveAnnotationsDialog(customAnnotations, loops.get(0));
+            }
+        });
+
+        loadLastMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
+                        hic.getChromosomes(), false, 0, 0, 0, true, null), "1");
+                temp.delete();
+                loadLastMI.setEnabled(false);
+            }
+        });
+
+        mergeVisibleMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = customAnnotationHandler.addVisibleLoops(customAnnotations);
+            }
+        });
+
+        clearCurrentMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int n = JOptionPane.showConfirmDialog(
+                        MainWindow.getInstance(),
+                        "Are you sure you want to clear all custom annotations?",
+                        "Confirm",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (n == JOptionPane.YES_OPTION) {
+                    //TODO: do something with the saving... just update temp?
+                    customAnnotations.clearAnnotations();
+                    exportAnnotationsMI.setEnabled(false);
+                    loadLastMI.setEnabled(false);
+                    repaint();
+                }
+            }
+        });
+
+        undoMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotationHandler.undo(customAnnotations);
+                repaint();
+            }
+        });
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+
+        //Add annotate menu items
+        customAnnotationMenu.add(exportAnnotationsMI);
+        customAnnotationMenu.add(exportOverlapMI);
+        customAnnotationMenu.add(mergeVisibleMI);
+        customAnnotationMenu.add(undoMenuItem);
+        customAnnotationMenu.add(clearCurrentMI);
+        if (unsavedEdits) {
+            customAnnotationMenu.add(loadLastMI);
+            loadLastMI.setEnabled(true);
+        }
+
+        exportAnnotationsMI.setEnabled(false);
+        undoMenuItem.setEnabled(false);
+
+        annotationsMenu.add(customAnnotationMenu);
+
+//        final JMenuItem annotate = new JMenuItem("Annotate Mode");
+//        customAnnotationMenu.add(annotate);
+//
+//        // Add peak annotations
+//        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
+//        final JCheckBoxMenuItem annotatePeak = new JCheckBoxMenuItem("Loops");
+//
+//        annotatePeak.setSelected(false);
+//        annotatePeak.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doPeak();
+//            }
+//        });
+//        annotatePeak.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0));
+//        annotate.add(annotatePeak);
+//
+//        // Add domain annotations
+//        final JCheckBoxMenuItem annotateDomain = new JCheckBoxMenuItem("Domains");
+//
+//        annotateDomain.setSelected(false);
+//        annotateDomain.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doDomain();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
+//        annotate.add(annotateDomain);
+//
+//        // Add generic annotations
+//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic feature");
+//
+//        annotateGeneric.setSelected(false);
+//        annotateGeneric.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                customAnnotationHandler.doGeneric();
+//            }
+//        });
+//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
+//        annotate.add(annotateDomain);
+
+        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
+
+        showLoopsItem.setSelected(true);
+        showLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setShowLoops(showLoopsItem.isSelected());
+                repaint();
+            }
+        });
+        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+
+        annotationsMenu.add(showLoopsItem);
+
+        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
+
+        showCustomLoopsItem.setSelected(true);
+        showCustomLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                repaint();
+            }
+        });
+        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+
+        annotationsMenu.add(showCustomLoopsItem);
+        // meh
+
+        annotationsMenu.setEnabled(false);
+
+        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
+        loadFromURLItem.addActionListener(new AbstractAction() {
+
+            private static final long serialVersionUID = 4203L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (hic.getDataset() == null) {
+                    JOptionPane.showMessageDialog(MainWindow.this, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String url = JOptionPane.showInputDialog("Enter URL: ");
+                if (url != null) {
+                    hic.loadTrack(url);
+
+                }
+
+            }
+        });
+
+        JMenu bookmarksMenu = new JMenu("Bookmarks");
+        //---- Save location ----
+        saveLocationList = new JMenuItem();
+        saveLocationList.setText("Save current location");
+        saveLocationList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent location to the menu
+                String stateString = hic.getLocationDescription();
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved location:", hic.getDefaultLocationDescription());
+                if (null != stateDescription) {
+                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
+                }
+            }
+        });
+
+        saveLocationList.setEnabled(false);
+        bookmarksMenu.add(saveLocationList);
+        //---Save State test-----
+        saveStateForReload = new JMenuItem();
+        saveStateForReload.setText("Save current state");
+        saveStateForReload.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                //code to add a recent location to the menu
+                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
+                        "Enter description for saved state:", hic.getDefaultLocationDescription());
+                if (stateDescription != null && stateDescription.length() > 0) {
+                    previousStates.addEntry(stateDescription, true);
+                }
+                try {
+                    XMLFileHandling.addNewStateToXML(stateDescription, hic, MainWindow.this);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        saveStateForReload.setEnabled(true);
+        bookmarksMenu.add(saveStateForReload);
+
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
+
+            private static final long serialVersionUID = 4204L;
+
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                hic.restoreLocation(temp[1]);//temp[1]
+                setNormalizationDisplayState();
+            }
+        };
+        recentLocationMenu.setMnemonic('S');
+        recentLocationMenu.setEnabled(false);
+        bookmarksMenu.add(recentLocationMenu);
+
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
+
+            private static final long serialVersionUID = 4205L;
+
+            public void onSelectPosition(String mapPath) {
+                LoadStateFromXMLFile.reloadSelectedState(mapPath, MainWindow.this, hic);
+            }
+        };
+        previousStates.setEnabled(true);
+        bookmarksMenu.add(previousStates);
+
+        //---Export Menu-----
+        JMenu shareMenu = new JMenu("Share States");
+
+        //---Export Maps----
+        exportMapAsFile = new JMenuItem();
+        exportMapAsFile.setText("Export Saved States");
+        exportMapAsFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveFileDialog(fileForExport);
+            }
+        });
+
+
+        //---Import Maps----
+        importMapAsFile = new JMenuItem();
+        importMapAsFile.setText("Import State From File");
+        importMapAsFile.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new ImportFileDialog(fileForExport, MainWindow.getInstance());
+                importMapAsFile.setSelected(true);
+            }
+        });
+
+
+        //---Slideshow----
+        //ALL YOUR'S MARIE
+        slideShow = new JMenuItem();
+        slideShow.setText("View Slideshow");
+        slideShow.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Slideshow.viewShow();
+            }
+        });
+        bookmarksMenu.add(slideShow);
+
+
+        //Add menu items
+        shareMenu.add(exportMapAsFile);
+        shareMenu.add(importMapAsFile);
+
+        /*
+        //---3D Model Menu-----
+        JMenu toolsMenu = new JMenu("Tools");
+        //---Export Maps----
+        JMenuItem launch3DModel = new JMenuItem();
+        launch3DModel.setText("Visualize 3D Model");
+        launch3DModel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Launcher demo = new Launcher();
+                demo.setVisible(true);
+            }
+        });
+        toolsMenu.add(launch3DModel);
+        */
+
+        menuBar.add(fileMenu);
+        menuBar.add(annotationsMenu);
+        menuBar.add(bookmarksMenu);
+        menuBar.add(shareMenu);
+        //menuBar.add(toolsMenu);
+        return menuBar;
     }
 
     private void loadNormalizationVector(File file) throws IOException {
@@ -2353,6 +2197,25 @@ public class MainWindow extends JFrame {
 
     public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
         this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
+    }
+
+    public void updateNamesFromImport(String path) {
+        previousStates.updateNamesFromImport(path);
+    }
+
+    public LoadAction getTrackLoadAction() {
+        return trackLoadAction;
+    }
+
+    public LoadEncodeAction getEncodeAction() {
+        return encodeAction;
+    }
+
+    /**
+     * TODO - called by loading of state, need to decide what options are clickable
+     */
+    public void enableAllOptionsButtons() {
+        // TODO zgire
     }
 }
 

@@ -66,6 +66,7 @@ public class HiCCUPSUtils {
 
     /**
      * Generate a Feature2D peak for a possible peak location from hiccups
+     *
      * @param chrName
      * @param observed
      * @param peak
@@ -103,11 +104,12 @@ public class HiCCUPSUtils {
         int pos1 = Math.min(rowPos, colPos);
         int pos2 = Math.max(rowPos, colPos);
 
-        return new Feature2D(Feature2D.peak, chrName, pos1, pos1+1, chrName, pos2, pos2 + 1, Color.black, attributes);
+        return new Feature2D(Feature2D.peak, chrName, pos1, pos1 + 1, chrName, pos2, pos2 + 1, Color.black, attributes);
     }
 
     /**
      * Calculate fdr values for a given peak
+     *
      * @param feature
      * @param fdrLogBL
      * @param fdrLogDonut
@@ -122,34 +124,33 @@ public class HiCCUPSUtils {
         int binH = (int) feature.getFloatAttribute(BINH);
         int binV = (int) feature.getFloatAttribute(BINV);
 
-        if(binBL >= 0  && binDonut >= 0  && binH >= 0  && binV >= 0  && observed >= 0) {
+        if (binBL >= 0 && binDonut >= 0 && binH >= 0 && binV >= 0 && observed >= 0) {
             feature.addAttribute(FDRBL, String.valueOf(fdrLogBL[binBL][observed]));
             feature.addAttribute(FDRDONUT, String.valueOf(fdrLogDonut[binDonut][observed]));
             feature.addAttribute(FDRH, String.valueOf(fdrLogH[binH][observed]));
             feature.addAttribute(FDRV, String.valueOf(fdrLogV[binV][observed]));
-        }
-        else{
-            System.out.println("Error in calculateFDR binBL=" + binBL + " binDonut=" + binDonut +" binH=" + binH +
-                    " binV="+ binV + " observed="+ observed);
+        } else {
+            System.out.println("Error in calculateFDR binBL=" + binBL + " binDonut=" + binDonut + " binH=" + binH +
+                    " binV=" + binV + " observed=" + observed);
         }
 
     }
 
-    public static String oldOutput(Feature2D feature){
-        return feature.getChr1()+"\t"+feature.getStart1()+"\t"+feature.getChr2()+"\t"+feature.getStart2()+"\t"+
+    public static String oldOutput(Feature2D feature) {
+        return feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getChr2() + "\t" + feature.getStart2() + "\t" +
                 feature.getAttribute(OBSERVED)
-                +"\t"+feature.getAttribute(EXPECTEDBL)
-                +"\t"+feature.getAttribute(EXPECTEDDONUT)
-                +"\t"+feature.getAttribute(EXPECTEDH)
-                +"\t"+feature.getAttribute(EXPECTEDV)
-                +"\t"+feature.getAttribute(BINBL)
-                +"\t"+feature.getAttribute(BINDONUT)
-                +"\t"+feature.getAttribute(BINH)
-                +"\t"+feature.getAttribute(BINV)
-                +"\t"+feature.getAttribute(FDRBL)
-                +"\t"+feature.getAttribute(FDRDONUT)
-                +"\t"+feature.getAttribute(FDRH)
-                +"\t"+feature.getAttribute(FDRV);
+                + "\t" + feature.getAttribute(EXPECTEDBL)
+                + "\t" + feature.getAttribute(EXPECTEDDONUT)
+                + "\t" + feature.getAttribute(EXPECTEDH)
+                + "\t" + feature.getAttribute(EXPECTEDV)
+                + "\t" + feature.getAttribute(BINBL)
+                + "\t" + feature.getAttribute(BINDONUT)
+                + "\t" + feature.getAttribute(BINH)
+                + "\t" + feature.getAttribute(BINV)
+                + "\t" + feature.getAttribute(FDRBL)
+                + "\t" + feature.getAttribute(FDRDONUT)
+                + "\t" + feature.getAttribute(FDRH)
+                + "\t" + feature.getAttribute(FDRV);
     }
 
     public static void postProcessLoops(Feature2DList list, final int resolution,

@@ -56,9 +56,10 @@ class MatrixTriangles {
 
     /**
      * calculate Bnew, the block score matrix. it's a combination of 3 matrices
+     *
      * @param matrix
      */
-    public MatrixTriangles(RealMatrix matrix){
+    public MatrixTriangles(RealMatrix matrix) {
         int n = Math.min(matrix.getRowDimension(), matrix.getColumnDimension());
         up = MatrixTools.cleanArray2DMatrix(n);
         upSign = MatrixTools.cleanArray2DMatrix(n);
@@ -67,11 +68,11 @@ class MatrixTriangles {
         loSign = MatrixTools.cleanArray2DMatrix(n);
         loSquared = MatrixTools.cleanArray2DMatrix(n);
 
-        MatrixTools.setNaNs(matrix,0);
+        MatrixTools.setNaNs(matrix, 0);
 
         //int window= matrix.getRowDimension(); // TODO What? -> "not using this because it messed things up"
 
-        RealMatrix matrixElementwiseSquared = MatrixTools.elementBasedMultiplication(matrix,matrix);
+        RealMatrix matrixElementwiseSquared = MatrixTools.elementBasedMultiplication(matrix, matrix);
         RealMatrix signMatrix = MatrixTools.sign(matrix);
         RealMatrix onesMatrix = MatrixTools.ones(n);
 
@@ -82,28 +83,28 @@ class MatrixTriangles {
         // from diagonal (col 1) up to col 5
         // We want mean, mean of sign, and variance, so we are doing the sum then
         // dividing by counts
-        RealMatrix rSum=DynamicProgrammingUtils.right(matrix, n);
-        RealMatrix rSign=DynamicProgrammingUtils.right(signMatrix, n);
-        RealMatrix rSquared=DynamicProgrammingUtils.right(matrixElementwiseSquared, n);
-        RealMatrix rCount=DynamicProgrammingUtils.right(onesMatrix, n);
+        RealMatrix rSum = DynamicProgrammingUtils.right(matrix, n);
+        RealMatrix rSign = DynamicProgrammingUtils.right(signMatrix, n);
+        RealMatrix rSquared = DynamicProgrammingUtils.right(matrixElementwiseSquared, n);
+        RealMatrix rCount = DynamicProgrammingUtils.right(onesMatrix, n);
 
-        RealMatrix uSum=DynamicProgrammingUtils.upper(matrix, n);
-        RealMatrix uSign=DynamicProgrammingUtils.upper(signMatrix, n);
-        RealMatrix uSquared=DynamicProgrammingUtils.upper(matrixElementwiseSquared , n);
-        RealMatrix uCount=DynamicProgrammingUtils.upper(onesMatrix, n);
+        RealMatrix uSum = DynamicProgrammingUtils.upper(matrix, n);
+        RealMatrix uSign = DynamicProgrammingUtils.upper(signMatrix, n);
+        RealMatrix uSquared = DynamicProgrammingUtils.upper(matrixElementwiseSquared, n);
+        RealMatrix uCount = DynamicProgrammingUtils.upper(onesMatrix, n);
 
         RealMatrix upCount = MatrixTools.cleanArray2DMatrix(n);
         RealMatrix loCount = MatrixTools.cleanArray2DMatrix(n);
 
         // Upper triangle
-        for(int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
-                int bottom = (int)Math.floor((j-i+1)/2);
+                int bottom = (int) Math.floor((j - i + 1) / 2);
                 // add half of column
-                up.setEntry(i,j, up.getEntry(i,j-1) + rSum.getEntry(i, j) - rSum.getEntry(i + bottom, j));
+                up.setEntry(i, j, up.getEntry(i, j - 1) + rSum.getEntry(i, j) - rSum.getEntry(i + bottom, j));
                 upSign.setEntry(i, j, upSign.getEntry(i, j - 1) + rSign.getEntry(i, j) - rSign.getEntry(i + bottom, j));
-                upSquared.setEntry(i, j, upSquared.getEntry(i, j - 1) + rSquared.getEntry(i,j) - rSquared.getEntry(i + bottom, j));
-                upCount.setEntry(i,j, upCount.getEntry(i, j - 1) + rCount.getEntry(i,j) - rCount.getEntry(i + bottom, j));
+                upSquared.setEntry(i, j, upSquared.getEntry(i, j - 1) + rSquared.getEntry(i, j) - rSquared.getEntry(i + bottom, j));
+                upCount.setEntry(i, j, upCount.getEntry(i, j - 1) + rCount.getEntry(i, j) - rCount.getEntry(i + bottom, j));
             }
         }
 
@@ -112,15 +113,15 @@ class MatrixTriangles {
         up = MatrixTools.elementBasedDivision(up, upCount);
         upSign = MatrixTools.elementBasedDivision(upSign, upCount);
         upSquared = MatrixTools.elementBasedDivision(upSquared, upCount);
-        
+
         // Lower triangle
-        for(int a = 0; a < n; a++){
-            for(int b = a+1; b < n; b++){
-                int val = (int)Math.floor((b - a + 1) / 2);
+        for (int a = 0; a < n; a++) {
+            for (int b = a + 1; b < n; b++) {
+                int val = (int) Math.floor((b - a + 1) / 2);
                 int endpt = Math.min(2 * b - a, n - 1);
-                loCount.setEntry(a, b, loCount.getEntry(a, b - 1)+uCount.getEntry(b, endpt)-rCount.getEntry(a + val, b));
-                lo.setEntry(a, b, lo.getEntry(a, b - 1)+uSum.getEntry(b,endpt)-rSum.getEntry(a + val, b));
-                loSign.setEntry(a, b, loSign.getEntry(a,b-1)+uSign.getEntry(b, endpt)-rSign.getEntry(a + val, b));
+                loCount.setEntry(a, b, loCount.getEntry(a, b - 1) + uCount.getEntry(b, endpt) - rCount.getEntry(a + val, b));
+                lo.setEntry(a, b, lo.getEntry(a, b - 1) + uSum.getEntry(b, endpt) - rSum.getEntry(a + val, b));
+                loSign.setEntry(a, b, loSign.getEntry(a, b - 1) + uSign.getEntry(b, endpt) - rSign.getEntry(a + val, b));
                 loSquared.setEntry(a, b, loSquared.getEntry(a, b - 1) + uSquared.getEntry(b, endpt) - rSquared.getEntry(a + val, b));
             }
         }
@@ -138,7 +139,7 @@ class MatrixTriangles {
      * Calculate block scores
      */
     public void generateBlockScoreCalculations() {
-        if(initialMatricesNotGenerated){
+        if (initialMatricesNotGenerated) {
             System.out.println("Initial matrices have not been generated");
             System.exit(-4);
         }
@@ -155,11 +156,12 @@ class MatrixTriangles {
 
     /**
      * Use give thresholds to eliminate extremes
+     *
      * @param varThreshold
      * @param signThreshold
      */
     public void thresholdScoreValues(float varThreshold, float signThreshold) {
-        if(blockScoresNotCalculated){
+        if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
         }
@@ -213,7 +215,7 @@ class MatrixTriangles {
      * @return
      */
     public void updateScoresUsingList(ArrowheadScoreList scoreList) {
-        if(blockScoresNotCalculated){
+        if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
         }
@@ -222,7 +224,7 @@ class MatrixTriangles {
     }
 
     public List<Set<Point>> extractConnectedComponents() {
-        if(blockScoresNotThresholded){
+        if (blockScoresNotThresholded) {
             System.out.println("Scores not fixed for threshold");
             System.exit(-6);
         }
@@ -232,7 +234,7 @@ class MatrixTriangles {
 
     public List<HighScore> calculateResults(List<Set<Point>> connectedComponents) {
         /*  for each connected component, get result for highest scoring point  */
-        ArrayList<HighScore>results = new ArrayList<HighScore>();
+        ArrayList<HighScore> results = new ArrayList<HighScore>();
         for (Set<Point> component : connectedComponents) {
             Point score = getHighestScoringPoint(blockScore, component);
             int i = score.x, j = score.y;

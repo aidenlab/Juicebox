@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
+
 import java.io.IOException;
 
 /**
@@ -34,7 +35,7 @@ public abstract class JuiceboxCLT {
 
     private static String usage;
 
-    JuiceboxCLT(String usage){
+    JuiceboxCLT(String usage) {
         setUsage(usage);
     }
 

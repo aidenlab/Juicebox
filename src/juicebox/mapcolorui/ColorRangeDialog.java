@@ -48,7 +48,7 @@ public class ColorRangeDialog extends JDialog {
     private final DecimalFormat df1;
     private final DecimalFormat df2;
     private final boolean isObserved;
-    public  Color[] tmpCol = new Color[24];
+    public Color[] tmpCol = new Color[24];
     private JTextField minimumField;
     private JTextField maximumField;
 
@@ -134,10 +134,10 @@ public class ColorRangeDialog extends JDialog {
         JPanel panel2 = new JPanel();
         JLabel label4 = new JLabel();
 
-        final JPanel  panel5 = new JPanel();
+        final JPanel panel5 = new JPanel();
         JLabel label5 = new JLabel();
 
-        final JPanel  panel6 = new JPanel();
+        final JPanel panel6 = new JPanel();
 
         minimumField = new JTextField();
         JPanel panel1 = new JPanel();
@@ -257,7 +257,7 @@ public class ColorRangeDialog extends JDialog {
 
         //======== panel6 ========
 
-        JRadioButton rColor = new JRadioButton(new AbstractAction("Color"){
+        JRadioButton rColor = new JRadioButton(new AbstractAction("Color") {
             private static final long serialVersionUID = 4201L;
 
             @Override
@@ -275,7 +275,7 @@ public class ColorRangeDialog extends JDialog {
             }
         });
         rColor.setSelected(true);
-        JRadioButton rGradient = new JRadioButton(new AbstractAction("Gradient"){
+        JRadioButton rGradient = new JRadioButton(new AbstractAction("Gradient") {
             private static final long serialVersionUID = 4202L;
 
             @Override

@@ -42,7 +42,7 @@ class GPUHelper {
         return dOutput;
     }
 
-    public static CUdeviceptr allocateInput(float[] input){
+    public static CUdeviceptr allocateInput(float[] input) {
         int typeSize = Sizeof.FLOAT;
         Pointer ptr = Pointer.to(input);
         int size = input.length;
@@ -52,8 +52,8 @@ class GPUHelper {
         return dInput;
     }
 
-    public static void freeUpMemory(CUdeviceptr[] pointers){
-        for(CUdeviceptr pointer : pointers){
+    public static void freeUpMemory(CUdeviceptr[] pointers) {
+        for (CUdeviceptr pointer : pointers) {
             cuMemFree(pointer);
         }
     }

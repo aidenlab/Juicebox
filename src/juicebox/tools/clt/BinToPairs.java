@@ -24,8 +24,8 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.original.AsciiToBinConverter;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.original.AsciiToBinConverter;
 
 import java.io.IOException;
 
@@ -34,7 +34,7 @@ public class BinToPairs extends JuiceboxCLT {
 
     private String ifile, ofile;
 
-    public BinToPairs(){
+    public BinToPairs() {
         super("binToPairs <input_HiC_file> <output_HiC_file>");
     }
 

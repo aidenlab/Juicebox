@@ -607,7 +607,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     /**
      * Note -- compressed
      *
-     * @param zd     Matrix zoom data
+     * @param zd          Matrix zoom data
      * @param block       Block to write
      * @param sampledData Array to hold a sample of the data (to compute statistics)
      * @throws IOException
@@ -1051,7 +1051,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Constructor for creating a matrix and initializing zoomed data at predefined resolution scales.  This
          * constructor is used when parsing alignment files.
-         *                       c
+         * c
+         *
          * @param chr1Idx Chromosome 1
          * @param chr2Idx Chromosome 2
          */
@@ -1315,7 +1316,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Dump the blocks calculated so far to a temporary file
          *
-         * @param file    File to write to
+         * @param file File to write to
          * @throws IOException
          */
         private void dumpBlocks(File file) throws IOException {
@@ -1431,7 +1432,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
             for (File f : tmpFiles) {
                 boolean result = f.delete();
-                if(!result){
+                if (!result) {
                     System.out.println("Error while deleting file");
                 }
             }

@@ -94,7 +94,7 @@ public class HeatmapRenderer {
                         new Color(255, 222, 230),
                         new Color(255, 230, 242),
                         new Color(255, 242, 255),
-                        new Color(255,0,0)
+                        new Color(255, 0, 0)
                 },
                 // elevation
                 new int[]{
@@ -273,18 +273,14 @@ public class HeatmapRenderer {
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
 
-            if (MainWindow.hicMapColor != curHiCColor)
-            {
+            if (MainWindow.hicMapColor != curHiCColor) {
                 curHiCColor = MainWindow.hicMapColor;
                 observedColorScaleMap.clear();
             }
 
-            if(MainWindow.preDefMapColor)
-            {
+            if (MainWindow.preDefMapColor) {
                 cs = preDefColorScale;
-            }
-            else
-            {
+            } else {
                 //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
                 observedColorScale = observedColorScaleMap.get(key);
                 if (observedColorScale == null) {
@@ -312,11 +308,10 @@ public class HeatmapRenderer {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
 
-            if ((observedColorScale != null) ){
+            if ((observedColorScale != null)) {
                 mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
             }
-            if(MainWindow.preDefMapColor)
-            {
+            if (MainWindow.preDefMapColor) {
                 updatePreDefColors();
                 mainWindow.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
@@ -406,16 +401,14 @@ public class HeatmapRenderer {
         observedColorScaleMap.clear();
     }
 
-    private void updatePreDefColors()
-    {
+    private void updatePreDefColors() {
         int arrSize = MainWindow.preDefMapColorGradient.size();
 
         ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
         Integer[] arrTmp = set.toArray(new Integer[arrSize]);
         final int[] arrScores = new int[arrSize];
 
-        for (int idx=0;idx<arrSize; idx++)
-        {
+        for (int idx = 0; idx < arrSize; idx++) {
             arrScores[idx] = arrTmp[idx];
         }
 

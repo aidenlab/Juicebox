@@ -40,10 +40,11 @@ public class ArrowheadScoreList {
 
     private List<ArrowheadScore> arrowheadScores = new ArrayList<ArrowheadScore>();
 
-    public ArrowheadScoreList() {}
+    public ArrowheadScoreList() {
+    }
 
     private ArrowheadScoreList(List<ArrowheadScore> dataList) {
-        for(ArrowheadScore data : dataList){
+        for (ArrowheadScore data : dataList) {
             arrowheadScores.add(new ArrowheadScore(data));
         }
     }
@@ -62,11 +63,11 @@ public class ArrowheadScoreList {
     }
 
     public void setActiveListElements(int limStart, int limEnd) {
-        for(ArrowheadScore score : arrowheadScores) {
+        for (ArrowheadScore score : arrowheadScores) {
             score.isActive = false;
         }
 
-        for(ArrowheadScore score : arrowheadScores) {
+        for (ArrowheadScore score : arrowheadScores) {
             if (score.isWithin(limStart, limEnd)) {
                 score.isActive = true;
             }
@@ -80,17 +81,17 @@ public class ArrowheadScoreList {
     public void mergeScores() {
         List<ArrowheadScore> mergedScores = new ArrayList<ArrowheadScore>();
 
-        for(ArrowheadScore aScore : arrowheadScores){
+        for (ArrowheadScore aScore : arrowheadScores) {
             boolean valueNotFound = true;
-            for(ArrowheadScore mScore : mergedScores){
-                if(aScore.equivalentTo(mScore)){
+            for (ArrowheadScore mScore : mergedScores) {
+                if (aScore.equivalentTo(mScore)) {
                     mScore.updateScore(aScore.score);
                     valueNotFound = false;
                     break;
                 }
             }
 
-            if(valueNotFound){
+            if (valueNotFound) {
                 mergedScores.add(aScore);
             }
         }
@@ -99,52 +100,52 @@ public class ArrowheadScoreList {
 
     public Feature2DList toFeature2DList(int chrIndex, String chrName) {
         Feature2DList feature2DList = new Feature2DList();
-        for(ArrowheadScore score : arrowheadScores) {
+        for (ArrowheadScore score : arrowheadScores) {
             feature2DList.add(chrIndex, chrIndex, score.toFeature2D(chrName));
         }
         return feature2DList;
     }
 
 
-    private class ArrowheadScore{
+    private class ArrowheadScore {
         private final int[] indices = new int[4];
         private double score = Double.NaN;
         private boolean isActive = false;
 
-        public ArrowheadScore(int[] indices){
+        public ArrowheadScore(int[] indices) {
             System.arraycopy(indices, 0, this.indices, 0, 4);
         }
 
         // use for deep copying
-        public ArrowheadScore(ArrowheadScore arrowheadScore){
+        public ArrowheadScore(ArrowheadScore arrowheadScore) {
             System.arraycopy(arrowheadScore.indices, 0, this.indices, 0, 4);
             this.score = arrowheadScore.score;
             this.isActive = arrowheadScore.isActive;
         }
 
         public void updateScore(double score) {
-            if(Double.isNaN(this.score))
+            if (Double.isNaN(this.score))
                 this.score = score;
-            else if(!Double.isNaN(score))
+            else if (!Double.isNaN(score))
                 this.score = Math.max(score, this.score);
         }
 
         // fully contained within bounds
         public boolean isWithin(int limStart, int limEnd) {
             boolean containedInBounds = true;
-            for(int index : indices){
+            for (int index : indices) {
                 containedInBounds = containedInBounds && index >= limStart && index <= limEnd;
             }
             return containedInBounds;
         }
 
         public boolean equivalentTo(ArrowheadScore mScore) {
-            return Arrays.equals(indices,mScore.indices);
+            return Arrays.equals(indices, mScore.indices);
         }
 
         public Feature2D toFeature2D(String chrName) {
-            Map<String,String> attributes = new HashMap<String, String>();
-            attributes.put("score",Double.toString(score));
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put("score", Double.toString(score));
             return new Feature2D(Feature2D.generic, chrName, indices[0], indices[1],
                     chrName, indices[2], indices[3], Color.yellow, attributes);
         }

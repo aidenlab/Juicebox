@@ -24,39 +24,21 @@
 
 package juicebox.state;
 
-import juicebox.DirectoryManager;
-import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.windowui.RecentMenu;
-import org.apache.commons.io.FileUtils;
-
-import org.broad.igv.ui.util.FileDialogUtils;
-import juicebox.windowui.RecentMenu;
-import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import sun.applet.Main;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.*;
-import java.net.URL;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.List;
-
 
 
 /**
@@ -65,61 +47,15 @@ import java.util.List;
 public class ImportFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = -1038991737399792883L;
-    private File currentJuiceboxStates = new File(HiCGlobals.xmlFileName);
-    private MainWindow mainWindow;
-    private File originalStates = new File("OriginalJuiceboxSavedStates.xml");
+    private final File originalStates = new File("OriginalJuiceboxSavedStates.xml");
 
-    public ImportFileDialog(File currentStates, MainWindow mainWindow ) {
+    public ImportFileDialog(File currentStates, MainWindow mainWindow) {
         super();
-        this.mainWindow = mainWindow;
-        loadFile(currentStates);
-    }
-
-    private void loadFile(File currentFile){
-
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "XML Files", "xml", "XML");
-        setFileFilter(filter);
-
-        int actionDialog = showOpenDialog(MainWindow.getInstance());
-        if(actionDialog == APPROVE_OPTION){
-            File importedFile = getSelectedFile();
-            String path = importedFile.getAbsolutePath();
-            mainWindow.getPrevousStateMenu().updateNamesFromImport(path);
-
-            try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                factory.setValidating(false);
-                factory.setNamespaceAware(true);
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                builder.setErrorHandler(new SimpleErrorHandler());
-                Document document = builder.parse(new InputSource(path));
-                copyFile(currentFile,originalStates);
-                copyFile(importedFile,currentFile);
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Importing File:\n" + importedFile.getName(),"Opening",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while importing file:\n" + e.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            }
-            catch (ParserConfigurationException pce) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while importing file:\n" + pce.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                pce.printStackTrace();
-            } catch (SAXException sax) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while importing file:\n" + sax.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                sax.printStackTrace();
-            }
-
-            System.out.println("Opening File: " + importedFile.getName());
-
-        }
+        loadFile(currentStates, mainWindow);
     }
 
     private static void copyFile(File sourceFile, File destFile) throws IOException {
-        if(!destFile.exists()) {
+        if (!destFile.exists()) {
             destFile.createNewFile();
         }
 
@@ -130,18 +66,51 @@ public class ImportFileDialog extends JFileChooser {
             source = new FileInputStream(sourceFile).getChannel();
             destination = new FileOutputStream(destFile).getChannel();
             destination.transferFrom(source, 0, source.size());
-        }
-        finally {
-            if(source != null) {
+        } finally {
+            if (source != null) {
                 source.close();
             }
-            if(destination != null) {
+            if (destination != null) {
                 destination.close();
             }
         }
     }
 
-    public static class SimpleErrorHandler implements ErrorHandler {
+    private void loadFile(File currentFile, MainWindow mainWindow) {
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "XML Files", "xml", "XML");
+        setFileFilter(filter);
+
+        int actionDialog = showOpenDialog(MainWindow.getInstance());
+        if (actionDialog == APPROVE_OPTION) {
+            File importedFile = getSelectedFile();
+            String path = importedFile.getAbsolutePath();
+            mainWindow.updateNamesFromImport(path);
+
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setValidating(false);
+                factory.setNamespaceAware(true);
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                builder.setErrorHandler(new SimpleErrorHandler());
+                builder.parse(new InputSource(path));
+                copyFile(currentFile, originalStates);
+                copyFile(importedFile, currentFile);
+                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Importing File:\n" + importedFile.getName(), "Opening",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while importing file:\n" + e.getMessage(), "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+
+            System.out.println("Opening File: " + importedFile.getName());
+
+        }
+    }
+
+    private static class SimpleErrorHandler implements ErrorHandler {
         public void warning(SAXParseException e) throws SAXException {
             System.out.println(e.getMessage());
         }

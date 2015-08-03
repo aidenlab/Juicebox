@@ -40,39 +40,27 @@ import java.nio.channels.FileChannel;
 public class SaveFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = 2910799798390074194L;
-    private int numStates = 0;
 
 
-    public SaveFileDialog(File fileToSave, int savedStates) {
+    public SaveFileDialog(File fileToSave) {
         super();
-        numStates = savedStates;
-        saveFile(fileToSave,savedStates);
-
-    }
-
-    private void saveFile(File fileToSave, int numMaps) {
-
         setCurrentDirectory(new File(System.getProperty("user.dir")));
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "XML Files", "xml", "XML");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml", "XML");
         setFileFilter(filter);
         int actionDialog = showSaveDialog(MainWindow.getInstance());
         if (actionDialog == JFileChooser.APPROVE_OPTION) {
             File file = getSelectedFile();
             try {
                 copyFile(fileToSave, file);
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (numMaps == 0) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No saved HiC maps to export", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
         }
+    }
+
 
     private static void copyFile(File sourceFile, File destFile) throws IOException {
-        if(!destFile.exists()) {
+        if (!destFile.exists()) {
             destFile.createNewFile();
         }
 
@@ -83,12 +71,11 @@ public class SaveFileDialog extends JFileChooser {
             source = new FileInputStream(sourceFile).getChannel();
             destination = new FileOutputStream(destFile).getChannel();
             destination.transferFrom(source, 0, source.size());
-        }
-        finally {
-            if(source != null) {
+        } finally {
+            if (source != null) {
                 source.close();
             }
-            if(destination != null) {
+            if (destination != null) {
                 destination.close();
             }
         }

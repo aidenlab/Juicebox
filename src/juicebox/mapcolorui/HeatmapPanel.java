@@ -32,7 +32,6 @@ import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -70,7 +69,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
-    private boolean warningShown = false;
     /**
      * Image tile width in pixels
      */
@@ -231,9 +229,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
 
 
-
                     //if (mainWindow.isRefreshTest()) {
-                        g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
                     //}
                     //TODO ******** UNCOMMENT *******
 
@@ -270,80 +267,80 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.getYContext().getChromosome().getName().equals("All"));
 
             //if (mainWindow.isRefreshTest()) {
-                // Draw grid
-                if (isWholeGenome) {
-                    Color color = g.getColor();
-                    g.setColor(Color.LIGHT_GRAY);
+            // Draw grid
+            if (isWholeGenome) {
+                Color color = g.getColor();
+                g.setColor(Color.LIGHT_GRAY);
 
-                    List<Chromosome> chromosomes = hic.getChromosomes();
-                    // Index 0 is whole genome
-                    int xGenomeCoord = 0;
-                    int x = 0;
-                    for (int i = 1; i < chromosomes.size(); i++) {
-                        Chromosome c = chromosomes.get(i);
-                        xGenomeCoord += (c.getLength() / 1000);
-                        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
-                        x = (int) (xBin * scaleFactor);
-                        g.drawLine(x, 0, x, getTickHeight(g));
-                    }
-
-
-                    int yGenomeCoord = 0;
-                    int y = 0;
-                    for (int i = 1; i < chromosomes.size(); i++) {
-                        Chromosome c = chromosomes.get(i);
-                        yGenomeCoord += (c.getLength() / 1000);
-                        int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
-                        y = (int) (yBin * hic.getScaleFactor());
-                        g.drawLine(0, y, getTickWidth(g), y);
-                    }
-
-                    g.setColor(color);
-
-                    //Cover gray background for the empty parts of the matrix:
-                    g.setColor(Color.white);
-                    g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
-                    g.fillRect(0, getTickWidth(g), getHeight(), getWidth());
-                    g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
-                }
-
-                Point cursorPoint = hic.getCursorPoint();
-                if (cursorPoint != null) {
-                    g.setColor(MainWindow.RULER_LINE_COLOR);
-                    g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
-                    g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
+                List<Chromosome> chromosomes = hic.getChromosomes();
+                // Index 0 is whole genome
+                int xGenomeCoord = 0;
+                int x = 0;
+                for (int i = 1; i < chromosomes.size(); i++) {
+                    Chromosome c = chromosomes.get(i);
+                    xGenomeCoord += (c.getLength() / 1000);
+                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
+                    x = (int) (xBin * scaleFactor);
+                    g.drawLine(x, 0, x, getTickHeight(g));
                 }
 
 
-                if (allTilesNull) {
-                    g.setFont(FontManager.getFont(12));
-                    GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
+                int yGenomeCoord = 0;
+                int y = 0;
+                for (int i = 1; i < chromosomes.size(); i++) {
+                    Chromosome c = chromosomes.get(i);
+                    yGenomeCoord += (c.getLength() / 1000);
+                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
+                    y = (int) (yBin * hic.getScaleFactor());
+                    g.drawLine(0, y, getTickWidth(g), y);
+                }
 
+                g.setColor(color);
+
+                //Cover gray background for the empty parts of the matrix:
+                g.setColor(Color.white);
+                g.fillRect(getTickHeight(g), 0, getHeight(), getWidth());
+                g.fillRect(0, getTickWidth(g), getHeight(), getWidth());
+                g.fillRect(getTickHeight(g), getTickWidth(g), getHeight(), getWidth());
+            }
+
+            Point cursorPoint = hic.getCursorPoint();
+            if (cursorPoint != null) {
+                g.setColor(MainWindow.RULER_LINE_COLOR);
+                g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
+                g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
+            }
+
+
+            if (allTilesNull) {
+                g.setFont(FontManager.getFont(12));
+                GraphicUtils.drawCenteredText("Normalization vectors not available at this resolution.  Try a different normalization.", clipBounds, g);
+
+            } else {
+                // Render loops
+                drawnLoopFeatures.clear();
+
+                List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                // customLoops is array with zero or more loops
+                List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                if (loops == null) {
+                    loops = customLoops;
                 } else {
-                    // Render loops
-                    drawnLoopFeatures.clear();
-
-                    List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-                    // customLoops is array with zero or more loops
-                    List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-                    if (loops == null) {
-                        loops = customLoops;
-                    } else {
-                        loops.addAll(customLoops);
-                    }
-
-                    FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
-                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
-
-                    if (zoomRectangle != null) {
-                        ((Graphics2D) g).draw(zoomRectangle);
-                    }
-
-                    if (annotateRectangle != null) {
-                        ((Graphics2D) g).draw(annotateRectangle);
-                    }
-
+                    loops.addAll(customLoops);
                 }
+
+                FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
+                        highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+
+                if (zoomRectangle != null) {
+                    ((Graphics2D) g).draw(zoomRectangle);
+                }
+
+                if (annotateRectangle != null) {
+                    ((Graphics2D) g).draw(annotateRectangle);
+                }
+
+            }
             //}
             //UNCOMMENT TO OUTLINE "selected" BIN TODO - is this safe to delete?
             //        if(hic.getSelectedBin() != null) {
@@ -496,7 +493,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 null, null);
         dialog.setVisible(true);
         Color c = colorChooser.getColor();
-        if(c != null) {
+        if (c != null) {
             selectedFeaturePair.getSecond().setColor(c);
         }
     }
@@ -658,6 +655,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+
         final JMenuItem mi10_1 = new JMenuItem("Change Color");
         mi10_1.addActionListener(new ActionListener() {
             @Override
@@ -679,21 +677,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JMenuItem mi10_3 = new JMenuItem("Remove");
-        mi10_3.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                featureOptionMenuEnabled = false;
-                int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                MainWindow.customAnnotations.removeFromList(chr1Idx, chr2Idx, mostRecentRectFeaturePair.getSecond());
-            }
-        });
-
         final JMenu configureFeatureMenu = new JMenu("Configure feature");
         configureFeatureMenu.add(mi10_1);
         configureFeatureMenu.add(mi10_2);
-        configureFeatureMenu.add(mi10_3);
 
         if (hic != null) {
             //    menu.add(mi2);
@@ -1210,16 +1196,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Priority is right click
             if (e.isPopupTrigger()) {
                 getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
-            // Alt down for zoom
+                // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
-            // Shift down for annotation
-            } else if (e.isShiftDown()){
-                if (MainWindow.hasUnsavedAnnotations() && !warningShown) {
-                    JOptionPane.showMessageDialog(mainWindow, "Warning: There are unsaved hand annotations from your previous session. \n" +
-                            "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
-                    warningShown = true;
-                }
+            } else if (e.isShiftDown()) {
                 dragMode = DragMode.ANNOTATE;
                 MainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
                 MainWindow.customAnnotationHandler.doPeak();
@@ -1266,8 +1246,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mainWindow.repaintTrackPanels();
 
 
-
-
                 //hic.setCursorPoint(null);
                 //setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
 
@@ -1281,7 +1259,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //
 
             } else {
-                    setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
             }
         }
 

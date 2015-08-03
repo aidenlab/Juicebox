@@ -35,8 +35,8 @@ import java.util.Set;
 class IndexNode {
     private final int n;
     private final Set<IndexNode> connectedNodes = new HashSet<IndexNode>();
-    private boolean hasNotBeenIndexed = true;
     private final Set<Point> matrixIndices = new HashSet<Point>();
+    private boolean hasNotBeenIndexed = true;
 
     public IndexNode(int n) {
         this.n = n;

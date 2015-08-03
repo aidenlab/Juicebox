@@ -24,8 +24,8 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.original.BigWigUtils;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.original.BigWigUtils;
 
 import java.io.IOException;
 
@@ -36,7 +36,7 @@ public class BigWig extends JuiceboxCLT {
     private int start = -1, end = -1, windowSize = -1;
     private String chr, path;
 
-    public BigWig(){
+    public BigWig() {
         super("bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
     }
 

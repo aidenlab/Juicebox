@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,10 +39,6 @@ public enum MatrixType {
         this.value = value;
     }
 
-    public String toString() {
-        return value;
-    }
-
     public static MatrixType enumValueFromString(String text) {
         if (text != null) {
             for (MatrixType matrix : MatrixType.values()) {
@@ -52,6 +48,10 @@ public enum MatrixType {
             }
         }
         return null;
+    }
+
+    public String toString() {
+        return value;
     }
 
 }

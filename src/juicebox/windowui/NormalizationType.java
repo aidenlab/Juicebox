@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,10 +43,6 @@ public enum NormalizationType {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     public static NormalizationType enumValueFromString(String text) {
         if (text != null) {
             for (NormalizationType norm : NormalizationType.values()) {
@@ -56,6 +52,10 @@ public enum NormalizationType {
             }
         }
         return null;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
 }

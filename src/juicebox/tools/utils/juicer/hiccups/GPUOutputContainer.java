@@ -68,11 +68,11 @@ public class GPUOutputContainer {
     // TODO maybe pass array of float[][]'s and condense the two nan cleaners
     public void cleanUpBinNans() {
 
-        for(int i = 0; i < numRows; i++){
-            for(int j = 0; j < numColumns; j++){
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numColumns; j++) {
 
-                if( Float.isNaN(expectedBL[i][j]) || Float.isNaN(expectedDonut[i][j]) ||
-                        Float.isNaN(expectedH[i][j]) || Float.isNaN(expectedV[i][j])){
+                if (Float.isNaN(expectedBL[i][j]) || Float.isNaN(expectedDonut[i][j]) ||
+                        Float.isNaN(expectedH[i][j]) || Float.isNaN(expectedV[i][j])) {
 
                     binBL[i][j] = Float.NaN;
                     binDonut[i][j] = Float.NaN;
@@ -85,11 +85,11 @@ public class GPUOutputContainer {
 
     public void cleanUpPeakNaNs() {
 
-        for(int i = 0; i < numRows; i++){
-            for(int j = 0; j < numColumns; j++){
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numColumns; j++) {
 
-                if( Float.isNaN(expectedBL[i][j]) || Float.isNaN(expectedDonut[i][j]) ||
-                        Float.isNaN(expectedH[i][j]) || Float.isNaN(expectedV[i][j])){
+                if (Float.isNaN(expectedBL[i][j]) || Float.isNaN(expectedDonut[i][j]) ||
+                        Float.isNaN(expectedH[i][j]) || Float.isNaN(expectedV[i][j])) {
 
                     peak[i][j] = Float.NaN;
                 }
@@ -98,10 +98,10 @@ public class GPUOutputContainer {
     }
 
     public void updateHistograms(int[][] histBL, int[][] histDonut, int[][] histH, int[][] histV, int maxRows, int maxColumns) {
-        for (int i = 0; i < numRows; i ++){
-            for (int j = 0; j < numColumns; j++){
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numColumns; j++) {
 
-                if(Float.isNaN(observed[i][j]))
+                if (Float.isNaN(observed[i][j]))
                     continue;
 
                 int val = (int) observed[i][j];
@@ -114,12 +114,12 @@ public class GPUOutputContainer {
     }
 
     private void processHistogramValue(float potentialRowIndex, int columnIndex, int[][] histogram, int maxRows, int maxColumns) {
-        if(Float.isNaN(potentialRowIndex))
+        if (Float.isNaN(potentialRowIndex))
             return;
 
         int rowIndex = (int) potentialRowIndex;
-        if(rowIndex >= 0 && rowIndex < maxRows){
-            if(columnIndex >= 0 && columnIndex < maxColumns){
+        if (rowIndex >= 0 && rowIndex < maxRows) {
+            if (columnIndex >= 0 && columnIndex < maxColumns) {
                 histogram[rowIndex][columnIndex] += 1;
             }
         }
@@ -131,9 +131,9 @@ public class GPUOutputContainer {
         if (relativeDiagonal >= (-1 * numRows)) {
 
             // TODO optimize so only necessary region eliminated
-            for (int i = 0; i < numRows; i ++){
+            for (int i = 0; i < numRows; i++) {
                 for (int j = 0; j < numColumns; j++) {
-                    if(j - i <= relativeDiagonal){
+                    if (j - i <= relativeDiagonal) {
                         binBL[i][j] = Float.NaN;
                         binDonut[i][j] = Float.NaN;
                         binH[i][j] = Float.NaN;
@@ -150,9 +150,9 @@ public class GPUOutputContainer {
         if (relativeDiagonal >= (-1 * numRows)) {
 
             // TODO optimize so only necessary region eliminated
-            for (int i = 0; i < numRows; i ++){
+            for (int i = 0; i < numRows; i++) {
                 for (int j = 0; j < numColumns; j++) {
-                    if(j - i <= relativeDiagonal){
+                    if (j - i <= relativeDiagonal) {
                         peak[i][j] = Float.NaN;
                     }
                 }
@@ -165,12 +165,12 @@ public class GPUOutputContainer {
 
         Feature2DList peaks = new Feature2DList();
 
-        for (int i = 0; i < numRows; i ++){
-            for (int j = 0; j < numColumns; j++){
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numColumns; j++) {
 
                 float peakVal = peak[i][j];
 
-                if(Float.isNaN(peakVal) || peakVal <= 0)
+                if (Float.isNaN(peakVal) || peakVal <= 0)
                     continue;
 
                 float observedVal = observed[i][j];
@@ -183,12 +183,12 @@ public class GPUOutputContainer {
                 float binHVal = binH[i][j];
                 float binVVal = binV[i][j];
 
-                int rowPos = (i + rowOffset)*resolution;
-                int colPos = (j + columnOffset)*resolution;
+                int rowPos = (i + rowOffset) * resolution;
+                int colPos = (j + columnOffset) * resolution;
 
-                if(!(Float.isNaN(observedVal) ||
+                if (!(Float.isNaN(observedVal) ||
                         Float.isNaN(expectedBLVal) || Float.isNaN(expectedDonutVal) || Float.isNaN(expectedHVal) || Float.isNaN(expectedVVal) ||
-                        Float.isNaN(binBLVal) || Float.isNaN(binDonutVal) || Float.isNaN(binHVal) || Float.isNaN(binVVal) )) {
+                        Float.isNaN(binBLVal) || Float.isNaN(binDonutVal) || Float.isNaN(binHVal) || Float.isNaN(binVVal))) {
                     if (observedVal < w2 && binBLVal < w1 && binDonutVal < w1 && binHVal < w1 && binVVal < w1) {
 
                         peaks.add(chrIndex, chrIndex, HiCCUPSUtils.generatePeak(chrName, observedVal, peakVal,

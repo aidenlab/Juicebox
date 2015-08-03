@@ -25,7 +25,6 @@
 package juicebox.tools.clt;
 
 import juicebox.tools.HiCTools;
-
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.original.AsciiToBinConverter;
 import org.broad.igv.feature.Chromosome;
@@ -37,7 +36,7 @@ public class PairsToBin extends JuiceboxCLT {
 
     private String ifile, ofile, genomeId;
 
-    public PairsToBin(){
+    public PairsToBin() {
         super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
     }
 

@@ -34,7 +34,7 @@ public class CalcKR extends JuiceboxCLT {
 
     private String infile = null;
 
-    public CalcKR(){
+    public CalcKR() {
         super("calcKR <input_?_file>");
     }
 

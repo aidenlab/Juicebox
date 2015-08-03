@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,16 @@ public class HiCFeatureTrack extends HiCTrack {
         this.hic = hic;
         this.featureSource = featureSource;
         font = FontManager.getFont(6);
+    }
+
+    private static double getFractionalBin(int position, double scaleFactor, HiCGridAxis gridAxis) {
+        double bin1 = gridAxis.getBinNumberForGenomicPosition(position);
+        // Fractional bin (important for "super-zoom")
+        if (scaleFactor > 1) {
+            double bw1 = gridAxis.getGenomicEnd(bin1) - gridAxis.getGenomicStart(bin1);
+            bin1 += (position - gridAxis.getGenomicStart(bin1)) / bw1;
+        }
+        return bin1;
     }
 
     @Override
@@ -168,16 +178,6 @@ public class HiCFeatureTrack extends HiCTrack {
         }
     }
 
-    private static double getFractionalBin(int position, double scaleFactor, HiCGridAxis gridAxis) {
-        double bin1 = gridAxis.getBinNumberForGenomicPosition(position);
-        // Fractional bin (important for "super-zoom")
-        if (scaleFactor > 1) {
-            double bw1 = gridAxis.getGenomicEnd(bin1) - gridAxis.getGenomicStart(bin1);
-            bin1 += (position - gridAxis.getGenomicStart(bin1)) / bw1;
-        }
-        return bin1;
-    }
-
     @Override
     public Color getPosColor() {
         return color;  //To change body of implemented methods use File | Settings | File Templates.
@@ -262,7 +262,8 @@ public class HiCFeatureTrack extends HiCTrack {
     }
 
     @Override
-    public void setAltColor(Color selectedColor) {}
+    public void setAltColor(Color selectedColor) {
+    }
 
     @Override
     public String getName() {

@@ -136,7 +136,7 @@ public class ResolutionControl extends JPanel {
                 }
             }
 
-            private void processClick(){
+            private void processClick() {
                 unit = (unit == HiC.Unit.FRAG ? HiC.Unit.BP : HiC.Unit.FRAG);
                 resolutionLabel.setText(getUnitLabel());
                 Runnable runnable = new Runnable() {
