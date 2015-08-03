@@ -24,8 +24,10 @@
 
 package juicebox;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Muhammad Shamim
@@ -35,34 +37,68 @@ public class HiCGlobals {
 
     // whether MatrixZoomData should cache or not
     public static final boolean useCache = true;
-
     // Changes Data Output Mode
     public static final boolean isRestricted = true;
-
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
-
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     public static final String stateFileName = "CurrentJuiceboxStates";
     public static final String xmlSavedStatesFileName = "JuiceboxStatesForExport.xml";
-
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
-
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.1;
-
     // Juicebox title
+    // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
     public static ArrayList<String> savedStatesList = new ArrayList<String>();
+    // min hic file version supported
+    private static int minVersion = 5;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
-        if (version < 5) {
+        if (version < minVersion) {
             throw new RuntimeException("This file is version " + version +
                     ". Only versions 5 and greater are supported at this time.");
         }
+    }
+
+    public static void verifyGUISupportedHiCFileVersion(int version, MainWindow mainWindow) {
+        if (version < minVersion) {
+            JOptionPane.showMessageDialog(mainWindow, "This version of \"hic\" format is no longer supported");
+            return;
+        }
+    }
+
+    public static List<Color> createNewPreDefMapColorGradient() {
+        List<Color> colors = new ArrayList<Color>();
+        colors.add(new Color(255, 242, 255));
+        colors.add(new Color(255, 242, 255));
+        colors.add(new Color(255, 230, 242));
+        colors.add(new Color(255, 222, 230));
+        colors.add(new Color(250, 218, 234));
+        colors.add(new Color(255, 206, 226));
+        colors.add(new Color(238, 198, 210));
+        colors.add(new Color(222, 186, 182));
+        colors.add(new Color(226, 174, 165));
+        colors.add(new Color(214, 157, 145));
+        colors.add(new Color(194, 141, 125));
+        colors.add(new Color(218, 157, 121));
+        colors.add(new Color(234, 182, 129));
+        colors.add(new Color(242, 206, 133));
+        colors.add(new Color(238, 222, 153));
+        colors.add(new Color(242, 238, 161));
+        colors.add(new Color(222, 238, 161));
+        colors.add(new Color(202, 226, 149));
+        colors.add(new Color(178, 214, 117));
+        colors.add(new Color(149, 190, 113));
+        colors.add(new Color(117, 170, 101));
+        colors.add(new Color(113, 153, 89));
+        colors.add(new Color(18, 129, 242));
+        colors.add(new Color(255, 0, 0));
+        colors.add(new Color(0, 0, 0));
+        return colors;
     }
 }

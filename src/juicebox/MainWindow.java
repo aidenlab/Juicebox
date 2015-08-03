@@ -29,9 +29,11 @@ import juicebox.data.Dataset;
 import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
-import juicebox.mapcolorui.*;
+import juicebox.mapcolorui.HeatmapPanel;
+import juicebox.mapcolorui.JColorRangePanel;
+import juicebox.mapcolorui.ResolutionControl;
+import juicebox.mapcolorui.ThumbnailPanel;
 import juicebox.state.*;
-import juicebox.state.LoadStateFromXMLFile;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -45,7 +47,6 @@ import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
@@ -54,20 +55,21 @@ import org.broad.igv.util.ParsingUtils;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
-import java.awt.event.*;
-import java.awt.font.TextAttribute;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -84,15 +86,15 @@ public class MainWindow extends JFrame {
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
-    private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane();
-    public static Cursor fistCursor; // for panning
+    private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
+    public static Cursor fistCursor;
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
     public static JMenuItem exportAnnotationsMI;
     public static JMenuItem undoMenuItem;
     public static Color hicMapColor = Color.red;
     public static boolean preDefMapColor = false;
-    public static List<Color> preDefMapColorGradient = new ArrayList<Color>();
+    public static List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
@@ -110,17 +112,14 @@ public class MainWindow extends JFrame {
     private static JideButton refreshButton;
     private static JMenuItem saveStateForReload;
     private static RecentMenu previousStates;
-    private static JMenuItem refreshTest;
     private static JMenuItem exportMapAsFile;
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
-    private static JMenuItem emailMap;
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
-    private static JideButton plusButton;
-    private static JideButton minusButton;
-    private static RangeSlider colorRangeSlider;
-    private static JLabel colorRangeLabel;
+    private static JColorRangePanel colorRangePanel;
+
+
     private static ResolutionControl resolutionSlider;
     private static TrackPanel trackPanelX;
     private static TrackPanel trackPanelY;
@@ -138,11 +137,10 @@ public class MainWindow extends JFrame {
     private final HiC hic; // The "model" object containing the state for this instance.
     private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
     File currentStates = new File("testStates");
-    private double colorRangeScaleFactor = 1;
-    private double colorRangeScaleFactorForReload = 1;
+
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
-    private int[] colorValuesToRestore = null;
+
     private Properties properties;
     private LoadEncodeAction encodeAction;
     private LoadAction trackLoadAction;
@@ -151,9 +149,6 @@ public class MainWindow extends JFrame {
 
         hic = new HiC(this);
 
-        customAnnotations = new CustomAnnotation("1");
-        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
-
         initComponents();
         createCursors();
         pack();
@@ -161,12 +156,8 @@ public class MainWindow extends JFrame {
         DropTarget target = new DropTarget(this, new FileDropTargetListener(this));
         setDropTarget(target);
 
-        colorRangeSlider.setUpperValue(1200);
-        colorRangeSlider.setDisplayToBlank(true);
-
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
-
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
 
         hicMapColor = Color.red;
@@ -239,51 +230,6 @@ public class MainWindow extends JFrame {
         return resolutionSlider.isResolutionLocked();
     }
 
-    public void updateColorSlider(double min, double lower, double upper, double max) {
-        // We need to scale min and max to integers for the slider to work.  Scale such that there are
-        // 100 divisions between max and 0
-
-        colorRangeScaleFactor = 100.0 / max;
-
-        colorRangeSlider.setPaintTicks(true);
-        //colorRangeSlider.setSnapToTicks(true);
-        colorRangeSlider.setPaintLabels(true);
-
-        int iMin = (int) (colorRangeScaleFactor * min);
-        int iMax = (int) (colorRangeScaleFactor * max);
-        int lValue = (int) (colorRangeScaleFactor * lower);
-        int uValue = (int) (colorRangeScaleFactor * upper);
-
-        colorRangeSlider.setMinimum(iMin);
-        colorRangeSlider.setLowerValue(lValue);
-        colorRangeSlider.setUpperValue(uValue);
-        colorRangeSlider.setMaximum(iMax);
-
-        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-
-        Font f = FontManager.getFont(8);
-
-        final JLabel minTickLabel = new JLabel(String.valueOf((int) min));
-        minTickLabel.setFont(f);
-        final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
-        maxTickLabel.setFont(f);
-        final JLabel LoTickLabel = new JLabel(String.valueOf((int) lower));
-        LoTickLabel.setFont(f);
-        final JLabel UpTickLabel = new JLabel(String.valueOf((int) upper));
-        UpTickLabel.setFont(f);
-
-        labelTable.put(iMin, minTickLabel);
-        labelTable.put(iMax, maxTickLabel);
-        labelTable.put(lValue, LoTickLabel);
-        labelTable.put(uValue, UpTickLabel);
-
-
-        colorRangeSlider.setLabelTable(labelTable);
-        //TODO******   UNCOMMENT  ******
-        colorRangeSliderUpdateToolTip();
-
-    }
-
     private void createCursors() {
         BufferedImage handImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
 
@@ -296,7 +242,7 @@ public class MainWindow extends JFrame {
         // Draw hand image in middle
         g = handImage.createGraphics();
         g.drawImage(IconFactory.getInstance().getIcon(IconFactory.IconID.FIST).getImage(), 0, 0, null);
-        MainWindow.fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
+        fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
     }
 
     public HeatmapPanel getHeatmapPanel() {
@@ -362,17 +308,13 @@ public class MainWindow extends JFrame {
             unsafeLoad(files, control);
             updateThumbnail();
             refresh();
-            if (control) controlTitle = title;
-            else datasetTitle = title;
-            updateTitle();
+            updateTitle(control, title);
         } catch (IOException e) {
             log.error("Error loading hic file", e);
             JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
             if (!control) hic.reset();
             updateThumbnail();
-            if (control) controlTitle = resetTitle;
-            else datasetTitle = resetTitle;
-            updateTitle();
+            updateTitle(control, resetTitle);
         }
     }
 
@@ -395,7 +337,8 @@ public class MainWindow extends JFrame {
             return;
         }
 
-        colorValuesToRestore = null;
+        colorRangePanel.resetPreFileLoad();
+
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
         mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
@@ -404,20 +347,8 @@ public class MainWindow extends JFrame {
         if (allFilesAreHiC) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
-            Dataset dataset;
-            // try {
-            dataset = reader.read();
-            // }
-            // catch (IOException error) {
-            //     JOptionPane.showMessageDialog(MainWindow.this,
-            //             "Error while reading " + file, "Error", JOptionPane.ERROR_MESSAGE);
-            //     return;
-            // }
-
-            if (dataset.getVersion() <= 1) {
-                JOptionPane.showMessageDialog(MainWindow.this, "This version of \"hic\" format is no longer supported");
-                return;
-            }
+            Dataset dataset = reader.read();
+            HiCGlobals.verifyGUISupportedHiCFileVersion(reader.getVersion(), this);
 
             MatrixType[] options;
             if (control) {
@@ -427,7 +358,6 @@ public class MainWindow extends JFrame {
             } else {
 
                 hic.reset();
-
                 hic.setDataset(dataset);
 
                 setChromosomes(dataset.getChromosomes());
@@ -446,8 +376,6 @@ public class MainWindow extends JFrame {
                     }
 
                     normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                    //tmp.add(NormalizationType.LOADED.getLabel());
-
                 }
 
                 if (normalizationOptions.length == 1) {
@@ -476,21 +404,7 @@ public class MainWindow extends JFrame {
             }
             displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
             displayOptionComboBox.setSelectedIndex(0);
-            chrBox1.setEnabled(true);
-            chrBox2.setEnabled(true);
-            refreshButton.setEnabled(true);
-
-            setColorRangeSliderVisible(true);
-            setResolutionSliderVisible(true);
-            colorRangeSlider.setDisplayToBlank(false);
-            plusButton.setEnabled(true);
-            minusButton.setEnabled(true);
-            annotationsMenu.setEnabled(true);
-
-            saveLocationList.setEnabled(true);
-            recentLocationMenu.setEnabled(true);
-
-            goPanel.setEnabled(true);
+            enableAllOptionsButtons();
 
             if (control) {
                 currentlyLoadedControlFiles = newFilesToBeLoaded;
@@ -643,7 +557,7 @@ public class MainWindow extends JFrame {
     }
 
     private void refreshButtonActionPerformed() {
-        colorValuesToRestore = null;
+        colorRangePanel.resetPreFileLoad();
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -724,7 +638,6 @@ public class MainWindow extends JFrame {
     private void updateTitle() {
         String newTitle = datasetTitle;
         if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
-        // TODO decide on title displayed in Juicebox
         setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
@@ -734,19 +647,7 @@ public class MainWindow extends JFrame {
         System.exit(0);
     }
 
-    private void colorRangeSliderStateChanged(ChangeEvent e) {
-        double min = colorRangeSlider.getLowerValue() / colorRangeScaleFactor;
-        double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
-        if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-            //System.out.println(colorRangeSlider.getUpperValue());
-            heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
-        } else if (MainWindow.preDefMapColor) {
-            heatmapPanel.setPreDefRange(min, max);
-        } else {
-            heatmapPanel.setObservedRange(min, max);
-        }
-    }
 
     private void chrBox1ActionPerformed(ActionEvent e) {
         if (chrBox1.getSelectedIndex() == 0) {
@@ -760,7 +661,17 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void safeDisplayOptionComboBoxActionPerformed() {
+    public void setResolutionSliderVisible(boolean state) {
+        resolutionSlider.setEnabled(state);
+        if (state) {
+            resolutionSlider.setForeground(Color.BLUE);
+        } else {
+            resolutionSlider.setForeground(Color.BLACK);
+        }
+        safeDisplayOptionComboBoxActionPerformed();
+    }
+
+    public void safeDisplayOptionComboBoxActionPerformed() {
         Runnable runnable = new Runnable() {
             public void run() {
                 unsafeDisplayOptionComboBoxActionPerformed();
@@ -778,23 +689,8 @@ public class MainWindow extends JFrame {
             return;
         }
 
-        // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
-        boolean activatePreDef = preDefMapColor;
-        boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
+        colorRangePanel.handleNewFileLoading(option, preDefMapColor);
 
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE || activatePreDef);
-        colorRangeSlider.setDisplayToOE(activateOE);
-        colorRangeSlider.setDisplayToPreDef(activatePreDef);
-
-        if (activateOE) {
-            resetOEColorRangeSlider();
-        } else {
-            resetRegularColorRangeSlider();
-        }
-
-        plusButton.setEnabled(activateOE || isObservedOrControl);
-        minusButton.setEnabled(activateOE || isObservedOrControl);
         if (option == MatrixType.PEARSON) {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for inter-chr views.");
@@ -836,6 +732,14 @@ public class MainWindow extends JFrame {
         refreshMainOnly();
     }
 
+    public RecentMenu getRecentMapMenu() {
+        return recentMapMenu;
+    }
+
+    private RecentMenu getRecentStateMenu() {
+        return recentLocationMenu;
+    }
+
     /**
      * Utility function to execute a task in a worker thread.  The method is on MainWindow because the glassPane
      * is used to display a wait cursor and block events.
@@ -843,7 +747,6 @@ public class MainWindow extends JFrame {
      * @param runnable Thread
      * @return thread
      */
-
     public Future<?> executeLongRunningTask(final Runnable runnable, final String caller) {
 
         Callable<Object> wrapper = new Callable<Object>() {
@@ -861,46 +764,16 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    public RecentMenu getRecentMapMenu() {
-        return recentMapMenu;
-    }
-
-    private RecentMenu getRecentStateMenu() {
-        return recentLocationMenu;
-    }
-
     private void showDisabledGlassPane(String caller) {
-        //System.out.println("SA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i+" "+caller);
         disabledGlassPane.activate("Loading...");
-        //System.out.println("SB " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+i++ +" "+caller);
-
-        // TODO MSS glass pane debugging
-        try {
-            Thread.sleep(50);                 //1000 milliseconds is one second.
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     private void initializeGlassPaneListening() {
         rootPane.setGlassPane(disabledGlassPane);
-        disabledGlassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     }
 
     private void hideDisabledGlassPane() {//getRootPane().getContentPane()
-        //System.out.println("HA " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+j);
         disabledGlassPane.deactivate();
-        //System.out.println("HB " + "" +disabledGlassPane.isValid()+" "+disabledGlassPane.isVisible()+" "+ disabledGlassPane.isValidateRoot()+" "+j++);
-
-        /*
-         * TODO MSS debugging
-
-        try {
-            Thread.sleep(2000);                 //1000 milliseconds is one second.
-        } catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-         */
     }
 
     public void updateTrackPanel() {
@@ -926,63 +799,19 @@ public class MainWindow extends JFrame {
             }
         }
 
-
         trackPanelX.invalidate();
         trackLabelPanel.invalidate();
         trackPanelY.invalidate();
         getContentPane().invalidate();
         repaint();
-
     }
 
-    private void resetRegularColorRangeSlider() {
-        if (colorValuesToRestore != null) {
-            //refreshChromosomes();
-            //setInitialZoom();
-            colorRangeSlider.setDisplayToBlank(false);
-            if (preDefMapColor) {
-                colorRangeSlider.setDisplayToPreDef(true);
-                colorRangeSlider.setDisplayToOE(false);
-            } else {
-                colorRangeSlider.setDisplayToPreDef(false);
-                colorRangeSlider.setDisplayToOE(false);
-            }
-            colorRangeSlider.setMinimum(colorValuesToRestore[0]);
-            colorRangeSlider.setMaximum(colorValuesToRestore[1]);
-            colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
-            colorRangeSlider.setUpperValue(colorValuesToRestore[3]);
-            colorRangeScaleFactor = colorValuesToRestore[4];
 
-            //refresh();
-            colorValuesToRestore = null;
-        }
-    }
 
-    private void resetOEColorRangeSlider() {
-
-        colorRangeSlider.setDisplayToBlank(false);
-        if (colorValuesToRestore == null) {
-            colorValuesToRestore = new int[5];
-            colorValuesToRestore[0] = colorRangeSlider.getMinimum();
-            colorValuesToRestore[1] = colorRangeSlider.getMaximum();
-            colorValuesToRestore[2] = colorRangeSlider.getLowerValue();
-            colorValuesToRestore[3] = colorRangeSlider.getUpperValue();
-            colorValuesToRestore[4] = (int) colorRangeScaleFactor;
-        }
-
-        colorRangeSlider.setMinimum(-20);
-        colorRangeSlider.setMaximum(20);
-        colorRangeSlider.setLowerValue(-5);
-        colorRangeSlider.setUpperValue(5);
-
-    }
-
-    //--------------------------------SetdisplayOptionComboBox----------------
     public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
     }
 
-    //----------------------------SetNormalization Box-----------------------
     public void setNormalizationBox(int indx) {
         normalizationComboBox.setSelectedIndex(indx);
     }
@@ -990,31 +819,9 @@ public class MainWindow extends JFrame {
     private void initComponents() {
         System.out.println("Initializing Components");
 
-        preDefMapColorGradient.add(new Color(255, 242, 255));
-        preDefMapColorGradient.add(new Color(255, 242, 255));
-        preDefMapColorGradient.add(new Color(255, 230, 242));
-        preDefMapColorGradient.add(new Color(255, 222, 230));
-        preDefMapColorGradient.add(new Color(250, 218, 234));
-        preDefMapColorGradient.add(new Color(255, 206, 226));
-        preDefMapColorGradient.add(new Color(238, 198, 210));
-        preDefMapColorGradient.add(new Color(222, 186, 182));
-        preDefMapColorGradient.add(new Color(226, 174, 165));
-        preDefMapColorGradient.add(new Color(214, 157, 145));
-        preDefMapColorGradient.add(new Color(194, 141, 125));
-        preDefMapColorGradient.add(new Color(218, 157, 121));
-        preDefMapColorGradient.add(new Color(234, 182, 129));
-        preDefMapColorGradient.add(new Color(242, 206, 133));
-        preDefMapColorGradient.add(new Color(238, 222, 153));
-        preDefMapColorGradient.add(new Color(242, 238, 161));
-        preDefMapColorGradient.add(new Color(222, 238, 161));
-        preDefMapColorGradient.add(new Color(202, 226, 149));
-        preDefMapColorGradient.add(new Color(178, 214, 117));
-        preDefMapColorGradient.add(new Color(149, 190, 113));
-        preDefMapColorGradient.add(new Color(117, 170, 101));
-        preDefMapColorGradient.add(new Color(113, 153, 89));
-        preDefMapColorGradient.add(new Color(18, 129, 242));
-        preDefMapColorGradient.add(new Color(255, 0, 0));
-        preDefMapColorGradient.add(new Color(0, 0, 0));
+
+        customAnnotations = new CustomAnnotation("1");
+        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
 
 
         //size of the screen
@@ -1310,147 +1117,8 @@ public class MainWindow extends JFrame {
         toolbarPanel.add(resolutionSlider, toolbarConstraints);
 
         //======== Color Range Panel ========
+        colorRangePanel = new JColorRangePanel(MainWindow.this, hic, heatmapPanel, preDefMapColor);
 
-        JPanel colorRangePanel = new JPanel();
-        colorRangePanel.setLayout(new BorderLayout());
-
-        JPanel sliderPanel = new JPanel();
-        sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
-
-        colorRangeSlider = new RangeSlider();
-
-        colorRangeSlider.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent mouseEvent) {
-                super.mouseEntered(mouseEvent);
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-        colorRangeSlider.setEnabled(false);
-        colorRangeSlider.setDisplayToBlank(true);
-
-        //---- colorRangeLabel ----
-        colorRangeLabel = new JLabel("Color Range");
-        colorRangeLabel.addMouseListener(new MouseAdapter() {
-            private Font original;
-
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (colorRangeSlider.isEnabled()) {
-                    original = e.getComponent().getFont();
-                    Map attributes = original.getAttributes();
-                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-                    e.getComponent().setFont(original.deriveFont(attributes));
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                //if (colorRangeSlider.isEnabled())
-                e.getComponent().setFont(original);
-            }
-
-        });
-
-        colorRangeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        colorRangeLabel.setToolTipText("Range of color scale in counts per mega-base squared.");
-        colorRangeLabel.setHorizontalTextPosition(SwingConstants.CENTER);
-
-        colorRangeLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger() && colorRangeSlider.isEnabled()) {
-                    processClick();
-                }
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                //No double click here...
-                if (e.getClickCount() == 1 && colorRangeSlider.isEnabled()) {
-                    processClick();
-                }
-            }
-
-            private void processClick() {
-                ColorRangeDialog rangeDialog = new ColorRangeDialog(MainWindow.this, colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                setColorRangeSliderVisible(false);
-                setResolutionSliderVisible(false);
-                rangeDialog.setVisible(true);
-            }
-        });
-        JPanel colorLabelPanel = new JPanel();
-        colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
-        colorLabelPanel.setLayout(new BorderLayout());
-        colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
-
-        colorRangePanel.add(colorLabelPanel, BorderLayout.PAGE_START);
-
-        //---- colorRangeSlider ----
-        colorRangeSlider.setPaintTicks(false);
-        colorRangeSlider.setPaintLabels(false);
-        colorRangeSlider.setMaximumSize(new Dimension(32767, 52));
-        colorRangeSlider.setPreferredSize(new Dimension(200, 52));
-        colorRangeSlider.setMinimumSize(new Dimension(36, 52));
-        resetRegularColorRangeSlider();
-
-        colorRangeSlider.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                colorRangeSliderStateChanged(e);
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-        sliderPanel.add(colorRangeSlider);
-        JPanel plusMinusPanel = new JPanel();
-        plusMinusPanel.setLayout(new BoxLayout(plusMinusPanel, BoxLayout.Y_AXIS));
-
-        plusButton = new JideButton();
-        plusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-plus.png")));
-        plusButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
-
-                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-                    colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
-                    colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
-                }
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-
-        minusButton = new JideButton();
-        minusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-minus.png")));
-        minusButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //Set limit to maximum range:
-                int newMax = colorRangeSlider.getMaximum() / 2;
-                if (newMax > 0) {
-                    colorRangeSlider.setMaximum(newMax);
-                    if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-                        colorRangeSlider.setMinimum(-newMax);
-                        colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
-                    }
-                }
-                colorRangeSliderUpdateToolTip();
-            }
-        });
-
-        plusMinusPanel.add(plusButton);
-        plusMinusPanel.add(minusButton);
-        plusButton.setEnabled(false);
-        minusButton.setEnabled(false);
-        sliderPanel.add(plusMinusPanel);
-        colorRangePanel.add(sliderPanel, BorderLayout.PAGE_END);
-
-
-        colorRangePanel.setBorder(LineBorder.createGrayLineBorder());
-        colorRangePanel.setMinimumSize(new Dimension(96, 70));
-        colorRangePanel.setPreferredSize(new Dimension(202, 70));
-        colorRangePanel.setMaximumSize(new Dimension(32769, 70));
         toolbarConstraints.gridx = 4;
         toolbarConstraints.weightx = 0.5;
         toolbarPanel.add(colorRangePanel, toolbarConstraints);
@@ -1519,24 +1187,6 @@ public class MainWindow extends JFrame {
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 
-        //======== xPlotPanel ========
-//
-//        xPlotPanel = new JPanel();
-//        xPlotPanel.setPreferredSize(new Dimension(250, 100));
-//        xPlotPanel.setLayout(null);
-//
-//        rightSidePanel.add(xPlotPanel);
-//        xPlotPanel.setBounds(10, 100, xPlotPanel.getPreferredSize().width, 228);
-//
-//        //======== yPlotPanel ========
-//
-//        yPlotPanel = new JPanel();
-//        yPlotPanel.setPreferredSize(new Dimension(250, 100));
-//        yPlotPanel.setLayout(null);
-//
-//        rightSidePanel.add(yPlotPanel);
-//        yPlotPanel.setBounds(10, 328, yPlotPanel.getPreferredSize().width, 228);
-
         // compute preferred size
         Dimension preferredSize = new Dimension();
         for (int i = 0; i < rightSidePanel.getComponentCount(); i++) {
@@ -1582,88 +1232,7 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
-    public String getColorRangeValues() {
 
-        int iMin = colorRangeSlider.getMinimum();
-        int lowValue = colorRangeSlider.getLowerValue();
-        int upValue = colorRangeSlider.getUpperValue();
-        int iMax = colorRangeSlider.getMaximum();
-
-        return iMin + "$$" + lowValue + "$$" + upValue + "$$" + iMax;
-
-    }
-
-    private void colorRangeSliderUpdateToolTip() {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED ||
-                hic.getDisplayOption() == MatrixType.CONTROL ||
-                hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-
-            int iMin = colorRangeSlider.getMinimum();
-            int lValue = colorRangeSlider.getLowerValue();
-            int uValue = colorRangeSlider.getUpperValue();
-            int iMax = colorRangeSlider.getMaximum();
-
-            /*
-            colorRangeSlider.setToolTipText("<html>Range: " + (int) (iMin / colorRangeScaleFactor) + " "
-
-                    + (int) (iMax / colorRangeScaleFactor) + "<br>Showing: " +
-                    (int) (lValue / colorRangeScaleFactor) + " "
-                    + (int) (uValue / colorRangeScaleFactor)
-                    + "</html>");
-            */
-
-            Font f = FontManager.getFont(8);
-
-            Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-
-
-            if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-                colorRangeSlider.setToolTipText("Log Enrichment Values");
-            } else {
-                colorRangeSlider.setToolTipText("Observed Counts");
-            }
-
-            final JLabel minTickLabel = new JLabel(String.valueOf((int) (iMin / colorRangeScaleFactor)));
-            minTickLabel.setFont(f);
-            final JLabel LoTickLabel = new JLabel(String.valueOf((int) (lValue / colorRangeScaleFactor)));
-            LoTickLabel.setFont(f);
-            final JLabel UpTickLabel = new JLabel(String.valueOf((int) (uValue / colorRangeScaleFactor)));
-            UpTickLabel.setFont(f);
-            final JLabel maxTickLabel = new JLabel(String.valueOf((int) (iMax / colorRangeScaleFactor)));
-            maxTickLabel.setFont(f);
-
-            labelTable.put(iMin, minTickLabel);
-            labelTable.put(lValue, LoTickLabel);
-            labelTable.put(uValue, UpTickLabel);
-            labelTable.put(iMax, maxTickLabel);
-
-            colorRangeSlider.setLabelTable(labelTable);
-
-        }
-
-    }
-
-    public void setColorRangeSliderVisible(boolean state) {
-        plusButton.setEnabled(state);
-        minusButton.setEnabled(state);
-        colorRangeSlider.setEnabled(state);
-        if (state) {
-            colorRangeLabel.setForeground(Color.BLUE);
-        } else {
-            colorRangeLabel.setForeground(Color.BLACK);
-        }
-        safeDisplayOptionComboBoxActionPerformed();
-    }
-
-    public void setResolutionSliderVisible(boolean state) {
-        resolutionSlider.setEnabled(state);
-        if (state) {
-            resolutionSlider.setForeground(Color.BLUE);
-        } else {
-            resolutionSlider.setForeground(Color.BLACK);
-        }
-        safeDisplayOptionComboBoxActionPerformed();
-    }
 
     private JMenuBar createMenuBar() {
 
@@ -1921,49 +1490,8 @@ public class MainWindow extends JFrame {
         undoMenuItem.setEnabled(false);
 
         annotationsMenu.add(customAnnotationMenu);
+        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
-//        final JMenuItem annotate = new JMenuItem("Annotate Mode");
-//        customAnnotationMenu.add(annotate);
-//
-//        // Add peak annotations
-//        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
-//        final JCheckBoxMenuItem annotatePeak = new JCheckBoxMenuItem("Loops");
-//
-//        annotatePeak.setSelected(false);
-//        annotatePeak.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotationHandler.doPeak();
-//            }
-//        });
-//        annotatePeak.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0));
-//        annotate.add(annotatePeak);
-//
-//        // Add domain annotations
-//        final JCheckBoxMenuItem annotateDomain = new JCheckBoxMenuItem("Domains");
-//
-//        annotateDomain.setSelected(false);
-//        annotateDomain.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotationHandler.doDomain();
-//            }
-//        });
-//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
-//        annotate.add(annotateDomain);
-//
-//        // Add generic annotations
-//        final JCheckBoxMenuItem annotateGeneric = new JCheckBoxMenuItem("Generic feature");
-//
-//        annotateGeneric.setSelected(false);
-//        annotateGeneric.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                customAnnotationHandler.doGeneric();
-//            }
-//        });
-//        annotateDomain.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0));
-//        annotate.add(annotateDomain);
 
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
 
@@ -2212,11 +1740,24 @@ public class MainWindow extends JFrame {
         return encodeAction;
     }
 
-    /**
-     * TODO - called by loading of state, need to decide what options are clickable
-     */
     public void enableAllOptionsButtons() {
-        // TODO zgire
+        chrBox1.setEnabled(true);
+        chrBox2.setEnabled(true);
+        refreshButton.setEnabled(true);
+        colorRangePanel.setElementsVisible(true, MainWindow.this);
+        setResolutionSliderVisible(true);
+        annotationsMenu.setEnabled(true);
+        saveLocationList.setEnabled(true);
+        recentLocationMenu.setEnabled(true);
+        goPanel.setEnabled(true);
+    }
+
+    public String getColorRangeValues() {
+        return colorRangePanel.getColorRangeValues();
+    }
+
+    public void updateColorSlider(double minColor, double lowColor, double upColor, double maxColor) {
+        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
     }
 }
 

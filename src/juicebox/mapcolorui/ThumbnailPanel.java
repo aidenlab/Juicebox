@@ -44,29 +44,60 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -3856114428388478494L;
     private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
-    private final MainWindow mainWindow;
-    private final HiC hic;
     private Image image;
     private Point lastPoint = null;
-
     private Rectangle innerRectangle;
 
+    double xscale, yscale, scaleFactor, originX, originY;
+    boolean updateRendering = false;
+    int wPixels, hPixels;
 
-    public ThumbnailPanel(MainWindow mainWindow, HiC model) {
+    private void updateXYScale(MainWindow mainWindow, HiC hic) {
 
-        this.mainWindow = mainWindow;
-        this.hic = model;
+        try {
+            updateRendering = hic != null && hic.getXContext() != null;
+            wPixels = mainWindow.getHeatmapPanel().getWidth();
+            hPixels = mainWindow.getHeatmapPanel().getHeight();
+            originX = hic.getXContext().getBinOrigin();
+            originY = hic.getYContext().getBinOrigin();
+            xscale = (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
+            yscale = (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
+            scaleFactor = hic.getScaleFactor();
+        } catch (Exception e) {
+            System.out.println("X/Y scale were null");
+        }
+    }
+
+
+    private void updateXYScale(MainWindow mainWindow, HiC hic) {
+
+        try {
+            updateRendering = hic != null && hic.getXContext() != null;
+            wPixels = mainWindow.getHeatmapPanel().getWidth();
+            hPixels = mainWindow.getHeatmapPanel().getHeight();
+            originX = hic.getXContext().getBinOrigin();
+            originY = hic.getYContext().getBinOrigin();
+            xscale = (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
+            yscale = (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
+            scaleFactor = hic.getScaleFactor();
+        } catch (Exception e) {
+            System.out.println("X/Y scale were null");
+        }
+    }
+
+    public ThumbnailPanel(final MainWindow mainWindow, final HiC hic) {
+
+        updateXYScale(mainWindow, hic);
 
         addMouseListener(new MouseAdapter() {
-
 
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
                 if (mouseEvent.getClickCount() >= 1) {
-
+                    updateXYScale(mainWindow, hic);
                     try {
-                        int xBP = (int) (mouseEvent.getX() * xScale());
-                        int yBP = (int) (mouseEvent.getY() * yScale());
+                        int xBP = (int) (mouseEvent.getX() * xscale);
+                        int yBP = (int) (mouseEvent.getY() * yscale);
 
                         hic.center(xBP, yBP);
                     } catch (Exception e) {
@@ -87,6 +118,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
             @Override
             public void mouseReleased(MouseEvent mouseEvent) {
+                updateXYScale(mainWindow, hic);
                 lastPoint = null;
                 setCursor(Cursor.getDefaultCursor());
             }
@@ -96,25 +128,15 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             @Override
             public void mouseDragged(MouseEvent mouseEvent) {
                 if (lastPoint != null) {
-                    int dxBP = ((int) ((mouseEvent.getX() - lastPoint.x) * xScale()));
-                    int dyBP = ((int) ((mouseEvent.getY() - lastPoint.y) * yScale()));
+                    updateXYScale(mainWindow, hic);
+                    int dxBP = ((int) ((mouseEvent.getX() - lastPoint.x) * xscale));
+                    int dyBP = ((int) ((mouseEvent.getY() - lastPoint.y) * yscale));
                     hic.moveBy(dxBP, dyBP);
                     lastPoint = mouseEvent.getPoint();
                 }
-
-
             }
         });
     }
-
-    private double xScale() {
-        return (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
-    }
-
-    private double yScale() {
-        return (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
-    }
-
 
     public void setImage(Image image) {
         this.image = image;
@@ -135,31 +157,22 @@ public class ThumbnailPanel extends JComponent implements Serializable {
         if (image != null) {
             g.drawImage(image, 0, 0, null);
             renderVisibleWindow((Graphics2D) g);
-            //TODO******   UNCOMMENT  ******
         }
     }
 
     private void renderVisibleWindow(Graphics2D g) {
 
 
-        if (hic != null && hic.getXContext() != null) {
+        if (updateRendering) {
 
             Rectangle outerRectangle = new Rectangle(0, 0, getBounds().width, getBounds().height);
 
-            int wPixels = mainWindow.getHeatmapPanel().getWidth();
-            int hPixels = mainWindow.getHeatmapPanel().getHeight();
-
-            double originX = hic.getXContext().getBinOrigin();
-            int x = (int) (originX / xScale());
-
-            double originY = hic.getYContext().getBinOrigin();
-            int y = (int) (originY / yScale());
-
-            double wBins = wPixels / hic.getScaleFactor();
-            int w = (int) (wBins / xScale());
-
-            double yBins = hPixels / hic.getScaleFactor();
-            int h = (int) (yBins / yScale());
+            int x = (int) (originX / xscale);
+            int y = (int) (originY / yscale);
+            double wBins = wPixels / scaleFactor;
+            int w = (int) (wBins / xscale);
+            double yBins = hPixels / scaleFactor;
+            int h = (int) (yBins / yscale);
 
             if (w < 4) {
                 int delta = 4 - w;
