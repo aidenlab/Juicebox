@@ -151,19 +151,19 @@ public class TrackConfigDialog extends JDialog {
     }
 
     private Color getReloadColors(String temp) {
-        HashMap<String,Color> reloadColors = new HashMap<String, Color>();
-        for(HiCTrack tracks: trackManager.getReloadTrackNames()){
-            reloadColors.put(tracks.getName(),tracks.getPosColor());
+        HashMap<String, Color> reloadColors = new HashMap<String, Color>();
+        for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
+            reloadColors.put(tracks.getName(), tracks.getPosColor());
         }
         return reloadColors.get(temp);
     }
 
-    public void setStateForReloadTracks(String currentTrack){
+    public void setStateForReloadTracks(String currentTrack) {
 
-        for(HiCTrack tracks: trackManager.getReloadTrackNames()){
+        for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
             String trackName = tracks.getName();
             System.out.println(trackName);
-            if(tracks.getLocator().getPath().contains(currentTrack)){
+            if (tracks.getLocator().getPath().contains(currentTrack)) {
                 tracks.setColor(getReloadColors(trackName));
                 System.out.println("match");
                 tracks.setName(trackName);

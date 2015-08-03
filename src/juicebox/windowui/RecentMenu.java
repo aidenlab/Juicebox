@@ -30,12 +30,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -100,10 +99,10 @@ public abstract class RecentMenu extends JMenu {
                 setEnabled(false);
                 try {
                     BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
-                    BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML,false));
+                    BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML, false));
                     buffWriter.close();
                     bWriter.close();
-                } catch(IOException ex){
+                } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -112,16 +111,17 @@ public abstract class RecentMenu extends JMenu {
         add(clearMapList);
     }
 
-    public String getRecentMapName(){
+    public String getRecentMapName() {
         String recentMapName = "";
         /*String delimeter = "@@";
         String[] temp;*/
-        if(m_items.get(0)!=null && !m_items.get(0).equals("")){
+        if (m_items.get(0) != null && !m_items.get(0).equals("")) {
             //temp = m_items.get(0).split(delimeter);
             recentMapName += m_items.get(0);
         }
         return recentMapName;
     }
+
     /**
      * Add new recent entry, update file and menu
      *
@@ -194,7 +194,7 @@ public abstract class RecentMenu extends JMenu {
     public abstract void onSelectPosition(String mapPath);
 
     //TODO--- Update recent menu when HiC states are imported
-    public void updateNamesFromImport(String importedFile){
+    public void updateNamesFromImport(String importedFile) {
         Document doc;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         for (int c = 0; c < m_maxItems; c++) {
@@ -209,7 +209,7 @@ public abstract class RecentMenu extends JMenu {
             doc = documentBuilder.parse(importedFile);
             Element element = doc.getDocumentElement();
             NodeList nodeList = element.getElementsByTagName("STATE");
-            for(int i=0; i<nodeList.getLength(); i++){
+            for (int i = 0; i < nodeList.getLength(); i++) {
                 String importedMapPath = nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue();
                 m_items.add(importedMapPath);
             }
@@ -246,11 +246,11 @@ public abstract class RecentMenu extends JMenu {
 
             addClearItem();
 
-        } catch (ParserConfigurationException pce){
+        } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
-        } catch (SAXException se){
+        } catch (SAXException se) {
             se.printStackTrace();
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

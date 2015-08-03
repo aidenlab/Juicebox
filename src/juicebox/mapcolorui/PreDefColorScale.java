@@ -36,7 +36,7 @@ import java.util.List;
  * Created by IM on 7/15/15.
  */
 
-public class PreDefColorScale implements ColorScale{
+public class PreDefColorScale implements ColorScale {
     public static final int defaultMaxPreDefVal = 5;
     private static double max;
     private static double min;
@@ -58,7 +58,7 @@ public class PreDefColorScale implements ColorScale{
      * @return the color map
      */
     public PreDefColorScale(String name, Color[] colors, int[] score) {
-        updateColors(colors,score);
+        updateColors(colors, score);
     }
 
     private static Color smooth(java.awt.Color c1, java.awt.Color c2, double ratio) {
@@ -84,28 +84,22 @@ public class PreDefColorScale implements ColorScale{
 
     public void setPreDefRange(double minCount, double maxCount) {
 
-        if (maxCount > 0 )
-        {
+        if (maxCount > 0) {
             max = Math.log(maxCount);
-        }
-        else
-        {
+        } else {
             max = 0;
         }
 
-        if (minCount > 0 )
-        {
+        if (minCount > 0) {
             min = Math.log(minCount);
-        }
-        else
-        {
+        } else {
             min = 0;
         }
         //min = minCount;
 
         // find score section
         int last = colorList.size() - 1;
-        double interval = (max-min)/(colorList.size()-1);
+        double interval = (max - min) / (colorList.size() - 1);
         double curScore = min;
 //        System.out.println("Set score values");
 //        System.out.println("List: " + colorList.size() + ", Min: " + min + ", Max: " + max + ", Interval: " + interval + " ");
@@ -135,11 +129,9 @@ public class PreDefColorScale implements ColorScale{
     public Color getColor(float inScore) {
 
         double score = 0;
-        if(inScore > 0) {
+        if (inScore > 0) {
             score = Math.log(inScore);
-        }
-        else
-        {
+        } else {
             score = inScore;
         }
 
@@ -171,36 +163,7 @@ public class PreDefColorScale implements ColorScale{
         throw new RuntimeException("No Color found for given score " + score);
     }
 
-    class ColorMapEntry implements Comparable<ColorMapEntry> {
-        private final Color color;
-        private double score; // limit
-
-        public ColorMapEntry(Color color, double score) {
-            super();
-            this.color = color;
-            this.score = score;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public void setScore(double score) {
-            this.score = score;
-        }
-
-        public Color getColor() {
-            return color;
-        }
-
-        @Override
-        public int compareTo(ColorMapEntry o) {
-            return (int)(this.score - o.score);
-        }
-    }
-
-    public void updateColors(Color[] colors, int[] score)
-    {
+    public void updateColors(Color[] colors, int[] score) {
         if (colors == null) {
             throw new IllegalArgumentException("colors can't be null");
         }
@@ -237,5 +200,33 @@ public class PreDefColorScale implements ColorScale{
 
     public boolean isDefault() {
         return false;
+    }
+
+    class ColorMapEntry implements Comparable<ColorMapEntry> {
+        private final Color color;
+        private double score; // limit
+
+        public ColorMapEntry(Color color, double score) {
+            super();
+            this.color = color;
+            this.score = score;
+        }
+
+        public double getScore() {
+            return score;
+        }
+
+        public void setScore(double score) {
+            this.score = score;
+        }
+
+        public Color getColor() {
+            return color;
+        }
+
+        @Override
+        public int compareTo(ColorMapEntry o) {
+            return (int) (this.score - o.score);
+        }
     }
 }

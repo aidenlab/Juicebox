@@ -108,7 +108,6 @@ public class HiCLoadDialog extends JDialog {
         });
 
 
-
         //---- cancelButton ----
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {

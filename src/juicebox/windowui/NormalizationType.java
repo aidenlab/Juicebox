@@ -43,10 +43,6 @@ public enum NormalizationType {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
     public static NormalizationType enumValueFromString(String text) {
         if (text != null) {
             for (NormalizationType norm : NormalizationType.values()) {
@@ -56,6 +52,10 @@ public enum NormalizationType {
             }
         }
         return null;
+    }
+
+    public String getLabel() {
+        return label;
     }
 
 }

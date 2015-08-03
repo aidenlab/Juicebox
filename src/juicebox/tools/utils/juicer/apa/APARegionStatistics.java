@@ -50,7 +50,7 @@ public class APARegionStatistics {
 
     public APARegionStatistics(RealMatrix data) {
         int max = data.getColumnDimension();
-        int midPoint = max/2;
+        int midPoint = max / 2;
         double centralVal = data.getEntry(midPoint, midPoint);
 
         int regionWidth = APA.regionWidth;

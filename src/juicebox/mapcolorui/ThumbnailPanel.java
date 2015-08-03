@@ -26,7 +26,6 @@ package juicebox.mapcolorui;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.data.MatrixZoomData;
 
 import javax.swing.*;
 import java.awt.*;
@@ -109,28 +108,11 @@ public class ThumbnailPanel extends JComponent implements Serializable {
     }
 
     private double xScale() {
-        MatrixZoomData matrixZoomData;
-        if(hic.getZd() == null && mainWindow.isReloadState()){
-            matrixZoomData = hic.getZoomDataForReloadState();
-        }
-        else {
-            matrixZoomData = hic.getZd();
-        }
-
-        return (double) matrixZoomData.getXGridAxis().getBinCount() / getWidth();
-
+        return (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
     }
 
     private double yScale() {
-        MatrixZoomData matrixZoomData;
-        if(hic.getZd() == null && mainWindow.isReloadState()){
-            matrixZoomData = hic.getZoomDataForReloadState();
-        }
-        else {
-            matrixZoomData = hic.getZd();
-        }
-        return (double) matrixZoomData.getYGridAxis().getBinCount() / getHeight();
-
+        return (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
     }
 
 

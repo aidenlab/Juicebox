@@ -41,7 +41,7 @@ public class PreProcessing extends JuiceboxCLT {
     private String outputFile;
     private Preprocessor preprocessor;
 
-    public PreProcessing(){
+    public PreProcessing() {
         super("pre <options> <infile> <outfile> <genomeID>");
     }
 

@@ -48,14 +48,14 @@ public class CustomAnnotation {
     private File tempFile;
     private ArrayList<String> attributeKeys;
 
-    public CustomAnnotation (String id) {
+    public CustomAnnotation(String id) {
         this.id = id;
         isVisible = true;
         firstSave = true;
         reset();
     }
 
-    public CustomAnnotation (Feature2DList inputList, String id) {
+    public CustomAnnotation(Feature2DList inputList, String id) {
         this.id = id;
         isVisible = true;
         firstSave = true;
@@ -64,7 +64,7 @@ public class CustomAnnotation {
     }
 
     // Clear all annotations
-    private void reset(){
+    private void reset() {
         firstSave = true;
         lastChr1Idx = -1;
         lastChr2Idx = -1;
@@ -74,19 +74,19 @@ public class CustomAnnotation {
         attributeKeys = new ArrayList<String>();
     }
 
-    public void clearAnnotations(){
+    public void clearAnnotations() {
         reset();
         deleteTempFile();
     }
 
     //add annotation to feature2D list
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
-        if (feature == null){
+        if (feature == null) {
             return;
         }
         // Add attributes to feature
         List<String> featureKeys = feature.getAttributeKeys();
-        for (String customKey : attributeKeys){
+        for (String customKey : attributeKeys) {
             if (!featureKeys.contains(customKey)) {
                 feature.addAttribute(customKey, "null");
                 System.out.println("Added" + customKey);
@@ -102,7 +102,7 @@ public class CustomAnnotation {
 
         // Autosave the information
         unsavedEdits = true;
-        if (firstSave){
+        if (firstSave) {
             makeTempFile();
             firstSave = false;
         }
@@ -110,13 +110,13 @@ public class CustomAnnotation {
     }
 
     // Requires that lastItem is not null
-    private void makeTempFile(){
+    private void makeTempFile() {
         String prefix = "unsaved-hiC-annotations" + id;
         tempFile = HiCFileTools.openTempFile(prefix);
         tempWriter = HiCFileTools.openWriter(tempFile);
 
         Feature2D singleFeature = customAnnotationList.extractSingleFeature();
-        if(singleFeature == null){
+        if (singleFeature == null) {
             tempWriter.println(Feature2D.getDefaultOutputFileHeader());
         } else {
             tempWriter.println(singleFeature.getOutputFileHeader());
@@ -124,14 +124,14 @@ public class CustomAnnotation {
         System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
-    private void deleteTempFile(){
+    private void deleteTempFile() {
         System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         tempWriter.close();
         tempFile.delete();
     }
 
     // Set show loops
-    public void setShowCustom (boolean newStatus){
+    public void setShowCustom(boolean newStatus) {
         isVisible = newStatus;
     }
 
@@ -145,7 +145,7 @@ public class CustomAnnotation {
     }
 
     // Creates unique identifier for Feature2D based on start and end positions.
-    private String getIdentifier(Feature2D feature){
+    private String getIdentifier(Feature2D feature) {
         return "" + feature.getStart1() + feature.getEnd1() + feature.getStart2() + feature.getEnd2();
     }
 
@@ -158,7 +158,7 @@ public class CustomAnnotation {
      * Export feature list to given file path
      */
     private int updateAutoSave() {
-        if (unsavedEdits && lastItem != null){
+        if (unsavedEdits && lastItem != null) {
             return customAnnotationList.autoSaveNew(tempWriter, lastItem);
         }
         return -1;
@@ -173,19 +173,19 @@ public class CustomAnnotation {
         return customAnnotationList.autoSaveAll(tempWriter);
     }
 
-    private void removeFromList(int idx1, int idx2, Feature2D feature){
+    private void removeFromList(int idx1, int idx2, Feature2D feature) {
         Feature2D lastFeature;
-            if (idx1 > 0 && idx2 > 0) {
-                List<Feature2D> lastList;
-                String featureIdentifier = getIdentifier(feature);
-                lastList = customAnnotationList.get(idx1, idx2);
-                unsavedEdits = lastList.remove(feature);
-            }
+        if (idx1 > 0 && idx2 > 0) {
+            List<Feature2D> lastList;
+            String featureIdentifier = getIdentifier(feature);
+            lastList = customAnnotationList.get(idx1, idx2);
+            unsavedEdits = lastList.remove(feature);
+        }
         reSaveAll();
     }
 
     // Export annotations
-    public int exportAnnotations (String outputFilePath){
+    public int exportAnnotations(String outputFilePath) {
         int ok;
         ok = customAnnotationList.exportFeatureList(outputFilePath, false);
         if (ok < 0)
@@ -196,11 +196,11 @@ public class CustomAnnotation {
 
     // Note assumes that all attributes are already correctly formatted. Ok to assume
     // because loaded list must have consistent formatting.
-    public void addVisibleToCustom(Feature2DList newAnnotations){
+    public void addVisibleToCustom(Feature2DList newAnnotations) {
         Feature2D featureZero = newAnnotations.extractSingleFeature();
         // Add attributes to feature
         List<String> featureKeys = featureZero.getAttributeKeys();
-        for (String customKey : attributeKeys){
+        for (String customKey : attributeKeys) {
             if (!featureKeys.contains(customKey)) {
                 newAnnotations.addAttributeFieldToAll(customKey, "null");
             }
@@ -209,7 +209,7 @@ public class CustomAnnotation {
         customAnnotationList.addUnique(newAnnotations);
     }
 
-    public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath){
+    public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
         ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false);
         if (ok < 0)
@@ -218,9 +218,9 @@ public class CustomAnnotation {
         return ok;
     }
 
-    private void getAndAddAttributes(List<String> featureKeys){
+    private void getAndAddAttributes(List<String> featureKeys) {
         // Add feature's unique attributes to all others
-        for (String key : featureKeys){
+        for (String key : featureKeys) {
             if (!attributeKeys.contains(key)) {
                 attributeKeys.add(key);
                 customAnnotationList.addAttributeFieldToAll(key, "null");
@@ -228,12 +228,12 @@ public class CustomAnnotation {
         }
     }
 
-    public void changeAllAttributeValues(String key, String newValue){
+    public void changeAllAttributeValues(String key, String newValue) {
         attributeKeys.add(key);
         customAnnotationList.addAttributeFieldToAll(key, newValue);
     }
 
-    public boolean hasUnsavedEdits(){
+    public boolean hasUnsavedEdits() {
         return unsavedEdits;
     }
 

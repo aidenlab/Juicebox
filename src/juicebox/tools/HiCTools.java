@@ -28,12 +28,16 @@ import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.CLTFactory;
 import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.Globals;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
  * Command line tool handling through factory model
+ *
  * @author Muhammad Shamim
  * @date 1/20/2015
  */
@@ -54,25 +58,25 @@ public class HiCTools {
         }
 
         try {
-                String cmd = args[0].toLowerCase();
-                JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
+            String cmd = args[0].toLowerCase();
+            JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
 
-                try {
-                    instanceOfCLT.readArguments(args, parser);
-                } catch (IOException e) {
-                    instanceOfCLT.printUsage(); // error reading arguments, print specific usage help
-                    System.exit(Integer.parseInt(e.getMessage()));
-                }
+            try {
+                instanceOfCLT.readArguments(args, parser);
+            } catch (IOException e) {
+                instanceOfCLT.printUsage(); // error reading arguments, print specific usage help
+                System.exit(Integer.parseInt(e.getMessage()));
+            }
 
-                try {
-                    instanceOfCLT.run();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                    System.exit(-7);
-                    // error running the code, these shouldn't occur i.e. error checking
-                    // should be added within each CLT for better error tracing
-                }
+            try {
+                instanceOfCLT.run();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+                System.exit(-7);
+                // error running the code, these shouldn't occur i.e. error checking
+                // should be added within each CLT for better error tracing
+            }
         } catch (Exception e) {
             CLTFactory.usage();
             System.exit(2);
@@ -129,8 +133,10 @@ public class HiCTools {
             multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
         }
 
-        /** boolean flags */
-        private boolean optionToBoolean(Option option){
+        /**
+         * boolean flags
+         */
+        private boolean optionToBoolean(Option option) {
             Object opt = getOptionValue(option);
             return opt != null && (Boolean) opt;
         }
@@ -147,8 +153,10 @@ public class HiCTools {
             return optionToBoolean(removeCacheMemoryOption);
         }
 
-        /** String flags */
-        private String optionToString(Option option){
+        /**
+         * String flags
+         */
+        private String optionToString(Option option) {
             Object opt = getOptionValue(option);
             return opt == null ? null : opt.toString();
         }
@@ -169,8 +177,10 @@ public class HiCTools {
             return optionToString(tmpDirOption);
         }
 
-        /** int flags */
-        private int optionToInt(Option option){
+        /**
+         * int flags
+         */
+        private int optionToInt(Option option) {
             Object opt = getOptionValue(option);
             return opt == null ? 0 : ((Number) opt).intValue();
         }
@@ -191,8 +201,10 @@ public class HiCTools {
             return optionToInt(matrixSizeOption);
         }
 
-        /** double flags */
-        private double optionToDouble(Option option){
+        /**
+         * double flags
+         */
+        private double optionToDouble(Option option) {
             Object opt = getOptionValue(option);
             return opt == null ? 0 : ((Number) opt).doubleValue();
         }
@@ -205,8 +217,10 @@ public class HiCTools {
             return optionToInt(apaMaxValOption);
         }
 
-        /** String Set flags */
-        private Set<String> optionToStringSet(Option option){
+        /**
+         * String Set flags
+         */
+        private Set<String> optionToStringSet(Option option) {
             Object opt = getOptionValue(option);
             return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
         }

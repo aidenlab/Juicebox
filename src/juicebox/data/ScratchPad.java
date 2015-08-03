@@ -31,10 +31,10 @@ import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.DiskResidentBlockMatrix;
 import juicebox.matrix.SparseSymmetricMatrix;
 import org.broad.igv.util.ParsingUtils;
+
 import java.io.*;
 import java.util.Scanner;
 import java.util.StringTokenizer;
-
 
 
 /**

@@ -24,8 +24,8 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.utils.original.HiCDBUtils;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.original.HiCDBUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -34,7 +34,7 @@ public class SQLDatabase extends JuiceboxCLT {
 
     private String[] dbArgs;
 
-    public SQLDatabase(){
+    public SQLDatabase() {
         super("db <frag|annot|update> [items]");
     }
 

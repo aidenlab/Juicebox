@@ -80,6 +80,7 @@ class BlockResults {
 
     /**
      * calculate D upstream, directionality index upstream
+     *
      * @param observed
      * @param n
      * @param gap
@@ -132,8 +133,8 @@ class BlockResults {
         return internalControl;
     }
 
-    public void offsetResultsIndex(int offset){
-        for(HighScore score : results){
+    public void offsetResultsIndex(int offset) {
+        for (HighScore score : results) {
             score.offsetIndex(offset);
         }
     }

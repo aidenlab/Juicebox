@@ -1,17 +1,14 @@
 package juicebox.mapcolorui;
 
 import juicebox.MainWindow;
-import org.lwjgl.Sys;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class MultiColorPickerDialog extends JDialog{
+public class MultiColorPickerDialog extends JDialog {
     private static final long serialVersionUID = -678567876;
 
     JButton[] bColor = new JButton[24];
@@ -149,9 +146,8 @@ public class MultiColorPickerDialog extends JDialog{
         setLocationRelativeTo(getOwner());
     }
 
-    public void initValue(Color[] colorArray){
-        for (int cIdx=0; cIdx < colorArray.length && cIdx < bColor.length;cIdx++)
-        {
+    public void initValue(Color[] colorArray) {
+        for (int cIdx = 0; cIdx < colorArray.length && cIdx < bColor.length; cIdx++) {
             bColor[cIdx].setBackground(colorArray[cIdx]);
         }
     }

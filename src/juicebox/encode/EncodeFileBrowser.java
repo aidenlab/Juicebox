@@ -256,14 +256,14 @@ public class EncodeFileBrowser extends JDialog {
         return selectedRecords;
     }
 
-    public void checkEncodeTracks(String track){
+    public void checkEncodeTracks(String track) {
         List<EncodeFileRecord> allRecords = model.getRecords();
         int rowCount = table.getRowCount();
 
-        for (int i=0; i<rowCount; i++){
+        for (int i = 0; i < rowCount; i++) {
             int modelIdx = table.convertRowIndexToModel(i);
             EncodeFileRecord record = allRecords.get(modelIdx);
-            if(record.getTrackName().contains(track)){
+            if (record.getTrackName().contains(track)) {
                 record.setSelected(true);
             }
         }

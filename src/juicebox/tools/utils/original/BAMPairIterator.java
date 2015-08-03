@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- *
  * TODO - should this be deleted?
  * Also, the chromosomeOrdinals map seems to always be empty
  *

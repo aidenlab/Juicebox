@@ -47,10 +47,10 @@ public class TrackLabelPanel extends JPanel {
 
     private static final long serialVersionUID = 1627813915602134471L;
     private final HiC hic;
-    private HiCTrack eigenvectorTrack;
-    private int numExtraBufferLinesSpaces = 2;
     final private int leftMargin = 10;
     final private int rightMargin = 5;
+    private HiCTrack eigenvectorTrack;
+    private int numExtraBufferLinesSpaces = 2;
 
     public TrackLabelPanel(HiC hic) {
         this.hic = hic;

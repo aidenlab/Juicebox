@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- *
  * @author jrobinso
  * @modified mshamim, mhoeger
  */
@@ -107,12 +106,16 @@ public class Feature2D implements Comparable<Feature2D> {
         this.end2 = end2;
     }
 
-    public int getMidPt1() { return midPoint(start1, end1);}
+    public int getMidPt1() {
+        return midPoint(start1, end1);
+    }
 
-    public int getMidPt2() { return midPoint(start2, end2);}
+    public int getMidPt2() {
+        return midPoint(start2, end2);
+    }
 
     private int midPoint(int start, int end) {
-        return (int) (start + (end - start)/2.0);
+        return (int) (start + (end - start) / 2.0);
     }
 
     public Color getColor() {
@@ -130,7 +133,7 @@ public class Feature2D implements Comparable<Feature2D> {
         txt.append(featureName);
         txt.append("</span><br>");
 
-        txt.append("<span style='font-family: arial; font-size: 12pt;color:"+ HiCGlobals.topChromosomeColor+";'>");
+        txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.topChromosomeColor + ";'>");
         txt.append(chr1).append(":").append(formatter.format(start1 + 1));
         if ((end1 - start1) > 1) {
             txt.append("-").append(formatter.format(end1));
@@ -138,7 +141,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
         txt.append("</span><br>");
 
-        txt.append("<span style='font-family: arial; font-size: 12pt;color:"+ HiCGlobals.leftChromosomeColor+";'>");
+        txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.leftChromosomeColor + ";'>");
         txt.append(chr2).append(":").append(formatter.format(start2 + 1));
         if ((end2 - start2) > 1) {
             txt.append("-").append(formatter.format(end2));
@@ -146,7 +149,7 @@ public class Feature2D implements Comparable<Feature2D> {
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
 
-        if(HiCGlobals.allowSpacingBetweenFeatureText) {
+        if (HiCGlobals.allowSpacingBetweenFeatureText) {
             // organize attributes into categories. +1 is for the leftover category if no keywords present
             ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<ArrayList<Map.Entry<String, String>>>();
             for (int i = 0; i < categories.length + 1; i++) {
@@ -173,7 +176,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
             // append to tooltip text, but now each category is spaced apart
             for (ArrayList<Map.Entry<String, String>> attributeCategory : sortedFeatureAttributes) {
-                if(attributeCategory.isEmpty())
+                if (attributeCategory.isEmpty())
                     continue;
                 for (Map.Entry<String, String> entry : attributeCategory) {
                     String tmpKey = entry.getKey();
@@ -191,8 +194,7 @@ public class Feature2D implements Comparable<Feature2D> {
                 }
                 txt.append("<br>"); // the extra spacing between categories
             }
-        }
-        else {
+        } else {
             // simple text dump for plotting, no spacing or rearranging by category
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String tmpKey = entry.getKey();
@@ -204,8 +206,7 @@ public class Feature2D implements Comparable<Feature2D> {
                     //System.out.println(entry.getValue());
                     try {
                         txt.append(df.format(Double.valueOf(entry.getValue())));
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         txt.append(entry.getValue());
                     }
                     txt.append("</b>");
@@ -216,35 +217,35 @@ public class Feature2D implements Comparable<Feature2D> {
         return txt.toString();
     }
 
-    public String getOutputFileHeader(){
+    public String getOutputFileHeader() {
         String output = genericHeader;
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);
 
-        for(String key : keys){
-            output += "\t"+key;
+        for (String key : keys) {
+            output += "\t" + key;
         }
 
         return output;
     }
 
     @Override
-    public String toString(){
-        String output = chr1+"\t"+start1+"\t"+end1+"\t"+chr2+"\t"+start2+"\t"+end2;
-        output += "\t"+color.getRed()+","+color.getGreen()+","+color.getBlue();
+    public String toString() {
+        String output = chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
+        output += "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);
 
-        for(String key : keys){
-            output += "\t"+attributes.get(key);
+        for (String key : keys) {
+            output += "\t" + attributes.get(key);
         }
 
         return output;
     }
 
-    public ArrayList<String> getAttributeKeys(){
+    public ArrayList<String> getAttributeKeys() {
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);
         return keys;
@@ -254,7 +255,9 @@ public class Feature2D implements Comparable<Feature2D> {
         return attributes.get(key);
     }
 
-    public void setAttribute(String key, String newVal) {attributes.put(key, newVal);}
+    public void setAttribute(String key, String newVal) {
+        attributes.put(key, newVal);
+    }
 
     public float getFloatAttribute(String key) {
         return Float.parseFloat(attributes.get(key));
@@ -270,7 +273,7 @@ public class Feature2D implements Comparable<Feature2D> {
      * @param otherFeature
      * @return
      */
-    public boolean overlapsWith(Feature2D otherFeature){
+    public boolean overlapsWith(Feature2D otherFeature) {
 
         float window1 = (otherFeature.getEnd1() - otherFeature.getStart1()) / 2;
         float window2 = (otherFeature.getEnd2() - otherFeature.getStart2()) / 2;
@@ -278,8 +281,8 @@ public class Feature2D implements Comparable<Feature2D> {
         int midOther1 = otherFeature.getMidPt1();
         int midOther2 = otherFeature.getMidPt2();
 
-        if (midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1)){
-            if (midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2)){
+        if (midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1)) {
+            if (midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2)) {
                 return true;
             }
         }

@@ -43,6 +43,7 @@ public class DumpDialog extends JFileChooser {
 
     /**
      * TODO I think a good amount of the code below is duplicated in the dumpGeneralVector method and should call that instead
+     *
      * @param mainWindow
      * @param hic
      */

@@ -39,10 +39,6 @@ public enum MatrixType {
         this.value = value;
     }
 
-    public String toString() {
-        return value;
-    }
-
     public static MatrixType enumValueFromString(String text) {
         if (text != null) {
             for (MatrixType matrix : MatrixType.values()) {
@@ -52,6 +48,10 @@ public enum MatrixType {
             }
         }
         return null;
+    }
+
+    public String toString() {
+        return value;
     }
 
 }

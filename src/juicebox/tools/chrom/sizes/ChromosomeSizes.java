@@ -27,4 +27,5 @@ package juicebox.tools.chrom.sizes;
 /**
  * Empty class for directing *.sizes file tracking
  */
-public class ChromosomeSizes {}
+public class ChromosomeSizes {
+}

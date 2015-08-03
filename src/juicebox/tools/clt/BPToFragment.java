@@ -25,8 +25,9 @@
 package juicebox.tools.clt;
 
 import com.google.common.base.CharMatcher;
-import juicebox.tools.utils.original.FragmentCalculation;
+import com.google.common.base.Splitter;
 import juicebox.tools.HiCTools;
+import juicebox.tools.utils.original.FragmentCalculation;
 import org.broad.igv.feature.LocusScore;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ParsingUtils;
@@ -36,33 +37,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import com.google.common.base.Splitter;
 
 
 public class BPToFragment extends JuiceboxCLT {
 
-    private String fragFile, inputBedFile, outputFile;
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
+    private String fragFile, inputBedFile, outputFile;
 
-    public BPToFragment(){
+    public BPToFragment() {
         super("bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
-    }
-
-    @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
-        if (args.length != 4) {
-            throw new IOException("1");
-        }
-
-        fragFile = args[1];
-        inputBedFile = args[2];
-        outputFile = args[3];
-    }
-
-    @Override
-    public void run() throws IOException {
-        bpToFrag(fragFile, inputBedFile, outputFile);
     }
 
     private static void bpToFrag(String fragmentFile, String inputFile, String outputDir) throws IOException {
@@ -179,6 +162,23 @@ public class BPToFragment extends JuiceboxCLT {
         } else {
             return token;
         }
+    }
+
+    @Override
+    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+        //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
+        if (args.length != 4) {
+            throw new IOException("1");
+        }
+
+        fragFile = args[1];
+        inputBedFile = args[2];
+        outputFile = args[3];
+    }
+
+    @Override
+    public void run() throws IOException {
+        bpToFrag(fragFile, inputBedFile, outputFile);
     }
 
     private static class BedLikeFeature implements LocusScore {

@@ -92,7 +92,7 @@ public class Feature2DParser {
                 Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
 
                 Map<String, String> attrs = new LinkedHashMap<String, String>();
-                if (loadAttributes){
+                if (loadAttributes) {
                     for (int i = attCol; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
                     }
@@ -131,12 +131,11 @@ public class Feature2DParser {
             }
 
             br.close();
-        }
-        catch (IOException ec){
+        } catch (IOException ec) {
             ec.printStackTrace();
         }
 
-        if(generateAPAFiltering)
+        if (generateAPAFiltering)
             newList.filterLists(apaFilter);
 
         return newList;
@@ -145,7 +144,7 @@ public class Feature2DParser {
     public static Feature2DList parseHighScoreList(int chrIndex, String chrName, int resolution, List<HighScore> binnedScores) {
         Feature2DList feature2DList = new Feature2DList();
 
-        for(HighScore score : binnedScores){
+        for (HighScore score : binnedScores) {
             feature2DList.add(chrIndex, chrIndex, score.toFeature2D(chrName, resolution));
         }
 

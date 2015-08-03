@@ -122,11 +122,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (positionChrLeft.getText().isEmpty() && positionChrTop.getText().isEmpty()) {
             positionChrTop.setBackground(Color.yellow);
             positionChrLeft.setBackground(Color.yellow);
-        }
-        else if (positionChrLeft.getText().isEmpty()) {
+        } else if (positionChrLeft.getText().isEmpty()) {
             positionChrLeft.setText(positionChrTop.getText());
-        }
-        else if (positionChrTop.getText().isEmpty()) {
+        } else if (positionChrTop.getText().isEmpty()) {
             positionChrTop.setText(positionChrLeft.getText());
         }
         parsePositionText();
@@ -201,33 +199,27 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 topEnd = Integer.max(Integer.valueOf(topChrTokens[1].replaceAll(",", "")), Integer.valueOf(topChrTokens[2].replaceAll(",", "")));
             } catch (Exception e) {
                 positionChrTop.setBackground(Color.yellow);
-                log.error("Cannot parse " + topChrTokens[1] + " or " +  topChrTokens[2] + ". Expecting int");
+                log.error("Cannot parse " + topChrTokens[1] + " or " + topChrTokens[2] + ". Expecting int");
                 return;
             }
             outBinTop = topStart + ((topEnd - topStart) / 2);
             int diff = topEnd - topStart;
-            diff = diff/1000;
+            diff = diff / 1000;
             if (diff >= 2500000) {
                 estimatedOutBinSize = 2500000;
-            }
-            else if (diff >= 1000000) {
+            } else if (diff >= 1000000) {
                 estimatedOutBinSize = 1000000;
-            }
-            else if (diff >= 500000) {
+            } else if (diff >= 500000) {
                 estimatedOutBinSize = 500000;
-            }
-            else if (diff >= 100000) {
+            } else if (diff >= 100000) {
                 estimatedOutBinSize = 100000;
-            }
-            else if (diff >= 50000) {
+            } else if (diff >= 50000) {
                 estimatedOutBinSize = 50000;
-            }
-            else if (diff >= 25000) {
+            } else if (diff >= 25000) {
                 estimatedOutBinSize = 25000;
-            }
-            else if (diff >= 10000) {
+            } else if (diff >= 10000) {
                 estimatedOutBinSize = 10000;
-            } else  {
+            } else {
                 estimatedOutBinSize = 5000;
             }
 
@@ -250,34 +242,28 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 leftEnd = Integer.max(Integer.valueOf(leftChrTokens[1].replaceAll(",", "")), Integer.valueOf(leftChrTokens[2].replaceAll(",", "")));
             } catch (Exception e) {
                 positionChrLeft.setBackground(Color.yellow);
-                log.error("Cannot parse " + leftChrTokens[1] + " or " +  leftChrTokens[2] + ". Expecting int");
+                log.error("Cannot parse " + leftChrTokens[1] + " or " + leftChrTokens[2] + ". Expecting int");
                 return;
             }
             outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
             int diff = topEnd - topStart;
             int estimatedOutBinSize2;
-            diff = diff/1000;
+            diff = diff / 1000;
             if (diff >= 2500000) {
                 estimatedOutBinSize2 = 2500000;
-            }
-            else if (diff >= 1000000) {
+            } else if (diff >= 1000000) {
                 estimatedOutBinSize2 = 1000000;
-            }
-            else if (diff >= 500000) {
+            } else if (diff >= 500000) {
                 estimatedOutBinSize2 = 500000;
-            }
-            else if (diff >= 100000) {
+            } else if (diff >= 100000) {
                 estimatedOutBinSize2 = 100000;
-            }
-            else if (diff >= 50000) {
+            } else if (diff >= 50000) {
                 estimatedOutBinSize2 = 50000;
-            }
-            else if (diff >= 25000) {
+            } else if (diff >= 25000) {
                 estimatedOutBinSize2 = 25000;
-            }
-            else if (diff >= 10000) {
+            } else if (diff >= 10000) {
                 estimatedOutBinSize2 = 10000;
-            } else  {
+            } else {
                 estimatedOutBinSize2 = 5000;
             }
             estimatedOutBinSize = Math.max(estimatedOutBinSize, estimatedOutBinSize2);
@@ -367,8 +353,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (genomeID.equals("mm10")) genomeID = "mm9";
         if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
             initializeGeneHashMap(genomeID);
-        }
-        else {
+        } else {
             GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
             GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
             if (location1 == null) {
@@ -397,8 +382,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 }
             };
             MainWindow.getInstance().executeLongRunningTask(runnable, "Initialize Gene Hash Map");
-        }
-        else {
+        } else {
             MessageUtils.showErrorMessage("Cannot find genes for " + genomeID, null);
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
@@ -414,8 +398,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
 
             reader = new BufferedReader(new InputStreamReader(stream));
-        }
-        catch (Exception error) {
+        } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
@@ -432,8 +415,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 geneLocationHashMap.put(values[0].trim(), location);
                 geneLocationHashMap.put(values[1].trim(), location);
             }
-        }
-        catch (Exception error) {
+        } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;

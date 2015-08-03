@@ -119,14 +119,14 @@ public class APA extends JuiceboxCLT {
             String[] hicFiles = files[0].split(",");
             for (String hicFile : hicFiles) {
 
-                    Integer[] gwPeakNumbers = new Integer[3];
-                    for (int i = 0; i < gwPeakNumbers.length; i++)
-                        gwPeakNumbers[i] = 0;
+                Integer[] gwPeakNumbers = new Integer[3];
+                for (int i = 0; i < gwPeakNumbers.length; i++)
+                    gwPeakNumbers[i] = 0;
 
-                    System.out.println("Accessing " + hicFile);
-                    DatasetReaderV2 reader = new DatasetReaderV2(hicFile);
-                    Dataset ds = reader.read();
-                    HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+                System.out.println("Accessing " + hicFile);
+                DatasetReaderV2 reader = new DatasetReaderV2(hicFile);
+                Dataset ds = reader.read();
+                HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
                 for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
 
 
@@ -162,7 +162,7 @@ public class APA extends JuiceboxCLT {
                             });
 
                     for (Chromosome chr : chromosomes) {
-                        APADataStack apaDataStack = new APADataStack(L, files[2] , (hicFile+"_"+resolution).replace("/","_"));
+                        APADataStack apaDataStack = new APADataStack(L, files[2], (hicFile + "_" + resolution).replace("/", "_"));
 
                         if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
@@ -171,9 +171,9 @@ public class APA extends JuiceboxCLT {
 
                         MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                        System.out.println("CHR "+chr.getName() +" "+chr.getIndex());
+                        System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
                         List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
-                        if(loops == null || loops.size() == 0) {
+                        if (loops == null || loops.size() == 0) {
                             System.out.println("CHR " + chr.getName() + " " + chr.getIndex() + " - no loops found or other error");
                             continue;
                         }

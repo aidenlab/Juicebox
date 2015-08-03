@@ -120,7 +120,7 @@ public class HiCCUPS extends JuiceboxCLT {
             resolutions = new int[specifiedResolutions.size()];
 
             int index = 0;
-            for(String res : specifiedResolutions){
+            for (String res : specifiedResolutions) {
                 resolutions[index] = Integer.parseInt(res);
                 index++;
             }
@@ -131,11 +131,11 @@ public class HiCCUPS extends JuiceboxCLT {
             chrSpecified = true;
         }
 
-        if(specifiedMatrixSize > 2*regionMargin){
+        if (specifiedMatrixSize > 2 * regionMargin) {
             matrixSize = specifiedMatrixSize;
             regionWidth = specifiedMatrixSize - totalMargin;
         }
-        System.out.println("Using Matrix Size "+ matrixSize);
+        System.out.println("Using Matrix Size " + matrixSize);
     }
 
     @Override
@@ -178,7 +178,6 @@ public class HiCCUPS extends JuiceboxCLT {
     }
 
     /**
-     * 
      * @param ds
      * @param resolution
      * @param commonChromosomes
@@ -240,7 +239,7 @@ public class HiCCUPS extends JuiceboxCLT {
                 for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
                     int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
 
-                    if(rowBounds[4] < chrMatrixWdith - regionMargin) {
+                    if (rowBounds[4] < chrMatrixWdith - regionMargin) {
                         for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
                             int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
 
@@ -348,11 +347,11 @@ public class HiCCUPS extends JuiceboxCLT {
                 }
             }
 
-            for (int j = (int)threshold[index]; j < width; j++) {
+            for (int j = (int) threshold[index]; j < width; j++) {
                 float sum1 = rcsExpected[j];
                 float sum2 = rcsHist[index][j];
                 if (sum2 > 0) {
-                    fdrLog[index][j] = sum1/sum2;
+                    fdrLog[index][j] = sum1 / sum2;
                 } else {
                     break;
                 }

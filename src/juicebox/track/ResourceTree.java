@@ -687,8 +687,9 @@ public class ResourceTree {
         }
         return resourceLocators;
     }
+
     //TODO------------------------------Check Tracks
-    public void checkTrackBoxesForReloadState(String track){
+    public void checkTrackBoxesForReloadState(String track) {
 
         Enumeration<?> en = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         //skip root
@@ -696,16 +697,15 @@ public class ResourceTree {
         while (en.hasMoreElements()) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
             CheckableResource resource = (CheckableResource) node.getUserObject();
-            if(node.isLeaf()) {
-                if(resource.dataResourceLocator.getPath()!=null) {
+            if (node.isLeaf()) {
+                if (resource.dataResourceLocator.getPath() != null) {
                     if (resource.dataResourceLocator.getName().contains(track)) {
                         resource.setSelected(true);
                         resource.setEnabled(true);
                         //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
                     }
                 }
-            }
-            else if(ResourceEditor.hasSelectedChildren(node)){
+            } else if (ResourceEditor.hasSelectedChildren(node)) {
                 resource.setSelected(true);
                 resource.setEnabled(true);
             }

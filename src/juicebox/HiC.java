@@ -28,9 +28,7 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
-import juicebox.state.ReadXMLForReload;
-import juicebox.state.ReloadPreviousState;
-import juicebox.state.XMLForReloadState;
+import juicebox.state.LoadStateFromXMLFile;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
@@ -45,10 +43,7 @@ import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -118,13 +113,13 @@ public class HiC {
         showLoops = true;
     }
 
-    public void clearTracksForReloadState(){
+    public void clearTracksForReloadState() {
 
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
-        for(HiCTrack trackToRemove : tracksToRemove){
-            if(trackToRemove.getName().equals("eigenvector")){
+        for (HiCTrack trackToRemove : tracksToRemove) {
+            if (trackToRemove.getName().equals("eigenvector")) {
                 eigenvectorTrack = null;
-            }else {
+            } else {
                 trackManager.removeTrack(trackToRemove);
             }
         }
@@ -153,6 +148,11 @@ public class HiC {
         trackManager.add(eigenvectorTrack);
     }
 
+    public void refreshEigenvectorTrackIfExists() {
+        if (eigenvectorTrack != null) {
+            eigenvectorTrack.forceRefresh();
+        }
+    }
 
     public ResourceTree getResourceTree() {
         return resourceTree;
@@ -266,12 +266,12 @@ public class HiC {
 
     private MatrixZoomData setZoomDataForReloadState(HiCZoom newZoom, Chromosome crX, Chromosome crY) {
 
-        Matrix matrix = dataset.getMatrix(crX,crY);
+        Matrix matrix = dataset.getMatrix(crX, crY);
         matrixForReloadState = matrix.getZoomData(newZoom);
         return matrix.getZoomData(newZoom);
     }
 
-    public MatrixZoomData getZoomDataForReloadState(){
+    public MatrixZoomData getZoomDataForReloadState() {
         return matrixForReloadState;
     }
 
@@ -703,6 +703,7 @@ public class HiC {
 
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
+            // TODO - MSS why not use hic.setZoom instead?
             zoom = newZoom;
             xContext.setZoom(zoom);
             yContext.setZoom(zoom);
@@ -721,273 +722,20 @@ public class HiC {
 
     }
 
-
-    private void resetMap(String[] temp) {
-        boolean control = isControlLoaded();
-        List<String> files = new ArrayList<String>();
-        files.add(temp[1]);
-        System.out.println(mainWindow.getTitle());
-        if(!mainWindow.getTitle().contains(temp[0])){
-            mainWindow.safeLoadForReloadState(files, control, temp[0]);
-        }
-    }
-
-    //reloading the previous state
-
-    // TODO who should call this
-    public void safeSetReloadStateFromXML(final String[] initialInfo, final int binSize, final double[] doubleInfo,
-                                          final MatrixType displaySelection, final NormalizationType normSelection,
-                                          final String[] tracks){
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try {
-                    unsafeSetReloadStateFromXML( initialInfo,  binSize, doubleInfo,
-                     displaySelection,  normSelection, tracks);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
-    }
-
-
-
-
-
-
-
-    public void unsafeSetReloadStateFromXML(String[] initialInfo, int binSize, double[] doubleInfo,
-                                            MatrixType displaySelection, NormalizationType normSelection,
-                                            String[] tracks){
-        String mapName = initialInfo[0];
-        String mapURL = initialInfo[1];
-        String chrXName = initialInfo[2];
-        String chrYName = initialInfo[3];
-        String unitName = initialInfo[4];
-        double xOrigin = doubleInfo[0];
-        double yOrigin = doubleInfo[1];
-        double scalefactor = doubleInfo[2];
-        double minColor = doubleInfo[3];
-        double lowColor = doubleInfo[4];
-        double upColor = doubleInfo[5];
-        double maxColor = doubleInfo[6];
-
-        String[] temp = new String[2];
-        temp[0] = mapName;
-        temp[1] = mapURL;
-        resetMap(temp);
-
-        //if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
-
-        Chromosome chrX = HiCFileTools.getChromosomeNamed(chrXName, chromosomes);
-        Chromosome chrY = HiCFileTools.getChromosomeNamed(chrYName, chromosomes);
-
-        if (chrX == null || chrY == null) {
-            //Chromosomes do not appear to exist in current map.
-            log.info("Chromosome(s) not found.");
-            log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
-            JOptionPane.showMessageDialog(mainWindow, "Error:\n" + "Chromosome(s) not found. Please check chromosome" , "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        setSelectedChromosomes(chrX,chrY);
-        mainWindow.setSelectedChromosomesNoRefresh(chrX, chrY);
-        if (eigenvectorTrack != null) {
-            eigenvectorTrack.forceRefresh();
-        }
-        //}
-
-        HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
-            setZoomDataForReloadState(newZoom,chrX,chrY);
-            zoom = newZoom;
-            xContext.setZoom(newZoom);
-            yContext.setZoom(newZoom);
-            mainWindow.updateZoom(newZoom);
-        } else{
-            JOptionPane.showMessageDialog(mainWindow, "Error:\n" + "Please check zoom data" , "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-
-        setScaleFactor(scalefactor);
-        xContext.setBinOrigin(xOrigin);
-        yContext.setBinOrigin(yOrigin);
-        mainWindow.setDisplayBox(displaySelection.ordinal());
-        mainWindow.setNormalizationBox(normSelection.ordinal());
-        mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
-
-        LoadEncodeAction loadEncodeAction = new LoadEncodeAction("Check Encode boxes", mainWindow, this);
-        LoadAction loadAction = new LoadAction("Check track boxes", mainWindow, this);
-
-        String[] trackURLs = tracks[0].split("\\,");
-        String[] trackNames = tracks[1].split("\\,");
-
-        try {
-            if (tracks.length > 0 && !tracks[1].contains("none")) {
-                //System.out.println("trackNames: " + trackNames); for debugging
-                for(int i=0; i<trackURLs.length; i++) {
-                        String currentTrack = trackURLs[i].trim();
-                        if (!currentTrack.isEmpty()) {
-                            if (currentTrack.equals("Eigenvector")) {
-                                loadEigenvectorTrack();
-                            } else if (currentTrack.toLowerCase().contains("coverage") || currentTrack.toLowerCase().contains("balanced")
-                                    || currentTrack.equals("Loaded")) {
-                                loadCoverageTrack(NormalizationType.enumValueFromString(currentTrack));
-                            } else if (currentTrack.contains("peaks") || currentTrack.contains("blocks") || currentTrack.contains("superloop")) {
-                                resourceTree.checkTrackBoxesForReloadState(currentTrack.trim());
-                                loadLoopList(currentTrack);
-                            } else if (currentTrack.contains("goldenPath") || currentTrack.toLowerCase().contains("ensembl")) {
-                                loadTrack(currentTrack);
-                                loadEncodeAction.checkEncodeBoxes(trackNames[i].trim());
-                            } else {
-                                loadTrack(currentTrack);
-                                loadAction.checkBoxesForReload(trackNames[i].trim());
-                            }
-                            //renaming
-                    }
-                }
-                for(HiCTrack loadedTrack: getLoadedTracks()){
-                    for(int i = 0; i<trackNames.length; i++){
-                        if(trackURLs[i].contains(loadedTrack.getName())){
-                            loadedTrack.setName(trackNames[i].trim());
-                        }
-                    }
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        mainWindow.updateTrackPanel();
-
-    }
-
     public void broadcastLocation() {
-        String xChr = xContext.getChromosome().getName();
-        String yChr = yContext.getChromosome().getName();
-
-        if (!(xChr.toLowerCase().contains("chr"))) {
-            xChr = "chr" + xChr;
-        }
-        if (!(yChr.toLowerCase().contains("chr"))) {
-            yChr = "chr" + yChr;
-        }
-
-        String command = "setstate " +
-                xChr + " " +
-                yChr + " " +
-                zoom.getUnit().toString() + " " +
-                zoom.getBinSize() + " " +
-                xContext.getBinOrigin() + " " +
-                yContext.getBinOrigin() + " " +
-                getScaleFactor();
-
+        String command = getLocationDescription();
         CommandBroadcaster.broadcast(command);
     }
 
-    public String saveLocation() {
+    public String getLocationDescription() {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) {
-            xChr = "chr" + xChr;
-        }
-        if (!(yChr.toLowerCase().contains("chr"))) {
-            yChr = "chr" + yChr;
-        }
+        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
-        return "setstate " +
-                xChr + " " +
-                yChr + " " +
-                zoom.getUnit().toString() + " " +
-                zoom.getBinSize() + " " +
-                xContext.getBinOrigin() + " " +
-                yContext.getBinOrigin() + " " +
-                getScaleFactor();
-        // CommandBroadcaster.broadcast(command);
-    }
-    // Creating XML file
-    private void createXMLForReload() {
-        XMLForReloadState xml = new XMLForReloadState();
-        xml.begin();
-    }
-
-    public void readStateFromXML(String mapPath){
-        ReadXMLForReload readFile = new ReadXMLForReload(this);
-        readFile.readXML(HiCGlobals.xmlFileName, mapPath);
-    }
-
-
-    public void writeStateForXML(String stateID) {
-        try {
-            BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML,true));
-            String xChr = xContext.getChromosome().getName();
-            String yChr = yContext.getChromosome().getName();
-            String colorVals = mainWindow.getColorRangeValues();
-            List<HiCTrack> currentTracks = getLoadedTracks();
-            String currentTrack = "";
-            String currentTrackName = "";
-            //storeMapName();
-            buffWriter.newLine();
-
-            String mapNameAndURLs = MainWindow.currentlyLoadedMainFiles+"@@"+MainWindow.currentlyLoadedMainFiles;
-            //tracks true & loops true
-            if(currentTracks!=null && !currentTracks.isEmpty() && getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()) {
-
-                for(HiCTrack track: currentTracks) {
-                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
-                    System.out.println("track name: " + track.getName());
-                    currentTrack+=track.getLocator()+", ";
-                    currentTrackName+=track.getName()+", ";
-                }
-
-                buffWriter.write(stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
-                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
-                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals +  "$$" + currentTrack + "$$" + currentTrackName + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
-            }//tracks true & loops false
-            else if(currentTracks!=null && !currentTracks.isEmpty()) {
-
-                for(HiCTrack track: currentTracks) {
-                    //System.out.println("trackLocator: "+track.getLocator()); for debugging
-                    System.out.println("track name: "+track.getName());
-                    currentTrack+=track.getLocator()+", ";
-                    currentTrackName+=track.getName()+", ";
-                }
-
-                buffWriter.write(stateID+"--currentState:$$"+ mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
-                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
-                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals + "$$" + currentTrack + "$$" + currentTrackName);
-                //loops true & tracks false
-            } else if(getAllVisibleLoopLists()!=null && !getAllVisibleLoopLists().isEmpty()){
-
-                //System.out.println(dataset.getPeaks().toString());
-                //System.out.println(dataset.getBlocks().toString()); for debugging
-                buffWriter.write(stateID+"--currentState:$$"+ mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
-                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
-                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals + "$$" + dataset.getPeaks().toString() + "$$" + dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString());
-
-            }
-            else{ //false & false
-                buffWriter.write(stateID+"--currentState:$$"+ mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
-                        zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
-                        getScaleFactor() + "$$" + displayOption.name() + "$$" + getNormalizationType().name()
-                        + "$$" + colorVals);
-            }
-
-            //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
-            // normalization type,color range values, tracks")
-            buffWriter.close();
-            System.out.println("stuff saved"); //check
-            createXMLForReload();
-
-        }catch (IOException e){
-            e.printStackTrace();
-        }
+        return "setstate " + xChr + " " + yChr + " " + zoom.getUnit().toString() + " " + zoom.getBinSize() + " " +
+                xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
     }
 
     public String getDefaultLocationDescription() {
@@ -995,25 +743,14 @@ public class HiC {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
 
-        if (!(xChr.toLowerCase().contains("chr"))) {
-            xChr = "chr" + xChr;
-        }
-        if (!(yChr.toLowerCase().contains("chr"))) {
-            yChr = "chr" + yChr;
-        }
+        if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
+        if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
-        return xChr + "@" +
-                (long) (xContext.getBinOrigin() * zoom.getBinSize()) + "_" +
-                yChr + "@" +
-                (long) (yContext.getBinOrigin() * zoom.getBinSize());
-        // CommandBroadcaster.broadcast(command);
+        return xChr + "@" + (long) (xContext.getBinOrigin() * zoom.getBinSize()) + "_" +
+                yChr + "@" + (long) (yContext.getBinOrigin() * zoom.getBinSize());
     }
 
 
-    public void reloadPreviousStateFromXML(String[] infoToReload){
-        ReloadPreviousState rld = new ReloadPreviousState(this);
-        rld.reloadXML(infoToReload);
-    }
     public void restoreLocation(String cmd) {
         CommandExecutor cmdExe = new CommandExecutor(this);
         cmdExe.execute(cmd);

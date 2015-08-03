@@ -48,7 +48,7 @@ public class BlockBuster {
      * @return
      */
     public static void run(int chrIndex, String chrName, int chrLength, int resolution, String outputPath,
-                                   MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control){
+                           MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control) {
 
         // int chrLength = chromosome.getLength();
         float signThreshold = 0.4f;
@@ -58,7 +58,7 @@ public class BlockBuster {
 
         CumulativeBlockResults results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
 
-        while(results.getCumulativeResults().size() == 0 && signThreshold > 0){
+        while (results.getCumulativeResults().size() == 0 && signThreshold > 0) {
             signThreshold = signThreshold - 0.1f;
             results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
         }
@@ -74,7 +74,7 @@ public class BlockBuster {
         results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
         results.mergeScores();
 
-        if(results.getCumulativeResults().size() > 0){
+        if (results.getCumulativeResults().size() > 0) {
             List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
             binnedScores = binScoresByDistance(binnedScores, 10);
             Collections.sort(binnedScores, Collections.reverseOrder());
@@ -94,18 +94,18 @@ public class BlockBuster {
     private static List<HighScore> binScoresByDistance(List<HighScore> results, int dist) {
 
         List<BinnedScore> binnedScores = new ArrayList<BinnedScore>();
-        for(HighScore score : results){
+        for (HighScore score : results) {
             boolean scoreNotAssigned = true;
-            for(BinnedScore binnedScore : binnedScores){
-                if(binnedScore.isNear(score)){
+            for (BinnedScore binnedScore : binnedScores) {
+                if (binnedScore.isNear(score)) {
                     binnedScore.addScoreToBin(score);
                     scoreNotAssigned = false;
                     break;
                 }
             }
 
-            if(scoreNotAssigned){
-                binnedScores.add(new BinnedScore(score,dist));
+            if (scoreNotAssigned) {
+                binnedScores.add(new BinnedScore(score, dist));
             }
         }
 
@@ -115,22 +115,22 @@ public class BlockBuster {
     private static void appendNonConflictingBlocks(List<HighScore> mainList, List<HighScore> possibleAdditions) {
 
         Map<Integer, HighScore> blockEdges = new HashMap<Integer, HighScore>();
-        for(HighScore score : mainList){
+        for (HighScore score : mainList) {
             blockEdges.put(score.getI(), score);
             blockEdges.put(score.getJ(), score);
         }
 
-        for(HighScore score : possibleAdditions){
+        for (HighScore score : possibleAdditions) {
             boolean doesNotConflict = true;
 
-            for(int k = score.getI(); k <= score.getJ(); k++){
-                if(blockEdges.containsKey(k)){
+            for (int k = score.getI(); k <= score.getJ(); k++) {
+                if (blockEdges.containsKey(k)) {
                     doesNotConflict = false;
                     break;
                 }
             }
 
-            if(doesNotConflict){
+            if (doesNotConflict) {
                 mainList.add(score);
                 blockEdges.put(score.getI(), score);
                 blockEdges.put(score.getJ(), score);
@@ -141,8 +141,8 @@ public class BlockBuster {
     private static List<HighScore> filterBlocksBySize(List<HighScore> largerList, int minWidth) {
         List<HighScore> filteredList = new ArrayList<HighScore>();
 
-        for(HighScore score : largerList){
-            if(score.getWidth() > minWidth){
+        for (HighScore score : largerList) {
+            if (score.getWidth() > minWidth) {
                 filteredList.add(score);
             }
         }
@@ -158,8 +158,8 @@ public class BlockBuster {
 
         List<HighScore> diffList = new ArrayList<HighScore>();
 
-        for(HighScore score : longerSet){
-            if(!shorterSet.contains(score)){
+        for (HighScore score : longerSet) {
+            if (!shorterSet.contains(score)) {
                 diffList.add(score);
             }
         }
@@ -168,7 +168,7 @@ public class BlockBuster {
     }
 
     private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,
-                                                   ArrowheadScoreList list, ArrowheadScoreList control) {
+                                                             ArrowheadScoreList list, ArrowheadScoreList control) {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
 

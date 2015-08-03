@@ -145,7 +145,7 @@ public class RangeSlider extends JSlider implements Serializable {
         rangeSliderUI.setDisplayToPreDef(colorIsPreDef);
     }
 
-    public String getDisplayColorsString(){
+    public String getDisplayColorsString() {
         return rangeSliderUI.getColorsAsText();
     }
 

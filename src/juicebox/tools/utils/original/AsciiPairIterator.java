@@ -28,16 +28,11 @@ package juicebox.tools.utils.original;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.util.List;
-import java.util.zip.GZIPInputStream;
-import java.io.Reader;
+import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author Jim Robinson
@@ -45,6 +40,7 @@ import java.util.Map;
  */
 public class AsciiPairIterator implements PairIterator {
 
+    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
     /**
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
      * in perm space, which is rather limited and can cause us to run out of memory.
@@ -56,7 +52,6 @@ public class AsciiPairIterator implements PairIterator {
     private AlignmentPair preNext = null;
     private BufferedReader reader;
     private Format format = null;
-    private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
     //CharMatcher.anyOf(";,.")
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
@@ -65,8 +60,7 @@ public class AsciiPairIterator implements PairIterator {
             InputStream gzipStream = new GZIPInputStream(fileStream);
             Reader decoder = new InputStreamReader(gzipStream, "UTF8");
             this.reader = new BufferedReader(decoder);
-        }
-        else {
+        } else {
             this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
@@ -104,8 +98,7 @@ public class AsciiPairIterator implements PairIterator {
                         format = Format.LONG;
                     } else if (nTokens == 11) {
                         format = Format.MEDIUM;
-                    }
-                    else {
+                    } else {
                         throw new IOException("Unexpected column count.  Only 11 or 16 columns supported.  Check file format");
                     }
                 }
@@ -129,8 +122,7 @@ public class AsciiPairIterator implements PairIterator {
                         nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
                     }
 
-                }
-                else {
+                } else {
                     // this should be strand, chromosome, position, fragment.
 
                     String chrom1 = getInternedString(tokens.get(1));

@@ -43,9 +43,8 @@ import java.awt.event.MouseMotionAdapter;
  */
 public class DisabledGlassPane extends JComponent implements KeyListener {
 
-    private final JLabel message = new JLabel();
-
     private static final long serialVersionUID = 5393484427189897719L;
+    private final JLabel message = new JLabel();
 
     public DisabledGlassPane() {
         //  Set glass pane properties

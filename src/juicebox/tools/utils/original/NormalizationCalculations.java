@@ -59,12 +59,12 @@ public class NormalizationCalculations {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
         Iterator<ContactRecord> iter1 = zd.contactRecordIterator();
-        int count=0;
+        int count = 0;
         while (iter1.hasNext()) {
             iter1.next();
             count++;
         }
-        if (count*1000 < Runtime.getRuntime().maxMemory()) {
+        if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
             this.list = new ArrayList<ContactRecord>();
@@ -75,10 +75,6 @@ public class NormalizationCalculations {
             }
             this.totSize = zd.getXGridAxis().getBinCount();
         }
-    }
-
-    public boolean isEnoughMemory() {
-        return isEnoughMemory;
     }
 
     public NormalizationCalculations(ArrayList<ContactRecord> list, int totSize) {
@@ -269,6 +265,10 @@ public class NormalizationCalculations {
         return x;
     }
 
+    public boolean isEnoughMemory() {
+        return isEnoughMemory;
+    }
+
     public double[] getNorm(NormalizationType normOption) {
         double[] norm;
         if (normOption == NormalizationType.KR || normOption == NormalizationType.GW_KR || normOption == NormalizationType.INTER_KR) {
@@ -377,7 +377,7 @@ public class NormalizationCalculations {
                 } else {
                     offset = getOffset(10);
                 }
-             //   System.out.print(" " + iteration + "%");
+                //   System.out.print(" " + iteration + "%");
             } else {
                 // otherwise, check to be sure there are no tiny KR values
                 // create true KR vector
@@ -405,7 +405,7 @@ public class NormalizationCalculations {
                         if (offset[i] != -1) offset[i] = index++;
                     }
                 }
-               // if (recalculate) System.out.print(" " + rowsTossed);
+                // if (recalculate) System.out.print(" " + rowsTossed);
             }
             iteration++;
 

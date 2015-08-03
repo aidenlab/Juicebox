@@ -56,7 +56,7 @@ class FeatureRenderer {
         HiCGridAxis yAxis = zd.getYGridAxis();
         boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
 
-        if(loops != null) {
+        if (loops != null) {
             for (Feature2D feature : loops) {
 
                 loopGraphics.setColor(feature.getColor());
@@ -128,7 +128,7 @@ class FeatureRenderer {
             }
         }
 
-        if(highlightedFeature != null && showFeatureHighlight){
+        if (highlightedFeature != null && showFeatureHighlight) {
             Feature2D feature = highlightedFeature.getSecond();
             loopGraphics.setColor(feature.getColor());
 
@@ -138,19 +138,19 @@ class FeatureRenderer {
             int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
 
             loopGraphics.setColor(Color.BLACK);
-            if(HiCFileTools.equivalentChromosome(feature.getChr1(),zd.getChr1())){
+            if (HiCFileTools.equivalentChromosome(feature.getChr1(), zd.getChr1())) {
                 int x = (int) ((binStart1 - binOriginX) * scaleFactor);
                 int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
                 loopGraphics.drawLine(x, 0, x, maxHeight);
-                loopGraphics.drawLine(x+h, 0, x+h, maxHeight);
+                loopGraphics.drawLine(x + h, 0, x + h, maxHeight);
             }
-            if(HiCFileTools.equivalentChromosome(feature.getChr2(),zd.getChr2())){
+            if (HiCFileTools.equivalentChromosome(feature.getChr2(), zd.getChr2())) {
                 int y = (int) ((binStart2 - binOriginY) * scaleFactor);
                 int w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 
                 loopGraphics.drawLine(0, y, maxWidth, y);
-                loopGraphics.drawLine(0, y+w, maxWidth, y+w);
+                loopGraphics.drawLine(0, y + w, maxWidth, y + w);
             }
         }
         loopGraphics.dispose();

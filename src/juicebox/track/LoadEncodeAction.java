@@ -75,7 +75,8 @@ public class LoadEncodeAction extends AbstractAction {
         this.genome = null;
 
     }
-//TODO-----Will this be used in the future--------
+
+    //TODO-----Will this be used in the future--------
     private LoadEncodeAction(String s, Component owner, HiC hic, String genome) {
         super(s);
         this.owner = owner;
@@ -84,14 +85,14 @@ public class LoadEncodeAction extends AbstractAction {
 
     }
 
-    public void checkEncodeBoxes(String track){
+    public void checkEncodeBoxes(String track) {
         try {
             Dataset ds = hic.getDataset();
             genome = ds.getGenomeId();
             EncodeFileBrowser encodeFileBrowser = EncodeFileBrowser.getInstance(genome);
             assert encodeFileBrowser != null;
             encodeFileBrowser.checkEncodeTracks(track);
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

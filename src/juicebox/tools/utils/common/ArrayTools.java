@@ -43,10 +43,10 @@ public class ArrayTools {
 
     public static double mean(double[] doubles) {
         double sum = 0;
-        for(double d : doubles){
+        for (double d : doubles) {
             sum += d;
         }
-        return sum/doubles.length;
+        return sum / doubles.length;
     }
 
     /**
@@ -57,13 +57,13 @@ public class ArrayTools {
      * @return
      */
     public static double[] generatePoissonPMF(int index, int width) {
-        double mu = Math.pow(2.0,(index + 1.0) / 3.0);
+        double mu = Math.pow(2.0, (index + 1.0) / 3.0);
         double[] poissonPMF = new double[width];
 
         PoissonDistributionImpl poissonDistribution = new PoissonDistributionImpl(mu);
 
         // use dynamic programming to grow poisson PMF
-        for (int k = 0; k < width; k++){
+        for (int k = 0; k < width; k++) {
             poissonPMF[k] = poissonDistribution.probability(k); // the total is for scaling
         }
 
@@ -106,7 +106,7 @@ public class ArrayTools {
 
     public static float[] scalarMultiplyArray(int scaleFactor, float[] array) {
         float[] scaledArray = newValueInitializedFloatArray(array.length, scaleFactor);
-        for (int i=0; i<array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             scaledArray[i] *= array[i];
         }
         return scaledArray;
@@ -114,6 +114,7 @@ public class ArrayTools {
 
     /**
      * Assumes array passed in is <= length, otherwise indexOutOfBounds error will be thrown
+     *
      * @param original
      * @param length
      * @param val
@@ -122,7 +123,7 @@ public class ArrayTools {
     public static float[] padEndOfArray(float[] original, int length, float val) {
         float[] paddedArray = new float[length];
         System.arraycopy(original, 0, paddedArray, 0, original.length);
-        for(int i = original.length; i < length; i++){
+        for (int i = original.length; i < length; i++) {
             paddedArray[i] = val;
         }
         return paddedArray;

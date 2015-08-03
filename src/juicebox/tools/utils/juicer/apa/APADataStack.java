@@ -55,7 +55,7 @@ public class APADataStack {
     private RealMatrix centerNormedPsea;
     private RealMatrix rankPsea;
 
-    public APADataStack(int n, String outputFolderPath, String customPrefix){
+    public APADataStack(int n, String outputFolderPath, String customPrefix) {
         psea = MatrixTools.cleanArray2DMatrix(n, n);
         normedPsea = MatrixTools.cleanArray2DMatrix(n, n);
         centerNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
@@ -72,20 +72,19 @@ public class APADataStack {
 
     private static void initializeDataSaveFolder(String path, String prefix) {
         File newDirectory = safeFolderCreation(path);
-        if(prefix.length() < 1) {
-            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() +"/"+
+        if (prefix.length() < 1) {
+            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" +
                     new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date()));
-        }
-        else{
+        } else {
             dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" + prefix);
         }
     }
 
-    private static File safeFolderCreation(String path){
+    private static File safeFolderCreation(String path) {
         File newFolder = new File(path);
-        if(!newFolder.exists()){
+        if (!newFolder.exists()) {
             boolean result = newFolder.mkdir();
-            if(!result){
+            if (!result) {
                 System.out.println("Error creating directory (data not saved): " + newFolder);
                 return null;
             }
@@ -94,7 +93,7 @@ public class APADataStack {
     }
 
     private static void initializeGenomeWideVariables(int n) {
-        if(genomeWideVariablesNotSet){
+        if (genomeWideVariablesNotSet) {
             gwPsea = MatrixTools.cleanArray2DMatrix(n, n);
             gwNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
             gwCenterNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
@@ -177,7 +176,7 @@ public class APADataStack {
         centerNormedPsea = centerNormedPsea.scalarMultiply(nPeaksUsedInv);
         rankPsea = rankPsea.scalarMultiply(nPeaksUsedInv);
 
-        RealMatrix[] matrices =  {psea, normedPsea, centerNormedPsea, rankPsea};
+        RealMatrix[] matrices = {psea, normedPsea, centerNormedPsea, rankPsea};
         String[] titles = {"psea", "normedPsea", "centerNormedPsea", "rankPsea", "enhancement", "measures"};
 
         saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers);
