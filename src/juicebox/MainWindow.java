@@ -31,6 +31,7 @@ import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.*;
 import juicebox.state.*;
+import juicebox.state.LoadStateFromXMLFile;
 import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -2117,7 +2118,7 @@ public class MainWindow extends JFrame {
         slideShow.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Slideshow.viewShow();
+                Slideshow.viewShow(MainWindow.getInstance(),hic);
             }
         });
         bookmarksMenu.add(slideShow);
