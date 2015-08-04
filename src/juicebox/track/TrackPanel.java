@@ -26,6 +26,7 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import org.broad.igv.util.Pair;
 
@@ -259,7 +260,7 @@ public class TrackPanel extends JPanel {
         graphics.setTransform(t);
         Point cursorPoint = hic.getCursorPoint();
         if (cursorPoint != null) {
-            graphics.setColor(MainWindow.RULER_LINE_COLOR);
+            graphics.setColor(HiCGlobals.RULER_LINE_COLOR);
             if (orientation == Orientation.X) {
                 graphics.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
             } else {

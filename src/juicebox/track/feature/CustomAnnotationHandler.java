@@ -25,9 +25,9 @@
 package juicebox.track.feature;
 
 import juicebox.HiC;
-import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.MainMenuBar;
 import juicebox.track.HiCGridAxis;
 
 import java.awt.*;
@@ -43,8 +43,6 @@ public class CustomAnnotationHandler {
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
     private final int threshold = 10;
-    private final HiC hic;
-    private final MainWindow mainWindow;
     String id;
     private PrintWriter outputFile;
     private Rectangle selectionRegion;
@@ -52,9 +50,7 @@ public class CustomAnnotationHandler {
     private FeatureType featureType;
     private boolean hasPoint, hasRegion;
 
-    public CustomAnnotationHandler(MainWindow mainWindow, HiC hic) {
-        this.mainWindow = mainWindow;
-        this.hic = hic;
+    public CustomAnnotationHandler() {
         featureType = FeatureType.NONE;
         resetSelection();
     }
@@ -127,12 +123,12 @@ public class CustomAnnotationHandler {
         hasPoint = true;
     }
 
-    public void addFeature(CustomAnnotation customAnnotations) {
+    public void addFeature(HiC hic, CustomAnnotation customAnnotations) {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
-        MainWindow.exportAnnotationsMI.setEnabled(true);
-        MainWindow.undoMenuItem.setEnabled(true);
+        MainMenuBar.exportAnnotationsMI.setEnabled(true);
+        MainMenuBar.undoMenuItem.setEnabled(true);
         String chr1 = hic.getXContext().getChromosome().getName();
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -141,32 +137,32 @@ public class CustomAnnotationHandler {
 
         switch (featureType) {
             case GENERIC:
-                start1 = geneXPos(selectionRegion.x, 0);
-                start2 = geneYPos(selectionRegion.y, 0);
-                end1 = geneXPos(selectionRegion.x + selectionRegion.width, 0);
-                end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
+                start1 = geneXPos(hic, selectionRegion.x, 0);
+                start2 = geneYPos(hic, selectionRegion.y, 0);
+                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0);
+                end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
                 newFeature = new Feature2D(Feature2D.generic, chr1, start1, end1, chr2, start2, end2,
                         java.awt.Color.orange, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case PEAK:
-                start1 = geneXPos(selectionPoint.x, -1 * peakDisplacement);
-                end1 = geneXPos(selectionPoint.x, peakDisplacement);
+                start1 = geneXPos(hic, selectionPoint.x, -1 * peakDisplacement);
+                end1 = geneXPos(hic, selectionPoint.x, peakDisplacement);
 
-                if (chr1Idx == chr2Idx && nearDiagonal(selectionPoint.x, selectionPoint.y)) {
+                if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionPoint.x, selectionPoint.y)) {
                     start2 = start1;
                     end2 = end1;
                 } else {
                     //Displacement inside before geneYPos scales to resolution
-                    start2 = geneYPos(selectionPoint.y, -1 * peakDisplacement);
-                    end2 = geneYPos(selectionPoint.y, peakDisplacement);
+                    start2 = geneYPos(hic, selectionPoint.y, -1 * peakDisplacement);
+                    end2 = geneYPos(hic, selectionPoint.y, peakDisplacement);
                 }
 
                 //UNCOMMENT to take out annotation data
                 boolean exportData = true;
                 if (exportData) {
-                    int tempBinX0 = getXBin(selectionPoint.x);
-                    int tempBinY0 = getYBin(selectionPoint.y);
+                    int tempBinX0 = getXBin(hic, selectionPoint.x);
+                    int tempBinY0 = getYBin(hic, selectionPoint.y);
                     int tempBinX, tempBinY;
                     final MatrixZoomData zd = hic.getZd();
 
@@ -206,25 +202,25 @@ public class CustomAnnotationHandler {
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case DOMAIN:
-                start1 = geneXPos(selectionRegion.x, 0);
-                end1 = geneXPos(selectionRegion.x + selectionRegion.width, 0);
+                start1 = geneXPos(hic, selectionRegion.x, 0);
+                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0);
 
                 // Snap if close to diagonal
-                if (chr1Idx == chr2Idx && nearDiagonal(selectionRegion.x, selectionRegion.y)) {
+                if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {
                     // Snap to min of horizontal stretch and vertical stretch
                     if (selectionRegion.width <= selectionRegion.y) {
                         start2 = start1;
                         end2 = end1;
                     } else {
-                        start2 = geneYPos(selectionRegion.y, 0);
-                        end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
+                        start2 = geneYPos(hic, selectionRegion.y, 0);
+                        end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
                         start1 = start2;
                         end1 = end2;
                     }
                     // Otherwise record as drawn
                 } else {
-                    start2 = geneYPos(selectionRegion.y, 0);
-                    end2 = geneYPos(selectionRegion.y + selectionRegion.height, 0);
+                    start2 = geneYPos(hic, selectionRegion.y, 0);
+                    end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
                 }
 
                 newFeature = new Feature2D(Feature2D.domain, chr1, start1, end1, chr2, start2, end2,
@@ -236,7 +232,7 @@ public class CustomAnnotationHandler {
         }
     }
 
-    public CustomAnnotation addVisibleLoops(CustomAnnotation customAnnotations) {
+    public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null || hic.getXContext() == null) return customAnnotations;
 
@@ -253,43 +249,42 @@ public class CustomAnnotationHandler {
 
     public void undo(CustomAnnotation customAnnotations) {
         customAnnotations.undo();
-        MainWindow.undoMenuItem.setEnabled(false);
+        MainMenuBar.undoMenuItem.setEnabled(false);
     }
 
-    private boolean nearDiagonal(int x, int y) {
-        int start1 = getXBin(x);
-        int start2 = getYBin(y);
+    private boolean nearDiagonal(HiC hic, int x, int y) {
+        int start1 = getXBin(hic, x);
+        int start2 = getYBin(hic, y);
 
         return Math.abs(start1 - start2) < threshold;
     }
 
-    private int getXBin(int x) {
-        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-    }
-
-    private int getYBin(int y) {
-        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-    }
-
     //helper for getannotatemenu
-    private int geneXPos(int x, int displacement) {
+    private int geneXPos(HiC hic, int x, int displacement) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return -1;
         HiCGridAxis xGridAxis = zd.getXGridAxis();
-        int binX = getXBin(x) + displacement;
+        int binX = getXBin(hic, x) + displacement;
         return xGridAxis.getGenomicStart(binX) + 1;
     }
 
     //helper for getannotatemenu
-    private int geneYPos(int y, int displacement) {
+    private int geneYPos(HiC hic, int y, int displacement) {
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return -1;
         HiCGridAxis yGridAxis = zd.getYGridAxis();
-        int binY = getYBin(y) + displacement;
+        int binY = getYBin(hic, y) + displacement;
         return yGridAxis.getGenomicStart(binY) + 1;
     }
 
-    enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
+    private int getXBin(HiC hic, int x) {
+        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+    }
 
+    private int getYBin(HiC hic, int y) {
+        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+    }
+
+    enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
 
 }

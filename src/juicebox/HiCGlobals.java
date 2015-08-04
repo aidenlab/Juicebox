@@ -37,10 +37,15 @@ public class HiCGlobals {
 
     // whether MatrixZoomData should cache or not
     public static final boolean useCache = true;
+
     // Changes Data Output Mode
     public static final boolean isRestricted = true;
+
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
+
+    public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
+
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";

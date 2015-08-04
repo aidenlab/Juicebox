@@ -29,20 +29,18 @@ import juicebox.data.Dataset;
 import juicebox.data.DatasetReader;
 import juicebox.data.DatasetReaderFactory;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.MainMenuBar;
+import juicebox.gui.MainViewPanel;
+import juicebox.gui.SuperAdapter;
+import juicebox.gui.ToolBarPanel;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
 import juicebox.mapcolorui.ResolutionControl;
 import juicebox.mapcolorui.ThumbnailPanel;
-import juicebox.state.*;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.CustomAnnotationHandler;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
@@ -59,7 +57,6 @@ import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -77,44 +74,24 @@ import java.util.concurrent.Future;
 
 public class MainWindow extends JFrame {
 
-    public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
     public static final int BIN_PIXEL_WIDTH = 1;
     private static final long serialVersionUID = -3654174199024388185L;
     private static final Logger log = Logger.getLogger(MainWindow.class);
-    private static final int recentMapListMaxItems = 10;
-    private static final int recentLocationMaxItems = 20;
-    private static final String recentMapEntityNode = "hicMapRecent";
-    private static final String recentLocationEntityNode = "hicLocationRecent";
-    private static final String recentStateEntityNode = "hicStateRecent";
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     public static Cursor fistCursor;
-    public static CustomAnnotation customAnnotations;
-    public static CustomAnnotationHandler customAnnotationHandler;
-    public static JMenuItem exportAnnotationsMI;
-    public static JMenuItem undoMenuItem;
     public static Color hicMapColor = Color.red;
     public static boolean preDefMapColor = false;
     public static List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
-    private static boolean unsavedEdits;
-    private static JMenuItem loadLastMI;
-    private static RecentMenu recentMapMenu;
     private static MainWindow theInstance;
-    private static RecentMenu recentLocationMenu;
-    private static JMenuItem saveLocationList;
     private static String datasetTitle = "";
     private static String controlTitle;
     private static LoadDialog loadDialog = null;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static JideButton refreshButton;
-    private static JMenuItem saveStateForReload;
-    private static RecentMenu previousStates;
-    private static JMenuItem exportMapAsFile;
-    private static JMenuItem importMapAsFile;
-    private static JMenuItem slideShow;
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JColorRangePanel colorRangePanel;
@@ -130,26 +107,23 @@ public class MainWindow extends JFrame {
     private static ThumbnailPanel thumbnailPanel;
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
-    private static File temp;
     private static JPanel hiCPanel;
-    private static JMenu annotationsMenu;
+    private static SuperAdapter superAdapter;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
-    private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
-    File currentStates = new File("testStates");
-
     private HiCZoom initialZoom;
     private boolean tooltipAllowedToUpdated = true;
-
     private Properties properties;
-    private LoadEncodeAction encodeAction;
-    private LoadAction trackLoadAction;
 
     private MainWindow() {
 
         hic = new HiC(this);
+        MainMenuBar mainMenuBar = new MainMenuBar();
+        ToolBarPanel toolBarPanel = new ToolBarPanel();
+        MainViewPanel mainViewPanel = new MainViewPanel();
+        superAdapter = new SuperAdapter(this, hic, mainMenuBar, toolBarPanel, mainViewPanel);
 
-        initComponents();
+        initComponents(superAdapter);
         createCursors();
         pack();
 
@@ -161,6 +135,11 @@ public class MainWindow extends JFrame {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
 
         hicMapColor = Color.red;
+
+        if (superAdapter.unsavedEditsExist()) {
+            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
+                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+        }
     }
 
     public static void main(String[] args) throws IOException, InvocationTargetException, InterruptedException {
@@ -173,10 +152,6 @@ public class MainWindow extends JFrame {
                 CommandListener.start(theInstance.hic);
             }
         };
-        if (unsavedEditsExist()) {
-            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
-                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
-        }
         SwingUtilities.invokeAndWait(runnable);
 
     }
@@ -212,12 +187,8 @@ public class MainWindow extends JFrame {
         return new MainWindow();
     }
 
-    private static boolean unsavedEditsExist() {
-        String tempPath = "/unsaved-hiC-annotations1";
-        temp = HiCFileTools.openTempFile(tempPath);
-        unsavedEdits = temp.exists();
-        return unsavedEdits;
-
+    public JPanel getHiCPanel() {
+        return hiCPanel;
     }
 
     public void updateToolTipText(String s) {
@@ -291,6 +262,7 @@ public class MainWindow extends JFrame {
     }
 
     public void safeLoad(final List<String> files, final boolean control, final String title) {
+        superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + files.get(0), true);
         Runnable runnable = new Runnable() {
             public void run() {
                 unsafeLoadWithTitleFix(files, control, title);
@@ -583,17 +555,16 @@ public class MainWindow extends JFrame {
                 fileNames.add(f.getAbsolutePath());
                 str += f.getName() + " ";
             }
-            getRecentMapMenu().addEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
+            superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
             safeLoad(fileNames, control, str);
         }
     }
 
-    private void loadFromRecentActionPerformed(String url, String title, boolean control) {
+    public void loadFromRecentActionPerformed(String url, String title, boolean control) {
 
         if (url != null) {
-            recentMapMenu.addEntry(title.trim() + "@@" + url, true);
+            superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + url, true);
             safeLoad(Arrays.asList(url), control, title);
-
         }
     }
 
@@ -615,7 +586,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void loadFromListActionPerformed(boolean control) {
+    public void loadFromListActionPerformed(boolean control) {
 
         if (loadDialog == null) {
             initProperties();
@@ -641,7 +612,7 @@ public class MainWindow extends JFrame {
         setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    private void exitActionPerformed() {
+    public void exitActionPerformed() {
         setVisible(false);
         dispose();
         System.exit(0);
@@ -731,14 +702,6 @@ public class MainWindow extends JFrame {
         refreshMainOnly();
     }
 
-    public RecentMenu getRecentMapMenu() {
-        return recentMapMenu;
-    }
-
-    private RecentMenu getRecentStateMenu() {
-        return recentLocationMenu;
-    }
-
     /**
      * Utility function to execute a task in a worker thread.  The method is on MainWindow because the glassPane
      * is used to display a wait cursor and block events.
@@ -814,13 +777,10 @@ public class MainWindow extends JFrame {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
-    private void initComponents() {
+    private void initComponents(SuperAdapter superAdapter) {
         System.out.println("Initializing Components");
 
-
-        customAnnotations = new CustomAnnotation("1");
-        customAnnotationHandler = new CustomAnnotationHandler(this, hic);
-
+        superAdapter.initializeCustomAnnotations();
 
         //size of the screen
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -864,7 +824,7 @@ public class MainWindow extends JFrame {
 
         JMenuBar menuBar = null;
         try {
-            menuBar = createMenuBar();
+            menuBar = superAdapter.createMenuBar();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1143,7 +1103,7 @@ public class MainWindow extends JFrame {
         thumbPanel.setLayout(new BorderLayout());
 
         //---- thumbnailPanel ----
-        thumbnailPanel = new ThumbnailPanel(this, hic);
+        thumbnailPanel = new ThumbnailPanel(superAdapter);
         thumbnailPanel.setBackground(Color.white);
         thumbnailPanel.setMaximumSize(new Dimension(210, 210));
         thumbnailPanel.setMinimumSize(new Dimension(210, 210));
@@ -1230,453 +1190,6 @@ public class MainWindow extends JFrame {
         goPanel.setPositionChrTop(newPositionDate);
     }
 
-
-    private JMenuBar createMenuBar() {
-
-
-        JMenuBar menuBar = new JMenuBar();
-
-        //======== fileMenu ========
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.setMnemonic('F');
-
-        //---- openMenuItem ----
-        JMenuItem openItem = new JMenuItem("Open...");
-
-        openItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                loadFromListActionPerformed(false);
-            }
-        });
-        fileMenu.add(openItem);
-
-        JMenuItem loadControlFromList = new JMenuItem();
-        loadControlFromList.setText("Open Control...");
-        loadControlFromList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                loadFromListActionPerformed(true);
-            }
-        });
-        fileMenu.add(loadControlFromList);
-
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
-
-            private static final long serialVersionUID = 4202L;
-
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
-                //initProperties();         // don't know why we're doing this here
-                loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
-            }
-        };
-        recentMapMenu.setMnemonic('R');
-
-
-        fileMenu.add(recentMapMenu);
-
-       /* JMenuItem localItem = new JMenuItem("Open Local");
-        localItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loadMenuItemActionPerformed(false);
-            }
-        });
-        fileMenu.add(localItem);
-        JMenuItem localControlItem = new JMenuItem("Open Local Control");
-        localControlItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loadMenuItemActionPerformed(true);
-            }
-        });
-        fileMenu.add(localControlItem);
-       */
-
-
-        fileMenu.addSeparator();
-
-        JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
-        showStats.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (hic.getDataset() == null) {
-                    JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    new QCDialog(MainWindow.this, hic, MainWindow.this.getTitle() + " info");
-                }
-            }
-        });
-
-
-        fileMenu.add(showStats);
-        fileMenu.addSeparator();
-
-        JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export Image...");
-        saveToImage.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new SaveImageDialog(null, hic, hiCPanel);
-            }
-        });
-        fileMenu.add(saveToImage);
-
-        // TODO: make this an export of the data on screen instead of a GUI for CLT
-        if (!HiCGlobals.isRestricted) {
-            JMenuItem dump = new JMenuItem("Export Data...");
-            dump.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    if (hic.getDataset() == null) {
-                        JOptionPane.showMessageDialog(MainWindow.this, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        new DumpDialog(MainWindow.this, hic);
-                    }
-
-                }
-            });
-            fileMenu.add(dump);
-        }
-
-        JMenuItem creditsMenu = new JMenuItem();
-        creditsMenu.setText("About");
-        creditsMenu.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
-                JLabel iconLabel = new JLabel(icon);
-                JPanel iconPanel = new JPanel(new GridBagLayout());
-                iconPanel.add(iconLabel);
-
-                JPanel textPanel = new JPanel(new GridLayout(0, 1));
-                textPanel.add(new JLabel("<html><center>" +
-                        "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
-                        "Juicebox: Visualization software for Hi-C data" +
-                        "</h2>" +
-                        "</center>" +
-                        "<p>" +
-                        "Juicebox is Aiden Lab's software for visualizing data from proximity ligation experiments, such as Hi-C, 5C, and Chia-PET.<br>" +
-                        "Juicebox was created by Jim Robinson, Neva C. Durand, and Erez Aiden. Ongoing development work is carried out by Neva C. Durand,<br>" +
-                        "Muhammad Shamim, and Ido Machol.<br><br>" +
-                        "Copyright © 2014. Broad Institute and Aiden Lab" +
-                        "<br><br>" +
-                        "If you use Juicebox in your research, please cite:<br><br>" +
-                        "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander, Erez Lieberman Aiden.<br>" +
-                        "\"A 3D Map of the Human Genome at Kilobase Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
-                        "* contributed equally" +
-                        "</p></html>"));
-
-                JPanel mainPanel = new JPanel(new BorderLayout());
-                mainPanel.add(textPanel);
-                mainPanel.add(iconPanel, BorderLayout.WEST);
-
-                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
-            }
-        });
-        fileMenu.add(creditsMenu);
-
-        //---- exit ----
-        JMenuItem exit = new JMenuItem();
-        exit.setText("Exit");
-        exit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exitActionPerformed();
-            }
-        });
-        fileMenu.add(exit);
-
-        // "Annotations" menu items
-        annotationsMenu = new JMenu("Annotations");
-
-        JMenuItem newLoadMI = new JMenuItem();
-        trackLoadAction = new LoadAction("Load Basic Annotations...", this, hic);
-        newLoadMI.setAction(trackLoadAction);
-        annotationsMenu.add(newLoadMI);
-
-        JMenuItem loadEncodeMI = new JMenuItem();
-        encodeAction = new LoadEncodeAction("Load ENCODE Tracks...", this, hic);
-        loadEncodeMI.setAction(encodeAction);
-        annotationsMenu.add(loadEncodeMI);
-
-        // Annotations Menu Items
-        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
-        exportAnnotationsMI = new JMenuItem("Export...");
-        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-        loadLastMI = new JMenuItem("Load Last");
-        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
-        undoMenuItem = new JMenuItem("Undo Annotation");
-        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
-
-        // Annotate Item Actions
-        exportAnnotationsMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SaveAnnotationsDialog(customAnnotations);
-            }
-        });
-
-        exportOverlapMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-                if (loops.size() != 1)
-                    JOptionPane.showMessageDialog(MainWindow.this, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
-                else
-                    new SaveAnnotationsDialog(customAnnotations, loops.get(0));
-            }
-        });
-
-        loadLastMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations = new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
-                        hic.getChromosomes(), false, 0, 0, 0, true, null), "1");
-                temp.delete();
-                loadLastMI.setEnabled(false);
-            }
-        });
-
-        mergeVisibleMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations = customAnnotationHandler.addVisibleLoops(customAnnotations);
-            }
-        });
-
-        clearCurrentMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int n = JOptionPane.showConfirmDialog(
-                        MainWindow.getInstance(),
-                        "Are you sure you want to clear all custom annotations?",
-                        "Confirm",
-                        JOptionPane.YES_NO_OPTION);
-
-                if (n == JOptionPane.YES_OPTION) {
-                    //TODO: do something with the saving... just update temp?
-                    customAnnotations.clearAnnotations();
-                    exportAnnotationsMI.setEnabled(false);
-                    loadLastMI.setEnabled(false);
-                    repaint();
-                }
-            }
-        });
-
-        undoMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotationHandler.undo(customAnnotations);
-                repaint();
-            }
-        });
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
-
-        //Add annotate menu items
-        customAnnotationMenu.add(exportAnnotationsMI);
-        customAnnotationMenu.add(exportOverlapMI);
-        customAnnotationMenu.add(mergeVisibleMI);
-        customAnnotationMenu.add(undoMenuItem);
-        customAnnotationMenu.add(clearCurrentMI);
-        if (unsavedEdits) {
-            customAnnotationMenu.add(loadLastMI);
-            loadLastMI.setEnabled(true);
-        }
-
-        exportAnnotationsMI.setEnabled(false);
-        undoMenuItem.setEnabled(false);
-
-        annotationsMenu.add(customAnnotationMenu);
-        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
-
-
-        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
-
-        showLoopsItem.setSelected(true);
-        showLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                hic.setShowLoops(showLoopsItem.isSelected());
-                repaint();
-            }
-        });
-        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-
-        annotationsMenu.add(showLoopsItem);
-
-        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
-
-        showCustomLoopsItem.setSelected(true);
-        showCustomLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
-                repaint();
-            }
-        });
-        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-
-        annotationsMenu.add(showCustomLoopsItem);
-        // meh
-
-        annotationsMenu.setEnabled(false);
-
-        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
-        loadFromURLItem.addActionListener(new AbstractAction() {
-
-            private static final long serialVersionUID = 4203L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (hic.getDataset() == null) {
-                    JOptionPane.showMessageDialog(MainWindow.this, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String url = JOptionPane.showInputDialog("Enter URL: ");
-                if (url != null) {
-                    hic.loadTrack(url);
-
-                }
-
-            }
-        });
-
-        JMenu bookmarksMenu = new JMenu("Bookmarks");
-        //---- Save location ----
-        saveLocationList = new JMenuItem();
-        saveLocationList.setText("Save current location");
-        saveLocationList.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //code to add a recent location to the menu
-                String stateString = hic.getLocationDescription();
-                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved location:", hic.getDefaultLocationDescription());
-                if (null != stateDescription) {
-                    getRecentStateMenu().addEntry(stateDescription + "@@" + stateString, true);
-                }
-            }
-        });
-
-        saveLocationList.setEnabled(false);
-        bookmarksMenu.add(saveLocationList);
-        //---Save State test-----
-        saveStateForReload = new JMenuItem();
-        saveStateForReload.setText("Save current state");
-        saveStateForReload.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                //code to add a recent location to the menu
-                String stateDescription = JOptionPane.showInputDialog(MainWindow.this,
-                        "Enter description for saved state:", hic.getDefaultLocationDescription());
-                if (stateDescription != null && stateDescription.length() > 0) {
-                    previousStates.addEntry(stateDescription, true);
-                }
-                try {
-                    XMLFileHandling.addNewStateToXML(stateDescription, hic, MainWindow.this);
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
-
-        saveStateForReload.setEnabled(true);
-        bookmarksMenu.add(saveStateForReload);
-
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
-
-            private static final long serialVersionUID = 4204L;
-
-            public void onSelectPosition(String mapPath) {
-                String delimiter = "@@";
-                String[] temp;
-                temp = mapPath.split(delimiter);
-                hic.restoreLocation(temp[1]);//temp[1]
-                setNormalizationDisplayState();
-            }
-        };
-        recentLocationMenu.setMnemonic('S');
-        recentLocationMenu.setEnabled(false);
-        bookmarksMenu.add(recentLocationMenu);
-
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
-
-            private static final long serialVersionUID = 4205L;
-
-            public void onSelectPosition(String mapPath) {
-                LoadStateFromXMLFile.reloadSelectedState(mapPath, MainWindow.this, hic);
-            }
-        };
-        previousStates.setEnabled(true);
-        bookmarksMenu.add(previousStates);
-
-        //---Export Menu-----
-        JMenu shareMenu = new JMenu("Share States");
-
-        //---Export Maps----
-        exportMapAsFile = new JMenuItem();
-        exportMapAsFile.setText("Export Saved States");
-        exportMapAsFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport);
-            }
-        });
-
-
-        //---Import Maps----
-        importMapAsFile = new JMenuItem();
-        importMapAsFile.setText("Import State From File");
-        importMapAsFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new ImportFileDialog(fileForExport, MainWindow.getInstance());
-                importMapAsFile.setSelected(true);
-            }
-        });
-
-
-        //---Slideshow----
-        //ALL YOUR'S MARIE
-        slideShow = new JMenuItem();
-        slideShow.setText("View Slideshow");
-        slideShow.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Slideshow.viewShow(MainWindow.getInstance(), hic);
-            }
-        });
-        bookmarksMenu.add(slideShow);
-
-
-        //Add menu items
-        shareMenu.add(exportMapAsFile);
-        shareMenu.add(importMapAsFile);
-
-        /*
-        //---3D Model Menu-----
-        JMenu toolsMenu = new JMenu("Tools");
-        //---Export Maps----
-        JMenuItem launch3DModel = new JMenuItem();
-        launch3DModel.setText("Visualize 3D Model");
-        launch3DModel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Launcher demo = new Launcher();
-                demo.setVisible(true);
-            }
-        });
-        toolsMenu.add(launch3DModel);
-        */
-
-        menuBar.add(fileMenu);
-        menuBar.add(annotationsMenu);
-        menuBar.add(bookmarksMenu);
-        menuBar.add(shareMenu);
-        //menuBar.add(toolsMenu);
-        return menuBar;
-    }
-
     private void loadNormalizationVector(File file) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
         String nextLine = reader.readLine();
@@ -1726,15 +1239,15 @@ public class MainWindow extends JFrame {
     }
 
     public void updateNamesFromImport(String path) {
-        previousStates.updateNamesFromImport(path);
+        superAdapter.updatePrevStateNameFromImport(path);
     }
 
     public LoadAction getTrackLoadAction() {
-        return trackLoadAction;
+        return superAdapter.getTrackLoadAction();
     }
 
     public LoadEncodeAction getEncodeAction() {
-        return encodeAction;
+        return superAdapter.getEncodeAction();
     }
 
     public void enableAllOptionsButtons() {
@@ -1743,9 +1256,7 @@ public class MainWindow extends JFrame {
         refreshButton.setEnabled(true);
         colorRangePanel.setElementsVisible(true, MainWindow.this);
         setResolutionSliderVisible(true);
-        annotationsMenu.setEnabled(true);
-        saveLocationList.setEnabled(true);
-        recentLocationMenu.setEnabled(true);
+        superAdapter.setEnableForAllElements(true);
         goPanel.setEnabled(true);
     }
 

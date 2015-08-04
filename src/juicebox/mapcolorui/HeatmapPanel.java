@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.MainMenuBar;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Feature2D;
@@ -306,7 +307,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             Point cursorPoint = hic.getCursorPoint();
             if (cursorPoint != null) {
-                g.setColor(MainWindow.RULER_LINE_COLOR);
+                g.setColor(HiCGlobals.RULER_LINE_COLOR);
                 g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
                 g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
             }
@@ -322,7 +323,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
                 // customLoops is array with zero or more loops
-                List<Feature2D> customLoops = MainWindow.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                List<Feature2D> customLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
                 if (loops == null) {
                     loops = customLoops;
                 } else {
@@ -673,7 +674,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 new EditFeatureAttributesDialog(mostRecentRectFeaturePair.getSecond(),
-                        MainWindow.customAnnotations);
+                        MainMenuBar.customAnnotations);
             }
         });
 
@@ -1201,8 +1202,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.ZOOM;
             } else if (e.isShiftDown()) {
                 dragMode = DragMode.ANNOTATE;
-                MainWindow.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
-                MainWindow.customAnnotationHandler.doPeak();
+                MainMenuBar.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
+                MainMenuBar.customAnnotationHandler.doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -1233,7 +1234,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
             } else if (dragMode == DragMode.ANNOTATE) {
-                MainWindow.customAnnotationHandler.addFeature(MainWindow.customAnnotations);
+                MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
                 dragMode = DragMode.NONE;
                 annotateRectangle = null;
                 lastMousePoint = null;
@@ -1350,7 +1351,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     damageRect.width += 2;
                     damageRect.height += 2;
                     paintImmediately(damageRect);
-                    MainWindow.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     break;
                 default:
                     lastMousePoint = e.getPoint();    // Always save the last Point
