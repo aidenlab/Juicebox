@@ -24,7 +24,6 @@
 
 package juicebox.mapcolorui;
 
-import juicebox.MainWindow;
 import juicebox.gui.MainViewPanel;
 
 import javax.swing.*;
@@ -55,8 +54,6 @@ class MultiColorPickerDialog extends JDialog {
         setResizable(false);
         setLayout(new BoxLayout(getContentPane(), 1));
         final Color defaultColor = getBackground();
-
-        MainWindow.getInstance();
 
         chooser.setSize(new Dimension(690, 270));
         chooserPanel.setMaximumSize(new Dimension(690, 270));

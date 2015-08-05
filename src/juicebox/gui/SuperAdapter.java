@@ -125,7 +125,7 @@ public class SuperAdapter {
     }
 
     public void launchSlideShow() {
-        Slideshow.viewShow(this);
+        new Slideshow(mainWindow, this);
     }
 
     public void launchImportState(File fileForExport) {

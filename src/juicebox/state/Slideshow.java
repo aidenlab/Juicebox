@@ -25,6 +25,7 @@
 package juicebox.state;
 
 import juicebox.HiCGlobals;
+import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -46,17 +47,37 @@ import java.util.ArrayList;
  */
 
 
-public class Slideshow {
+public class Slideshow extends JDialog {
 
-    private final static JFrame carouselFrame = new JFrame();
     private final static JPanel nextPanel = new JPanel(new BorderLayout());
     private final static JPanel prevPanel = new JPanel(new BorderLayout());
     private final static JPanel labelPanel = new JPanel(new BorderLayout());
     private final static JButton nextButton = new JButton("\u25BA");
     private final static JButton prevButton = new JButton("\u25C4");
     private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
+    private static final long serialVersionUID = -1443095232042271867L;
+    private final JLabel slideLabel;
 
-    public static void viewShow(final SuperAdapter superAdapter) {
+    public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
+        super(mainWindow);
+        setLayout(new FlowLayout());
+        setResizable(true);
+        setVisible(true);
+        setSize(400, 100);
+        add(prevPanel);
+        add(labelPanel);
+        add(nextPanel);
+
+        prevPanel.add(prevButton, BorderLayout.EAST);
+        prevPanel.setVisible(true);
+
+        slideLabel = new JLabel();
+        labelPanel.add(slideLabel, BorderLayout.CENTER);
+        labelPanel.setVisible(true);
+
+        nextPanel.add(nextButton, BorderLayout.WEST);
+        nextPanel.setVisible(true);
+
         try {
             final ArrayList<String> savedStatePaths = new ArrayList<String>();
             Document dom;
@@ -71,25 +92,7 @@ public class Slideshow {
             System.out.println(savedStatePaths);
             final int numSlides = savedStatePaths.size();
 
-            final JLabel slideLabel = new JLabel(savedStatePaths.get(0));
-
-            carouselFrame.setLayout(new FlowLayout());
-            carouselFrame.setResizable(true);
-            carouselFrame.setVisible(true);
-            carouselFrame.setSize(400, 100);
-            carouselFrame.add(prevPanel);
-            carouselFrame.add(labelPanel);
-            carouselFrame.add(nextPanel);
-
-            prevPanel.add(prevButton, BorderLayout.EAST);
-            prevPanel.setVisible(true);
-
-            labelPanel.add(slideLabel, BorderLayout.CENTER);
-            labelPanel.setVisible(true);
-
-            nextPanel.add(nextButton, BorderLayout.WEST);
-            nextPanel.setVisible(true);
-
+            slideLabel.setText(savedStatePaths.get(0));
 
             prevButton.addActionListener(new ActionListener() {
                 @Override
@@ -126,5 +129,6 @@ public class Slideshow {
         }
 
 
+        setLocationRelativeTo(getOwner());
     }
 }
