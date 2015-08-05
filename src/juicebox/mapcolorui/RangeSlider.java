@@ -40,7 +40,7 @@ import java.io.Serializable;
  * @modified Jim Robinson
  * @modified Muhammad S Shamim
  */
-public class RangeSlider extends JSlider implements Serializable {
+class RangeSlider extends JSlider implements Serializable {
 
     private static final long serialVersionUID = -661825403401718563L;
     private RangeSliderUI rangeSliderUI;

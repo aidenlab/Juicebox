@@ -42,7 +42,7 @@ import java.util.StringTokenizer;
  *         Date: 6/29/12
  *         Time: 2:27 PM
  */
-public class ScratchPad {
+class ScratchPad {
 
     public static void main(String[] args) throws IOException {
         String path = "/Users/nchernia/Documents/MATLAB/chr1_small.txt";

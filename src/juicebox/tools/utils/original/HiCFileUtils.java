@@ -41,7 +41,7 @@ import java.util.Map;
  *         Time: 2:01 PM
  */
 
-public class HiCFileUtils {
+class HiCFileUtils {
 
     private Dataset dataset;
 

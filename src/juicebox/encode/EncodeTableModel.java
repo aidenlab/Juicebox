@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ import java.util.List;
  *         Date: 10/31/13
  *         Time: 10:09 PM
  */
-public class EncodeTableModel extends AbstractTableModel {
+class EncodeTableModel extends AbstractTableModel {
 
     private static final long serialVersionUID = 7743873079853677860L;
     private final String[] columnHeadings;

@@ -36,7 +36,7 @@ import java.util.List;
  * Created by IM on 7/15/15.
  */
 
-public class PreDefColorScale implements ColorScale {
+class PreDefColorScale implements ColorScale {
     public static final int defaultMaxPreDefVal = 5;
     private static double max;
     private static double min;

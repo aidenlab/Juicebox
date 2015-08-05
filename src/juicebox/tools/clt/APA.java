@@ -25,12 +25,8 @@
 package juicebox.tools.clt;
 
 import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReaderV2;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
+import juicebox.data.*;
 import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;

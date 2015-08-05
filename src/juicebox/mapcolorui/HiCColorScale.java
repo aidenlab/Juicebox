@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import java.awt.*;
  * @author Neva Cherniavsky
  * @since 3/22/12
  */
-public class HiCColorScale implements org.broad.igv.renderer.ColorScale {
+class HiCColorScale implements org.broad.igv.renderer.ColorScale {
 
     private float min = -1f;
     private float max = 1f;

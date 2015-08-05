@@ -31,6 +31,7 @@ import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
+import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Feature2D;
@@ -70,6 +71,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
+    private final SuperAdapter superAdapter;
     /**
      * Image tile width in pixels
      */
@@ -95,12 +97,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
 
     /**
-     * @param mainWindow
-     * @param hic
      */
-    public HeatmapPanel(MainWindow mainWindow, HiC hic) {
-        this.mainWindow = mainWindow;
-        this.hic = hic;
+    public HeatmapPanel(SuperAdapter superAdapter) {
+        this.mainWindow = superAdapter.getMainWindow();
+        this.superAdapter = superAdapter;
+        this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer(mainWindow, hic);
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseListener(mouseHandler);
@@ -246,7 +247,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
                 //In case tender is called as a result of zoom change event, check if
                 //We need to update slider with map range:
-                renderer.updateColorSliderFromColorScale(zd, displayOption);
+                renderer.updateColorSliderFromColorScale(superAdapter, zd, displayOption);
             }
 
 
@@ -516,7 +517,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.setCursorPoint(null);
                     setCursor(Cursor.getDefaultCursor());
                     repaint();
-                    mainWindow.repaintTrackPanels();
+                    superAdapter.repaintTrackPanels();
                 }
 
             }
@@ -575,11 +576,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
 
         final JCheckBoxMenuItem mi5 = new JCheckBoxMenuItem("Freeze hover text");
-        mi5.setSelected(!mainWindow.isTooltipAllowedToUpdated());
+        mi5.setSelected(!superAdapter.isTooltipAllowedToUpdated());
         mi5.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainWindow.toggleToolTipUpdates(!mainWindow.isTooltipAllowedToUpdated());
+                superAdapter.toggleToolTipUpdates(!superAdapter.isTooltipAllowedToUpdated());
             }
         });
 
@@ -587,7 +588,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         mi6.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                StringSelection stringSelection = new StringSelection(mainWindow.getToolTip());
+                StringSelection stringSelection = new StringSelection(superAdapter.getToolTip());
                 Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
                 clpbrd.setContents(stringSelection, null);
             }
@@ -598,8 +599,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 StringSelection stringSelection = new StringSelection(hic.getXPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
-                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
+                superAdapter.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                superAdapter.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
                 Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
                 clpbrd.setContents(stringSelection, null);
             }
@@ -610,8 +611,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 StringSelection stringSelection = new StringSelection(hic.getYPosition());
-                mainWindow.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
-                mainWindow.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
+                superAdapter.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+                superAdapter.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
                 Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
                 clpbrd.setContents(stringSelection, null);
             }
@@ -1180,7 +1181,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
             if (straightEdgeEnabled) {
-                mainWindow.repaintTrackPanels();
+                superAdapter.repaintTrackPanels();
             }
         }
 
@@ -1244,7 +1245,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 hic.setCursorPoint(null);
                 setCursor(Cursor.getDefaultCursor());
                 repaint();
-                mainWindow.repaintTrackPanels();
+                superAdapter.repaintTrackPanels();
 
 
                 //hic.setCursorPoint(null);
@@ -1385,11 +1386,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 final Chromosome xC = xChrom;
                 final Chromosome yC = yChrom;
-                mainWindow.unsafeSetSelectedChromosomes(xC, yC);
+                superAdapter.unsafeSetSelectedChromosomes(xC, yC);
             }
 
             //Only if zoom is changed All->Chr:
-            mainWindow.updateThumbnail();
+            superAdapter.updateThumbnail();
         }
 
         private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
@@ -1397,7 +1398,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
             hic.setZoom(newZoom, xGenome, yGenome);
-            mainWindow.updateZoom(newZoom);
+            superAdapter.updateZoom(newZoom);
         }
 
         private void safeMouseClicked(final MouseEvent eF) {
@@ -1421,7 +1422,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     // Double click,  zoom and center on click location
                     final HiCZoom currentZoom = hic.getZd().getZoom();
-                    final HiCZoom newZoom = mainWindow.isResolutionLocked() ? currentZoom :
+                    final HiCZoom newZoom = superAdapter.isResolutionLocked() ? currentZoom :
                             hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
 
                     // If newZoom == currentZoom adjust scale factor (no change in resolution)
@@ -1459,14 +1460,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mouseMoved(MouseEvent e) {
             if (hic.getXContext() != null && hic.getZd() != null) {
                 if (!featureOptionMenuEnabled) {
-                    mainWindow.updateToolTipText(toolTipText(e.getX(), e.getY()));
+                    superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
                 }
 
                 if (straightEdgeEnabled || e.isShiftDown()) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
                         repaint();
-                        mainWindow.repaintTrackPanels();
+                        superAdapter.repaintTrackPanels();
                     }
                 } else {
                     hic.setCursorPoint(null);

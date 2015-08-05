@@ -24,7 +24,7 @@
 
 package juicebox.track.feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;

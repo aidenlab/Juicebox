@@ -26,10 +26,10 @@ package juicebox.state;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCTrack;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 
@@ -43,17 +43,17 @@ import java.util.List;
  */
 public class LoadStateFromXMLFile {
 
-    public static void reloadSelectedState(String mapPath, MainWindow mainWindow, HiC hic) {
-        hic.clearTracksForReloadState(); // TODO - should only remove necessary ones
+    public static void reloadSelectedState(SuperAdapter superAdapter, String mapPath) {
+        superAdapter.getHiC().clearTracksForReloadState(); // TODO - should only remove necessary ones
         try {
-            loadSavedStatePreliminaryStep(XMLFileParser.parseXML(mapPath), hic, mainWindow);
+            loadSavedStatePreliminaryStep(XMLFileParser.parseXML(mapPath), superAdapter, superAdapter.getHiC());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mainWindow.refresh();
+        superAdapter.refresh();
     }
 
-    private static void loadSavedStatePreliminaryStep(String[] infoForReload, HiC hic, MainWindow mainWindow) throws IOException {
+    private static void loadSavedStatePreliminaryStep(String[] infoForReload, SuperAdapter superAdapter, HiC hic) throws IOException {
         String result = "OK";
         String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
@@ -82,7 +82,7 @@ public class LoadStateFromXMLFile {
                     trackURLsAndNames[0] = (infoForReload[16]); //trackURLs
                     trackURLsAndNames[1] = (infoForReload[17]); //trackNames
 
-                    safeLoadStateFromXML(hic, mainWindow, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
+                    safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
                 } catch (NumberFormatException nfe) {
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -95,23 +95,23 @@ public class LoadStateFromXMLFile {
         }
     }
 
-    private static void safeLoadStateFromXML(final HiC hic, final MainWindow mainWindow, final String[] initialInfo,
+    private static void safeLoadStateFromXML(final SuperAdapter superAdapter, final HiC hic, final String[] initialInfo,
                                              final int binSize, final double[] doubleInfo, final MatrixType displaySelection,
                                              final NormalizationType normSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
                 try {
-                    unsafeLoadStateFromXML(mainWindow, hic, initialInfo, binSize, doubleInfo,
+                    unsafeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo,
                             displaySelection, normSelection, tracks);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
-        mainWindow.executeLongRunningTask(runnable, "Loading a saved state from XML");
+        superAdapter.executeLongRunningTask(runnable, "Loading a saved state from XML");
     }
 
-    private static void unsafeLoadStateFromXML(MainWindow mainWindow, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
+    private static void unsafeLoadStateFromXML(SuperAdapter superAdapter, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
                                                MatrixType displaySelection, NormalizationType normSelection,
                                                String[] tracks) {
         String mapNames = initialInfo[0];
@@ -129,22 +129,17 @@ public class LoadStateFromXMLFile {
 
         // only do this if not identical to current file
         List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
-        mainWindow.unsafeLoadWithTitleFix(urls, false, mapNames);
+        superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
+
+        superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
+        superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
+        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
+        superAdapter.setEnableForAllElements(true);
 
         hic.setLocation(chrXName, chrYName, "BP", binSize, xOrigin, yOrigin, scalefactor);
 
-        HiCZoom newZoom = new HiCZoom(HiC.Unit.valueOf(unitName), binSize);
-        hic.setZoom(newZoom, xOrigin, yOrigin);
-        mainWindow.updateZoom(newZoom);
-
-        mainWindow.setDisplayBox(displaySelection.ordinal());
-        mainWindow.setNormalizationBox(normSelection.ordinal());
-        mainWindow.updateColorSlider(minColor, lowColor, upColor, maxColor);
-        mainWindow.enableAllOptionsButtons();
-
-
-        LoadEncodeAction loadEncodeAction = mainWindow.getEncodeAction();
-        LoadAction loadAction = mainWindow.getTrackLoadAction();
+        LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
+        LoadAction loadAction = superAdapter.getTrackLoadAction();
 
         // TODO - do not erase previous tracks, rather check if some may already be loaded
         try {
@@ -185,7 +180,7 @@ public class LoadStateFromXMLFile {
             e.printStackTrace();
         }
 
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
 
     }
 

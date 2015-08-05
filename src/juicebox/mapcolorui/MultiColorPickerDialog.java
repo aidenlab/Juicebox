@@ -25,6 +25,7 @@
 package juicebox.mapcolorui;
 
 import juicebox.MainWindow;
+import juicebox.gui.MainViewPanel;
 
 import javax.swing.*;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
@@ -32,22 +33,22 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class MultiColorPickerDialog extends JDialog {
+class MultiColorPickerDialog extends JDialog {
     private static final long serialVersionUID = -678567876;
 
-    JButton[] bColor = new JButton[24];
-    JButton[] bChoose = new JButton[24];
-    JButton[] bDelete = new JButton[24];
-    JColorChooser chooser = new JColorChooser();
+    private final JButton[] bColor = new JButton[24];
+    private final JButton[] bChoose = new JButton[24];
+    private final JButton[] bDelete = new JButton[24];
+    private final JColorChooser chooser = new JColorChooser();
 
-    JPanel preview = new JPanel();
-    JPanel prvPanel1 = new JPanel();
-    JPanel prvPanel2 = new JPanel();
-    JPanel prvPanel3 = new JPanel();
+    private final JPanel preview = new JPanel();
+    private final JPanel prvPanel1 = new JPanel();
+    private final JPanel prvPanel2 = new JPanel();
+    private final JPanel prvPanel3 = new JPanel();
 
-    JPanel chooserPanel = new JPanel();
-    JButton bOk = new JButton("OK");
-    JButton bCancel = new JButton("Cancel");
+    private final JPanel chooserPanel = new JPanel();
+    private final JButton bOk = new JButton("OK");
+    private final JButton bCancel = new JButton("Cancel");
 
     public MultiColorPickerDialog() {
         super();
@@ -131,24 +132,24 @@ public class MultiColorPickerDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                MainWindow.preDefMapColorGradient.clear();
-                MainWindow.preDefMapColorFractions.clear();
+                MainViewPanel.preDefMapColorGradient.clear();
+                MainViewPanel.preDefMapColorFractions.clear();
 
                 //todo - make the bColor add/remove behavior instead.
                 for (JButton aBColor : bColor) {
                     if (aBColor.isVisible())
-                        MainWindow.preDefMapColorGradient.add(aBColor.getBackground());
+                        MainViewPanel.preDefMapColorGradient.add(aBColor.getBackground());
                 }
 
                 float tmpfraction = 0.0f;
-                int tmpSize = MainWindow.preDefMapColorGradient.size();
+                int tmpSize = MainViewPanel.preDefMapColorGradient.size();
                 float tmpGap = 0;
                 if (tmpSize > 0) {
-                    tmpGap = (1.0f / MainWindow.preDefMapColorGradient.size());
+                    tmpGap = (1.0f / MainViewPanel.preDefMapColorGradient.size());
                 }
 
                 for (int i = 0; i < tmpSize; i++) {
-                    MainWindow.preDefMapColorFractions.add(tmpfraction);
+                    MainViewPanel.preDefMapColorFractions.add(tmpfraction);
                     tmpfraction += tmpGap;
                 }
                 dispose();

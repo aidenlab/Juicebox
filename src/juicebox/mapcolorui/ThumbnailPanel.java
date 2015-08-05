@@ -44,10 +44,10 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -3856114428388478494L;
     private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
+    private final SuperAdapter superAdapter;
     private Image image;
     private Point lastPoint = null;
     private Rectangle innerRectangle;
-    private SuperAdapter superAdapter;
 
     public ThumbnailPanel(final SuperAdapter superAdapter) {
 

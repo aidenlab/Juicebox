@@ -27,7 +27,7 @@ package juicebox.track;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureCodec;
 import juicebox.HiC;
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.bbfile.BBFileReader;
@@ -64,11 +64,11 @@ public class HiCTrackManager {
     private final java.util.List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
     private final List<HiCTrack> reloadTrackNames = new ArrayList<HiCTrack>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<NormalizationType, HiCTrack>();
-    private final MainWindow mainWindow;
+    private final SuperAdapter superAdapter;
     private final HiC hic;
 
-    public HiCTrackManager(MainWindow mainWindow, HiC hic) {
-        this.mainWindow = mainWindow;
+    public HiCTrackManager(SuperAdapter superAdapter, HiC hic) {
+        this.superAdapter = superAdapter;
         this.hic = hic;
 
     }
@@ -77,7 +77,7 @@ public class HiCTrackManager {
         Runnable runnable = new Runnable() {
             public void run() {
                 loadTrack(new ResourceLocator(path));
-                mainWindow.updateTrackPanel();
+                superAdapter.updateTrackPanel();
             }
         };
         // mainWindow.executeLongRunningTask(runnable);
@@ -93,7 +93,7 @@ public class HiCTrackManager {
         HiCDataTrack track = new HiCDataTrack(hic, locator, source);
         coverageTracks.put(no, track);
         loadedTracks.add(track);
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
     }
 
     public void safeTrackLoad(final List<ResourceLocator> locators) {
@@ -102,7 +102,7 @@ public class HiCTrackManager {
                 unsafeLoad(locators);
             }
         };
-        mainWindow.executeLongRunningTask(runnable, "Safe Track Load");
+        superAdapter.getMainWindow().executeLongRunningTask(runnable, "Safe Track Load");
     }
 
     private void unsafeLoad(final List<ResourceLocator> locators) {
@@ -124,12 +124,12 @@ public class HiCTrackManager {
                 }
             }
         }
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
     }
 
     public void add(HiCTrack track) {
         loadedTracks.add(track);
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
     }
 
     private void loadTrack(final ResourceLocator locator) {
@@ -174,7 +174,7 @@ public class HiCTrackManager {
                 loadedTracks.add(track);
             } catch (Exception e) {
                 log.error("Error loading track: " + locator.getPath(), e);
-                JOptionPane.showMessageDialog(mainWindow, "Error loading track. " + e.getMessage());
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
             FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
@@ -189,7 +189,7 @@ public class HiCTrackManager {
                     loadedTracks.add(track);
                 } catch (Exception e) {
                     log.error("Error loading track: " + path, e);
-                    JOptionPane.showMessageDialog(mainWindow, "Error loading track. " + e.getMessage());
+                    JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
                 }
                 //Object header = bfs.getHeader();
                 //TrackProperties trackProperties = getTrackProperties(header);
@@ -197,7 +197,7 @@ public class HiCTrackManager {
                 log.error("Error loading track: " + path);
                 System.out.println("path: " + path);//DEBUGGING
                 File file = new File(path);
-                JOptionPane.showMessageDialog(mainWindow, "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
                 hic.removeTrack(new HiCFeatureTrack(hic, locator, null));
             }
         }
@@ -217,7 +217,7 @@ public class HiCTrackManager {
         if (key != null) {
             coverageTracks.remove(key);
         }
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
     }
 
 

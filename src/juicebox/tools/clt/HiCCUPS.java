@@ -27,13 +27,9 @@ package juicebox.tools.clt;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReaderV2;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
+import juicebox.data.*;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.common.ArrayTools;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
@@ -55,6 +51,14 @@ import java.util.List;
 public class HiCCUPS extends JuiceboxCLT {
 
     public static final int regionMargin = 20;
+    public static final int krNeighborhood = 5;
+    public static final int originalPixelClusterRadius = 20000; //TODO --> 10000?
+    public static final Color defaultPeakColor = Color.cyan;
+    public static final boolean shouldColorBeScaledByFDR = false;
+    public static final double fdrsum = 0.02;
+    public static final double oeThreshold1 = 1.5;
+    public static final double oeThreshold2 = 1.75;
+    public static final double oeThreshold3 = 2;
     private static final int totalMargin = 2 * regionMargin;
     // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
     // w2 (10000) corresponds to the number of reads (so it can't handle pixels with more than 10,000 reads)
@@ -64,15 +68,7 @@ public class HiCCUPS extends JuiceboxCLT {
     private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
     private static final int window = 3;
     private static final int peakWidth = 1;
-    public static int krNeighborhood = 5;
-    public static int originalPixelClusterRadius = 20000; //TODO --> 10000?
     public static int pixelClusterRadius = originalPixelClusterRadius;
-    public static Color defaultPeakColor = Color.cyan;
-    public static boolean shouldColorBeScaledByFDR = false;
-    public static double fdrsum = 0.02;
-    public static double oeThreshold1 = 1.5;
-    public static double oeThreshold2 = 1.75;
-    public static double oeThreshold3 = 2;
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;

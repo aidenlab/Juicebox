@@ -41,7 +41,7 @@ import java.util.HashMap;
 /**
  * @author Jim Robinson
  */
-public class TrackConfigDialog extends JDialog {
+class TrackConfigDialog extends JDialog {
 
     private static final long serialVersionUID = -1778029293180119209L;
     private final HiCTrack track;

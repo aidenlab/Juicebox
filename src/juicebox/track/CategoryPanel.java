@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ import java.util.Set;
  * @author Jim Robinson
  * @date 5/8/12
  */
-public class CategoryPanel extends JPanel {
+class CategoryPanel extends JPanel {
 
     private static final long serialVersionUID = -729150966236965013L;
     private final JPanel listPanel;

@@ -28,7 +28,7 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -58,10 +58,11 @@ public class HiC {
     private static final Logger log = Logger.getLogger(HiC.class);
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
-    private final MainWindow mainWindow;
+    //private final MainWindow mainWindow;
     private final Map<String, Feature2DList> loopLists;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
+    private final SuperAdapter superAdapter;
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -85,9 +86,9 @@ public class HiC {
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
 
-    public HiC(MainWindow mainWindow) {
-        this.mainWindow = mainWindow;
-        this.trackManager = new HiCTrackManager(mainWindow, this);
+    public HiC(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
+        this.trackManager = new HiCTrackManager(superAdapter, this);
         this.loopLists = new HashMap<String, Feature2DList>();
         this.m_zoomChanged = false;
         this.m_displayOptionChanged = false;
@@ -120,7 +121,7 @@ public class HiC {
         }
         trackManager.clearTracks();
         loopLists.clear();
-        mainWindow.updateTrackPanel();
+        superAdapter.updateTrackPanel();
     }
 
 
@@ -261,6 +262,8 @@ public class HiC {
 
     public MatrixZoomData getZd() {
         Matrix matrix = getMatrix();
+        // TODO - every function which calls this needs to check for null values
+        // maybe throw an Exception to force this check
         if (matrix == null || zoom == null) {
             return null;
         } else {
@@ -384,7 +387,8 @@ public class HiC {
             newZD = matrix.getZoomData(newZoom);
         }
         if (newZD == null) {
-            JOptionPane.showMessageDialog(mainWindow, "Sorry, this zoom is not available", "Zoom unavailable", JOptionPane.WARNING_MESSAGE);
+            superAdapter.launchGenericMessageDialog("Sorry, this zoom is not available", "Zoom unavailable",
+                    JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
@@ -401,7 +405,7 @@ public class HiC {
         int yBinCount = yGridAxis.getBinCount();
         int maxBinCount = Math.max(xBinCount, yBinCount);
 
-        double scalefactor = Math.max(1.0, (double) mainWindow.getHeatmapPanel().getMinimumDimension() / maxBinCount);
+        double scalefactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
 
         setScaleFactor(scalefactor);
 
@@ -451,7 +455,7 @@ public class HiC {
 
         // Find the new resolution,
         HiCZoom newZoom = zoom;
-        if (!mainWindow.isResolutionLocked()) {
+        if (!superAdapter.isResolutionLocked()) {
             List<HiCZoom> zoomList = unit == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
             zoomList.get(zoomList.size() - 1);   // Highest zoom level by default
             for (int i = zoomList.size() - 1; i >= 0; i--) {
@@ -472,7 +476,7 @@ public class HiC {
         zoom = newZD.getZoom();
 
 
-        mainWindow.updateZoom(zoom);
+        superAdapter.updateZoom(zoom);
 
         setScaleFactor(scaleFactor);
 
@@ -505,7 +509,7 @@ public class HiC {
                 binY = yAxis.getBinNumberForFragment(fragmentY);
                 center(binX, binY);
             } catch (RuntimeException error) {
-                JOptionPane.showMessageDialog(mainWindow, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
 
         }
@@ -532,10 +536,10 @@ public class HiC {
      */
     public void center(double binX, double binY) {
 
-        double w = mainWindow.getHeatmapPanel().getWidth() / getScaleFactor();  // view width in bins
+        double w = superAdapter.getHeatmapPanel().getWidth() / getScaleFactor();  // view width in bins
         int newOriginX = (int) (binX - w / 2);
 
-        double h = mainWindow.getHeatmapPanel().getHeight() / getScaleFactor();  // view hieght in bins
+        double h = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();  // view hieght in bins
         int newOriginY = (int) (binY - h / 2);
         moveTo(newOriginX, newOriginY);
     }
@@ -561,10 +565,10 @@ public class HiC {
     private void moveTo(double newBinX, double newBinY) {
         MatrixZoomData zd = getZd();
 
-        final double wBins = (mainWindow.getHeatmapPanel().getWidth() / getScaleFactor());
+        final double wBins = (superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
         double maxX = zd.getXGridAxis().getBinCount() - wBins;
 
-        final double hBins = (mainWindow.getHeatmapPanel().getHeight() / getScaleFactor());
+        final double hBins = (superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
         double maxY = zd.getYGridAxis().getBinCount() - hBins;
 
         double x = Math.max(0, Math.min(maxX, newBinX));
@@ -577,7 +581,7 @@ public class HiC {
 //        String locus2 = "chr" + (yContext.getChromosome().getName()) + ":" + x + "-" + (int) (y + bpWidthY);
 //        IGVUtils.sendToIGV(locus1, locus2);
 
-        mainWindow.repaint();
+        superAdapter.repaint();
 
         if (linkedMode) {
             broadcastLocation();
@@ -679,27 +683,36 @@ public class HiC {
 
             this.xContext = new Context(chrX);
             this.yContext = new Context(chrY);
-            mainWindow.setSelectedChromosomesNoRefresh(chrX, chrY);
+            superAdapter.setSelectedChromosomesNoRefresh(chrX, chrY);
             if (eigenvectorTrack != null) {
                 eigenvectorTrack.forceRefresh();
             }
         }
 
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+        zoom = newZoom;
+        xContext.setZoom(zoom);
+        yContext.setZoom(zoom);
+        setZoom(newZoom, xOrigin, yOrigin);
+        superAdapter.updateZoom(newZoom);
+
+        /* original
+        HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
             // TODO - MSS why not use hic.setZoom instead?
             zoom = newZoom;
             xContext.setZoom(zoom);
             yContext.setZoom(zoom);
-            mainWindow.updateZoom(newZoom);
+            superAdapter.updateZoom(newZoom);
         }
+        */
 
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);
         yContext.setBinOrigin(yOrigin);
 
         try {
-            mainWindow.refresh();
+            superAdapter.refresh();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -27,7 +27,7 @@ package juicebox.track;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
@@ -53,10 +53,10 @@ public class TrackPanel extends JPanel {
     private final Orientation orientation;
     // HiCTrack eigenvectorTrack;
     private final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
-    private final MainWindow mainWindow;
+    private final SuperAdapter superAdapter;
 
-    public TrackPanel(MainWindow mainWindow, HiC hiC, Orientation orientation) {
-        this.mainWindow = mainWindow;
+    public TrackPanel(SuperAdapter superAdapter, HiC hiC, Orientation orientation) {
+        this.superAdapter = superAdapter;
         this.hic = hiC;
         this.orientation = orientation;
         setAutoscrolls(true);
@@ -70,9 +70,9 @@ public class TrackPanel extends JPanel {
 
     public void removeTrack(HiCTrack track) {
         hic.removeTrack(track);
-        mainWindow.revalidate();
+        superAdapter.revalidate();
         //this.revalidate();
-        mainWindow.repaint();
+        superAdapter.repaint();
     }
 
     private void addMouseAdapter() {
@@ -80,7 +80,7 @@ public class TrackPanel extends JPanel {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                mainWindow.updateToolTipText(tooltipText(e.getX(), e.getY()));
+                superAdapter.updateToolTipText(tooltipText(e.getX(), e.getY()));
             }
 
             @Override

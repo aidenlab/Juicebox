@@ -24,7 +24,7 @@
 
 package juicebox.windowui;
 
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.util.HttpUtils;
 
 import java.awt.datatransfer.DataFlavor;
@@ -40,10 +40,10 @@ import java.util.List;
  */
 public class FileDropTargetListener implements DropTargetListener {
 
-    private final MainWindow mainWindow;
+    private final SuperAdapter superAdapter;
 
-    public FileDropTargetListener(MainWindow mainWindow) {
-        this.mainWindow = mainWindow;
+    public FileDropTargetListener(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
     }
 
     public void dragEnter(DropTargetDragEvent event) {
@@ -83,21 +83,21 @@ public class FileDropTargetListener implements DropTargetListener {
             for (File f : files) {
                 paths.add(f.getAbsolutePath());
             }
-            mainWindow.safeLoad(paths, false, files.get(0).getName());
+            superAdapter.safeLoad(paths, false, files.get(0).getName());
 
         } catch (Exception e) {
             String obj;
             try {
                 obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
                 if (HttpUtils.isRemoteURL(obj)) {
-                    mainWindow.safeLoad(Arrays.asList(obj), false, obj);
+                    superAdapter.safeLoad(Arrays.asList(obj), false, obj);
                 }
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
 
         }
-        mainWindow.repaint();
+        superAdapter.repaint();
         event.dropComplete(true);
     }
 

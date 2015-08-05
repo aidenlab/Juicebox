@@ -60,8 +60,8 @@ public class Dataset {
     String genomeId;
     String restrictionEnzyme = null;
     List<HiCZoom> bpZooms;
-    List<Integer> bpZoomResolutions;
     List<HiCZoom> fragZooms;
+    private List<Integer> bpZoomResolutions;
     private Map<String, String> attributes;
     private Map<String, Integer> fragmentCounts;
     private Map<String, NormalizationVector> loadedNormalizationVectors;

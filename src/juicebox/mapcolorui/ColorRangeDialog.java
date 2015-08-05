@@ -26,6 +26,8 @@ package juicebox.mapcolorui;
 
 import com.jidesoft.swing.JideButton;
 import juicebox.MainWindow;
+import juicebox.gui.MainViewPanel;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -40,7 +42,7 @@ import java.text.ParseException;
 /**
  * @author Jim Robinson
  */
-public class ColorRangeDialog extends JDialog {
+class ColorRangeDialog extends JDialog {
 
     private static final long serialVersionUID = -2570891809264626823L;
     private static MultiColorPickerDialog gradientPick;
@@ -54,10 +56,10 @@ public class ColorRangeDialog extends JDialog {
     private JTextField minimumField;
     private JTextField maximumField;
 
-    public ColorRangeDialog(MainWindow mainWindow, JColorRangePanel colorRangePanel,
+    public ColorRangeDialog(SuperAdapter superAdapter, JColorRangePanel colorRangePanel,
                             RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
-        super(mainWindow);
-        initComponents(mainWindow, colorRangePanel, isObserved);
+        super(superAdapter.getMainWindow());
+        initComponents(superAdapter, colorRangePanel, isObserved);
         this.colorSlider = colorSlider;
         if (!isObserved) colorRangeFactor = 8;
         this.colorRangeFactor = colorRangeFactor;
@@ -77,7 +79,7 @@ public class ColorRangeDialog extends JDialog {
         maximumField.requestFocusInWindow();
     }
 
-    private void initComponents(final MainWindow mainWindow, final JColorRangePanel colorRangePanel,
+    private void initComponents(final SuperAdapter superAdapter, final JColorRangePanel colorRangePanel,
                                 final boolean isObserved) {
 
         JPanel dialogPane = new JPanel();
@@ -191,7 +193,7 @@ public class ColorRangeDialog extends JDialog {
             }
         });
 
-        colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+        colorChooserButton.setEnabled(!MainViewPanel.preDefMapColor);
         contentPanel.add(panel5);
 
         final JButton paletteChooserButton = new JButton("Create gradient");
@@ -202,11 +204,11 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gradientPick = new MultiColorPickerDialog();
-                gradientPick.initValue(MainWindow.preDefMapColorGradient.toArray(new Color[MainWindow.preDefMapColorGradient.size()]));
+                gradientPick.initValue(MainViewPanel.preDefMapColorGradient.toArray(new Color[MainViewPanel.preDefMapColorGradient.size()]));
             }
         });
 
-        paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
+        paletteChooserButton.setEnabled(MainViewPanel.preDefMapColor);
 
         //======== panel6 ========
 
@@ -216,15 +218,10 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JRadioButton rLog = (JRadioButton) e.getSource();
-                if (rLog.isSelected()) {
-                    MainWindow.preDefMapColor = false;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                } else {
-                    MainWindow.preDefMapColor = true;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                }
+                boolean val = !rLog.isSelected();
+                MainViewPanel.preDefMapColor = val;
+                colorChooserButton.setEnabled(!val);
+                paletteChooserButton.setEnabled(val);
             }
         });
         rColor.setSelected(true);
@@ -234,15 +231,10 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JRadioButton rLog = (JRadioButton) e.getSource();
-                if (rLog.isSelected()) {
-                    MainWindow.preDefMapColor = true;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                } else {
-                    MainWindow.preDefMapColor = false;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                }
+                boolean val = rLog.isSelected();
+                MainViewPanel.preDefMapColor = val;
+                colorChooserButton.setEnabled(!val);
+                paletteChooserButton.setEnabled(val);
             }
         });
         ButtonGroup group = new ButtonGroup();
@@ -269,7 +261,7 @@ public class ColorRangeDialog extends JDialog {
         okButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                okButtonActionPerformed(e, mainWindow, colorRangePanel, isObserved);
+                okButtonActionPerformed(e, superAdapter, colorRangePanel, isObserved);
             }
         });
         buttonBar.add(okButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
@@ -281,8 +273,8 @@ public class ColorRangeDialog extends JDialog {
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                colorRangePanel.setColorRangeSliderVisible(true, mainWindow);
-                mainWindow.setResolutionSliderVisible(true);
+                colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
+                superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
                 setVisible(false);
             }
         });
@@ -298,7 +290,7 @@ public class ColorRangeDialog extends JDialog {
         //maximumField.requestFocusInWindow();
     }
 
-    private void okButtonActionPerformed(ActionEvent e, MainWindow mainWindow,
+    private void okButtonActionPerformed(ActionEvent e, SuperAdapter superAdapter,
                                          JColorRangePanel colorRangePanel, boolean isObserved) {
         double max, min = 0;
 
@@ -326,8 +318,8 @@ public class ColorRangeDialog extends JDialog {
         }
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
-        colorRangePanel.setColorRangeSliderVisible(true, mainWindow);
-        mainWindow.setResolutionSliderVisible(true);
+        colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
+        superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
         setVisible(false);
     }
 

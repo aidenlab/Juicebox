@@ -24,7 +24,6 @@
 
 package juicebox;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,9 @@ public class HiCGlobals {
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
 
+    // MainWindow variables
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
+    public static final int BIN_PIXEL_WIDTH = 1;
 
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
@@ -54,26 +55,19 @@ public class HiCGlobals {
     public static final String xmlSavedStatesFileName = "JuiceboxStatesForExport.xml";
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
+    public static final ArrayList<String> savedStatesList = new ArrayList<String>();
+    // min hic file version supported
+    public static final int minVersion = 6;
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.2;
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
-    public static ArrayList<String> savedStatesList = new ArrayList<String>();
-    // min hic file version supported
-    private static int minVersion = 5;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
             throw new RuntimeException("This file is version " + version +
                     ". Only versions 5 and greater are supported at this time.");
-        }
-    }
-
-    public static void verifyGUISupportedHiCFileVersion(int version, MainWindow mainWindow) {
-        if (version < minVersion) {
-            JOptionPane.showMessageDialog(mainWindow, "This version of \"hic\" format is no longer supported");
-            return;
         }
     }
 

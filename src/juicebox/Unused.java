@@ -34,7 +34,7 @@ import java.util.List;
  * These should probably be deleted, but keeping them until respective author decides/refactors
  * Created by muhammadsaadshamim on 8/3/15.
  */
-public class Unused {
+class Unused {
 
     private void loadNormalizationVector(File file, HiC hic) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));

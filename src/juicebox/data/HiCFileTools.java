@@ -22,10 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.common;
+package juicebox.data;
 
-import juicebox.data.*;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;

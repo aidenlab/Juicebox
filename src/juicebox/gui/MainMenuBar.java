@@ -25,8 +25,8 @@
 package juicebox.gui;
 
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.state.SaveFileDialog;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;

@@ -27,8 +27,8 @@ package juicebox.state;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.data.Dataset;
+import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCTrack;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -39,8 +39,9 @@ import java.util.List;
  * Created by Zulkifl Gire on 7/10/2015.
  */
 public class XMLFileHandling {
-    public static void addNewStateToXML(String stateID, HiC hic, MainWindow mainWindow) {
+    public static void addNewStateToXML(String stateID, SuperAdapter superAdapter) {
 
+        HiC hic = superAdapter.getHiC();
         Context xContext = hic.getXContext();
         Context yContext = hic.getYContext();
         HiCZoom zoom = hic.getZoom();
@@ -48,12 +49,12 @@ public class XMLFileHandling {
 
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
-        String colorVals = mainWindow.getColorRangeValues();
+        String colorVals = superAdapter.getMainViewPanel().getColorRangeValues();
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
         String currentTrack = "";
         String currentTrackName = "";
 
-        String mapNameAndURLs = mainWindow.getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + MainWindow.currentlyLoadedMainFiles;
+        String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
 
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +

@@ -24,7 +24,7 @@
 
 package juicebox.track.feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
@@ -45,7 +45,7 @@ public class Feature2DList {
     /**
      * List of 2D features stored by chromosome
      */
-    private Map<String, List<Feature2D>> featureList;
+    private final Map<String, List<Feature2D>> featureList;
 
     /**
      * Visibility as set by user
@@ -407,7 +407,7 @@ public class Feature2DList {
      *
      * @param function
      */
-    public void processLists(FeatureFunction function) {
+    private void processLists(FeatureFunction function) {
         for (String chr : featureList.keySet()) {
             function.process(chr, featureList.get(chr));
         }

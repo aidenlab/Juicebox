@@ -40,7 +40,7 @@ import java.util.List;
  * @author Jim Robinson
  * @date 5/8/12
  */
-public class HiCLoadDialog extends JDialog {
+class HiCLoadDialog extends JDialog {
 
     private static final long serialVersionUID = -7529973146086845915L;
     private final Collection<String> selectedTracks = new HashSet<String>();

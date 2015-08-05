@@ -24,7 +24,7 @@
 
 package juicebox.track.feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.data.HiCFileTools;
 
 import java.io.File;
 import java.io.PrintWriter;

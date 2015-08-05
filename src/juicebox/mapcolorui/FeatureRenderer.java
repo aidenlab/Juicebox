@@ -24,8 +24,8 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Feature2D;
 import org.broad.igv.util.Pair;

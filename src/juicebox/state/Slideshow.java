@@ -24,9 +24,8 @@
 
 package juicebox.state;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -49,15 +48,15 @@ import java.util.ArrayList;
 
 public class Slideshow {
 
-    final static JFrame carouselFrame = new JFrame();
-    final static JPanel nextPanel = new JPanel(new BorderLayout());
-    final static JPanel prevPanel = new JPanel(new BorderLayout());
-    final static JPanel labelPanel = new JPanel(new BorderLayout());
-    final static JButton nextButton = new JButton("\u25BA");
-    final static JButton prevButton = new JButton("\u25C4");
-    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
+    private final static JFrame carouselFrame = new JFrame();
+    private final static JPanel nextPanel = new JPanel(new BorderLayout());
+    private final static JPanel prevPanel = new JPanel(new BorderLayout());
+    private final static JPanel labelPanel = new JPanel(new BorderLayout());
+    private final static JButton nextButton = new JButton("\u25BA");
+    private final static JButton prevButton = new JButton("\u25C4");
+    private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
 
-    public static void viewShow(final MainWindow mainWindow, final HiC hiC) {
+    public static void viewShow(final SuperAdapter superAdapter) {
         try {
             final ArrayList<String> savedStatePaths = new ArrayList<String>();
             Document dom;
@@ -99,7 +98,7 @@ public class Slideshow {
                     if (counter >= 0) {
                         counter = ((counter - 1) + numSlides) % numSlides;
                         slideLabel.setText(savedStatePaths.get(counter));
-                        LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter), mainWindow, hiC);
+                        LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
                     }
                 }
             });
@@ -112,7 +111,7 @@ public class Slideshow {
                     if (counter < numSlides) {
                         counter = (counter + 1) % numSlides;
                         slideLabel.setText(savedStatePaths.get(counter));
-                        LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter), mainWindow, hiC);
+                        LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
                     }
                 }
             });

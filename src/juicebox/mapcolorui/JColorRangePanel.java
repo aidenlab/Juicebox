@@ -27,7 +27,8 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
+import juicebox.gui.MainViewPanel;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
 
@@ -56,8 +57,7 @@ public class JColorRangePanel extends JPanel {
     private double colorRangeScaleFactor = 1;
     private int[] colorValuesToRestore = null;
 
-    public JColorRangePanel(final MainWindow mainWindow, final HiC hic, final HeatmapPanel heatmapPanel,
-                            boolean activatePreDef) {
+    public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel, boolean activatePreDef) {
         super();
         setLayout(new BorderLayout());
         JPanel sliderPanel = new JPanel();
@@ -69,7 +69,7 @@ public class JColorRangePanel extends JPanel {
             @Override
             public void mouseEntered(MouseEvent mouseEvent) {
                 super.mouseEntered(mouseEvent);
-                colorRangeSliderUpdateToolTip(hic);
+                colorRangeSliderUpdateToolTip(superAdapter.getHiC());
             }
         });
         colorRangeSlider.setEnabled(false);
@@ -120,10 +120,10 @@ public class JColorRangePanel extends JPanel {
             }
 
             private void processClick() {
-                ColorRangeDialog rangeDialog = new ColorRangeDialog(mainWindow, JColorRangePanel.this,
-                        colorRangeSlider, colorRangeScaleFactor, hic.getDisplayOption() == MatrixType.OBSERVED);
-                setColorRangeSliderVisible(false, mainWindow);
-                mainWindow.setResolutionSliderVisible(false);
+                ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
+                        colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption() == MatrixType.OBSERVED);
+                setColorRangeSliderVisible(false, superAdapter);
+                superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter);
                 rangeDialog.setVisible(true);
             }
         });
@@ -148,10 +148,11 @@ public class JColorRangePanel extends JPanel {
                 double min = colorRangeSlider.getLowerValue() / colorRangeScaleFactor;
                 double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
+                HiC hic = superAdapter.getHiC();
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     //System.out.println(colorRangeSlider.getUpperValue());
                     heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
-                } else if (MainWindow.preDefMapColor) {
+                } else if (MainViewPanel.preDefMapColor) {
                     heatmapPanel.setPreDefRange(min, max);
                 } else {
                     heatmapPanel.setObservedRange(min, max);
@@ -170,6 +171,7 @@ public class JColorRangePanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
 
                 colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
+                HiC hic = superAdapter.getHiC();
 
                 if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
@@ -185,6 +187,7 @@ public class JColorRangePanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Set limit to maximum range:
+                HiC hic = superAdapter.getHiC();
                 int newMax = colorRangeSlider.getMaximum() / 2;
                 if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
@@ -215,7 +218,7 @@ public class JColorRangePanel extends JPanel {
     }
 
 
-    public void setColorRangeSliderVisible(boolean state, MainWindow mainWindow) {
+    public void setColorRangeSliderVisible(boolean state, SuperAdapter superAdapter) {
         plusButton.setEnabled(state);
         minusButton.setEnabled(state);
         colorRangeSlider.setEnabled(state);
@@ -224,7 +227,7 @@ public class JColorRangePanel extends JPanel {
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
-        mainWindow.safeDisplayOptionComboBoxActionPerformed();
+        superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
@@ -375,8 +378,8 @@ public class JColorRangePanel extends JPanel {
 
     }
 
-    public void setElementsVisible(boolean val, MainWindow mainWindow) {
-        setColorRangeSliderVisible(val, mainWindow);
+    public void setElementsVisible(boolean val, SuperAdapter superAdapter) {
+        setColorRangeSliderVisible(val, superAdapter);
         colorRangeSlider.setDisplayToBlank(!val);
         plusButton.setEnabled(val);
         minusButton.setEnabled(val);

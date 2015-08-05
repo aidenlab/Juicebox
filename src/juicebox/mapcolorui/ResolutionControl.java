@@ -27,7 +27,7 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
 
@@ -74,10 +74,10 @@ public class ResolutionControl extends JPanel {
         bpLabelMap.put(1000, "1 KB");
     }
 
-    public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel) {
+    public ResolutionControl(final SuperAdapter superAdapter) {
 
-        this.hic = hic;
-        this.heatmapPanel = heatmapPanel;
+        this.hic = superAdapter.getHiC();
+        this.heatmapPanel = superAdapter.getHeatmapPanel();
 
         this.setBorder(LineBorder.createGrayLineBorder());
         this.setLayout(new BorderLayout());
@@ -142,10 +142,10 @@ public class ResolutionControl extends JPanel {
                 Runnable runnable = new Runnable() {
                     public void run() {
                         reset();
-                        mainWindow.refresh(); // necessary to correct BP/FRAG switching all red box
+                        superAdapter.refresh(); // necessary to correct BP/FRAG switching all red box
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution switched");
+                superAdapter.executeLongRunningTask(runnable, "Resolution switched");
             }
         });
 
@@ -196,7 +196,7 @@ public class ResolutionControl extends JPanel {
                         unsafeStateChanged(eF);
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
+                superAdapter.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
                 runnable.run();
             }
 

@@ -24,49 +24,26 @@
 
 package juicebox;
 
-import com.jidesoft.swing.JideButton;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReader;
-import juicebox.data.DatasetReaderFactory;
-import juicebox.data.MatrixZoomData;
+
 import juicebox.gui.MainMenuBar;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
-import juicebox.gui.ToolBarPanel;
-import juicebox.mapcolorui.HeatmapPanel;
-import juicebox.mapcolorui.JColorRangePanel;
-import juicebox.mapcolorui.ResolutionControl;
-import juicebox.mapcolorui.ThumbnailPanel;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.TrackLabelPanel;
-import juicebox.track.TrackPanel;
-import juicebox.windowui.*;
+import juicebox.windowui.DisabledGlassPane;
+import juicebox.windowui.FileDropTargetListener;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.IconFactory;
 import org.broad.igv.util.FileUtils;
-import org.broad.igv.util.ParsingUtils;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,65 +51,32 @@ import java.util.concurrent.Future;
 
 public class MainWindow extends JFrame {
 
-    public static final int BIN_PIXEL_WIDTH = 1;
     private static final long serialVersionUID = -3654174199024388185L;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
+    private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
     public static Color hicMapColor = Color.red;
-    public static boolean preDefMapColor = false;
-    public static List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
-    public static List<Float> preDefMapColorFractions = new ArrayList<Float>();
-    public static String currentlyLoadedMainFiles = "";
-    public static String currentlyLoadedControlFiles = "";
     private static MainWindow theInstance;
-    private static String datasetTitle = "";
-    private static String controlTitle;
-    private static LoadDialog loadDialog = null;
-    private static JComboBox<Chromosome> chrBox1;
-    private static JComboBox<Chromosome> chrBox2;
-    private static JideButton refreshButton;
-    private static JComboBox<String> normalizationComboBox;
-    private static JComboBox<MatrixType> displayOptionComboBox;
-    private static JColorRangePanel colorRangePanel;
-
-
-    private static ResolutionControl resolutionSlider;
-    private static TrackPanel trackPanelX;
-    private static TrackPanel trackPanelY;
-    private static TrackLabelPanel trackLabelPanel;
-    private static HiCRulerPanel rulerPanelX;
-    private static HeatmapPanel heatmapPanel;
-    private static HiCRulerPanel rulerPanelY;
-    private static ThumbnailPanel thumbnailPanel;
-    private static JEditorPane mouseHoverTextPanel;
-    private static GoToPanel goPanel;
-    private static JPanel hiCPanel;
-    private static SuperAdapter superAdapter;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
     private final HiC hic; // The "model" object containing the state for this instance.
-    private HiCZoom initialZoom;
-    private boolean tooltipAllowedToUpdated = true;
-    private Properties properties;
 
     private MainWindow() {
-
-        hic = new HiC(this);
+        hic = new HiC(superAdapter);
         MainMenuBar mainMenuBar = new MainMenuBar();
-        ToolBarPanel toolBarPanel = new ToolBarPanel();
         MainViewPanel mainViewPanel = new MainViewPanel();
-        superAdapter = new SuperAdapter(this, hic, mainMenuBar, toolBarPanel, mainViewPanel);
+        superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel);
 
         initComponents(superAdapter);
         createCursors();
         pack();
 
-        DropTarget target = new DropTarget(this, new FileDropTargetListener(this));
+        DropTarget target = new DropTarget(this, new FileDropTargetListener(superAdapter));
         setDropTarget(target);
 
         // Tooltip settings
         ToolTipManager.sharedInstance().setDismissDelay(60000);   // 60 seconds
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new HiCKeyDispatcher(hic, displayOptionComboBox));
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(superAdapter.getNewHiCKeyDispatcher());
 
         hicMapColor = Color.red;
 
@@ -140,6 +84,21 @@ public class MainWindow extends JFrame {
             JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
                     "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
         }
+    }
+
+    private static MainWindow createMainWindow() {
+        return new MainWindow();
+    }
+
+    public static synchronized MainWindow getInstance() {
+        if (theInstance == null) {
+            try {
+                theInstance = createMainWindow();
+            } catch (Exception e) {
+                log.error("Error creating main window", e);
+            }
+        }
+        return theInstance;
     }
 
     public static void main(String[] args) throws IOException, InvocationTargetException, InterruptedException {
@@ -172,33 +131,27 @@ public class MainWindow extends JFrame {
         });
     }
 
-    public static synchronized MainWindow getInstance() {
-        if (theInstance == null) {
-            try {
-                theInstance = createMainWindow();
-            } catch (Exception e) {
-                log.error("Error creating main window", e);
-            }
-        }
-        return theInstance;
-    }
+    private void initComponents(SuperAdapter superAdapter) {
+        System.out.println("Initializing Components");
 
-    private static MainWindow createMainWindow() {
-        return new MainWindow();
-    }
+        superAdapter.initializeCustomAnnotations();
 
-    public JPanel getHiCPanel() {
-        return hiCPanel;
-    }
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    public void updateToolTipText(String s) {
-        if (tooltipAllowedToUpdated)
-            mouseHoverTextPanel.setText(s);
-        mouseHoverTextPanel.setCaretPosition(0);
-    }
+        Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+        int taskBarHeight = scnMax.bottom;
 
-    public boolean isResolutionLocked() {
-        return resolutionSlider.isResolutionLocked();
+        Container contentPane = getContentPane();
+
+        Dimension bigPanelDim = new Dimension(screenSize.width - getWidth() - 230,
+                screenSize.height - taskBarHeight - getHeight() - 120);
+
+        Dimension panelDim = new Dimension(screenSize.width - getWidth() - 300,
+                screenSize.height - taskBarHeight - getHeight());
+
+        superAdapter.initializeMainView(contentPane, bigPanelDim, panelDim);
+
+        initializeGlassPaneListening();
     }
 
     private void createCursors() {
@@ -216,490 +169,11 @@ public class MainWindow extends JFrame {
         fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
     }
 
-    public HeatmapPanel getHeatmapPanel() {
-        return heatmapPanel;
-    }
-
-    public void updateZoom(HiCZoom newZoom) {
-        resolutionSlider.setZoom(newZoom);
-        resolutionSlider.reset();
-    }
-
-    /**
-     * Chromosome "0" is whole genome
-     *
-     * @param chromosomes list of chromosomes
-     */
-    private void setChromosomes(List<Chromosome> chromosomes) {
-        hic.setChromosomes(chromosomes);
-        int[] chromosomeBoundaries = new int[chromosomes.size() - 1];
-        long bound = 0;
-        for (int i = 1; i < chromosomes.size(); i++) {
-            Chromosome c = chromosomes.get(i);
-            bound += (c.getLength() / 1000);
-            chromosomeBoundaries[i - 1] = (int) bound;
-        }
-        heatmapPanel.setChromosomeBoundaries(chromosomeBoundaries);
-    }
-
-    /*
-     * Only accessed from within another unsafe method in Heatmap Panel class,
-     * which in turn is encapsulated (i.e. made safe)
-     */
-    public void unsafeSetSelectedChromosomes(Chromosome xChrom, Chromosome yChrom) {
-        chrBox1.setSelectedIndex(yChrom.getIndex());
-        chrBox2.setSelectedIndex(xChrom.getIndex());
-        unsafeRefreshChromosomes();
-    }
-
-    public void setSelectedChromosomesNoRefresh(Chromosome xChrom, Chromosome yChrom) {
-        chrBox1.setSelectedIndex(yChrom.getIndex());
-        chrBox2.setSelectedIndex(xChrom.getIndex());
-        rulerPanelX.setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
-        rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
-        resolutionSlider.setEnabled(!xChrom.getName().equals(Globals.CHR_ALL));
-        initialZoom = null;
-    }
-
-    public void safeLoad(final List<String> files, final boolean control, final String title) {
-        superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + files.get(0), true);
-        Runnable runnable = new Runnable() {
-            public void run() {
-                unsafeLoadWithTitleFix(files, control, title);
-            }
-
-        };
-        executeLongRunningTask(runnable, "MainWindow safe load");
-    }
-
-    public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title) {
-        String resetTitle = datasetTitle;
-        if (control) resetTitle = controlTitle;
-
-        try {
-            unsafeLoad(files, control);
-            updateThumbnail();
-            refresh();
-            updateTitle(control, title);
-        } catch (IOException e) {
-            log.error("Error loading hic file", e);
-            JOptionPane.showMessageDialog(MainWindow.this, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-            if (!control) hic.reset();
-            updateThumbnail();
-            updateTitle(control, resetTitle);
-        }
-    }
-
-    private void unsafeLoad(final List<String> files, final boolean control) throws IOException {
-
-
-        String newFilesToBeLoaded = "";
-        boolean allFilesAreHiC = true;
-        for (String file : files) {
-            newFilesToBeLoaded += file;
-            allFilesAreHiC &= file.endsWith(".hic");
-        }
-
-
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
-            JOptionPane.showMessageDialog(MainWindow.this, "File(s) already loaded");
-            return;
-        }
-
-        colorRangePanel.resetPreFileLoad();
-
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mouseHoverTextPanel.setBorder(LineBorder.createGrayLineBorder());
-        hic.setNormalizationType(NormalizationType.NONE);
-
-        if (allFilesAreHiC) {
-            DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) return;
-            Dataset dataset = reader.read();
-            HiCGlobals.verifyGUISupportedHiCFileVersion(reader.getVersion(), this);
-
-            MatrixType[] options;
-            if (control) {
-                hic.setControlDataset(dataset);
-                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-            } else {
-
-                hic.reset();
-                hic.setDataset(dataset);
-
-                setChromosomes(dataset.getChromosomes());
-
-                chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-                chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(hic.getChromosomes().toArray(new Chromosome[hic.getChromosomes().size()])));
-
-                String[] normalizationOptions;
-                if (dataset.getVersion() < 6) {
-                    normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
-                } else {
-                    ArrayList<String> tmp = new ArrayList<String>();
-                    tmp.add(NormalizationType.NONE.getLabel());
-                    for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
-                        tmp.add(t.getLabel());
-                    }
-
-                    normalizationOptions = tmp.toArray(new String[tmp.size()]);
-                }
-
-                if (normalizationOptions.length == 1) {
-                    normalizationComboBox.setEnabled(false);
-                } else {
-                    normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
-                    normalizationComboBox.setSelectedIndex(0);
-                    normalizationComboBox.setEnabled(hic.getDataset().getVersion() >= 6);
-                }
-
-                if (hic.isControlLoaded()) {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
-                } else {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
-                }
-
-
-                hic.resetContexts();
-                updateTrackPanel();
-                resolutionSlider.unit = HiC.Unit.BP;
-
-                resolutionSlider.reset();
-                unsafeRefreshChromosomes();
-
-            }
-            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
-            displayOptionComboBox.setSelectedIndex(0);
-            enableAllOptionsButtons();
-
-            if (control) {
-                currentlyLoadedControlFiles = newFilesToBeLoaded;
-            } else {
-                currentlyLoadedMainFiles = newFilesToBeLoaded;
-            }
-            //refresh(); // an additional refresh seems to remove the upper left black corner
-        } else {
-            JOptionPane.showMessageDialog(this, "Please choose a .hic file to load");
-        }
-    }
-
-    private void unsafeRefreshChromosomes() {
-
-        if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
-            chrBox1.setSelectedIndex(0);
-            chrBox2.setSelectedIndex(0);
-        }
-
-        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
-        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-
-        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
-        Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
-
-        setNormalizationDisplayState();
-
-        hic.setSelectedChromosomes(chrX, chrY);
-        rulerPanelX.setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
-        rulerPanelY.setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
-        setInitialZoom();
-
-        updateThumbnail();
-    }
-
-    public void setNormalizationDisplayState() {
-
-        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
-        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-
-//        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
-        Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
-
-        // Test for new dataset ("All"),  or change in chromosome
-        final boolean wholeGenome = chrY.getName().equals("All");
-        final boolean intraChr = chr1.getIndex() != chr2.getIndex();
-        if (wholeGenome) { // for now only allow observed
-            hic.setDisplayOption(MatrixType.OBSERVED);
-            displayOptionComboBox.setSelectedIndex(0);
-            normalizationComboBox.setSelectedIndex(0);
-        } else if (intraChr) {
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
-                hic.setDisplayOption(MatrixType.OBSERVED);
-                displayOptionComboBox.setSelectedIndex(0);
-            }
-        }
-
-        normalizationComboBox.setEnabled(!wholeGenome);
-        displayOptionComboBox.setEnabled(true);
-    }
-
-    public void repaintTrackPanels() {
-        trackPanelX.repaint();
-        trackPanelY.repaint();
-    }
-
-    public void refresh() {
-        getHeatmapPanel().clearTileCache();
-        repaint();
-        updateThumbnail();
-        //System.err.println(heatmapPanel.getSize());
-    }
-
-    public void refreshMapcolors() {
-        this.unsafeDisplayOptionComboBoxActionPerformed();
-    }
-
-    private void refreshMainOnly() {
-        getHeatmapPanel().clearTileCache();
-        repaint();
-    }
-
-    public void updateThumbnail() {
-        if (hic.getMatrix() != null) {
-
-            //   MatrixZoomData zd0 = initialZoom == null ? hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit()) :
-            //           hic.getMatrix().getZoomData(initialZoom);
-            MatrixZoomData zd0 = hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit());
-            MatrixZoomData zdControl = null;
-            if (hic.getControlMatrix() != null)
-                zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
-            Image thumbnail = heatmapPanel.getThumbnailImage(
-                    zd0,
-                    zdControl,
-                    thumbnailPanel.getWidth(),
-                    thumbnailPanel.getHeight(),
-                    hic.getDisplayOption());
-            if (thumbnail != null) {
-                thumbnailPanel.setImage(thumbnail);
-                thumbnailPanel.repaint();
-            }
-        } else {
-            thumbnailPanel.setImage(null);
-        }
-    }
-
-    private void setInitialZoom() {
-
-        //For now, in case of Pearson - set initial to 500KB resolution.
-        if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
-            initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
-        } else if (hic.getXContext().getChromosome().getName().equals("All")) {
-            resolutionSlider.setEnabled(false);
-            initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
-        } else {
-            resolutionSlider.setEnabled(true);
-
-            HiC.Unit currentUnit = hic.getZoom().getUnit();
-
-            List<HiCZoom> zooms = (currentUnit == HiC.Unit.BP ? hic.getDataset().getBpZooms() :
-                    hic.getDataset().getFragZooms());
-
-
-//            Find right zoom level
-
-            int pixels = getHeatmapPanel().getMinimumDimension();
-            int len;
-            if (currentUnit == HiC.Unit.BP) {
-                len = (Math.max(hic.getXContext().getChrLength(), hic.getYContext().getChrLength()));
-            } else {
-                len = Math.max(hic.getDataset().getFragmentCounts().get(hic.getXContext().getChromosome().getName()),
-                        hic.getDataset().getFragmentCounts().get(hic.getYContext().getChromosome().getName()));
-            }
-
-            int maxNBins = pixels / BIN_PIXEL_WIDTH;
-            int bp_bin = len / maxNBins;
-            initialZoom = zooms.get(zooms.size() - 1);
-            for (int z = 1; z < zooms.size(); z++) {
-                if (zooms.get(z).getBinSize() < bp_bin) {
-                    initialZoom = zooms.get(z - 1);
-                    break;
-                }
-            }
-
-        }
-        hic.setZoom(initialZoom, 0, 0);
-        resolutionSlider.setZoom(initialZoom);
-        resolutionSlider.reset();
-
-    }
-
-    private void refreshButtonActionPerformed() {
-        colorRangePanel.resetPreFileLoad();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                unsafeRefreshChromosomes();
-            }
-        };
-        executeLongRunningTask(runnable, "Refresh Button");
-
-    }
-
-    public void loadMenuItemActionPerformed(boolean control) {
-        FilenameFilter hicFilter = new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".hic");
-            }
-        };
-
-        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", DirectoryManager.getUserDirectory(), hicFilter);
-        if (files != null && files.length > 0) {
-            List<String> fileNames = new ArrayList<String>();
-            String str = "";
-            for (File f : files) {
-                fileNames.add(f.getAbsolutePath());
-                str += f.getName() + " ";
-            }
-            superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
-            safeLoad(fileNames, control, str);
-        }
-    }
-
-    public void loadFromRecentActionPerformed(String url, String title, boolean control) {
-
-        if (url != null) {
-            superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + url, true);
-            safeLoad(Arrays.asList(url), control, title);
-        }
-    }
-
-    public void loadFromURLActionPerformed(boolean control) {
-        String urlString = JOptionPane.showInputDialog("Enter URLs (seperated by commas): ");
-        if (urlString != null) {
-            try {
-                String[] urls = urlString.split(",");
-                List<String> urlList = new ArrayList<String>();
-                String title = "";
-                for (String url : urls) {
-                    urlList.add(url);
-                    title += (new URL(url)).getPath() + " ";
-                }
-                safeLoad(urlList, control, title);
-            } catch (MalformedURLException e1) {
-                JOptionPane.showMessageDialog(this, "Error while trying to load " + urlString, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    public void loadFromListActionPerformed(boolean control) {
-
-        if (loadDialog == null) {
-            initProperties();
-            loadDialog = new LoadDialog(this, properties);
-            if (!loadDialog.getSuccess()) {
-                loadDialog = null;
-                return;
-            }
-        }
-        loadDialog.setControl(control);
-        loadDialog.setVisible(true);
-    }
-
-    public void updateTitle(boolean control, String title) {
-        if (control) controlTitle = title;
-        else datasetTitle = title;
-        updateTitle();
-    }
-
-    private void updateTitle() {
-        String newTitle = datasetTitle;
-        if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
-        setTitle(HiCGlobals.juiceboxTitle + newTitle);
-    }
 
     public void exitActionPerformed() {
         setVisible(false);
         dispose();
         System.exit(0);
-    }
-
-
-    private void chrBox1ActionPerformed(ActionEvent e) {
-        if (chrBox1.getSelectedIndex() == 0) {
-            chrBox2.setSelectedIndex(0);
-        }
-    }
-
-    private void chrBox2ActionPerformed(ActionEvent e) {
-        if (chrBox2.getSelectedIndex() == 0) {
-            chrBox1.setSelectedIndex(0);
-        }
-    }
-
-    public void setResolutionSliderVisible(boolean state) {
-        resolutionSlider.setEnabled(state);
-        if (state) {
-            resolutionSlider.setForeground(Color.BLUE);
-        } else {
-            resolutionSlider.setForeground(Color.BLACK);
-        }
-        safeDisplayOptionComboBoxActionPerformed();
-    }
-
-    public void safeDisplayOptionComboBoxActionPerformed() {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                unsafeDisplayOptionComboBoxActionPerformed();
-            }
-        };
-        executeLongRunningTask(runnable, "DisplayOptionsComboBox");
-    }
-
-    private void unsafeDisplayOptionComboBoxActionPerformed() {
-
-        MatrixType option = (MatrixType) (displayOptionComboBox.getSelectedItem());
-        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
-            JOptionPane.showMessageDialog(this, option + " matrix is not available for whole-genome view.");
-            displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-            return;
-        }
-
-        colorRangePanel.handleNewFileLoading(option, preDefMapColor);
-
-        if (option == MatrixType.PEARSON) {
-            if (!hic.getMatrix().isIntra()) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available for inter-chr views.");
-                displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-                return;
-
-            } else if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
-                displayOptionComboBox.setSelectedItem(hic.getDisplayOption());
-                return;
-            }
-        }
-
-        hic.setDisplayOption(option);
-        refresh(); // necessary to invalidate minimap when changing view
-
-    }
-
-    private void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                unsafeNormalizationComboBoxActionPerformed(e);
-            }
-        };
-        executeLongRunningTask(runnable, "Normalization ComboBox");
-    }
-
-    private void unsafeNormalizationComboBoxActionPerformed(ActionEvent e) {
-        String value = (String) normalizationComboBox.getSelectedItem();
-        NormalizationType chosen = null;
-        for (NormalizationType type : NormalizationType.values()) {
-            if (type.getLabel().equals(value)) {
-                chosen = type;
-                break;
-            }
-        }
-        final NormalizationType passChosen = chosen;
-        hic.setNormalizationType(passChosen);
-        refreshMainOnly();
     }
 
     /**
@@ -738,506 +212,6 @@ public class MainWindow extends JFrame {
         disabledGlassPane.deactivate();
     }
 
-    public void updateTrackPanel() {
-        boolean hasTracks = hic.getLoadedTracks().size() > 0;
-
-        trackLabelPanel.updateLabels();
-
-        if (hasTracks) {
-            if (!trackPanelX.isVisible()) {
-                trackPanelX.setVisible(true);
-                trackLabelPanel.setVisible(true);
-            }
-            if (!trackPanelY.isVisible()) {
-                trackPanelY.setVisible(true);
-            }
-        } else {
-            if (trackPanelX.isVisible()) {
-                trackPanelX.setVisible(false);
-                trackLabelPanel.setVisible(false);
-            }
-            if (trackPanelY.isVisible()) {
-                trackPanelY.setVisible(false);
-            }
-        }
-
-        trackPanelX.invalidate();
-        trackLabelPanel.invalidate();
-        trackPanelY.invalidate();
-        getContentPane().invalidate();
-        repaint();
-    }
-
-
-    public void setDisplayBox(int indx) {
-        displayOptionComboBox.setSelectedIndex(indx);
-    }
-
-    public void setNormalizationBox(int indx) {
-        normalizationComboBox.setSelectedIndex(indx);
-    }
-
-    private void initComponents(SuperAdapter superAdapter) {
-        System.out.println("Initializing Components");
-
-        superAdapter.initializeCustomAnnotations();
-
-        //size of the screen
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-        //height of the task bar
-        Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
-        int taskBarSize = scnMax.bottom;
-
-        //available size of the screen
-        //setLocation(screenSize.width - getWidth(), screenSize.height - taskBarSize - getHeight());
-
-        Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
-
-        final JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        contentPane.add(mainPanel, BorderLayout.CENTER);
-        mainPanel.setBackground(Color.white);
-
-        final JPanel toolbarPanel = new JPanel();
-        toolbarPanel.setBorder(null);
-
-        toolbarPanel.setLayout(new GridBagLayout());
-        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
-
-        JPanel bigPanel = new JPanel();
-        bigPanel.setLayout(new BorderLayout());
-        bigPanel.setBackground(Color.white);
-
-        int bigPanelWidth = screenSize.width - getWidth() - 230;
-        int bigPanelHeight = screenSize.height - taskBarSize - getHeight() - 120;
-
-
-        bigPanel.setPreferredSize(new Dimension(bigPanelWidth, bigPanelHeight));
-        bigPanel.setMaximumSize(new Dimension(bigPanelWidth, bigPanelHeight));
-        bigPanel.setMinimumSize(new Dimension(bigPanelWidth, bigPanelHeight));
-
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setBackground(Color.white);
-
-
-        JMenuBar menuBar = null;
-        try {
-            menuBar = superAdapter.createMenuBar();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        assert menuBar != null;
-        contentPane.add(menuBar, BorderLayout.NORTH);
-
-        GridBagConstraints toolbarConstraints = new GridBagConstraints();
-        toolbarConstraints.anchor = GridBagConstraints.LINE_START;
-        toolbarConstraints.fill = GridBagConstraints.HORIZONTAL;
-        toolbarConstraints.gridx = 0;
-        toolbarConstraints.gridy = 0;
-        toolbarConstraints.weightx = 0.1;
-
-        // --- Chromosome panel ---
-        JPanel chrSelectionPanel = new JPanel();
-        toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
-
-        chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
-
-        chrSelectionPanel.setLayout(new BorderLayout());
-
-        JPanel chrLabelPanel = new JPanel();
-        JLabel chrLabel = new JLabel("Chromosomes");
-        chrLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        chrLabelPanel.setLayout(new BorderLayout());
-        chrLabelPanel.add(chrLabel, BorderLayout.CENTER);
-        chrSelectionPanel.add(chrLabelPanel, BorderLayout.PAGE_START);
-
-        JPanel chrButtonPanel = new JPanel();
-        chrButtonPanel.setBackground(new Color(238, 238, 238));
-        chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
-
-        //---- chrBox1 ----
-        chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
-        chrBox1.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                chrBox1ActionPerformed(e);
-            }
-        });
-        chrBox1.setPreferredSize(new Dimension(95, 70));
-        chrButtonPanel.add(chrBox1);
-
-        //---- chrBox2 ----
-        chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
-        chrBox2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                chrBox2ActionPerformed(e);
-            }
-        });
-        chrBox2.setPreferredSize(new Dimension(95, 70));
-        chrButtonPanel.add(chrBox2);
-
-
-        //---- refreshButton ----
-        refreshButton = new JideButton();
-        refreshButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
-        refreshButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                refreshButtonActionPerformed();
-            }
-        });
-        refreshButton.setPreferredSize(new Dimension(24, 24));
-        chrButtonPanel.add(refreshButton);
-
-        chrBox1.setEnabled(false);
-        chrBox2.setEnabled(false);
-        refreshButton.setEnabled(false);
-        chrSelectionPanel.add(chrButtonPanel, BorderLayout.CENTER);
-
-        chrSelectionPanel.setMinimumSize(new Dimension(200, 70));
-        chrSelectionPanel.setPreferredSize(new Dimension(210, 70));
-
-        //======== Display Option Panel ========
-        JPanel displayOptionPanel = new JPanel();
-        displayOptionPanel.setBackground(new Color(238, 238, 238));
-        displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
-        displayOptionPanel.setLayout(new BorderLayout());
-        JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        displayOptionLabelPanel.setLayout(new BorderLayout());
-
-        JLabel displayOptionLabel = new JLabel("Show");
-        displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        displayOptionLabelPanel.add(displayOptionLabel, BorderLayout.CENTER);
-        displayOptionPanel.add(displayOptionLabelPanel, BorderLayout.PAGE_START);
-        JPanel displayOptionButtonPanel = new JPanel();
-        displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-        displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        displayOptionComboBox = new JComboBox<MatrixType>();
-        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
-        displayOptionComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                safeDisplayOptionComboBoxActionPerformed();
-            }
-        });
-        displayOptionButtonPanel.add(displayOptionComboBox);
-        displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
-        displayOptionPanel.setMinimumSize(new Dimension(140, 70));
-        displayOptionPanel.setPreferredSize(new Dimension(140, 70));
-        displayOptionPanel.setMaximumSize(new Dimension(140, 70));
-
-        toolbarConstraints.gridx = 1;
-        toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(displayOptionPanel, toolbarConstraints);
-        displayOptionComboBox.setEnabled(false);
-
-        //======== Normalization Panel ========
-        JPanel normalizationPanel = new JPanel();
-        normalizationPanel.setBackground(new Color(238, 238, 238));
-        normalizationPanel.setBorder(LineBorder.createGrayLineBorder());
-        normalizationPanel.setLayout(new BorderLayout());
-
-        JPanel normalizationLabelPanel = new JPanel();
-        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
-        normalizationLabelPanel.setLayout(new BorderLayout());
-
-        JLabel normalizationLabel = new JLabel("Normalization");
-        normalizationLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        normalizationLabelPanel.add(normalizationLabel, BorderLayout.CENTER);
-        normalizationPanel.add(normalizationLabelPanel, BorderLayout.PAGE_START);
-
-        JPanel normalizationButtonPanel = new JPanel();
-        normalizationButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
-        normalizationButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        normalizationComboBox = new JComboBox<String>();
-        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(new String[]{NormalizationType.NONE.getLabel()}));
-        normalizationComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                safeNormalizationComboBoxActionPerformed(e);
-            }
-        });
-        normalizationButtonPanel.add(normalizationComboBox);
-        normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
-        normalizationPanel.setPreferredSize(new Dimension(180, 70));
-        normalizationPanel.setMinimumSize(new Dimension(140, 70));
-
-
-        toolbarConstraints.gridx = 2;
-        toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(normalizationPanel, toolbarConstraints);
-        normalizationComboBox.setEnabled(false);
-
-        //======== Resolution Panel ========
-        hiCPanel = new JPanel();
-        hiCPanel.setBackground(Color.white);
-        hiCPanel.setLayout(new HiCLayout());
-        bigPanel.add(hiCPanel, BorderLayout.CENTER);
-
-        JPanel wrapGapPanel = new JPanel();
-        wrapGapPanel.setBackground(Color.white);
-        wrapGapPanel.setMaximumSize(new Dimension(5, 5));
-        wrapGapPanel.setMinimumSize(new Dimension(5, 5));
-        wrapGapPanel.setPreferredSize(new Dimension(5, 5));
-        wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
-        bigPanel.add(wrapGapPanel, BorderLayout.EAST);
-
-
-        // splitPanel.insertPane(hiCPanel, 0);
-        // splitPanel.setBackground(Color.white);
-
-        //---- rulerPanel2 ----
-        JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.green);
-        topPanel.setLayout(new BorderLayout());
-        hiCPanel.add(topPanel, BorderLayout.NORTH);
-        trackLabelPanel = new TrackLabelPanel(hic);
-        trackLabelPanel.setBackground(Color.white);
-        hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
-
-        trackPanelX = new TrackPanel(this, hic, TrackPanel.Orientation.X);
-        trackPanelX.setMaximumSize(new Dimension(4000, 50));
-        trackPanelX.setPreferredSize(new Dimension(1, 50));
-        trackPanelX.setMinimumSize(new Dimension(1, 50));
-        trackPanelX.setVisible(false);
-        topPanel.add(trackPanelX, BorderLayout.NORTH);
-
-        rulerPanelX = new HiCRulerPanel(hic);
-        rulerPanelX.setMaximumSize(new Dimension(4000, 50));
-        rulerPanelX.setMinimumSize(new Dimension(1, 50));
-        rulerPanelX.setPreferredSize(new Dimension(1, 50));
-        rulerPanelX.setBorder(null);
-        topPanel.add(rulerPanelX, BorderLayout.SOUTH);
-
-
-        //---- rulerPanel1 ----
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(Color.white);
-        leftPanel.setLayout(new BorderLayout());
-        hiCPanel.add(leftPanel, BorderLayout.WEST);
-
-        trackPanelY = new TrackPanel(this, hic, TrackPanel.Orientation.Y);
-        trackPanelY.setMaximumSize(new Dimension(50, 4000));
-        trackPanelY.setPreferredSize(new Dimension(50, 1));
-        trackPanelY.setMinimumSize(new Dimension(50, 1));
-        trackPanelY.setVisible(false);
-        leftPanel.add(trackPanelY, BorderLayout.WEST);
-
-        rulerPanelY = new HiCRulerPanel(hic);
-        rulerPanelY.setMaximumSize(new Dimension(50, 4000));
-        rulerPanelY.setPreferredSize(new Dimension(50, 800));
-        rulerPanelY.setBorder(null);
-        rulerPanelY.setMinimumSize(new Dimension(50, 1));
-        leftPanel.add(rulerPanelY, BorderLayout.EAST);
-
-        //---- heatmapPanel ----
-        //Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
-        //int panelSize = screenDimension.height - 210;
-
-        int panelWidth = screenSize.width - getWidth() - 300;
-        int panelHeight = screenSize.height - taskBarSize - getHeight();
-
-
-        System.err.println("Window W: " + panelWidth + " H" + panelHeight);
-
-        JPanel wrapHeatmapPanel = new JPanel(new BorderLayout());
-        wrapHeatmapPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
-        wrapHeatmapPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
-        wrapHeatmapPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
-        wrapHeatmapPanel.setBackground(Color.BLUE);
-        wrapHeatmapPanel.setVisible(true);
-
-        heatmapPanel = new HeatmapPanel(this, hic);
-        heatmapPanel.setMaximumSize(new Dimension(panelWidth - 5, panelHeight - 5));
-        heatmapPanel.setMinimumSize(new Dimension(panelWidth - 5, panelHeight - 5));
-        heatmapPanel.setPreferredSize(new Dimension(panelWidth - 5, panelHeight - 5));
-        heatmapPanel.setBackground(Color.white);
-
-        wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
-
-        //hiCPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
-        //hiCPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
-        //hiCPanel.setPreferredSize(new Dimension(panelWidth, panelHeight));
-
-        hiCPanel.add(wrapHeatmapPanel, BorderLayout.CENTER);
-
-        //======== Resolution Slider Panel ========
-
-        // Resolution  panel
-        resolutionSlider = new ResolutionControl(hic, this, heatmapPanel);
-        resolutionSlider.setPreferredSize(new Dimension(200, 70));
-        resolutionSlider.setMinimumSize(new Dimension(150, 70));
-
-        toolbarConstraints.gridx = 3;
-        toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(resolutionSlider, toolbarConstraints);
-
-        //======== Color Range Panel ========
-        colorRangePanel = new JColorRangePanel(MainWindow.this, hic, heatmapPanel, preDefMapColor);
-
-        toolbarConstraints.gridx = 4;
-        toolbarConstraints.weightx = 0.5;
-        toolbarPanel.add(colorRangePanel, toolbarConstraints);
-
-        goPanel = new GoToPanel(hic);
-        toolbarConstraints.gridx = 5;
-        toolbarConstraints.weightx = 0.25;
-        toolbarPanel.add(goPanel, toolbarConstraints);
-        // not sure this is working
-        //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
-        toolbarPanel.setEnabled(false);
-
-
-        //======== Right side panel ========
-
-        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
-        rightSidePanel.setBackground(Color.white);
-        rightSidePanel.setPreferredSize(new Dimension(210, 1000));
-        rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
-
-        //======== Bird's view mini map ========
-
-        JPanel thumbPanel = new JPanel();
-        thumbPanel.setLayout(new BorderLayout());
-
-        //---- thumbnailPanel ----
-        thumbnailPanel = new ThumbnailPanel(superAdapter);
-        thumbnailPanel.setBackground(Color.white);
-        thumbnailPanel.setMaximumSize(new Dimension(210, 210));
-        thumbnailPanel.setMinimumSize(new Dimension(210, 210));
-        thumbnailPanel.setPreferredSize(new Dimension(210, 210));
-
-//        JPanel gapPanel = new JPanel();
-//        gapPanel.setMaximumSize(new Dimension(1, 1));
-//        rightSidePanel.add(gapPanel,BorderLayout.WEST);
-        thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
-        thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
-
-        //========= mouse hover text ======
-        JPanel tooltipPanel = new JPanel(new BorderLayout());
-        tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setPreferredSize(new Dimension(210, 490));
-        mouseHoverTextPanel = new JEditorPane();
-        mouseHoverTextPanel.setEditable(false);
-        mouseHoverTextPanel.setContentType("text/html");
-        mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
-
-        mouseHoverTextPanel.setBackground(Color.white);
-        mouseHoverTextPanel.setBorder(null);
-        int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
-
-        //*Dimension prefSize = new Dimension(210, 490);
-        Dimension prefSize = new Dimension(210, 390);
-        mouseHoverTextPanel.setPreferredSize(prefSize);
-
-        JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
-        tooltipScroller.setBackground(Color.white);
-        tooltipScroller.setBorder(null);
-
-        tooltipPanel.setPreferredSize(new Dimension(210, 500));
-        tooltipPanel.add(tooltipScroller);
-        tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
-        tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setBorder(null);
-
-        rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
-
-        // compute preferred size
-        Dimension preferredSize = new Dimension();
-        for (int i = 0; i < rightSidePanel.getComponentCount(); i++) {
-            Rectangle bounds = rightSidePanel.getComponent(i).getBounds();
-            preferredSize.width = Math.max(bounds.x + bounds.width, preferredSize.width);
-            preferredSize.height = Math.max(bounds.y + bounds.height, preferredSize.height);
-        }
-        Insets insets = rightSidePanel.getInsets();
-        preferredSize.width += insets.right + 20;
-        preferredSize.height += insets.bottom;
-        rightSidePanel.setMinimumSize(preferredSize);
-        rightSidePanel.setPreferredSize(preferredSize);
-        mainPanel.add(bigPanel, BorderLayout.CENTER);
-        mainPanel.add(rightSidePanel, BorderLayout.EAST);
-
-        initializeGlassPaneListening();
-
-        // initProperties();
-    }
-
-    private void initProperties() {
-        try {
-            String url = System.getProperty("jnlp.loadMenu");
-            if (url == null) {
-                url = "http://hicfiles.tc4ga.com/juicebox.properties";
-            }
-            InputStream is = ParsingUtils.openInputStream(url);
-            properties = new Properties();
-            if (is != null) {
-                properties.load(is);
-            }
-        } catch (Exception error) {
-            log.error("Can't find properties file for loading list", error);
-            //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    public void setPositionChrLeft(String newPositionDate) {
-        goPanel.setPositionChrLeft(newPositionDate);
-    }
-
-    public void setPositionChrTop(String newPositionDate) {
-        goPanel.setPositionChrTop(newPositionDate);
-    }
-
-    private void loadNormalizationVector(File file) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-        String nextLine = reader.readLine();
-        String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
-        int resolution = Integer.valueOf(tokens[0]);
-        int vectorLength = Integer.valueOf(tokens[1]);
-        int expectedLength = Integer.valueOf(tokens[2]);
-        List<Chromosome> chromosomes = hic.getChromosomes();
-
-        double[] nv = new double[vectorLength];
-        double[] exp = new double[expectedLength];
-        for (int i = 0; i < nv.length; i++) {
-            nextLine = reader.readLine();
-            tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
-            nv[i] = Double.valueOf(tokens[0]);
-        }
-        for (int i = 0; i < exp.length; i++) {
-            nextLine = reader.readLine();
-            tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
-            exp[i] = Double.valueOf(tokens[0]);
-        }
-
-        int location1 = 0;
-        for (Chromosome c1 : chromosomes) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
-            int chrBinned = c1.getLength() / resolution + 1;
-            double[] chrNV = new double[chrBinned];
-            for (int i = 0; i < chrNV.length; i++) {
-                chrNV[i] = nv[location1];
-                location1++;
-            }
-            hic.getDataset().putLoadedNormalizationVector(c1.getIndex(), resolution, chrNV, exp);
-        }
-
-    }
-
-    public String getToolTip() {
-        return mouseHoverTextPanel.getText();
-    }
-
-    public boolean isTooltipAllowedToUpdated() {
-        return tooltipAllowedToUpdated;
-    }
-
-    public void toggleToolTipUpdates(boolean tooltipAllowedToUpdated) {
-        this.tooltipAllowedToUpdated = tooltipAllowedToUpdated;
-    }
-
     public void updateNamesFromImport(String path) {
         superAdapter.updatePrevStateNameFromImport(path);
     }
@@ -1251,21 +225,7 @@ public class MainWindow extends JFrame {
     }
 
     public void enableAllOptionsButtons() {
-        chrBox1.setEnabled(true);
-        chrBox2.setEnabled(true);
-        refreshButton.setEnabled(true);
-        colorRangePanel.setElementsVisible(true, MainWindow.this);
-        setResolutionSliderVisible(true);
         superAdapter.setEnableForAllElements(true);
-        goPanel.setEnabled(true);
-    }
-
-    public String getColorRangeValues() {
-        return colorRangePanel.getColorRangeValues();
-    }
-
-    public void updateColorSlider(double minColor, double lowColor, double upColor, double maxColor) {
-        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
     }
 }
 

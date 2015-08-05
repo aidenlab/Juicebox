@@ -32,7 +32,7 @@ import java.io.IOException;
 /**
  * Created for testing multiple CLTs at once
  */
-public class AggregateProcessing {
+class AggregateProcessing {
 
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {

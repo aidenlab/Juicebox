@@ -24,8 +24,8 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.common.HiCFileTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
@@ -38,8 +38,8 @@ import java.util.*;
  */
 public class BlockBuster {
 
-    private static int matrixWidth = 400;
-    private static int increment = matrixWidth / 2;
+    private static final int matrixWidth = 400;
+    private static final int increment = matrixWidth / 2;
 
 
     /**
