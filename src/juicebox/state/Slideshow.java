@@ -60,6 +60,8 @@ public class Slideshow extends JDialog {
 
     public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
         super(mainWindow);
+        // TODO zgire - if panel needs to be independent of juicebox, then remove the line above (i.e. pass in mainwindow as parent)
+        
         setLayout(new FlowLayout());
         setResizable(true);
         setVisible(true);
