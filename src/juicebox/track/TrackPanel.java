@@ -63,7 +63,7 @@ public class TrackPanel extends JPanel {
         trackRectangles = new ArrayList<Pair<Rectangle, HiCTrack>>();
         //setBackground(new Color(238, 238, 238));
         setBackground(Color.white);
-        addMouseAdapter();
+        addMouseAdapter(superAdapter);
 
         //setToolTipText("");   // Has side affect of turning on tt text
     }
@@ -75,12 +75,12 @@ public class TrackPanel extends JPanel {
         superAdapter.repaint();
     }
 
-    private void addMouseAdapter() {
+    private void addMouseAdapter(final SuperAdapter superAdapter) {
         MouseAdapter mouseAdapter = new MouseAdapter() {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                superAdapter.updateToolTipText(tooltipText(e.getX(), e.getY()));
+                TrackPanel.this.superAdapter.updateToolTipText(tooltipText(e.getX(), e.getY()));
             }
 
             @Override
@@ -130,7 +130,7 @@ public class TrackPanel extends JPanel {
                     if (r.contains(mouseEvent.getPoint())) {
 
                         HiCTrack track = p.getSecond();
-                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this);
+                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, superAdapter);
                         menu.show(mouseEvent.getComponent(), mouseEvent.getX(), mouseEvent.getY());
                         repaint();
 

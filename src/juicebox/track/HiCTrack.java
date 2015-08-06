@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.Context;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -63,7 +64,7 @@ public abstract class HiCTrack {
         // Ignore by default, override in subclasses
     }
 
-    public JPopupMenu getPopupMenu(final TrackPanel trackPanel) {
+    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter) {
         JPopupMenu menu = new JPopupMenu(getName());
 
         JMenuItem menuItem = new JMenuItem("Remove track");

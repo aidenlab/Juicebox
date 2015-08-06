@@ -264,10 +264,10 @@ public class HiCDataTrack extends HiCTrack {
         dataSource.setColor(selectedColor);
     }
 
+    @Override
     public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter) {
 
-
-        JPopupMenu menu = super.getPopupMenu(trackPanel);
+        JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter);
         menu.addSeparator();
 
         JMenuItem menuItem = new JMenuItem("Configure track...");
