@@ -26,6 +26,9 @@ package juicebox.state;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.Dataset;
+import juicebox.data.DatasetReader;
+import juicebox.data.DatasetReaderFactory;
 import juicebox.gui.SuperAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -49,6 +52,7 @@ import java.util.ArrayList;
 
 public class Slideshow extends JDialog {
 
+    private final static JFrame carouselFrame = new JFrame();
     private final static JPanel nextPanel = new JPanel(new BorderLayout());
     private final static JPanel prevPanel = new JPanel(new BorderLayout());
     private final static JPanel labelPanel = new JPanel(new BorderLayout());
@@ -59,9 +63,10 @@ public class Slideshow extends JDialog {
     private final JLabel slideLabel;
 
     public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
-        super(mainWindow);
+        //super(mainWindow);
+        super();
         // TODO zgire - if panel needs to be independent of juicebox, then remove the line above (i.e. pass in mainwindow as parent)
-
+        ArrayList<String> files = new ArrayList<String>();
         setLayout(new FlowLayout());
         setResizable(true);
         setVisible(true);
@@ -90,11 +95,39 @@ public class Slideshow extends JDialog {
             NodeList nodeList = dom.getElementsByTagName("STATE");
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
+                NodeList childNodes = nodeList.item(i).getChildNodes();
+                for(int k=0; k<childNodes.getLength(); k++){
+                    if(childNodes.item(k).getNodeName().equals("MapURL")) {
+                        files.add(childNodes.item(k).getTextContent());
+                    }
+                }
             }
+
+            DatasetReader datasetReader = DatasetReaderFactory.getReader(files);
+            Dataset dataset = datasetReader.read();
+            HiCGlobals.verifySupportedHiCFileVersion(datasetReader.getVersion());
+
             System.out.println(savedStatePaths);
             final int numSlides = savedStatePaths.size();
 
             slideLabel.setText(savedStatePaths.get(0));
+
+            carouselFrame.setLayout(new FlowLayout());
+            carouselFrame.setResizable(true);
+            carouselFrame.setVisible(true);
+            carouselFrame.setSize(400, 100);
+            carouselFrame.add(prevPanel);
+            carouselFrame.add(labelPanel);
+            carouselFrame.add(nextPanel);
+
+            prevPanel.add(prevButton, BorderLayout.EAST);
+            prevPanel.setVisible(true);
+
+            labelPanel.add(slideLabel, BorderLayout.CENTER);
+            labelPanel.setVisible(true);
+
+            nextPanel.add(nextButton, BorderLayout.WEST);
+            nextPanel.setVisible(true);
 
             prevButton.addActionListener(new ActionListener() {
                 @Override

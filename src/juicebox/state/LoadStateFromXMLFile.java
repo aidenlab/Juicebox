@@ -27,13 +27,17 @@ package juicebox.state;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
+import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.renderer.DataRange;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +61,7 @@ public class LoadStateFromXMLFile {
         String result = "OK";
         String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
-        String[] trackURLsAndNames = new String[2];
+        String[] trackURLsAndNamesAndConfigInfo = new String[3];
         System.out.println("Executing: " + Arrays.toString(infoForReload));
         if (infoForReload.length > 0) {
             //int fileSize = infoForReload.length;
@@ -79,10 +83,11 @@ public class LoadStateFromXMLFile {
                     doubleInfo[4] = Double.parseDouble(infoForReload[13]); //lowerColorVal
                     doubleInfo[5] = Double.parseDouble(infoForReload[14]); //upperColorVal
                     doubleInfo[6] = Double.parseDouble(infoForReload[15]); //maxColorVal
-                    trackURLsAndNames[0] = (infoForReload[16]); //trackURLs
-                    trackURLsAndNames[1] = (infoForReload[17]); //trackNames
+                    trackURLsAndNamesAndConfigInfo[0] = (infoForReload[16]); //trackURLs
+                    trackURLsAndNamesAndConfigInfo[1] = (infoForReload[17]); //trackNames
+                    trackURLsAndNamesAndConfigInfo[2] = (infoForReload[18]); //trackConfigInfo
 
-                    safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNames);
+                    safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -146,6 +151,7 @@ public class LoadStateFromXMLFile {
             if (tracks.length > 0 && !tracks[1].contains("none")) {
                 String[] trackURLs = tracks[0].split("\\,");
                 String[] trackNames = tracks[1].split("\\,");
+
                 for (int i = 0; i < trackURLs.length; i++) {
                     String currentTrack = trackURLs[i].trim();
                     if (!currentTrack.isEmpty()) {
@@ -164,15 +170,35 @@ public class LoadStateFromXMLFile {
                             hic.loadTrack(currentTrack);
                             loadAction.checkBoxesForReload(trackNames[i].trim());
                         }
-                        //renaming
+
                     }
                 }
                 for (HiCTrack loadedTrack : hic.getLoadedTracks()) {
                     for (int i = 0; i < trackNames.length; i++) {
                         if (trackURLs[i].contains(loadedTrack.getName())) {
                             loadedTrack.setName(trackNames[i].trim());
+                            if(!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())){
+                                HiCDataTrack hiCDataTrack = (HiCDataTrack) loadedTrack;
+                                String[] configTrackInfo = tracks[2].split("\\*\\*");
+                                for(int k=0; k<configTrackInfo.length; k++) {
+
+                                    String[] configInfo = configTrackInfo[k].split("\\,");
+                                    hiCDataTrack.setColor(new Color(Integer.parseInt(configInfo[1])));
+                                    hiCDataTrack.setAltColor(new Color(Integer.parseInt(configInfo[2])));
+                                    DataRange newDataRange = new DataRange(Float.parseFloat(configInfo[3]), Float.parseFloat(configInfo[4]));//min,max
+                                    if(Boolean.parseBoolean(configInfo[5])){
+                                        newDataRange.setType(DataRange.Type.LOG);
+                                    }
+                                    else {
+                                        newDataRange.setType(DataRange.Type.LINEAR);
+                                    }
+                                    hiCDataTrack.setDataRange(newDataRange);
+
+                                }
+                            }
                         }
                     }
+
                 }
 
             }

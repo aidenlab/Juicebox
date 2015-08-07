@@ -93,7 +93,7 @@ class XMLFileWriter {
                 n = xmlDoc.createTextNode(mapName[0]);
             } else if (i == 2) {//mapurl
                 n = xmlDoc.createTextNode(mapName[1]);
-            } else if (i < 16 || elements.length > 15) { // elements.length checked in case no annotations
+            } else if (i < 17 || elements.length > 16) { // elements.length checked in case no annotations
                 n = xmlDoc.createTextNode(elements[i - 1]);
             }
 

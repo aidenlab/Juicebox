@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.gui.SuperAdapter;
+import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -53,6 +54,7 @@ public class XMLFileHandling {
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
         String currentTrack = "";
         String currentTrackName = "";
+        String configTrackInfo="none";
 
         String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
 
@@ -67,8 +69,18 @@ public class XMLFileHandling {
                 System.out.println("track name: " + track.getName());
                 currentTrack += track.getLocator() + ", ";
                 currentTrackName += track.getName() + ", ";
+                track.getLocator().getColor();
+                    try {
+                        HiCDataTrack hiCDataTrack = (HiCDataTrack) track;
+                        configTrackInfo = hiCDataTrack.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
+                                + hiCDataTrack.getAltColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
+                                + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
+                        //Name, PosColor, AltColor, Min, Max, isLogScale
+                    } catch (Exception e){
+                        // Expected for tracks that cannot be configured
+                }
             }
-            textToWrite += "$$" + currentTrack + "$$" + currentTrackName;
+            textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
         }
 
         List<Feature2DList> visibleLoops = hic.getAllVisibleLoopLists();

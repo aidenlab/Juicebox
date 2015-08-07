@@ -46,9 +46,10 @@ class State {
     private static final String MAXCOLOR = "MaxColorVal";
     private static final String TRACKURLS = "LoadedTrackURLS";
     private static final String TRACKNAMES = "LoadedTrackNames";
+    private static final String CONFIGTRACKINFO = "ConfigTrackInfo";
 
     /* TODO implement switch case on enum
     enum StateVar {}*/
     public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL, XCHR, YCHR, UNIT, BINSIZE,
-            XORIGIN, YORIGIN, SCALE, DISPLAY, NORM, MINCOLOR, LOWCOLOR, UPPERCOLOR, MAXCOLOR, TRACKURLS, TRACKNAMES};
+            XORIGIN, YORIGIN, SCALE, DISPLAY, NORM, MINCOLOR, LOWCOLOR, UPPERCOLOR, MAXCOLOR, TRACKURLS, TRACKNAMES,CONFIGTRACKINFO};
 }
