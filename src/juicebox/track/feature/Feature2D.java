@@ -33,6 +33,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -53,6 +54,7 @@ public class Feature2D implements Comparable<Feature2D> {
     private final int start2;
     private final String featureName;
     private final Map<String, String> attributes;
+    private Feature2D reflection = null;
     private int end1;
     private int end2;
     private Color color;
@@ -96,6 +98,8 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setEnd1(int end1) {
         this.end1 = end1;
+        if (reflection != null)
+            reflection.end2 = end1;
     }
 
     public int getEnd2() {
@@ -104,6 +108,8 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setEnd2(int end2) {
         this.end2 = end2;
+        if (reflection != null)
+            reflection.end1 = end2;
     }
 
     public int getMidPt1() {
@@ -124,6 +130,8 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setColor(Color color) {
         this.color = color;
+        if (reflection != null)
+            reflection.color = color;
     }
 
     public String tooltipText() {
@@ -257,6 +265,9 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setAttribute(String key, String newVal) {
         attributes.put(key, newVal);
+        if (reflection != null)
+            reflection.attributes.put(key, newVal);
+
     }
 
     public float getFloatAttribute(String key) {
@@ -292,5 +303,18 @@ public class Feature2D implements Comparable<Feature2D> {
     @Override
     public int compareTo(Feature2D o) {
         return Integer.parseInt(getAttribute(HiCCUPSUtils.OBSERVED)) - Integer.parseInt(o.getAttribute(HiCCUPSUtils.OBSERVED));
+    }
+
+    public boolean isOnDiagonal() {
+        return chr1.equals(chr2) && start1 == start2 && end1 == end2;
+    }
+
+    public Feature2D reflectionAcrossDiagonal() {
+        if (reflection == null) {
+            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color,
+                    new HashMap<String, String>(attributes));
+            reflection.reflection = this;
+        }
+        return reflection;
     }
 }

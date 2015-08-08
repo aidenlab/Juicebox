@@ -48,6 +48,7 @@ import java.util.zip.Deflater;
 public class Preprocessor {
 
     // Base-pair resolutions
+    // TODO move to hicglobals
     private static final int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
     // Fragment resolutions
     private static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};

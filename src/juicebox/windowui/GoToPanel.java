@@ -208,6 +208,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             outBinTop = topStart + ((topEnd - topStart) / 2);
             int diff = topEnd - topStart;
             diff = diff / 1000;
+            // TODO replace with simple floor search, also remove magic strings, use hicglobals array
             if (diff >= 2500000) {
                 estimatedOutBinSize = 2500000;
             } else if (diff >= 1000000) {

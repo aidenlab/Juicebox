@@ -29,15 +29,16 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -45,7 +46,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the "model" class for the HiC viewer.
@@ -59,7 +59,7 @@ public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     //private final MainWindow mainWindow;
-    private final Map<String, Feature2DList> loopLists;
+    private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
     private final SuperAdapter superAdapter;
@@ -72,10 +72,9 @@ public class HiC {
     private Dataset dataset;
     private Dataset controlDataset;
     private HiCZoom zoom;
-    private MatrixZoomData matrixForReloadState;
+    //private MatrixZoomData matrixForReloadState;
     private Context xContext;
     private Context yContext;
-    private boolean showLoops;
     private EigenvectorTrack eigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
@@ -88,11 +87,11 @@ public class HiC {
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
-        this.trackManager = new HiCTrackManager(superAdapter, this);
-        this.loopLists = new HashMap<String, Feature2DList>();
-        this.m_zoomChanged = false;
-        this.m_displayOptionChanged = false;
-        this.m_normalizationTypeChanged = false;
+        trackManager = new HiCTrackManager(superAdapter, this);
+        feature2DHandler = new Feature2DHandler();
+        m_zoomChanged = false;
+        m_displayOptionChanged = false;
+        m_normalizationTypeChanged = false;
         initBinSizeDictionary();
     }
 
@@ -104,13 +103,11 @@ public class HiC {
         eigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
-        trackManager.clearTracks();
-        loopLists.clear();
-        showLoops = true;
+        clearFeatures();
     }
 
+    // TODO zgire - why iterate through trackstoremove if you end up calling clearFeatures() ?
     public void clearTracksForReloadState() {
-
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
             if (trackToRemove.getName().equals("eigenvector")) {
@@ -119,11 +116,14 @@ public class HiC {
                 trackManager.removeTrack(trackToRemove);
             }
         }
-        trackManager.clearTracks();
-        loopLists.clear();
+        clearFeatures();
         superAdapter.updateTrackPanel();
     }
 
+    private void clearFeatures() {
+        trackManager.clearTracks();
+        feature2DHandler.clearLists();
+    }
 
     public double getScaleFactor() {
         return scaleFactor;
@@ -164,42 +164,6 @@ public class HiC {
 
     public void setEncodeAction(LoadEncodeAction eAction) {
         encodeAction = eAction;
-    }
-
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        if (!showLoops) return null;
-        List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                visibleLoopList.add(list);
-            }
-        }
-        return visibleLoopList;
-    }
-
-    public List<Feature2D> getVisibleLoopList(int chrIdx1, int chrIdx2) {
-        if (!showLoops) return null;
-        List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
-                if (currList != null) {
-                    for (Feature2D feature2D : currList) {
-                        visibleLoopList.add(feature2D);
-                    }
-                }
-            }
-        }
-        return visibleLoopList;
-    }
-
-    public void setShowLoops(boolean showLoops1) {
-        showLoops = showLoops1;
-
-    }
-
-    public void setLoopsInvisible(String path) {
-        loopLists.get(path).setVisible(false);
     }
 
     public boolean isLinkedMode() {
@@ -651,16 +615,7 @@ public class HiC {
 
     }
 
-    public void loadLoopList(String path) {
 
-        if (loopLists.get(path) != null) {
-            loopLists.get(path).setVisible(true);
-            return;
-        }
-
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true, null);
-        loopLists.put(path, newList);
-    }
 
     /**
      * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
@@ -765,6 +720,7 @@ public class HiC {
     }
 
     private void initBinSizeDictionary() {
+        // TODO remove magic strings or move this to hicglobals?
         //BP Bin size:
         binSizeDictionary.put("2.5M", 2500000);
         binSizeDictionary.put("1M", 1000000);
@@ -806,6 +762,48 @@ public class HiC {
         binSizeDictionary.put("5f", 5);
         binSizeDictionary.put("2f", 2);
         binSizeDictionary.put("1f", 1);
+    }
+
+    public void setShowLoops(boolean showLoops) {
+        feature2DHandler.setShowLoops(showLoops);
+    }
+
+    public void setLoopsInvisible(String path) {
+        feature2DHandler.setLoopsInvisible(path);
+    }
+
+    public void loadLoopList(String path) {
+        feature2DHandler.loadLoopList(path, chromosomes);
+    }
+
+    public List<Feature2DList> getAllVisibleLoopLists() {
+        return feature2DHandler.getAllVisibleLoopLists();
+    }
+
+    public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
+        return feature2DHandler.getVisibleFeatures(chrIdx1, chrIdx2);
+    }
+
+    public List<Feature2D> findNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n) {
+
+        double binOriginX = getXContext().getBinOrigin();
+        double binOriginY = getYContext().getBinOrigin();
+        double scale = getScaleFactor();
+
+        return feature2DHandler.findNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+    }
+
+    public List<Pair<Rectangle, Feature2D>> findNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x,
+                                                                   int y, int n) {
+        double binOriginX = getXContext().getBinOrigin();
+        double binOriginY = getYContext().getBinOrigin();
+        double scale = getScaleFactor();
+
+        return feature2DHandler.findNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+    }
+
+    public void setSparseFeaturePlotting(boolean status) {
+        feature2DHandler.setSparseFeaturePlotting(status);
     }
 
     public enum Unit {BP, FRAG}

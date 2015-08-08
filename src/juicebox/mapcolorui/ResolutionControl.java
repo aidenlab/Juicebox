@@ -61,6 +61,7 @@ public class ResolutionControl extends JPanel {
     private int lastValue = 0;
 
     {
+        // TODO use hicglobals, remove magic strings
         bpLabelMap = new Hashtable<Integer, String>();
         bpLabelMap.put(2500000, "2.5 MB");
         bpLabelMap.put(1000000, "1 MB");

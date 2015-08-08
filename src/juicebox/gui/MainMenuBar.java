@@ -326,7 +326,6 @@ public class MainMenuBar {
 
 
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
-
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {
             @Override
@@ -336,8 +335,19 @@ public class MainMenuBar {
             }
         });
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-
         annotationsMenu.add(showLoopsItem);
+
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Enable Sparse 2D Plotting");
+        toggleSparse2DFeaturePlotting.setSelected(false);
+        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+        annotationsMenu.add(toggleSparse2DFeaturePlotting);
 
         final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
 

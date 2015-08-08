@@ -653,4 +653,7 @@ public class SuperAdapter {
     }
 
 
+    public void setSparseFeaturePlotting(boolean status) {
+        hic.setSparseFeaturePlotting(status);
+    }
 }

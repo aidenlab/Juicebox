@@ -68,6 +68,9 @@ import static java.awt.Toolkit.getDefaultToolkit;
 public class HeatmapPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -8017012290342597941L;
+
+    // used for finding nearby features
+    private static final int NUM_NEIGHBORS = 7;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -92,8 +95,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * feature highlight related variables
      */
     private boolean showFeatureHighlight = true;
-    private boolean mouseIsOverFeature = false;
-    private Pair<Rectangle, Feature2D> highlightedFeature = null;
+    private Feature2D highlightedFeature = null;
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
 
     /**
@@ -320,19 +322,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             } else {
                 // Render loops
-                drawnLoopFeatures.clear();
+                //drawnLoopFeatures.clear();
 
-                List<Feature2D> loops = hic.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-                // customLoops is array with zero or more loops
-                List<Feature2D> customLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-                if (loops == null) {
-                    loops = customLoops;
-                } else {
-                    loops.addAll(customLoops);
+                //double x = (screenWidth / scaleFactor)/2.0;//binOriginX;// +(screenWidth / scaleFactor)/2.0;
+                //double y = (screenHeight / scaleFactor)/2.0;//binOriginY;// +(screenHeight / scaleFactor)/2.0;
+
+                List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                        0, 0, 1000);
+
+
+                // TODO MSS
+                // add custom Features
+                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
+                for (Feature2D feature2D : cLoops) {
+                    if (!feature2D.isOnDiagonal()) {
+                        cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                    }
                 }
+                loops.addAll(cLoops);
+                loops.addAll(cLoopsReflected);
 
-                FeatureRenderer.render((Graphics2D) g.create(), loops, zd, binOriginX, binOriginY, scaleFactor, drawnLoopFeatures,
+                Graphics2D g2 = (Graphics2D) g.create();
+                //g2.fillOval((int)x, (int)y, 20, 20);
+
+                FeatureRenderer.render(g2, loops, zd, binOriginX, binOriginY, scaleFactor,
                         highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+                //System.out.println("rendered 2d annotation");
 
                 if (zoomRectangle != null) {
                     ((Graphics2D) g).draw(zoomRectangle);
@@ -341,19 +357,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (annotateRectangle != null) {
                     ((Graphics2D) g).draw(annotateRectangle);
                 }
-
             }
-            //}
-            //UNCOMMENT TO OUTLINE "selected" BIN TODO - is this safe to delete?
-            //        if(hic.getSelectedBin() != null) {
-            //            int pX = (int) ((hic.getSelectedBin().x - hic.xContext.getBinOrigin()) * hic.xContext.getScaleFactor());
-            //            int pY = (int) ((hic.getSelectedBin().y - hic.yContext.getBinOrigin()) * hic.yContext.getScaleFactor());
-            //            int w = (int) hic.xContext.getScaleFactor() - 1;
-            //            int h = (int) hic.yContext.getScaleFactor() - 1;
-            //            g.setColor(Color.green);
-            //            g.drawRect(pX, pY, w, h);
-            //        }
-
         }
     }
 
@@ -624,7 +628,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 showFeatureHighlight = true;
-                highlightedFeature = mostRecentRectFeaturePair;
+                highlightedFeature = mostRecentRectFeaturePair.getSecond();
                 repaint();
             }
         });
@@ -919,9 +923,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             Point currMouse = new Point(x, y);
             double minDistance = Double.POSITIVE_INFINITY;
-            mouseIsOverFeature = false;
+            //mouseIsOverFeature = false;
             mostRecentRectFeaturePair = null;
-            for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
+
+
+            // TODO MSS
+
+            for (Pair<Rectangle, Feature2D> loop : hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                    x, y, NUM_NEIGHBORS)) {
                 if (loop.getFirst().contains(x, y)) {
                     // TODO - why is this code duplicated in this file?
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
@@ -933,7 +942,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         minDistance = distance;
                         mostRecentRectFeaturePair = loop;
                     }
-                    mouseIsOverFeature = true;
+                    //mouseIsOverFeature = true;
+
 
                 }
             }
@@ -946,8 +956,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
 
-    // TODO - not generating tracks at present, just some relevant code pieces - MSS
-    private String trackGenerator(int x, int y) {
+    // TODO MSS - not generating tracks at present, just some relevant code pieces
+    /*private String trackGenerator(int x, int y) {
         // Update popup text
         final MatrixZoomData zd = hic.getZd();
         if (zd == null) return "";
@@ -1107,13 +1117,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
                     }
-
                 }
-
-
             }
 
-            for (Pair<Rectangle, Feature2D> loop : drawnLoopFeatures) {
+            for (Pair<Rectangle, Feature2D> loop : hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                    x, y, NUM_NEIGHBORS)) {
                 if (loop.getFirst().contains(x, y)) {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(loop.getSecond().tooltipText());
@@ -1127,7 +1135,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
 
         return null;
-    }
+    }*/
 
     private String getFloatString(float value) {
         String valueString;

@@ -67,7 +67,7 @@ public class Feature2DList {
      * @param chr2Idx Second chromosome index
      * @return key
      */
-    private static String getKey(int chr1Idx, int chr2Idx) {
+    public static String getKey(int chr1Idx, int chr2Idx) {
 
         int c1;
         int c2;
@@ -407,7 +407,7 @@ public class Feature2DList {
      *
      * @param function
      */
-    private void processLists(FeatureFunction function) {
+    public void processLists(FeatureFunction function) {
         for (String chr : featureList.keySet()) {
             function.process(chr, featureList.get(chr));
         }

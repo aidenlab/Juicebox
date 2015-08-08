@@ -29,6 +29,6 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 7/30/15.
  */
-interface FeatureFunction {
+public interface FeatureFunction {
     void process(String chr, List<Feature2D> feature2DList);
 }

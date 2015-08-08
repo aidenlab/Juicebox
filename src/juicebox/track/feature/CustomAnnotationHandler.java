@@ -171,21 +171,18 @@ public class CustomAnnotationHandler {
                     int count = 0;
                     float observedValue;
 
-                    MatrixZoomData controlZD = hic.getControlZd();
                     for (int i = -1 * peakDisplacement; i <= peakDisplacement; i++) {
                         tempBinX = tempBinX0 + i;
                         for (int j = -1 * peakDisplacement; j <= peakDisplacement; j++) {
                             tempBinY = tempBinY0 + j;
                             observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
 
-                            double ev = 0;
+                            double ev = zd.getAverageCount();
                             ExpectedValueFunction df = hic.getExpectedValues();
                             if (df != null) {
                                 int distance = Math.abs(tempBinX - tempBinY);
                                 ev = df.getExpectedValue(chr1Idx, distance);
 
-                            } else {
-                                ev = zd.getAverageCount();
                             }
                             totObserved += observedValue;
                             totExpected += ev;
@@ -285,6 +282,7 @@ public class CustomAnnotationHandler {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
 
+    // TODO merge with Feature2D as public enum type
     enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
 
 }
