@@ -160,7 +160,7 @@ class MatrixTriangles {
      * @param varThreshold
      * @param signThreshold
      */
-    public void thresholdScoreValues(float varThreshold, float signThreshold) {
+    public void thresholdScoreValues(double varThreshold, double signThreshold) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
@@ -199,7 +199,7 @@ class MatrixTriangles {
      * @param loSign
      * @param threshold
      */
-    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, float threshold) {
+    private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, double threshold) {
         for (int i = 0; i < matrix.getRowDimension(); i++) {
             for (int j = 0; j < matrix.getColumnDimension(); j++) {
                 if ((-upSign.getEntry(i, j)) < threshold || loSign.getEntry(i, j) < threshold) {

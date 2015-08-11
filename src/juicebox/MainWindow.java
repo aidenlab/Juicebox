@@ -28,8 +28,6 @@ package juicebox;
 import juicebox.gui.MainMenuBar;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.LoadAction;
-import juicebox.track.LoadEncodeAction;
 import juicebox.windowui.DisabledGlassPane;
 import juicebox.windowui.FileDropTargetListener;
 import org.apache.log4j.Logger;
@@ -214,18 +212,6 @@ public class MainWindow extends JFrame {
 
     public void updateNamesFromImport(String path) {
         superAdapter.updatePrevStateNameFromImport(path);
-    }
-
-    public LoadAction getTrackLoadAction() {
-        return superAdapter.getTrackLoadAction();
-    }
-
-    public LoadEncodeAction getEncodeAction() {
-        return superAdapter.getEncodeAction();
-    }
-
-    public void enableAllOptionsButtons() {
-        superAdapter.setEnableForAllElements(true);
     }
 }
 

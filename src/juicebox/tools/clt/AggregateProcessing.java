@@ -38,8 +38,8 @@ class AggregateProcessing {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
 
-            String[] l4 = {"arrowhead", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "/Users/muhammadsaadshamim/Desktop/j3/out7", "5000"};
+            String[] l4 = {"arrowhead", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic+https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
+                    "/Users/muhammadsaadshamim/Desktop/j3/out7", "25000"};
             //"X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
             HiCTools.main(l4);
 

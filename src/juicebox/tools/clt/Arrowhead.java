@@ -25,9 +25,8 @@
 package juicebox.tools.clt;
 
 import juicebox.HiC;
-import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
-import juicebox.data.DatasetReaderV2;
+import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
@@ -38,6 +37,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,7 +49,7 @@ public class Arrowhead extends JuiceboxCLT {
     private int resolution = -100;
 
     public Arrowhead() {
-        super("arrowhead <input_HiC_file> <output_file> <resolution>");
+        super("arrowhead <input_HiC_file(s)> <output_file> <resolution>");
     }
 
     @Override
@@ -71,10 +71,7 @@ public class Arrowhead extends JuiceboxCLT {
     public void run() throws IOException {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
-        DatasetReaderV2 reader = new DatasetReaderV2(file);
-
-        Dataset ds = reader.read();
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 

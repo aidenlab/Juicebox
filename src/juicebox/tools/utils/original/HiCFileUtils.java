@@ -52,7 +52,7 @@ class HiCFileUtils {
 
     public static void main(String[] args) throws IOException {
         HiCFileUtils utils = new HiCFileUtils(args[0]);
-        //utils.dumpNormalizationVectors("KR", "1", "BP", 250000);
+        utils.dumpNormalizationVectors("KR", "1", "BP", 250000);
         utils.dumpExpectedVectors("KR", "BP", 1000000);
     }
 

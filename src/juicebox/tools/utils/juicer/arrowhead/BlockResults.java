@@ -44,7 +44,7 @@ class BlockResults {
     private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
-    public BlockResults(RealMatrix observed, float varThreshold, float signThreshold,
+    public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,
                         ArrowheadScoreList list, ArrowheadScoreList control) {
 
         internalList = list.deepCopy();
@@ -57,13 +57,12 @@ class BlockResults {
         MatrixTriangles triangles = new MatrixTriangles(dUpstream);
 
         triangles.generateBlockScoreCalculations();
-
         triangles.updateScoresUsingList(internalList);
         triangles.updateScoresUsingList(internalControl);
-
         triangles.thresholdScoreValues(varThreshold, signThreshold);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
+        System.out.println("CC "+connectedComponents.size());
 
         results = triangles.calculateResults(connectedComponents);
         plotArrowheadFigures();

@@ -38,7 +38,7 @@ import java.util.*;
  */
 public class BlockBuster {
 
-    private static final int matrixWidth = 400;
+    private static final int matrixWidth = 2000;
     private static final int increment = matrixWidth / 2;
 
 
@@ -51,28 +51,32 @@ public class BlockBuster {
                            MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control) {
 
         // int chrLength = chromosome.getLength();
-        float signThreshold = 0.4f;
-        float varThreshold = (float) increment;
+        double signThreshold = 0.5;
+        double varThreshold = increment;
 
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
 
-        CumulativeBlockResults results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
-
-        while (results.getCumulativeResults().size() == 0 && signThreshold > 0) {
-            signThreshold = signThreshold - 0.1f;
+        CumulativeBlockResults results = null;
+        while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
+            signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
             results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
+            System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
         }
+        System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
 
         // high variance threshold, fewer blocks, high confidence
         CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution, 0.2f, 0.5f, new ArrowheadScoreList(), new ArrowheadScoreList());
 
+        System.out.println("\nHigh Result size " + highConfidenceResults.getCumulativeResults().size()+ " threshold "+signThreshold);
         List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
                 , highConfidenceResults.getCumulativeResults());
         List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
         appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
 
         results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
+        System.out.println("\nResult size " + results.getCumulativeResults().size());
         results.mergeScores();
+        System.out.println("\nResult size " + results.getCumulativeResults().size());
 
         if (results.getCumulativeResults().size() > 0) {
             List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
@@ -88,6 +92,9 @@ public class BlockBuster {
             blockResults.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_blocks", false);
             blockResultScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_scores", false);
             blockResultControlScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_control_scores", false);
+        }
+        else {
+            System.out.println("\nNo results found for chromosome " + chrName);
         }
     }
 
@@ -167,7 +174,7 @@ public class BlockBuster {
         return diffList;
     }
 
-    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,
+    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold, double signThreshold,
                                                              ArrowheadScoreList list, ArrowheadScoreList control) {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
@@ -184,7 +191,7 @@ public class BlockBuster {
             RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,
                     limStart, limEnd, n, n, NormalizationType.KR);
 
-            BlockResults results = (new BlockResults(observed, varThreshold, signThreshold, list, control));
+            BlockResults results = new BlockResults(observed, varThreshold, signThreshold, list, control);
             results.offsetResultsIndex(limStart);
 
             cumulativeBlockResults.add(results);

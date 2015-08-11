@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.HiCZoom;
@@ -49,6 +50,42 @@ public class HiCFileTools {
      */
 
     private static final String tempPath = System.getProperty("user.dir");
+
+    public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
+        Dataset dataset = null;
+        try {
+            DatasetReader reader = null;
+            if (files.size() == 1) {
+                if (allowPrinting)
+                    System.out.println("Reading file: " + files.get(0));
+                String magicString = DatasetReaderV2.getMagicString(files.get(0));
+                if (magicString.equals("HIC")) {
+                    reader = new DatasetReaderV2(files.get(0));
+                } else {
+                    System.err.println("This version of HIC is no longer supported");
+                    System.exit(-1);
+                }
+                dataset = reader.read();
+
+            } else {
+                if (allowPrinting)
+                    System.out.println("Reading summed files: " + files);
+                reader = DatasetReaderFactory.getReader(files);
+                if (reader == null) {
+                    System.err.println("Error while reading files");
+                    System.exit(-1);
+                } else {
+                    dataset = reader.read();
+                }
+            }
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+        } catch (Exception e) {
+            System.err.println("Could not read hic file: " + e.getMessage());
+            System.exit(-6);
+            //e.printStackTrace();
+        }
+        return dataset;
+    }
 
     public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
 

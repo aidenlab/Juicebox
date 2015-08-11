@@ -52,10 +52,6 @@ class FeatureRenderer {
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();
         HiCGridAxis yAxis = zd.getYGridAxis();
-        boolean sameChr = zd.getChr1Idx() == zd.getChr2Idx();
-
-
-        // plot circle center
 
 
         if (loops != null) {
@@ -63,7 +59,6 @@ class FeatureRenderer {
 
                 g2.setColor(feature.getColor());
 
-                // TODO this seems wrong. why is w added to y and not to x? bug/error?
                 int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
                 int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
                 int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());

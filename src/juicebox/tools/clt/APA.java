@@ -24,8 +24,10 @@
 
 package juicebox.tools.clt;
 
-import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.Matrix;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
@@ -72,15 +74,12 @@ public class APA extends JuiceboxCLT {
         files[3] = "";
         System.arraycopy(args, 1, files, 0, args.length - 1);
 
-
         for (String s : files)
             System.out.println("--- " + s);
 
         //if (files.length > 4)
         //    restrictionSiteFilename = files[4];
         //[min value, max value, window, resolution]
-
-
         minPeakDist = parser.getAPAMinVal();
         if (minPeakDist == 0)
             minPeakDist = 30;
@@ -110,104 +109,89 @@ public class APA extends JuiceboxCLT {
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;
+        List<String> summedHiCFiles = Arrays.asList(files[0].split("\\+"));
 
-        try {
-            String[] hicFiles = files[0].split(",");
-            for (String hicFile : hicFiles) {
+        Integer[] gwPeakNumbers = new Integer[3];
+        for (int i = 0; i < gwPeakNumbers.length; i++)
+            gwPeakNumbers[i] = 0;
 
-                Integer[] gwPeakNumbers = new Integer[3];
-                for (int i = 0; i < gwPeakNumbers.length; i++)
-                    gwPeakNumbers[i] = 0;
+        Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
+        for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
 
-                System.out.println("Accessing " + hicFile);
-                DatasetReaderV2 reader = new DatasetReaderV2(hicFile);
-                Dataset ds = reader.read();
-                HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
-                for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+            // select zoom level closest to the requested one
+            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
 
+            List<Chromosome> chromosomes = ds.getChromosomes();
+            if (givenChromosomes != null)
+                chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                        chromosomes));
 
-                    // select zoom level closest to the requested one
-                    HiCZoom zoom = ds.getZoomForBPResolution(resolution);
-
-                    List<Chromosome> chromosomes = ds.getChromosomes();
-                    if (givenChromosomes != null)
-                        chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                                chromosomes));
-
-                    // Metrics resulting from apa filtering
-                    final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
+            // Metrics resulting from apa filtering
+            final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
 
-                    Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
-                            true, minPeakDist, maxPeakDist, resolution, false,
-                            new FeatureFilter() {
-                                // Remove duplicates and filters by size
-                                // also save internal metrics for these measures
-                                @Override
-                                public List<Feature2D> filter(String chr, List<Feature2D> features) {
+            Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
+                    true, minPeakDist, maxPeakDist, resolution, false,
+                    new FeatureFilter() {
+                        // Remove duplicates and filters by size
+                        // also save internal metrics for these measures
+                        @Override
+                        public List<Feature2D> filter(String chr, List<Feature2D> features) {
 
-                                    List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
-                                    List<Feature2D> filteredUniqueFeatures = APAUtils.filterFeaturesBySize(uniqueFeatures,
-                                            minPeakDist, maxPeakDist, resolution);
+                            List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+                            List<Feature2D> filteredUniqueFeatures = APAUtils.filterFeaturesBySize(uniqueFeatures,
+                                    minPeakDist, maxPeakDist, resolution);
 
-                                    filterMetrics.put(chr,
-                                            new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
+                            filterMetrics.put(chr,
+                                    new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
 
-                                    return filteredUniqueFeatures;
-                                }
-                            });
-
-                    for (Chromosome chr : chromosomes) {
-                        APADataStack apaDataStack = new APADataStack(L, files[2], (hicFile + "_" + resolution).replace("/", "_"));
-
-                        if (chr.getName().equals(Globals.CHR_ALL)) continue;
-
-                        Matrix matrix = ds.getMatrix(chr, chr);
-                        if (matrix == null) continue;
-
-                        MatrixZoomData zd = matrix.getZoomData(zoom);
-
-                        System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
-                        List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
-                        if (loops == null || loops.size() == 0) {
-                            System.out.println("CHR " + chr.getName() + " " + chr.getIndex() + " - no loops found or other error");
-                            continue;
+                            return filteredUniqueFeatures;
                         }
+                    });
 
-                        Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr, chr));
+            for (Chromosome chr : chromosomes) {
+                APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution).replace("/", "_"));
 
+                if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
-                        if (loops.size() != peakNumbers[0])
-                            System.out.println("Error reading stat numbers fro " + chr);
+                Matrix matrix = ds.getMatrix(chr, chr);
+                if (matrix == null) continue;
 
-                        for (int i = 0; i < peakNumbers.length; i++) {
-                            //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
-                            gwPeakNumbers[i] += peakNumbers[i];
-                        }
+                MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                        //System.out.println("Loop");
-                        for (Feature2D loop : loops) {
-                            //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
-                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                                    NormalizationType.NONE));
-                        }
-
-                        apaDataStack.updateGenomeWideData();
-                        if (saveAllData)
-                            apaDataStack.exportDataSet(chr.getName(), peakNumbers);
-
-                    }
-                    APADataStack.exportGenomeWideData(gwPeakNumbers);
-                    APADataStack.clearAllData();
+                System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
+                List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
+                if (loops == null || loops.size() == 0) {
+                    System.out.println("CHR " + chr.getName() + " " + chr.getIndex() + " - no loops found or other error");
+                    continue;
                 }
+
+                Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr, chr));
+
+
+                if (loops.size() != peakNumbers[0])
+                    System.out.println("Error reading stat numbers fro " + chr);
+
+                for (int i = 0; i < peakNumbers.length; i++) {
+                    //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
+                    gwPeakNumbers[i] += peakNumbers[i];
+                }
+
+                //System.out.println("Loop");
+                for (Feature2D loop : loops) {
+                    //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
+                    apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
+                            NormalizationType.NONE));
+                }
+
+                apaDataStack.updateGenomeWideData();
+                if (saveAllData)
+                    apaDataStack.exportDataSet(chr.getName(), peakNumbers);
+
             }
-        } catch (IOException e) {
-            System.out.println("Unable to extract apa data");
-            e.printStackTrace();
-            System.exit(-3);
+            APADataStack.exportGenomeWideData(gwPeakNumbers);
+            APADataStack.clearAllData();
         }
-
-
-        System.exit(7);
+        System.exit(0);
     }
 }

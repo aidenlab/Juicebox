@@ -26,8 +26,10 @@ package juicebox.tools.clt;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
-import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.Matrix;
+import juicebox.data.MatrixZoomData;
 import juicebox.tools.HiCTools;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.juicer.hiccups.GPUController;
@@ -137,39 +139,28 @@ public class HiCCUPS extends JuiceboxCLT {
     @Override
     public void run() {
 
-        try {
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
 
-            System.out.println("Accessing " + inputHiCFileName);
-            DatasetReaderV2 reader = new DatasetReaderV2(inputHiCFileName);
-            Dataset ds = reader.read();
-            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+        // select zoom level closest to the requested one
 
-            // select zoom level closest to the requested one
+        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        if (chrSpecified)
+            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
+                    commonChromosomes));
 
-            List<Chromosome> commonChromosomes = ds.getChromosomes();
-            if (chrSpecified)
-                commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
-                        commonChromosomes));
+        Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
+        for (int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+            looplists.put(resolution, runHiccupsProcessing(ds, resolution, commonChromosomes));
+        }
 
-            Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
-            for (int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
-                looplists.put(resolution, runHiccupsProcessing(ds, resolution, commonChromosomes));
+        if (dataShouldBePostProcessed) {
+            for (int res : looplists.keySet()) {
+                pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+                HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
             }
 
-            if (dataShouldBePostProcessed) {
-                for (int res : looplists.keySet()) {
-                    pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
-                    HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
-                }
-
-                Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(new ArrayList<Feature2DList>(looplists.values()));
-                finalList.exportFeatureList(outputFinalLoopListFileName, false);
-            }
-
-        } catch (IOException e) {
-            System.out.println("Unable to run hiccups");
-            e.printStackTrace();
-            System.exit(-3);
+            Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(new ArrayList<Feature2DList>(looplists.values()));
+            finalList.exportFeatureList(outputFinalLoopListFileName, false);
         }
     }
 

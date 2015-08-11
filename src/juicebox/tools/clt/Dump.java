@@ -386,27 +386,7 @@ public class Dump extends JuiceboxCLT {
         chr1 = args[idx];
         chr2 = args[idx + 1];
 
-
-        if (files.size() == 1) {
-            String magicString = DatasetReaderV2.getMagicString(files.get(0));
-
-            DatasetReader reader = null;
-            if (magicString.equals("HIC")) {
-                reader = new DatasetReaderV2(files.get(0));
-            } else {
-                System.err.println("This version of HIC is no longer supported");
-                System.exit(-1);
-            }
-            dataset = reader.read();
-        } else {
-            DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) {
-                System.err.println("Error while reading files");
-                System.exit(-1);
-            } else {
-                dataset = reader.read();
-            }
-        }
+        dataset = HiCFileTools.extractDatasetForCLT(files, false);
 
         chromosomeList = dataset.getChromosomes();
 
