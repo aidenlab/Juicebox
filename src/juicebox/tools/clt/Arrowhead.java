@@ -37,8 +37,10 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by nchernia on 1/9/15.
@@ -47,9 +49,10 @@ public class Arrowhead extends JuiceboxCLT {
 
     private String file, outputPath;
     private int resolution = -100;
+    private Set<String> givenChromosomes = null;
 
     public Arrowhead() {
-        super("arrowhead <input_HiC_file(s)> <output_file> <resolution>");
+        super("arrowhead [-c chromosome(s)] <input_HiC_file(s)> <output_file> <resolution>");
     }
 
     @Override
@@ -65,6 +68,7 @@ public class Arrowhead extends JuiceboxCLT {
         } catch (NumberFormatException error) {
             throw new IOException("1");
         }
+        givenChromosomes = parser.getChromosomeOption();
     }
 
     @Override
@@ -74,6 +78,9 @@ public class Arrowhead extends JuiceboxCLT {
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
 
         List<Chromosome> chromosomes = ds.getChromosomes();
+        if (givenChromosomes != null)
+            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                    chromosomes));
 
         // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);

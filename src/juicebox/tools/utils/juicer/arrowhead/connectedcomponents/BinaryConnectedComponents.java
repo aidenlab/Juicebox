@@ -51,11 +51,13 @@ public class BinaryConnectedComponents {
 
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < c; j++) {
+                //System.out.print(" "+image[i][j]);
                 if (image[i][j] > threshold) {
                     processNeighbors(labels, indices, i, j,
                             Math.max(i - 1, 0), Math.min(i + 1, r - 1), Math.max(j - 1, 0), Math.min(j + 1, c - 1));
                 }
             }
+            //System.out.println("");
         }
 
         return processLabeledIndices(indices);

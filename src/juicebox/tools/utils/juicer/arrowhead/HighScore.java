@@ -138,6 +138,11 @@ public class HighScore implements Comparable<HighScore> {
         attributes.put("lVarScore", Double.toString(lVarScore));
         attributes.put("upSign", Double.toString(upSign));
         attributes.put("loSign", Double.toString(loSign));
-        return new Feature2D(Feature2D.generic, chrName, i, i + res, chrName, j, j + res, Color.yellow, attributes);
+        return new Feature2D(Feature2D.generic, chrName, i, j, chrName, i, j, Color.yellow, attributes);
+    }
+
+    public void scaleIndicesByResolution(int resolution) {
+        i *= resolution;
+        j *= resolution;
     }
 }

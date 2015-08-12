@@ -147,6 +147,7 @@ public class APAUtils {
         return matrix;
     }
 
+    // TODO phase out or use the HiCTools version (which is used by arrowhead and hiccups)
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
                                                   int L, int resolution, int window, NormalizationType norm) {
 

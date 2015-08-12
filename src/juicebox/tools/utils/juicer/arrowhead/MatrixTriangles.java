@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-class MatrixTriangles {
+public class MatrixTriangles {
 
     private boolean initialMatricesNotGenerated = true;
     private boolean blockScoresNotCalculated = true;
@@ -71,10 +71,12 @@ class MatrixTriangles {
         MatrixTools.setNaNs(matrix, 0);
 
         //int window= matrix.getRowDimension(); // TODO What? -> "not using this because it messed things up"
-
         RealMatrix matrixElementwiseSquared = MatrixTools.elementBasedMultiplication(matrix, matrix);
         RealMatrix signMatrix = MatrixTools.sign(matrix);
         RealMatrix onesMatrix = MatrixTools.ones(n);
+
+        //System.out.println("msign "+ matrix.getNorm());
+        //System.out.println("sign " + signMatrix.getNorm());
 
         // Matrices used as dynamic programming lookups.
         // "R" matrices are sums of the columns up to that point: R(1,5) is sum of
@@ -132,6 +134,15 @@ class MatrixTriangles {
         loSign = MatrixTools.elementBasedDivision(loSign, loCount);
         loSquared = MatrixTools.elementBasedDivision(loSquared, loCount);
 
+/*
+        System.out.println("init "+up.getNorm());
+        System.out.println("init "+upSign.getNorm());
+        System.out.println("init "+upSquared.getNorm());
+        System.out.println("init "+lo.getNorm());
+        System.out.println("init "+loSign.getNorm());
+        System.out.println("init "+loSquared.getNorm());
+        */
+
         initialMatricesNotGenerated = false;
     }
 
@@ -152,6 +163,15 @@ class MatrixTriangles {
         blockScore = (diff.add(diffSign)).subtract(diffSquared);
 
         blockScoresNotCalculated = false;
+/*
+        System.out.println("calc "+upVar.getNorm());
+        System.out.println("calc "+loVar.getNorm());
+        System.out.println("calcd "+diff.getNorm());
+        System.out.println("calcd "+diffSign.getNorm());
+        System.out.println("calcd "+diffSquared.getNorm());
+        System.out.println("calc "+blockScore.getNorm());
+*/
+
     }
 
     /**
@@ -166,12 +186,24 @@ class MatrixTriangles {
             System.exit(-5);
         }
 
+        //System.out.println("prethresh "+blockScore.getNorm());
+        //System.out.println("prethresh "+upSign.getNorm());
+        //System.out.println("prethresh "+loSign.getNorm());
+
         signThresholdInternalValues(blockScore, upSign, loSign, signThreshold);
 
-        if (varThreshold != 1000) {
+        //System.out.println("postthresh1 "+blockScore.getNorm()); // TODO
+        //System.out.println("postthresh1 "+upSign.getNorm());
+        //System.out.println("postthresh1 " + loSign.getNorm());
+
+        if (varThreshold != BlockBuster.increment) {
             varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
         }
         blockScoresNotThresholded = false;
+
+        //System.out.println("finthresh "+blockScore.getNorm());
+        //System.out.println("finthresh "+upSign.getNorm());
+        //System.out.println("finthresh " + loSign.getNorm());
     }
 
     /**
@@ -202,6 +234,7 @@ class MatrixTriangles {
     private void signThresholdInternalValues(RealMatrix matrix, RealMatrix upSign, RealMatrix loSign, double threshold) {
         for (int i = 0; i < matrix.getRowDimension(); i++) {
             for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                //System.out.println(upSign.getEntry(i, j)+" "+loSign.getEntry(i, j)+" "+threshold);
                 if ((-upSign.getEntry(i, j)) < threshold || loSign.getEntry(i, j) < threshold) {
                     matrix.setEntry(i, j, 0);
                 }
@@ -228,6 +261,8 @@ class MatrixTriangles {
             System.out.println("Scores not fixed for threshold");
             System.exit(-6);
         }
+
+        //System.out.println("Norm "+blockScore.getNorm());
 
         return BinaryConnectedComponents.detection(blockScore.getData(), 0);
     }

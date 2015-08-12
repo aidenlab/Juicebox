@@ -36,18 +36,59 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+        String[] l4 = {"arrowhead", "-c", "22", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out8/", "25000"};
+
+        String[] l5 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/BioScripts/22_blocks"};
 
 
-            String[] l4 = {"arrowhead", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic+https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
-                    "/Users/muhammadsaadshamim/Desktop/j3/out7", "25000"};
-            //"X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
-            HiCTools.main(l4);
+        HiCTools.main(l4);
+
+/*
+
+        RealMatrix rm = MatrixTools.cleanArray2DMatrix(2000);
+        for(int i = 0; i < 20; i++){
+            for(int j = 0; j < 20; j++){
+                rm.setEntry(i,j,1);
+            }
+        }
+
+        for(int i = 99; i < 120; i++){
+            for(int j = 99; j < 120; j++){
+                rm.setEntry(i,j,1);
+            }
+        }
+
+        for(int i = 299; i < 400; i++){
+            for(int j = 299; j < 400; j++){
+                rm.setEntry(i,j,20000);
+            }
+        }
+
+        for(int i = 349; i < 600; i++){
+            for(int j = 349; j < 600; j++){
+                rm.setEntry(i,j,5000);
+            }
+        }
+
+        Random generator = new Random();
+        for(int i = 1399; i < 1600; i++){
+            for(int j = 1399; j < 1600; j++){
+                rm.setEntry(i,j,5000*generator.nextDouble());
+            }
+        }
+
+        BlockResults b = new BlockResults(rm, 1000, .4, new ArrowheadScoreList(), new ArrowheadScoreList());
+        b.offsetResultsIndex(1);
+        for(HighScore h : b.getResults())
+            System.out.println(h);
+
+
 
             // super("arrowhead <input_HiC_file> <output_file> <resolution>");
-
-
         // http://adam.bcma.bcm.edu/hiseq/
-
+*/
     }
 }
         /*

@@ -345,9 +345,9 @@ public class MatrixTools {
             for (int j = 0; j < c; j++) {
                 double val = matrix.getEntry(i, j);
                 if (val > 0) {
-                    matrix.setEntry(i, j, 1);
+                    signMatrix.setEntry(i, j, 1);
                 } else if (val < 0) {
-                    matrix.setEntry(i, j, -1);
+                    signMatrix.setEntry(i, j, -1);
                 }
             }
         }

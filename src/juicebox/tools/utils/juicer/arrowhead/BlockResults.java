@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-class BlockResults {
+public class BlockResults {
 
     private final ArrowheadScoreList internalList;
     private final ArrowheadScoreList internalControl;
@@ -62,7 +62,7 @@ class BlockResults {
         triangles.thresholdScoreValues(varThreshold, signThreshold);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
-        System.out.println("CC "+connectedComponents.size());
+        //System.out.println("CC "+connectedComponents.size());
 
         results = triangles.calculateResults(connectedComponents);
         plotArrowheadFigures();

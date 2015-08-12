@@ -62,4 +62,10 @@ class CumulativeBlockResults {
         cumulativeInternalControl.mergeScores();
         cumulativeInternalList.mergeScores();
     }
+
+    public void scaleIndicesByResolution(int resolution) {
+        for (HighScore hs : cumulativeResults) {
+            hs.scaleIndicesByResolution(resolution);
+        }
+    }
 }

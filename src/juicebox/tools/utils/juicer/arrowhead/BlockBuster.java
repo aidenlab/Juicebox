@@ -39,7 +39,7 @@ import java.util.*;
 public class BlockBuster {
 
     private static final int matrixWidth = 2000;
-    private static final int increment = matrixWidth / 2;
+    public static final int increment = matrixWidth / 2;
 
 
     /**
@@ -59,13 +59,14 @@ public class BlockBuster {
         CumulativeBlockResults results = null;
         while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
             signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
-            results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
-            System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
+            results = callSubBlockbuster(zd, maxDataLengthAtResolution, resolution, varThreshold, signThreshold, list, control);
+            //System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
         }
-        System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
+        //System.out.println("\nResult size " + results.getCumulativeResults().size()+ " threshold "+signThreshold);
 
         // high variance threshold, fewer blocks, high confidence
-        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution, 0.2f, 0.5f, new ArrowheadScoreList(), new ArrowheadScoreList());
+        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution, resolution,
+                0.2f, 0.5f, new ArrowheadScoreList(), new ArrowheadScoreList());
 
         System.out.println("\nHigh Result size " + highConfidenceResults.getCumulativeResults().size()+ " threshold "+signThreshold);
         List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
@@ -74,7 +75,7 @@ public class BlockBuster {
         appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
 
         results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
-        System.out.println("\nResult size " + results.getCumulativeResults().size());
+        //System.out.println("\nResult size " + results.getCumulativeResults().size());
         results.mergeScores();
         System.out.println("\nResult size " + results.getCumulativeResults().size());
 
@@ -174,13 +175,14 @@ public class BlockBuster {
         return diffList;
     }
 
-    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold, double signThreshold,
+    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, int resolution, double varThreshold, double signThreshold,
                                                              ArrowheadScoreList list, ArrowheadScoreList control) {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
-
+        System.out.println("Loading incr " + increment + " chrLength " + chrLength);
         for (int limStart = 0; limStart < chrLength; limStart += increment) {
             int limEnd = Math.min(limStart + matrixWidth, chrLength);
+            System.out.println("Reading " + limStart + ":" + limEnd);
 
             list.setActiveListElements(limStart, limEnd);
             control.setActiveListElements(limStart, limEnd);
@@ -189,14 +191,16 @@ public class BlockBuster {
 
             int n = limEnd - limStart + 1;
             RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,
-                    limStart, limEnd, n, n, NormalizationType.KR);
+                    limStart, limEnd, n, n, NormalizationType.KR, true);
 
             BlockResults results = new BlockResults(observed, varThreshold, signThreshold, list, control);
-            results.offsetResultsIndex(limStart);
+            System.out.println("Found " + results.getResults().size() + " blocks");
+            results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
 
             cumulativeBlockResults.add(results);
             System.out.print(".");
         }
+        cumulativeBlockResults.scaleIndicesByResolution(resolution);
         return cumulativeBlockResults;
     }
 }

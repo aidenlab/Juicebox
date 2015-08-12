@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by muhammadsaadshamim on 7/22/15.
+ * Bin scores based on the connected components found in arrowhead
  */
 class BinnedScore {
 

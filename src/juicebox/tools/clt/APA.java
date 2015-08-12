@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.HiC;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
@@ -60,7 +61,7 @@ public class APA extends JuiceboxCLT {
     private int[] resolutions = new int[]{25000, 10000};
 
     public APA() {
-        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] [-x do not cache memory blocks] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
     }
 
     @Override
@@ -119,7 +120,9 @@ public class APA extends JuiceboxCLT {
         for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
 
             // select zoom level closest to the requested one
-            HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+            System.out.println("res " + resolution);
+            //HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+            HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             List<Chromosome> chromosomes = ds.getChromosomes();
             if (givenChromosomes != null)
