@@ -57,7 +57,6 @@ class BinnedScore {
     }
 
     public static List<HighScore> convertBinnedScoresToHighScores(List<BinnedScore> binnedScores) {
-
         List<HighScore> highScores = new ArrayList<HighScore>();
         for (BinnedScore score : binnedScores) {
             highScores.add(score.convertToHighScore());
@@ -65,23 +64,32 @@ class BinnedScore {
         return highScores;
     }
 
+    /**
+     * @return true if given data point is spatially proximate to this data bin
+     */
     public boolean isNear(HighScore score) {
         return (Math.abs(minX - score.getI()) < distanceThreshold || Math.abs(maxX - score.getI()) < distanceThreshold)
                 && (Math.abs(minY - score.getJ()) < distanceThreshold || Math.abs(maxY - score.getJ()) < distanceThreshold);
     }
 
+    /**
+     * Add given data point to this bin and update region bounds and scores/signs
+     */
     public void addScoreToBin(HighScore score) {
         if (score.getI() < minX)
             minX = score.getI();
-        if (score.getI() > maxX)
+        else if (score.getI() > maxX)
             maxX = score.getI();
         if (score.getJ() < minY)
             minY = score.getJ();
-        if (score.getJ() > maxY)
+        else if (score.getJ() > maxY)
             maxY = score.getJ();
         appendDataValues(score);
     }
 
+    /**
+     * Add given data point's scores/signs to cumulative list
+     */
     private void appendDataValues(HighScore score) {
         scores.add(score.getScore());
         uVarScores.add(score.getuVarScore());
@@ -90,6 +98,9 @@ class BinnedScore {
         loSigns.add(score.getLoSign());
     }
 
+    /**
+     * @return statistical summary of data points in this bin
+     */
     private HighScore convertToHighScore() {
         HighScore highScore = new HighScore(maxX, maxY,
                 ArrayTools.mean(Doubles.toArray(scores)),

@@ -598,8 +598,16 @@ public class MainViewPanel {
     }
 
     public void setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
-        resolutionSlider.setEnabled(state);
-        if (state) {
+
+        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+
+        // Test for new dataset ("All"),  or change in chromosome
+        final boolean wholeGenome = chr1.getName().equals("All") || chr2.getName().equals("All");
+        boolean makeResVisible = state && !wholeGenome;
+
+        resolutionSlider.setEnabled(makeResVisible);
+        if (makeResVisible) {
             resolutionSlider.setForeground(Color.BLUE);
         } else {
             resolutionSlider.setForeground(Color.BLACK);

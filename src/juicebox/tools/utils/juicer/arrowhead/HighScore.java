@@ -67,6 +67,11 @@ public class HighScore implements Comparable<HighScore> {
         this.j += offset;
     }
 
+    public void scaleIndicesByResolution(int resolution) {
+        i *= resolution;
+        j *= resolution;
+    }
+
     public int getWidth() {
         return Math.abs(j - i);
     }
@@ -139,10 +144,5 @@ public class HighScore implements Comparable<HighScore> {
         attributes.put("upSign", Double.toString(upSign));
         attributes.put("loSign", Double.toString(loSign));
         return new Feature2D(Feature2D.generic, chrName, i, j, chrName, i, j, Color.yellow, attributes);
-    }
-
-    public void scaleIndicesByResolution(int resolution) {
-        i *= resolution;
-        j *= resolution;
     }
 }

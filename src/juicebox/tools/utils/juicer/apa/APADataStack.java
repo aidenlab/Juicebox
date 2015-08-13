@@ -162,7 +162,6 @@ public class APADataStack {
         gwNormedPsea = null;
         gwCenterNormedPsea = null;
         gwRankPsea = null;
-        //gwCoverage = null;
         gwEnhancement = null;
     }
 
