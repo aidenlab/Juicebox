@@ -47,12 +47,13 @@ import java.util.Set;
  */
 public class Arrowhead extends JuiceboxCLT {
 
+    private static int matrixSize = 2000;
     private String file, outputPath;
     private int resolution = -100;
     private Set<String> givenChromosomes = null;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] <input_HiC_file(s)> <output_file> <resolution>");
+        super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");
     }
 
     @Override
@@ -69,6 +70,12 @@ public class Arrowhead extends JuiceboxCLT {
             throw new IOException("1");
         }
         givenChromosomes = parser.getChromosomeOption();
+        int specifiedMatrixSize = parser.getMatrixSizeOption();
+        if (specifiedMatrixSize % 2 == 1)
+            specifiedMatrixSize += 1;
+        if (specifiedMatrixSize > 50)
+            matrixSize = specifiedMatrixSize;
+
     }
 
     @Override
@@ -95,8 +102,8 @@ public class Arrowhead extends JuiceboxCLT {
             MatrixZoomData zd = matrix.getZoomData(zoom);
             ArrowheadScoreList list = new ArrowheadScoreList();
             ArrowheadScoreList control = new ArrowheadScoreList();
-            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, outputPath + resolution,
-                    zd, list, control);
+            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
+                    outputPath + resolution, zd, list, control);
         }
     }
 }

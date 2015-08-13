@@ -180,7 +180,7 @@ public class MatrixTriangles {
      * @param varThreshold
      * @param signThreshold
      */
-    public void thresholdScoreValues(double varThreshold, double signThreshold) {
+    public void thresholdScoreValues(double varThreshold, double signThreshold, int increment) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
@@ -196,7 +196,7 @@ public class MatrixTriangles {
         //System.out.println("postthresh1 "+upSign.getNorm());
         //System.out.println("postthresh1 " + loSign.getNorm());
 
-        if (varThreshold != BlockBuster.increment) {
+        if (varThreshold != increment) {
             varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
         }
         blockScoresNotThresholded = false;

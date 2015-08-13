@@ -68,7 +68,7 @@ public class GPUController {
             throws NegativeArraySizeException {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
-                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType, false);
+                columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);
 
 
         float[] observedVals = Floats.toArray(Doubles.asList(MatrixTools.flattenedRowMajorOrderMatrix(localizedRegionData)));

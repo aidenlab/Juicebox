@@ -274,22 +274,14 @@ public class HiCFileTools {
 
 
     /**
-     * user's responsibility to only mirror display if perfectly on diagonal
+     * Extracts matrix from hic file for a specified region.
+     * By default, only the top right part of the matrix is returned if the matrix is on the diagonal.
      *
-     * @param zd
-     * @param binXStart
-     * @param binXEnd
-     * @param binYStart
-     * @param binYEnd
-     * @param numRows
-     * @param numCols
-     * @param normalizationType
-     * @param mirrorBlock
-     * @return
+     * @return section of the matrix
      */
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                       NormalizationType normalizationType, boolean mirrorBlock) {
+                                                       NormalizationType normalizationType) {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
@@ -318,8 +310,9 @@ public class HiCFileTools {
                     if (relativeX >= 0 && relativeX < numRows) {
                         if (relativeY >= 0 && relativeY < numCols) {
                             data.addToEntry(relativeX, relativeY, rec.getCounts());
-                            if (mirrorBlock && relativeY != relativeX)
-                                data.addToEntry(relativeY, relativeX, rec.getCounts());
+                            // was used to fill LL triangle for arrowhead
+                            //if (mirrorBlock && relativeY != relativeX)
+                            //    data.addToEntry(relativeY, relativeX, rec.getCounts());
                         }
                     }
                 }

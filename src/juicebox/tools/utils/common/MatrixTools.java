@@ -29,41 +29,87 @@ import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Created by muhammadsaadshamim on 5/11/15.
+ * Helper methods to handle matrix operations
  */
 public class MatrixTools {
 
-    private static RealMatrix presetValueMatrix(int rows, int cols, int val) {
-        RealMatrix matrix = new Array2DRowRealMatrix(rows, cols);
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                matrix.setEntry(r, c, val);
-        return matrix;
-    }
-
+    /**
+     * @return matrix initialized with 0s
+     */
     public static RealMatrix cleanArray2DMatrix(int n) {
         return cleanArray2DMatrix(n, n);
     }
 
+    /**
+     * @return matrix initialized with 0s
+     */
     public static RealMatrix cleanArray2DMatrix(int rows, int cols) {
         return presetValueMatrix(rows, cols, 0);
     }
 
+    /**
+     * @return matrix initialized with 1s
+     */
     public static RealMatrix ones(int n) {
         return ones(n, n);
     }
 
+    /**
+     * @return matrix initialized with 1s
+     */
     private static RealMatrix ones(int rows, int cols) {
         return presetValueMatrix(rows, cols, 1);
     }
 
+    /**
+     * @return matrix of size m x n initialized with a specified value
+     */
+    private static RealMatrix presetValueMatrix(int numRows, int numCols, int val) {
+        RealMatrix matrix = new Array2DRowRealMatrix(numRows, numCols);
+        for (int r = 0; r < numRows; r++)
+            for (int c = 0; c < numCols; c++)
+                matrix.setEntry(r, c, val);
+        return matrix;
+    }
+
+    /**
+     * @return matrix randomly initialized with 1s and 0s
+     */
+    public static RealMatrix randomUnitMatrix(int n) {
+        return randomUnitMatrix(n, n);
+    }
+
+    /**
+     * Generate a matrix with randomly initialized 1s and 0s
+     *
+     * @param rows
+     * @param cols
+     * @return randomized binary matrix
+     */
+    private static RealMatrix randomUnitMatrix(int rows, int cols) {
+        Random generator = new Random();
+        RealMatrix matrix = cleanArray2DMatrix(rows, cols);
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                if (generator.nextBoolean())
+                    matrix.setEntry(r, c, 1);
+        return matrix;
+    }
+
+    /**
+     * @return minimal positive entry in the matrix greater than 0
+     */
     public static double minimumPositive(RealMatrix data) {
         return minimumPositive(data.getData());
     }
 
+    /**
+     * @return minimal positive entry in the matrix greater than 0
+     */
     private static double minimumPositive(double[][] data) {
         double minVal = Double.MAX_VALUE;
         for (double[] row : data) {
@@ -75,6 +121,13 @@ public class MatrixTools {
         if (minVal == Double.MAX_VALUE)
             minVal = 0;
         return minVal;
+    }
+
+    /**
+     * @return mean of matrix
+     */
+    public static double mean(RealMatrix matrix) {
+        return APARegionStatistics.statistics(matrix.getData()).getMean();
     }
 
     /**
@@ -91,27 +144,25 @@ public class MatrixTools {
 
         int index = 0;
         for (int i = 0; i < m; i++) {
-            //for (double[] row : matrix.getData()) {
             System.arraycopy(matrix.getRow(i), 0, flattenedMatrix, index, n);
             index += n;
         }
         return flattenedMatrix;
     }
 
-    public static double mean(RealMatrix x) {
-        return APARegionStatistics.statistics(x.getData()).getMean();
-    }
 
+    /**
+     * Write data from matrix out to specified file with each row on a separate line
+     * @param filename
+     * @param realMatrix
+     */
     public static void saveMatrixText(String filename, RealMatrix realMatrix) {
         Writer writer = null;
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));
             double[][] matrix = realMatrix.getData();
             for (double[] row : matrix) {
-                for (double val : row) {
-                    writer.write(val + " ");
-                }
-                writer.write("\n");
+                writer.write(Arrays.toString(row) + "\n");
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -125,24 +176,37 @@ public class MatrixTools {
         }
     }
 
+    /**
+     * Reshape array into square matrix
+     * @param flatMatrix
+     * @param n
+     * @return properly dimensioned matrix
+     */
     public static float[][] reshapeFlatMatrix(float[] flatMatrix, int n) {
-        float[][] squareMatrix = new float[n][n];
+        return reshapeFlatMatrix(flatMatrix,n,n);
+    }
 
-        for (int i = 0; i < n; i++) {
-            System.arraycopy(flatMatrix, i * n, squareMatrix[i], 0, n);
+    /**
+     * Reshape array into a matrix
+     *
+     * @param flatMatrix
+     * @param numRows
+     * @param numCols
+     * @return properly dimensioned matrix
+     */
+    public static float[][] reshapeFlatMatrix(float[] flatMatrix, int numRows, int numCols) {
+        float[][] matrix = new float[numRows][numCols];
+
+        for (int i = 0; i < numRows; i++) {
+            System.arraycopy(flatMatrix, i * numCols, matrix[i], 0, numCols);
         }
-        return squareMatrix;
+        return matrix;
     }
 
     /**
      * From Matrix M, extract out M[r1:r2,c1:c2]
      * r2, c2 not inclusive (~python numpy)
      *
-     * @param matrix
-     * @param r1
-     * @param r2
-     * @param c1
-     * @param c2
      * @return extracted matrix region M[r1:r2,c1:c2]
      */
     public static float[][] extractLocalMatrixRegion(float[][] matrix, int r1, int r2, int c1, int c2) {
@@ -162,11 +226,6 @@ public class MatrixTools {
      * From Matrix M, extract out M[r1:r2,c1:c2]
      * r2, c2 not inclusive (~python numpy, not like Matlab)
      *
-     * @param matrix
-     * @param r1
-     * @param r2
-     * @param c1
-     * @param c2
      * @return extracted matrix region M[r1:r2,c1:c2]
      */
     public static RealMatrix extractLocalMatrixRegion(RealMatrix matrix, int r1, int r2, int c1, int c2) {
@@ -191,7 +250,7 @@ public class MatrixTools {
      */
     public static RealMatrix extractDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
-        RealMatrix diagonal = MatrixTools.cleanArray2DMatrix(n, n);
+        RealMatrix diagonal = MatrixTools.cleanArray2DMatrix(n);
         for (int i = 0; i < n; i++) {
             diagonal.setEntry(i, i, matrix.getEntry(i, i));
         }
@@ -219,10 +278,7 @@ public class MatrixTools {
     }
 
     /**
-     * Returns the matrix flipped across the antidiagonal
-     *
-     * @param matrix
-     * @return antiDiagFlippedMatrix
+     * @return matrix flipped across the antidiagonal
      */
     public static RealMatrix flipAcrossAntiDiagonal(RealMatrix matrix) {
         int n = Math.min(matrix.getColumnDimension(), matrix.getRowDimension());
@@ -237,10 +293,7 @@ public class MatrixTools {
     }
 
     /**
-     * Returns the matrix flipped Left-Right
-     *
-     * @param matrix
-     * @return leftRightFlippedMatrix
+     * @return matrix flipped Left-Right
      */
     public static RealMatrix flipLeftRight(RealMatrix matrix) {
         int r = matrix.getRowDimension(), c = matrix.getColumnDimension();
@@ -254,10 +307,7 @@ public class MatrixTools {
     }
 
     /**
-     * Returns the matrix flipped Top-Bottom
-     *
-     * @param matrix
-     * @return topBottomFlippedMatrix
+     * @return matrix flipped Top-Bottom
      */
     public static RealMatrix flipTopBottom(RealMatrix matrix) {
         int r = matrix.getRowDimension(), c = matrix.getColumnDimension();
@@ -271,20 +321,17 @@ public class MatrixTools {
     }
 
     /**
-     * Element-wise multiplication of matrices i.e. M.*N in Matlab
-     *
-     * @param matrix1
-     * @param matrix2
-     * @return elementwiseMultipliedMatrix
+     * @return Element-wise multiplication of matrices i.e. M.*N in Matlab
      */
     public static RealMatrix elementBasedMultiplication(RealMatrix matrix1, RealMatrix matrix2) {
+        // chooses minimal intersection of dimensions
         int r = Math.min(matrix1.getRowDimension(), matrix2.getRowDimension());
         int c = Math.min(matrix1.getColumnDimension(), matrix2.getColumnDimension());
+
         RealMatrix elementwiseMultipliedMatrix = cleanArray2DMatrix(r, c);
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < c; j++) {
-                elementwiseMultipliedMatrix.setEntry(i, j,
-                        matrix1.getEntry(i, j) * matrix2.getEntry(i, j));
+                elementwiseMultipliedMatrix.setEntry(i, j, matrix1.getEntry(i, j) * matrix2.getEntry(i, j));
             }
         }
         return elementwiseMultipliedMatrix;
@@ -292,20 +339,17 @@ public class MatrixTools {
 
 
     /**
-     * Element-wise division of matrices i.e. M./N in Matlab
-     *
-     * @param matrix1
-     * @param matrix2
-     * @return elementwiseMultipliedMatrix
+     * @return Element-wise division of matrices i.e. M./N in Matlab
      */
     public static RealMatrix elementBasedDivision(RealMatrix matrix1, RealMatrix matrix2) {
+        // chooses minimal intersection of dimensions
         int r = Math.min(matrix1.getRowDimension(), matrix2.getRowDimension());
         int c = Math.min(matrix1.getColumnDimension(), matrix2.getColumnDimension());
+
         RealMatrix elementwiseDividedMatrix = cleanArray2DMatrix(r, c);
         for (int i = 0; i < r; i++) {
             for (int j = 0; j < c; j++) {
-                elementwiseDividedMatrix.setEntry(i, j,
-                        matrix1.getEntry(i, j) / matrix2.getEntry(i, j));
+                elementwiseDividedMatrix.setEntry(i, j, matrix1.getEntry(i, j) / matrix2.getEntry(i, j));
             }
         }
         return elementwiseDividedMatrix;
@@ -313,10 +357,7 @@ public class MatrixTools {
 
 
     /**
-     * Set NaNs in matrix to given value
-     *
-     * @param matrix
-     * @param val
+     * Replace NaNs in given matrix with given value
      */
     public static void setNaNs(RealMatrix matrix, int val) {
         for (int i = 0; i < matrix.getRowDimension(); i++) {
@@ -333,9 +374,6 @@ public class MatrixTools {
      * val > 0 : 1
      * val = 0 : 0
      * val < 0 : -1
-     *
-     * @param matrix
-     * @return signMatrix
      */
     public static RealMatrix sign(RealMatrix matrix) {
         int r = matrix.getRowDimension();
@@ -356,10 +394,6 @@ public class MatrixTools {
 
     /**
      * Replace all of a given value in a matrix with a new value
-     *
-     * @param matrix
-     * @param initialVal
-     * @param newVal
      */
     public static void replaceValue(RealMatrix matrix, int initialVal, int newVal) {
         for (int i = 0; i < matrix.getRowDimension(); i++) {
@@ -373,8 +407,6 @@ public class MatrixTools {
 
     /**
      * Normalize matrix by dividing by max element
-     *
-     * @param matrix
      * @return matrix * (1/max_element)
      */
     public static RealMatrix normalizeByMax(RealMatrix matrix) {
@@ -383,10 +415,7 @@ public class MatrixTools {
     }
 
     /**
-     * Calculate max element in matrix
-     *
-     * @param matrix
-     * @return max
+     * @return max element in matrix
      */
     public static double calculateMax(RealMatrix matrix) {
         double max = matrix.getEntry(0, 0);
@@ -401,31 +430,48 @@ public class MatrixTools {
         return max;
     }
 
-    public static RealMatrix randomUnitMatrix(int n) {
-        return randomUnitMatrix(n, n);
-    }
-
-    private static RealMatrix randomUnitMatrix(int rows, int cols) {
-        Random generator = new Random();
-        RealMatrix matrix = cleanArray2DMatrix(rows, cols);
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                if (generator.nextBoolean())
-                    matrix.setEntry(r, c, 1);
-        return matrix;
-    }
-
+    /**
+     * print for matrix
+     */
     public static void print(RealMatrix matrix) {
-        double[][] data = matrix.getData();
+        print(matrix.getData());
+    }
+
+    /**
+     * print for 2D array
+     */
+    private static void print(double[][] data) {
         for (double[] row : data) {
-            for (double entry : row) {
-                System.out.print(entry + " ");
-            }
-            System.out.println("");
+            System.out.println(Arrays.toString(row));
         }
     }
 
+    /**
+     * print for 2D array
+     */
+    private static void print(float[][] data) {
+        for (float[] row : data) {
+            System.out.println(Arrays.toString(row));
+        }
+    }
+
+    /**
+     * @return region within matrix specified by indices
+     */
     public static RealMatrix getSubMatrix(RealMatrix matrix, int[] indices) {
         return matrix.getSubMatrix(indices[0], indices[1], indices[2], indices[3]);
+    }
+
+    /**
+     * Fill lower left triangle with values from upper right triangle
+     *
+     * @param matrix
+     * @return
+     */
+    public static RealMatrix fillLowerLeftTriangle(RealMatrix matrix) {
+        for (int r = 0; r < matrix.getRowDimension(); r++)
+            for (int c = 0; c < matrix.getColumnDimension(); c++)
+                matrix.setEntry(c, r, matrix.getEntry(r, c));
+        return matrix;
     }
 }
