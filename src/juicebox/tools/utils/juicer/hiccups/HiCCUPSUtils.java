@@ -189,7 +189,7 @@ public class HiCCUPSUtils {
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(feature2DList);
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
 
-        while (!feature2DList.isEmpty()) {
+        while (!featureLL.isEmpty()) {
 
             Collections.sort(featureLL);
             Collections.reverse(featureLL);
@@ -198,16 +198,13 @@ public class HiCCUPSUtils {
             List<Feature2D> pixelList = new ArrayList<Feature2D>();
             pixelList.add(pixel);
 
-            System.out.println(featureLL);
-            System.out.println(featureLL.size());
-
-            System.out.println(pixel);
             int pixelListX = pixel.getStart1();
             int pixelListY = pixel.getStart2();
 
             int r = 0;
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
+                System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
                 if (hypotenuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
                     pixelList.add(px);
                     pixelListX = mean(pixelList, 1);
@@ -230,8 +227,8 @@ public class HiCCUPSUtils {
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
 
-            System.out.println("Pixels: " + pixelList);
-            System.out.println("Pixels: " + pixelList.size());
+            //System.out.println("Pixels: " + pixelList);
+            //System.out.println("Pixels: " + pixelList.size());
 
             for (Feature2D px : pixelList) {
                 featureLL.remove(px);
@@ -240,9 +237,6 @@ public class HiCCUPSUtils {
             setPixelColor(pixel);
             if (fdrThresholdsSatisfied(pixel))
                 coalesced.add(pixel);
-
-            System.out.println("Coalesced: " + coalesced);
-            System.out.println("Coalesced: " + coalesced.size());
         }
 
         return coalesced;

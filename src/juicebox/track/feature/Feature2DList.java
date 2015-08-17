@@ -221,7 +221,15 @@ public class Feature2DList {
      * @return feature
      */
     public Feature2D extractSingleFeature() {
-        return featureList.get(featureList.keySet().iterator().next()).iterator().next();
+        for (List<Feature2D> features : featureList.values()) {
+            for (Feature2D feature : features) {
+                return feature;
+            }
+        }
+        return null;
+        // TODO this should not give no such element exceptions
+        // TODO meh - custom annotation must be adding unnecessary keys?
+        //return featureList.get(featureList.keySet().iterator().next()).iterator().next();
     }
 
     /*

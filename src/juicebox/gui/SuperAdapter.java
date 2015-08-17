@@ -260,6 +260,7 @@ public class SuperAdapter {
     }
 
     public Point2D.Double getHiCScale(int width, int height) {
+        // TODO - why does this sometimes return null?
         return new Point2D.Double((double) hic.getZd().getXGridAxis().getBinCount() / width,
                 (double) hic.getZd().getYGridAxis().getBinCount() / height);
     }
