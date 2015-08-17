@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
@@ -60,8 +61,10 @@ public class APA extends JuiceboxCLT {
     //int peakwidth = 2; //for enrichment calculation of crosshair norm
     private int[] resolutions = new int[]{25000, 10000};
 
+    // PSEA - peak set enrichment analysis
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        HiCGlobals.useCache = false;
     }
 
     @Override
@@ -119,9 +122,7 @@ public class APA extends JuiceboxCLT {
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
 
-            // select zoom level closest to the requested one
             System.out.println("res " + resolution);
-            //HiCZoom zoom = ds.getZoomForBPResolution(resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             List<Chromosome> chromosomes = ds.getChromosomes();
@@ -165,7 +166,7 @@ public class APA extends JuiceboxCLT {
                 System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
                 List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
                 if (loops == null || loops.size() == 0) {
-                    System.out.println("CHR " + chr.getName() + " " + chr.getIndex() + " - no loops found or other error");
+                    System.out.println("CHR " + chr.getName() + " - no loops, check loop filtering constraints");
                     continue;
                 }
 

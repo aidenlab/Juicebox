@@ -24,8 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
-import juicebox.data.Block;
-import juicebox.data.ContactRecord;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.common.StatPercentile;
@@ -36,9 +35,7 @@ import org.apache.commons.math.linear.RealMatrix;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Muhammad Shamim on 1/21/15.
@@ -147,44 +144,7 @@ public class APAUtils {
         return matrix;
     }
 
-    // TODO phase out or use the HiCTools version (which is used by arrowhead and hiccups)
-    public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
-                                                  int L, int resolution, int window, NormalizationType norm) {
 
-        int loopX = loop.getMidPt1() / resolution;
-        int loopY = loop.getMidPt2() / resolution;
-        int binXStart = loopX - (window + 1);
-        int binXEnd = loopX + (window + 1);
-        int binYStart = loopY - (window + 1);
-        int binYEnd = loopY + (window + 1);
-
-        //System.out.println("Loop information (loopX, loopY, binXStart, binXEnd, binYStart, binYEnd): " +
-        //        loopX +" " + loopY+" " + binXStart+" " + binXEnd+ " " +binYStart+ " " +binYEnd);
-
-        Set<Block> blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, norm));
-
-        RealMatrix data = MatrixTools.cleanArray2DMatrix(L, L);
-
-        for (Block b : blocks) {
-            for (ContactRecord rec : b.getContactRecords()) {
-
-                // [0..radius-1  radius  radius+1..2*radius+1]
-                int relativeX = window + (rec.getBinX() - loopX);
-                int relativeY = window + (rec.getBinY() - loopY);
-                //System.out.println("\t\trelative X,Y:" + relativeX + ","+relativeY);
-
-                if (relativeX >= 0 && relativeX < L) {
-                    if (relativeY >= 0 && relativeY < L) {
-                        data.addToEntry(relativeX, relativeY, rec.getCounts());
-                        //System.out.println("!!!!");
-                    }
-                }
-            }
-        }
-
-        //System.out.println((System.nanoTime()-time)/1000000000.);
-        return data;
-    }
 
     /**
      * Size filtering of loops
@@ -210,5 +170,17 @@ public class APAUtils {
             }
         }
         return new ArrayList<Feature2D>(sizeFilteredFeatures);
+    }
+
+    public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
+                                                  int L, int resolution, int window, NormalizationType norm) {
+        int loopX = loop.getMidPt1() / resolution;
+        int loopY = loop.getMidPt2() / resolution;
+        int binXStart = loopX - window;
+        int binXEnd = loopX + (window + 1);
+        int binYStart = loopY - window;
+        int binYEnd = loopY + (window + 1);
+
+        return HiCFileTools.extractLocalBoundedRegion(zd, binXStart, binXEnd, binYStart, binYEnd, L, L, norm);
     }
 }

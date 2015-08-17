@@ -274,7 +274,16 @@ public class Feature2D implements Comparable<Feature2D> {
         return Float.parseFloat(attributes.get(key));
     }
 
-    public void addAttribute(String key, String value) {
+    public void addIntAttribute(String key, int value) {
+        attributes.put(key, "" + value);
+    }
+
+    public void addFloatAttribute(String key, Float value) {
+        attributes.put(key, "" + value);
+    }
+
+
+    public void addStringAttribute(String key, String value) {
         attributes.put(key, value);
     }
 
@@ -300,9 +309,20 @@ public class Feature2D implements Comparable<Feature2D> {
         return false;
     }
 
+
     @Override
     public int compareTo(Feature2D o) {
-        return Integer.parseInt(getAttribute(HiCCUPSUtils.OBSERVED)) - Integer.parseInt(o.getAttribute(HiCCUPSUtils.OBSERVED));
+        // highest observed point ordering needed for hiccups sorting
+        if (attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
+            return (int) (Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
+        }
+        // technically chr1/2 should be checked before observed val
+        int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1, start2 - o.start2, end1 - o.end1, end2 - o.end2};
+        for (int i : comparisons) {
+            if (i != 0)
+                return i;
+        }
+        return comparisons[3];
     }
 
     public boolean isOnDiagonal() {
@@ -316,5 +336,13 @@ public class Feature2D implements Comparable<Feature2D> {
             reflection.reflection = this;
         }
         return reflection;
+    }
+
+    public boolean containsAttribute(String attribute) {
+        return attributes.containsKey(attribute);
+    }
+
+    public String getLocationKey() {
+        return start1 + "_" + start2;
     }
 }

@@ -82,10 +82,10 @@ public class HiCCUPS extends JuiceboxCLT {
     private String outputEnrichedFileName;
     private String outputFinalLoopListFileName;
 
-    public HiCCUPS() {
-        super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>\n" +
-                "hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <finalLoopsList>");
-        // -i input file custom
+    public HiCCUPS() { //TODO fdr, window, peakwidth flags
+        super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <finalLoopsList>");
+        // also
+        // hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>
     }
 
     private static int divisor() {
@@ -108,7 +108,6 @@ public class HiCCUPS extends JuiceboxCLT {
             outputFDRFileName = args[2];
             outputEnrichedFileName = args[3];
         }
-
 
         Set<String> specifiedChromosomes = parser.getChromosomeOption();
         Set<String> specifiedResolutions = parser.getMultipleResolutionOptions();
@@ -159,7 +158,7 @@ public class HiCCUPS extends JuiceboxCLT {
                 HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
             }
 
-            Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(new ArrayList<Feature2DList>(looplists.values()));
+            Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);
             finalList.exportFeatureList(outputFinalLoopListFileName, false);
         }
     }

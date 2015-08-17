@@ -42,7 +42,6 @@ import java.util.*;
 
 /**
  * @author jrobinso
- * @modified mshamim
  * @since Aug 12, 2010
  */
 public class Dataset {

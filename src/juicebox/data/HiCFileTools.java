@@ -285,14 +285,12 @@ public class HiCFileTools {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-
-        Set<Block> blocks = new HashSet<Block>();
+        List<Block> blocks = new ArrayList<Block>();
 
         try {
-            blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
-                    normalizationType));
+            zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
-            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region");
+            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region:");
             System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
             e.printStackTrace();
             System.exit(-6);

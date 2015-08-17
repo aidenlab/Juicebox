@@ -43,6 +43,14 @@ class AggregateProcessing {
         String[] l5 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/BioScripts/22_blocks"};
 
-        HiCTools.main(l4);
+        String[] l6 = {"apa", "-r", "5000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Downloads/APA_Ivan/gmloops.txt.gz",
+                "/Users/muhammadsaadshamim/Downloads/APA_Ivan/temp3"};
+
+        String[] l7 = {"hiccups", "-c", "22", "-m", "90",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out8/loops"};
+
+        HiCTools.main(l7);
     }
 }

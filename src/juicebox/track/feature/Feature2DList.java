@@ -45,7 +45,7 @@ public class Feature2DList {
     /**
      * List of 2D features stored by chromosome
      */
-    private final Map<String, List<Feature2D>> featureList;
+    private final Map<String, List<Feature2D>> featureList = new HashMap<String, List<Feature2D>>();
 
     /**
      * Visibility as set by user
@@ -56,7 +56,6 @@ public class Feature2DList {
      * Initialized hashtable
      */
     public Feature2DList() {
-        featureList = new HashMap<String, List<Feature2D>>();
         isVisible = true;
     }
 
@@ -101,13 +100,12 @@ public class Feature2DList {
      * @return List of 2D features at that point
      */
     public List<Feature2D> get(int chr1Idx, int chr2Idx) {
-        List<Feature2D> returnVal = featureList.get(getKey(chr1Idx, chr2Idx));
-        if (returnVal == null) {
-            return new ArrayList<Feature2D>();
-        } else {
-            return returnVal;
+        String key = getKey(chr1Idx, chr2Idx);
+        if (!featureList.containsKey(key)) {
+            List<Feature2D> features = new ArrayList<Feature2D>();
+            featureList.put(key, features);
         }
-        //return featureList.get(getKey(chr1Idx, chr2Idx));
+        return featureList.get(key);
     }
 
     /**
@@ -125,16 +123,13 @@ public class Feature2DList {
     }
 
     private void addByKey(String key, Feature2D feature) {
-
-        List<Feature2D> loops = featureList.get(key);
-        if (loops == null) {
-            loops = new ArrayList<Feature2D>();
+        if (featureList.containsKey(key)) {
+            featureList.get(key).add(feature);
+        } else {
+            List<Feature2D> loops = new ArrayList<Feature2D>();
             loops.add(feature);
             featureList.put(key, loops);
-        } else {
-            loops.add(feature);
         }
-
     }
 
     /**
@@ -278,13 +273,12 @@ public class Feature2DList {
         for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
 
-            List<Feature2D> features = featureList.get(inputKey);
-            if (features == null) {
-                features = new ArrayList<Feature2D>();
+            if (featureList.containsKey(inputKey)) {
+                featureList.get(inputKey).addAll(inputFeatures);
+            } else {
+                List<Feature2D> features = new ArrayList<Feature2D>();
                 features.addAll(inputFeatures);
                 featureList.put(inputKey, features);
-            } else {
-                features.addAll(inputFeatures);
             }
         }
     }
@@ -304,14 +298,13 @@ public class Feature2DList {
         for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
 
-            List<Feature2D> features = featureList.get(inputKey);
-            if (features == null) {
-                features = new ArrayList<Feature2D>();
+            if (featureList.containsKey(inputKey)) {
+                //features.addAll(inputFeatures);
+                addAllUnique(inputFeatures, featureList.get(inputKey));
+            } else {
+                List<Feature2D> features = new ArrayList<Feature2D>();
                 features.addAll(inputFeatures);
                 featureList.put(inputKey, features);
-            } else {
-                //features.addAll(inputFeatures);
-                addAllUnique(inputFeatures, features);
             }
         }
     }
@@ -322,9 +315,9 @@ public class Feature2DList {
         for (String inputKey : inputKeySet) {
             List<Feature2D> inputFeatures = inputList.getFeatureList(inputKey);
             // there are features in both lists
-            List<Feature2D> myFeatures = featureList.get(inputKey);
-            if (myFeatures != null) {
-                for (Feature2D myFeature : myFeatures) {
+
+            if (featureList.containsKey(inputKey)) {
+                for (Feature2D myFeature : featureList.get(inputKey)) {
                     if (doesOverlap(myFeature, inputFeatures)) {
                         output.addByKey(inputKey, myFeature);
                     }
@@ -346,16 +339,14 @@ public class Feature2DList {
     }
 
     // Iterate through new features and see if there is any overlap
-    // TODO: implement this more efficiently
+    // TODO: implement this more efficiently, maybe rtree
     private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
         for (Feature2D inputFeature : inputFeatures) {
             // Compare input with existing points
             if (!doesOverlap(inputFeature, existingFeatures)) {
                 existingFeatures.add(inputFeature);
             }
-
         }
-
     }
 
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
@@ -363,9 +354,22 @@ public class Feature2DList {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
-                    if (feature.getAttribute(newAttributeName) == null)
-                        feature.addAttribute(newAttributeName, newAttributeValue);
+                    if (!feature.containsAttribute(newAttributeName))
+                        feature.addStringAttribute(newAttributeName, newAttributeValue);
                 }
+            }
+        });
+    }
+
+    /**
+     * Simple of exact duplicates (memory address)
+     * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
+     */
+    public void removeDuplicates() {
+        filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return new ArrayList<Feature2D>(new HashSet<Feature2D>(feature2DList));
             }
         });
     }
@@ -413,5 +417,114 @@ public class Feature2DList {
         }
     }
 
+    public Feature2DList extractReproducibleCentroids(Feature2DList varList, final int radius) {
 
+        final Feature2DList centroids = new Feature2DList();
+        varList.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                if (featureList.containsKey(chr)) {
+                    List<Feature2D> baseFeatureList = featureList.get(chr);
+                    for (Feature2D f1 : feature2DList) {
+                        for (Feature2D f2 : baseFeatureList) {
+                            int dx = f1.getStart1() - f2.getStart1();
+                            int dy = f1.getStart2() - f2.getStart2();
+                            int d = (int) Math.sqrt(dx * dx + dy * dy);
+                            if (d <= radius) {
+                                centroids.addByKey(chr, f1);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return centroids;
+    }
+
+    /**
+     * @return peaks within radius of diagonal
+     */
+    public Feature2DList getPeaksNearDiagonal(final int radius) {
+        final Feature2DList peaks = new Feature2DList();
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    int dist = Math.abs(f.getStart1() - f.getStart2());
+                    if (dist < radius) {
+                        peaks.addByKey(chr, f);
+                    }
+                }
+            }
+        });
+        return peaks;
+    }
+
+    /**
+     * @return peaks with observed values exceeding limit
+     */
+    public Feature2DList getStrongPeaks(final int limit) {
+        final Feature2DList peaks = new Feature2DList();
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    float obs = f.getFloatAttribute(HiCCUPSUtils.OBSERVED);
+                    if (obs > limit) {
+                        peaks.addByKey(chr, f);
+                    }
+                }
+            }
+        });
+        return peaks;
+    }
+
+    public Feature2DList extractPeaksNotNearCentroids(final Feature2DList centroids) {
+
+        final Feature2DList peaks = new Feature2DList();
+
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+
+                final Set<String> keys = new HashSet<String>();
+                for (Feature2D f : centroids.getFeatureList(chr)) {
+                    keys.add(f.getLocationKey());
+                }
+
+                for (Feature2D f : feature2DList) {
+                    if (!keys.contains(f.getLocationKey())) {
+                        peaks.addByKey(chr, f);
+                    }
+                }
+            }
+        });
+
+        return peaks;
+    }
+
+    public Feature2DList extractPeaksNearCentroids(final Feature2DList centroids) {
+
+        final Feature2DList peaks = new Feature2DList();
+
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+
+                final Set<String> keys = new HashSet<String>();
+                for (Feature2D f : centroids.getFeatureList(chr)) {
+                    keys.add(f.getLocationKey());
+                }
+
+                for (Feature2D f : feature2DList) {
+                    if (keys.contains(f.getLocationKey())) {
+                        peaks.addByKey(chr, f);
+                    }
+                }
+            }
+        });
+
+        return peaks;
+    }
 }

@@ -250,6 +250,83 @@ public class MatrixZoomData {
 
 
     /**
+     * Return the blocks of normalized, observed values overlapping the rectangular region specified.
+     * The units are "bins"
+     *
+     * @param binY1 leftmost position in "bins"
+     * @param binX2 rightmost position in "bins"
+     * @param binY2 bottom position in "bins"
+     * @param no    normalization type
+     * @return List of overlapping blocks, normalized
+     */
+    public void addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+
+        int col1 = binX1 / blockBinCount;
+        int row1 = binY1 / blockBinCount;
+
+        int col2 = binX2 / blockBinCount;
+        int row2 = binY2 / blockBinCount;
+
+        List<Integer> blocksToLoad = new ArrayList<Integer>();
+        for (int r = row1; r <= row2; r++) {
+            for (int c = col1; c <= col2; c++) {
+                int blockNumber = r * getBlockColumnCount() + c;
+
+                String key = getKey() + "_" + blockNumber + "_" + no;
+                Block b;
+                if (HiCGlobals.useCache && blockCache.containsKey(key)) {
+                    b = blockCache.get(key);
+                    blockList.add(b);
+                } else {
+                    blocksToLoad.add(blockNumber);
+                }
+            }
+        }
+
+        final AtomicInteger errorCounter = new AtomicInteger();
+
+        List<Thread> threads = new ArrayList<Thread>();
+        for (final int blockNumber : blocksToLoad) {
+            Runnable loader = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String key = getKey() + "_" + blockNumber + "_" + no;
+                        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
+                        if (b == null) {
+                            b = new Block(blockNumber);   // An empty block
+                        }
+                        if (HiCGlobals.useCache) {
+                            blockCache.put(key, b);
+                        }
+                        blockList.add(b);
+                    } catch (IOException e) {
+                        errorCounter.incrementAndGet();
+                    }
+                }
+            };
+
+            Thread t = new Thread(loader);
+            threads.add(t);
+            t.start();
+        }
+
+        // Wait for all threads to complete
+        for (Thread t : threads) {
+            try {
+                t.join();
+            } catch (InterruptedException ignore) {
+            }
+        }
+
+        // untested since files got fixed - MSS
+        if (errorCounter.get() > 0) {
+            System.err.println("Error while reading blocks");
+        }
+    }
+
+
+    /**
      * Return the observed value at the specified location.   Supports tooltip text
      * This implementation is naive, but might get away with it for tooltip.
      *

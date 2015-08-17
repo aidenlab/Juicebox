@@ -65,22 +65,7 @@ public class HiCCUPSUtils {
     private static final String NUMCOLLAPSED = "numCollapsed";
 
     /**
-     * Generate a Feature2D peak for a possible peak location from hiccups
-     *
-     * @param chrName
-     * @param observed
-     * @param peak
-     * @param rowPos
-     * @param colPos
-     * @param expectedBL
-     * @param expectedDonut
-     * @param expectedH
-     * @param expectedV
-     * @param binBL
-     * @param binDonut
-     * @param binH
-     * @param binV
-     * @return feature
+     * @return a Feature2D peak for a possible peak location from hiccups
      */
     public static Feature2D generatePeak(String chrName, float observed, float peak, int rowPos, int colPos,
                                          float expectedBL, float expectedDonut, float expectedH, float expectedV,
@@ -109,12 +94,6 @@ public class HiCCUPSUtils {
 
     /**
      * Calculate fdr values for a given peak
-     *
-     * @param feature
-     * @param fdrLogBL
-     * @param fdrLogDonut
-     * @param fdrLogH
-     * @param fdrLogV
      */
     public static void calculateFDR(Feature2D feature, float[][] fdrLogBL, float[][] fdrLogDonut, float[][] fdrLogH, float[][] fdrLogV) {
 
@@ -125,10 +104,10 @@ public class HiCCUPSUtils {
         int binV = (int) feature.getFloatAttribute(BINV);
 
         if (binBL >= 0 && binDonut >= 0 && binH >= 0 && binV >= 0 && observed >= 0) {
-            feature.addAttribute(FDRBL, String.valueOf(fdrLogBL[binBL][observed]));
-            feature.addAttribute(FDRDONUT, String.valueOf(fdrLogDonut[binDonut][observed]));
-            feature.addAttribute(FDRH, String.valueOf(fdrLogH[binH][observed]));
-            feature.addAttribute(FDRV, String.valueOf(fdrLogV[binV][observed]));
+            feature.addFloatAttribute(FDRBL, (fdrLogBL[binBL][observed]));
+            feature.addFloatAttribute(FDRDONUT, (fdrLogDonut[binDonut][observed]));
+            feature.addFloatAttribute(FDRH, (fdrLogH[binH][observed]));
+            feature.addFloatAttribute(FDRV, (fdrLogV[binV][observed]));
         } else {
             System.out.println("Error in calculateFDR binBL=" + binBL + " binDonut=" + binDonut + " binH=" + binH +
                     " binV=" + binV + " observed=" + observed);
@@ -158,7 +137,7 @@ public class HiCCUPSUtils {
 
         final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
         for (Chromosome chr : chromosomes) {
-            chrNameToIndex.put(chr.getName(), chr.getIndex());
+            chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
 
         list.filterLists(new FeatureFilter() {
@@ -203,9 +182,7 @@ public class HiCCUPSUtils {
     }
 
     /**
-     * @param resolution
-     * @param feature2DList
-     * @return
+     * @return list of pixels coalesced to centroid of enriched region
      */
     private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList) {
 
@@ -221,20 +198,24 @@ public class HiCCUPSUtils {
             List<Feature2D> pixelList = new ArrayList<Feature2D>();
             pixelList.add(pixel);
 
+            System.out.println(featureLL);
+            System.out.println(featureLL.size());
+
+            System.out.println(pixel);
             int pixelListX = pixel.getStart1();
             int pixelListY = pixel.getStart2();
 
             int r = 0;
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
-                if (hypotneuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
+                if (hypotenuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
                     pixelList.add(px);
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
 
                     r = 0;
                     for (Feature2D px2 : pixelList) {
-                        int rPrime = hypotneuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
+                        int rPrime = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
                         if (rPrime > r)
                             r = rPrime;
                     }
@@ -244,19 +225,24 @@ public class HiCCUPSUtils {
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            pixel.addAttribute(RADIUS, String.valueOf(r));
-            pixel.addAttribute(CENTROID1, String.valueOf(pixelListX + resolution / 2));
-            pixel.addAttribute(CENTROID2, String.valueOf(pixelListY + resolution / 2));
-            pixel.addAttribute(NUMCOLLAPSED, String.valueOf(pixelList.size()));
+            pixel.addIntAttribute(RADIUS, r);
+            pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
+            pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
+            pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
+
+            System.out.println("Pixels: " + pixelList);
+            System.out.println("Pixels: " + pixelList.size());
 
             for (Feature2D px : pixelList) {
                 featureLL.remove(px);
             }
 
             setPixelColor(pixel);
-
             if (fdrThresholdsSatisfied(pixel))
                 coalesced.add(pixel);
+
+            System.out.println("Coalesced: " + coalesced);
+            System.out.println("Coalesced: " + coalesced.size());
         }
 
         return coalesced;
@@ -312,13 +298,84 @@ public class HiCCUPSUtils {
         return (int) (total / n);
     }
 
-    private static int hypotneuse(int x, int y) {
+    private static int hypotenuse(int x, int y) {
         return (int) Math.sqrt(x * x + y * y);
     }
 
-    public static Feature2DList mergeAllResolutions(List<Feature2DList> hiccupsLooplists) {
-        if (hiccupsLooplists.size() == 1)
-            return hiccupsLooplists.get(0);
-        return null;
+    /**
+     * Expected behavior is to merge 5, 10, and 25 kB lists as determined
+     * If at least one of these resolutions are found, any other resolution (e.g. 50 kB) will be thrown out
+     * If none of these expected resolutions are found, all remaining resolutions will be merged without any filtering
+     *
+     * @return loop list merged across resolutions
+     */
+    public static Feature2DList mergeAllResolutions(Map<Integer, Feature2DList> hiccupsLooplists) {
+
+        // adding resolution that loop was found at to its attributes
+        for (int res : hiccupsLooplists.keySet()) {
+            hiccupsLooplists.get(res).addAttributeFieldToAll("Resolution", "" + res);
+        }
+
+        Feature2DList mergedList = new Feature2DList();
+        boolean listHasBeenAltered = false;
+
+        if (hiccupsLooplists.containsKey(5000) && hiccupsLooplists.containsKey(10000)) {
+            mergedList.add(handleFiveAndTenKBMerger(hiccupsLooplists.get(5000), hiccupsLooplists.get(10000)));
+            listHasBeenAltered = true;
+        } else if (hiccupsLooplists.containsKey(5000)) {
+            mergedList.add(hiccupsLooplists.get(5000));
+            listHasBeenAltered = true;
+        } else if (hiccupsLooplists.containsKey(10000)) {
+            mergedList.add(hiccupsLooplists.get(10000));
+            listHasBeenAltered = true;
+        }
+        mergedList.removeDuplicates();
+
+        if (hiccupsLooplists.containsKey(25000)) {
+            if (listHasBeenAltered) {
+                handleExistingMergerWithTwentyFiveKB(mergedList, hiccupsLooplists.get(25000));
+            } else {
+                mergedList.add(hiccupsLooplists.get(25000));
+                listHasBeenAltered = true;
+            }
+        }
+        mergedList.removeDuplicates();
+
+        // neither 25kB, 10kB, or 5kB list processed
+        if (!listHasBeenAltered) {
+            System.out.println("25kB, 10kB, or 5kB lists not found\nDefault lists being merged without filtering");
+            for (Feature2DList list : hiccupsLooplists.values()) {
+                mergedList.add(list);
+            }
+        }
+
+        return mergedList;
+    }
+
+    private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
+        // add peaks unique to 25 kB
+        Feature2DList centroidsTwentyFiveKB = mergedList.extractReproducibleCentroids(twentyFiveKBList, 2 * 25000);
+        mergedList.add(twentyFiveKBList.extractPeaksNotNearCentroids(centroidsTwentyFiveKB));
+    }
+
+    private static Feature2DList handleFiveAndTenKBMerger(Feature2DList fiveKBList, Feature2DList tenKBList) {
+        // add peaks commonly found between 5 and 10 kB
+        Feature2DList centroidsFiveKB = tenKBList.extractReproducibleCentroids(fiveKBList, 2 * 10000);
+        Feature2DList mergedList = fiveKBList.extractPeaksNearCentroids(centroidsFiveKB);
+
+        // add peaks unique to 10 kB
+        Feature2DList centroidsTenKB = fiveKBList.extractReproducibleCentroids(tenKBList, 2 * 10000);
+        mergedList.add(tenKBList.extractPeaksNotNearCentroids(centroidsTenKB));
+
+        // add peaks close to diagonal
+        mergedList.add(fiveKBList.getPeaksNearDiagonal(110000));
+
+        // add particularly strong peaks
+        mergedList.add(fiveKBList.getStrongPeaks(100));
+
+        // filter duplicates
+        mergedList.removeDuplicates();
+
+        return mergedList;
     }
 }
