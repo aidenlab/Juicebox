@@ -33,7 +33,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -265,8 +264,9 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setAttribute(String key, String newVal) {
         attributes.put(key, newVal);
-        if (reflection != null)
-            reflection.attributes.put(key, newVal);
+        // attribute directly shared between reflections
+        //if (reflection != null)
+        //    reflection.attributes.put(key, newVal);
 
     }
 
@@ -332,7 +332,7 @@ public class Feature2D implements Comparable<Feature2D> {
     public Feature2D reflectionAcrossDiagonal() {
         if (reflection == null) {
             reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color,
-                    new HashMap<String, String>(attributes));
+                    attributes);
             reflection.reflection = this;
         }
         return reflection;

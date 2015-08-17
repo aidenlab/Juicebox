@@ -80,8 +80,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
      */
     private final int imageTileWidth = 500;
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
-    private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
     private final HeatmapRenderer renderer;
+    //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
+    private transient List<Pair<Rectangle, Feature2D>> customFeaturePairs;
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -108,7 +109,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
-        drawnLoopFeatures = new ArrayList<Pair<Rectangle, Feature2D>>();
+        //drawnLoopFeatures = new ArrayList<Pair<Rectangle, Feature2D>>();
         //setToolTipText(""); // Turns tooltip on
     }
 
@@ -343,6 +344,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 loops.addAll(cLoops);
                 loops.addAll(cLoopsReflected);
 
+                customFeaturePairs = Feature2DHandler.featurePairs(cLoops, zd, binOriginX, binOriginY, scaleFactor);
+                customFeaturePairs.addAll(Feature2DHandler.featurePairs(cLoopsReflected, zd, binOriginX, binOriginY, scaleFactor));
+
                 Graphics2D g2 = (Graphics2D) g.create();
                 //g2.fillOval((int)x, (int)y, 20, 20);
 
@@ -361,10 +365,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+    //TODO why is g passed as param?
     private int getTickWidth(Graphics g) {
 
         int w = getWidth();
-        int h = getHeight();
+        //int h = getHeight();
 
         if (w < 50 || hic.getScaleFactor() == 0) {
             return 0;
@@ -383,12 +388,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return (int) (xBin * hic.getScaleFactor());
     }
 
+    //TODO why is g passed as param?
     private int getTickHeight(Graphics g) {
 
-        int w = getHeight();
-        int h = getWidth();
+        int h = getHeight();
+        //int w = getWidth();
 
-        if (w < 50 || hic.getScaleFactor() == 0) {
+        if (h < 50 || hic.getScaleFactor() == 0) {
             return 0;
         }
 
@@ -929,8 +935,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             // TODO MSS
 
-            for (Pair<Rectangle, Feature2D> loop : hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                    x, y, NUM_NEIGHBORS)) {
+            List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+            List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
+            for (Feature2D feature2D : cLoops) {
+                if (!feature2D.isOnDiagonal()) {
+                    cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                }
+            }
+
+            List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
+            neighbors.addAll(customFeaturePairs);
+
+            for (Pair<Rectangle, Feature2D> loop : neighbors) {
                 if (loop.getFirst().contains(x, y)) {
                     // TODO - why is this code duplicated in this file?
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");

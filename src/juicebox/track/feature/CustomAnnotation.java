@@ -228,6 +228,8 @@ public class CustomAnnotation {
         }
     }
 
+    // TODO meh - technically this isn't actually changing all attributes
+    // should this be renamed addAllAttributeValues?
     public void changeAllAttributeValues(String key, String newValue) {
         attributeKeys.add(key);
         customAnnotationList.addAttributeFieldToAll(key, newValue);
