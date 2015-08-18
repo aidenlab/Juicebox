@@ -518,18 +518,16 @@ public class SuperAdapter {
     }
 
     /**
-     * TODO phase out asap
-     *
-     * @return
+     * TODO phase out
+     * @return hic
      */
     public HiC getHiC() {
         return hic;
     }
 
     /**
-     * TODO phase out asap
-     *
-     * @return
+     * TODO phase out
+     * @return mainwindow
      */
     public MainWindow getMainWindow() {
         return mainWindow;

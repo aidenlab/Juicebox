@@ -61,7 +61,7 @@ public class ResolutionControl extends JPanel {
     private int lastValue = 0;
 
     {
-        // TODO use hicglobals, remove magic strings
+        // TODO use hicglobals, remove magic strings or make this map global?
         bpLabelMap = new Hashtable<Integer, String>();
         bpLabelMap.put(2500000, "2.5 MB");
         bpLabelMap.put(1000000, "1 MB");
@@ -93,6 +93,7 @@ public class ResolutionControl extends JPanel {
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
         /* TODO not working
+        // supposed to underline "resolution text" but why? is this an important gui issue?
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
             private Font original;
 
@@ -197,7 +198,7 @@ public class ResolutionControl extends JPanel {
                         unsafeStateChanged(eF);
                     }
                 };
-                superAdapter.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
+                superAdapter.executeLongRunningTask(runnable, "Resolution slider change");
                 runnable.run();
             }
 
@@ -270,7 +271,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider.setPaintTicks(true);
         resolutionSlider.setSnapToTicks(true);
         resolutionSlider.setPaintLabels(true);
-        resolutionSlider.setMinorTickSpacing(1); //TODO******   UNCOMMENT  ******
+        resolutionSlider.setMinorTickSpacing(1);
 
         // Create labels
         Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();

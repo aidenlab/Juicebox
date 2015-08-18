@@ -270,7 +270,6 @@ public class JColorRangePanel extends JPanel {
 
 
         colorRangeSlider.setLabelTable(labelTable);
-        //TODO******   UNCOMMENT  ******
         colorRangeSliderUpdateToolTip(hic);
 
     }

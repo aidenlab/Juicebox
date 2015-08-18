@@ -495,16 +495,21 @@ public class Feature2DList {
         processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
-
-                final Set<String> keys = new HashSet<String>();
-                for (Feature2D f : centroids.getFeatureList(chr)) {
-                    keys.add(f.getLocationKey());
-                }
-
-                for (Feature2D f : feature2DList) {
-                    if (!keys.contains(f.getLocationKey())) {
-                        peaks.addByKey(chr, f);
+                if (centroids.containsKey(chr)) {
+                    final Set<String> keys = new HashSet<String>();
+                    for (Feature2D f : centroids.getFeatureList(chr)) {
+                        keys.add(f.getLocationKey());
                     }
+
+                    for (Feature2D f : feature2DList) {
+                        if (!keys.contains(f.getLocationKey())) {
+                            peaks.addByKey(chr, f);
+                        }
+                    }
+                } else {
+                    System.out.println(chr + " key not found for centroids. NN. Possible error?");
+                    System.out.println("Centroid: " + centroids.getKeySet());
+                    System.out.println("Actual: " + Feature2DList.this.getKeySet());
                 }
             }
         });
@@ -520,19 +525,34 @@ public class Feature2DList {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
 
-                final Set<String> keys = new HashSet<String>();
-                for (Feature2D f : centroids.getFeatureList(chr)) {
-                    keys.add(f.getLocationKey());
-                }
+                if (centroids.containsKey(chr)) {
 
-                for (Feature2D f : feature2DList) {
-                    if (keys.contains(f.getLocationKey())) {
-                        peaks.addByKey(chr, f);
+                    final Set<String> keys = new HashSet<String>();
+                    for (Feature2D f : centroids.getFeatureList(chr)) {
+                        keys.add(f.getLocationKey());
                     }
+
+
+                    for (Feature2D f : feature2DList) {
+                        if (keys.contains(f.getLocationKey())) {
+                            peaks.addByKey(chr, f);
+                        }
+                    }
+                } else {
+                    System.out.println(chr + " key not found for centroids. NC. Possible error?");
+                    System.out.println("Centroid: " + centroids.getKeySet());
+                    System.out.println("Actual: " + Feature2DList.this.getKeySet());
                 }
             }
         });
 
         return peaks;
+    }
+
+    /**
+     * @return true if features available for this region (key = "chr1_chr2")
+     */
+    private boolean containsKey(String key) {
+        return featureList.containsKey(key);
     }
 }

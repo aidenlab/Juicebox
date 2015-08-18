@@ -644,23 +644,13 @@ public class HiC {
             }
         }
 
+        // if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null))
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         zoom = newZoom;
         xContext.setZoom(zoom);
         yContext.setZoom(zoom);
         setZoom(newZoom, xOrigin, yOrigin);
         superAdapter.updateZoom(newZoom);
-
-        /* original
-        HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
-            // TODO - MSS why not use hic.setZoom instead?
-            zoom = newZoom;
-            xContext.setZoom(zoom);
-            yContext.setZoom(zoom);
-            superAdapter.updateZoom(newZoom);
-        }
-        */
 
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);

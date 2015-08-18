@@ -508,7 +508,6 @@ class RangeSliderUI extends BasicSliderUI {
             if (!lowerDragging && !upperDragging) {
                 calculateThumbLocation();
                 slider.repaint();
-                //TODO******   UNCOMMENT  ******
             }
         }
     }

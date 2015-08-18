@@ -105,7 +105,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.mainWindow = superAdapter.getMainWindow();
         this.superAdapter = superAdapter;
         this.hic = superAdapter.getHiC();
-        renderer = new HeatmapRenderer(mainWindow, hic);
+        renderer = new HeatmapRenderer();
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
@@ -237,8 +237,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     //if (mainWindow.isRefreshTest()) {
                     g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
                     //}
-                    //TODO ******** UNCOMMENT *******
 
+
+                    //TODO ******** UNCOMMENT *******
                     // Uncomment to draw tile grid (for debugging)
                     //g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
 
@@ -331,9 +332,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                         0, 0, 1000);
 
-
-                // TODO MSS
-                // add custom Features
                 List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
                 for (Feature2D feature2D : cLoops) {
@@ -932,17 +930,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //mouseIsOverFeature = false;
             mostRecentRectFeaturePair = null;
 
-
-            // TODO MSS
-
-            List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
-            List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
-            for (Feature2D feature2D : cLoops) {
-                if (!feature2D.isOnDiagonal()) {
-                    cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
-                }
-            }
-
             List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
             neighbors.addAll(customFeaturePairs);
 
@@ -970,188 +957,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         return null;
     }
-
-
-    // TODO MSS - not generating tracks at present, just some relevant code pieces
-    /*private String trackGenerator(int x, int y) {
-        // Update popup text
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return "";
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-
-        String topColor = "0000FF";
-        String leftColor = "009900";
-
-        int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-        int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-
-        int xGenomeStart = xGridAxis.getGenomicStart(binX) + 1; // Conversion from in internal "0" -> 1 base coordinates
-        int yGenomeStart = yGridAxis.getGenomicStart(binY) + 1;
-        int xGenomeEnd = xGridAxis.getGenomicEnd(binX);
-        int yGenomeEnd = yGridAxis.getGenomicEnd(binY);
-
-        if (!hic.isWholeGenome()) {
-
-            //Update Position in hic. Used for clipboard copy:
-            if (hic.getXContext().getChromosome().getName().toLowerCase().contains("chr")) {
-                hic.setXPosition(hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
-            } else {
-                hic.setXPosition("chr" + hic.getXContext().getChromosome().getName() + ":" + formatter.format(xGenomeStart) + "-" + formatter.format(xGenomeEnd));
-            }
-            if (hic.getYContext().getChromosome().getName().toLowerCase().contains("chr")) {
-                hic.setYPosition(hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
-            } else {
-                hic.setYPosition("chr" + hic.getYContext().getChromosome().getName() + ":" + formatter.format(yGenomeStart) + "-" + formatter.format(yGenomeEnd));
-            }
-
-            //int binX = (int) ((mainWindow.xContext.getOrigin() + e.getX() * mainWindow.xContext.getScale()) / getBinWidth());
-            //int binY = (int) ((mainWindow.yContext.getOrigin() + e.getY() * mainWindow.yContext.getScale()) / getBinWidth());
-            StringBuilder txt = new StringBuilder();
-
-            txt.append("<html><span style='color:#" + topColor + "; font-family: arial; font-size: 12pt; '>");
-            txt.append(hic.getXContext().getChromosome().getName());
-            txt.append(":");
-            txt.append(formatter.format(xGenomeStart));
-            txt.append("-");
-            txt.append(formatter.format(xGenomeEnd));
-
-            if (xGridAxis instanceof HiCFragmentAxis) {
-                String fragNumbers;
-                int binSize = zd.getZoom().getBinSize();
-                if (binSize == 1) {
-                    fragNumbers = formatter.format(binX);
-                } else {
-                    int leftFragment = binX * binSize;
-                    int rightFragment = ((binX + 1) * binSize) - 1;
-                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
-                }
-                txt.append("  (");
-                txt.append(fragNumbers);
-                txt.append("  len=");
-                txt.append(formatter.format(xGenomeEnd - xGenomeStart));
-                txt.append(")");
-            }
-
-            txt.append("</span><br><span style='color:#" + leftColor + "; font-family: arial; font-size: 12pt; '>");
-            txt.append(hic.getYContext().getChromosome().getName());
-            txt.append(":");
-            txt.append(formatter.format(yGenomeStart));
-            txt.append("-");
-            txt.append(formatter.format(yGenomeEnd));
-
-            if (yGridAxis instanceof HiCFragmentAxis) {
-                String fragNumbers;
-                int binSize = zd.getZoom().getBinSize();
-                if (binSize == 1) {
-                    fragNumbers = formatter.format(binY);
-                } else {
-                    int leftFragment = binY * binSize;
-                    int rightFragment = ((binY + 1) * binSize) - 1;
-                    fragNumbers = formatter.format(leftFragment) + "-" + formatter.format(rightFragment);
-                }
-                txt.append("  (");
-                txt.append(fragNumbers);
-                txt.append("  len=");
-                txt.append(formatter.format(yGenomeEnd - yGenomeStart));
-                txt.append(")");
-            }
-            txt.append("</span><span style='font-family: arial; font-size: 12pt;'>");
-
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
-                float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
-                if (!Float.isNaN(value)) {
-
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("value = ");
-                    txt.append(value);
-                    txt.append("</span>");
-
-                }
-            } else {
-                float value = hic.getNormalizedObservedValue(binX, binY);
-                if (!Float.isNaN(value)) {
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("observed value = ");
-                    txt.append(getFloatString(value));
-                    txt.append("</span>");
-                }
-
-                int c1 = hic.getXContext().getChromosome().getIndex();
-                int c2 = hic.getYContext().getChromosome().getIndex();
-                double ev = 0;
-                if (c1 == c2) {
-                    ExpectedValueFunction df = hic.getExpectedValues();
-                    if (df != null) {
-                        int distance = Math.abs(binX - binY);
-                        ev = df.getExpectedValue(c1, distance);
-                    }
-                } else {
-                    ev = zd.getAverageCount();
-                }
-
-                String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-                txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                txt.append("expected value = ");
-                txt.append(evString);
-                txt.append("</span>");
-                if (ev > 0 && !Float.isNaN(value)) {
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("O/E            = ");
-                    txt.append(formatter.format(value / ev));
-                    txt.append("</span>");
-                } else {
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("O/E            = NaN");
-                    txt.append("</span>");
-                }
-
-                MatrixZoomData controlZD = hic.getControlZd();
-                if (controlZD != null) {
-                    float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
-                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("control value = ");
-                    txt.append(getFloatString(controlValue));
-                    txt.append("</span>");
-
-                    double obsValue = (value / zd.getAverageCount());
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("observed/average = ");
-                    txt.append(getFloatString((float) obsValue));
-                    txt.append("</span>");
-
-                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("control/average = ");
-                    txt.append(getFloatString((float) ctlValue));
-                    txt.append("</span>");
-
-                    if (value > 0 && controlValue > 0) {
-                        double ratio = obsValue / ctlValue;
-                        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append("O'/C' = ");
-                        txt.append(getFloatString((float) ratio));
-                        txt.append("</span>");
-                    }
-                }
-            }
-
-            for (Pair<Rectangle, Feature2D> loop : hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                    x, y, NUM_NEIGHBORS)) {
-                if (loop.getFirst().contains(x, y)) {
-                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(loop.getSecond().tooltipText());
-                    txt.append("</span>");
-
-                }
-            }
-
-            txt.append("</html>");
-            return txt.toString();
-        }
-
-        return null;
-    }*/
 
     private String getFloatString(float value) {
         String valueString;

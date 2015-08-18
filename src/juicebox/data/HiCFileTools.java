@@ -222,15 +222,6 @@ public class HiCFileTools {
         String token2 = token.toLowerCase().replaceAll("chr", "");
         String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
         return token2.equals(chrName);
-
-
-        /* TODO pretty sure code commented is redundant alternative, verify accuracy
-            if (token.toLowerCase().equals(chr.getName().toLowerCase()) ||
-                    String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) ||
-                    token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
-                return chr;
-        */
-
     }
 
     /**

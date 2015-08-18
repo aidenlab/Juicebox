@@ -46,25 +46,30 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * TODO - once fully debugged, change notation convention from underscore to camelcase (match the rest of the files)
+ * Aggregate Peak Analysis developed by mhuntley
+ * (AKA PSEA - peak set enrichment analysis)
+ *
+ * @author mshamim
  */
 public class APA extends JuiceboxCLT {
 
     public static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;
     private String[] files;
+
     //defaults
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
     private Set<String> givenChromosomes = null;
-    //int peakwidth = 2; //for enrichment calculation of crosshair norm
     private int[] resolutions = new int[]{25000, 10000};
 
-    // PSEA - peak set enrichment analysis
+    /**
+     * Usage for APA
+     */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
-        HiCGlobals.useCache = false;
+        HiCGlobals.useCache = false; // TODO fix memory leak of contact records in cache (dataset?)
     }
 
     @Override

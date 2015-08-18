@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
@@ -54,6 +55,7 @@ public class Arrowhead extends JuiceboxCLT {
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");
+        HiCGlobals.useCache = false;
     }
 
     @Override

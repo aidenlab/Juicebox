@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
@@ -84,6 +85,7 @@ public class HiCCUPS extends JuiceboxCLT {
 
     public HiCCUPS() { //TODO fdr, window, peakwidth flags
         super("hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <finalLoopsList>");
+        HiCGlobals.useCache = false;
         // also
         // hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>
     }
@@ -155,7 +157,9 @@ public class HiCCUPS extends JuiceboxCLT {
         if (dataShouldBePostProcessed) {
             for (int res : looplists.keySet()) {
                 pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+                looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_pre", false);
                 HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
+                looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post", false);
             }
 
             Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);

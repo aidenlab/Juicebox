@@ -324,7 +324,6 @@ public class MainMenuBar {
         annotationsMenu.add(customAnnotationMenu);
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
-
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {

@@ -28,7 +28,6 @@ import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Range;
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.Block;
@@ -57,9 +56,6 @@ import java.util.Map;
  */
 class HeatmapRenderer {
 
-    // TODO -- introduce a "model" in lieu of MainWindow pointer
-
-    private final MainWindow mainWindow;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
@@ -67,8 +63,7 @@ class HeatmapRenderer {
     private ContinuousColorScale observedColorScale;
     private Color curHiCColor = Color.white;
 
-    public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
-        this.mainWindow = mainWindow;
+    public HeatmapRenderer() {
 
         oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();

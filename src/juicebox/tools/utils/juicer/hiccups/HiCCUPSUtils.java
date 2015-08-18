@@ -204,7 +204,7 @@ public class HiCCUPSUtils {
             int r = 0;
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
-                System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
+                //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
                 if (hypotenuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
                     pixelList.add(px);
                     pixelListX = mean(pixelList, 1);
