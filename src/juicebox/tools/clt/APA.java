@@ -139,8 +139,7 @@ public class APA extends JuiceboxCLT {
             final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
 
-            Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes,
-                    true, minPeakDist, maxPeakDist, resolution, false,
+            Feature2DList loopList = Feature2DParser.parseLoopFile(files[1], chromosomes, true, false,
                     new FeatureFilter() {
                         // Remove duplicates and filters by size
                         // also save internal metrics for these measures

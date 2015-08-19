@@ -160,7 +160,7 @@ public class Feature2DHandler {
             return;
         }
 
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true, null);
+        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, true, null);
         loopLists.put(path, newList);
         remakeRTree();
     }

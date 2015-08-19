@@ -186,7 +186,7 @@ public class SuperAdapter {
 
     public CustomAnnotation generateNewCustomAnnotation(File temp, String s) {
         return new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
-                hic.getChromosomes(), false, 0, 0, 0, true, null), s);
+                hic.getChromosomes(), false, true, null), s);
     }
 
     public int clearCustomAnnotationDialog() {

@@ -47,7 +47,6 @@ public class Feature2DParser {
 
     public static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
                                               boolean generateAPAFiltering,
-                                              double minPeakDist, double maxPeakDist, int resolution,
                                               boolean loadAttributes, FeatureFilter apaFilter) {
 
         Feature2DList newList = new Feature2DList();
