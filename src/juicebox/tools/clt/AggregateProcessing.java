@@ -25,9 +25,17 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.tools.HiCTools;
+import juicebox.HiCGlobals;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
+import org.broad.igv.feature.Chromosome;
 
+import java.awt.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created for testing multiple CLTs at once
@@ -51,6 +59,36 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/j3/out8/loops"};
 
-        HiCTools.main(l7);
+        //HiCTools.main(l7);
+
+        HiCGlobals.useCache = false;
+
+        String file = "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic";
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+
+        Set<String> chrs = new HashSet<String>();
+        chrs.add("22");
+        // select zoom level closest to the requested one
+
+        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chrs, commonChromosomes));
+
+        Feature2DList loopList5000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_5000_pre", commonChromosomes, true, null);
+        Feature2DList loopList10000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_10000_pre", commonChromosomes, true, null);
+        Feature2DList loopList25000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_25000_pre", commonChromosomes, true, null);
+
+        loopList5000.setColor(Color.black);
+        loopList10000.setColor(Color.black);
+        loopList25000.setColor(Color.black);
+
+        Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
+        looplists.put(5000, loopList5000);
+        looplists.put(10000, loopList10000);
+        looplists.put(25000, loopList25000);
+
+
+        HiCCUPS.postProcess(looplists, ds, commonChromosomes, "/Users/muhammadsaadshamim/Desktop/j3/out8/L00PS");
+
+
     }
 }

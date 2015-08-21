@@ -55,7 +55,7 @@ public class HiCCUPS extends JuiceboxCLT {
 
     public static final int regionMargin = 20;
     public static final int krNeighborhood = 5;
-    public static final int originalPixelClusterRadius = 20000; //TODO --> 10000?
+    public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
     public static final Color defaultPeakColor = Color.cyan;
     public static final boolean shouldColorBeScaledByFDR = false;
     public static final double fdrsum = 0.02;
@@ -71,7 +71,7 @@ public class HiCCUPS extends JuiceboxCLT {
     private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
     private static final int window = 3;
     private static final int peakWidth = 1;
-    public static int pixelClusterRadius = originalPixelClusterRadius;
+    public static double pixelClusterRadius = originalPixelClusterRadius;
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
@@ -92,6 +92,38 @@ public class HiCCUPS extends JuiceboxCLT {
 
     private static int divisor() {
         return (window - peakWidth) * (window + peakWidth);
+    }
+
+    public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
+                                   List<Chromosome> commonChromosomes, String outputFinalLoopListFileName) {
+        for (int res : looplists.keySet()) {
+            pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_pre_20", false);
+
+            // printing
+            System.out.println(res);
+            System.out.println(looplists.get(res));
+            System.out.println(looplists.get(res).getNumTotalFeatures());
+
+            HiCCUPSUtils.removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
+            looplists.get(res).setColor(Color.black);
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_21", false);
+
+            // printing
+            System.out.println(looplists.get(res));
+            System.out.println(looplists.get(res).getNumTotalFeatures());
+
+            HiCCUPSUtils.coalesceFeaturesToCentroid(looplists.get(res), res);
+
+            // printing
+            System.out.println(looplists.get(res));
+            System.out.println(looplists.get(res).getNumTotalFeatures());
+            looplists.get(res).setColor(Color.black);
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_22", false);
+        }
+
+        Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);
+        finalList.exportFeatureList(outputFinalLoopListFileName, false);
     }
 
     @Override
@@ -155,15 +187,7 @@ public class HiCCUPS extends JuiceboxCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            for (int res : looplists.keySet()) {
-                pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
-                looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_pre", false);
-                HiCCUPSUtils.postProcessLoops(looplists.get(res), res, ds, commonChromosomes);
-                looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post", false);
-            }
-
-            Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);
-            finalList.exportFeatureList(outputFinalLoopListFileName, false);
+            postProcess(looplists, ds, commonChromosomes, outputFinalLoopListFileName);
         }
     }
 

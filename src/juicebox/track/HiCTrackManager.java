@@ -116,6 +116,7 @@ public class HiCTrackManager {
 
                 if (locator.getType() != null && locator.getType().equals("loop")) {
                     try {
+                        System.out.println("Loading invis " + locator.getPath());
                         hic.setLoopsInvisible(locator.getPath());
                     } catch (Exception e2) {
                         log.error("Error while making loops invisible ", e2);

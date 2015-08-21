@@ -161,20 +161,21 @@ public class Feature2DList {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
 
             Feature2D featureZero = extractSingleFeature();
-            outputFile.println(featureZero.getOutputFileHeader());
+            if (featureZero != null) {
+                outputFile.println(featureZero.getOutputFileHeader());
 
-            processLists(new FeatureFunction() {
-                @Override
-                public void process(String chr, List<Feature2D> feature2DList) {
-                    for (Feature2D feature : feature2DList) {
-                        if (useOldHiccupsOutput)
-                            outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                        else
-                            outputFile.println(feature);
+                processLists(new FeatureFunction() {
+                    @Override
+                    public void process(String chr, List<Feature2D> feature2DList) {
+                        for (Feature2D feature : feature2DList) {
+                            if (useOldHiccupsOutput)
+                                outputFile.println(HiCCUPSUtils.oldOutput(feature));
+                            else
+                                outputFile.println(feature);
+                        }
                     }
-                }
-            });
-
+                });
+            }
             outputFile.close();
 
             return 0;
@@ -222,6 +223,7 @@ public class Feature2DList {
      */
     public Feature2D extractSingleFeature() {
         for (List<Feature2D> features : featureList.values()) {
+            System.out.println("List1 Size " + features.size());
             for (Feature2D feature : features) {
                 return feature;
             }
@@ -388,7 +390,7 @@ public class Feature2DList {
      *
      * @return keySet
      */
-    private Set<String> getKeySet() {
+    public Set<String> getKeySet() {
         return featureList.keySet();
     }
 
@@ -554,5 +556,13 @@ public class Feature2DList {
      */
     private boolean containsKey(String key) {
         return featureList.containsKey(key);
+    }
+
+    public int getNumTotalFeatures() {
+        int total = 0;
+        for (List<Feature2D> chrList : featureList.values()) {
+            total += chrList.size();
+        }
+        return total;
     }
 }

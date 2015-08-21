@@ -132,14 +132,16 @@ public class HiCCUPSUtils {
                 + "\t" + feature.getAttribute(FDRV);
     }
 
-    public static void postProcessLoops(Feature2DList list, final int resolution,
-                                        final Dataset ds, final List<Chromosome> chromosomes) {
+
+    public static void removeLowMapQFeatures(Feature2DList list, final int resolution,
+                                             final Dataset ds, final List<Chromosome> chromosomes) {
 
         final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
         for (Chromosome chr : chromosomes) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
 
+        System.out.println("Initial: " + list.getNumTotalFeatures());
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
@@ -147,12 +149,44 @@ public class HiCCUPSUtils {
             }
         });
 
+    }
+
+    /*public static void postProcessLoops(Feature2DList list, final int resolution,
+                                        final Dataset ds, final List<Chromosome> chromosomes) {
+
+        final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
+        for (Chromosome chr : chromosomes) {
+            chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
+        }
+
+        System.out.println("Initial: " + list.getNumTotalFeatures());
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList);
+            }
+        });
+
+        //System.out.println("F1: " + list.getNumTotalFeatures());
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
                 return coalescePixelsToCentroid(resolution, feature2DList);
             }
         });
+        //System.out.println("F2: " + list.getNumTotalFeatures());
+    }*/
+
+    public static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution) {
+
+        //System.out.println("F1: " + list.getNumTotalFeatures());
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return coalescePixelsToCentroid(resolution, feature2DList);
+            }
+        });
+        //System.out.println("F2: " + list.getNumTotalFeatures());
     }
 
 
@@ -188,6 +222,7 @@ public class HiCCUPSUtils {
 
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(feature2DList);
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
+        double r = 0;
 
         while (!featureLL.isEmpty()) {
 
@@ -201,7 +236,7 @@ public class HiCCUPSUtils {
             int pixelListX = pixel.getStart1();
             int pixelListY = pixel.getStart2();
 
-            int r = 0;
+
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
                 //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
@@ -210,19 +245,31 @@ public class HiCCUPSUtils {
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
 
-                    r = 0;
+                    /*r = 0;
                     for (Feature2D px2 : pixelList) {
-                        int rPrime = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
+                        int rPrime = (int)Math.round(hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2()));
                         if (rPrime > r)
                             r = rPrime;
+                    }*/
+                    List<Double> distances = new ArrayList<Double>();
+                    for (Feature2D px2 : pixelList) {
+                        double dist = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
+                        if (Double.isNaN(dist)) {
+                            System.err.println("Invalid distance while merging centroid");
+                            System.exit(-9);
+                        }
+                        distances.add(dist);
                     }
+                    //System.out.println("Radii "+distances);
+                    r = Math.round(Collections.max(distances));
+
                     HiCCUPS.pixelClusterRadius = HiCCUPS.originalPixelClusterRadius + r;
                 }
             }
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            pixel.addIntAttribute(RADIUS, r);
+            pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
@@ -234,9 +281,11 @@ public class HiCCUPSUtils {
                 featureLL.remove(px);
             }
 
+
             setPixelColor(pixel);
             if (fdrThresholdsSatisfied(pixel))
                 coalesced.add(pixel);
+            //System.out.println((int) Math.round(r));
         }
 
         return coalesced;
@@ -271,6 +320,9 @@ public class HiCCUPSUtils {
         float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
         float fdrH = pixel.getFloatAttribute(FDRH);
         float fdrV = pixel.getFloatAttribute(FDRV);
+        //System.out.println("FDR Process "+pixel);
+        //System.out.println("Collapse "+numCollapsed+" Radius "+pixel.getAttribute(RADIUS));
+
 
         return observed > t2 * expectedBL
                 && observed > t2 * expectedDonut
@@ -292,8 +344,8 @@ public class HiCCUPSUtils {
         return (int) (total / n);
     }
 
-    private static int hypotenuse(int x, int y) {
-        return (int) Math.sqrt(x * x + y * y);
+    private static double hypotenuse(double x, double y) {
+        return Math.sqrt(x * x + y * y);
     }
 
     /**

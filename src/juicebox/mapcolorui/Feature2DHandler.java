@@ -157,11 +157,11 @@ public class Feature2DHandler {
     public void loadLoopList(String path, List<Chromosome> chromosomes) {
         if (loopLists.get(path) != null) {
             loopLists.get(path).setVisible(true);
-            return;
+            System.out.println("Making " + path + " visible");
+        } else {
+            Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, true, null);
+            loopLists.put(path, newList);
         }
-
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, true, null);
-        loopLists.put(path, newList);
         remakeRTree();
     }
 
