@@ -69,7 +69,7 @@ public class Feature2D implements Comparable<Feature2D> {
         this.start2 = start2;
         this.end2 = end2;
         this.color = (c == null ? Color.black : c);
-        setTransluscentColor();
+        setTranslucentColor();
         this.attributes = attributes;
     }
 
@@ -135,10 +135,10 @@ public class Feature2D implements Comparable<Feature2D> {
         this.color = color;
         if (reflection != null)
             reflection.color = color;
-        setTransluscentColor();
+        setTranslucentColor();
     }
 
-    private void setTransluscentColor() {
+    private void setTranslucentColor() {
         translucentColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 50);
         if (reflection != null)
             reflection.translucentColor = translucentColor;
