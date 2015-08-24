@@ -307,7 +307,20 @@ public class MainMenuBar {
         });
         undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
 
+        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
+
+        showCustomLoopsItem.setSelected(true);
+        showCustomLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+
         //Add annotate menu items
+        customAnnotationMenu.add(showCustomLoopsItem);
         customAnnotationMenu.add(exportAnnotationsMI);
         customAnnotationMenu.add(exportOverlapMI);
         customAnnotationMenu.add(mergeVisibleMI);
@@ -324,7 +337,9 @@ public class MainMenuBar {
         annotationsMenu.add(customAnnotationMenu);
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
-        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show 2D Annotations");
+
+        final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
+        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {
             @Override
@@ -334,9 +349,8 @@ public class MainMenuBar {
             }
         });
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-        annotationsMenu.add(showLoopsItem);
 
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Enable Sparse 2D Plotting");
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse");
         toggleSparse2DFeaturePlotting.setSelected(false);
         toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
             @Override
@@ -346,10 +360,9 @@ public class MainMenuBar {
             }
         });
         // TODO hotkey?
-        annotationsMenu.add(toggleSparse2DFeaturePlotting);
 
 
-        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge 2D Features");
+        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
         enlarge2DFeatures.setSelected(false);
         enlarge2DFeatures.addActionListener(new ActionListener() {
             @Override
@@ -359,24 +372,25 @@ public class MainMenuBar {
             }
         });
         // TODO hotkey?
-        annotationsMenu.add(enlarge2DFeatures);
 
-        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
-
-        showCustomLoopsItem.setSelected(true);
-        showCustomLoopsItem.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
+        toggle2DFeatureOpacity.setSelected(false);
+        toggle2DFeatureOpacity.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                superAdapter.toggleFeatureOpacity(toggle2DFeatureOpacity.isSelected());
                 superAdapter.repaint();
             }
         });
-        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+        // TODO hotkey?
 
-        annotationsMenu.add(showCustomLoopsItem);
-        // meh
-
+        feature2DPlottingOptions.add(showLoopsItem);
+        feature2DPlottingOptions.add(enlarge2DFeatures);
+        feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
+        annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
+
 
         JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {

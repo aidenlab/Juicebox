@@ -26,6 +26,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
 import java.awt.*;
@@ -56,7 +57,7 @@ public class Feature2D implements Comparable<Feature2D> {
     private Feature2D reflection = null;
     private int end1;
     private int end2;
-    private Color color;
+    private Color color, translucentColor;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -68,6 +69,7 @@ public class Feature2D implements Comparable<Feature2D> {
         this.start2 = start2;
         this.end2 = end2;
         this.color = (c == null ? Color.black : c);
+        setTransluscentColor();
         this.attributes = attributes;
     }
 
@@ -124,6 +126,8 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getColor() {
+        if (Feature2DHandler.isTranslucentPlottingEnabled)
+            return translucentColor;
         return color;
     }
 
@@ -131,6 +135,13 @@ public class Feature2D implements Comparable<Feature2D> {
         this.color = color;
         if (reflection != null)
             reflection.color = color;
+        setTransluscentColor();
+    }
+
+    private void setTransluscentColor() {
+        translucentColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 50);
+        if (reflection != null)
+            reflection.translucentColor = translucentColor;
     }
 
     public String tooltipText() {

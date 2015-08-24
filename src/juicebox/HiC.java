@@ -800,6 +800,10 @@ public class HiC {
         feature2DHandler.enlarge2DFeaturePlotting(status);
     }
 
+    public void toggleFeatureOpacity(boolean status) {
+        feature2DHandler.toggleFeatureOpacity(status);
+    }
+
     public enum Unit {BP, FRAG}
 }
 

@@ -49,6 +49,7 @@ public class Feature2DHandler {
 
     //private static final float MAX_DIST_NEIGHBOR = 1000f;
     private static final int offsetPX = 4;
+    public static boolean isTranslucentPlottingEnabled = false;
     private static boolean sparseFeaturePlottingEnabled = false, enlargedFeaturePlottingEnabled = false;
     private final Map<String, Feature2DList> loopLists;
     private final Map<String, SpatialIndex> featureRtrees = new HashMap<String, SpatialIndex>();
@@ -275,5 +276,9 @@ public class Feature2DHandler {
 
     public void enlarge2DFeaturePlotting(boolean status) {
         enlargedFeaturePlottingEnabled = status;
+    }
+
+    public void toggleFeatureOpacity(boolean status) {
+        isTranslucentPlottingEnabled = status;
     }
 }

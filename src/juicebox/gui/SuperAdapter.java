@@ -659,4 +659,8 @@ public class SuperAdapter {
     public void enlarge2DFeaturePlotting(boolean status) {
         hic.enlarge2DFeaturePlotting(status);
     }
+
+    public void toggleFeatureOpacity(boolean status) {
+        hic.toggleFeatureOpacity(status);
+    }
 }
