@@ -796,6 +796,10 @@ public class HiC {
         feature2DHandler.setSparseFeaturePlotting(status);
     }
 
+    public void enlarge2DFeaturePlotting(boolean status) {
+        feature2DHandler.enlarge2DFeaturePlotting(status);
+    }
+
     public enum Unit {BP, FRAG}
 }
 

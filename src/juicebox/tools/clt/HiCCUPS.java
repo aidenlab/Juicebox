@@ -98,28 +98,35 @@ public class HiCCUPS extends JuiceboxCLT {
                                    List<Chromosome> commonChromosomes, String outputFinalLoopListFileName) {
         for (int res : looplists.keySet()) {
             pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+
+            looplists.get(res).addAttributeFieldToAll("Resolution", "" + res);
             looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_pre_20", false);
 
             // printing
-            System.out.println(res);
-            System.out.println(looplists.get(res));
-            System.out.println(looplists.get(res).getNumTotalFeatures());
+            System.out.println("X0 " + res);
+            System.out.println("X0 " + looplists.get(res));
+            System.out.println("X0 " + looplists.get(res).getNumTotalFeatures());
 
             HiCCUPSUtils.removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
-            looplists.get(res).setColor(Color.black);
-            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_21", false);
-
             // printing
-            System.out.println(looplists.get(res));
-            System.out.println(looplists.get(res).getNumTotalFeatures());
+            System.out.println("X1 " + looplists.get(res));
+            System.out.println("X1 " + looplists.get(res).getNumTotalFeatures());
+            looplists.get(res).setColor(Color.black);
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_221", false);
 
             HiCCUPSUtils.coalesceFeaturesToCentroid(looplists.get(res), res);
-
             // printing
-            System.out.println(looplists.get(res));
-            System.out.println(looplists.get(res).getNumTotalFeatures());
-            looplists.get(res).setColor(Color.black);
-            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_22", false);
+            System.out.println("X2 " + looplists.get(res));
+            System.out.println("X2 " + looplists.get(res).getNumTotalFeatures());
+            looplists.get(res).setColor(Color.darkGray);
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_222", false);
+
+            HiCCUPSUtils.filterOutFeaturesByFDR(looplists.get(res));
+            // printing
+            System.out.println("X3 " + looplists.get(res));
+            System.out.println("X3 " + looplists.get(res).getNumTotalFeatures());
+            looplists.get(res).setColor(Color.green);
+            looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_223", false);
         }
 
         Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);

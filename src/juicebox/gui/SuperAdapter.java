@@ -655,4 +655,8 @@ public class SuperAdapter {
     public void setSparseFeaturePlotting(boolean status) {
         hic.setSparseFeaturePlotting(status);
     }
+
+    public void enlarge2DFeaturePlotting(boolean status) {
+        hic.enlarge2DFeaturePlotting(status);
+    }
 }

@@ -314,15 +314,16 @@ public class Feature2D implements Comparable<Feature2D> {
     public int compareTo(Feature2D o) {
         // highest observed point ordering needed for hiccups sorting
         if (attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
-            return (int) (Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
+            return Math.round(Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
         }
         // technically chr1/2 should be checked before observed val
-        int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1, start2 - o.start2, end1 - o.end1, end2 - o.end2};
+        int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
+                start2 - o.start2, end1 - o.end1, end2 - o.end2};
         for (int i : comparisons) {
             if (i != 0)
                 return i;
         }
-        return comparisons[3];
+        return 0;
     }
 
     public boolean isOnDiagonal() {

@@ -1,0 +1,300 @@
+--------------
+About Juicer
+--------------
+Juicer is a platform for analyzing kilobase resolution Hi-C data.
+This distribution consists of a pipeline for generating Hi-C maps from
+fasta/fatsq reads and includes algorithms for analyzing features found
+in Hi-C data.
+
+----------------------
+Example for Reviewers
+----------------------
+We've provided a step-by-step guide to showcase some of the features of
+Juicer.
+
+[Pipeline]
+
+
+[APA]
+
+
+[Arrowhead]
+
+
+[Clustering]
+
+
+[HiCCUPS - Loop Calling]
+NOTE: For Loop calling, you will need NVIDIA GPUs with a working installation
+of CUDA. Some Macs come prebuilt with NVIDIA GPUs. You may also be able to
+obtain access to GPU clusters through Amazon AWS or a local research institution.
+See Installation instructions below.
+
+[HiCCUPS - Motif Finder]
+NOTE:
+
+
+
+
+------------
+Distribution
+------------
+The files included in this distribution are as follows:
+* README
+* Juicebox_CLT.jar, juicebox (executable), and juicebox.bat (executable)
+* build.xml and juicebox.properties (for compilation from source)
+* src (directory containing source code)
+* lib (directory containing native libraries for compilation)
+* data (directory containing test data)
+
+----------------------------------
+Hardware and Software Requirements
+----------------------------------
+The minimum software requirement to run Juicer is a working Java installation
+(version > 1.6) on Windows, Linux, and Mac OSX.  We recommend using the latest
+Java version available, but please do not use the Java Beta Version. Minimum
+system requirements for running Java can be found at
+>>  http://java.com/en/download/help/sysreq.xml
+
+To download and install the latest
+Java Runtime Environment (JRE), please go to
+>>  http://www.java.com/download
+
+For running the HiCCUPS loop caller, you will need:
+>> NVIDIA GPUs
+>> CUDA - you can install CUDA 7 from
+>>>> https://developer.nvidia.com/cuda-downloads
+
+For running the HiCCUPS motif finder, you will need:
+>> BedTools, available at
+>>>> http://bedtools.readthedocs.org/en/latest/content/installation.html
+>> FIMO (Find Individual Motif Occurrences), available at
+>>>> [installation process...]
+
+We recommend having at least 2GB free RAM for the best user experience with
+Juicer.
+
+To launch the command line tools, run the shell script “juicebox” on Unix or
+MacOS, run the batch script "juicebox.bat" on Windows, or type
+  java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar (command...)
+  		[flags...] <parameters...>
+
+Note:
+> the -Xms512m flag sets the minimum memory heap size at 512 megabytes, and
+  the -Xmx2048m flag sets the maximum size at 2048 megabytes (2 gigabytes). These
+  values may be adjusted as appropriate for your machine.
+> for HiCCUPS loop calling without the shell or bat script,
+  you will need to call:
+    java -Xms512m -Xmx2048m -Djava.library.path=path/to/natives/
+  		-jar Juicebox_CLT.jar hiccups [flags...] <parameters...>
+  where path/to/natives is the path to the native libraries used for Jcuda
+  By default, these are located in the lib/jcuda folder.
+
+
+-------------
+Documentation
+-------------
+We have extensive documentation for how to use Juicer at
+//TODO http://www.aidenlab.org/juicer/ including a detailed tutorial.
+
+------------------------
+Command Line Tools Usage
+------------------------
+In the command line tools, there are 5 functions:
+> "apa" for conducting aggregate peak analysis
+> "hiccups" for annotating loops
+> "hiccups_motif" for finding CTCF motifs
+> "arrowhead" for annotating contact domains
+> "cluster" for clustering the hic data
+
+The "juicebox" (Mac/Linux) and "juicebox.bat" (Windows) script can be
+used in place of the unwieldy
+"java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar"
+
+Running the command line tools without any arguments produces the following
+usage message:
+Juicebox Command Line Tools Usage:
+  juicebox dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>
+  juicebox pre <options> <infile> <outfile> <genomeID>
+<options>: -d only calculate intra chromosome (diagonal) [false]
+  : -f <restriction site file> calculate fragment map
+  : -m <int> only write cells with count above threshold m [0]
+  : -q <int> filter by MAPQ score greater than or equal to q
+  : -c <chromosome ID> only calculate map on specific chromosome
+  : -h print help
+
+---
+APA
+---
+The "apa" command takes three required arguments and a number of optional
+arguments.
+
+apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
+		<HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
+
+The required arguments are:
+
+<hic file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
+  load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+  use the '+' symbol between the addresses (no whitespace between addresses)
+
+The optional arguments are:
+  -r resolution at which to conduct APA; multiple resolutions can be specified using commas [false]
+  -m <int> Only write cells with count above threshold m [0]
+  -q <int> Filter by MAPQ score greater than or equal to q [not set]
+  -c <chromosome ID> Only calculate map on specific chromosome
+Default settings:
+
+
+------------
+APA Examples
+------------
+
+apa HIC006.hic all_loops.txt results1
+> This command will run APA on HIC006 using loops from the all_loops files
+> and save them under the results1 folder.
+
+apa https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
+		all_loops.txt results1
+> This command will run APA on the GM12878 mega map using loops from the all_loops
+> files
+> and save them under the results1 folder.
+
+apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
+> This command will run APA at 50 kB resolution on chromosomes 17 and 18 for the
+> summed HiC maps (HIC006 and HIC007) using loops from the all_loops files
+> and save them under the results folder
+
+
+-------
+HiCCUPS
+-------
+
+hiccups [-r resolution] [-c chromosome] [-m matrixSize] [-f fdr] [-w window] [-p peak width] <hicFile> <finalLoopsList>
+
+----------------
+HiCCUPS Examples
+----------------
+
+---------
+Arrowhead
+---------
+
+arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>
+
+------------------
+Arrowhead Examples
+------------------
+
+-----------------------
+Clustering (Eventually)
+-----------------------
+
+-------------------
+Clustering Examples
+-------------------
+
+
+
+
+--------------------------------
+Compiling Jars from Source Files
+--------------------------------
+1. You should have Java 1.8 JDK and Apache Ant installed on your system. See
+   below for more information.
+2. Go to the folder containing the Juicebox source files and edit the
+   juicebox.properties file with the proper Java JDK Address.
+3. Open the command line, navigate to the folder containing the build.xml file
+   and type
+     ant
+   The process should take no more than a minute to build on most machines.
+4. The jars are written to the directory out/.  You can change this by editing
+   the build.xml file.
+
+--------------------------------
+Installation Help (Dependencies)
+--------------------------------
+
+*
+* Installing CUDA (for HiCCUPS Loop Finding)
+*
+
+Note: You must have an NVIDIA GPU to install CUDA
+Mac
+  ?
+
+Windows
+  ?
+
+Linux
+  ?
+
+*
+* Installing BedTools (for HiCCUPS Motif Finding)
+*
+
+Mac
+  In the command prompt, type
+    apt-get install bedtools
+  or
+    yum install BEDTools
+  depending on your package installer
+
+Windows
+  ?
+
+Linux
+  In the command prompt, type
+    sudo apt-get install bedtools
+  or
+    sudo yum install BEDTools
+  depending on your package installer
+
+*
+* Installing FIMO (for HiCCUPS Motif Finding)
+*
+
+Mac
+  ?
+
+Windows
+  ?
+
+Linux
+  ?
+
+*
+* Installing Java 1.8 JDK (for Compiling from Source Files)
+*
+
+For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
+  http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+(Alternative) For Ubuntu/LinuxMint
+  http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
+
+*
+* Installing Apache Ant (for Compiling from Source Files)
+*
+
+Mac
+  Ant should be installed on most Macs. To verify installation via the command
+  prompt, type
+    ant -version
+  If Ant is not on your Mac, install it via homebrew. At the command prompt, type
+    brew update
+    brew install ant
+  You may need to install Homebrew (http://brew.sh/) on your machine
+  See the following Stackoverflow post for more details:
+  http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
+
+Windows
+  Installing Ant requires some minor changes to your system environment. Follow
+  the instructions in this article:
+  http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
+
+Linux
+  In the command prompt, type
+    brew install bedtools
+  or
+    port install bedtools
+  depending on your package installer

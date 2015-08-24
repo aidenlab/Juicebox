@@ -47,11 +47,13 @@ import java.util.Map;
  */
 public class Feature2DHandler {
 
+    //private static final float MAX_DIST_NEIGHBOR = 1000f;
+    private static final int offsetPX = 4;
+    private static boolean sparseFeaturePlottingEnabled = false, enlargedFeaturePlottingEnabled = false;
     private final Map<String, Feature2DList> loopLists;
     private final Map<String, SpatialIndex> featureRtrees = new HashMap<String, SpatialIndex>();
     private final Map<String, List<Feature2D>> allFeaturesAcrossGenome = new HashMap<String, List<Feature2D>>();
-    private boolean showLoops, sparseFeaturePlottingEnabled;
-    //private static final float MAX_DIST_NEIGHBOR = 1000f;
+    private boolean showLoops = true;
 
 
     public Feature2DHandler() {
@@ -67,10 +69,17 @@ public class Feature2DHandler {
         int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
         int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
 
-        int x = (int) ((binStart1 - binOriginX) * scaleFactor);
-        int y = (int) ((binStart2 - binOriginY) * scaleFactor);
-        int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
-        int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+        // option to draw larger rectangles for ease of viewing
+        int offset = 0, offsetDoubled = 0;
+        if (enlargedFeaturePlottingEnabled) {
+            offset = offsetPX;
+            offsetDoubled = offsetPX + offsetPX;
+        }
+
+        int x = (int) ((binStart1 - binOriginX) * scaleFactor) - offset;
+        int y = (int) ((binStart2 - binOriginY) * scaleFactor) - offset;
+        int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1)) + offsetDoubled;
+        int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2)) + offsetDoubled;
 
         return new Rectangle(x, y, w, h);
     }
@@ -261,6 +270,10 @@ public class Feature2DHandler {
     }
 
     public void setSparseFeaturePlotting(boolean status) {
-        this.sparseFeaturePlottingEnabled = status;
+        sparseFeaturePlottingEnabled = status;
+    }
+
+    public void enlarge2DFeaturePlotting(boolean status) {
+        enlargedFeaturePlottingEnabled = status;
     }
 }

@@ -151,42 +151,32 @@ public class HiCCUPSUtils {
 
     }
 
-    /*public static void postProcessLoops(Feature2DList list, final int resolution,
-                                        final Dataset ds, final List<Chromosome> chromosomes) {
-
-        final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
-        for (Chromosome chr : chromosomes) {
-            chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
-        }
-
-        System.out.println("Initial: " + list.getNumTotalFeatures());
-        list.filterLists(new FeatureFilter() {
-            @Override
-            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList);
-            }
-        });
-
-        //System.out.println("F1: " + list.getNumTotalFeatures());
-        list.filterLists(new FeatureFilter() {
-            @Override
-            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return coalescePixelsToCentroid(resolution, feature2DList);
-            }
-        });
-        //System.out.println("F2: " + list.getNumTotalFeatures());
-    }*/
-
     public static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution) {
-
-        //System.out.println("F1: " + list.getNumTotalFeatures());
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
                 return coalescePixelsToCentroid(resolution, feature2DList);
             }
         });
-        //System.out.println("F2: " + list.getNumTotalFeatures());
+    }
+
+
+    public static void filterOutFeaturesByFDR(Feature2DList list) {
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return fdrThreshold(feature2DList);
+            }
+        });
+    }
+
+    private static List<Feature2D> fdrThreshold(List<Feature2D> feature2DList) {
+        List<Feature2D> filtered = new ArrayList<Feature2D>();
+        for (Feature2D feature : feature2DList) {
+            if (fdrThresholdsSatisfied(feature))
+                filtered.add(feature);
+        }
+        return filtered;
     }
 
 
@@ -220,16 +210,19 @@ public class HiCCUPSUtils {
      */
     private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList) {
 
-        LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(feature2DList);
+        // HashSet intermediate for removing duplicates; LinkedList used so that we can pop out highest obs values
+        LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
         double r = 0;
 
         while (!featureLL.isEmpty()) {
 
+            // See Feature2D
             Collections.sort(featureLL);
             Collections.reverse(featureLL);
 
             Feature2D pixel = featureLL.pollFirst();
+            featureLL.remove(pixel);
             List<Feature2D> pixelList = new ArrayList<Feature2D>();
             pixelList.add(pixel);
 
@@ -283,9 +276,7 @@ public class HiCCUPSUtils {
 
 
             setPixelColor(pixel);
-            if (fdrThresholdsSatisfied(pixel))
-                coalesced.add(pixel);
-            //System.out.println((int) Math.round(r));
+            coalesced.add(pixel);
         }
 
         return coalesced;
@@ -308,8 +299,8 @@ public class HiCCUPSUtils {
         double t2 = HiCCUPS.oeThreshold2;
         double t3 = HiCCUPS.oeThreshold3;
 
-        int observed = (int) pixel.getFloatAttribute(OBSERVED);
-        int numCollapsed = (int) pixel.getFloatAttribute(NUMCOLLAPSED);
+        int observed = Math.round(pixel.getFloatAttribute(OBSERVED));
+        int numCollapsed = Math.round(pixel.getFloatAttribute(NUMCOLLAPSED));
 
         float expectedBL = pixel.getFloatAttribute(EXPECTEDBL);
         float expectedDonut = pixel.getFloatAttribute(EXPECTEDDONUT);
@@ -323,12 +314,11 @@ public class HiCCUPSUtils {
         //System.out.println("FDR Process "+pixel);
         //System.out.println("Collapse "+numCollapsed+" Radius "+pixel.getAttribute(RADIUS));
 
-
-        return observed > t2 * expectedBL
-                && observed > t2 * expectedDonut
-                && observed > t1 * expectedH
-                && observed > t1 * expectedV
-                && (observed > t3 * expectedBL || observed > t3 * expectedDonut)
+        return observed > (t2 * expectedBL)
+                && observed > (t2 * expectedDonut)
+                && observed > (t1 * expectedH)
+                && observed > (t1 * expectedV)
+                && (observed > (t3 * expectedBL) || observed > (t3 * expectedDonut))
                 && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f);
     }
 

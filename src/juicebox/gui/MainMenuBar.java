@@ -345,8 +345,21 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+        // TODO hotkey?
         annotationsMenu.add(toggleSparse2DFeaturePlotting);
+
+
+        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge 2D Features");
+        enlarge2DFeatures.setSelected(false);
+        enlarge2DFeatures.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.enlarge2DFeaturePlotting(enlarge2DFeatures.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        // TODO hotkey?
+        annotationsMenu.add(enlarge2DFeatures);
 
         final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show Custom Annotations");
 

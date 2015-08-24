@@ -59,15 +59,11 @@ class FeatureRenderer {
 
                 g2.setColor(feature.getColor());
 
-                int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
-                int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
-                int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
-                int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
-
-                int x = (int) ((binStart1 - binOriginX) * scaleFactor);
-                int y = (int) ((binStart2 - binOriginY) * scaleFactor);
-                int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
-                int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
+                Rectangle rect = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scaleFactor);
+                int x = (int) rect.getX();
+                int y = (int) rect.getY();
+                int w = (int) rect.getWidth();
+                int h = (int) rect.getHeight();
 
 
                 if (onlyPlotLowerLeft) {
