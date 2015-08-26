@@ -155,4 +155,94 @@ public class Feature2DParser {
         feature2DList.add(scoreList.toFeature2DList(chrIndex, chrName));
         return feature2DList;
     }
+
+    public static Feature2DList parseHiCCUPSLoopFile(String path, List<Chromosome> chromosomes,
+                                                     boolean loadAttributes) {
+        Feature2DList newList = new Feature2DList();
+        int attCol = 4;
+
+        try {
+            BufferedReader br = ParsingUtils.openBufferedReader(path);
+            String nextLine;
+
+            // header
+            nextLine = br.readLine();
+            String[] headers = Globals.tabPattern.split(nextLine);
+
+            int errorCount = 0;
+            int lineNum = 1;
+            while ((nextLine = br.readLine()) != null) {
+                lineNum++;
+                String[] tokens = Globals.tabPattern.split(nextLine);
+                if (tokens.length > headers.length) {
+                    throw new IOException("Improperly formatted file");
+                }
+                if (tokens.length < 6) {
+                    continue;
+                }
+
+                String chr1Name, chr2Name;
+                int start1, end1, start2, end2;
+                try {
+                    chr1Name = tokens[0];
+                    start1 = Integer.parseInt(tokens[1]);
+                    end1 = start1 + 5000;
+
+                    chr2Name = tokens[2];
+                    start2 = Integer.parseInt(tokens[3]);
+                    end2 = start2 + 5000;
+                } catch (Exception e) {
+                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
+                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
+                }
+
+
+                Color c = Color.black;
+
+                Map<String, String> attrs = new LinkedHashMap<String, String>();
+                if (loadAttributes) {
+                    for (int i = attCol; i < tokens.length; i++) {
+                        attrs.put(headers[i], tokens[i]);
+                    }
+                }
+
+                Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
+                Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
+                if (chr1 == null || chr2 == null) {
+                    if (errorCount < 100) {
+                        System.out.println("Skipping line: " + nextLine);
+                    } else if (errorCount == 100) {
+                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                    }
+
+                    errorCount++;
+                    continue;
+                }
+
+                //int featureNameSepindex = path.lastIndexOf("_");
+                String featureName;// = path.substring(featureNameSepindex + 1);
+
+                if (path.contains("block")) {
+                    featureName = Feature2D.domain;
+                } else if (path.contains("peak")) {
+                    featureName = Feature2D.peak;
+                } else {
+                    featureName = Feature2D.generic;
+                }
+                // Convention is chr1 is lowest "index". Swap if necessary
+                Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
+                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+
+                newList.add(chr1.getIndex(), chr2.getIndex(), feature);
+
+            }
+
+            br.close();
+        } catch (IOException ec) {
+            ec.printStackTrace();
+        }
+
+        return newList;
+    }
 }

@@ -371,6 +371,17 @@ public class Feature2DList {
         });
     }
 
+    public void setAttributeFieldForAll(final String attributeName, final String attributeValue) {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    feature.setAttribute(attributeName, attributeValue);
+                }
+            }
+        });
+    }
+
     /**
      * Simple of exact duplicates (memory address)
      * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
@@ -427,21 +438,25 @@ public class Feature2DList {
         }
     }
 
-    public Feature2DList extractReproducibleCentroids(Feature2DList varList, final int radius) {
+    public Feature2DList extractReproducibleCentroids(Feature2DList secondFeatureList, final int radius) {
 
         final Feature2DList centroids = new Feature2DList();
-        varList.processLists(new FeatureFunction() {
+
+        final Map<String, List<Feature2D>> firstFeatureList = new HashMap<String, List<Feature2D>>(featureList);
+
+        secondFeatureList.processLists(new FeatureFunction() {
             @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                if (featureList.containsKey(chr)) {
-                    List<Feature2D> baseFeatureList = featureList.get(chr);
-                    for (Feature2D f1 : feature2DList) {
-                        for (Feature2D f2 : baseFeatureList) {
+            public void process(String chr, List<Feature2D> secondFeature2DList) {
+                if (firstFeatureList.containsKey(chr)) {
+                    List<Feature2D> base1FeatureList = firstFeatureList.get(chr);
+                    for (Feature2D f2 : secondFeature2DList) {
+                        for (Feature2D f1 : base1FeatureList) {
                             int dx = f1.getStart1() - f2.getStart1();
                             int dy = f1.getStart2() - f2.getStart2();
-                            int d = (int) Math.sqrt(dx * dx + dy * dy);
+                            double d = HiCCUPSUtils.hypotenuse(dx, dy);
                             if (d <= radius) {
-                                centroids.addByKey(chr, f1);
+                                f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
+                                centroids.addByKey(chr, f2);
                                 break;
                             }
                         }
@@ -463,6 +478,7 @@ public class Feature2DList {
                 for (Feature2D f : feature2DList) {
                     int dist = Math.abs(f.getStart1() - f.getStart2());
                     if (dist < radius) {
+                        f.setAttribute(HiCCUPSUtils.nearDiagAttr, "1");
                         peaks.addByKey(chr, f);
                     }
                 }
@@ -482,6 +498,7 @@ public class Feature2DList {
                 for (Feature2D f : feature2DList) {
                     float obs = f.getFloatAttribute(HiCCUPSUtils.OBSERVED);
                     if (obs > limit) {
+                        f.setAttribute(HiCCUPSUtils.StrongAttr, "1");
                         peaks.addByKey(chr, f);
                     }
                 }
@@ -505,6 +522,7 @@ public class Feature2DList {
 
                     for (Feature2D f : feature2DList) {
                         if (!keys.contains(f.getLocationKey())) {
+                            f.setAttribute(HiCCUPSUtils.notNearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }
@@ -537,6 +555,7 @@ public class Feature2DList {
 
                     for (Feature2D f : feature2DList) {
                         if (keys.contains(f.getLocationKey())) {
+                            f.setAttribute(HiCCUPSUtils.nearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }

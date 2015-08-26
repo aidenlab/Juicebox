@@ -25,17 +25,9 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
-import org.broad.igv.feature.Chromosome;
+import juicebox.tools.HiCTools;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
 
 /**
  * Created for testing multiple CLTs at once
@@ -59,9 +51,50 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/j3/out8/loops"};
 
-        //HiCTools.main(l7);
+
+        String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_5000.bin"};
+
+        String[] l52 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_10000.bin"};
+
+        String[] l53 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_25000.bin"};
+
+        String[] l61 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_5000"};
+
+        String[] l62 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_10000"};
+
+        String[] l63 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_25000"};
+
+        String[] l71 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_5000"};
+
+        String[] l72 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_10000"};
+
+        String[] l73 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_25000"};
+
+        HiCTools.main(l51);
+        HiCTools.main(l52);
+        HiCTools.main(l53);
+        HiCTools.main(l61);
+        HiCTools.main(l62);
+        HiCTools.main(l63);
+        HiCTools.main(l71);
+        HiCTools.main(l72);
+        HiCTools.main(l73);
+
+        /*
 
         HiCGlobals.useCache = false;
+
+
+
 
         String file = "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic";
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
@@ -88,6 +121,8 @@ class AggregateProcessing {
 
 
         HiCCUPS.postProcess(looplists, ds, commonChromosomes, "/Users/muhammadsaadshamim/Desktop/j3/out8/L00PS");
+
+        */
 
 
     }
