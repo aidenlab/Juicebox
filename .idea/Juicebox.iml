@@ -12,5 +12,6 @@
     <orderEntry type="library" exported="" name="broadinstitute" level="project" />
     <orderEntry type="library" exported="" name="jcuda" level="project" />
     <orderEntry type="library" exported="" name="general" level="project" />
+    <orderEntry type="library" name="jsi1.1" level="project" />
   </component>
 </module>
