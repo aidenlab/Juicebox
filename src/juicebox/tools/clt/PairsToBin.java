@@ -24,8 +24,8 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.original.AsciiToBinConverter;
 import org.broad.igv.feature.Chromosome;
 
@@ -41,7 +41,7 @@ public class PairsToBin extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
         if (args.length != 4) {
             throw new IOException("1");
         }

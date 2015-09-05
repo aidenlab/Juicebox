@@ -24,13 +24,13 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
@@ -73,7 +73,9 @@ public class APA extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
         if (!(args.length > 3 && args.length < 6)) {
             throw new IOException("1");
@@ -89,19 +91,19 @@ public class APA extends JuiceboxCLT {
         //if (files.length > 4)
         //    restrictionSiteFilename = files[4];
         //[min value, max value, window, resolution]
-        minPeakDist = parser.getAPAMinVal();
+        minPeakDist = juicerParser.getAPAMinVal();
         if (minPeakDist == 0)
             minPeakDist = 30;
 
-        maxPeakDist = parser.getAPAMaxVal();
+        maxPeakDist = juicerParser.getAPAMaxVal();
         if (maxPeakDist == 0)
             maxPeakDist = Double.POSITIVE_INFINITY;
 
-        window = parser.getAPAWindowSizeOption();
+        window = juicerParser.getAPAWindowSizeOption();
         if (window == 0)
             window = 10;
 
-        Set<String> possibleResolutions = parser.getMultipleResolutionOptions();
+        Set<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             resolutions = new int[possibleResolutions.size()];
             int i = 0;
@@ -110,7 +112,7 @@ public class APA extends JuiceboxCLT {
                 i++;
             }
         }
-        givenChromosomes = parser.getChromosomeOption();
+        givenChromosomes = juicerParser.getChromosomeOption();
     }
 
     @Override

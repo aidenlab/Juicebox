@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.BigWigUtils;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class BigWig extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
         //setUsage("juicebox bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
         if (!(args.length == 3 || args.length == 4 || args.length == 6)) {
             throw new IOException("1");
