@@ -24,13 +24,13 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
 import juicebox.windowui.HiCZoom;
@@ -59,7 +59,9 @@ public class Arrowhead extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
         if (args.length != 4) {
             throw new IOException("1");
@@ -71,8 +73,8 @@ public class Arrowhead extends JuiceboxCLT {
         } catch (NumberFormatException error) {
             throw new IOException("1");
         }
-        givenChromosomes = parser.getChromosomeOption();
-        int specifiedMatrixSize = parser.getMatrixSizeOption();
+        givenChromosomes = juicerParser.getChromosomeOption();
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize % 2 == 1)
             specifiedMatrixSize += 1;
         if (specifiedMatrixSize > 50)

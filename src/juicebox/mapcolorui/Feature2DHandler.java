@@ -172,6 +172,8 @@ public class Feature2DHandler {
             Feature2DList newList = null;
             if (path.endsWith(".px")) {
                 newList = Feature2DParser.parseHiCCUPSLoopFile(path, chromosomes, true);
+            } else if (path.endsWith(".px2")) {
+                newList = Feature2DParser.parseDomainFile(path, chromosomes, true);
             } else {
                 newList = Feature2DParser.parseLoopFile(path, chromosomes, true, null);
             }

@@ -25,9 +25,9 @@
 package juicebox.tools.clt;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.data.*;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
@@ -348,7 +348,7 @@ public class Dump extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
         //juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]")
 
         String mType = args[1].toLowerCase();

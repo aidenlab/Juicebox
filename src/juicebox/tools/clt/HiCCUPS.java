@@ -26,12 +26,12 @@ package juicebox.tools.clt;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
+import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
@@ -129,7 +129,9 @@ public class HiCCUPS extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
         if (args.length == 4) {
             dataShouldBePostProcessed = false;
@@ -145,9 +147,9 @@ public class HiCCUPS extends JuiceboxCLT {
             outputEnrichedFileName = args[3];
         }
 
-        Set<String> specifiedChromosomes = parser.getChromosomeOption();
-        Set<String> specifiedResolutions = parser.getMultipleResolutionOptions();
-        int specifiedMatrixSize = parser.getMatrixSizeOption();
+        Set<String> specifiedChromosomes = juicerParser.getChromosomeOption();
+        Set<String> specifiedResolutions = juicerParser.getMultipleResolutionOptions();
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
 
         if (specifiedResolutions != null) {
             resolutions = new int[specifiedResolutions.size()];

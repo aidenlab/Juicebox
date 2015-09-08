@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class AddGWNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
         //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
         if (args.length != 3) {
             throw new IOException("1");

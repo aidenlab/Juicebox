@@ -53,7 +53,7 @@ class AggregateProcessing {
 
 
         String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_5000.bin"};
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/1212chr22_5000.bin"};
 
         String[] l52 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_10000.bin"};
@@ -80,14 +80,6 @@ class AggregateProcessing {
                 "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_25000"};
 
         HiCTools.main(l51);
-        HiCTools.main(l52);
-        HiCTools.main(l53);
-        HiCTools.main(l61);
-        HiCTools.main(l62);
-        HiCTools.main(l63);
-        HiCTools.main(l71);
-        HiCTools.main(l72);
-        HiCTools.main(l73);
 
         /*
 

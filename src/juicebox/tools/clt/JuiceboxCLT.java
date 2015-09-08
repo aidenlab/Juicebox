@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ public abstract class JuiceboxCLT {
         setUsage(usage);
     }
 
-    public abstract void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException;
+    public abstract void readArguments(String[] args, CmdLineParser parser) throws IOException;
 
     public abstract void run() throws IOException;
 
