@@ -31,7 +31,6 @@ import juicebox.tools.utils.original.Preprocessor;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class PreProcessing extends JuiceboxCLT {
@@ -46,14 +45,14 @@ public class PreProcessing extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         CommandLineParser parser1 = (CommandLineParser) parser;
-        String genomeId;
+        String genomeId = "";
         try {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("No genome ID given");
-            throw new IOException("1");
+            printUsage();
         }
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
@@ -81,8 +80,12 @@ public class PreProcessing extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
-        preprocessor.preprocess(inputFile);
-        NormalizationVectorUpdater.updateHicFile(outputFile);
+    public void run() {
+        try {
+            preprocessor.preprocess(inputFile);
+            NormalizationVectorUpdater.updateHicFile(outputFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

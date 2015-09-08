@@ -87,7 +87,7 @@ public class HiCFileTools {
         return dataset;
     }
 
-    public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
+    public static List<Chromosome> loadChromosomes(String idOrFile) {
 
         InputStream is = null;
 
@@ -100,12 +100,16 @@ public class HiCFileTools {
                 // Not an ID,  see if its a file
                 File file = new File(idOrFile);
 
-                if (file.exists()) {
-                    is = new FileInputStream(file);
-                } else {
-                    throw new FileNotFoundException("Could not find chromosome sizes file for: " + idOrFile);
+                try {
+                    if (file.exists()) {
+                        is = new FileInputStream(file);
+                    } else {
+                        System.err.println("Could not find chromosome sizes file for: " + idOrFile);
+                        System.exit(-3);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
             }
 
             List<Chromosome> chromosomes = new ArrayList<Chromosome>();
@@ -117,17 +121,21 @@ public class HiCFileTools {
             long genomeLength = 0;
             int idx = 1;
 
-            while ((nextLine = reader.readLine()) != null) {
-                String[] tokens = pattern.split(nextLine);
-                if (tokens.length == 2) {
-                    String name = tokens[0];
-                    int length = Integer.parseInt(tokens[1]);
-                    genomeLength += length;
-                    chromosomes.add(idx, new Chromosome(idx, name, length));
-                    idx++;
-                } else {
-                    System.out.println("Skipping " + nextLine);
+            try {
+                while ((nextLine = reader.readLine()) != null) {
+                    String[] tokens = pattern.split(nextLine);
+                    if (tokens.length == 2) {
+                        String name = tokens[0];
+                        int length = Integer.parseInt(tokens[1]);
+                        genomeLength += length;
+                        chromosomes.add(idx, new Chromosome(idx, name, length));
+                        idx++;
+                    } else {
+                        System.out.println("Skipping " + nextLine);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
@@ -136,7 +144,13 @@ public class HiCFileTools {
 
             return chromosomes;
         } finally {
-            if (is != null) is.close();
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

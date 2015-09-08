@@ -27,8 +27,6 @@ package juicebox.tools.clt;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 
-import java.io.IOException;
-
 
 public class AddNorm extends JuiceboxCLT {
 
@@ -43,27 +41,31 @@ public class AddNorm extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
         if (args.length < 2 || args.length > 3) {
-            throw new IOException("1");
+            printUsage();
         }
         file = args[1];
         if (args.length > 2) {
             try {
                 genomeWideResolution = Integer.valueOf(args[2]);
             } catch (NumberFormatException error) {
-                throw new IOException("1");
+                printUsage();
             }
             useGenomeWideResolution = true;
         }
     }
 
     @Override
-    public void run() throws IOException {
-        if (useGenomeWideResolution)
-            NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
-        else
-            NormalizationVectorUpdater.updateHicFile(file);
+    public void run() {
+        try {
+            if (useGenomeWideResolution)
+                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
+            else
+                NormalizationVectorUpdater.updateHicFile(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

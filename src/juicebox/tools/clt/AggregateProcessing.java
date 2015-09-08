@@ -53,7 +53,7 @@ class AggregateProcessing {
 
 
         String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/1212chr22_5000.bin"};
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/1212chr22_5000_aa.bin"};
 
         String[] l52 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_10000.bin"};

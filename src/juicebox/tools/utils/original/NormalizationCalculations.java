@@ -95,7 +95,8 @@ public class NormalizationCalculations {
             String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
             int nTokens = tokens.length;
             if (nTokens != 3) {
-                throw new IOException("Number of columns incorrect at line" + lineCount + ": " + nextLine);
+                System.err.println("Number of columns incorrect at line" + lineCount + ": " + nextLine);
+                System.exit(-1);
             }
             int binX = Integer.parseInt(tokens[0]);
             int binY = Integer.parseInt(tokens[1]);

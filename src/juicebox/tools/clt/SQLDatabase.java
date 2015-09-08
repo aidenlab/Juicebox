@@ -39,14 +39,14 @@ public class SQLDatabase extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox db <frag|annot|update> [items]");
         dbArgs = new String[args.length - 1];
         System.arraycopy(args, 1, dbArgs, 0, args.length - 1);
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() {
 
         try {
             HiCDBUtils.main(dbArgs);
@@ -56,7 +56,6 @@ public class SQLDatabase extends JuiceboxCLT {
             System.exit(1);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new IOException("-1");
         }
     }
 }
