@@ -42,7 +42,6 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -73,12 +72,12 @@ public class APA extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
         if (!(args.length > 3 && args.length < 6)) {
-            throw new IOException("1");
+            printUsage();
         }
 
         files = new String[4];

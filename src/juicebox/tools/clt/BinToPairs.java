@@ -27,8 +27,6 @@ package juicebox.tools.clt;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.AsciiToBinConverter;
 
-import java.io.IOException;
-
 
 public class BinToPairs extends JuiceboxCLT {
 
@@ -39,16 +37,20 @@ public class BinToPairs extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         if (args.length != 3) {
-            throw new IOException("1");
+            printUsage();
         }
         ifile = args[1];
         ofile = args[2];
     }
 
     @Override
-    public void run() throws IOException {
-        AsciiToBinConverter.convertBack(ifile, ofile);
+    public void run() {
+        try {
+            AsciiToBinConverter.convertBack(ifile, ofile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

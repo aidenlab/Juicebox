@@ -27,8 +27,6 @@ package juicebox.tools.clt;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.BigWigUtils;
 
-import java.io.IOException;
-
 
 public class BigWig extends JuiceboxCLT {
 
@@ -41,10 +39,10 @@ public class BigWig extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
         if (!(args.length == 3 || args.length == 4 || args.length == 6)) {
-            throw new IOException("1");
+            printUsage();
         }
         path = args[1];
         windowSize = Integer.parseInt(args[2]);
@@ -64,14 +62,20 @@ public class BigWig extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
-        if (version == 0)
-            BigWigUtils.computeBins(path, windowSize);
-        else if (version == 1)
-            BigWigUtils.computeBins(path, chr, 0, Integer.MAX_VALUE, windowSize);
-        else if (version == 2)
-            BigWigUtils.computeBins(path, chr, start, end, windowSize);
-        else
-            throw new IOException("Invalid Option Setup");
+    public void run() {
+        try {
+            if (version == 0)
+                BigWigUtils.computeBins(path, windowSize);
+            else if (version == 1)
+                BigWigUtils.computeBins(path, chr, 0, Integer.MAX_VALUE, windowSize);
+            else if (version == 2)
+                BigWigUtils.computeBins(path, chr, start, end, windowSize);
+            else {
+                System.err.println("Invalid Option Setup");
+                printUsage();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

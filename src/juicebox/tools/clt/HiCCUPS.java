@@ -43,7 +43,6 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
@@ -98,7 +97,7 @@ public class HiCCUPS extends JuiceboxCLT {
         return (window - peakWidth) * (window + peakWidth);
     }
 
-    public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
+    private static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                    List<Chromosome> commonChromosomes, String outputFinalLoopListFileName) {
         for (int res : looplists.keySet()) {
             pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
@@ -108,20 +107,9 @@ public class HiCCUPS extends JuiceboxCLT {
                 looplists.get(res).addAttributeFieldToAll(s, "0");
             }
 
-            //looplists.get(res).addAttributeFieldToAll("Resolution", "" + res);
-            //looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_pre_320", false);
-
             HiCCUPSUtils.removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
-            //looplists.get(res).setColor(Color.black);
-            //looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_321", false);
-
             HiCCUPSUtils.coalesceFeaturesToCentroid(looplists.get(res), res);
-            //looplists.get(res).setColor(Color.darkGray);
-            //looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_322", false);
-
             HiCCUPSUtils.filterOutFeaturesByFDR(looplists.get(res));
-            //looplists.get(res).setColor(Color.green);
-            //looplists.get(res).exportFeatureList(outputFinalLoopListFileName + "_" + res + "_post_323", false);
         }
 
         Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);
@@ -129,14 +117,14 @@ public class HiCCUPS extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
         if (args.length == 4) {
             dataShouldBePostProcessed = false;
         } else if (!(args.length == 3)) {
-            throw new IOException("1");
+            printUsage();
         }
 
         inputHiCFileName = args[1];

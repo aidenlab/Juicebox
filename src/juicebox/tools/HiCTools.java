@@ -47,45 +47,16 @@ public class HiCTools {
 
         String cmdName = argv[0].toLowerCase();
         CmdLineParser parser = new CommandLineParser();
-        if (isJuicerCommand(cmdName)) {
+        if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
         }
 
         parser.parse(argv);
         String[] args = parser.getRemainingArgs();
 
-        try {
-            String cmd = args[0].toLowerCase();
-
-            JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
-
-            try {
-                instanceOfCLT.readArguments(args, parser);
-            } catch (IOException e) {
-                instanceOfCLT.printUsage(); // error reading arguments, print specific usage help
-                System.exit(Integer.parseInt(e.getMessage()));
-            }
-
-            try {
-                instanceOfCLT.run();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-                System.exit(-7);
-                // error running the code, these shouldn't occur i.e. error checking
-                // should be added within each CLT for better error tracing
-            }
-        } catch (Exception e) {
-            if (isJuicerCommand(cmdName)) {
-                CLTFactory.juicerUsage();
-            } else {
-                CLTFactory.generalUsage();
-            }
-            System.exit(2);
-        }
-    }
-
-    private static boolean isJuicerCommand(String cmd) {
-        return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motif_finder");
+        String cmd = args[0].toLowerCase();
+        JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
+        instanceOfCLT.readArguments(args, parser);
+        instanceOfCLT.run();
     }
 }

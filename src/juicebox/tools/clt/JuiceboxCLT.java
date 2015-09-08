@@ -26,8 +26,6 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 
-import java.io.IOException;
-
 /**
  * All command line tools should extend from this class
  */
@@ -39,9 +37,9 @@ public abstract class JuiceboxCLT {
         setUsage(usage);
     }
 
-    public abstract void readArguments(String[] args, CmdLineParser parser) throws IOException;
+    public abstract void readArguments(String[] args, CmdLineParser parser);
 
-    public abstract void run() throws IOException;
+    public abstract void run();
 
     private void setUsage(String newUsage) {
         usage = newUsage;
@@ -52,6 +50,7 @@ public abstract class JuiceboxCLT {
     }
 
     public void printUsage() {
-        System.out.println("Usage:   juicebox " + usage);
+        System.err.println("Usage:   juicebox " + usage);
+        System.exit(-2);
     }
 }

@@ -37,7 +37,6 @@ import juicebox.windowui.HiCZoom;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,19 +58,19 @@ public class Arrowhead extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
         if (args.length != 4) {
-            throw new IOException("1");
+            printUsage();
         }
         file = args[1];
         outputPath = args[2];
         try {
             resolution = Integer.valueOf(args[3]);
         } catch (NumberFormatException error) {
-            throw new IOException("1");
+            printUsage();
         }
         givenChromosomes = juicerParser.getChromosomeOption();
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
@@ -83,7 +82,7 @@ public class Arrowhead extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
