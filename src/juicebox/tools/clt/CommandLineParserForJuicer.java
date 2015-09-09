@@ -49,6 +49,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option ctcfCollapsedOption = null;
     private static Option rad21Option = null;
     private static Option smc3Option = null;
+
+    // for AFA
+    private static Option relativeLocationOption = null;
+    private static Option multipleAttributesOption = null;
+
     public CommandLineParserForJuicer() {
 
         apaWindowOption = addIntegerOption('w', "window");
@@ -64,6 +69,9 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         ctcfCollapsedOption = addStringOption('a', "CTCF_collapsed_input_file");
         rad21Option = addStringOption('r', "RAD21_input_file");
         smc3Option = addStringOption('s', "SMC3_input_file");
+
+        relativeLocationOption = addStringOption('l', "Location Type");
+        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -92,6 +100,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public String getSMC3Option() {
         return optionToString(smc3Option);
+    }
+
+    public String getRelativeLocationOption() {
+        return optionToString(relativeLocationOption);
     }
 
     /**
@@ -134,4 +146,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToStringSet(multipleResolutionsOption);
     }
 
+    public Set<String> getAttributeOption() {
+        return optionToStringSet(multipleAttributesOption);
+    }
 }

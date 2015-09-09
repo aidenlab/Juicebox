@@ -62,12 +62,13 @@ public class APA extends JuiceboxCLT {
     private int window = 10;
     private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
+    private NormalizationType norm;
 
     /**
      * Usage for APA
      */
     public APA() {
-        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <NONE/VC/VC_SQRT/KR> <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
         HiCGlobals.useCache = false; // TODO fix memory leak of contact records in cache (dataset?)
     }
 
@@ -80,9 +81,16 @@ public class APA extends JuiceboxCLT {
             printUsage();
         }
 
+        try {
+            norm = NormalizationType.valueOf(args[1]);
+        } catch (IllegalArgumentException error) {
+            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+            System.exit(-1);
+        }
+
         files = new String[4];
         files[3] = "";
-        System.arraycopy(args, 1, files, 0, args.length - 1);
+        System.arraycopy(args, 2, files, 0, args.length - 2);
 
         for (String s : files)
             System.out.println("--- " + s);
@@ -190,7 +198,7 @@ public class APA extends JuiceboxCLT {
                 for (Feature2D loop : loops) {
                     //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
                     apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                            NormalizationType.NONE));
+                            norm));
                 }
 
                 apaDataStack.updateGenomeWideData();

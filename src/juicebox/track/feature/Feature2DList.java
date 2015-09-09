@@ -364,7 +364,7 @@ public class Feature2DList {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
-                    if (!feature.containsAttribute(newAttributeName))
+                    if (!feature.containsAttributeKey(newAttributeName))
                         feature.addStringAttribute(newAttributeName, newAttributeValue);
                 }
             }
