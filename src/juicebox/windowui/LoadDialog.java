@@ -26,6 +26,8 @@ package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.MainWindow;
+import juicebox.data.HiCFileLoader;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -44,6 +46,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private final boolean success;
     private final MainWindow mainWindow;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
+    private final SuperAdapter superAdapter;
     private JTree tree;
     private JSplitButton openButton;
     private JMenuItem openButton30;
@@ -53,10 +56,11 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JTextField fTextField;
     private boolean control;
 
-    public LoadDialog(MainWindow mainWindow, Properties properties) {
+    public LoadDialog(MainWindow mainWindow, Properties properties, SuperAdapter superAdapter) {
         super(mainWindow, "Select file(s) to open");
 
         this.mainWindow = mainWindow;
+        this.superAdapter = superAdapter;
 
         //Create the nodes.
         final DefaultMutableTreeNode top =
@@ -312,10 +316,10 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 } else if (e.getSource() == openButton30) {
                     loadFiles(tree.getSelectionPaths(), "30");
                 } else if (e.getSource() == localButton) {
-                    mainWindow.loadMenuItemActionPerformed(control);
+                    HiCFileLoader.loadMenuItemActionPerformed(superAdapter, control);
                     setVisible(false);
                 } else if (e.getSource() == urlButton) {
-                    mainWindow.loadFromURLActionPerformed(control);
+                    HiCFileLoader.loadFromURLActionPerformed(superAdapter, control);
                     setVisible(false);
                 } else if (e.getSource() == cancelButton) {
                     setVisible(false);
@@ -357,8 +361,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         }
 
         //code to add a recent file to the menu
-        mainWindow.getRecentMapMenu().addEntry(title.trim() + "@@" + urls.get(0), true);
-        mainWindow.safeLoad(urls, control, title);
+        superAdapter.safeLoad(urls, control, title);
     }
 
 

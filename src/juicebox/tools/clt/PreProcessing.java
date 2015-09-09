@@ -24,14 +24,13 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.HiCFileTools;
+import jargs.gnu.CmdLineParser;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 public class PreProcessing extends JuiceboxCLT {
@@ -46,13 +45,14 @@ public class PreProcessing extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
-        String genomeId;
+    public void readArguments(String[] args, CmdLineParser parser) {
+        CommandLineParser parser1 = (CommandLineParser) parser;
+        String genomeId = "";
         try {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("No genome ID given");
-            throw new IOException("1");
+            printUsage();
         }
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
@@ -65,23 +65,27 @@ public class PreProcessing extends JuiceboxCLT {
 
         inputFile = args[1];
         outputFile = args[2];
-        String tmpDir = parser.getTmpdirOption();
+        String tmpDir = parser1.getTmpdirOption();
 
         preprocessor = new Preprocessor(new File(outputFile), genomeId, chromosomes);
-        preprocessor.setIncludedChromosomes(parser.getChromosomeOption());
-        preprocessor.setCountThreshold(parser.getCountThresholdOption());
-        preprocessor.setMapqThreshold(parser.getMapqThresholdOption());
-        preprocessor.setDiagonalsOnly(parser.getDiagonalsOption());
-        preprocessor.setFragmentFile(parser.getFragmentOption());
+        preprocessor.setIncludedChromosomes(parser1.getChromosomeOption());
+        preprocessor.setCountThreshold(parser1.getCountThresholdOption());
+        preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());
+        preprocessor.setDiagonalsOnly(parser1.getDiagonalsOption());
+        preprocessor.setFragmentFile(parser1.getFragmentOption());
         preprocessor.setTmpdir(tmpDir);
-        preprocessor.setStatisticsFile(parser.getStatsOption());
-        preprocessor.setGraphFile(parser.getGraphOption());
+        preprocessor.setStatisticsFile(parser1.getStatsOption());
+        preprocessor.setGraphFile(parser1.getGraphOption());
 
     }
 
     @Override
-    public void run() throws IOException {
-        preprocessor.preprocess(inputFile);
-        NormalizationVectorUpdater.updateHicFile(outputFile);
+    public void run() {
+        try {
+            preprocessor.preprocess(inputFile);
+            NormalizationVectorUpdater.updateHicFile(outputFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

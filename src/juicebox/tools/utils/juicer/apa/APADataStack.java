@@ -44,41 +44,53 @@ public class APADataStack {
     private static RealMatrix gwNormedPsea;
     private static RealMatrix gwCenterNormedPsea;
     private static RealMatrix gwRankPsea;
-    //private RealMatrix coverage;
     private static List<Double> gwEnhancement;
-    //private static RealMatrix gwCoverage;
+
+    // saving data variables
     private static int[] axesRange;
     private static File dataDirectory;
+
+    // chr variables
     private final List<Double> enhancement;
     private RealMatrix psea;
     private RealMatrix normedPsea;
     private RealMatrix centerNormedPsea;
     private RealMatrix rankPsea;
 
+    /**
+     * class for saving data from chromosme wide run of APA, keeps static class to store genomide data
+     *
+     * @param n                width of matrix
+     * @param outputFolderPath location for saving data
+     * @param customPrefix     optional file/folder prefix
+     */
     public APADataStack(int n, String outputFolderPath, String customPrefix) {
         psea = MatrixTools.cleanArray2DMatrix(n, n);
         normedPsea = MatrixTools.cleanArray2DMatrix(n, n);
         centerNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
         rankPsea = MatrixTools.cleanArray2DMatrix(n, n);
-        //coverage = APAUtils.cleanArray2DMatrix(n, n);
         enhancement = new ArrayList<Double>();
 
         initializeGenomeWideVariables(n);
         initializeDataSaveFolder(outputFolderPath, customPrefix);
-
         axesRange = new int[]{-n / 2, 1, -n / 2, 1};
-
     }
 
+    /**
+     * Ensure that directory for saving exists
+     * @param path to directory
+     * @param prefix of files to be saved
+     */
     private static void initializeDataSaveFolder(String path, String prefix) {
         File newDirectory = safeFolderCreation(path);
-        if (prefix.length() < 1) {
+        if (prefix.length() < 1) {// no preference specied
             dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" +
                     new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date()));
         } else {
             dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" + prefix);
         }
     }
+
 
     private static File safeFolderCreation(String path) {
         File newFolder = new File(path);
@@ -150,7 +162,6 @@ public class APADataStack {
         gwNormedPsea = null;
         gwCenterNormedPsea = null;
         gwRankPsea = null;
-        //gwCoverage = null;
         gwEnhancement = null;
     }
 

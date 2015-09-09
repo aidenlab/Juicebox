@@ -24,10 +24,8 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.NormalizationCalculations;
-
-import java.io.IOException;
 
 
 public class CalcKR extends JuiceboxCLT {
@@ -39,16 +37,20 @@ public class CalcKR extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox calcKR <infile>");
         if (!(args.length == 2)) {
-            throw new IOException("1");
+            printUsage();
         }
         infile = args[1];
     }
 
     @Override
-    public void run() throws IOException {
-        NormalizationCalculations.calcKR(infile);
+    public void run() {
+        try {
+            NormalizationCalculations.calcKR(infile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

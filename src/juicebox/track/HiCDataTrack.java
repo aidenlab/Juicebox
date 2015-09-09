@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.track;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ResourceLocator;
@@ -264,19 +265,19 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
-    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final MainWindow mainWindow) {
+    public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter) {
 
-        JPopupMenu menu = super.getPopupMenu(trackPanel, mainWindow);
+        JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter);
         menu.addSeparator();
 
         JMenuItem menuItem = new JMenuItem("Configure track...");
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(mainWindow, HiCDataTrack.this);
+                final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(MainWindow.getInstance(), HiCDataTrack.this);
                 trackConfigDialog.setVisible(true);
                 if (!trackConfigDialog.isCanceled()) {
-                    mainWindow.updateTrackPanel();
+                    superAdapter.updateTrackPanel();
                 }
             }
         });

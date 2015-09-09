@@ -186,5 +186,10 @@ public class HiCFragmentAxis implements HiCGridAxis {
         return (sites.length / binSize) + 1;
     }
 
+    @Override
+    public int getBinSize() {
+        return binSize;
+    }
+
 
 }

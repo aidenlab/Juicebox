@@ -27,7 +27,7 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
 
@@ -61,6 +61,7 @@ public class ResolutionControl extends JPanel {
     private int lastValue = 0;
 
     {
+        // TODO use hicglobals, remove magic strings or make this map global?
         bpLabelMap = new Hashtable<Integer, String>();
         bpLabelMap.put(2500000, "2.5 MB");
         bpLabelMap.put(1000000, "1 MB");
@@ -74,10 +75,10 @@ public class ResolutionControl extends JPanel {
         bpLabelMap.put(1000, "1 KB");
     }
 
-    public ResolutionControl(final HiC hic, final MainWindow mainWindow, final HeatmapPanel heatmapPanel) {
+    public ResolutionControl(final SuperAdapter superAdapter) {
 
-        this.hic = hic;
-        this.heatmapPanel = heatmapPanel;
+        this.hic = superAdapter.getHiC();
+        this.heatmapPanel = superAdapter.getHeatmapPanel();
 
         this.setBorder(LineBorder.createGrayLineBorder());
         this.setLayout(new BorderLayout());
@@ -92,6 +93,7 @@ public class ResolutionControl extends JPanel {
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
         /* TODO not working
+        // supposed to underline "resolution text" but why? is this an important gui issue?
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
             private Font original;
 
@@ -142,10 +144,10 @@ public class ResolutionControl extends JPanel {
                 Runnable runnable = new Runnable() {
                     public void run() {
                         reset();
-                        mainWindow.refresh(); // necessary to correct BP/FRAG switching all red box
+                        superAdapter.refresh(); // necessary to correct BP/FRAG switching all red box
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution switched");
+                superAdapter.executeLongRunningTask(runnable, "Resolution switched");
             }
         });
 
@@ -196,7 +198,7 @@ public class ResolutionControl extends JPanel {
                         unsafeStateChanged(eF);
                     }
                 };
-                mainWindow.executeLongRunningTask(runnable, "Resolution slider change");//TODO******   UNCOMMENT  ******
+                superAdapter.executeLongRunningTask(runnable, "Resolution slider change");
                 runnable.run();
             }
 
@@ -269,7 +271,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider.setPaintTicks(true);
         resolutionSlider.setSnapToTicks(true);
         resolutionSlider.setPaintLabels(true);
-        resolutionSlider.setMinorTickSpacing(1); //TODO******   UNCOMMENT  ******
+        resolutionSlider.setMinorTickSpacing(1);
 
         // Create labels
         Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();

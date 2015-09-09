@@ -36,38 +36,28 @@ public class CLTFactory {
     private final static String[] nameToCommandLineTool = {
             //        "addGWNorm",    "juicebox.tools.clt.AddGWNorm",         "addGWNorm <input_HiC_file> <min resolution>",
             //        "addNorm",      "juicebox.tools.clt.AddNorm",           "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
-            //        "apa",          "juicebox.tools.clt.apa",               "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
-            //        "arrowhead",    "juicebox.tools.arrowhead",             "arrowhead <input_HiC_file> <resolution>",
             //        "bigWig",       "juicebox.tools.clt.BigWig",            "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
             //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
             //        "bpToFrag",     "juicebox.tools.clt.BPToFragment",      "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
             //        "calcKR",       "juicebox.tools.clt.CalcKR",            "calcKR <input_HiC_file>",
             "dump", "juicebox.tools.clt.Dump", "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
             //        "fragmentToBed","juicebox.tools.clt.FragmentToBed",     "fragmentToBed <fragmentFile>",
-            //        "hiccups",      "juicebox.tools.clt.hiccups",           "",
             //        "pairsToBin",   "juicebox.tools.clt.PairsToBin",        "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
             //        "db",           "juicebox.tools.clt.SQLDatabase",       "db <frag|annot|update> [items]",
             "pre", "juicebox.tools.clt.PreProcessing", "pre <options> <infile> <outfile> <genomeID>"
     };
+    private final static String[] juicerNameToCommandLineTool = {
+            "apa", "juicebox.tools.clt.apa", "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
+            "arrowhead", "juicebox.tools.arrowhead", "arrowhead <input_HiC_file> <resolution>",
+            "hiccups", "juicebox.tools.clt.hiccups", ""
+    };
 
-    public static void usage() {
+    public static void generalUsage() {
 
         System.out.println("Juicebox Command Line Tools Usage:");
         for (int i = 0; i < nameToCommandLineTool.length; i += 3) {
             System.out.println("       juicebox " + nameToCommandLineTool[i + 2]);
         }
-
-        /*
-        System.out.println("Usage: juicebox db <frag|annot|update> [items]");
-        System.out.println("       juicebox binToPairs <infile> <outfile>");
-        System.out.println("       juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR/GW_VC/GW_KR/INTER_VC/INTER_KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [binary outfile]");
-        System.out.println("       juicebox addNorm <hicFile> [0 for no frag, 1 for no single frag]");
-        System.out.println("       juicebox addGWNorm <hicFile> <min resolution>");
-        System.out.println("       juicebox bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]");
-        System.out.println("       juicebox calcKR <infile>");
-        System.out.println("       juicebox arrowhead <hicfile> <resolution>");
-        System.out.println("       juicebox pre <options> <infile> <outfile> <genomeID>");
-        */
 
         System.out.println("  <options>: -d only calculate intra chromosome (diagonal) [false]");
         System.out.println("           : -f <restriction site file> calculate fragment map");
@@ -75,6 +65,14 @@ public class CLTFactory {
         System.out.println("           : -q <int> filter by MAPQ score greater than or equal to q");
         System.out.println("           : -c <chromosome ID> only calculate map on specific chromosome");
         System.out.println("           : -h print help");
+    }
+
+    public static void juicerUsage() {
+
+        System.out.println("Juicebox Command Line Tools Usage:");
+        for (int i = 0; i < juicerNameToCommandLineTool.length; i += 3) {
+            System.out.println("       juicebox " + juicerNameToCommandLineTool[i + 2]);
+        }
     }
 
     public static JuiceboxCLT getCLTCommand(String cmd) {
@@ -105,6 +103,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
+        } else if (cmd.equals("motif_finder")) {
+            //return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
             return new PairsToBin();
         } else if (cmd.equals("db")) {

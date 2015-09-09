@@ -24,59 +24,73 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
-import juicebox.data.DatasetReaderV2;
+import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by nchernia on 1/9/15.
  */
 public class Arrowhead extends JuiceboxCLT {
 
+    private static int matrixSize = 2000;
     private String file, outputPath;
     private int resolution = -100;
+    private Set<String> givenChromosomes = null;
 
     public Arrowhead() {
-        super("arrowhead <input_HiC_file> <output_file> <resolution>");
+        super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");
+        HiCGlobals.useCache = false;
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
+
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
         if (args.length != 4) {
-            throw new IOException("1");
+            printUsage();
         }
         file = args[1];
         outputPath = args[2];
         try {
             resolution = Integer.valueOf(args[3]);
         } catch (NumberFormatException error) {
-            throw new IOException("1");
+            printUsage();
         }
+        givenChromosomes = juicerParser.getChromosomeOption();
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+        if (specifiedMatrixSize % 2 == 1)
+            specifiedMatrixSize += 1;
+        if (specifiedMatrixSize > 50)
+            matrixSize = specifiedMatrixSize;
+
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
-        DatasetReaderV2 reader = new DatasetReaderV2(file);
-
-        Dataset ds = reader.read();
-        HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
 
         List<Chromosome> chromosomes = ds.getChromosomes();
+        if (givenChromosomes != null)
+            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                    chromosomes));
 
         // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
@@ -91,8 +105,8 @@ public class Arrowhead extends JuiceboxCLT {
             MatrixZoomData zd = matrix.getZoomData(zoom);
             ArrowheadScoreList list = new ArrowheadScoreList();
             ArrowheadScoreList control = new ArrowheadScoreList();
-            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, outputPath + resolution,
-                    zd, list, control);
+            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
+                    outputPath + resolution, zd, list, control);
         }
     }
 }

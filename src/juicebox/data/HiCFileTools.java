@@ -22,10 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.common;
+package juicebox.data;
 
-import juicebox.data.*;
+import juicebox.HiCGlobals;
 import juicebox.tools.chrom.sizes.ChromosomeSizes;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
@@ -50,7 +51,43 @@ public class HiCFileTools {
 
     private static final String tempPath = System.getProperty("user.dir");
 
-    public static List<Chromosome> loadChromosomes(String idOrFile) throws IOException {
+    public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
+        Dataset dataset = null;
+        try {
+            DatasetReader reader = null;
+            if (files.size() == 1) {
+                if (allowPrinting)
+                    System.out.println("Reading file: " + files.get(0));
+                String magicString = DatasetReaderV2.getMagicString(files.get(0));
+                if (magicString.equals("HIC")) {
+                    reader = new DatasetReaderV2(files.get(0));
+                } else {
+                    System.err.println("This version of HIC is no longer supported");
+                    System.exit(-1);
+                }
+                dataset = reader.read();
+
+            } else {
+                if (allowPrinting)
+                    System.out.println("Reading summed files: " + files);
+                reader = DatasetReaderFactory.getReader(files);
+                if (reader == null) {
+                    System.err.println("Error while reading files");
+                    System.exit(-1);
+                } else {
+                    dataset = reader.read();
+                }
+            }
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+        } catch (Exception e) {
+            System.err.println("Could not read hic file: " + e.getMessage());
+            System.exit(-6);
+            //e.printStackTrace();
+        }
+        return dataset;
+    }
+
+    public static List<Chromosome> loadChromosomes(String idOrFile) {
 
         InputStream is = null;
 
@@ -63,12 +100,16 @@ public class HiCFileTools {
                 // Not an ID,  see if its a file
                 File file = new File(idOrFile);
 
-                if (file.exists()) {
-                    is = new FileInputStream(file);
-                } else {
-                    throw new FileNotFoundException("Could not find chromosome sizes file for: " + idOrFile);
+                try {
+                    if (file.exists()) {
+                        is = new FileInputStream(file);
+                    } else {
+                        System.err.println("Could not find chromosome sizes file for: " + idOrFile);
+                        System.exit(-3);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
             }
 
             List<Chromosome> chromosomes = new ArrayList<Chromosome>();
@@ -80,17 +121,21 @@ public class HiCFileTools {
             long genomeLength = 0;
             int idx = 1;
 
-            while ((nextLine = reader.readLine()) != null) {
-                String[] tokens = pattern.split(nextLine);
-                if (tokens.length == 2) {
-                    String name = tokens[0];
-                    int length = Integer.parseInt(tokens[1]);
-                    genomeLength += length;
-                    chromosomes.add(idx, new Chromosome(idx, name, length));
-                    idx++;
-                } else {
-                    System.out.println("Skipping " + nextLine);
+            try {
+                while ((nextLine = reader.readLine()) != null) {
+                    String[] tokens = pattern.split(nextLine);
+                    if (tokens.length == 2) {
+                        String name = tokens[0];
+                        int length = Integer.parseInt(tokens[1]);
+                        genomeLength += length;
+                        chromosomes.add(idx, new Chromosome(idx, name, length));
+                        idx++;
+                    } else {
+                        System.out.println("Skipping " + nextLine);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
@@ -99,7 +144,13 @@ public class HiCFileTools {
 
             return chromosomes;
         } finally {
-            if (is != null) is.close();
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -185,15 +236,6 @@ public class HiCFileTools {
         String token2 = token.toLowerCase().replaceAll("chr", "");
         String chrName = chr.getName().toLowerCase().replaceAll("chr", "");
         return token2.equals(chrName);
-
-
-        /* TODO pretty sure code commented is redundant alternative, verify accuracy
-            if (token.toLowerCase().equals(chr.getName().toLowerCase()) ||
-                    String.valueOf("chr").concat(token.toLowerCase()).equals(chr.getName().toLowerCase()) ||
-                    token.toLowerCase().equals(String.valueOf("chr").concat(chr.getName().toLowerCase())))
-                return chr;
-        */
-
     }
 
     /**
@@ -236,20 +278,24 @@ public class HiCFileTools {
     }
 
 
+    /**
+     * Extracts matrix from hic file for a specified region.
+     * By default, only the top right part of the matrix is returned if the matrix is on the diagonal.
+     *
+     * @return section of the matrix
+     */
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
                                                        NormalizationType normalizationType) {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-
-        Set<Block> blocks = new HashSet<Block>();
+        List<Block> blocks = new ArrayList<Block>();
 
         try {
-            blocks = new HashSet<Block>(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd,
-                    normalizationType));
+            zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
-            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region");
+            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region:");
             System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
             e.printStackTrace();
             System.exit(-6);
@@ -267,6 +313,9 @@ public class HiCFileTools {
                     if (relativeX >= 0 && relativeX < numRows) {
                         if (relativeY >= 0 && relativeY < numCols) {
                             data.addToEntry(relativeX, relativeY, rec.getCounts());
+                            // was used to fill LL triangle for arrowhead
+                            //if (mirrorBlock && relativeY != relativeX)
+                            //    data.addToEntry(relativeY, relativeX, rec.getCounts());
                         }
                     }
                 }

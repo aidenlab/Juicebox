@@ -41,7 +41,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 class XMLFileParser {
 
     public static String[] parseXML(String mapSelection) {
-        String[] infoForReload = new String[18];
+        String[] infoForReload = new String[19];
         Document dom;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {

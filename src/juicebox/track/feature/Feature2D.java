@@ -26,6 +26,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
 import java.awt.*;
@@ -53,9 +54,10 @@ public class Feature2D implements Comparable<Feature2D> {
     private final int start2;
     private final String featureName;
     private final Map<String, String> attributes;
+    private Feature2D reflection = null;
     private int end1;
     private int end2;
-    private Color color;
+    private Color color, translucentColor;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -67,6 +69,7 @@ public class Feature2D implements Comparable<Feature2D> {
         this.start2 = start2;
         this.end2 = end2;
         this.color = (c == null ? Color.black : c);
+        setTranslucentColor();
         this.attributes = attributes;
     }
 
@@ -96,6 +99,8 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setEnd1(int end1) {
         this.end1 = end1;
+        if (reflection != null)
+            reflection.end2 = end1;
     }
 
     public int getEnd2() {
@@ -104,6 +109,8 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setEnd2(int end2) {
         this.end2 = end2;
+        if (reflection != null)
+            reflection.end1 = end2;
     }
 
     public int getMidPt1() {
@@ -119,11 +126,22 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getColor() {
+        if (Feature2DHandler.isTranslucentPlottingEnabled)
+            return translucentColor;
         return color;
     }
 
     public void setColor(Color color) {
         this.color = color;
+        if (reflection != null)
+            reflection.color = color;
+        setTranslucentColor();
+    }
+
+    private void setTranslucentColor() {
+        translucentColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 50);
+        if (reflection != null)
+            reflection.translucentColor = translucentColor;
     }
 
     public String tooltipText() {
@@ -257,13 +275,26 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void setAttribute(String key, String newVal) {
         attributes.put(key, newVal);
+        // attribute directly shared between reflections
+        //if (reflection != null)
+        //    reflection.attributes.put(key, newVal);
+
     }
 
     public float getFloatAttribute(String key) {
         return Float.parseFloat(attributes.get(key));
     }
 
-    public void addAttribute(String key, String value) {
+    public void addIntAttribute(String key, int value) {
+        attributes.put(key, "" + value);
+    }
+
+    public void addFloatAttribute(String key, Float value) {
+        attributes.put(key, "" + value);
+    }
+
+
+    public void addStringAttribute(String key, String value) {
         attributes.put(key, value);
     }
 
@@ -289,8 +320,41 @@ public class Feature2D implements Comparable<Feature2D> {
         return false;
     }
 
+
     @Override
     public int compareTo(Feature2D o) {
-        return Integer.parseInt(getAttribute(HiCCUPSUtils.OBSERVED)) - Integer.parseInt(o.getAttribute(HiCCUPSUtils.OBSERVED));
+        // highest observed point ordering needed for hiccups sorting
+        if (attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
+            return Math.round(Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
+        }
+        // technically chr1/2 should be checked before observed val
+        int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
+                start2 - o.start2, end1 - o.end1, end2 - o.end2};
+        for (int i : comparisons) {
+            if (i != 0)
+                return i;
+        }
+        return 0;
+    }
+
+    public boolean isOnDiagonal() {
+        return chr1.equals(chr2) && start1 == start2 && end1 == end2;
+    }
+
+    public Feature2D reflectionAcrossDiagonal() {
+        if (reflection == null) {
+            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color,
+                    attributes);
+            reflection.reflection = this;
+        }
+        return reflection;
+    }
+
+    public boolean containsAttribute(String attribute) {
+        return attributes.containsKey(attribute);
+    }
+
+    public String getLocationKey() {
+        return start1 + "_" + start2;
     }
 }

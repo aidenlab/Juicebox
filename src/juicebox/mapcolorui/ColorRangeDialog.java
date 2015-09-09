@@ -24,7 +24,10 @@
 
 package juicebox.mapcolorui;
 
+import com.jidesoft.swing.JideButton;
 import juicebox.MainWindow;
+import juicebox.gui.MainViewPanel;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,27 +42,27 @@ import java.text.ParseException;
 /**
  * @author Jim Robinson
  */
-public class ColorRangeDialog extends JDialog {
+class ColorRangeDialog extends JDialog {
 
     private static final long serialVersionUID = -2570891809264626823L;
     private static MultiColorPickerDialog gradientPick;
+    private static JideButton plusButton;
+    private static JideButton minusButton;
     private final RangeSlider colorSlider;
     private final double colorRangeFactor;
     private final DecimalFormat df1;
     private final DecimalFormat df2;
-    private final boolean isObserved;
     public Color[] tmpCol = new Color[24];
     private JTextField minimumField;
     private JTextField maximumField;
 
-
-    public ColorRangeDialog(MainWindow owner, RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
-        super(owner);
-        initComponents(isObserved, owner);
+    public ColorRangeDialog(SuperAdapter superAdapter, JColorRangePanel colorRangePanel,
+                            RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
+        super(superAdapter.getMainWindow());
+        initComponents(superAdapter, colorRangePanel, isObserved);
         this.colorSlider = colorSlider;
         if (!isObserved) colorRangeFactor = 8;
         this.colorRangeFactor = colorRangeFactor;
-        this.isObserved = isObserved;
 
 
         df1 = new DecimalFormat("#,###,###,##0");
@@ -74,58 +77,10 @@ public class ColorRangeDialog extends JDialog {
         }
         //tickSpacingField.setText(df.format(colorSlider.getMajorTickSpacing() / colorRangeFactor));
         maximumField.requestFocusInWindow();
-
     }
 
-
-    private void okButtonActionPerformed(ActionEvent e, MainWindow mainWindow) {
-        double max = 0;
-        double min = 0;
-
-        try {
-            if (isObserved) {
-                max = df1.parse(maximumField.getText()).doubleValue();
-                min = df1.parse(minimumField.getText()).doubleValue();
-            } else {
-                max = df2.parse(maximumField.getText()).doubleValue();
-            }
-        } catch (ParseException error) {
-            JOptionPane.showMessageDialog(this, "Must enter a number", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        if (max < min) {
-            JOptionPane.showMessageDialog(this, "Maximum may not be less than minimum", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int iMin;
-        int iMax;
-        if (isObserved) {
-            iMin = (int) (colorRangeFactor * min);
-            iMax = (int) (colorRangeFactor * max);
-        } else {
-            iMax = (int) (max * colorRangeFactor);
-            iMin = (int) (colorRangeFactor / max);
-        }
-        colorSlider.setMinimum(iMin);
-        colorSlider.setMaximum(iMax);
-        mainWindow.setColorRangeSliderVisible(true);
-        mainWindow.setResolutionSliderVisible(true);
-        setVisible(false);
-        //double tickSpacing = Double.parseDouble(tickSpacingField.getText());
-        //int iTickSpacing = (int) Math.max(1, (colorRangeFactor * tickSpacing));
-        //colorSlider.setMajorTickSpacing(iTickSpacing);
-        //colorSlider.setMinorTickSpacing(iTickSpacing);
-
-    }
-
-    private void cancelButtonActionPerformed(ActionEvent e, MainWindow mainWindow) {
-        mainWindow.setColorRangeSliderVisible(true);
-        mainWindow.setResolutionSliderVisible(true);
-        setVisible(false);
-    }
-
-    private void initComponents(final boolean isObserved, final MainWindow mainWindow) {
+    private void initComponents(final SuperAdapter superAdapter, final JColorRangePanel colorRangePanel,
+                                final boolean isObserved) {
 
         JPanel dialogPane = new JPanel();
         JPanel panel3 = new JPanel();
@@ -238,7 +193,7 @@ public class ColorRangeDialog extends JDialog {
             }
         });
 
-        colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
+        colorChooserButton.setEnabled(!MainViewPanel.preDefMapColor);
         contentPanel.add(panel5);
 
         final JButton paletteChooserButton = new JButton("Create gradient");
@@ -249,11 +204,11 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gradientPick = new MultiColorPickerDialog();
-                gradientPick.initValue(MainWindow.preDefMapColorGradient.toArray(new Color[MainWindow.preDefMapColorGradient.size()]));
+                gradientPick.initValue(MainViewPanel.preDefMapColorGradient.toArray(new Color[MainViewPanel.preDefMapColorGradient.size()]));
             }
         });
 
-        paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
+        paletteChooserButton.setEnabled(MainViewPanel.preDefMapColor);
 
         //======== panel6 ========
 
@@ -263,15 +218,10 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JRadioButton rLog = (JRadioButton) e.getSource();
-                if (rLog.isSelected()) {
-                    MainWindow.preDefMapColor = false;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                } else {
-                    MainWindow.preDefMapColor = true;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                }
+                boolean val = !rLog.isSelected();
+                MainViewPanel.preDefMapColor = val;
+                colorChooserButton.setEnabled(!val);
+                paletteChooserButton.setEnabled(val);
             }
         });
         rColor.setSelected(true);
@@ -281,15 +231,10 @@ public class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JRadioButton rLog = (JRadioButton) e.getSource();
-                if (rLog.isSelected()) {
-                    MainWindow.preDefMapColor = true;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                } else {
-                    MainWindow.preDefMapColor = false;
-                    colorChooserButton.setEnabled(!MainWindow.preDefMapColor);
-                    paletteChooserButton.setEnabled(MainWindow.preDefMapColor);
-                }
+                boolean val = rLog.isSelected();
+                MainViewPanel.preDefMapColor = val;
+                colorChooserButton.setEnabled(!val);
+                paletteChooserButton.setEnabled(val);
             }
         });
         ButtonGroup group = new ButtonGroup();
@@ -316,7 +261,7 @@ public class ColorRangeDialog extends JDialog {
         okButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                okButtonActionPerformed(e, mainWindow);
+                okButtonActionPerformed(e, superAdapter, colorRangePanel, isObserved);
             }
         });
         buttonBar.add(okButton, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
@@ -328,7 +273,9 @@ public class ColorRangeDialog extends JDialog {
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cancelButtonActionPerformed(e, mainWindow);
+                colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
+                superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+                setVisible(false);
             }
         });
         buttonBar.add(cancelButton, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,
@@ -341,6 +288,39 @@ public class ColorRangeDialog extends JDialog {
         pack();
         setLocationRelativeTo(getOwner());
         //maximumField.requestFocusInWindow();
+    }
+
+    private void okButtonActionPerformed(ActionEvent e, SuperAdapter superAdapter,
+                                         JColorRangePanel colorRangePanel, boolean isObserved) {
+        double max, min = 0;
+
+        try {
+            if (isObserved) {
+                max = df1.parse(maximumField.getText()).doubleValue();
+                min = df1.parse(minimumField.getText()).doubleValue();
+            } else {
+                max = df2.parse(maximumField.getText()).doubleValue();
+            }
+        } catch (ParseException error) {
+            JOptionPane.showMessageDialog(this, "Must enter a number", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (max < min) {
+            JOptionPane.showMessageDialog(this, "Maximum may not be less than minimum", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int iMin = (int) (colorRangeFactor * min);
+        int iMax = (int) (colorRangeFactor * max);
+        if (!isObserved) {
+            iMax = (int) (max * colorRangeFactor);
+            iMin = (int) (colorRangeFactor / max);
+        }
+        colorSlider.setMinimum(iMin);
+        colorSlider.setMaximum(iMax);
+        colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
+        superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+        setVisible(false);
     }
 
 }

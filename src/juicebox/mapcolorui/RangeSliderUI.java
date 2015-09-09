@@ -25,6 +25,7 @@
 package juicebox.mapcolorui;
 
 import juicebox.MainWindow;
+import juicebox.gui.MainViewPanel;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -478,13 +479,13 @@ class RangeSliderUI extends BasicSliderUI {
     public void setDisplayToPreDef(boolean isPreDef) {
 
         this.colorIsPreDef = isPreDef;
-        int colorArraySize = MainWindow.preDefMapColorFractions.size();
-        gradientColorsPreDef = MainWindow.preDefMapColorGradient.toArray(new Color[colorArraySize]);
+        int colorArraySize = MainViewPanel.preDefMapColorFractions.size();
+        gradientColorsPreDef = MainViewPanel.preDefMapColorGradient.toArray(new Color[colorArraySize]);
 
         fractionsPreDef = new float[colorArraySize];
         int i = 0;
 
-        for (Float f : MainWindow.preDefMapColorFractions) {
+        for (Float f : MainViewPanel.preDefMapColorFractions) {
             fractionsPreDef[i++] = (f != null ? f : Float.NaN);
         }
 
@@ -507,7 +508,6 @@ class RangeSliderUI extends BasicSliderUI {
             if (!lowerDragging && !upperDragging) {
                 calculateThumbLocation();
                 slider.repaint();
-                //TODO******   UNCOMMENT  ******
             }
         }
     }

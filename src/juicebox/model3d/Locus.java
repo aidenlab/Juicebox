@@ -32,10 +32,10 @@ import java.util.Map;
 /**
  * Created by muhammadsaadshamim on 7/24/15.
  */
-public class Locus {
-    private Map<Locus, Double> connections = new HashMap<Locus, Double>();
-    private Vector3D position;
-    private Vector3D velocity = new Vector3D(0, 0, 0);
+class Locus {
+    private final Map<Locus, Double> connections = new HashMap<Locus, Double>();
+    private final Vector3D position;
+    private final Vector3D velocity = new Vector3D(0, 0, 0);
     private Vector3D acceleration = new Vector3D(0, 0, 0);
     private double mass = 1;
 
@@ -69,7 +69,7 @@ public class Locus {
     }
 
 
-    public Vector3D getPosition() {
+    private Vector3D getPosition() {
         return position;
     }
 }

@@ -38,13 +38,13 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-class BlockResults {
+public class BlockResults {
 
     private final ArrowheadScoreList internalList;
     private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
-    public BlockResults(RealMatrix observed, float varThreshold, float signThreshold,
+    public BlockResults(RealMatrix observed, double varThreshold, double signThreshold, int increment,
                         ArrowheadScoreList list, ArrowheadScoreList control) {
 
         internalList = list.deepCopy();
@@ -57,13 +57,12 @@ class BlockResults {
         MatrixTriangles triangles = new MatrixTriangles(dUpstream);
 
         triangles.generateBlockScoreCalculations();
-
         triangles.updateScoresUsingList(internalList);
         triangles.updateScoresUsingList(internalControl);
-
-        triangles.thresholdScoreValues(varThreshold, signThreshold);
+        triangles.thresholdScoreValues(varThreshold, signThreshold, increment);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
+        //System.out.println("CC "+connectedComponents.size());
 
         results = triangles.calculateResults(connectedComponents);
         plotArrowheadFigures();

@@ -29,10 +29,13 @@ import org.apache.commons.math.distribution.PoissonDistributionImpl;
 import java.util.Arrays;
 
 /**
- * Created by muhammadsaadshamim on 5/12/15.
+ * TODO merge with MatrixTools i.e. 1 helper class to be called on
  */
 public class ArrayTools {
 
+    /**
+     * @return deep copy of 2D float array
+     */
     public static float[][] deepCopy(float[][] original) {
         float[][] copy = new float[original.length][original[0].length];
         for (int i = 0; i < original.length; i++) {
@@ -41,6 +44,9 @@ public class ArrayTools {
         return copy;
     }
 
+    /**
+     * @return mean of given array
+     */
     public static double mean(double[] doubles) {
         double sum = 0;
         for (double d : doubles) {
@@ -90,18 +96,18 @@ public class ArrayTools {
         return outputArray;
     }
 
+    public static int[][] makeReverse2DCumulativeArray(int[][] data) {
+        int[][] rcsData = new int[data.length][data[0].length];
+        for (int i = 0; i < data.length; i++) {
+            rcsData[i] = ArrayTools.makeReverseCumulativeArray(data[i]);
+        }
+        return rcsData;
+    }
+
     public static float[] newValueInitializedFloatArray(int n, float val) {
         float[] array = new float[n];
         Arrays.fill(array, val);
         return array;
-    }
-
-    public static int[][] makeReverse2DCumulativeArray(int[][] hist) {
-        int[][] rcsHist = new int[hist.length][hist[0].length];
-        for (int i = 0; i < hist.length; i++) {
-            rcsHist[i] = ArrayTools.makeReverseCumulativeArray(hist[i]);
-        }
-        return rcsHist;
     }
 
     public static float[] scalarMultiplyArray(int scaleFactor, float[] array) {

@@ -23,15 +23,16 @@
  */
 
 package juicebox.state;
+
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.HiC;
-import juicebox.windowui.RecentMenu;
-import org.lwjgl.Sys;
+import juicebox.data.Dataset;
+import juicebox.data.DatasetReader;
+import juicebox.data.DatasetReaderFactory;
+import juicebox.gui.SuperAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import sun.applet.Main;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
@@ -49,21 +50,43 @@ import java.util.ArrayList;
  */
 
 
-public class Slideshow {
+public class Slideshow extends JDialog {
 
-    private static String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
-    final static JFrame carouselFrame = new JFrame();
-    final static JPanel nextPanel = new JPanel(new BorderLayout());
-    final static JPanel prevPanel = new JPanel(new BorderLayout());
-    final static JPanel labelPanel = new JPanel(new BorderLayout());
-    final static JButton nextButton = new JButton("\u25BA");
-    final static JButton prevButton = new JButton("\u25C4");
+    private final static JFrame carouselFrame = new JFrame();
+    private final static JPanel nextPanel = new JPanel(new BorderLayout());
+    private final static JPanel prevPanel = new JPanel(new BorderLayout());
+    private final static JPanel labelPanel = new JPanel(new BorderLayout());
+    private final static JButton nextButton = new JButton("\u25BA");
+    private final static JButton prevButton = new JButton("\u25C4");
+    private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
+    private static final long serialVersionUID = -1443095232042271867L;
+    private final JLabel slideLabel;
 
+    public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
+        //super(mainWindow);
+        super();
+        // TODO zgire - if panel needs to be independent of juicebox, then remove the line above (i.e. pass in mainwindow as parent)
+        ArrayList<String> files = new ArrayList<String>();
+        setLayout(new FlowLayout());
+        setResizable(true);
+        setVisible(true);
+        setSize(400, 100);
+        add(prevPanel);
+        add(labelPanel);
+        add(nextPanel);
 
+        prevPanel.add(prevButton, BorderLayout.EAST);
+        prevPanel.setVisible(true);
 
-    public static void viewShow(final MainWindow mainWindow, final HiC hiC) {
-         try {
-             final ArrayList<String> savedStatePaths = new ArrayList<String>();
+        slideLabel = new JLabel();
+        labelPanel.add(slideLabel, BorderLayout.CENTER);
+        labelPanel.setVisible(true);
+
+        nextPanel.add(nextButton, BorderLayout.WEST);
+        nextPanel.setVisible(true);
+
+        try {
+            final ArrayList<String> savedStatePaths = new ArrayList<String>();
             Document dom;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
@@ -72,54 +95,64 @@ public class Slideshow {
             NodeList nodeList = dom.getElementsByTagName("STATE");
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
+                NodeList childNodes = nodeList.item(i).getChildNodes();
+                for(int k=0; k<childNodes.getLength(); k++){
+                    if(childNodes.item(k).getNodeName().equals("MapURL")) {
+                        files.add(childNodes.item(k).getTextContent());
+                    }
+                }
             }
-             System.out.println(savedStatePaths);
-             final int numSlides = savedStatePaths.size();
 
-             final JLabel slideLabel = new JLabel(savedStatePaths.get(0));
+            DatasetReader datasetReader = DatasetReaderFactory.getReader(files);
+            Dataset dataset = datasetReader.read();
+            HiCGlobals.verifySupportedHiCFileVersion(datasetReader.getVersion());
 
-             carouselFrame.setLayout(new FlowLayout());
-             carouselFrame.setResizable(true);
-             carouselFrame.setVisible(true);
-             carouselFrame.setSize(400, 100);
-             carouselFrame.add(prevPanel);
-             carouselFrame.add(labelPanel);
-             carouselFrame.add(nextPanel);
+            System.out.println(savedStatePaths);
+            final int numSlides = savedStatePaths.size();
 
-             prevPanel.add(prevButton,BorderLayout.EAST);
-             prevPanel.setVisible(true);
+            slideLabel.setText(savedStatePaths.get(0));
 
-             labelPanel.add(slideLabel, BorderLayout.CENTER);
-             labelPanel.setVisible(true);
+            carouselFrame.setLayout(new FlowLayout());
+            carouselFrame.setResizable(true);
+            carouselFrame.setVisible(true);
+            carouselFrame.setSize(400, 100);
+            carouselFrame.add(prevPanel);
+            carouselFrame.add(labelPanel);
+            carouselFrame.add(nextPanel);
 
-             nextPanel.add(nextButton,BorderLayout.WEST);
-             nextPanel.setVisible(true);
+            prevPanel.add(prevButton, BorderLayout.EAST);
+            prevPanel.setVisible(true);
+
+            labelPanel.add(slideLabel, BorderLayout.CENTER);
+            labelPanel.setVisible(true);
+
+            nextPanel.add(nextButton, BorderLayout.WEST);
+            nextPanel.setVisible(true);
+
+            prevButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int counter = savedStatePaths.indexOf(slideLabel.getText());
+                    if (counter >= 0) {
+                        counter = ((counter - 1) + numSlides) % numSlides;
+                        slideLabel.setText(savedStatePaths.get(counter));
+                        LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
+                    }
+                }
+            });
 
 
-             prevButton.addActionListener(new ActionListener() {
-                 @Override
-                 public void actionPerformed(ActionEvent e) {
-                     int counter = savedStatePaths.indexOf(slideLabel.getText());
-                     if(counter >= 0 ) {
-                         counter = ((counter-1) + numSlides)%numSlides;
-                         slideLabel.setText(savedStatePaths.get(counter));
-                         LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter),mainWindow,hiC);
-                     }
-                 }
-             });
-
-
-             nextButton.addActionListener(new ActionListener() {
-                 @Override
-                 public void actionPerformed(ActionEvent e) {
-                     int counter = savedStatePaths.indexOf(slideLabel.getText());
-                     if(counter < numSlides){
-                         counter = (counter+1)%numSlides;
-                         slideLabel.setText(savedStatePaths.get(counter));
-                         LoadStateFromXMLFile.reloadSelectedState(savedStatePaths.get(counter),mainWindow,hiC);
-                     }
-                 }
-             });
+            nextButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int counter = savedStatePaths.indexOf(slideLabel.getText());
+                    if (counter < numSlides) {
+                        counter = (counter + 1) % numSlides;
+                        slideLabel.setText(savedStatePaths.get(counter));
+                        LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
+                    }
+                }
+            });
 
 
         } catch (ParserConfigurationException e) {
@@ -131,5 +164,6 @@ public class Slideshow {
         }
 
 
+        setLocationRelativeTo(getOwner());
     }
 }

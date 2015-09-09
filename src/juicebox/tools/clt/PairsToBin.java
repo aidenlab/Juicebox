@@ -24,12 +24,11 @@
 
 package juicebox.tools.clt;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.utils.common.HiCFileTools;
+import jargs.gnu.CmdLineParser;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.original.AsciiToBinConverter;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
 import java.util.List;
 
 public class PairsToBin extends JuiceboxCLT {
@@ -41,9 +40,9 @@ public class PairsToBin extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         if (args.length != 4) {
-            throw new IOException("1");
+            printUsage();
         }
         ifile = args[1];
         ofile = args[2];
@@ -51,8 +50,13 @@ public class PairsToBin extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() {
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
-        AsciiToBinConverter.convert(ifile, ofile, chromosomes);
+        try {
+            AsciiToBinConverter.convert(ifile, ofile, chromosomes);
+        } catch (Exception e) {
+            System.err.println("Unable to convert from ascii to bin");
+            e.printStackTrace();
+        }
     }
 }

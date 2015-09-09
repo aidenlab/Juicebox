@@ -27,5 +27,5 @@ package juicebox.model3d;
 /**
  * Created by muhammadsaadshamim on 7/24/15.
  */
-public class LocusMesh {
+class LocusMesh {
 }

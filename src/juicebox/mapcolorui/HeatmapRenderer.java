@@ -28,12 +28,14 @@ import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Range;
-import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.MainViewPanel;
+import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -52,20 +54,16 @@ import java.util.Map;
  * @author jrobinso
  * @since Aug 11, 2010
  */
-public class HeatmapRenderer {
+class HeatmapRenderer {
 
-    // TODO -- introduce a "model" in lieu of MainWindow pointer
-
-    private final MainWindow mainWindow;
     private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
-    private PreDefColorScale preDefColorScale;
+    private final PreDefColorScale preDefColorScale;
     private ContinuousColorScale observedColorScale;
     private Color curHiCColor = Color.white;
 
-    public HeatmapRenderer(MainWindow mainWindow, HiC hic) {
-        this.mainWindow = mainWindow;
+    public HeatmapRenderer() {
 
         oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();
@@ -250,14 +248,14 @@ public class HeatmapRenderer {
                         int px = rec.getBinX() - originX;
                         int py = rec.getBinY() - originY;
                         if (px > -1 && py > -1 && px <= width && py <= height) {
-                            g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
+                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                         }
 
                         if (sameChr && (rec.getBinX() != rec.getBinY())) {
                             px = (rec.getBinY() - originX);
                             py = (rec.getBinX() - originY);
                             if (px > -1 && py > -1 && px <= width && py <= height) {
-                                g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
+                                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                             }
                         }
                     }
@@ -278,7 +276,7 @@ public class HeatmapRenderer {
                 observedColorScaleMap.clear();
             }
 
-            if (MainWindow.preDefMapColor) {
+            if (MainViewPanel.preDefMapColor) {
                 cs = preDefColorScale;
             } else {
                 //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
@@ -302,18 +300,18 @@ public class HeatmapRenderer {
         return cs;
     }
 
-    public void updateColorSliderFromColorScale(MatrixZoomData zd, MatrixType displayOption) {
+    public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixZoomData zd, MatrixType displayOption) {
         if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
                 displayOption == MatrixType.CONTROL) {
             String key = zd.getKey() + displayOption;
             observedColorScale = observedColorScaleMap.get(key);
 
             if ((observedColorScale != null)) {
-                mainWindow.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
+                superAdapter.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
             }
-            if (MainWindow.preDefMapColor) {
+            if (MainViewPanel.preDefMapColor) {
                 updatePreDefColors();
-                mainWindow.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
+                superAdapter.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
         }
     }
@@ -370,12 +368,12 @@ public class HeatmapRenderer {
                 int py = row - originY;
                 g.setColor(color);
                 //noinspection SuspiciousNameCombination
-                g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
+                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                 // Assuming same chromosome
                 if (col != row) {
                     px = row - originX;
                     py = col - originY;
-                    g.fillRect(px, py, MainWindow.BIN_PIXEL_WIDTH, MainWindow.BIN_PIXEL_WIDTH);
+                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                 }
             }
         }
@@ -402,7 +400,7 @@ public class HeatmapRenderer {
     }
 
     private void updatePreDefColors() {
-        int arrSize = MainWindow.preDefMapColorGradient.size();
+        int arrSize = MainViewPanel.preDefMapColorGradient.size();
 
         ImmutableSortedSet<Integer> set = ContiguousSet.create(Range.closed(0, arrSize), DiscreteDomain.integers());
         Integer[] arrTmp = set.toArray(new Integer[arrSize]);
@@ -412,6 +410,6 @@ public class HeatmapRenderer {
             arrScores[idx] = arrTmp[idx];
         }
 
-        preDefColorScale.updateColors(MainWindow.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
+        preDefColorScale.updateColors(MainViewPanel.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ import java.util.List;
 //import java.util.List;
 
 
-public class CommandExecutor {
+class CommandExecutor {
 
     private static final Logger log = Logger.getLogger(CommandExecutor.class);
     private final HiC hic;

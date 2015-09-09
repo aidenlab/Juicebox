@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import java.net.Socket;
  *         Date: 10/21/13
  *         Time: 2:59 PM
  */
-public class CommandBroadcaster {
+class CommandBroadcaster {
 
     public static int selfPort;
 

@@ -24,8 +24,8 @@
 
 package juicebox.mapcolorui;
 
-import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,31 +44,26 @@ public class ThumbnailPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = -3856114428388478494L;
     private static final AlphaComposite ALPHA_COMP = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
-    private final MainWindow mainWindow;
-    private final HiC hic;
+    private final SuperAdapter superAdapter;
     private Image image;
     private Point lastPoint = null;
-
     private Rectangle innerRectangle;
 
+    public ThumbnailPanel(final SuperAdapter superAdapter) {
 
-    public ThumbnailPanel(MainWindow mainWindow, HiC model) {
-
-        this.mainWindow = mainWindow;
-        this.hic = model;
+        this.superAdapter = superAdapter;
 
         addMouseListener(new MouseAdapter() {
-
 
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
                 if (mouseEvent.getClickCount() >= 1) {
-
                     try {
-                        int xBP = (int) (mouseEvent.getX() * xScale());
-                        int yBP = (int) (mouseEvent.getY() * yScale());
-
-                        hic.center(xBP, yBP);
+                        Point2D.Double scale = superAdapter.getHiCScale(ThumbnailPanel.this.getWidth(),
+                                ThumbnailPanel.this.getHeight());
+                        int xBP = (int) (mouseEvent.getX() * scale.getX());
+                        int yBP = (int) (mouseEvent.getY() * scale.getY());
+                        superAdapter.centerMap(xBP, yBP);
                     } catch (Exception e) {
                         System.out.println("Error when thumbnail clicked");
                         e.printStackTrace();
@@ -96,25 +91,16 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             @Override
             public void mouseDragged(MouseEvent mouseEvent) {
                 if (lastPoint != null) {
-                    int dxBP = ((int) ((mouseEvent.getX() - lastPoint.x) * xScale()));
-                    int dyBP = ((int) ((mouseEvent.getY() - lastPoint.y) * yScale()));
-                    hic.moveBy(dxBP, dyBP);
+                    Point2D.Double scale = superAdapter.getHiCScale(ThumbnailPanel.this.getWidth(),
+                            ThumbnailPanel.this.getHeight());
+                    int dxBP = ((int) ((mouseEvent.getX() - lastPoint.x) * scale.getX()));
+                    int dyBP = ((int) ((mouseEvent.getY() - lastPoint.y) * scale.getY()));
+                    superAdapter.moveMapBy(dxBP, dyBP);
                     lastPoint = mouseEvent.getPoint();
                 }
-
-
             }
         });
     }
-
-    private double xScale() {
-        return (double) hic.getZd().getXGridAxis().getBinCount() / getWidth();
-    }
-
-    private double yScale() {
-        return (double) hic.getZd().getYGridAxis().getBinCount() / getHeight();
-    }
-
 
     public void setImage(Image image) {
         this.image = image;
@@ -135,31 +121,29 @@ public class ThumbnailPanel extends JComponent implements Serializable {
         if (image != null) {
             g.drawImage(image, 0, 0, null);
             renderVisibleWindow((Graphics2D) g);
-            //TODO******   UNCOMMENT  ******
         }
     }
 
     private void renderVisibleWindow(Graphics2D g) {
 
-
-        if (hic != null && hic.getXContext() != null) {
+        if (superAdapter.shouldVisibleWindowBeRendered()) {
 
             Rectangle outerRectangle = new Rectangle(0, 0, getBounds().width, getBounds().height);
 
-            int wPixels = mainWindow.getHeatmapPanel().getWidth();
-            int hPixels = mainWindow.getHeatmapPanel().getHeight();
+            Point2D.Double scale = superAdapter.getHiCScale(getWidth(), getHeight());
 
-            double originX = hic.getXContext().getBinOrigin();
-            int x = (int) (originX / xScale());
+            double scaleFactor = superAdapter.getHiCScaleFactor();
 
-            double originY = hic.getYContext().getBinOrigin();
-            int y = (int) (originY / yScale());
+            Point2D.Double origin = superAdapter.getHiCOrigin();
 
-            double wBins = wPixels / hic.getScaleFactor();
-            int w = (int) (wBins / xScale());
+            Point windowDim = superAdapter.getHeatMapPanelDimensions();
 
-            double yBins = hPixels / hic.getScaleFactor();
-            int h = (int) (yBins / yScale());
+            int x = (int) (origin.x / scale.getX());
+            int y = (int) (origin.y / scale.getY());
+            double wBins = windowDim.getX() / scaleFactor;
+            int w = (int) (wBins / scale.getX());
+            double yBins = windowDim.getY() / scaleFactor;
+            int h = (int) (yBins / scale.getY());
 
             if (w < 4) {
                 int delta = 4 - w;

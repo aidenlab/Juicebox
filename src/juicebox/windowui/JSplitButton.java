@@ -40,7 +40,7 @@ import java.awt.image.BufferedImage;
  *
  * @author eoogbe
  */
-public class JSplitButton extends AbstractButton implements Accessible {
+class JSplitButton extends AbstractButton implements Accessible {
 
     private static final long serialVersionUID = 249426086343067971L;
     private static final String uiClassID = "ButtonUI";

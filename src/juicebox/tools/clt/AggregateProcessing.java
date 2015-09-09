@@ -31,172 +31,91 @@ import java.io.IOException;
 
 /**
  * Created for testing multiple CLTs at once
+ * Basically scratch space
  */
-public class AggregateProcessing {
+class AggregateProcessing {
 
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+        String[] l4 = {"arrowhead", "-c", "22", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out8/", "25000"};
+
+        String[] l5 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/BioScripts/22_blocks"};
+
+        String[] l6 = {"apa", "-r", "5000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Downloads/APA_Ivan/gmloops.txt.gz",
+                "/Users/muhammadsaadshamim/Downloads/APA_Ivan/temp3"};
+
+        String[] l7 = {"hiccups", "-c", "22", "-m", "90",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out8/loops"};
 
 
-            String[] l4 = {"arrowhead", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                    "/Users/muhammadsaadshamim/Desktop/j3/out7", "5000"};
-            //"X", "X", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/minerva/chrX"};
-            HiCTools.main(l4);
+        String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/1212chr22_5000_aa.bin"};
 
-            // super("arrowhead <input_HiC_file> <output_file> <resolution>");
+        String[] l52 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_10000.bin"};
+
+        String[] l53 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_25000.bin"};
+
+        String[] l61 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_5000"};
+
+        String[] l62 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_10000"};
+
+        String[] l63 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_25000"};
+
+        String[] l71 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_5000"};
+
+        String[] l72 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_10000"};
+
+        String[] l73 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_25000"};
+
+        HiCTools.main(l51);
+
+        /*
+
+        HiCGlobals.useCache = false;
 
 
-        // http://adam.bcma.bcm.edu/hiseq/
+
+
+        String file = "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic";
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+
+        Set<String> chrs = new HashSet<String>();
+        chrs.add("22");
+        // select zoom level closest to the requested one
+
+        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chrs, commonChromosomes));
+
+        Feature2DList loopList5000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_5000_pre", commonChromosomes, true, null);
+        Feature2DList loopList10000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_10000_pre", commonChromosomes, true, null);
+        Feature2DList loopList25000 = Feature2DParser.parseLoopFile("/Users/muhammadsaadshamim/Desktop/j3/out8/loops_25000_pre", commonChromosomes, true, null);
+
+        loopList5000.setColor(Color.black);
+        loopList10000.setColor(Color.black);
+        loopList25000.setColor(Color.black);
+
+        Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
+        looplists.put(5000, loopList5000);
+        looplists.put(10000, loopList10000);
+        looplists.put(25000, loopList25000);
+
+
+        HiCCUPS.postProcess(looplists, ds, commonChromosomes, "/Users/muhammadsaadshamim/Desktop/j3/out8/L00PS");
+
+        */
+
 
     }
 }
-        /*
-        String[] l1 = {"hiccups",
-                "-r", "50000",
-                "-c", "1",
-                "-m", "100",
-                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/j3/out1_100",
-                "/Users/muhammadsaadshamim/Desktop/j3/out2_100"};
-
-        long time = System.currentTimeMillis();
-        HiCTools.main(l1);
-        time = (System.currentTimeMillis() - time) / 1000;
-        long mins = time/60;
-        long secs = time%60;
-        System.out.println("Total time " + mins + " min "+ secs + " sec");
-
-        /*
-
-
-        String[] l1 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/perseus/chr1.bin"};
-
-        String[] l4 = {"apa",
-                "-r","50000",
-                "-c","17,18",
-                //"http://adam.bcma.bcm.edu/miseq/HIC1357.hic,http://adam.bcma.bcm.edu/miseq/HIC1357_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1358.hic,http://adam.bcma.bcm.edu/miseq/HIC1358_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1359.hic,http://adam.bcma.bcm.edu/miseq/HIC1359_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1360.hic,http://adam.bcma.bcm.edu/miseq/HIC1360_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1361.hic,http://adam.bcma.bcm.edu/miseq/HIC1361_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1362.hic,http://adam.bcma.bcm.edu/miseq/HIC1362_30.hic,http://adam.bcma.bcm.edu/miseq/HIC1363.hic,http://adam.bcma.bcm.edu/miseq/HIC1363_30.hic",
-                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/Elena_APA/all_loops.txt",
-                "/Users/muhammadsaadshamim/Desktop/Elena_APA/newt"};
-
-        long time = System.currentTimeMillis();
-        HiCTools.main(l3);
-        time = System.currentTimeMillis() - time;
-        System.out.println("Total time (ms): "+time);
-        */
-
-
-
-        /*
-         * Example: this dumps data of each chromosome
-         * for 5 single cell Hi-C experiments
-         * at 5, 10, and 25 kb resolutions
-         *
-         * https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
-         */
-
-        /*
-
-
-        String[] l1 = {"apa","-r","5000",
-                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/cell-1/inter.hic",
-                "/Users/muhammadsaadshamim/Desktop/Leviathan/nagano/mouse_list.txt",
-                "/Users/muhammadsaadshamim/Desktop/apaTest1"};
-
-        RealMatrix rm = new Array2DRowRealMatrix(new double[][]
-            {   {0.0605,    0.6280,    0.1672,    0.3395,    0.2691},
-                {0.3993,    0.2920,    0.1062,    0.9516,    0.4228},
-                {0.5269,    0.4317,    0.3724,    0.9203,    0.5479},
-                {0.4168,    0.0155,    0.1981,    0.0527,    0.9427},
-                {0.6569,    0.9841,    0.4897,    0.7379,    0.4177}});
-
-        rm = new Array2DRowRealMatrix(new double[][]
-                {       {1,0,0,0,0,0,0,0},
-                        {0,1,0,0,0,0,0,0},
-                        {0,2,0,0,0,0,0,0},
-                        {0,0,1,0,0,0,0,0},
-                        {0,0,0,1,0,0,1,0},
-                        {0,0,0,0,1,0,0,0},
-                        {3,0,0,1,0,0,0,0},
-                        {1,1,1,0,0,0,0,0}});
-
-
-
-        String[] chrs = {"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","X"};
-        String[] kbs = {"5","10","25"};
-
-        for(String kb : kbs) {
-            for (int i = 1; i < 6; i++) {
-                for (String chr : chrs) {
-                    String[] line = {"dump",
-                            "observed",
-                            "NONE",
-                            "/Users/muhammadsaadshamim/Desktop/nagano/cell-" + i + "/inter.hic",
-                            "chr" + chr,
-                            "chr" + chr,
-                            "BP",
-                            kb+"000",
-                            "/Users/muhammadsaadshamim/Desktop/nagano/apa_"+kb+"kb_" + i + "/counts/counts_" + chr + ".txt"};
-                    HiCTools.main(line);
-                }
-            }
-        }
-        */
-
-        /*
-        int[] is = {5};
-        for(int i : is) {
-            for (String chr : chrs) {
-                String[] line = {"dump", "observed", "NONE",
-                        "/Users/muhammadsaadshamim/Desktop/nagano/cell-" + i + "/inter.hic",
-                        "chr" + chr, "chr" + chr, "BP", "5000",
-                        "/Users/muhammadsaadshamim/Desktop/nagano/apa_5kb_" + i + "/counts/counts_" + chr + ".txt"};
-                HiCTools.main(line);
-            }
-        }
-        */
-
-
-        /*
-         * For verifying file identity using python:
-         * {
-         * import filecmp
-         * print filecmp.cmp('output1.hic', 'output2.hic') # byte by byte comparison of output files
-         * }
-         */
-
-
-        /*
-        String[] l1 = {"addGWNorm",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
-                "100000000"};
-        String[] l2 = {"addNorm",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
-                "100000000"};
-        String[] l3 = {"binToPairs",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
-                "/Users/muhammadsaadshamim/Desktop/testing/mousesc3.hic"};
-        String[] l4 = {"calcKR",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic"};
-        String[] l5 = {"dump",
-                "observed",
-                "NONE",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
-                "chr2",
-                "chr2",
-                "BP",
-                "1000000",
-                "/Users/muhammadsaadshamim/Desktop/testing/mousesc.txt"};
-        String[] l6 = {"pairsToBin",
-                "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
-                "/Users/muhammadsaadshamim/Desktop/testing/mousesc2.hic",
-                "mm10"};
-
-        String[] l7 = { "pre",
-                        "/Users/muhammadsaadshamim/Desktop/HIC156_smaller.txt",
-                        "/Users/muhammadsaadshamim/Desktop/HIC156_smaller",
-                        "hg19"
-        };
-
-        */

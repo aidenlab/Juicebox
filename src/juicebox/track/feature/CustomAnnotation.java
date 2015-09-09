@@ -24,7 +24,7 @@
 
 package juicebox.track.feature;
 
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.data.HiCFileTools;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -88,7 +88,7 @@ public class CustomAnnotation {
         List<String> featureKeys = feature.getAttributeKeys();
         for (String customKey : attributeKeys) {
             if (!featureKeys.contains(customKey)) {
-                feature.addAttribute(customKey, "null");
+                feature.addStringAttribute(customKey, "null");
                 System.out.println("Added" + customKey);
             }
         }
@@ -228,6 +228,8 @@ public class CustomAnnotation {
         }
     }
 
+    // TODO meh - technically this isn't actually changing all attributes
+    // should this be renamed addAllAttributeValues?
     public void changeAllAttributeValues(String key, String newValue) {
         attributeKeys.add(key);
         customAnnotationList.addAttributeFieldToAll(key, newValue);

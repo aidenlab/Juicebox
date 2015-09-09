@@ -28,16 +28,17 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -45,7 +46,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This is the "model" class for the HiC viewer.
@@ -58,10 +58,11 @@ public class HiC {
     private static final Logger log = Logger.getLogger(HiC.class);
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
-    private final MainWindow mainWindow;
-    private final Map<String, Feature2DList> loopLists;
+    //private final MainWindow mainWindow;
+    private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
+    private final SuperAdapter superAdapter;
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -71,10 +72,9 @@ public class HiC {
     private Dataset dataset;
     private Dataset controlDataset;
     private HiCZoom zoom;
-    private MatrixZoomData matrixForReloadState;
+    //private MatrixZoomData matrixForReloadState;
     private Context xContext;
     private Context yContext;
-    private boolean showLoops;
     private EigenvectorTrack eigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
@@ -85,13 +85,13 @@ public class HiC {
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
 
-    public HiC(MainWindow mainWindow) {
-        this.mainWindow = mainWindow;
-        this.trackManager = new HiCTrackManager(mainWindow, this);
-        this.loopLists = new HashMap<String, Feature2DList>();
-        this.m_zoomChanged = false;
-        this.m_displayOptionChanged = false;
-        this.m_normalizationTypeChanged = false;
+    public HiC(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
+        trackManager = new HiCTrackManager(superAdapter, this);
+        feature2DHandler = new Feature2DHandler();
+        m_zoomChanged = false;
+        m_displayOptionChanged = false;
+        m_normalizationTypeChanged = false;
         initBinSizeDictionary();
     }
 
@@ -103,13 +103,11 @@ public class HiC {
         eigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
-        trackManager.clearTracks();
-        loopLists.clear();
-        showLoops = true;
+        clearFeatures();
     }
 
+    // TODO zgire - why iterate through trackstoremove if you end up calling clearFeatures() ?
     public void clearTracksForReloadState() {
-
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
             if (trackToRemove.getName().equals("eigenvector")) {
@@ -118,11 +116,14 @@ public class HiC {
                 trackManager.removeTrack(trackToRemove);
             }
         }
-        trackManager.clearTracks();
-        loopLists.clear();
-        mainWindow.updateTrackPanel();
+        clearFeatures();
+        superAdapter.updateTrackPanel();
     }
 
+    private void clearFeatures() {
+        trackManager.clearTracks();
+        feature2DHandler.clearLists();
+    }
 
     public double getScaleFactor() {
         return scaleFactor;
@@ -163,42 +164,6 @@ public class HiC {
 
     public void setEncodeAction(LoadEncodeAction eAction) {
         encodeAction = eAction;
-    }
-
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        if (!showLoops) return null;
-        List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                visibleLoopList.add(list);
-            }
-        }
-        return visibleLoopList;
-    }
-
-    public List<Feature2D> getVisibleLoopList(int chrIdx1, int chrIdx2) {
-        if (!showLoops) return null;
-        List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
-                if (currList != null) {
-                    for (Feature2D feature2D : currList) {
-                        visibleLoopList.add(feature2D);
-                    }
-                }
-            }
-        }
-        return visibleLoopList;
-    }
-
-    public void setShowLoops(boolean showLoops1) {
-        showLoops = showLoops1;
-
-    }
-
-    public void setLoopsInvisible(String path) {
-        loopLists.get(path).setVisible(false);
     }
 
     public boolean isLinkedMode() {
@@ -261,6 +226,8 @@ public class HiC {
 
     public MatrixZoomData getZd() {
         Matrix matrix = getMatrix();
+        // TODO - every function which calls this needs to check for null values
+        // maybe throw an Exception to force this check
         if (matrix == null || zoom == null) {
             return null;
         } else {
@@ -384,7 +351,8 @@ public class HiC {
             newZD = matrix.getZoomData(newZoom);
         }
         if (newZD == null) {
-            JOptionPane.showMessageDialog(mainWindow, "Sorry, this zoom is not available", "Zoom unavailable", JOptionPane.WARNING_MESSAGE);
+            superAdapter.launchGenericMessageDialog("Sorry, this zoom is not available", "Zoom unavailable",
+                    JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
@@ -401,7 +369,7 @@ public class HiC {
         int yBinCount = yGridAxis.getBinCount();
         int maxBinCount = Math.max(xBinCount, yBinCount);
 
-        double scalefactor = Math.max(1.0, (double) mainWindow.getHeatmapPanel().getMinimumDimension() / maxBinCount);
+        double scalefactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
 
         setScaleFactor(scalefactor);
 
@@ -451,7 +419,7 @@ public class HiC {
 
         // Find the new resolution,
         HiCZoom newZoom = zoom;
-        if (!mainWindow.isResolutionLocked()) {
+        if (!superAdapter.isResolutionLocked()) {
             List<HiCZoom> zoomList = unit == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
             zoomList.get(zoomList.size() - 1);   // Highest zoom level by default
             for (int i = zoomList.size() - 1; i >= 0; i--) {
@@ -472,7 +440,7 @@ public class HiC {
         zoom = newZD.getZoom();
 
 
-        mainWindow.updateZoom(zoom);
+        superAdapter.updateZoom(zoom);
 
         setScaleFactor(scaleFactor);
 
@@ -505,7 +473,7 @@ public class HiC {
                 binY = yAxis.getBinNumberForFragment(fragmentY);
                 center(binX, binY);
             } catch (RuntimeException error) {
-                JOptionPane.showMessageDialog(mainWindow, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
 
         }
@@ -532,10 +500,10 @@ public class HiC {
      */
     public void center(double binX, double binY) {
 
-        double w = mainWindow.getHeatmapPanel().getWidth() / getScaleFactor();  // view width in bins
+        double w = superAdapter.getHeatmapPanel().getWidth() / getScaleFactor();  // view width in bins
         int newOriginX = (int) (binX - w / 2);
 
-        double h = mainWindow.getHeatmapPanel().getHeight() / getScaleFactor();  // view hieght in bins
+        double h = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();  // view hieght in bins
         int newOriginY = (int) (binY - h / 2);
         moveTo(newOriginX, newOriginY);
     }
@@ -561,10 +529,10 @@ public class HiC {
     private void moveTo(double newBinX, double newBinY) {
         MatrixZoomData zd = getZd();
 
-        final double wBins = (mainWindow.getHeatmapPanel().getWidth() / getScaleFactor());
+        final double wBins = (superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
         double maxX = zd.getXGridAxis().getBinCount() - wBins;
 
-        final double hBins = (mainWindow.getHeatmapPanel().getHeight() / getScaleFactor());
+        final double hBins = (superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
         double maxY = zd.getYGridAxis().getBinCount() - hBins;
 
         double x = Math.max(0, Math.min(maxX, newBinX));
@@ -577,7 +545,7 @@ public class HiC {
 //        String locus2 = "chr" + (yContext.getChromosome().getName()) + ":" + x + "-" + (int) (y + bpWidthY);
 //        IGVUtils.sendToIGV(locus1, locus2);
 
-        mainWindow.repaint();
+        superAdapter.repaint();
 
         if (linkedMode) {
             broadcastLocation();
@@ -647,16 +615,7 @@ public class HiC {
 
     }
 
-    public void loadLoopList(String path) {
 
-        if (loopLists.get(path) != null) {
-            loopLists.get(path).setVisible(true);
-            return;
-        }
-
-        Feature2DList newList = Feature2DParser.parseLoopFile(path, chromosomes, false, 0, 0, 0, true, null);
-        loopLists.put(path, newList);
-    }
 
     /**
      * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
@@ -679,27 +638,26 @@ public class HiC {
 
             this.xContext = new Context(chrX);
             this.yContext = new Context(chrY);
-            mainWindow.setSelectedChromosomesNoRefresh(chrX, chrY);
+            superAdapter.setSelectedChromosomesNoRefresh(chrX, chrY);
             if (eigenvectorTrack != null) {
                 eigenvectorTrack.forceRefresh();
             }
         }
 
+        // if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null))
         HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null)) {
-            // TODO - MSS why not use hic.setZoom instead?
-            zoom = newZoom;
-            xContext.setZoom(zoom);
-            yContext.setZoom(zoom);
-            mainWindow.updateZoom(newZoom);
-        }
+        zoom = newZoom;
+        xContext.setZoom(zoom);
+        yContext.setZoom(zoom);
+        setZoom(newZoom, xOrigin, yOrigin);
+        superAdapter.updateZoom(newZoom);
 
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);
         yContext.setBinOrigin(yOrigin);
 
         try {
-            mainWindow.refresh();
+            superAdapter.refresh();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -752,6 +710,7 @@ public class HiC {
     }
 
     private void initBinSizeDictionary() {
+        // TODO remove magic strings or move this to hicglobals?
         //BP Bin size:
         binSizeDictionary.put("2.5M", 2500000);
         binSizeDictionary.put("1M", 1000000);
@@ -793,6 +752,56 @@ public class HiC {
         binSizeDictionary.put("5f", 5);
         binSizeDictionary.put("2f", 2);
         binSizeDictionary.put("1f", 1);
+    }
+
+    public void setShowLoops(boolean showLoops) {
+        feature2DHandler.setShowLoops(showLoops);
+    }
+
+    public void setLoopsInvisible(String path) {
+        feature2DHandler.setLoopsInvisible(path);
+    }
+
+    public void loadLoopList(String path) {
+        feature2DHandler.loadLoopList(path, chromosomes);
+    }
+
+    public List<Feature2DList> getAllVisibleLoopLists() {
+        return feature2DHandler.getAllVisibleLoopLists();
+    }
+
+    public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
+        return feature2DHandler.getVisibleFeatures(chrIdx1, chrIdx2);
+    }
+
+    public List<Feature2D> findNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n) {
+
+        double binOriginX = getXContext().getBinOrigin();
+        double binOriginY = getYContext().getBinOrigin();
+        double scale = getScaleFactor();
+
+        return feature2DHandler.findNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+    }
+
+    public List<Pair<Rectangle, Feature2D>> findNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x,
+                                                                   int y, int n) {
+        double binOriginX = getXContext().getBinOrigin();
+        double binOriginY = getYContext().getBinOrigin();
+        double scale = getScaleFactor();
+
+        return feature2DHandler.findNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+    }
+
+    public void setSparseFeaturePlotting(boolean status) {
+        feature2DHandler.setSparseFeaturePlotting(status);
+    }
+
+    public void enlarge2DFeaturePlotting(boolean status) {
+        feature2DHandler.enlarge2DFeaturePlotting(status);
+    }
+
+    public void toggleFeatureOpacity(boolean status) {
+        feature2DHandler.toggleFeatureOpacity(status);
     }
 
     public enum Unit {BP, FRAG}

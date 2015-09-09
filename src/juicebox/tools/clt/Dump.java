@@ -25,9 +25,9 @@
 package juicebox.tools.clt;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.data.*;
-import juicebox.tools.HiCTools;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
@@ -57,7 +57,7 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
 
     public Dump() {
-        super("dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]");
+        super("dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize> <outfile>");
     }
 
     private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,
@@ -65,7 +65,7 @@ public class Dump extends JuiceboxCLT {
                                            String type, int binSize) {
         if (zoom.getUnit() == HiC.Unit.FRAG) {
             System.err.println("All versus All currently not supported on fragment resolution");
-            System.exit(1);
+            System.exit(-1);
         }
 
         // Build a "whole-genome" matrix
@@ -270,7 +270,7 @@ public class Dump extends JuiceboxCLT {
             if (!chr1.equals(chr2)) {
                 System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
                 System.err.println("Currently only intrachromosomal O/E and Pearson's are supported.");
-                throw new IOException("-1");
+                System.exit(-1);
             }
         }
 
@@ -348,7 +348,7 @@ public class Dump extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]")
 
         String mType = args[1].toLowerCase();
@@ -357,19 +357,19 @@ public class Dump extends JuiceboxCLT {
                 mType.equals("expected") || mType.equals("eigenvector"))) {
             System.err.println("Matrix or vector must be one of \"observed\", \"oe\", \"pearson\", \"norm\", " +
                     "\"expected\", or \"eigenvector\".");
-            throw new IOException("-1");
+            System.exit(-1);
         }
 
         try {
             norm = NormalizationType.valueOf(args[2]);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            throw new IOException("-1");
+            System.exit(-1);
         }
 
         if (!args[3].endsWith("hic")) {
             System.err.println("Only 'hic' files are supported");
-            throw new IOException("-1");
+            System.exit(-1);
         }
 
         int idx = 3;
@@ -381,32 +381,12 @@ public class Dump extends JuiceboxCLT {
         // idx is now the next argument.  following arguments should be chr1, chr2, unit, binsize, [outfile]
         if (args.length != idx + 4 && args.length != idx + 5) {
             System.err.println("Incorrect number of arguments to \"dump\"");
-            throw new IOException("-1");
+            printUsage();
         }
         chr1 = args[idx];
         chr2 = args[idx + 1];
 
-
-        if (files.size() == 1) {
-            String magicString = DatasetReaderV2.getMagicString(files.get(0));
-
-            DatasetReader reader = null;
-            if (magicString.equals("HIC")) {
-                reader = new DatasetReaderV2(files.get(0));
-            } else {
-                System.err.println("This version of HIC is no longer supported");
-                System.exit(-1);
-            }
-            dataset = reader.read();
-        } else {
-            DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) {
-                System.err.println("Error while reading files");
-                System.exit(-1);
-            } else {
-                dataset = reader.read();
-            }
-        }
+        dataset = HiCFileTools.extractDatasetForCLT(files, false);
 
         chromosomeList = dataset.getChromosomes();
 
@@ -417,11 +397,11 @@ public class Dump extends JuiceboxCLT {
 
         if (!chromosomeMap.containsKey(chr1)) {
             System.err.println("Unknown chromosome: " + chr1);
-            throw new IOException("-1");
+            System.exit(-1);
         }
         if (!chromosomeMap.containsKey(chr2)) {
             System.err.println("Unknown chromosome: " + chr2);
-            throw new IOException("-1");
+            System.exit(-1);
         }
 
 
@@ -429,7 +409,7 @@ public class Dump extends JuiceboxCLT {
             unit = HiC.Unit.valueOf(args[idx + 2]);
         } catch (IllegalArgumentException error) {
             System.err.println("Unit must be in BP or FRAG.");
-            throw new IOException("1");
+            System.exit(1);
         }
 
         String binSizeSt = args[idx + 3];
@@ -438,7 +418,7 @@ public class Dump extends JuiceboxCLT {
             binSize = Integer.parseInt(binSizeSt);
         } catch (NumberFormatException e) {
             System.err.println("Integer expected for bin size.  Found: " + binSizeSt + ".");
-            throw new IOException("1");
+            System.exit(1);
         }
 
 
@@ -458,17 +438,29 @@ public class Dump extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
+    public void run() {
         HiCZoom zoom = new HiCZoom(unit, binSize);
 
         //*****************************************************
         if ((type.equals("observed") || type.equals("norm")) && chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
             dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, type, binSize);
         } else if (type.equals("oe") || type.equals("pearson") || type.equals("observed")) {
-            dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, type, ofile);
+            try {
+                dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, type, ofile);
+            } catch (Exception e) {
+                System.err.println("Unable to dump matrix");
+                e.printStackTrace();
+            }
         } else if (type.equals("norm") || type.equals("expected") || type.equals("eigenvector")) {
-            dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, type, ofile, binSize, unit);
+            try {
+                dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, type, ofile, binSize, unit);
+            } catch (Exception e) {
+                System.err.println("Unable to dump vector");
+                e.printStackTrace();
+            }
         }
 
     }
+
+
 }

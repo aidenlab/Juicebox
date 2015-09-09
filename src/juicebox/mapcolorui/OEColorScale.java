@@ -33,7 +33,7 @@ import java.awt.*;
  *         Date: 11/11/12
  *         Time: 11:32 PM
  */
-public class OEColorScale implements ColorScale {
+class OEColorScale implements ColorScale {
 
     public static final int defaultMaxOEVal = 5;
     private static double max;

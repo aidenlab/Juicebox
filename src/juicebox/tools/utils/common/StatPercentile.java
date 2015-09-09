@@ -27,7 +27,7 @@ package juicebox.tools.utils.common;
 import java.util.Arrays;
 
 /**
- * Created by muhammadsaadshamim on 2/15/15.
+ * TODO merge these common helper classes
  */
 public class StatPercentile {
 
@@ -45,6 +45,10 @@ public class StatPercentile {
         return internalEvaluate(val) * 100;
     }
 
+    /**
+     * @param val
+     * @return percentile of given value as ranked relative to values in internal array
+     */
     private double internalEvaluate(double val) {
         for (int i = 0; i < statsData.length; i++) {
             if (statsData[i] >= val) {

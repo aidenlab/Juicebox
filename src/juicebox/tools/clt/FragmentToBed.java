@@ -26,7 +26,7 @@ package juicebox.tools.clt;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 
 import java.io.*;
 import java.util.List;
@@ -81,16 +81,20 @@ public class FragmentToBed extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox fragmentToBed <fragmentFile>");
         if (args.length != 2) {
-            throw new IOException("1");
+            printUsage();
         }
         filename = args[1];
     }
 
     @Override
-    public void run() throws IOException {
-        fragToBed(filename);
+    public void run() {
+        try {
+            fragToBed(filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

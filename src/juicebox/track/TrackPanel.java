@@ -26,7 +26,8 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.MainWindow;
+import juicebox.HiCGlobals;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
@@ -52,34 +53,34 @@ public class TrackPanel extends JPanel {
     private final Orientation orientation;
     // HiCTrack eigenvectorTrack;
     private final Collection<Pair<Rectangle, HiCTrack>> trackRectangles;
-    private final MainWindow mainWindow;
+    private final SuperAdapter superAdapter;
 
-    public TrackPanel(MainWindow mainWindow, HiC hiC, Orientation orientation) {
-        this.mainWindow = mainWindow;
+    public TrackPanel(SuperAdapter superAdapter, HiC hiC, Orientation orientation) {
+        this.superAdapter = superAdapter;
         this.hic = hiC;
         this.orientation = orientation;
         setAutoscrolls(true);
         trackRectangles = new ArrayList<Pair<Rectangle, HiCTrack>>();
         //setBackground(new Color(238, 238, 238));
         setBackground(Color.white);
-        addMouseAdapter();
+        addMouseAdapter(superAdapter);
 
         //setToolTipText("");   // Has side affect of turning on tt text
     }
 
     public void removeTrack(HiCTrack track) {
         hic.removeTrack(track);
-        mainWindow.revalidate();
+        superAdapter.revalidate();
         //this.revalidate();
-        mainWindow.repaint();
+        superAdapter.repaint();
     }
 
-    private void addMouseAdapter() {
+    private void addMouseAdapter(final SuperAdapter superAdapter) {
         MouseAdapter mouseAdapter = new MouseAdapter() {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                mainWindow.updateToolTipText(tooltipText(e.getX(), e.getY()));
+                TrackPanel.this.superAdapter.updateToolTipText(tooltipText(e.getX(), e.getY()));
             }
 
             @Override
@@ -129,7 +130,7 @@ public class TrackPanel extends JPanel {
                     if (r.contains(mouseEvent.getPoint())) {
 
                         HiCTrack track = p.getSecond();
-                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, mainWindow);
+                        JPopupMenu menu = track.getPopupMenu(TrackPanel.this, superAdapter);
                         menu.show(mouseEvent.getComponent(), mouseEvent.getX(), mouseEvent.getY());
                         repaint();
 
@@ -259,7 +260,7 @@ public class TrackPanel extends JPanel {
         graphics.setTransform(t);
         Point cursorPoint = hic.getCursorPoint();
         if (cursorPoint != null) {
-            graphics.setColor(MainWindow.RULER_LINE_COLOR);
+            graphics.setColor(HiCGlobals.RULER_LINE_COLOR);
             if (orientation == Orientation.X) {
                 graphics.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
             } else {

@@ -24,8 +24,9 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
-import juicebox.tools.utils.common.HiCFileTools;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
@@ -38,33 +39,28 @@ import java.util.*;
  */
 public class BlockBuster {
 
-    private static int matrixWidth = 400;
-    private static int increment = matrixWidth / 2;
-
-
     /**
      * should be called separately for each chromosome
      *
      * @return
      */
-    public static void run(int chrIndex, String chrName, int chrLength, int resolution, String outputPath,
-                           MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control) {
+    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth,
+                           String outputPath, MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control) {
 
-        // int chrLength = chromosome.getLength();
-        float signThreshold = 0.4f;
-        float varThreshold = (float) increment;
-
+        double signThreshold = 0.5;
+        int increment = matrixWidth / 2;
+        double varThreshold = increment;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
 
-        CumulativeBlockResults results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
-
-        while (results.getCumulativeResults().size() == 0 && signThreshold > 0) {
-            signThreshold = signThreshold - 0.1f;
-            results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, list, control);
+        CumulativeBlockResults results = null;
+        while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
+            signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
+            results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, matrixWidth, increment, list, control);
         }
 
         // high variance threshold, fewer blocks, high confidence
-        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution, 0.2f, 0.5f, new ArrowheadScoreList(), new ArrowheadScoreList());
+        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution,
+                0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(), new ArrowheadScoreList());
 
         List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
                 , highConfidenceResults.getCumulativeResults());
@@ -73,6 +69,14 @@ public class BlockBuster {
 
         results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
         results.mergeScores();
+
+        // prior to this point, everything should be in terms of i,j indices in a binned matrix
+        results.scaleIndicesByResolution(resolution);
+        System.out.println("PreResults");
+        for (HighScore hs : results.getCumulativeResults()) {
+            System.out.println(hs);
+        }
+
 
         if (results.getCumulativeResults().size() > 0) {
             List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
@@ -88,6 +92,9 @@ public class BlockBuster {
             blockResults.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_blocks", false);
             blockResultScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_scores", false);
             blockResultControlScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_control_scores", false);
+        }
+        else {
+            System.out.println("\nNo results found for chromosome " + chrName);
         }
     }
 
@@ -140,52 +147,71 @@ public class BlockBuster {
 
     private static List<HighScore> filterBlocksBySize(List<HighScore> largerList, int minWidth) {
         List<HighScore> filteredList = new ArrayList<HighScore>();
-
         for (HighScore score : largerList) {
             if (score.getWidth() > minWidth) {
                 filteredList.add(score);
             }
         }
-
         return filteredList;
     }
 
-    private static List<HighScore> orderedSetDifference(List<HighScore> longerList, List<HighScore> shorterList) {
-
+    /**
+     * Set difference - returns the high scores in longerList that are not in shorterList.
+     *
+     * @param listA
+     * @param listB
+     * @return set difference
+     */
+    private static List<HighScore> orderedSetDifference(List<HighScore> listA, List<HighScore> listB) {
         // remove duplicates
-        Set<HighScore> longerSet = new HashSet<HighScore>(longerList);
-        Set<HighScore> shorterSet = new HashSet<HighScore>(shorterList);
+        Set<HighScore> setA = new HashSet<HighScore>(listA);
+        Set<HighScore> setB = new HashSet<HighScore>(listB);
 
-        List<HighScore> diffList = new ArrayList<HighScore>();
-
-        for (HighScore score : longerSet) {
-            if (!shorterSet.contains(score)) {
-                diffList.add(score);
+        List<HighScore> diffSet = new ArrayList<HighScore>();
+        for (HighScore score : setA) {
+            if (!setB.contains(score)) {
+                diffSet.add(score);
             }
         }
 
-        return diffList;
+        return diffSet;
     }
 
-    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, float varThreshold, float signThreshold,
+    /**
+     * Runs blockbuster for a sliding window along the diagonal of the matrix
+     *
+     * @param zd
+     * @param chrLength
+     * @param varThreshold
+     * @param signThreshold
+     * @param matrixWidth
+     * @param increment
+     * @param list
+     * @param control
+     * @return
+     */
+    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold,
+                                                             double signThreshold, int matrixWidth, int increment,
                                                              ArrowheadScoreList list, ArrowheadScoreList control) {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
-
+        System.out.println("Loading incr " + increment + " chrLength " + chrLength);
         for (int limStart = 0; limStart < chrLength; limStart += increment) {
             int limEnd = Math.min(limStart + matrixWidth, chrLength);
+            System.out.println("Reading " + limStart + ":" + limEnd);
 
             list.setActiveListElements(limStart, limEnd);
             control.setActiveListElements(limStart, limEnd);
 
             // TODO how did limStart > limEnd not cause error?
-
             int n = limEnd - limStart + 1;
             RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,
                     limStart, limEnd, n, n, NormalizationType.KR);
 
-            BlockResults results = (new BlockResults(observed, varThreshold, signThreshold, list, control));
-            results.offsetResultsIndex(limStart);
+            BlockResults results = new BlockResults(MatrixTools.fillLowerLeftTriangle(observed), varThreshold,
+                    signThreshold, increment, list, control);
+            System.out.println("Found " + results.getResults().size() + " blocks");
+            results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
 
             cumulativeBlockResults.add(results);
             System.out.print(".");

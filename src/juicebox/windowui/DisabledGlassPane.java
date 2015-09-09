@@ -46,10 +46,12 @@ public class DisabledGlassPane extends JComponent implements KeyListener {
     private static final long serialVersionUID = 5393484427189897719L;
     private final JLabel message = new JLabel();
 
-    public DisabledGlassPane() {
+    public DisabledGlassPane(int cursor) {
+        super();
         //  Set glass pane properties
 
         setOpaque(false);
+        setCursor(Cursor.getPredefinedCursor(cursor));
         Color base = UIManager.getColor("inactiveCaptionBorder");
         Color background = new Color(base.getRed(), base.getGreen(), base.getBlue(), 128);
         setBackground(background);
@@ -63,7 +65,6 @@ public class DisabledGlassPane extends JComponent implements KeyListener {
         message.setBorder(MESSAGE_BORDER);
 
         //  Disable Mouse, Key and Focus events for the glass pane
-
         addMouseListener(new MouseAdapter() {
         });
         addMouseMotionListener(new MouseMotionAdapter() {
@@ -133,6 +134,8 @@ public class DisabledGlassPane extends JComponent implements KeyListener {
     public void deactivate() {
         setVisible(false);
     }
+
+
 }
 
 

@@ -7,21 +7,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="lib" level="project" />
     <orderEntry type="library" exported="" name="jogl" level="project" />
     <orderEntry type="library" exported="" name="lwjgl" level="project" />
     <orderEntry type="library" exported="" name="broadinstitute" level="project" />
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/lib/general" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-        <jarDirectory url="file://$MODULE_DIR$/lib/general" recursive="false" />
-      </library>
-    </orderEntry>
     <orderEntry type="library" exported="" name="jcuda" level="project" />
+    <orderEntry type="library" exported="" name="general" level="project" />
+    <orderEntry type="library" name="jsi1.1" level="project" />
   </component>
 </module>
 

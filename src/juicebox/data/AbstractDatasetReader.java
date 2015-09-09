@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,9 +47,9 @@ public abstract class AbstractDatasetReader implements DatasetReader {
 
     private static final Logger log = Logger.getLogger(AbstractDatasetReader.class);
 
-    protected final String path;
+    final String path;
 
-    public AbstractDatasetReader(String path) {
+    AbstractDatasetReader(String path) {
         this.path = path;
     }
 

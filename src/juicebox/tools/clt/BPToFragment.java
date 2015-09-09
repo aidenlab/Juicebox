@@ -26,7 +26,7 @@ package juicebox.tools.clt;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import juicebox.tools.HiCTools;
+import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.FragmentCalculation;
 import org.broad.igv.feature.LocusScore;
 import org.broad.igv.track.WindowFunction;
@@ -165,10 +165,10 @@ public class BPToFragment extends JuiceboxCLT {
     }
 
     @Override
-    public void readArguments(String[] args, HiCTools.CommandLineParser parser) throws IOException {
+    public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
         if (args.length != 4) {
-            throw new IOException("1");
+            printUsage();
         }
 
         fragFile = args[1];
@@ -177,8 +177,12 @@ public class BPToFragment extends JuiceboxCLT {
     }
 
     @Override
-    public void run() throws IOException {
-        bpToFrag(fragFile, inputBedFile, outputFile);
+    public void run() {
+        try {
+            bpToFrag(fragFile, inputBedFile, outputFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static class BedLikeFeature implements LocusScore {

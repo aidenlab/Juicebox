@@ -29,6 +29,7 @@ import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
@@ -56,12 +57,14 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
     private final HiC hic;
+    private final SuperAdapter superAdapter;
     private String genomeID;
     private HashMap<String, GeneLocation> geneLocationHashMap = null;
 
-    public GoToPanel(HiC hic) {
+    public GoToPanel(SuperAdapter superAdapter) {
         super();
-        this.hic = hic;
+        this.hic = superAdapter.getHiC();
+        this.superAdapter = superAdapter;
         setBackground(new Color(238, 238, 238));
         setBorder(LineBorder.createGrayLineBorder());
         setLayout(new BorderLayout());
@@ -205,6 +208,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             outBinTop = topStart + ((topEnd - topStart) / 2);
             int diff = topEnd - topStart;
             diff = diff / 1000;
+            // TODO replace with simple floor search, also remove magic strings, use hicglobals array
             if (diff >= 2500000) {
                 estimatedOutBinSize = 2500000;
             } else if (diff >= 1000000) {
@@ -343,7 +347,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
 
         //We might end with ALL->All view, make sure normalization state is updates accordingly...
-        MainWindow.getInstance().setNormalizationDisplayState();
+        superAdapter.setNormalizationDisplayState();
     }
 
     private void parseGenePositionText() {
@@ -368,7 +372,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             }
             hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
             hic.centerBP(location1.centerPosition, location2.centerPosition);
-            MainWindow.getInstance().setNormalizationDisplayState();
+            superAdapter.setNormalizationDisplayState();
         }
     }
 
@@ -436,7 +440,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
         hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
         hic.centerBP(location1.centerPosition, location2.centerPosition);
-        MainWindow.getInstance().setNormalizationDisplayState();
+        superAdapter.setNormalizationDisplayState();
     }
 
     public void focusGained(FocusEvent event) {
