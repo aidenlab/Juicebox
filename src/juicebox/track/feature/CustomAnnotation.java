@@ -173,7 +173,7 @@ public class CustomAnnotation {
         return customAnnotationList.autoSaveAll(tempWriter);
     }
 
-    private void removeFromList(int idx1, int idx2, Feature2D feature) {
+    public void removeFromList(int idx1, int idx2, Feature2D feature) {
         Feature2D lastFeature;
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> lastList;
@@ -182,6 +182,7 @@ public class CustomAnnotation {
             unsavedEdits = lastList.remove(feature);
         }
         reSaveAll();
+        System.out.println("removed" + idx1 + " " + idx2);
     }
 
     // Export annotations

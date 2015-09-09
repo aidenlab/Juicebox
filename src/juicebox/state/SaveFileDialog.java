@@ -42,12 +42,12 @@ public class SaveFileDialog extends JFileChooser {
     private static final long serialVersionUID = 2910799798390074194L;
 
 
-    public SaveFileDialog(File fileToSave, MainWindow mainWindow) {
+    public SaveFileDialog(File fileToSave) {
         super();
         setCurrentDirectory(new File(System.getProperty("user.dir")));
         FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml", "XML");
         setFileFilter(filter);
-        int actionDialog = showSaveDialog(mainWindow);
+        int actionDialog = showSaveDialog(MainWindow.getInstance());
         if (actionDialog == JFileChooser.APPROVE_OPTION) {
             File file = getSelectedFile();
             try {

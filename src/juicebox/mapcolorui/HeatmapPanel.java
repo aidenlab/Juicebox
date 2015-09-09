@@ -687,9 +687,23 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+        final JMenuItem mi10_3 = new JMenuItem("Delete");
+        mi10_3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                featureOptionMenuEnabled = false;
+                Feature2D feature = mostRecentRectFeaturePair.getSecond();
+                int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                MainMenuBar.customAnnotations.removeFromList(chr1Idx, chr2Idx, feature);
+            }
+        });
+
+
         final JMenu configureFeatureMenu = new JMenu("Configure feature");
         configureFeatureMenu.add(mi10_1);
         configureFeatureMenu.add(mi10_2);
+        configureFeatureMenu.add(mi10_3);
 
         if (hic != null) {
             //    menu.add(mi2);

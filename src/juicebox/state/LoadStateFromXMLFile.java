@@ -89,7 +89,7 @@ public class LoadStateFromXMLFile {
 
                     safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
-                    JOptionPane.showMessageDialog(mainWindow, "Error:\n" + nfe.getMessage(), "Error",
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             } else {

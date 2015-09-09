@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import com.sun.org.apache.xalan.internal.utils.FeatureManager;
 import juicebox.HiC;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
@@ -189,9 +190,6 @@ public class CustomAnnotationHandler {
                             count++;
                         }
                     }
-                    // Uncomment to add attributes
-//                    attributes.put("Mean_Observed", "" + (totObserved / count));
-//                    attributes.put("Mean_Expected", "" + (totExpected / count));
                 }
 
                 newFeature = new Feature2D(Feature2D.peak, chr1, start1, end1, chr2, start2, end2,
