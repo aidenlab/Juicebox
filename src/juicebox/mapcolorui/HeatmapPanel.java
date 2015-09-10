@@ -91,6 +91,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private int[] chromosomeBoundaries;
     private boolean straightEdgeEnabled = false;
     private boolean featureOptionMenuEnabled = false;
+    private boolean firstAnnotation;
 
     /**
      * feature highlight related variables
@@ -109,6 +110,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
+        this.firstAnnotation = true;
         //drawnLoopFeatures = new ArrayList<Pair<Rectangle, Feature2D>>();
         //setToolTipText(""); // Turns tooltip on
     }
@@ -1045,6 +1047,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
             } else if (e.isShiftDown()) {
+                if (superAdapter.unsavedEditsExist() && firstAnnotation) {
+                    firstAnnotation = false;
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "There are unsaved hand annotations from your previous session! \n" +
+                            "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
+                }
+
                 dragMode = DragMode.ANNOTATE;
                 MainMenuBar.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
                 MainMenuBar.customAnnotationHandler.doPeak();
@@ -1089,19 +1097,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setCursor(Cursor.getDefaultCursor());
                 repaint();
                 superAdapter.repaintTrackPanels();
-
-
-                //hic.setCursorPoint(null);
-                //setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
-
-                //
-                //straightEdgeEnabled = false;
-
-                //hic.setCursorPoint(null);
-                //setCursor(Cursor.getDefaultCursor());
-                //repaint();
-                //mainWindow.repaintTrackPanels();
-                //
 
             } else {
                 setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());

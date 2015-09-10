@@ -124,7 +124,7 @@ public class CustomAnnotation {
         System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
-    private void deleteTempFile() {
+    public void deleteTempFile() {
         System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         tempWriter.close();
         tempFile.delete();

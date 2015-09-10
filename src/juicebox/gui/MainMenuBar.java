@@ -82,7 +82,6 @@ public class MainMenuBar {
         return encodeAction;
     }
 
-
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
         temp = HiCFileTools.openTempFile(tempPath);
@@ -534,6 +533,10 @@ public class MainMenuBar {
         menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
+    }
+
+    public void deleteUnsavedEdits(){
+        customAnnotations.deleteTempFile();
     }
 
     public void setEnableForAllElements(boolean status) {
