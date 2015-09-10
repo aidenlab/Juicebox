@@ -1047,7 +1047,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
             } else if (e.isShiftDown()) {
-                if (superAdapter.unsavedEditsExist() && firstAnnotation) {
+                boolean showWarning = false;
+                
+                if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
                     firstAnnotation = false;
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), "There are unsaved hand annotations from your previous session! \n" +
                             "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
