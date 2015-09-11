@@ -219,7 +219,6 @@ public class ResourceTree {
                     if (!selectedLocators.contains(locator)) {
                         deselectedLocators.add(locator);
                     }
-
                 }
                 // add these to loaded ones for next use
                 for (ResourceLocator locator : newLocators) {

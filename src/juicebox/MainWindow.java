@@ -77,11 +77,6 @@ public class MainWindow extends JFrame {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(superAdapter.getNewHiCKeyDispatcher());
 
         hicMapColor = Color.red;
-
-        if (superAdapter.unsavedEditsExist()) {
-            JOptionPane.showMessageDialog(theInstance, "There are unsaved hand annotations from your previous session! \n" +
-                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.");
-        }
     }
 
     private static MainWindow createMainWindow() {
@@ -171,6 +166,10 @@ public class MainWindow extends JFrame {
     public void exitActionPerformed() {
         setVisible(false);
         dispose();
+        //TODO - doesn't always delete temp file of annotations on exit
+        if (superAdapter.unsavedEditsExist()) {
+            superAdapter.deleteUnsavedEdits();
+        }
         System.exit(0);
     }
 

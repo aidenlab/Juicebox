@@ -651,6 +651,9 @@ public class SuperAdapter {
         setInitialZoom();
     }
 
+    public void deleteUnsavedEdits(){
+        mainMenuBar.deleteUnsavedEdits();
+    }
 
     public void setSparseFeaturePlotting(boolean status) {
         hic.setSparseFeaturePlotting(status);

@@ -65,7 +65,7 @@ public class LoadAction extends AbstractAction {
         this.hic = hic;
     }
 
-    private static Document createMasterDocument(String xmlUrl) throws ParserConfigurationException {
+    private static Document createMasterDocument(String xmlUrl, MainWindow mainWindow) throws ParserConfigurationException {
 
         StringBuffer buffer = new StringBuffer();
 
@@ -87,7 +87,7 @@ public class LoadAction extends AbstractAction {
 
         if (buffer.length() > 0) {
             String message = "<html>The following urls could not be processed due to load failures:<br>" + buffer.toString();
-            JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
+            JOptionPane.showMessageDialog(mainWindow, message);
         }
 
         return masterDocument;
@@ -211,7 +211,7 @@ public class LoadAction extends AbstractAction {
         ResourceTree resourceTree = hic.getResourceTree();
         try {
             if (resourceTree == null) {
-                Document tempDoc = createMasterDocument(getXmlUrl());
+                Document tempDoc = createMasterDocument(getXmlUrl(), mainWindow);
                 resourceTree = new ResourceTree(hic, tempDoc);
             }
         } catch (Exception e) {
@@ -226,7 +226,7 @@ public class LoadAction extends AbstractAction {
 
         try {
             if (resourceTree == null) {
-                Document masterDocument = createMasterDocument(xmlFile);
+                Document masterDocument = createMasterDocument(xmlFile, mainWindow);
                 resourceTree = new ResourceTree(hic, masterDocument);
             }
         } catch (Exception e) {

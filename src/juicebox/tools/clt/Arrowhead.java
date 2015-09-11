@@ -37,10 +37,7 @@ import juicebox.windowui.HiCZoom;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by nchernia on 1/9/15.
@@ -72,7 +69,7 @@ public class Arrowhead extends JuiceboxCLT {
         } catch (NumberFormatException error) {
             printUsage();
         }
-        givenChromosomes = juicerParser.getChromosomeOption();
+        givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize % 2 == 1)
             specifiedMatrixSize += 1;
