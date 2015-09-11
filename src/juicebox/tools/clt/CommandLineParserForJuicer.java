@@ -45,7 +45,6 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option multipleChromosomesOption = null;
     private static Option multipleResolutionsOption = null;
     // for motif finder
-    private static Option ctcfOption = null;
     private static Option ctcfCollapsedOption = null;
     private static Option rad21Option = null;
     private static Option smc3Option = null;
@@ -72,7 +71,6 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
 
-        ctcfOption = addStringOption('c', "CTCF_input_file");
         ctcfCollapsedOption = addStringOption('a', "CTCF_collapsed_input_file");
         rad21Option = addStringOption('r', "RAD21_input_file");
         smc3Option = addStringOption('s', "SMC3_input_file");
@@ -88,7 +86,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     }
 
     public static boolean isJuicerCommand(String cmd) {
-        return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motif_finder");
+        return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
+                || cmd.equals("clustering");
     }
 
     /**
@@ -97,10 +96,6 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private String optionToString(Option option) {
         Object opt = getOptionValue(option);
         return opt == null ? null : opt.toString();
-    }
-
-    public String getCTCFOption() {
-        return optionToString(ctcfOption);
     }
 
     public String getCTCFCollapsedOption() {

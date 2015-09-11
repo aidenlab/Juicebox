@@ -103,8 +103,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
-        } else if (cmd.equals("motif_finder")) {
-            //return new MotifFinder();
+        } else if (cmd.equals("motifs")) {
+            return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
             return new PairsToBin();
         } else if (cmd.equals("db")) {
