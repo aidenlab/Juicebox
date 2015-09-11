@@ -4,6 +4,9 @@
       <root url="file://$PROJECT_DIR$/lib/jcuda" />
     </CLASSES>
     <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/lib/jcuda" />
+    </NATIVE>
     <SOURCES>
       <root url="file://$PROJECT_DIR$/lib/jcuda" />
     </SOURCES>
