@@ -26,9 +26,9 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
@@ -49,6 +49,18 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option ctcfCollapsedOption = null;
     private static Option rad21Option = null;
     private static Option smc3Option = null;
+
+    // for AFA
+    private static Option relativeLocationOption = null;
+    private static Option multipleAttributesOption = null;
+
+    // for HiCCUPS
+    private static Option fdrOption = null;
+    private static Option windowOption = null;
+    private static Option peakOption = null;
+    private static Option clusterRadiusOption = null;
+    private static Option thresholdOption = null;
+
     public CommandLineParserForJuicer() {
 
         apaWindowOption = addIntegerOption('w', "window");
@@ -64,6 +76,15 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         ctcfCollapsedOption = addStringOption('a', "CTCF_collapsed_input_file");
         rad21Option = addStringOption('r', "RAD21_input_file");
         smc3Option = addStringOption('s', "SMC3_input_file");
+
+        relativeLocationOption = addStringOption('l', "Location Type");
+        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
+
+        fdrOption = addStringOption('f', "fdr threshold values");
+        windowOption = addStringOption('w', "window width values");
+        peakOption = addStringOption('p', "peak width values");
+        clusterRadiusOption = addStringOption('d', "centroid radii");
+        thresholdOption = addStringOption('f', "postprocessing threshold values");
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -94,6 +115,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToString(smc3Option);
     }
 
+    public String getRelativeLocationOption() {
+        return optionToString(relativeLocationOption);
+    }
+
     /**
      * int flags
      */
@@ -121,17 +146,40 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     /**
      * String Set flags
      */
-    private Set<String> optionToStringSet(Option option) {
+    private List<String> optionToStringList(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
+        return opt == null ? null : new ArrayList<String>(Arrays.asList(opt.toString().split(",")));
     }
 
-    public Set<String> getChromosomeOption() {
-        return optionToStringSet(multipleChromosomesOption);
+    public List<String> getChromosomeOption() {
+        return optionToStringList(multipleChromosomesOption);
     }
 
-    public Set<String> getMultipleResolutionOptions() {
-        return optionToStringSet(multipleResolutionsOption);
+    public List<String> getMultipleResolutionOptions() {
+        return optionToStringList(multipleResolutionsOption);
     }
 
+    public List<String> getAttributeOption() {
+        return optionToStringList(multipleAttributesOption);
+    }
+
+    public List<String> getFDROptions() {
+        return optionToStringList(fdrOption);
+    }
+
+    public List<String> getPeakOptions() {
+        return optionToStringList(peakOption);
+    }
+
+    public List<String> getWindowOptions() {
+        return optionToStringList(windowOption);
+    }
+
+    public List<String> getClusterRadiusOptions() {
+        return optionToStringList(clusterRadiusOption);
+    }
+
+    public List<String> getThresholdOptions() {
+        return optionToStringList(thresholdOption);
+    }
 }

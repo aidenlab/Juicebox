@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.data.Dataset;
 import juicebox.tools.clt.HiCCUPS;
+import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.FeatureFilter;
@@ -43,12 +44,14 @@ public class HiCCUPSUtils {
 
     public static final String OBSERVED = "observed";
     // for debugging
+    /*
     public static final String notNearCentroidAttr = "NotNearCentroid";
     public static final String centroidAttr = "Centroid";
     public static final String nearCentroidAttr = "NearCentroid";
     public static final String nearDiagAttr = "NearDiag";
     public static final String StrongAttr = "Strong";
     public static final String FilterStage = "Stage";
+    */
     private static final String PEAK = "peak";
     private static final String EXPECTEDBL = "expectedBL";
     private static final String EXPECTEDDONUT = "expectedDonut";
@@ -154,11 +157,11 @@ public class HiCCUPSUtils {
 
     }
 
-    public static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution) {
+    public static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution, final int centroidRadius) {
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return coalescePixelsToCentroid(resolution, feature2DList);
+                return coalescePixelsToCentroid(resolution, feature2DList, centroidRadius);
             }
         });
     }
@@ -211,7 +214,10 @@ public class HiCCUPSUtils {
     /**
      * @return list of pixels coalesced to centroid of enriched region
      */
-    private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList) {
+    private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList,
+                                                            int originalClusterRadius) {
+        // TODO - note that changes are not saved for other chromosomes - is that necessary to do?
+        double pixelClusterRadius = originalClusterRadius;
 
         // HashSet intermediate for removing duplicates; LinkedList used so that we can pop out highest obs values
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
@@ -236,7 +242,7 @@ public class HiCCUPSUtils {
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
                 //System.out.println("Radius " + HiCCUPS.pixelClusterRadius);
-                if (hypotenuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= HiCCUPS.pixelClusterRadius) {
+                if (hypotenuse(pixelListX - px.getStart1(), pixelListY - px.getStart2()) <= pixelClusterRadius) {
                     pixelList.add(px);
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
@@ -259,13 +265,14 @@ public class HiCCUPSUtils {
                     //System.out.println("Radii "+distances);
                     r = Math.round(Collections.max(distances));
 
-                    HiCCUPS.pixelClusterRadius = HiCCUPS.originalPixelClusterRadius + r;
+                    pixelClusterRadius = originalClusterRadius + r;
                 }
             }
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            pixel.addIntAttribute(RADIUS, (int) Math.round(r));
+            //pixel.addIntAttribute(RADIUS, (int) Math.round(r));
+            pixel.addIntAttribute(RADIUS, (int) Math.round(pixelClusterRadius));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
@@ -397,39 +404,91 @@ public class HiCCUPSUtils {
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
         Feature2DList centroidsTwentyFiveKB = mergedList.extractReproducibleCentroids(twentyFiveKBList, 2 * 25000);
-        centroidsTwentyFiveKB.setAttributeFieldForAll(FilterStage, "58");
+        //centroidsTwentyFiveKB.setAttributeFieldForAll(FilterStage, "58");
         Feature2DList distant25 = twentyFiveKBList.extractPeaksNotNearCentroids(centroidsTwentyFiveKB);
-        distant25.setAttributeFieldForAll(FilterStage, "66");
+        //distant25.setAttributeFieldForAll(FilterStage, "66");
         mergedList.add(distant25);
     }
 
     private static Feature2DList handleFiveAndTenKBMerger(Feature2DList fiveKBList, Feature2DList tenKBList) {
         // add peaks commonly found between 5 and 10 kB
         Feature2DList centroidsFiveKB = tenKBList.extractReproducibleCentroids(fiveKBList, 2 * 10000);
-        centroidsFiveKB.setAttributeFieldForAll(FilterStage, "11");
+        //centroidsFiveKB.setAttributeFieldForAll(FilterStage, "11");
         Feature2DList mergedList = fiveKBList.extractPeaksNearCentroids(centroidsFiveKB);
-        mergedList.setAttributeFieldForAll(FilterStage, "22");
+        //mergedList.setAttributeFieldForAll(FilterStage, "22");
 
         // add peaks unique to 10 kB
         Feature2DList centroidsTenKB = fiveKBList.extractReproducibleCentroids(tenKBList, 2 * 10000);
-        centroidsTenKB.setAttributeFieldForAll(FilterStage, "27");
+        //centroidsTenKB.setAttributeFieldForAll(FilterStage, "27");
         Feature2DList distant10 = tenKBList.extractPeaksNotNearCentroids(centroidsTenKB);
-        distant10.setAttributeFieldForAll(FilterStage, "33");
+        //distant10.setAttributeFieldForAll(FilterStage, "33");
         mergedList.add(distant10);
 
         // add peaks close to diagonal
         Feature2DList nearDiag = fiveKBList.getPeaksNearDiagonal(110000);
-        nearDiag.setAttributeFieldForAll(FilterStage, "44");
+        //nearDiag.setAttributeFieldForAll(FilterStage, "44");
         mergedList.add(nearDiag);
 
         // add particularly strong peaks
         Feature2DList strong = fiveKBList.getStrongPeaks(100);
-        strong.setAttributeFieldForAll(FilterStage, "55");
+        //strong.setAttributeFieldForAll(FilterStage, "55");
         mergedList.add(strong);
 
         // filter duplicates
         // TODO mergedList.removeDuplicates();
 
         return mergedList;
+    }
+
+    public static int[] extractIntegerValues(List<String> valList, int n, int defaultVal) {
+
+        if (valList == null) {
+            return ArrayTools.preInitializeIntArray(defaultVal, n);
+        } else {
+            // if < 0, just return whatever is extracted
+            // if > 0, then verify lengths match up (to ensure 1-to-1 correspondence of resolution with other params)
+            if (n < 0)
+                return ArrayTools.extractIntegers(valList);
+            else {
+                int[] result = ArrayTools.extractIntegers(valList);
+                if (result.length == n) {
+                    return result;
+                } else if (result.length == 1) {
+                    return ArrayTools.preInitializeIntArray(result[0], n);
+                } else {
+                    System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
+                    System.exit(-10);
+                }
+            }
+        }
+        return new int[0];
+    }
+
+    public static double[] extractFDRValues(List<String> stringIntList, int n, float defaultVal) {
+        double[] fdrValues = extractDoubleValues(stringIntList, n, defaultVal);
+        return ArrayTools.inverseArrayValues(fdrValues);
+    }
+
+    public static double[] extractDoubleValues(List<String> valList, int n, double defaultVal) {
+        if (valList == null) {
+            return ArrayTools.preInitializeDoubleArray(defaultVal, n);
+        } else {
+            // if < 0, just return whatever is extracted
+            // if > 0, then verify lengths match up (to ensure 1-to-1 correspondence of resolution with other params)
+            if (n < 0)
+                return ArrayTools.extractDoubles(valList);
+            else {
+                double[] result = ArrayTools.extractDoubles(valList);
+                if (result.length == n) {
+                    return result;
+                } else if (result.length == 1) {
+                    return ArrayTools.preInitializeDoubleArray(result[0], n);
+                } else {
+                    System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
+                    System.exit(-10);
+                }
+            }
+        }
+        return null;
     }
 }

@@ -350,8 +350,12 @@ public class Feature2D implements Comparable<Feature2D> {
         return reflection;
     }
 
-    public boolean containsAttribute(String attribute) {
+    public boolean containsAttributeKey(String attribute) {
         return attributes.containsKey(attribute);
+    }
+
+    public boolean containsAttributeValue(String attribute) {
+        return attributes.values().contains(attribute);
     }
 
     public String getLocationKey() {

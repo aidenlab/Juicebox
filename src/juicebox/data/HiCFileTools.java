@@ -162,14 +162,14 @@ public class HiCFileTools {
      * @param resolutions
      * @return finalResolutions Set
      */
-    public static Set<Integer> filterResolutions(Dataset ds, int[] resolutions) {
+    public static List<Integer> filterResolutions(Dataset ds, int[] resolutions) {
 
         TreeSet<Integer> resSet = new TreeSet<Integer>();
         for (HiCZoom zoom : ds.getBpZooms()) {
             resSet.add(zoom.getBinSize());
         }
 
-        Set<Integer> finalResolutions = new HashSet<Integer>();
+        List<Integer> finalResolutions = new ArrayList<Integer>();
         for (int res : resolutions) {
             finalResolutions.add(closestValue(res, resSet));
         }

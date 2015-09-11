@@ -364,7 +364,7 @@ public class Feature2DList {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
-                    if (!feature.containsAttribute(newAttributeName))
+                    if (!feature.containsAttributeKey(newAttributeName))
                         feature.addStringAttribute(newAttributeName, newAttributeValue);
                 }
             }
@@ -455,7 +455,7 @@ public class Feature2DList {
                             int dy = f1.getStart2() - f2.getStart2();
                             double d = HiCCUPSUtils.hypotenuse(dx, dy);
                             if (d <= radius) {
-                                f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
+                                //f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
                                 centroids.addByKey(chr, f2);
                                 break;
                             }
@@ -478,7 +478,7 @@ public class Feature2DList {
                 for (Feature2D f : feature2DList) {
                     int dist = Math.abs(f.getStart1() - f.getStart2());
                     if (dist < radius) {
-                        f.setAttribute(HiCCUPSUtils.nearDiagAttr, "1");
+                        //f.setAttribute(HiCCUPSUtils.nearDiagAttr, "1");
                         peaks.addByKey(chr, f);
                     }
                 }
@@ -498,7 +498,7 @@ public class Feature2DList {
                 for (Feature2D f : feature2DList) {
                     float obs = f.getFloatAttribute(HiCCUPSUtils.OBSERVED);
                     if (obs > limit) {
-                        f.setAttribute(HiCCUPSUtils.StrongAttr, "1");
+                        //f.setAttribute(HiCCUPSUtils.StrongAttr, "1");
                         peaks.addByKey(chr, f);
                     }
                 }
@@ -522,7 +522,7 @@ public class Feature2DList {
 
                     for (Feature2D f : feature2DList) {
                         if (!keys.contains(f.getLocationKey())) {
-                            f.setAttribute(HiCCUPSUtils.notNearCentroidAttr, "1");
+                            //f.setAttribute(HiCCUPSUtils.notNearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }
@@ -555,7 +555,7 @@ public class Feature2DList {
 
                     for (Feature2D f : feature2DList) {
                         if (keys.contains(f.getLocationKey())) {
-                            f.setAttribute(HiCCUPSUtils.nearCentroidAttr, "1");
+                            //f.setAttribute(HiCCUPSUtils.nearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }

@@ -27,6 +27,7 @@ package juicebox.tools.utils.common;
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * TODO merge with MatrixTools i.e. 1 helper class to be called on
@@ -133,5 +134,78 @@ public class ArrayTools {
             paddedArray[i] = val;
         }
         return paddedArray;
+    }
+
+    public static int[] extractIntegers(List<String> stringList) {
+        int[] array = new int[stringList.size()];
+
+        int index = 0;
+        for (String val : stringList) {
+            array[index] = Integer.parseInt(val);
+            index++;
+        }
+        return array;
+    }
+
+    public static float[] extractFloats(List<String> stringList) {
+        float[] array = new float[stringList.size()];
+
+        int index = 0;
+        for (String val : stringList) {
+            array[index] = Float.parseFloat(val);
+            index++;
+        }
+        return array;
+    }
+
+    public static int[] preInitializeIntArray(int val, int n) {
+        int[] array = new int[n];
+        for (int i = 0; i < n; i++) {
+            array[i] = val;
+        }
+        return array;
+    }
+
+    public static float[] preInitializeFloatArray(float val, int n) {
+        float[] array = new float[n];
+        for (int i = 0; i < n; i++) {
+            array[i] = val;
+        }
+        return array;
+    }
+
+    public static float[] inverseArrayValues(float[] array) {
+        float[] inverses = new float[array.length];
+        for (int i = 0; i < array.length; i++) {
+            inverses[i] = 1f / array[i];
+        }
+        return inverses;
+    }
+
+    public static double[] preInitializeDoubleArray(double val, int n) {
+        double[] array = new double[n];
+        for (int i = 0; i < n; i++) {
+            array[i] = val;
+        }
+        return array;
+    }
+
+    public static double[] extractDoubles(List<String> stringList) {
+        double[] array = new double[stringList.size()];
+
+        int index = 0;
+        for (String val : stringList) {
+            array[index] = Double.parseDouble(val);
+            index++;
+        }
+        return array;
+    }
+
+    public static double[] inverseArrayValues(double[] array) {
+        double[] inverses = new double[array.length];
+        for (int i = 0; i < array.length; i++) {
+            inverses[i] = 1. / array[i];
+        }
+        return inverses;
     }
 }
