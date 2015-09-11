@@ -103,7 +103,7 @@ public class AFA extends JuiceboxCLT {
             }
         }
 
-        attributes = juicerParser.getAttributeOption();
+        attributes = new HashSet<String>(juicerParser.getAttributeOption());
         if (attributes == null || attributes.size() == 0) {
             attributes = new HashSet<String>();
             attributes.add("");
@@ -116,7 +116,7 @@ public class AFA extends JuiceboxCLT {
         if (window == 0)
             window = 10;
 
-        Set<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
+        List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             resolutions = new int[possibleResolutions.size()];
             int i = 0;
@@ -125,7 +125,7 @@ public class AFA extends JuiceboxCLT {
                 i++;
             }
         }
-        givenChromosomes = juicerParser.getChromosomeOption();
+        givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
     }
 
     @Override

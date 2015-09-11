@@ -110,7 +110,7 @@ public class APA extends JuiceboxCLT {
         if (window == 0)
             window = 10;
 
-        Set<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
+        List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             resolutions = new int[possibleResolutions.size()];
             int i = 0;
@@ -119,7 +119,7 @@ public class APA extends JuiceboxCLT {
                 i++;
             }
         }
-        givenChromosomes = juicerParser.getChromosomeOption();
+        givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
     }
 
     @Override

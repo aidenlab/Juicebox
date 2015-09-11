@@ -57,63 +57,86 @@ public class HiCCUPS extends JuiceboxCLT {
 
     public static final int regionMargin = 20;
     public static final int krNeighborhood = 5;
-    public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
+    //public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
     public static final Color defaultPeakColor = Color.cyan;
     public static final boolean shouldColorBeScaledByFDR = false;
-    public static final double fdrsum = 0.02;
-    public static final double oeThreshold1 = 1.5;
-    public static final double oeThreshold2 = 1.75;
-    public static final double oeThreshold3 = 2;
+
     private static final int totalMargin = 2 * regionMargin;
     // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
     // w2 (10000) corresponds to the number of reads (so it can't handle pixels with more than 10,000 reads)
     // TODO dimensions should be variably set
     private static final int w1 = 40;
     private static final int w2 = 10000;
-    private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
-    private static final int peakWidth = 1;
-    private static final int window = 3;
+    //private static final int fdr = 10;// TODO must be greater than 1, fdr percentage (change to)
+    //private static final int peakWidth = 1;
+    //private static final int window = 3;
+    // defaults are set based on GM12878/IMR90
+    public static double fdrsum = 0.02;
+    public static double oeThreshold1 = 1.5;
+    public static double oeThreshold2 = 1.75;
 
-    public static double pixelClusterRadius = originalPixelClusterRadius;
+
+    /*
+     * Reasonable Commands
+     *
+     * fdr = 10 for all resolutions
+     * peak width = 1 for 25kb, 2 for 10kb, 4 for 5kb
+     * window = 3 for 25kb, 5 for 10kb, 7 for 5kb
+     *
+     * cluster radius is 20kb for 5kb and 10kb res and 50kb for 25kb res
+     * fdrsumthreshold is 0.02 for all resolutions
+     * oeThreshold1 = 1.5 for all res
+     * oeThreshold2 = 1.75 for all res
+     * oeThreshold3 = 2 for all res
+     *
+     * published GM12878 looplist was only generated with 5kb and 10kb resolutions
+     * same with published IMR90 looplist
+     * published CH12 looplist only generated with 10kb
+     */
+    public static double oeThreshold3 = 2;
+    //public static double pixelClusterRadius = originalPixelClusterRadius;
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private int[] resolutions = new int[]{25000, 10000, 5000};
     private boolean chrSpecified = false;
     private Set<String> chromosomesSpecified = new HashSet<String>();
     private String inputHiCFileName;
     private String outputFDRFileName;
     private String outputEnrichedFileName;
     private String outputFinalLoopListFileName;
+    private Configuration[] configurations;
 
     public HiCCUPS() { //TODO fdr, window, peakwidth flags
-        super("hiccups [-r resolution(s)] [-c chromosome] [-m matrixSize] <hicFile> <finalLoopsList>");
+        super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window] " +
+                "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>");
         HiCGlobals.useCache = false;
         // also
-        // hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName> <outputEnrichedPixelsFileName>
-    }
+        // hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
 
-    private static int divisor() {
-        return (window - peakWidth) * (window + peakWidth);
+        //TODO hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window]
+        //[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>
     }
 
     private static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
-                                   List<Chromosome> commonChromosomes, String outputFinalLoopListFileName) {
-        for (int res : looplists.keySet()) {
-            pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+                                    List<Chromosome> commonChromosomes, String outputFinalLoopListFileName,
+                                    List<Configuration> configurations) {
+        for (Configuration conf : configurations) {
 
-            for (String s : new String[]{HiCCUPSUtils.notNearCentroidAttr, HiCCUPSUtils.centroidAttr, HiCCUPSUtils.nearCentroidAttr,
+            int res = conf.resolution;
+            //pixelClusterRadius = originalPixelClusterRadius; // reset for different resolutions
+
+            /*for (String s : new String[]{HiCCUPSUtils.notNearCentroidAttr, HiCCUPSUtils.centroidAttr, HiCCUPSUtils.nearCentroidAttr,
                     HiCCUPSUtils.nearDiagAttr, HiCCUPSUtils.StrongAttr, HiCCUPSUtils.FilterStage}) {
                 looplists.get(res).addAttributeFieldToAll(s, "0");
-            }
+            }*/
 
             HiCCUPSUtils.removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
-            HiCCUPSUtils.coalesceFeaturesToCentroid(looplists.get(res), res);
+            HiCCUPSUtils.coalesceFeaturesToCentroid(looplists.get(res), res, conf.clusterRadius);
             HiCCUPSUtils.filterOutFeaturesByFDR(looplists.get(res));
         }
 
         Feature2DList finalList = HiCCUPSUtils.mergeAllResolutions(looplists);
-        finalList.exportFeatureList(outputFinalLoopListFileName + "_post_333", false);
+        finalList.exportFeatureList(outputFinalLoopListFileName + "_postprocessing", false);
     }
 
     @Override
@@ -135,25 +158,60 @@ public class HiCCUPS extends JuiceboxCLT {
             outputEnrichedFileName = args[3];
         }
 
-        Set<String> specifiedChromosomes = juicerParser.getChromosomeOption();
-        Set<String> specifiedResolutions = juicerParser.getMultipleResolutionOptions();
-        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+        determineValidMatrixSize(juicerParser);
+        determineValidChromosomes(juicerParser);
+        determineValidConfigurations(juicerParser);
+    }
 
-        if (specifiedResolutions != null) {
-            resolutions = new int[specifiedResolutions.size()];
+    /**
+     * @param juicerParser
+     */
+    private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
 
-            int index = 0;
-            for (String res : specifiedResolutions) {
-                resolutions[index] = Integer.parseInt(res);
-                index++;
+        try {
+            int[] resolutions = HiCCUPSUtils.extractIntegerValues(juicerParser.getMultipleResolutionOptions(), -1, -1);
+            double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10
+            int[] peaks = HiCCUPSUtils.extractIntegerValues(juicerParser.getPeakOptions(), resolutions.length, 2);
+            int[] windows = HiCCUPSUtils.extractIntegerValues(juicerParser.getWindowOptions(), resolutions.length, 5);
+            int[] radii = HiCCUPSUtils.extractIntegerValues(juicerParser.getClusterRadiusOptions(), resolutions.length, 20000);
+
+            configurations = new Configuration[resolutions.length];
+            for (int i = 0; i < resolutions.length; i++) {
+                configurations[i] = new Configuration(resolutions[i], fdr[i], peaks[i], windows[i], radii[i]);
             }
+
+        } catch (Exception e) {
+            System.out.println("Either no resolution specified or other error. Defaults being used.");
+            configurations = new Configuration[]{new Configuration(10000, 10, 2, 5, 20000),
+                    new Configuration(5000, 10, 4, 7, 20000)};
         }
 
+        try {
+            List<String> t = juicerParser.getThresholdOptions();
+            if (t.size() > 1) {
+                double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, -1f);
+                fdrsum = thresholds[0];
+                oeThreshold1 = thresholds[1];
+                oeThreshold2 = thresholds[2];
+                oeThreshold3 = thresholds[3];
+
+            }
+        } catch (Exception e) {
+            // do nothing - use default postprocessing thresholds
+        }
+    }
+
+
+    private void determineValidChromosomes(CommandLineParserForJuicer juicerParser) {
+        List<String> specifiedChromosomes = juicerParser.getChromosomeOption();
         if (specifiedChromosomes != null) {
             chromosomesSpecified = new HashSet<String>(specifiedChromosomes);
             chrSpecified = true;
         }
+    }
 
+    private void determineValidMatrixSize(CommandLineParserForJuicer juicerParser) {
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 2 * regionMargin) {
             matrixSize = specifiedMatrixSize;
             regionWidth = specifiedMatrixSize - totalMargin;
@@ -174,22 +232,44 @@ public class HiCCUPS extends JuiceboxCLT {
                     commonChromosomes));
 
         Map<Integer, Feature2DList> looplists = new HashMap<Integer, Feature2DList>();
-        for (int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
-            looplists.put(resolution, runHiccupsProcessing(ds, resolution, commonChromosomes));
+
+        List<Configuration> filteredConfigurations = filterConfigurations(configurations, ds);
+        for (Configuration conf : filteredConfigurations) {
+
+
+            looplists.put(conf.resolution, runHiccupsProcessing(ds, conf, commonChromosomes));
         }
 
         if (dataShouldBePostProcessed) {
-            postProcess(looplists, ds, commonChromosomes, outputFinalLoopListFileName);
+            postProcess(looplists, ds, commonChromosomes, outputFinalLoopListFileName, filteredConfigurations);
         }
     }
 
-    private Feature2DList runHiccupsProcessing(Dataset ds, int resolution, List<Chromosome> commonChromosomes) {
+    private List<Configuration> filterConfigurations(Configuration[] configurations, Dataset ds) {
+
+        int[] resolutions = new int[configurations.length];
+        for (int i = 0; i < configurations.length; i++) {
+            resolutions[i] = configurations[i].resolution;
+        }
+        List<Integer> filteredResolutions = HiCFileTools.filterResolutions(ds, resolutions);
+
+        // using map because duplicate resolutions will be removed while preserving order of respective configurations
+        Map<Integer, Configuration> configurationMap = new HashMap<Integer, Configuration>();
+        for (int i = 0; i < configurations.length; i++) {
+            configurations[i].resolution = filteredResolutions.get(i);
+            configurationMap.put(filteredResolutions.get(i), configurations[i]);
+        }
+
+        return new ArrayList<Configuration>(configurationMap.values());
+    }
+
+    private Feature2DList runHiccupsProcessing(Dataset ds, Configuration conf, List<Chromosome> commonChromosomes) {
 
         long begin_time = System.currentTimeMillis();
 
-        HiCZoom zoom = ds.getZoomForBPResolution(resolution);
+        HiCZoom zoom = ds.getZoomForBPResolution(conf.resolution);
 
-        PrintWriter outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + resolution);
+        PrintWriter outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + conf.resolution);
 
         // Loop through chromosomes
         int[][] histBL = new int[w1][w2];
@@ -208,7 +288,7 @@ public class HiCCUPS extends JuiceboxCLT {
         float[] boundColumnIndex = new float[1];
 
 
-        GPUController gpuController = new GPUController(window, matrixSize, peakWidth, divisor());
+        GPUController gpuController = new GPUController(conf.windowWidth, matrixSize, conf.peakWidth, conf.divisor());
 
         Feature2DList globalList = new Feature2DList();
 
@@ -232,7 +312,7 @@ public class HiCCUPS extends JuiceboxCLT {
 
                 // need overall bounds for the chromosome
                 int chrLength = chromosome.getLength();
-                int chrMatrixWdith = (int) Math.ceil((double) chrLength / resolution);
+                int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.resolution);
                 long load_time = System.currentTimeMillis();
                 System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
 
@@ -250,7 +330,7 @@ public class HiCCUPS extends JuiceboxCLT {
                                         thresholdBL, thresholdDonut, thresholdH, thresholdV,
                                         boundRowIndex, boundColumnIndex, preferredNormalization);
 
-                                int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + peakWidth + 2;
+                                int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.peakWidth + 2;
 
                                 if (runNum == 0) {
 
@@ -265,7 +345,7 @@ public class HiCCUPS extends JuiceboxCLT {
                                     gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
 
                                     Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
-                                            w1, w2, rowBounds[4], columnBounds[4], resolution);
+                                            w1, w2, rowBounds[4], columnBounds[4], conf.resolution);
                                     peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
 
                                     globalList.add(peaksList);
@@ -295,10 +375,10 @@ public class HiCCUPS extends JuiceboxCLT {
 
                 for (int i = 0; i < w1; i++) {
                     float[] unitPoissonPMF = Floats.toArray(Doubles.asList(ArrayTools.generatePoissonPMF(i, w2)));
-                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistBL, thresholdBL, fdrLogBL);
-                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistDonut, thresholdDonut, fdrLogDonut);
-                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistH, thresholdH, fdrLogH);
-                    calculateThresholdAndFDR(i, w2, fdr, unitPoissonPMF, rcsHistV, thresholdV, fdrLogV);
+                    calculateThresholdAndFDR(i, w2, conf.fdrThreshold, unitPoissonPMF, rcsHistBL, thresholdBL, fdrLogBL);
+                    calculateThresholdAndFDR(i, w2, conf.fdrThreshold, unitPoissonPMF, rcsHistDonut, thresholdDonut, fdrLogDonut);
+                    calculateThresholdAndFDR(i, w2, conf.fdrThreshold, unitPoissonPMF, rcsHistH, thresholdH, fdrLogH);
+                    calculateThresholdAndFDR(i, w2, conf.fdrThreshold, unitPoissonPMF, rcsHistV, thresholdV, fdrLogV);
                 }
 
                 long thresh_time1 = System.currentTimeMillis();
@@ -309,7 +389,7 @@ public class HiCCUPS extends JuiceboxCLT {
         System.out.println("Total time: " + (final_time - begin_time));
 
         if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + resolution, true);
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.resolution, true);
             if (outputFDR != null) {
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
@@ -322,7 +402,6 @@ public class HiCCUPS extends JuiceboxCLT {
         }
         return globalList;
     }
-
 
     private int[] calculateRegionBounds(int index, int regionWidth, int chrMatrixWidth) {
 
@@ -337,7 +416,7 @@ public class HiCCUPS extends JuiceboxCLT {
         return new int[]{bound1, bound2, diff1, diff2, bound1R, bound2R};
     }
 
-    private void calculateThresholdAndFDR(int index, int width, int fdr, float[] poissonPMF,
+    private void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
                                           int[][] rcsHist, float[] threshold, float[][] fdrLog) {
         //System.out.println("");
         //System.out.println("index is "+index);
@@ -361,6 +440,24 @@ public class HiCCUPS extends JuiceboxCLT {
                     break;
                 }
             }
+        }
+    }
+
+    private class Configuration {
+        final int windowWidth, peakWidth, clusterRadius;
+        final double fdrThreshold;
+        int resolution;
+
+        Configuration(int resolution, double fdrThreshold, int peakWidth, int windowWidth, int clusterRadius) {
+            this.resolution = resolution;
+            this.fdrThreshold = fdrThreshold;
+            this.windowWidth = windowWidth;
+            this.peakWidth = peakWidth;
+            this.clusterRadius = clusterRadius;
+        }
+
+        public int divisor() {
+            return (windowWidth - peakWidth) * (windowWidth + peakWidth);
         }
     }
 }
