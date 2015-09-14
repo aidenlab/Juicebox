@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
@@ -64,10 +65,8 @@ public class ResourceTree {
     private LinkedHashSet<ResourceLocator> deselectedLocators;
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
     private File openAnnotationPath = null;
-    private HiCTrack hiCTrack;
-    private HiC hic;
 
-    public ResourceTree(HiC hic, Document document) {
+    public ResourceTree(final HiC hic, Document document) {
         dialog = null;
         loadedLocators = new HashSet<ResourceLocator>();
 
@@ -109,7 +108,7 @@ public class ResourceTree {
                             menuItem.addActionListener(new ActionListener() {
                                 @Override
                                 public void actionPerformed(ActionEvent e) {
-                                    removeFeature((DefaultMutableTreeNode) selPath.getLastPathComponent());
+                                    removeFeature(hic, (DefaultMutableTreeNode) selPath.getLastPathComponent());
                                 }
                             });
                             menu.add(menuItem);
@@ -243,19 +242,25 @@ public class ResourceTree {
                     locator.setName(file.getName());
                     locator.setType("loop"); // TODO 2D not all are loops?
                     CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                    leafResources.add(resource);
+                    if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
+                        leafResources.add(resource);
 
-                    DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                    twoDFeatureRoot.add(treeNode);
-                    if (addedNodes == null) {
-                        addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+                        twoDFeatureRoot.add(treeNode);
+                        if (addedNodes == null) {
+                            addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                        }
+                        addedNodes.add(treeNode);
+                        ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
+                        treeNode.setUserObject(resource);
+
+                        expandTree();
+                        dialogTree.updateUI();
+                    } else {
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
+                                        "like to reload it, right click and delete the currently loaded version first.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                     }
-                    addedNodes.add(treeNode);
-                    ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
-                    treeNode.setUserObject(resource);
-
-                    expandTree();
-                    dialogTree.updateUI();
 
                 }
 
@@ -310,15 +315,53 @@ public class ResourceTree {
 
     }
 
-    private void removeFeature(DefaultMutableTreeNode node) {
+    /**
+     * ensures we don't add duplicates to list
+     *
+     * @param resource
+     * @param leafResources
+     * @return
+     */
+    private boolean resourceNotPresentInList(CheckableResource resource, List<CheckableResource> leafResources) {
+        for (CheckableResource res : leafResources) {
+            if (res.getText().equals(resource.getText()))
+                return false;
+        }
+        return true;
+    }
+
+    private void removeResourceFromLeaf(CheckableResource resource, List<CheckableResource> leafResources) {
+        List<CheckableResource> resourcesToRemove = new ArrayList<CheckableResource>();
+        for (CheckableResource res : leafResources) {
+            if (res.getText().equals(resource.getText()))
+                resourcesToRemove.add(res);
+        }
+        leafResources.removeAll(resourcesToRemove);
+    }
+
+    private void removeFeature(HiC hic, DefaultMutableTreeNode node) {
         ((CheckableResource) node.getUserObject()).setSelected(false);
         ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
         addedNodes.remove(node);
         DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
         parent.remove(node);
-        deselectedLocators.add(((CheckableResource) node.getUserObject()).getResourceLocator());
-        loadedLocators.remove(((CheckableResource) node.getUserObject()).getResourceLocator());
+
+
+        ResourceLocator locator = ((CheckableResource) node.getUserObject()).getResourceLocator();
+
+        String path = locator.getPath();
+        hic.removeLoadedAnnotation(path); // actually removes the entry (at least 2d annotation) so that it can be reloaded
+
+        deselectedLocators.add(locator);
+        loadedLocators.remove(locator);
+        newLocators.remove(locator);
+
+        // todo remove(); ?
+        removeResourceFromLeaf((CheckableResource) node.getUserObject(), leafResources);
+        //leafResources.remove(node);
         dialogTree.updateUI();
+
+
     }
 
     private void createTreeFromDataset(HiC hic, ResourceTree resourceTree) {

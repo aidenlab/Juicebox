@@ -112,9 +112,19 @@ public class Feature2DHandler {
         this.showLoops = showLoops;
     }
 
+    public void removeFeaturePath(String fileName) {
+        for (String key : loopLists.keySet()) {
+            if (key.endsWith(fileName))
+                setLoopsInvisible(key);
+            loopLists.remove(key);
+        }
+    }
+
     public void setLoopsInvisible(String path) {
-        loopLists.get(path).setVisible(false);
-        remakeRTree();
+        if (loopLists.containsKey(path)) {
+            loopLists.get(path).setVisible(false);
+            remakeRTree();
+        }
     }
 
     private void remakeRTree() {

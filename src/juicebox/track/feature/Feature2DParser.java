@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
@@ -32,6 +33,7 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.util.ParsingUtils;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,8 +66,11 @@ public class Feature2DParser {
             while ((nextLine = br.readLine()) != null) {
                 lineNum++;
                 String[] tokens = Globals.tabPattern.split(nextLine);
-                if (tokens.length > headers.length) {
-                    throw new IOException("Improperly formatted file");
+                if (tokens.length > headers.length) { //TODO why greater, use "!=" ? (also below)
+                    String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
+                            " while header has " + headers.length;
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
                 if (tokens.length < attCol - 1) { // attcol-1 because color is 7th column
                     continue;
@@ -82,8 +87,10 @@ public class Feature2DParser {
                     start2 = Integer.parseInt(tokens[4]);
                     end2 = Integer.parseInt(tokens[5]);
                 } catch (Exception e) {
-                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
-                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2");
+                    String text = "Line " + lineNum + " improperly formatted in <br>" +
+                            path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2";
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
 
 
@@ -175,7 +182,10 @@ public class Feature2DParser {
                 lineNum++;
                 String[] tokens = Globals.tabPattern.split(nextLine);
                 if (tokens.length > headers.length) {
-                    throw new IOException("Improperly formatted file");
+                    String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
+                            " while header has " + headers.length;
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
                 if (tokens.length < attCol) { // attcol because no color
                     continue;
@@ -192,8 +202,10 @@ public class Feature2DParser {
                     start2 = Integer.parseInt(tokens[3]);
                     end2 = start2 + 5000;
                 } catch (Exception e) {
-                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
-                            path + "<br>Line format should start with:  CHR1  X1  CHR2  Y1");
+                    String text = "Line " + lineNum + " improperly formatted in <br>" +
+                            path + "<br>Line format should start with:  CHR1  X1  CHR2  Y1";
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
 
 
@@ -210,9 +222,9 @@ public class Feature2DParser {
                 Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
                 if (chr1 == null || chr2 == null) {
                     if (errorCount < 100) {
-                        System.out.println("Skipping line: " + nextLine);
+                        System.err.println("Skipping line: " + nextLine);
                     } else if (errorCount == 100) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;
@@ -265,7 +277,10 @@ public class Feature2DParser {
                 lineNum++;
                 String[] tokens = Globals.tabPattern.split(nextLine);
                 if (tokens.length > headers.length) {
-                    throw new IOException("Improperly formatted file");
+                    String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
+                            " while header has " + headers.length;
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
                 if (tokens.length < attCol) { // attcol because no color
                     continue;
@@ -278,8 +293,11 @@ public class Feature2DParser {
                     startA = Integer.parseInt(tokens[1]);
                     endA = Integer.parseInt(tokens[2]);
                 } catch (Exception e) {
-                    throw new IOException("Line " + lineNum + " improperly formatted in <br>" +
-                            path + "<br>Line format should start with:  CHR1  X1  X2");
+                    String text = "Line " + lineNum + " improperly formatted in <br>" +
+                            path + "<br>Line format should start with:  CHR1  X1  X2";
+
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    throw new IOException(text);
                 }
 
                 Color c = Color.black;
@@ -293,9 +311,9 @@ public class Feature2DParser {
                 Chromosome chrA = HiCFileTools.getChromosomeNamed(chrAName, chromosomes);
                 if (chrA == null) {
                     if (errorCount < 100) {
-                        System.out.println("Skipping line: " + nextLine);
+                        System.err.println("Skipping line: " + nextLine);
                     } else if (errorCount == 100) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;

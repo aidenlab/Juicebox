@@ -228,7 +228,11 @@ public class HiC {
         Matrix matrix = getMatrix();
         // TODO - every function which calls this needs to check for null values
         // maybe throw an Exception to force this check
-        if (matrix == null || zoom == null) {
+        if (matrix == null) {
+            System.err.println("Matrix is null");
+            return null;
+        } else if (zoom == null) {
+            System.err.println("Zoom is null");
             return null;
         } else {
             return matrix.getZoomData(zoom);
@@ -802,6 +806,11 @@ public class HiC {
 
     public void toggleFeatureOpacity(boolean status) {
         feature2DHandler.toggleFeatureOpacity(status);
+    }
+
+    public void removeLoadedAnnotation(String path) {
+
+        feature2DHandler.removeFeaturePath(path);
     }
 
     public enum Unit {BP, FRAG}
