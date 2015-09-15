@@ -107,7 +107,14 @@ public class SuperAdapter {
         if (hic.getDataset() == null) {
             JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
-            new QCDialog(mainWindow, hic, mainWindow.getTitle() + " info");
+            try {
+                new QCDialog(mainWindow, hic, mainWindow.getTitle() + " info");
+            } catch (Exception e) {
+                // TODO - test on hic file with no stats file specified
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(mainWindow, "Unable to launch QC Statistics", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

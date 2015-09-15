@@ -25,10 +25,12 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.MainWindow;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -263,9 +265,16 @@ public class CombinedDatasetReader implements DatasetReader {
         ArrayList<String> graphsList = new ArrayList<String>();
         HashSet<String> reList = new HashSet<String>();
         for (Dataset ds : datasetList) {
-            statisticsList.add(ds.getStatistics());
-            graphsList.add(ds.getGraphs());
-            reList.add(ds.getRestrictionEnzyme());
+            try {
+                statisticsList.add(ds.getStatistics());
+                graphsList.add(ds.getGraphs());
+                reList.add(ds.getRestrictionEnzyme());
+            } catch (Exception e) {
+                // TODO - test on hic file with no stats file specified
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to retrieve statistics for one of the maps.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
 
 

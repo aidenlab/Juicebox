@@ -293,7 +293,17 @@ public class HiC {
     }
 
     public Matrix getMatrix() {
-        return dataset == null || xContext == null ? null : getDataset().getMatrix(xContext.getChromosome(), yContext.getChromosome());
+        if (dataset == null) {
+            System.err.println("Dataset is null");
+            return null;
+        } else if (xContext == null) {
+            System.err.println("xContext is null");
+            return null;
+        } else if (yContext == null) {
+            System.err.println("yContext is null");
+            return null;
+        }
+        return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
 
     }
 
@@ -484,7 +494,7 @@ public class HiC {
     }
 
     public void centerBP(int bpX, int bpY) {
-        if (zoom != null) {
+        if (zoom != null && getMatrix() != null) {
             MatrixZoomData zd = getMatrix().getZoomData(zoom);
             HiCGridAxis xAxis = zd.getXGridAxis();
             HiCGridAxis yAxis = zd.getYGridAxis();
