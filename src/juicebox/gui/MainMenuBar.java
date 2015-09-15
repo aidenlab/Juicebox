@@ -242,6 +242,75 @@ public class MainMenuBar {
         loadEncodeMI.setAction(encodeAction);
         annotationsMenu.add(loadEncodeMI);
 
+        // TODO - this is never added to a menu...
+        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
+        loadFromURLItem.addActionListener(new AbstractAction() {
+
+            private static final long serialVersionUID = 4203L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.loadFromURLActionPerformed();
+            }
+        });
+
+
+
+
+        final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
+        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
+        showLoopsItem.setSelected(true);
+        showLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setShowLoops(showLoopsItem.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse");
+        toggleSparse2DFeaturePlotting.setSelected(false);
+        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        // TODO hotkey?
+
+
+        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
+        enlarge2DFeatures.setSelected(false);
+        enlarge2DFeatures.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.enlarge2DFeaturePlotting(enlarge2DFeatures.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        // TODO hotkey?
+
+        final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
+        toggle2DFeatureOpacity.setSelected(false);
+        toggle2DFeatureOpacity.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.toggleFeatureOpacity(toggle2DFeatureOpacity.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        // TODO hotkey?
+
+        feature2DPlottingOptions.add(showLoopsItem);
+        feature2DPlottingOptions.add(enlarge2DFeatures);
+        feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
+        annotationsMenu.add(feature2DPlottingOptions);
+        annotationsMenu.setEnabled(false);
+
+
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
@@ -337,70 +406,6 @@ public class MainMenuBar {
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
 
-        final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
-        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
-        showLoopsItem.setSelected(true);
-        showLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setShowLoops(showLoopsItem.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse");
-        toggleSparse2DFeaturePlotting.setSelected(false);
-        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        // TODO hotkey?
-
-
-        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
-        enlarge2DFeatures.setSelected(false);
-        enlarge2DFeatures.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.enlarge2DFeaturePlotting(enlarge2DFeatures.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        // TODO hotkey?
-
-        final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
-        toggle2DFeatureOpacity.setSelected(false);
-        toggle2DFeatureOpacity.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.toggleFeatureOpacity(toggle2DFeatureOpacity.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        // TODO hotkey?
-
-        feature2DPlottingOptions.add(showLoopsItem);
-        feature2DPlottingOptions.add(enlarge2DFeatures);
-        feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
-        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
-        annotationsMenu.add(feature2DPlottingOptions);
-        annotationsMenu.setEnabled(false);
-
-
-        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
-        loadFromURLItem.addActionListener(new AbstractAction() {
-
-            private static final long serialVersionUID = 4203L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadFromURLActionPerformed();
-            }
-        });
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----

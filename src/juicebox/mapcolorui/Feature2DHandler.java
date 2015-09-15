@@ -51,10 +51,10 @@ public class Feature2DHandler {
     private static final int offsetPX = 4;
     public static boolean isTranslucentPlottingEnabled = false;
     private static boolean sparseFeaturePlottingEnabled = false, enlargedFeaturePlottingEnabled = false;
+    private static boolean showLoops = true;
     private final Map<String, Feature2DList> loopLists;
     private final Map<String, SpatialIndex> featureRtrees = new HashMap<String, SpatialIndex>();
     private final Map<String, List<Feature2D>> allFeaturesAcrossGenome = new HashMap<String, List<Feature2D>>();
-    private boolean showLoops = true;
 
 
     public Feature2DHandler() {
@@ -109,7 +109,7 @@ public class Feature2DHandler {
     }
 
     public void setShowLoops(boolean showLoops) {
-        this.showLoops = showLoops;
+        Feature2DHandler.showLoops = showLoops;
     }
 
     public void removeFeaturePath(String fileName) {
@@ -193,25 +193,27 @@ public class Feature2DHandler {
     }
 
     public List<Feature2DList> getAllVisibleLoopLists() {
-        if (!showLoops) return null;
         List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                visibleLoopList.add(list);
+        if (showLoops) {
+            for (Feature2DList list : loopLists.values()) {
+                if (list.isVisible()) {
+                    visibleLoopList.add(list);
+                }
             }
         }
         return visibleLoopList;
     }
 
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
-        if (!showLoops) return null;
         List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();
-        for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
-                List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
-                if (currList != null) {
-                    for (Feature2D feature2D : currList) {
-                        visibleLoopList.add(feature2D);
+        if (showLoops) {
+            for (Feature2DList list : loopLists.values()) {
+                if (list.isVisible()) {
+                    List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
+                    if (currList != null) {
+                        for (Feature2D feature2D : currList) {
+                            visibleLoopList.add(feature2D);
+                        }
                     }
                 }
             }
@@ -224,7 +226,7 @@ public class Feature2DHandler {
         final List<Feature2D> foundFeatures = new ArrayList<Feature2D>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        if (featureRtrees.containsKey(key)) {
+        if (featureRtrees.containsKey(key) && showLoops) {
             if (sparseFeaturePlottingEnabled) {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
@@ -255,24 +257,26 @@ public class Feature2DHandler {
 
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<Pair<Rectangle, Feature2D>>();
 
-        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+        if (showLoops) {
+            final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        final HiCGridAxis xAxis = zd.getXGridAxis();
-        final HiCGridAxis yAxis = zd.getYGridAxis();
+            final HiCGridAxis xAxis = zd.getXGridAxis();
+            final HiCGridAxis yAxis = zd.getYGridAxis();
 
-        if (featureRtrees.containsKey(key)) {
-            featureRtrees.get(key).nearestN(
-                    getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
-                    new TIntProcedure() {         // a procedure whose execute() method will be called with the results
-                        public boolean execute(int i) {
-                            Feature2D feature = allFeaturesAcrossGenome.get(key).get(i);
-                            featurePairs.add(new Pair<Rectangle, Feature2D>(rectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature));
-                            return true;              // return true here to continue receiving results
-                        }
-                    },
-                    n,  // the number of nearby rectangles to find
-                    Float.MAX_VALUE  // Don't bother searching further than this. MAX_VALUE means search everything
-            );
+            if (featureRtrees.containsKey(key)) {
+                featureRtrees.get(key).nearestN(
+                        getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
+                        new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                            public boolean execute(int i) {
+                                Feature2D feature = allFeaturesAcrossGenome.get(key).get(i);
+                                featurePairs.add(new Pair<Rectangle, Feature2D>(rectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature));
+                                return true;              // return true here to continue receiving results
+                            }
+                        },
+                        n,  // the number of nearby rectangles to find
+                        Float.MAX_VALUE  // Don't bother searching further than this. MAX_VALUE means search everything
+                );
+            }
         }
 
         return featurePairs;
