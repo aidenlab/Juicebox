@@ -113,15 +113,17 @@ public class MainWindow extends JFrame {
 
         log.debug("Default User Directory: " + DirectoryManager.getUserDirectory());
         System.setProperty("http.agent", Globals.applicationString());
-
+        /*
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 if (Globals.IS_MAC) {
+                // this no longer exists; there is a FileUtils.cleanup(dir)
                     FileUtils.cleanupJnlpFiles();
                 }
             }
         });
+        */
     }
 
     private void initComponents(SuperAdapter superAdapter) {

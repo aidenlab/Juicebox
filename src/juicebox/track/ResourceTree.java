@@ -870,7 +870,7 @@ public class ResourceTree {
                         renderer.setSelected(resource.isSelected());
                         renderer.setEnabled(resource.isEnabled());
 
-                        String hyperLink = resource.getResourceLocator().getTrackInforURL();
+                        String hyperLink = resource.getResourceLocator().getTrackInfoURL();
                         if (hyperLink == null) {
                             renderer.showHyperLink(false);
                         } else {

@@ -44,7 +44,7 @@ import java.awt.event.ActionListener;
  */
 public abstract class HiCTrack {
 
-    private static final int height = 25;
+    private static int height = 25;
     private final ResourceLocator locator;
 
     HiCTrack(ResourceLocator locator) {
@@ -96,4 +96,8 @@ public abstract class HiCTrack {
     public abstract void setColor(Color selectedColor);
 
     public abstract void setAltColor(Color selectedColor);
+
+    public void setHeight(int height) {
+        juicebox.track.HiCTrack.height = height;
+    }
 }

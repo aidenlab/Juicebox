@@ -25,7 +25,9 @@
 package juicebox.track;
 
 import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureCodec;
+import htsjdk.tribble.TabixFeatureReader;
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
@@ -35,10 +37,9 @@ import org.broad.igv.bigwig.BigWigDataSource;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.CodecFactory;
-import org.broad.igv.track.DataTrack;
-import org.broad.igv.track.FeatureCollectionSource;
-import org.broad.igv.track.Track;
-import org.broad.igv.track.TrackLoader;
+import org.broad.igv.feature.tribble.FeatureFileHeader;
+import org.broad.igv.feature.tribble.TribbleIndexNotFoundException;
+import org.broad.igv.track.*;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
@@ -150,7 +151,10 @@ public class HiCTrackManager {
             int index2 = path.substring(0, index).lastIndexOf('.');
             String str = path.substring(0, index).substring(index2);
             // special exception for refGene.txt.gz
-            if (!str.equals(".txt")) locator.setType(str);
+            if (!str.equals(".txt")) {
+                locator.setType(str);
+            }
+
         }
 
         if (pathLC.endsWith(".wig") ||
@@ -178,12 +182,24 @@ public class HiCTrackManager {
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
-            FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
+            List<HiCTrack> tracks = new ArrayList<HiCTrack>();
+            try {
+                loadTribbleFile(locator, tracks, genome);
+
+                for (HiCTrack t : tracks) {
+                    loadedTracks.add(t);
+                }
+            }
+            catch (Exception e) {
+                log.error("Error loading track: " + locator.getPath(), e);
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
+            }
+           /* FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
             if (codec != null) {
-                AbstractFeatureReader<?, ?> bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
+                 AbstractFeatureReader<?, ?> bfs = AbstractFeatureReader.getFeatureReader(locator.getPath(), codec, false);
 
                 try {
-                    htsjdk.tribble.CloseableTribbleIterator<?> iter = bfs.iterator(); // CloseableTribbleIterator extends java.lang.Iterator
+                  //  htsjdk.tribble.CloseableTribbleIterator<?> iter = bfs.iterator(); // CloseableTribbleIterator extends java.lang.Iterator
                     FeatureCollectionSource src = new FeatureCollectionSource(iter, genome);
                     HiCFeatureTrack track = new HiCFeatureTrack(hic, locator, src);
                     track.setName(locator.getTrackName());
@@ -200,7 +216,7 @@ public class HiCTrackManager {
                 File file = new File(path);
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
                 hic.removeTrack(new HiCFeatureTrack(hic, locator, null));
-            }
+            }  */
         }
 
     }
@@ -281,6 +297,48 @@ public class HiCTrackManager {
 
         }
         return genome;
+    }
+
+    /**
+     * Load the input file as a feature file.
+     * Taken from IGV, but needed to be separate because our tracks are different.
+     *
+     * @param locator
+     * @param newTracks
+     */
+    private void loadTribbleFile(ResourceLocator locator, List<HiCTrack> newTracks, Genome genome) throws IOException, TribbleIndexNotFoundException {
+
+        String typeString = locator.getTypeString();
+
+
+        TribbleFeatureSource tribbleFeatureSource = TribbleFeatureSource.getFeatureSource(locator, genome);
+        FeatureSource<?> src = GFFFeatureSource.isGFF(locator.getPath()) ?
+                new GFFFeatureSource(tribbleFeatureSource) : tribbleFeatureSource;
+
+        // Create feature source and track
+        HiCFeatureTrack t = new HiCFeatureTrack(hic, locator, src);
+        t.setName(locator.getTrackName());
+        //t.setRendererClass(BasicTribbleRenderer.class);
+
+        // Set track properties from header
+        Object header = tribbleFeatureSource.getHeader();
+        if (header != null && header instanceof FeatureFileHeader) {
+            FeatureFileHeader ffh = (FeatureFileHeader) header;
+          /*  if (ffh.getTrackType() != null) {
+                t.setTrackType(ffh.getTrackType());
+            }
+            if (ffh.getTrackProperties() != null) {
+                t.setProperties(ffh.getTrackProperties());
+            }*/
+
+            if (ffh.getTrackType() == TrackType.REPMASK) {
+                t.setHeight(15);
+            }
+        }
+       /* if (locator.getPath().contains(".narrowPeak") || locator.getPath().contains(".broadPeak") || locator.getPath().contains(".gappedPeak")) {
+            t.setUseScore(true);
+        }*/
+        newTracks.add(t);
     }
 
 }

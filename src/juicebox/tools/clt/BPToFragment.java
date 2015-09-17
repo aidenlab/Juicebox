@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import htsjdk.samtools.util.Locatable;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.utils.original.FragmentCalculation;
 import org.broad.igv.feature.LocusScore;
@@ -134,7 +135,7 @@ public class BPToFragment extends JuiceboxCLT {
                 int start = Integer.parseInt(tokens.get(1));
                 int end = Integer.parseInt(tokens.get(2));
 
-                int[] sites = fragmentMap.get(feature.getChr());
+                int[] sites = fragmentMap.get(feature.getContig());
                 if (sites == null) continue;
 
                 int firstSite = FragmentCalculation.binarySearch(sites, feature.getStart());
@@ -185,7 +186,7 @@ public class BPToFragment extends JuiceboxCLT {
         }
     }
 
-    private static class BedLikeFeature implements LocusScore {
+    private static class BedLikeFeature implements Locatable {
 
         final String chr;
         final String line;
@@ -207,15 +208,6 @@ public class BPToFragment extends JuiceboxCLT {
 
         }
 
-        @Override
-        public String getValueString(double position, WindowFunction windowFunction) {
-            return line;
-        }
-
-        public String getChr() {
-            return chr;
-        }
-
         public int getStart() {
             return start;
         }
@@ -234,6 +226,11 @@ public class BPToFragment extends JuiceboxCLT {
 
         public float getScore() {
             return 0;
+        }
+
+        @Override
+        public String getContig() {
+            return chr;
         }
     }
 }
