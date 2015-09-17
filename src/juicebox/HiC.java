@@ -144,11 +144,12 @@ public class HiC {
         trackManager.add(eigenvectorTrack);
     }
 
-    public void refreshEigenvectorTrackIfExists() {
+    // todo, delete?
+    /*public void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
             eigenvectorTrack.forceRefresh();
         }
-    }
+    }*/
 
     public ResourceTree getResourceTree() {
         return resourceTree;
@@ -158,9 +159,10 @@ public class HiC {
         resourceTree = rTree;
     }
 
-    public LoadEncodeAction getEncodeAction() {
+    // todo, delete?
+    /*public LoadEncodeAction getEncodeAction() {
         return encodeAction;
-    }
+    }*/
 
     public void setEncodeAction(LoadEncodeAction eAction) {
         encodeAction = eAction;
@@ -229,10 +231,10 @@ public class HiC {
         // TODO - every function which calls this needs to check for null values
         // maybe throw an Exception to force this check
         if (matrix == null) {
-            System.err.println("Matrix is null");
+            //System.err.println("Matrix is null");
             return null;
         } else if (zoom == null) {
-            System.err.println("Zoom is null");
+            //System.err.println("Zoom is null");
             return null;
         } else {
             return matrix.getZoomData(zoom);
@@ -250,7 +252,6 @@ public class HiC {
 
     public Matrix getControlMatrix() {
         if (controlDataset == null || xContext == null || zoom == null) return null;
-
         return controlDataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
     }
 
@@ -294,13 +295,13 @@ public class HiC {
 
     public Matrix getMatrix() {
         if (dataset == null) {
-            System.err.println("Dataset is null");
+            //System.err.println("Dataset is null");
             return null;
         } else if (xContext == null) {
-            System.err.println("xContext is null");
+            //System.err.println("xContext is null");
             return null;
         } else if (yContext == null) {
-            System.err.println("yContext is null");
+            //System.err.println("yContext is null");
             return null;
         }
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
