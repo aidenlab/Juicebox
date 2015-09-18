@@ -258,6 +258,7 @@ public class MainMenuBar {
 
 
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
+        // todo final JMenu show2DFeatureDisplayOptions = new DisplayOptionsJMenu();
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {

@@ -57,12 +57,13 @@ public class AFA extends JuiceboxCLT {
     private String[] files;
 
     //defaults
-    private int window = 10;
+    private int window = 30;
     private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
     private NormalizationType norm;
     private LocationType relativeLocation = LocationType.TL;
     private Set<String> attributes;
+    private boolean thresholdPlots = true;
 
     /**
      * Usage for AFA
@@ -85,6 +86,7 @@ public class AFA extends JuiceboxCLT {
             norm = NormalizationType.valueOf(args[1]);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+            System.err.println("Value given: " + args[1]);
             System.exit(-1);
         }
 
@@ -114,7 +116,7 @@ public class AFA extends JuiceboxCLT {
 
         window = juicerParser.getAPAWindowSizeOption();
         if (window == 0)
-            window = 10;
+            window = 30;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
@@ -125,7 +127,9 @@ public class AFA extends JuiceboxCLT {
                 i++;
             }
         }
-        givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
+        List<String> chrs = juicerParser.getChromosomeOption();
+        if (chrs != null)
+            givenChromosomes = new HashSet<String>(chrs);
     }
 
     @Override
@@ -156,8 +160,7 @@ public class AFA extends JuiceboxCLT {
                 // Metrics resulting from apa filtering
                 final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
-
-                Feature2DList featureList = Feature2DParser.parseLoopFile(files[1], chromosomes, false,
+                Feature2DList featureList = Feature2DParser.loadFeatures(files[1], chromosomes, true,
                         new FeatureFilter() {
                             // Remove duplicates and filters by size
                             // also save internal metrics for these measures
@@ -216,6 +219,8 @@ public class AFA extends JuiceboxCLT {
                                 norm, relativeLocation));
                     }
 
+                    if (thresholdPlots)
+                        apaDataStack.thresholdPlots(5000);
                     apaDataStack.updateGenomeWideData();
                     if (saveAllData)
                         apaDataStack.exportDataSet(chr.getName(), peakNumbers);

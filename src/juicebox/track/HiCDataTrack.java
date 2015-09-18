@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
 import org.broad.igv.renderer.DataRange;
 import org.broad.igv.track.WindowFunction;
@@ -274,7 +273,7 @@ public class HiCDataTrack extends HiCTrack {
         menuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(MainWindow.getInstance(), HiCDataTrack.this);
+                final TrackConfigDialog trackConfigDialog = new TrackConfigDialog(superAdapter.getMainWindow(), HiCDataTrack.this);
                 trackConfigDialog.setVisible(true);
                 if (!trackConfigDialog.isCanceled()) {
                     superAdapter.updateTrackPanel();

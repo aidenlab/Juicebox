@@ -28,7 +28,6 @@ import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -385,7 +384,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                     unsafeInitializeGeneHashMap(gID);
                 }
             };
-            MainWindow.getInstance().executeLongRunningTask(runnable, "Initialize Gene Hash Map");
+            superAdapter.executeLongRunningTask(runnable, "Initialize Gene Hash Map");
         } else {
             MessageUtils.showErrorMessage("Cannot find genes for " + genomeID, null);
             positionChrTop.setBackground(Color.yellow);

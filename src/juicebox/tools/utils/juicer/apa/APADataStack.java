@@ -192,4 +192,8 @@ public class APADataStack {
 
         saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers);
     }
+
+    public void thresholdPlots(int val) {
+        MatrixTools.thresholdValues(psea, val);
+    }
 }

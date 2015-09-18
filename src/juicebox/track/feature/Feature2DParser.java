@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
@@ -46,8 +47,20 @@ import java.util.Map;
  */
 public class Feature2DParser {
 
+    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes, FeatureFilter featureFilter) {
+        Feature2DList newList;
+        if (path.endsWith(".px")) {
+            newList = Feature2DParser.parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
+        } else if (path.endsWith(".px2")) {
+            newList = Feature2DParser.parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
+        } else {
+            newList = Feature2DParser.parseLoopFile(path, chromosomes, loadAttributes, featureFilter);
+        }
+        return newList;
+    }
 
-    public static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
+
+    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
                                               boolean loadAttributes, FeatureFilter featureFilter) {
 
         Feature2DList newList = new Feature2DList();
@@ -69,7 +82,9 @@ public class Feature2DParser {
                 if (tokens.length > headers.length) { //TODO why greater, use "!=" ? (also below)
                     String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
                             " while header has " + headers.length;
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
                 if (tokens.length < attCol - 1) { // attcol-1 because color is 7th column
@@ -89,7 +104,9 @@ public class Feature2DParser {
                 } catch (Exception e) {
                     String text = "Line " + lineNum + " improperly formatted in <br>" +
                             path + "<br>Line format should start with:  CHR1  X1  X2  CHR2  Y1  Y2";
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
 
@@ -163,8 +180,8 @@ public class Feature2DParser {
         return feature2DList;
     }
 
-    public static Feature2DList parseHiCCUPSLoopFile(String path, List<Chromosome> chromosomes,
-                                                     boolean loadAttributes) {
+    private static Feature2DList parseHiCCUPSLoopFile(String path, List<Chromosome> chromosomes,
+                                                      boolean loadAttributes, FeatureFilter featureFilter) {
         Feature2DList newList = new Feature2DList();
         int attCol = 4;
 
@@ -184,7 +201,9 @@ public class Feature2DParser {
                 if (tokens.length > headers.length) {
                     String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
                             " while header has " + headers.length;
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
                 if (tokens.length < attCol) { // attcol because no color
@@ -204,7 +223,9 @@ public class Feature2DParser {
                 } catch (Exception e) {
                     String text = "Line " + lineNum + " improperly formatted in <br>" +
                             path + "<br>Line format should start with:  CHR1  X1  CHR2  Y1";
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
 
@@ -255,11 +276,14 @@ public class Feature2DParser {
             ec.printStackTrace();
         }
 
+        if (featureFilter != null)
+            newList.filterLists(featureFilter);
+
         return newList;
     }
 
-    public static Feature2DList parseDomainFile(String path, List<Chromosome> chromosomes,
-                                                boolean loadAttributes) {
+    private static Feature2DList parseDomainFile(String path, List<Chromosome> chromosomes,
+                                                 boolean loadAttributes, FeatureFilter featureFilter) {
         Feature2DList newList = new Feature2DList();
         int attCol = 3;
 
@@ -279,7 +303,9 @@ public class Feature2DParser {
                 if (tokens.length > headers.length) {
                     String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
                             " while header has " + headers.length;
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
                 if (tokens.length < attCol) { // attcol because no color
@@ -295,8 +321,9 @@ public class Feature2DParser {
                 } catch (Exception e) {
                     String text = "Line " + lineNum + " improperly formatted in <br>" +
                             path + "<br>Line format should start with:  CHR1  X1  X2";
-
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
+                    System.err.println(text);
+                    if (HiCGlobals.guiIsCurrentlyActive)
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), text, "Error", JOptionPane.ERROR_MESSAGE);
                     throw new IOException(text);
                 }
 
@@ -340,6 +367,9 @@ public class Feature2DParser {
         } catch (IOException ec) {
             ec.printStackTrace();
         }
+
+        if (featureFilter != null)
+            newList.filterLists(featureFilter);
 
         return newList;
     }

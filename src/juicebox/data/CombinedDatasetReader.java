@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
@@ -272,7 +273,8 @@ public class CombinedDatasetReader implements DatasetReader {
             } catch (Exception e) {
                 // TODO - test on hic file with no stats file specified
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to retrieve statistics for one of the maps.", "Error",
+                if (HiCGlobals.guiIsCurrentlyActive)
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to retrieve statistics for one of the maps.", "Error",
                         JOptionPane.ERROR_MESSAGE);
             }
         }

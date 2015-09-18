@@ -59,6 +59,7 @@ public class HiCGlobals {
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
+    public static boolean guiIsCurrentlyActive = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

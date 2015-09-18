@@ -25,7 +25,6 @@
 package juicebox.state;
 
 import juicebox.HiC;
-import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
@@ -37,7 +36,6 @@ import org.broad.igv.renderer.DataRange;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -89,7 +87,7 @@ public class LoadStateFromXMLFile {
 
                     safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
-                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error:\n" + nfe.getMessage(), "Error",
+                    JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error:\n" + nfe.getMessage(), "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             } else {

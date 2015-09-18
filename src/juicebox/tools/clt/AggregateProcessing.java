@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;
@@ -76,10 +77,17 @@ class AggregateProcessing {
         String[] l72 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_10000"};
 
-        String[] l73 = {"dump", "norm", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/norm22_25000"};
+        //
+        String[] l73 = {"afa", "-r", "25000", "-w", "60", "-a", ",Common,Rare,Aphidicolin,FolicAcid", "-l", "BottomRight", "KR",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/RandomScripts3/Muhammad/GlassDragon/cfss_cancer_associated_rearranged.px2",
+                "/Users/muhammadsaadshamim/Desktop/RandomScripts3/Muhammad/GlassDragon/G9/"};
 
-        HiCTools.main(l51);
+        //afa [-w window]  [-r resolution(s)] [-c chromosomes] [-a attribute(s)] [-l TopLeft/BottomRight/Center]
+        // <NONE/VC/VC_SQRT/KR> <hic file(s)> <FeatureFile> <SaveFolder> [SavePrefix]
+
+        HiCGlobals.useCache = false;
+        HiCTools.main(l73);
 
         /*
 

@@ -136,7 +136,7 @@ public class SuperAdapter {
     }
 
     public void launchImportState(File fileForExport) {
-        new ImportFileDialog(fileForExport, MainWindow.getInstance());
+        new ImportFileDialog(fileForExport, mainWindow);
     }
 
     public void launchLoadStateFromXML(String mapPath) {
@@ -192,7 +192,7 @@ public class SuperAdapter {
     }
 
     public CustomAnnotation generateNewCustomAnnotation(File temp, String s) {
-        return new CustomAnnotation(Feature2DParser.parseLoopFile(temp.getAbsolutePath(),
+        return new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
                 hic.getChromosomes(), true, null), s);
     }
 

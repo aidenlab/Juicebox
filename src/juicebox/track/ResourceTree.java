@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
@@ -257,7 +258,8 @@ public class ResourceTree {
                         expandTree();
                         dialogTree.updateUI();
                     } else {
-                        JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
+                        if (HiCGlobals.guiIsCurrentlyActive)
+                            JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
                                         "like to reload it, right click and delete the currently loaded version first.",
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     }

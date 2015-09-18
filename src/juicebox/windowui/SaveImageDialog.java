@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.windowui;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 
 import javax.imageio.ImageIO;
@@ -49,25 +50,28 @@ public class SaveImageDialog extends JFileChooser {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
             setSelectedFile(new File(timeStamp + ".HiCImage.png"));
         }
-        int actionDialog = showSaveDialog(MainWindow.getInstance());
-        if (actionDialog == JFileChooser.APPROVE_OPTION) {
-            File file = getSelectedFile();
-            saveImagePath = file.getPath();
-            if (file.exists()) {
-                actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
-                if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
-                    return;
-            }
-            try {
-                int w = Integer.valueOf(width.getText());
-                int h = Integer.valueOf(height.getText());
-                saveImage(file, hic, hiCPanel, w, h);
-            } catch (IOException error) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error while saving file:\n" + error, "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            } catch (NumberFormatException error) {
-                JOptionPane.showMessageDialog(MainWindow.getInstance(), "Width and Height must be integers", "Error",
-                        JOptionPane.ERROR_MESSAGE);
+        if (HiCGlobals.guiIsCurrentlyActive = false) {
+            MainWindow mainWindow = MainWindow.getInstance();
+            int actionDialog = showSaveDialog(mainWindow);
+            if (actionDialog == JFileChooser.APPROVE_OPTION) {
+                File file = getSelectedFile();
+                //saveImagePath = file.getPath();
+                if (file.exists()) {
+                    actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
+                    if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
+                        return;
+                }
+                try {
+                    int w = Integer.valueOf(width.getText());
+                    int h = Integer.valueOf(height.getText());
+                    saveImage(file, mainWindow, hic, hiCPanel, w, h);
+                } catch (IOException error) {
+                    JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                } catch (NumberFormatException error) {
+                    JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
@@ -89,7 +93,7 @@ public class SaveImageDialog extends JFileChooser {
         return myDialog;
     }
 
-    private void saveImage(File file, HiC hic, final JPanel hiCPanel, final int w, final int h) throws IOException {
+    private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel, final int w, final int h) throws IOException {
 
         // default if they give no format or invalid format
         String fmt = "jpg";
@@ -106,7 +110,7 @@ public class SaveImageDialog extends JFileChooser {
 
         Dimension size = MainWindow.getInstance().getSize();
 
-        if (w == MainWindow.getInstance().getWidth() && h == MainWindow.getInstance().getHeight()) {
+        if (w == mainWindow.getWidth() && h == MainWindow.getInstance().getHeight()) {
             hiCPanel.paint(g);
         } else {
             JDialog waitDialog = new JDialog();
@@ -120,20 +124,20 @@ public class SaveImageDialog extends JFileChooser {
 
             waitDialog.setLocation(100, 100);
             waitDialog.setVisible(true);
-            MainWindow.getInstance().setVisible(false);
+            mainWindow.setVisible(false);
 
-            Dimension minSize = MainWindow.getInstance().getMinimumSize();
-            Dimension prefSize = MainWindow.getInstance().getPreferredSize();
+            Dimension minSize = mainWindow.getMinimumSize();
+            Dimension prefSize = mainWindow.getPreferredSize();
 
             hic.centerBP(0, 0);
-            MainWindow.getInstance().setMinimumSize(new Dimension(w, h));
-            MainWindow.getInstance().setPreferredSize(new Dimension(w, h));
-            MainWindow.getInstance().pack();
+            mainWindow.setMinimumSize(new Dimension(w, h));
+            mainWindow.setPreferredSize(new Dimension(w, h));
+            mainWindow.pack();
 
-            MainWindow.getInstance().setState(Frame.ICONIFIED);
-            MainWindow.getInstance().setState(Frame.NORMAL);
-            MainWindow.getInstance().setVisible(true);
-            MainWindow.getInstance().setVisible(false);
+            mainWindow.setState(Frame.ICONIFIED);
+            mainWindow.setState(Frame.NORMAL);
+            mainWindow.setVisible(true);
+            mainWindow.setVisible(false);
 
             final Runnable painter = new Runnable() {
                 public void run() {
@@ -156,12 +160,12 @@ public class SaveImageDialog extends JFileChooser {
             thread.start();
 
             hiCPanel.paint(g);
-            MainWindow.getInstance().setPreferredSize(prefSize);
-            MainWindow.getInstance().setMinimumSize(minSize);
-            MainWindow.getInstance().setSize(size);
+            mainWindow.setPreferredSize(prefSize);
+            mainWindow.setMinimumSize(minSize);
+            mainWindow.setSize(size);
             waitDialog.setVisible(false);
             waitDialog.dispose();
-            MainWindow.getInstance().setVisible(true);
+            mainWindow.setVisible(true);
         }
 
         ImageIO.write(image.getSubimage(0, 0, w, h), fmt, file);

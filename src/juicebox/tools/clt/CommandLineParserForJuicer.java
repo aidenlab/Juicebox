@@ -71,8 +71,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
 
-        ctcfCollapsedOption = addStringOption('a', "CTCF_collapsed_input_file");
-        rad21Option = addStringOption('r', "RAD21_input_file");
+        ctcfCollapsedOption = addStringOption('b', "CTCF_collapsed_input_file");
+        rad21Option = addStringOption('e', "RAD21_input_file");
         smc3Option = addStringOption('s', "SMC3_input_file");
 
         relativeLocationOption = addStringOption('l', "Location Type");
@@ -87,7 +87,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("clustering");
+                || cmd.equals("clustering") || cmd.equals("afa");
     }
 
     /**

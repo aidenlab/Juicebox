@@ -181,7 +181,7 @@ public class HiCFileTools {
         int floorVal = valSet.floor(val);
         int ceilVal = valSet.ceiling(val);
 
-        if (ceilVal - val < val - floorVal)
+        if (Math.abs(ceilVal - val) < Math.abs(val - floorVal))
             return ceilVal;
 
         return floorVal;

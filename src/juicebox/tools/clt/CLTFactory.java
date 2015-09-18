@@ -89,6 +89,8 @@ public class CLTFactory {
             return new AddNorm();
         } else if (cmd.equals("apa")) {
             return new APA();
+        } else if (cmd.equals("afa")) {
+            return new AFA();
         } else if (cmd.equals("arrowhead")) {
             return new Arrowhead();
         } else if (cmd.equals("bigWig".toLowerCase())) {

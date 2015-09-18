@@ -24,6 +24,7 @@
 
 package juicebox.state;
 
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 
 import javax.swing.*;
@@ -47,13 +48,15 @@ public class SaveFileDialog extends JFileChooser {
         setCurrentDirectory(new File(System.getProperty("user.dir")));
         FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml", "XML");
         setFileFilter(filter);
-        int actionDialog = showSaveDialog(MainWindow.getInstance());
-        if (actionDialog == JFileChooser.APPROVE_OPTION) {
-            File file = getSelectedFile();
-            try {
-                copyFile(fileToSave, file);
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (HiCGlobals.guiIsCurrentlyActive) {
+            int actionDialog = showSaveDialog(MainWindow.getInstance());
+            if (actionDialog == JFileChooser.APPROVE_OPTION) {
+                File file = getSelectedFile();
+                try {
+                    copyFile(fileToSave, file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

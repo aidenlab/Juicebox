@@ -474,4 +474,14 @@ public class MatrixTools {
                 matrix.setEntry(c, r, matrix.getEntry(r, c));
         return matrix;
     }
+
+    public static void thresholdValues(RealMatrix matrix, int val) {
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (matrix.getEntry(i, j) > val) {
+                    matrix.setEntry(i, j, val);
+                }
+            }
+        }
+    }
 }
