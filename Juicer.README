@@ -200,9 +200,9 @@ The optional arguments are:
         lower resolutions (i.e. 50kB or 100kB)
         IMPORTANT: if multiple resolutions are used, the flags below can be configured so that different parameters are
         used for the different resolutions.
-    -f <int(s)> FDR values actually corresponding to 1/max_q_val (i.e. for 1% FDR use 100, for 10%FDR use 10). Different
-        FDR values can be used for each resolution using commas. (e.g "-r 5000,10000 -f 10,15" would run HiCCUPS at
-        FDR 10 for resolution 5000 and FDR 15 for resolution 10000)
+    -f <int(s)> FDR values actually corresponding to max_q_val (i.e. for 1% FDR use 0.01, for 10%FDR use 0.1). Different
+        FDR values can be used for each resolution using commas. (e.g "-r 5000,10000 -f 0.1,0.15" would run HiCCUPS at
+        10% FDR for resolution 5000 and 15% FDR for resolution 10000)
     -p <int(s)> Peak width used for finding enriched pixels in HiCCUPS. Different peak widths can be used for each
         resolution using commas. (e.g "-r 5000,10000 -p 4,2" would run at peak width 4 for resolution 5000 and
         peak width 2 for resolution 10000)
@@ -234,10 +234,10 @@ HiCCUPS Examples
 hiccups HIC006.hic all_hiccups_loops
 > This command will run HiCCUPS on HIC006 and save all found loops to the all_hiccups_loops files
 
-hiccups -m 500 -r 5000,10000 -f 10,10 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
+hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
 > This command will run HiCCUPS on chromosome 22 of HIC006 at 5kB and 10kB resolution using the following values:
->> 5kB: fdr 10, peak width 4, window width 7, and centroid distance 20kB
->> 10kB: fdr 10, peak width 2, window width 5, and centroid distance 20kB
+>> 5kB: fdr 10%, peak width 4, window width 7, and centroid distance 20kB
+>> 10kB: fdr 10%, peak width 2, window width 5, and centroid distance 20kB
 > The resulting loop list will be merged and saved as all_hiccups_loops
 > Note that these are values used for generating the GM12878 loop list
 
