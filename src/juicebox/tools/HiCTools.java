@@ -45,7 +45,13 @@ public class HiCTools {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
 
+        if (argv.length == 0)  {
+            CLTFactory.generalUsage();
+            CLTFactory.juicerUsage();
+            System.exit(0);
+        }
         String cmdName = argv[0].toLowerCase();
+
         CmdLineParser parser = new CommandLineParser();
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
@@ -54,9 +60,21 @@ public class HiCTools {
         parser.parse(argv);
         String[] args = parser.getRemainingArgs();
 
-        String cmd = args[0].toLowerCase();
-        JuiceboxCLT instanceOfCLT = CLTFactory.getCLTCommand(cmd);
-        instanceOfCLT.readArguments(args, parser);
-        instanceOfCLT.run();
+        JuiceboxCLT instanceOfCLT;
+        String cmd = "";
+        if (args.length == 0) {
+            instanceOfCLT = null;
+        }
+        else {
+            cmd = args[0];
+            instanceOfCLT = CLTFactory.getCLTCommand(cmd);
+        }
+        if (instanceOfCLT != null) {
+            instanceOfCLT.readArguments(args, parser);
+            instanceOfCLT.run();
+        }
+        else {
+            throw new RuntimeException("Unknown command: " + cmd);
+        }
     }
 }
