@@ -56,7 +56,7 @@ class HiCFileUtils {
         utils.dumpExpectedVectors("KR", "BP", 1000000);
     }
 
-    public void dumpNormalizationVectors(String type, String chrName, String unitName, int binSize) {
+    private void dumpNormalizationVectors(String type, String chrName, String unitName, int binSize) {
 
         NormalizationType no = NormalizationType.valueOf(type);
 

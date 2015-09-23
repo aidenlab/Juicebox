@@ -33,7 +33,6 @@ import juicebox.windowui.FileDropTargetListener;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
-import org.broad.igv.util.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,7 +64,7 @@ public class MainWindow extends JFrame {
         MainViewPanel mainViewPanel = new MainViewPanel();
         superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel);
 
-        initComponents(superAdapter);
+        initComponents();
         createCursors();
         pack();
 
@@ -126,10 +125,10 @@ public class MainWindow extends JFrame {
         */
     }
 
-    private void initComponents(SuperAdapter superAdapter) {
+    private void initComponents() {
         System.out.println("Initializing Components");
 
-        superAdapter.initializeCustomAnnotations();
+        MainWindow.superAdapter.initializeCustomAnnotations();
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -144,7 +143,7 @@ public class MainWindow extends JFrame {
         Dimension panelDim = new Dimension(screenSize.width - getWidth() - 300,
                 screenSize.height - taskBarHeight - getHeight());
 
-        superAdapter.initializeMainView(contentPane, bigPanelDim, panelDim);
+        MainWindow.superAdapter.initializeMainView(contentPane, bigPanelDim, panelDim);
 
         initializeGlassPaneListening();
     }

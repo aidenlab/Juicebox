@@ -102,12 +102,11 @@ class BinnedScore {
      * @return statistical summary of data points in this bin
      */
     private HighScore convertToHighScore() {
-        HighScore highScore = new HighScore(maxX, maxY,
+        return new HighScore(maxX, maxY,
                 ArrayTools.mean(Doubles.toArray(scores)),
                 ArrayTools.mean(Doubles.toArray(uVarScores)),
                 ArrayTools.mean(Doubles.toArray(lVarScores)),
                 ArrayTools.mean(Doubles.toArray(upSigns)),
                 ArrayTools.mean(Doubles.toArray(loSigns)));
-        return highScore;
     }
 }

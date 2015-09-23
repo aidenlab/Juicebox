@@ -53,7 +53,6 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     private final JCheckBox echoOption;
     private final JOptionPane optionPane;
     private final String btnString1 = "Enter";
-    private final String btnString2 = "Cancel";
     private String typedText = null;
 
     /**
@@ -101,6 +100,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
         array[count] = echoOption;
 
 
+        String btnString2 = "Cancel";
         Object[] options = {btnString1, btnString2};
 
         //Create the JOptionPane.

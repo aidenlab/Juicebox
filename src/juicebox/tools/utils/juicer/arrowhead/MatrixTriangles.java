@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-public class MatrixTriangles {
+class MatrixTriangles {
 
     private boolean initialMatricesNotGenerated = true;
     private boolean blockScoresNotCalculated = true;

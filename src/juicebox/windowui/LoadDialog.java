@@ -44,7 +44,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private static final long serialVersionUID = 3238446384712613064L;
     private static boolean actionLock = false;
     private final boolean success;
-    private final MainWindow mainWindow;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final SuperAdapter superAdapter;
     private JTree tree;
@@ -59,7 +58,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     public LoadDialog(MainWindow mainWindow, Properties properties, SuperAdapter superAdapter) {
         super(mainWindow, "Select file(s) to open");
 
-        this.mainWindow = mainWindow;
+        MainWindow mainWindow1 = mainWindow;
         this.superAdapter = superAdapter;
 
         //Create the nodes.

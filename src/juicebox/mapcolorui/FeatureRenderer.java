@@ -95,23 +95,22 @@ class FeatureRenderer {
         }
 
         if (highlightedFeature != null && showFeatureHighlight) {
-            Feature2D feature = highlightedFeature;
-            g2.setColor(feature.getColor());
+            g2.setColor(highlightedFeature.getColor());
 
-            int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
-            int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
-            int binStart2 = yAxis.getBinNumberForGenomicPosition(feature.getStart2());
-            int binEnd2 = yAxis.getBinNumberForGenomicPosition(feature.getEnd2());
+            int binStart1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart1());
+            int binEnd1 = xAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd1());
+            int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
+            int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
 
             g2.setColor(Color.BLACK);
-            if (HiCFileTools.equivalentChromosome(feature.getChr1(), zd.getChr1())) {
+            if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
                 int x = (int) ((binStart1 - binOriginX) * scaleFactor);
                 int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
 
                 g2.drawLine(x, 0, x, maxHeight);
                 g2.drawLine(x + h, 0, x + h, maxHeight);
             }
-            if (HiCFileTools.equivalentChromosome(feature.getChr2(), zd.getChr2())) {
+            if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr2(), zd.getChr2())) {
                 int y = (int) ((binStart2 - binOriginY) * scaleFactor);
                 int w = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2));
 

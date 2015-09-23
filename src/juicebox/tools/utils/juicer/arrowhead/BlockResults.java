@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * Created by muhammadsaadshamim on 6/5/15.
  */
-public class BlockResults {
+class BlockResults {
 
     private final ArrowheadScoreList internalList;
     private final ArrowheadScoreList internalControl;

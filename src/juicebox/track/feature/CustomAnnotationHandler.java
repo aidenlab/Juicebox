@@ -24,7 +24,6 @@
 
 package juicebox.track.feature;
 
-import com.sun.org.apache.xalan.internal.utils.FeatureManager;
 import juicebox.HiC;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;

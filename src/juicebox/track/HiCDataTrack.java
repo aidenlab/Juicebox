@@ -245,14 +245,18 @@ public class HiCDataTrack extends HiCTrack {
 
         txt.append("<span style='font-family: arial; font-size: 12pt;'>");
         if (idx < 0) {
-            txt.append("<br>bin: " + formatter.format((int) bin));
+            txt.append("<br>bin: ").append(formatter.format((int) bin));
         } else {
             HiCDataPoint ws = data[idx];
             if (ws == null) return null;
 
-            txt.append("<br>" + formatter.format(ws.getGenomicStart()) + "-" + formatter.format(ws.getGenomicEnd()) +
-                    "<br>bin: " + formatter.format(ws.getBinNumber()) +
-                    "<br>value: " + formatter.format(ws.getValue(windowFunction)));
+            txt.append("<br>").append(formatter.format(ws.getGenomicStart()))
+                    .append("-")
+                    .append(formatter.format(ws.getGenomicEnd()))
+                    .append("<br>bin: ")
+                    .append(formatter.format(ws.getBinNumber()))
+                    .append("<br>value: ")
+                    .append(formatter.format(ws.getValue(windowFunction)));
         }
         txt.append("</span>");
         return txt.toString();

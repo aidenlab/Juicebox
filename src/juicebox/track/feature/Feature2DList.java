@@ -188,13 +188,10 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int autoSaveNew(PrintWriter outputFile, Feature2D feature) {
-
+    public void autoSaveNew(PrintWriter outputFile, Feature2D feature) {
         if (featureList != null && featureList.size() > 0) {
             outputFile.println(feature);
-            return 0;
         }
-        return -1;
     }
 
     /**
@@ -202,18 +199,14 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int autoSaveAll(PrintWriter outputFile) {
+    public void autoSaveAll(PrintWriter outputFile) {
         if (featureList != null && featureList.size() > 0) {
-
             for (String key : featureList.keySet()) {
                 for (Feature2D feature : featureList.get(key)) {
                     outputFile.println(feature);
                 }
             }
-
-            return 0;
         }
-        return -1;
     }
 
     /**
@@ -401,7 +394,7 @@ public class Feature2DList {
      *
      * @return keySet
      */
-    public Set<String> getKeySet() {
+    private Set<String> getKeySet() {
         return featureList.keySet();
     }
 

@@ -24,10 +24,6 @@
 
 package juicebox.track;
 
-import htsjdk.tribble.AbstractFeatureReader;
-import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.FeatureCodec;
-import htsjdk.tribble.TabixFeatureReader;
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
@@ -36,7 +32,6 @@ import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
 import org.broad.igv.feature.genome.Genome;
 import org.broad.igv.feature.genome.GenomeManager;
-import org.broad.igv.feature.tribble.CodecFactory;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
 import org.broad.igv.feature.tribble.TribbleIndexNotFoundException;
 import org.broad.igv.track.*;
@@ -44,7 +39,6 @@ import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -49,13 +49,12 @@ public class BlockBuster {
 
         double signThreshold = 0.5;
         int increment = matrixWidth / 2;
-        double varThreshold = increment;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
 
         CumulativeBlockResults results = null;
         while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
             signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
-            results = callSubBlockbuster(zd, maxDataLengthAtResolution, varThreshold, signThreshold, matrixWidth, increment, list, control);
+            results = callSubBlockbuster(zd, maxDataLengthAtResolution, (double) increment, signThreshold, matrixWidth, increment, list, control);
         }
 
         // high variance threshold, fewer blocks, high confidence

@@ -30,11 +30,11 @@ import juicebox.windowui.NormalizationType;
  * Created by muhammadsaadshamim on 9/21/15.
  */
 public abstract class JuicerCLT extends JuiceboxCLT {
-    public JuicerCLT(String usage) {
+    protected JuicerCLT(String usage) {
         super(usage);
     }
 
-    public NormalizationType retrieveNormalization(String norm) {
+    protected NormalizationType retrieveNormalization(String norm) {
         try {
             return NormalizationType.valueOf(norm);
         } catch (IllegalArgumentException error) {

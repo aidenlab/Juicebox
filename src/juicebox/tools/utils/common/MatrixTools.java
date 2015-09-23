@@ -194,7 +194,7 @@ public class MatrixTools {
      * @param numCols
      * @return properly dimensioned matrix
      */
-    public static float[][] reshapeFlatMatrix(float[] flatMatrix, int numRows, int numCols) {
+    private static float[][] reshapeFlatMatrix(float[] flatMatrix, int numRows, int numCols) {
         float[][] matrix = new float[numRows][numCols];
 
         for (int i = 0; i < numRows; i++) {

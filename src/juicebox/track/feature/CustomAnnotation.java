@@ -157,20 +157,19 @@ public class CustomAnnotation {
     /**
      * Export feature list to given file path
      */
-    private int updateAutoSave() {
+    private void updateAutoSave() {
         if (unsavedEdits && lastItem != null) {
-            return customAnnotationList.autoSaveNew(tempWriter, lastItem);
+            customAnnotationList.autoSaveNew(tempWriter, lastItem);
         }
-        return -1;
     }
 
     /**
      * Export feature list to given file path, including header
      */
-    private int reSaveAll() {
+    private void reSaveAll() {
         deleteTempFile();
         makeTempFile();
-        return customAnnotationList.autoSaveAll(tempWriter);
+        customAnnotationList.autoSaveAll(tempWriter);
     }
 
     public void removeFromList(int idx1, int idx2, Feature2D feature) {
