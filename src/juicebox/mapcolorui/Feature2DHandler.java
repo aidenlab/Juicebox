@@ -50,6 +50,7 @@ public class Feature2DHandler {
     //private static final float MAX_DIST_NEIGHBOR = 1000f;
     private static final int offsetPX = 4;
     public static boolean isTranslucentPlottingEnabled = false;
+    public static int numberOfLoopsToFind = 1000;
     private static boolean sparseFeaturePlottingEnabled = false, enlargedFeaturePlottingEnabled = false;
     private static boolean showLoops = true;
     private final Map<String, Feature2DList> loopLists;

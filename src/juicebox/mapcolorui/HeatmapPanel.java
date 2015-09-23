@@ -332,7 +332,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //double y = (screenHeight / scaleFactor)/2.0;//binOriginY;// +(screenHeight / scaleFactor)/2.0;
 
                 List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                        0, 0, 1000);
+                        0, 0, Feature2DHandler.numberOfLoopsToFind);
 
                 List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();

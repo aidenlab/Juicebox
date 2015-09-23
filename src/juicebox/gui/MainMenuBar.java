@@ -26,6 +26,7 @@ package juicebox.gui;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -270,7 +271,7 @@ public class MainMenuBar {
         });
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse");
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
         toggleSparse2DFeaturePlotting.setSelected(false);
         toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
             @Override
@@ -280,6 +281,26 @@ public class MainMenuBar {
             }
         });
         // TODO hotkey?
+
+        final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
+        numSparse.setEnabled(true);
+        numSparse.isEditable();
+
+        final JButton updateSparseOptions = new JButton("Update");
+        updateSparseOptions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (numSparse.getText().length() > 0) {
+                    Feature2DHandler.numberOfLoopsToFind = Integer.parseInt(numSparse.getText());
+                }
+            }
+        });
+
+        JPanel sparseOptions = new JPanel();
+        sparseOptions.setLayout(new GridLayout(0, 2));
+        sparseOptions.add(numSparse);
+        sparseOptions.add(updateSparseOptions);
+        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
 
 
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
@@ -307,6 +328,7 @@ public class MainMenuBar {
         feature2DPlottingOptions.add(showLoopsItem);
         feature2DPlottingOptions.add(enlarge2DFeatures);
         feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+        feature2DPlottingOptions.add(sparseOptions);
         feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
