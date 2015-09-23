@@ -22,12 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.data.*;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;

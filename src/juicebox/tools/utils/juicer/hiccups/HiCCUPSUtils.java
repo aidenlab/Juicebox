@@ -25,7 +25,7 @@
 package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.data.Dataset;
-import juicebox.tools.clt.HiCCUPS;
+import juicebox.tools.clt.juicer.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;

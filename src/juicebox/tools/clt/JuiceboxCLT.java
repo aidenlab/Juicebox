@@ -33,7 +33,7 @@ public abstract class JuiceboxCLT {
 
     private static String usage;
 
-    JuiceboxCLT(String usage) {
+    public JuiceboxCLT(String usage) {
         setUsage(usage);
     }
 
@@ -45,12 +45,9 @@ public abstract class JuiceboxCLT {
         usage = newUsage;
     }
 
-    public String getUsage(String usage) {
-        return usage;
-    }
-
     public void printUsage() {
         System.err.println("Usage:   juicebox " + usage);
         System.exit(-2);
     }
 }
+

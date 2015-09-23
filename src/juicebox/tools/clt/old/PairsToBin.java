@@ -22,39 +22,41 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.tools.utils.original.HiCDBUtils;
+import juicebox.data.HiCFileTools;
+import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.AsciiToBinConverter;
+import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import java.util.List;
 
-public class SQLDatabase extends JuiceboxCLT {
+public class PairsToBin extends JuiceboxCLT {
 
-    private String[] dbArgs;
+    private String ifile, ofile, genomeId;
 
-    public SQLDatabase() {
-        super("db <frag|annot|update> [items]");
+    public PairsToBin() {
+        super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox db <frag|annot|update> [items]");
-        dbArgs = new String[args.length - 1];
-        System.arraycopy(args, 1, dbArgs, 0, args.length - 1);
+        if (args.length != 4) {
+            printUsage();
+        }
+        ifile = args[1];
+        ofile = args[2];
+        genomeId = args[3];
     }
 
     @Override
     public void run() {
-
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
         try {
-            HiCDBUtils.main(dbArgs);
-        } catch (SQLException e) {
-            System.err.println("Sql exception: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
-        } catch (IOException e) {
+            AsciiToBinConverter.convert(ifile, ofile, chromosomes);
+        } catch (Exception e) {
+            System.err.println("Unable to convert from ascii to bin");
             e.printStackTrace();
         }
     }

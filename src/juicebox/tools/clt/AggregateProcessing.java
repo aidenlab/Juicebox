@@ -48,9 +48,7 @@ class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Downloads/APA_Ivan/gmloops.txt.gz",
                 "/Users/muhammadsaadshamim/Downloads/APA_Ivan/temp3"};
 
-        String[] l7 = {"hiccups", "-c", "22", "-m", "90",
-                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/j3/out8/loops"};
+
 
 
         String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
@@ -86,8 +84,15 @@ class AggregateProcessing {
         //afa [-w window]  [-r resolution(s)] [-c chromosomes] [-a attribute(s)] [-l TopLeft/BottomRight/Center]
         // <NONE/VC/VC_SQRT/KR> <hic file(s)> <FeatureFile> <SaveFolder> [SavePrefix]
 
+        String[] l7 = {"hiccups", "-c", "22", "-m", "90", "-r", "10000,5000",
+                "-f", ".1,.1", "-p", "4,2", "-w", "7,5", "-d", "20000,20000",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out10/loops0"};
+
+
+
         HiCGlobals.useCache = false;
-        HiCTools.main(l73);
+        HiCTools.main(l7);
 
         /*
 

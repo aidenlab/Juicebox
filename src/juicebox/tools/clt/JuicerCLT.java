@@ -24,33 +24,23 @@
 
 package juicebox.tools.clt;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.utils.original.NormalizationCalculations;
+import juicebox.windowui.NormalizationType;
 
-
-public class CalcKR extends JuiceboxCLT {
-
-    private String infile = null;
-
-    public CalcKR() {
-        super("calcKR <input_?_file>");
+/**
+ * Created by muhammadsaadshamim on 9/21/15.
+ */
+public abstract class JuicerCLT extends JuiceboxCLT {
+    public JuicerCLT(String usage) {
+        super(usage);
     }
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox calcKR <infile>");
-        if (!(args.length == 2)) {
-            printUsage();
-        }
-        infile = args[1];
-    }
-
-    @Override
-    public void run() {
+    public NormalizationType retrieveNormalization(String norm) {
         try {
-            NormalizationCalculations.calcKR(infile);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return NormalizationType.valueOf(norm);
+        } catch (IllegalArgumentException error) {
+            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+            System.exit(-1);
         }
+        return null;
     }
 }

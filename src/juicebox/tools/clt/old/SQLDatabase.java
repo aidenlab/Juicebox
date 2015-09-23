@@ -22,44 +22,41 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
-/**
- * Created by muhammadsaadshamim on 9/14/15.
- */
-public class Clustering {
+import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.HiCDBUtils;
 
-    /**
-     * @param data to cluster - each
-     * @param n
-     */
-    public void cluster(double[][] data, int n) {
+import java.io.IOException;
+import java.sql.SQLException;
 
-/*
-        OpdfMultiGaussianFactory factory = new OpdfMultiGaussianFactory(6);
-        new ObservationVector(data[0]);
-        Hmm<ObservationVector> hmm = new Hmm<ObservationVector>(6, factory);
+public class SQLDatabase extends JuiceboxCLT {
 
-        List<List<Observation>> sequences = new ArrayList<List<O>>();
+    private String[] dbArgs;
 
-        for (int i = 0; i < 200; i++)
-            sequences.add(new ObservationVector())
-            sequences.add(mg.observationSequence(100));
+    public SQLDatabase() {
+        super("db <frag|annot|update> [items]");
+    }
 
+    @Override
+    public void readArguments(String[] args, CmdLineParser parser) {
+        //setUsage("juicebox db <frag|annot|update> [items]");
+        dbArgs = new String[args.length - 1];
+        System.arraycopy(args, 1, dbArgs, 0, args.length - 1);
+    }
 
-        BaumWelchLearner bwl = new BaumWelchLearner();
-        Hmm<?> learntHmm = bwl.learn(hmm, sequences);
+    @Override
+    public void run() {
 
-        for (int i = 0; i < 10; i++) {
-            learntHmm = bwl.iterate(learntHmm);
+        try {
+            HiCDBUtils.main(dbArgs);
+        } catch (SQLException e) {
+            System.err.println("Sql exception: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-
-        List<List<ObservationVector>> sequences2 = new ArrayList<List<ObservationVector>>();
-
-        KMeansLearner<ObservationVector> kml =
-                new KMeansLearner <ObservationVector>(3 , new OpdfMultiGaussianFactory(6) , sequences2);
-        Hmm <ObservationVector> initHmm = kml.iterate() ;
-    */
     }
 }

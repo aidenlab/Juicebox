@@ -30,7 +30,7 @@ import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.NormalizationVector;
-import juicebox.tools.clt.Dump;
+import juicebox.tools.clt.old.Dump;
 
 import javax.swing.*;
 import java.awt.*;

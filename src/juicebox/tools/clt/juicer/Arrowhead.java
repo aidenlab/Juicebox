@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
@@ -31,6 +31,8 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
 import juicebox.windowui.HiCZoom;
@@ -42,7 +44,7 @@ import java.util.*;
 /**
  * Created by nchernia on 1/9/15.
  */
-public class Arrowhead extends JuiceboxCLT {
+public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
     private String file, outputPath;

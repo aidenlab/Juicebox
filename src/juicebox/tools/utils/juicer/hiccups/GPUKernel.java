@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
-import juicebox.tools.clt.HiCCUPS;
+import juicebox.tools.clt.juicer.HiCCUPS;
 
 /**
  * Created by muhammadsaadshamim on 5/11/15.

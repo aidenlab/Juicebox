@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
@@ -31,6 +31,8 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
@@ -50,7 +52,7 @@ import java.util.*;
  *
  * @author mshamim
  */
-public class APA extends JuiceboxCLT {
+public class APA extends JuicerCLT {
 
     public static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;
@@ -81,12 +83,7 @@ public class APA extends JuiceboxCLT {
             printUsage();
         }
 
-        try {
-            norm = NormalizationType.valueOf(args[1]);
-        } catch (IllegalArgumentException error) {
-            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
-        }
+        norm = retrieveNormalization(args[1]);
 
         files = new String[4];
         files[3] = "";

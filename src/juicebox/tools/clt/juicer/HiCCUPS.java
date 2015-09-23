@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
@@ -32,6 +32,8 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
@@ -53,7 +55,7 @@ import java.util.List;
  * @Created by muhammadsaadshamim on 1/20/15.
  *
  */
-public class HiCCUPS extends JuiceboxCLT {
+public class HiCCUPS extends JuicerCLT {
 
     public static final int regionMargin = 20;
     public static final int krNeighborhood = 5;

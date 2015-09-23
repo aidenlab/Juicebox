@@ -24,6 +24,9 @@
 
 package juicebox.tools.clt;
 
+import juicebox.tools.clt.juicer.*;
+import juicebox.tools.clt.old.*;
+
 /**
  * Factory for command line tools to call different functions
  *
@@ -34,29 +37,29 @@ public class CLTFactory {
 
     // Commenting some out because we're not going to release all these when we release CLT
     private final static String[] nameToCommandLineTool = {
-            //        "addGWNorm",    "juicebox.tools.clt.AddGWNorm",         "addGWNorm <input_HiC_file> <min resolution>",
-            //        "addNorm",      "juicebox.tools.clt.AddNorm",           "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
-            //        "bigWig",       "juicebox.tools.clt.BigWig",            "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
-            //        "binToPairs",   "juicebox.tools.clt.BinToPairs",        "binToPairs <input_HiC_file> <output_HiC_file>",
-            //        "bpToFrag",     "juicebox.tools.clt.BPToFragment",      "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
-            //        "calcKR",       "juicebox.tools.clt.CalcKR",            "calcKR <input_HiC_file>",
-            "dump", "juicebox.tools.clt.Dump", "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
-            //        "fragmentToBed","juicebox.tools.clt.FragmentToBed",     "fragmentToBed <fragmentFile>",
-            //        "pairsToBin",   "juicebox.tools.clt.PairsToBin",        "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
-            //        "db",           "juicebox.tools.clt.SQLDatabase",       "db <frag|annot|update> [items]",
-            "pre", "juicebox.tools.clt.PreProcessing", "pre <options> <infile> <outfile> <genomeID>"
+            //        "addGWNorm",    "addGWNorm <input_HiC_file> <min resolution>",
+            //        "addNorm",      "addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]",
+            //        "bigWig",       "bigWig <bigWig path or URL> <window size in bp> [chr] [start base] [end base]",
+            //        "binToPairs",   "binToPairs <input_HiC_file> <output_HiC_file>",
+            //        "bpToFrag",     "bpToFrag <fragmentFile> <inputBedFile> <outputFile>",
+            //        "calcKR",       "calcKR <input_HiC_file>",
+            "dump", "dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>",
+            //        "fragmentToBed","fragmentToBed <fragmentFile>",
+            //        "pairsToBin",   "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
+            //        "db",           "db <frag|annot|update> [items]",
+            "pre", "pre <options> <infile> <outfile> <genomeID>"
     };
     private final static String[] juicerNameToCommandLineTool = {
-            "apa", "juicebox.tools.clt.apa", "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
-            "arrowhead", "juicebox.tools.arrowhead", "arrowhead <input_HiC_file> <resolution>",
-            "hiccups", "juicebox.tools.clt.hiccups", ""
+            "apa", "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
+            "arrowhead", "arrowhead <input_HiC_file> <resolution>",
+            "hiccups", ""
     };
 
     public static void generalUsage() {
 
         System.out.println("Juicebox Command Line Tools Usage:");
-        for (int i = 0; i < nameToCommandLineTool.length; i += 3) {
-            System.out.println("       juicebox " + nameToCommandLineTool[i + 2]);
+        for (int i = 0; i < nameToCommandLineTool.length; i += 2) {
+            System.out.println("       juicebox " + nameToCommandLineTool[i + 1]);
         }
 
         System.out.println("  <options>: -d only calculate intra chromosome (diagonal) [false]");

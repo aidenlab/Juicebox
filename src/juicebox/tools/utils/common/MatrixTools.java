@@ -484,4 +484,40 @@ public class MatrixTools {
             }
         }
     }
+
+    public static int[][] normalizeMatrixUsingColumnSum(int[][] matrix) {
+        int[][] newMatrix = new int[matrix.length][matrix[0].length];
+        int[] columnSum = new int[matrix[0].length];
+        for (int[] row : matrix) {
+            for (int i = 0; i < row.length; i++) {
+                columnSum[i] += row[i];
+            }
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                newMatrix[i][j] = matrix[i][j] / columnSum[j];
+            }
+        }
+
+        return newMatrix;
+    }
+
+    public static int[][] normalizeMatrixUsingRowSum(int[][] matrix) {
+        int[][] newMatrix = new int[matrix.length][matrix[0].length];
+        int[] rowSum = new int[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                rowSum[i] += matrix[i][j];
+            }
+        }
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                newMatrix[i][j] = matrix[i][j] / rowSum[i];
+            }
+        }
+
+        return newMatrix;
+    }
 }

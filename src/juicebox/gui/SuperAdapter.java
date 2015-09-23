@@ -217,7 +217,6 @@ public class SuperAdapter {
         String url = JOptionPane.showInputDialog("Enter URL: ");
         if (url != null) {
             hic.loadTrack(url);
-
         }
     }
 

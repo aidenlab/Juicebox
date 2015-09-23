@@ -22,11 +22,12 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.JuiceboxCLT;
 
 import java.io.*;
 import java.util.List;

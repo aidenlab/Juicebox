@@ -22,40 +22,50 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.data.HiCFileTools;
-import juicebox.tools.utils.original.AsciiToBinConverter;
-import org.broad.igv.feature.Chromosome;
+import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.NormalizationVectorUpdater;
 
-import java.util.List;
 
-public class PairsToBin extends JuiceboxCLT {
+public class AddNorm extends JuiceboxCLT {
 
-    private String ifile, ofile, genomeId;
+    private boolean useGenomeWideResolution = false;
 
-    public PairsToBin() {
-        super("pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>");
+    private int genomeWideResolution = -100;
+
+    private String file;
+
+    public AddNorm() {
+        super("addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        if (args.length != 4) {
+        //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
+        if (args.length < 2 || args.length > 3) {
             printUsage();
         }
-        ifile = args[1];
-        ofile = args[2];
-        genomeId = args[3];
+        file = args[1];
+        if (args.length > 2) {
+            try {
+                genomeWideResolution = Integer.valueOf(args[2]);
+            } catch (NumberFormatException error) {
+                printUsage();
+            }
+            useGenomeWideResolution = true;
+        }
     }
 
     @Override
     public void run() {
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
         try {
-            AsciiToBinConverter.convert(ifile, ofile, chromosomes);
+            if (useGenomeWideResolution)
+                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
+            else
+                NormalizationVectorUpdater.updateHicFile(file);
         } catch (Exception e) {
-            System.err.println("Unable to convert from ascii to bin");
             e.printStackTrace();
         }
     }

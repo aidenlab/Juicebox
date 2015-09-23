@@ -22,10 +22,12 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
+import juicebox.tools.clt.CommandLineParser;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
 import org.broad.igv.feature.Chromosome;

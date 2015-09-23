@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
@@ -31,6 +31,8 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.afa.AFAUtils;
 import juicebox.tools.utils.juicer.afa.LocationType;
 import juicebox.tools.utils.juicer.apa.APADataStack;
@@ -50,7 +52,7 @@ import java.util.*;
  *
  * @author mshamim
  */
-public class AFA extends JuiceboxCLT {
+public class AFA extends JuicerCLT {
 
     public static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;

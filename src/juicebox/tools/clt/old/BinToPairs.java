@@ -22,9 +22,10 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.AsciiToBinConverter;
 
 

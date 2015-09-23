@@ -22,48 +22,34 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.tools.utils.original.NormalizationVectorUpdater;
+import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.utils.original.NormalizationCalculations;
 
 
-public class AddNorm extends JuiceboxCLT {
+public class CalcKR extends JuiceboxCLT {
 
-    private boolean useGenomeWideResolution = false;
+    private String infile = null;
 
-    private int genomeWideResolution = -100;
-
-    private String file;
-
-    public AddNorm() {
-        super("addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]");
+    public CalcKR() {
+        super("calcKR <input_?_file>");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
-        if (args.length < 2 || args.length > 3) {
+        //setUsage("juicebox calcKR <infile>");
+        if (!(args.length == 2)) {
             printUsage();
         }
-        file = args[1];
-        if (args.length > 2) {
-            try {
-                genomeWideResolution = Integer.valueOf(args[2]);
-            } catch (NumberFormatException error) {
-                printUsage();
-            }
-            useGenomeWideResolution = true;
-        }
+        infile = args[1];
     }
 
     @Override
     public void run() {
         try {
-            if (useGenomeWideResolution)
-                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
-            else
-                NormalizationVectorUpdater.updateHicFile(file);
+            NormalizationCalculations.calcKR(infile);
         } catch (Exception e) {
             e.printStackTrace();
         }

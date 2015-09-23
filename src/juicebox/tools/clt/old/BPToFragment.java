@@ -22,15 +22,14 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.old;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import htsjdk.samtools.util.Locatable;
 import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.FragmentCalculation;
-import org.broad.igv.feature.LocusScore;
-import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;

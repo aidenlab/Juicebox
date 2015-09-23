@@ -82,7 +82,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         windowOption = addStringOption('w', "window width values");
         peakOption = addStringOption('p', "peak width values");
         clusterRadiusOption = addStringOption('d', "centroid radii");
-        thresholdOption = addStringOption('f', "postprocessing threshold values");
+        thresholdOption = addStringOption('t', "postprocessing threshold values");
     }
 
     public static boolean isJuicerCommand(String cmd) {

@@ -22,14 +22,16 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuicerCLT;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
  */
-public class MotifFinder extends JuiceboxCLT {
+public class MotifFinder extends JuicerCLT {
 
     private boolean noFilesSpecified = true;
 

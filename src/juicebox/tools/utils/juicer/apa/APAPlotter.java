@@ -24,7 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
-import juicebox.tools.clt.APA;
+import juicebox.tools.clt.juicer.APA;
 import org.apache.commons.math.linear.RealMatrix;
 import org.tc33.jheatchart.HeatChart;
 
