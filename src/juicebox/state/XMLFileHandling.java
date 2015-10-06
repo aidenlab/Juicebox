@@ -82,6 +82,11 @@ public class XMLFileHandling {
             }
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
         }
+        else{
+            currentTrack = "none";
+            currentTrackName = "none";
+            textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
+        }
 
         List<Feature2DList> visibleLoops = hic.getAllVisibleLoopLists();
         if (visibleLoops != null && !visibleLoops.isEmpty()) {
