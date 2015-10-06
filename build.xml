@@ -267,7 +267,7 @@
       <zipfileset dir="${juicebox.output.dir}"/>
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
-      <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.123.jar"/>
+      <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jogl-all.jar"/>
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jocl-java-src.zip"/>
@@ -329,7 +329,7 @@
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/lwjgl/lwjgl.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
-      <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.123.jar"/>
+      <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
