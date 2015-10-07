@@ -109,7 +109,7 @@ public class HiCCUPS extends JuicerCLT {
     private Configuration[] configurations;
 
     public HiCCUPS() { //TODO fdr, window, peakwidth flags
-        super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window] " +
+        super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>");
         HiCGlobals.useCache = false;
         // also
@@ -202,7 +202,6 @@ public class HiCCUPS extends JuicerCLT {
             // do nothing - use default postprocessing thresholds
         }
     }
-
 
     private void determineValidChromosomes(CommandLineParserForJuicer juicerParser) {
         List<String> specifiedChromosomes = juicerParser.getChromosomeOption();

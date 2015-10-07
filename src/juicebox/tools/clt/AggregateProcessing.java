@@ -41,15 +41,17 @@ class AggregateProcessing {
         String[] l4 = {"arrowhead", "-c", "22", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/j3/out8/", "25000"};
 
+        String[] l42 = {"arrowhead", "-m", "5000", "-c", "assembly",
+                "http://adam.bcma.bcm.edu/temp/assembly/human_stringent_OnOByhg19_curated.hic",
+                "/Users/muhammadsaadshamim/Desktop/j3/out8/", "100000"};
+
+
         String[] l5 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/BioScripts/22_blocks"};
 
         String[] l6 = {"apa", "-r", "5000", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Downloads/APA_Ivan/gmloops.txt.gz",
                 "/Users/muhammadsaadshamim/Downloads/APA_Ivan/temp3"};
-
-
-
 
         String[] l51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/1212chr22_5000_aa.bin"};
@@ -89,10 +91,43 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/j3/out10/loops0"};
 
+        String[] l111 = new String[]{"motifs", "-g", "/Applications/bedtools2",
+                "/Users/muhammadsaadshamim/Desktop/suhas_motif/bed/CTCF_ENCFF001SUB.bed.gz", "hg19",
+                "/Users/muhammadsaadshamim/Desktop/suhas_motif/loops",
+                "/Users/muhammadsaadshamim/Desktop/suhas_motif/temp"};
+
+        String[] l112 = new String[]{"motifs",
+                "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy/bed/CTCF_ENCFF001SUB.bed", "hg19",
+                "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy/looplist.txt",
+                "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy/temp2"};
 
 
         HiCGlobals.useCache = false;
-        HiCTools.main(l7);
+        HiCTools.main(l112);
+
+
+        //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");
+
+
+        //MotifFinder.executeCommand("/Applications/bedtools2/bin/bedtools > /Users/muhammadsaadshamim/Desktop/j5/temp");
+
+        //MotifFinder.executeCommand("cd /Users/muhammadsaadshamim/Desktop/j5/");
+        //System.out.println(MotifFinder.executeCommand("ll /Users/muhammadsaadshamim/Desktop/j5/temp"));
+
+        /*InputStream is = ChromosomeSizes.class.getResourceAsStream("assembly" + ".chrom.sizes");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        String nextLine;
+        int idx = 1;
+
+        try {
+            while ((nextLine = reader.readLine()) != null) {
+                System.out.println();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+*/
+
 
         /*
 

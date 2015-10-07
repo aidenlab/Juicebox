@@ -292,19 +292,56 @@ Instructions for installing CUDA 7 can be found on the NVIDIA Developer site:
     Other versions of CUDA can be used, but you will need to download the
     respective native libraries from http://www.jcuda.org/downloads/downloads.html
 
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+NOTE - MotifFinder is not supported on Windows (Software used by MotifFinder,
+notably BedTools, is not supported on Windows).
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 *
-* Installing BedTools (for HiCCUPS Motif Finding)
+* Installing twoBitToFa (for MotifFinder)
+*
+
+Download the twoBitToFa script appropriate for your machine (Mac/Linux) from
+  http://hgdownload.soe.ucsc.edu/admin/exe/
+
+*
+* Installing BedTools (for MotifFinder)
 *
 
 Mac
     In the command prompt, type
-        apt-get install bedtools
+        brew install bedtools
     or
-        yum install BEDTools
+        port install bedtools
     depending on your package installer
 
-Windows
-    BedTools in not supported on Windows
+    Alternatively:
+
+    1 Download the most recent stable release of BEDTools from Github: https://github.com/arq5x/bedtools2/releases.
+      For the user, this was v2.21.0.
+
+    2 Unzip the download and move entire folder to Applications. For us, this folder was called bedtools2.
+
+    3 Use Command + Spacebar function on the Mac to search for the Terminal application. Open this.
+      At the prompt, type "cd /Applications/bedtools2".
+
+    4 At the next prompt, typing "ls" lists the contents of the bedtools2 folder.
+      If at any point, Terminal asks for a password, enter the credentials for an
+      account that has permissions to install software.
+
+    5 At the prompt, type "make". This will build and compile the BEDTools package.
+      After the installation, type "pwd" into the prompt to print the directory path.
+      For us, this path was
+        /Applications/bedtools2
+
+    //If you use this installation method, make sure to pass the path above with the -p flag
+    //juicebox motif_finder -g /Applications/bedtools2 ...
+
+      Edit your shell configuration file to add the above path's bin folder
+        "/Applications/bedtools2/bin"
+      to your shell's path.
 
 Linux
     In the command prompt, type
@@ -317,7 +354,11 @@ Linux
 * Installing FIMO (for HiCCUPS Motif Finding)
 *
 
-// TODO
+    Instructions for installing FIMO are available here:
+    http://meme-suite.org/doc/download.html
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 *
 * Installing Java 1.8 JDK (for Compiling from Source Files)

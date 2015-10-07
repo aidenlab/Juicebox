@@ -87,6 +87,12 @@ public class HiCFileTools {
         return dataset;
     }
 
+    /**
+     * Load the list of chromosomes based on given genome id or file
+     *
+     * @param idOrFile string
+     * @return list of chromosomes
+     */
     public static List<Chromosome> loadChromosomes(String idOrFile) {
 
         InputStream is = null;

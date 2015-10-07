@@ -321,7 +321,7 @@ public class MatrixZoomData {
 
         // untested since files got fixed - MSS
         if (errorCounter.get() > 0) {
-            System.err.println("Error while reading blocks");
+            System.err.println("Warning, unable to read blocks in this region");
         }
     }
 

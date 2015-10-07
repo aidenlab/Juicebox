@@ -28,13 +28,16 @@ package juicebox.track.feature;
 import juicebox.HiCGlobals;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.anchor.FeatureAnchor;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
 
 /**
  * @author jrobinso
@@ -360,5 +363,16 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public String getLocationKey() {
         return start1 + "_" + start2;
+    }
+
+    public List<FeatureAnchor> getAnchors() {
+        List<FeatureAnchor> anchors = new ArrayList<FeatureAnchor>();
+        if (chr1.equals(chr2) && start1 == start2 && end1 == end2) {
+            anchors.add(new FeatureAnchor(chr1, start1, end1));
+        } else {
+            anchors.add(new FeatureAnchor(chr1, start1, end1));
+            anchors.add(new FeatureAnchor(chr2, start2, end2));
+        }
+        return anchors;
     }
 }

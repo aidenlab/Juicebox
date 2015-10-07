@@ -48,6 +48,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option ctcfCollapsedOption = null;
     private static Option rad21Option = null;
     private static Option smc3Option = null;
+    private static Option bedToolsPath = null;
 
     // for AFA
     private static Option relativeLocationOption = null;
@@ -60,10 +61,14 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option clusterRadiusOption = null;
     private static Option thresholdOption = null;
 
+
     public CommandLineParserForJuicer() {
 
+        // used flags
+        // wmnxcrbesplafdpt
+
         apaWindowOption = addIntegerOption('w', "window");
-        matrixSizeOption = addIntegerOption('m', "minCountThreshold (hiccups)");
+        matrixSizeOption = addIntegerOption('m', "matrix window width");
 
         apaMinValOption = addDoubleOption('n', "minimum value");
         apaMaxValOption = addDoubleOption('x', "maximum value");
@@ -74,15 +79,18 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         ctcfCollapsedOption = addStringOption('b', "CTCF_collapsed_input_file");
         rad21Option = addStringOption('e', "RAD21_input_file");
         smc3Option = addStringOption('s', "SMC3_input_file");
+        bedToolsPath = addStringOption('g', "path to bedtools (e.g. /Applications/bedtools2)");
 
         relativeLocationOption = addStringOption('l', "Location Type");
         multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
 
         fdrOption = addStringOption('f', "fdr threshold values");
-        windowOption = addStringOption('w', "window width values");
+        windowOption = addStringOption('i', "window width values");
         peakOption = addStringOption('p', "peak width values");
         clusterRadiusOption = addStringOption('d', "centroid radii");
         thresholdOption = addStringOption('t', "postprocessing threshold values");
+
+
     }
 
     public static boolean isJuicerCommand(String cmd) {
@@ -108,6 +116,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public String getSMC3Option() {
         return optionToString(smc3Option);
+    }
+
+    public String getBEDToolsPathOption() {
+        return optionToString(bedToolsPath);
     }
 
     public String getRelativeLocationOption() {

@@ -26,6 +26,7 @@ package juicebox.track.feature;
 
 import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.anchor.FeatureAnchor;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
@@ -576,5 +577,19 @@ public class Feature2DList {
             total += chrList.size();
         }
         return total;
+    }
+
+    public List<FeatureAnchor> extractAnchors() {
+        final List<FeatureAnchor> anchors = new ArrayList<FeatureAnchor>();
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    anchors.addAll(f.getAnchors());
+                }
+            }
+        });
+
+        return new ArrayList<FeatureAnchor>(new HashSet<FeatureAnchor>(anchors));
     }
 }
