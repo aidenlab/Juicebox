@@ -111,6 +111,8 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() { //TODO fdr, window, peakwidth flags
         super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>");
+
+
         HiCGlobals.useCache = false;
         // also
         // hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
@@ -237,7 +239,7 @@ public class HiCCUPS extends JuicerCLT {
         List<Configuration> filteredConfigurations = filterConfigurations(configurations, ds);
         for (Configuration conf : filteredConfigurations) {
 
-
+            // TODO mss might need this for loop inside?
             looplists.put(conf.resolution, runHiccupsProcessing(ds, conf, commonChromosomes));
         }
 
@@ -307,7 +309,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
                 double[] normalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom,
-                        NormalizationType.KR).getData();
+                        preferredNormalization).getData();
                 double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
                         zoom, preferredNormalization);
 
@@ -331,6 +333,7 @@ public class HiCCUPS extends JuicerCLT {
                                         thresholdBL, thresholdDonut, thresholdH, thresholdV,
                                         boundRowIndex, boundColumnIndex, preferredNormalization);
 
+                                // TODO what is this for?
                                 int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.peakWidth + 2;
 
                                 if (runNum == 0) {
