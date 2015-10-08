@@ -25,6 +25,7 @@
 package juicebox.tools;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.CLTFactory;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -55,6 +56,7 @@ public class HiCTools {
         CmdLineParser parser = new CommandLineParser();
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
+            HiCGlobals.useCache = false; //TODO until memory leak cleared
         }
 
         parser.parse(argv);

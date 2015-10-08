@@ -491,4 +491,43 @@ public class HiCCUPSUtils {
         }
         return null;
     }
+
+    public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
+                                   List<Chromosome> commonChromosomes, String outputFinalLoopListFileName,
+                                   List<HiCCUPSConfiguration> configurations) {
+        for (HiCCUPSConfiguration conf : configurations) {
+
+            int res = conf.getResolution();
+            removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
+            coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
+            filterOutFeaturesByFDR(looplists.get(res));
+        }
+
+        Feature2DList finalList = mergeAllResolutions(looplists);
+        finalList.exportFeatureList(outputFinalLoopListFileName + "_postprocessing", false);
+    }
+
+    public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,
+                                                int[][] rcsHist, float[] threshold, float[][] fdrLog) {
+        if (rcsHist[index][0] > 0) {
+            float[] expected = ArrayTools.scalarMultiplyArray(rcsHist[index][0], poissonPMF);
+            float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
+            for (int j = 0; j < width; j++) {
+                if (fdr * rcsExpected[j] <= rcsHist[index][j]) {
+                    threshold[index] = (j - 1);
+                    break;
+                }
+            }
+
+            for (int j = (int) threshold[index]; j < width; j++) {
+                float sum1 = rcsExpected[j];
+                float sum2 = rcsHist[index][j];
+                if (sum2 > 0) {
+                    fdrLog[index][j] = sum1 / sum2;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
 }

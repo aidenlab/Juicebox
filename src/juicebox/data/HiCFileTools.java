@@ -196,12 +196,10 @@ public class HiCFileTools {
 
     /**
      * Set intersection
-     * <p/>
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
-     *
      * @param set1
      * @param set2
-     * @return
+     * @return intersection of set1 and set2
      */
     public static Set<Chromosome> getSetIntersection(Set<Chromosome> set1, Set<Chromosome> set2) {
         boolean set1IsLarger = set1.size() > set2.size();
@@ -210,25 +208,31 @@ public class HiCFileTools {
         return cloneSet;
     }
 
+    /**
+     * For each given chromosome name, find its equivalent Chromosome object
+     *
+     * @param chromosomesSpecified by strings
+     * @param referenceChromosomes as Chromosome objects
+     * @return the specified Chromosomes corresponding to the given strings
+     */
     public static Set<Chromosome> stringToChromosomes(Set<String> chromosomesSpecified,
                                                       List<Chromosome> referenceChromosomes) {
+        Set<Chromosome> chromosomes = new HashSet<Chromosome>();
 
-        Set<Chromosome> chrKeys = new HashSet<Chromosome>(referenceChromosomes);
-        Set<String> strKeys = new HashSet<String>(chromosomesSpecified);
-        Set<Chromosome> convertedChromosomes = new HashSet<Chromosome>();
-
-        // filter down loops by uniqueness, then size, and save the totals at each stage
-        for (Chromosome chrKey : chrKeys) {
-            for (String strKey : strKeys) {
+        for (String strKey : chromosomesSpecified) {
+            boolean chrFound = false;
+            for (Chromosome chrKey : referenceChromosomes) {
                 if (equivalentChromosome(strKey, chrKey)) {
-                    convertedChromosomes.add(chrKey);
-                    strKeys.remove(strKey);
+                    chromosomes.add(chrKey);
+                    chrFound = true;
                     break;
                 }
             }
+            if (!chrFound) {
+                System.err.println("Chromosome " + strKey + " not found");
+            }
         }
-
-        return new HashSet<Chromosome>(convertedChromosomes);
+        return new HashSet<Chromosome>(chromosomes);
     }
 
     /**
