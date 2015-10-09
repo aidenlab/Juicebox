@@ -25,6 +25,8 @@
 package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.data.NormalizationVector;
 import juicebox.tools.clt.juicer.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.Feature2D;
@@ -140,7 +142,8 @@ public class HiCCUPSUtils {
 
 
     public static void removeLowMapQFeatures(Feature2DList list, final int resolution,
-                                             final Dataset ds, final List<Chromosome> chromosomes) {
+                                             final Dataset ds, final List<Chromosome> chromosomes,
+                                             final NormalizationType norm) {
 
         final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
         for (Chromosome chr : chromosomes) {
@@ -151,7 +154,7 @@ public class HiCCUPSUtils {
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList);
+                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList, norm);
             }
         });
 
@@ -186,17 +189,20 @@ public class HiCCUPSUtils {
     }
 
 
-    private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list) {
+    private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list, NormalizationType norm) {
 
-        double[] normalizationVector = ds.getNormalizationVector(chrIndex, ds.getZoomForBPResolution(res),
-                NormalizationType.KR).getData();
         List<Feature2D> features = new ArrayList<Feature2D>();
-
-
-        for (Feature2D feature : list) {
-            int index1 = feature.getStart1() / res, index2 = feature.getStart2() / res;
-            if (nearbyValuesClear(normalizationVector, index1) && nearbyValuesClear(normalizationVector, index2)) {
-                features.add(feature);
+        NormalizationVector normVectorContainer = ds.getNormalizationVector(chrIndex, ds.getZoomForBPResolution(res),
+                norm);
+        if (normVectorContainer == null) {
+            HiCFileTools.triggerNormError(norm);
+        } else {
+            double[] normalizationVector = normVectorContainer.getData();
+            for (Feature2D feature : list) {
+                int index1 = feature.getStart1() / res, index2 = feature.getStart2() / res;
+                if (nearbyValuesClear(normalizationVector, index1) && nearbyValuesClear(normalizationVector, index2)) {
+                    features.add(feature);
+                }
             }
         }
 
@@ -494,11 +500,12 @@ public class HiCCUPSUtils {
 
     public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                    List<Chromosome> commonChromosomes, String outputFinalLoopListFileName,
-                                   List<HiCCUPSConfiguration> configurations) {
+                                   List<HiCCUPSConfiguration> configurations,
+                                   NormalizationType norm) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
-            removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes);
+            removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
         }

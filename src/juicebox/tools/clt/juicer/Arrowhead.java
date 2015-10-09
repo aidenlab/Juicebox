@@ -37,6 +37,7 @@ import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
@@ -51,9 +52,10 @@ public class Arrowhead extends JuicerCLT {
     private String file, outputPath;
     private int resolution = -100;
     private Set<String> givenChromosomes = null;
+    private NormalizationType norm = NormalizationType.KR;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");// [list] [control]
+        super("arrowhead [-c chromosome(s)] [-m matrix size] [NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file> <resolution>");// [list] [control]
         HiCGlobals.useCache = false;
     }
 
@@ -62,13 +64,20 @@ public class Arrowhead extends JuicerCLT {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
-        if (args.length != 4) {
+        if (args.length < 4 || args.length > 5) {
             printUsage();
         }
-        file = args[1];
-        outputPath = args[2];
+
+        int i = 1;
+        if (args.length == 5) {
+            norm = retrieveNormalization(args[i++]);
+        }
+
+        file = args[i++];
+        outputPath = args[i++];
+
         try {
-            resolution = Integer.valueOf(args[3]);
+            resolution = Integer.valueOf(args[i++]);
         } catch (NumberFormatException error) {
             printUsage();
         }
@@ -111,8 +120,9 @@ public class Arrowhead extends JuicerCLT {
             // todo use given lists
             ArrowheadScoreList list = new ArrowheadScoreList();
             ArrowheadScoreList control = new ArrowheadScoreList();
+
             BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                    outputPath, zd, list, control,
+                    zd, list, control, norm,
                     contactDomainsGenomeWide, contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
         }
 

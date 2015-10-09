@@ -76,6 +76,7 @@ public class HiCCUPS extends JuicerCLT {
     private String outputEnrichedFileName;
     private String outputFinalLoopListFileName;
     private HiCCUPSConfiguration[] configurations;
+    private NormalizationType preferredNormalization = NormalizationType.KR;
 
     //public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
     // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
@@ -158,7 +159,8 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFinalLoopListFileName, filteredConfigurations);
+            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFinalLoopListFileName,
+                    filteredConfigurations, preferredNormalization);
         }
         // else the thresholds and raw pixels were already saved when hiccups was run
     }
@@ -219,7 +221,7 @@ public class HiCCUPS extends JuicerCLT {
                 long start_time = System.currentTimeMillis();
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
+                //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
                 NormalizationVector norm = ds.getNormalizationVector(chromosome.getIndex(), zoom, preferredNormalization);
                 if (norm != null) {
                     double[] normalizationVector = norm.getData();

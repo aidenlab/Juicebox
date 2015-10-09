@@ -307,8 +307,9 @@ public class HiCFileTools {
         try {
             numDataReadingErrors += zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
-            System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region:");
-            System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
+            System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
+            System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
+            System.err.println("Map is likely too sparse or a different normalization should be chosen.");
             e.printStackTrace();
             System.exit(-6);
         }
@@ -319,19 +320,25 @@ public class HiCFileTools {
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
 
+        boolean atLeastOneDataRecordFound = false;
+
         if (blocks.size() > 0) {
             for (Block b : blocks) {
-                for (ContactRecord rec : b.getContactRecords()) {
+                if (b != null) {
+                    for (ContactRecord rec : b.getContactRecords()) {
 
-                    int relativeX = rec.getBinX() - binXStart;
-                    int relativeY = rec.getBinY() - binYStart;
+                        int relativeX = rec.getBinX() - binXStart;
+                        int relativeY = rec.getBinY() - binYStart;
 
-                    if (relativeX >= 0 && relativeX < numRows) {
-                        if (relativeY >= 0 && relativeY < numCols) {
-                            data.addToEntry(relativeX, relativeY, rec.getCounts());
-                            // was used to fill LL triangle for arrowhead
-                            //if (mirrorBlock && relativeY != relativeX)
-                            //    data.addToEntry(relativeY, relativeX, rec.getCounts());
+                        if (relativeX >= 0 && relativeX < numRows) {
+                            if (relativeY >= 0 && relativeY < numCols) {
+                                data.addToEntry(relativeX, relativeY, rec.getCounts());
+                                atLeastOneDataRecordFound = true;
+
+                                // was used to fill LL triangle for arrowhead
+                                //if (mirrorBlock && relativeY != relativeX)
+                                //    data.addToEntry(relativeY, relativeX, rec.getCounts());
+                            }
                         }
                     }
                 }
@@ -340,9 +347,14 @@ public class HiCFileTools {
         // ~force cleanup
         blocks = null;
 
+        if (!atLeastOneDataRecordFound) {
+            triggerNormError(normalizationType);
+        }
+
         return data;
     }
 
+    /*
     public static NormalizationType determinePreferredNormalization(Dataset ds) {
         NormalizationType[] preferredNormalization = new NormalizationType[]{NormalizationType.KR, NormalizationType.VC};
         List<NormalizationType> normalizationTypeList = ds.getNormalizationTypes();
@@ -361,6 +373,7 @@ public class HiCFileTools {
         System.exit(-5);
         return null;
     }
+    */
 
     public static Chromosome getChromosomeNamed(String chrName, List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
@@ -382,4 +395,10 @@ public class HiCFileTools {
     }
 
 
+    public static void triggerNormError(NormalizationType normalizationType) {
+        System.err.println("");
+        System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region.");
+        System.err.println("Map is likely too sparse or a different normalization should be chosen.");
+        System.exit(-9);
+    }
 }

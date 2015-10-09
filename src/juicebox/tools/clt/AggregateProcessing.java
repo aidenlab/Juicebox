@@ -113,7 +113,7 @@ class AggregateProcessing {
 
         // hiccups -m 500 -r 10000 ./aligned/inter.hic ./aligned/hiccups_loops_list
 
-        HiCTools.main(l11323);
+        HiCTools.main(l1132);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");
