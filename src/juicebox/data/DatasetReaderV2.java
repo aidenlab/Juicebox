@@ -689,7 +689,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                     counts = Float.NaN;
                 }
                 normRecords.add(new ContactRecord(x, y, counts));
-
             }
 
             //double sparsity = (normRecords.size() * 100) / (Preprocessor.BLOCK_SIZE * Preprocessor.BLOCK_SIZE);
@@ -715,7 +714,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     @Override
-    public NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
+    public synchronized NormalizationVector readNormalizationVector(NormalizationType type, int chrIdx, HiC.Unit unit, int binSize) throws IOException {
 
         String key = NormalizationVector.getKey(type, chrIdx, unit.toString(), binSize);
         if (normVectorIndex == null) return null;
