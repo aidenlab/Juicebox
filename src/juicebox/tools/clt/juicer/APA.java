@@ -44,6 +44,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -194,8 +195,12 @@ public class APA extends JuicerCLT {
                 //System.out.println("Loop");
                 for (Feature2D loop : loops) {
                     //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
-                    apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                            norm));
+                    try {
+                        apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
+                                norm));
+                    } catch (IOException e) {
+                        System.err.println("Unable to find data for loop: " + loop);
+                    }
                 }
 
                 apaDataStack.updateGenomeWideData();

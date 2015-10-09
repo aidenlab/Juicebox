@@ -33,6 +33,7 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -54,52 +55,56 @@ public class BlockBuster {
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
 
-        CumulativeBlockResults results = null;
-        while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
-            signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
-            results = callSubBlockbuster(zd, maxDataLengthAtResolution, (double) increment, signThreshold, matrixWidth,
-                    increment, list, control, norm);
-        }
+        try {
 
-        // high variance threshold, fewer blocks, high confidence
-        CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution,
-                0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(), new ArrowheadScoreList(), norm);
-
-        List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
-                , highConfidenceResults.getCumulativeResults());
-        List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
-        appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
-
-        results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
-        results.mergeScores();
-
-        // prior to this point, everything should be in terms of i,j indices in a binned matrix
-        results.scaleIndicesByResolution(resolution);
-
-        if (results.getCumulativeResults().size() > 0) {
-
-            if (HiCGlobals.printVerboseComments) {
-                System.out.println("PreResults");
-                for (HighScore hs : results.getCumulativeResults()) {
-                    System.out.println(hs);
-                }
+            CumulativeBlockResults results = null;
+            while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
+                signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
+                results = callSubBlockbuster(zd, maxDataLengthAtResolution, (double) increment, signThreshold, matrixWidth,
+                        increment, list, control, norm);
             }
-            List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
-            binnedScores = binScoresByDistance(binnedScores, 10);
-            Collections.sort(binnedScores, Collections.reverseOrder());
 
-            Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
-            Feature2DList blockResultListScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
-                    chrName, results.getCumulativeInternalList());
-            Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
-                    chrName, results.getCumulativeInternalControl());
+            // high variance threshold, fewer blocks, high confidence
+            CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution,
+                    0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(), new ArrowheadScoreList(), norm);
 
-            contactDomainsGenomeWide.add(blockResults);
-            contactDomainListScoresGenomeWide.add(blockResultListScores);
-            contactDomainControlScoresGenomeWide.add(blockResultControlScores);
-        }
-        else {
-            System.out.println("\nNo contact domains found for chromosome " + chrName);
+            List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
+                    , highConfidenceResults.getCumulativeResults());
+            List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
+            appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
+
+            results.setCumulativeResults(highConfidenceResults.getCumulativeResults());
+            results.mergeScores();
+
+            // prior to this point, everything should be in terms of i,j indices in a binned matrix
+            results.scaleIndicesByResolution(resolution);
+
+            if (results.getCumulativeResults().size() > 0) {
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("PreResults");
+                    for (HighScore hs : results.getCumulativeResults()) {
+                        System.out.println(hs);
+                    }
+                }
+                List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
+                binnedScores = binScoresByDistance(binnedScores, 10);
+                Collections.sort(binnedScores, Collections.reverseOrder());
+
+                Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
+                Feature2DList blockResultListScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                        chrName, results.getCumulativeInternalList());
+                Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+                        chrName, results.getCumulativeInternalControl());
+
+                contactDomainsGenomeWide.add(blockResults);
+                contactDomainListScoresGenomeWide.add(blockResultListScores);
+                contactDomainControlScoresGenomeWide.add(blockResultControlScores);
+            } else {
+                System.out.println("\nNo contact domains found for chromosome " + chrName);
+            }
+        } catch (IOException e) {
+            System.err.println("Data not available for this chromosome.");
         }
     }
 
@@ -198,7 +203,7 @@ public class BlockBuster {
     private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold,
                                                              double signThreshold, int matrixWidth, int increment,
                                                              ArrowheadScoreList list, ArrowheadScoreList control,
-                                                             NormalizationType norm) {
+                                                             NormalizationType norm) throws IOException {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
         if (HiCGlobals.printVerboseComments) {

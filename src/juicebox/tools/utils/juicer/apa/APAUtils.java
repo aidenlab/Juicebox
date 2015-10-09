@@ -173,7 +173,7 @@ public class APAUtils {
     }
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,
-                                                  int L, int resolution, int window, NormalizationType norm) {
+                                                  int L, int resolution, int window, NormalizationType norm) throws IOException {
         int loopX = loop.getMidPt1() / resolution;
         int loopY = loop.getMidPt2() / resolution;
         int binXStart = loopX - window;

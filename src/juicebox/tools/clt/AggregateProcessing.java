@@ -113,7 +113,17 @@ class AggregateProcessing {
 
         // hiccups -m 500 -r 10000 ./aligned/inter.hic ./aligned/hiccups_loops_list
 
-        HiCTools.main(l1132);
+        // https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic
+
+        String[] ll1132 = new String[]{"arrowhead", "-m", "2000",
+                "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_arrowhead_contact_domains", "10000"};
+
+        String[] ll11323 = new String[]{"hiccups", "-m", "90", "-c", "15,16", "-r", "10000",
+                "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
+                "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_hiccups_loops_list"};
+
+        HiCTools.main(ll1132);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

@@ -43,6 +43,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
@@ -243,26 +244,30 @@ public class HiCCUPS extends JuicerCLT {
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
 
                                 if (columnBounds[4] < chrMatrixWdith - regionMargin) {
-                                    GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
-                                            rowBounds, columnBounds, matrixSize,
-                                            thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                            boundRowIndex, boundColumnIndex, preferredNormalization);
+                                    try {
+                                        GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
+                                                rowBounds, columnBounds, matrixSize,
+                                                thresholdBL, thresholdDonut, thresholdH, thresholdV,
+                                                boundRowIndex, boundColumnIndex, preferredNormalization);
 
-                                    int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
+                                        int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
 
-                                    if (runNum == 0) {
-                                        gpuOutputs.cleanUpBinNans();
-                                        gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
-                                        gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
+                                        if (runNum == 0) {
+                                            gpuOutputs.cleanUpBinNans();
+                                            gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
+                                            gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
 
-                                    } else if (runNum == 1) {
-                                        gpuOutputs.cleanUpPeakNaNs();
-                                        gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
+                                        } else if (runNum == 1) {
+                                            gpuOutputs.cleanUpPeakNaNs();
+                                            gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
 
-                                        Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
-                                                w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
-                                        peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-                                        globalList.add(peaksList);
+                                            Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
+                                                    w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
+                                            peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                            globalList.add(peaksList);
+                                        }
+                                    } catch (IOException e) {
+                                        System.err.println("No data in map region");
                                     }
                                 }
                             }

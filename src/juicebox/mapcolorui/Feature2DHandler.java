@@ -37,10 +37,8 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by muhammadsaadshamim on 8/6/15.
@@ -114,11 +112,15 @@ public class Feature2DHandler {
     }
 
     public void removeFeaturePath(String fileName) {
+        Set<String> keysToRemove = new HashSet<String>();
         for (String key : loopLists.keySet()) {
-            if (key.endsWith(fileName))
+            if (key.endsWith(fileName)) {
                 setLoopsInvisible(key);
-            loopLists.remove(key);
+                keysToRemove.add(key);
+            }
         }
+        for (String key : keysToRemove)
+            loopLists.remove(key);
     }
 
     public void setLoopsInvisible(String path) {

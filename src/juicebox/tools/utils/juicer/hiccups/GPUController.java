@@ -38,6 +38,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
@@ -65,7 +66,7 @@ public class GPUController {
                                       int[] rowBounds, int[] columnBounds, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
                                       float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType)
-            throws NegativeArraySizeException {
+            throws NegativeArraySizeException, IOException {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
                 columnBounds[0], columnBounds[1], matrixSize, matrixSize, normalizationType);

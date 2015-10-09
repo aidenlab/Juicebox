@@ -296,7 +296,7 @@ public class HiCFileTools {
      */
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
-                                                       NormalizationType normalizationType) {
+                                                       NormalizationType normalizationType) throws IOException {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
@@ -395,10 +395,10 @@ public class HiCFileTools {
     }
 
 
-    public static void triggerNormError(NormalizationType normalizationType) {
+    public static void triggerNormError(NormalizationType normalizationType) throws IOException {
         System.err.println("");
         System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region.");
-        System.err.println("Map is likely too sparse or a different normalization should be chosen.");
-        System.exit(-9);
+        System.err.println("Region is likely too sparse/does not exist, or a different normalization should be chosen.");
+        throw new IOException("Norm could not be found");
     }
 }

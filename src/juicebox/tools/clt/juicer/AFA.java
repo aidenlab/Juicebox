@@ -45,6 +45,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -217,8 +218,12 @@ public class AFA extends JuicerCLT {
                     //System.out.println("Loop");
                     for (Feature2D feature : features) {
                         //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
-                        apaDataStack.addData(AFAUtils.extractLocalizedData(zd, feature, L, resolution, window,
-                                norm, relativeLocation));
+                        try {
+                            apaDataStack.addData(AFAUtils.extractLocalizedData(zd, feature, L, resolution, window,
+                                    norm, relativeLocation));
+                        } catch (IOException e) {
+                            System.err.println("Data not available for feature: " + feature);
+                        }
                     }
 
                     if (thresholdPlots)

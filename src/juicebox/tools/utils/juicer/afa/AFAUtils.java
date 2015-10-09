@@ -30,6 +30,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class AFAUtils {
     }
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D feature, int L, int resolution, int window,
-                                                  NormalizationType norm, LocationType relativeLocation) {
+                                                  NormalizationType norm, LocationType relativeLocation) throws IOException {
 
         int loopX, loopY;
         if (relativeLocation.equals(LocationType.TL)) {

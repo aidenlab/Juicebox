@@ -36,6 +36,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -149,14 +150,20 @@ public class HiCCUPSUtils {
         for (Chromosome chr : chromosomes) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
-
         System.out.println("Initial: " + list.getNumTotalFeatures());
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList, norm);
+                try {
+                    return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList, norm);
+                } catch (IOException e) {
+                    System.err.println("Unable to remove low mapQ entries for " + chr);
+                    //e.printStackTrace();
+                }
+                return new ArrayList<Feature2D>();
             }
         });
+
 
     }
 
@@ -189,7 +196,7 @@ public class HiCCUPSUtils {
     }
 
 
-    private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list, NormalizationType norm) {
+    private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list, NormalizationType norm) throws IOException {
 
         List<Feature2D> features = new ArrayList<Feature2D>();
         NormalizationVector normVectorContainer = ds.getNormalizationVector(chrIndex, ds.getZoomForBPResolution(res),
