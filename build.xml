@@ -315,7 +315,7 @@
       <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/lwjgl/lwjgl.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
     </jar>
@@ -354,7 +354,7 @@
       <zipfileset src="${basedir}/lib/lwjgl/lwjgl.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox.jar"/>
