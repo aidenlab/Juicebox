@@ -35,6 +35,7 @@ import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -52,7 +53,7 @@ public class Arrowhead extends JuicerCLT {
     private Set<String> givenChromosomes = null;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");
+        super("arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>");// [list] [control]
         HiCGlobals.useCache = false;
     }
 
@@ -71,7 +72,8 @@ public class Arrowhead extends JuicerCLT {
         } catch (NumberFormatException error) {
             printUsage();
         }
-        givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
+        if (juicerParser.getChromosomeOption() != null)
+            givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize % 2 == 1)
             specifiedMatrixSize += 1;
@@ -94,6 +96,10 @@ public class Arrowhead extends JuicerCLT {
         // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
+        Feature2DList contactDomainsGenomeWide = new Feature2DList();
+        Feature2DList contactDomainListScoresGenomeWide = new Feature2DList();
+        Feature2DList contactDomainControlScoresGenomeWide = new Feature2DList();
+
         for (Chromosome chr : chromosomes) {
             if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
@@ -102,10 +108,16 @@ public class Arrowhead extends JuicerCLT {
             if (matrix == null) continue;
             System.out.println("\nProcessing " + chr.getName());
             MatrixZoomData zd = matrix.getZoomData(zoom);
+            // todo use given lists
             ArrowheadScoreList list = new ArrowheadScoreList();
             ArrowheadScoreList control = new ArrowheadScoreList();
             BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                    outputPath + resolution, zd, list, control);
+                    outputPath, zd, list, control,
+                    contactDomainsGenomeWide, contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
         }
+
+        contactDomainsGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_blocks", false);
+        contactDomainListScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_list_scores", false);
+        contactDomainControlScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_control_scores", false);
     }
 }

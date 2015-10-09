@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.arrowhead;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.utils.common.MatrixTools;
@@ -45,7 +46,9 @@ public class BlockBuster {
      * @return
      */
     public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth,
-                           String outputPath, MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control) {
+                           String outputPath, MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control,
+                           Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
+                           Feature2DList contactDomainControlScoresGenomeWide) {
 
         double signThreshold = 0.5;
         int increment = matrixWidth / 2;
@@ -71,29 +74,31 @@ public class BlockBuster {
 
         // prior to this point, everything should be in terms of i,j indices in a binned matrix
         results.scaleIndicesByResolution(resolution);
-        System.out.println("PreResults");
-        for (HighScore hs : results.getCumulativeResults()) {
-            System.out.println(hs);
-        }
-
 
         if (results.getCumulativeResults().size() > 0) {
+
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("PreResults");
+                for (HighScore hs : results.getCumulativeResults()) {
+                    System.out.println(hs);
+                }
+            }
             List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
             binnedScores = binScoresByDistance(binnedScores, 10);
             Collections.sort(binnedScores, Collections.reverseOrder());
 
             Feature2DList blockResults = Feature2DParser.parseHighScoreList(chrIndex, chrName, resolution, binnedScores);
-            Feature2DList blockResultScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
+            Feature2DList blockResultListScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
                     chrName, results.getCumulativeInternalList());
             Feature2DList blockResultControlScores = Feature2DParser.parseArrowheadScoreList(chrIndex,
                     chrName, results.getCumulativeInternalControl());
 
-            blockResults.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_blocks", false);
-            blockResultScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_scores", false);
-            blockResultControlScores.exportFeatureList(outputPath + "_" + chrName + "_" + resolution + "_control_scores", false);
+            contactDomainsGenomeWide.add(blockResults);
+            contactDomainListScoresGenomeWide.add(blockResultListScores);
+            contactDomainControlScoresGenomeWide.add(blockResultControlScores);
         }
         else {
-            System.out.println("\nNo results found for chromosome " + chrName);
+            System.out.println("\nNo contact domains found for chromosome " + chrName);
         }
     }
 
@@ -194,10 +199,12 @@ public class BlockBuster {
                                                              ArrowheadScoreList list, ArrowheadScoreList control) {
 
         CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
-        System.out.println("Loading incr " + increment + " chrLength " + chrLength);
+        if (HiCGlobals.printVerboseComments)
+            System.out.println("Loading incr " + increment + " chrLength " + chrLength);
         for (int limStart = 0; limStart < chrLength; limStart += increment) {
             int limEnd = Math.min(limStart + matrixWidth, chrLength);
-            System.out.println("Reading " + limStart + ":" + limEnd);
+            if (HiCGlobals.printVerboseComments)
+                System.out.println("Reading " + limStart + ":" + limEnd);
 
             list.setActiveListElements(limStart, limEnd);
             control.setActiveListElements(limStart, limEnd);
@@ -209,12 +216,14 @@ public class BlockBuster {
 
             BlockResults results = new BlockResults(MatrixTools.fillLowerLeftTriangle(observed), varThreshold,
                     signThreshold, increment, list, control);
-            System.out.println("Found " + results.getResults().size() + " blocks");
+            if (HiCGlobals.printVerboseComments)
+                System.out.println("Found " + results.getResults().size() + " blocks");
             results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
 
             cumulativeBlockResults.add(results);
             System.out.print(".");
         }
+        System.out.println(".");
         return cumulativeBlockResults;
     }
 }

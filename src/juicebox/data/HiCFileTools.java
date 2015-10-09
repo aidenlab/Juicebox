@@ -302,13 +302,19 @@ public class HiCFileTools {
         // left upper corner is reference for 0,0
         List<Block> blocks = new ArrayList<Block>();
 
+        int numDataReadingErrors = 0;
+
         try {
-            zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
+            numDataReadingErrors += zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
             System.out.println("You do not have " + normalizationType + " normalized maps available at this resolution/region:");
             System.out.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
             e.printStackTrace();
             System.exit(-6);
+        }
+
+        if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
+            System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
         }
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
@@ -331,6 +337,8 @@ public class HiCFileTools {
                 }
             }
         }
+        // ~force cleanup
+        blocks = null;
 
         return data;
     }

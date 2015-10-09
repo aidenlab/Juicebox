@@ -27,10 +27,8 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import jargs.gnu.CmdLineParser;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
+import juicebox.HiCGlobals;
+import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.ArrayTools;
@@ -175,6 +173,8 @@ public class HiCCUPS extends JuicerCLT {
      */
     private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes) {
 
+        long begin_time = System.currentTimeMillis();
+
         HiCZoom zoom = ds.getZoomForBPResolution(conf.getResolution());
         if (zoom == null) {
             System.err.println("Data not available at " + conf.getResolution() + " resolution");
@@ -216,64 +216,70 @@ public class HiCCUPS extends JuicerCLT {
                 if (matrix == null) continue;
 
                 // get matrix data access
-                // long start_time = System.currentTimeMillis();
+                long start_time = System.currentTimeMillis();
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
                 NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
-                double[] normalizationVector = ds.getNormalizationVector(chromosome.getIndex(), zoom,
-                        preferredNormalization).getData();
-                double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
-                        zoom, preferredNormalization);
+                NormalizationVector norm = ds.getNormalizationVector(chromosome.getIndex(), zoom, preferredNormalization);
+                if (norm != null) {
+                    double[] normalizationVector = norm.getData();
+                    double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
+                            zoom, preferredNormalization);
 
-                // need overall bounds for the chromosome
-                int chrLength = chromosome.getLength();
-                int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.getResolution());
-                // long load_time = System.currentTimeMillis();
-                // System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
+                    // need overall bounds for the chromosome
+                    int chrLength = chromosome.getLength();
+                    int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.getResolution());
+                    long load_time = System.currentTimeMillis();
+                    if (HiCGlobals.printVerboseComments)
+                        System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
 
-                for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
-                    int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
+                    for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
+                        int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
 
-                    if (rowBounds[4] < chrMatrixWdith - regionMargin) {
-                        for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
-                            int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
+                        if (rowBounds[4] < chrMatrixWdith - regionMargin) {
+                            for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
+                                int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
 
-                            if (columnBounds[4] < chrMatrixWdith - regionMargin) {
-                                GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
-                                        rowBounds, columnBounds, matrixSize,
-                                        thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                        boundRowIndex, boundColumnIndex, preferredNormalization);
+                                if (columnBounds[4] < chrMatrixWdith - regionMargin) {
+                                    GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
+                                            rowBounds, columnBounds, matrixSize,
+                                            thresholdBL, thresholdDonut, thresholdH, thresholdV,
+                                            boundRowIndex, boundColumnIndex, preferredNormalization);
 
-                                int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
+                                    int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
 
-                                if (runNum == 0) {
-                                    gpuOutputs.cleanUpBinNans();
-                                    gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
-                                    gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
+                                    if (runNum == 0) {
+                                        gpuOutputs.cleanUpBinNans();
+                                        gpuOutputs.cleanUpBinDiagonal(diagonalCorrection);
+                                        gpuOutputs.updateHistograms(histBL, histDonut, histH, histV, w1, w2);
 
-                                } else if (runNum == 1) {
-                                    gpuOutputs.cleanUpPeakNaNs();
-                                    gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
+                                    } else if (runNum == 1) {
+                                        gpuOutputs.cleanUpPeakNaNs();
+                                        gpuOutputs.cleanUpPeakDiagonal(diagonalCorrection);
 
-                                    Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
-                                            w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
-                                    peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
-                                    globalList.add(peaksList);
+                                        Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
+                                                w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
+                                        peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                        globalList.add(peaksList);
+                                    }
                                 }
                             }
                         }
                     }
+
+                    if (HiCGlobals.printVerboseComments) {
+                        long segmentTime = System.currentTimeMillis();
+
+                        if (runNum == 0) {
+                            System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "ms");
+                        } else { // runNum = 1
+                            System.out.println("Time to print chr" + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
+                        }
+                    }
+                } else {
+                    System.err.println("Data not available for " + chromosome + " at " + conf.getResolution() + " resolution");
                 }
 
-                /*
-                long segmentTime = System.currentTimeMillis();
-
-                if (runNum == 0) {
-                    System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "ms");
-                } else { // runNum = 1
-                    System.out.println("Time to print chr" + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
-                }
-                */
             }
             if (runNum == 0) {
 
@@ -295,10 +301,8 @@ public class HiCCUPS extends JuicerCLT {
                 long thresh_time1 = System.currentTimeMillis();
                 System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0) + "ms");
             }
-        }
 
-        //long final_time = System.currentTimeMillis();
-        //System.out.println("Total time: " + (final_time - begin_time));
+        }
 
         if (!dataShouldBePostProcessed) {
             globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true);
@@ -312,6 +316,12 @@ public class HiCCUPS extends JuicerCLT {
         if (outputFDR != null) {
             outputFDR.close();
         }
+
+        if (HiCGlobals.printVerboseComments) {
+            long final_time = System.currentTimeMillis();
+            System.out.println("Total time: " + (final_time - begin_time));
+        }
+
         return globalList;
     }
 

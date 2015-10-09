@@ -25,7 +25,6 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.HiCGlobals;
 import juicebox.tools.HiCTools;
 
 import java.io.IOException;
@@ -101,9 +100,20 @@ class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy/looplist.txt",
                 "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy/temp2"};
 
+        // https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
+        //
 
-        HiCGlobals.useCache = false;
-        HiCTools.main(l112);
+        String[] l1132 = new String[]{"arrowhead", "-m", "2000",
+                "/Users/muhammadsaadshamim/Desktop/juicer/inter.hic",
+                "/Users/muhammadsaadshamim/Desktop/juicer/arrowhead_contact_domains", "10000"};
+
+        String[] l11323 = new String[]{"hiccups", "-m", "90", "-c", "15,16", "-r", "10000",
+                "/Users/muhammadsaadshamim/Desktop/juicer/inter.hic",
+                "/Users/muhammadsaadshamim/Desktop/juicer/hiccups_loops_list"};
+
+        // hiccups -m 500 -r 10000 ./aligned/inter.hic ./aligned/hiccups_loops_list
+
+        HiCTools.main(l11323);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

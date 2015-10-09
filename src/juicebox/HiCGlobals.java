@@ -60,6 +60,7 @@ public class HiCGlobals {
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
+    public static boolean printVerboseComments = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

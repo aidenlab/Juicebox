@@ -259,7 +259,7 @@ public class MatrixZoomData {
      * @param no    normalization type
      * @return List of overlapping blocks, normalized
      */
-    public void addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+    public int addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
 
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
@@ -320,9 +320,7 @@ public class MatrixZoomData {
         }
 
         // untested since files got fixed - MSS
-        if (errorCounter.get() > 0) {
-            System.err.println("Warning, unable to read blocks in this region");
-        }
+        return errorCounter.get();
     }
 
 
