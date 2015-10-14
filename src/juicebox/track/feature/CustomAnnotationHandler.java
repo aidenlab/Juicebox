@@ -134,6 +134,9 @@ public class CustomAnnotationHandler {
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
         HashMap<String, String> attributes = new HashMap<String, String>();
+        int rightBound = hic.getXContext().getChromosome().getLength();
+        int bottomBound = hic.getYContext().getChromosome().getLength();
+        int leftBound = 0;
 
         switch (featureType) {
             case GENERIC:
@@ -147,7 +150,7 @@ public class CustomAnnotationHandler {
                 break;
             case PEAK:
                 start1 = geneXPos(hic, selectionPoint.x, -1 * peakDisplacement);
-                end1 = geneXPos(hic, selectionPoint.x, peakDisplacement);
+                end1 = geneXPos(hic, selectionPoint.x, peakDisplacement) - 1;
 
                 if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionPoint.x, selectionPoint.y)) {
                     start2 = start1;
@@ -155,7 +158,7 @@ public class CustomAnnotationHandler {
                 } else {
                     //Displacement inside before geneYPos scales to resolution
                     start2 = geneYPos(hic, selectionPoint.y, -1 * peakDisplacement);
-                    end2 = geneYPos(hic, selectionPoint.y, peakDisplacement);
+                    end2 = geneYPos(hic, selectionPoint.y, peakDisplacement) - 1;
                 }
 
                 //UNCOMMENT to take out annotation data
@@ -191,13 +194,17 @@ public class CustomAnnotationHandler {
                     }
                 }
 
+                // Check if peak out of bounds
+                if (end1 > rightBound || end2 > bottomBound)
+                    return;
+
                 newFeature = new Feature2D(Feature2D.peak, chr1, start1, end1, chr2, start2, end2,
                         Color.DARK_GRAY, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case DOMAIN:
                 start1 = geneXPos(hic, selectionRegion.x, 0);
-                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0);
+                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0) - 1;
 
                 // Snap if close to diagonal
                 if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {
@@ -207,16 +214,25 @@ public class CustomAnnotationHandler {
                         end2 = end1;
                     } else {
                         start2 = geneYPos(hic, selectionRegion.y, 0);
-                        end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
+                        end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0) - 1;
                         start1 = start2;
                         end1 = end2;
                     }
                     // Otherwise record as drawn
                 } else {
                     start2 = geneYPos(hic, selectionRegion.y, 0);
-                    end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
+                    end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0) - 1;
                 }
 
+                // Make sure bounds aren't unreasonable (out of HiC map)
+//                int rightBound = hic.getChromosomes().get(0).getLength();
+//                int bottomBound = hic.getChromosomes().get(1).getLength();
+                start1 = Math.min(Math.max(start1,leftBound),rightBound);
+                start2 = Math.min(Math.max(start2,leftBound),bottomBound);
+                end1 = Math.max(Math.min(end1,rightBound),leftBound);
+                end2 = Math.max(Math.min(end2,bottomBound),leftBound);
+
+                // Add new feature
                 newFeature = new Feature2D(Feature2D.domain, chr1, start1, end1, chr2, start2, end2,
                         Color.GREEN, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);

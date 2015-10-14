@@ -55,7 +55,6 @@ public class Feature2DHandler {
     private final Map<String, SpatialIndex> featureRtrees = new HashMap<String, SpatialIndex>();
     private final Map<String, List<Feature2D>> allFeaturesAcrossGenome = new HashMap<String, List<Feature2D>>();
 
-
     public Feature2DHandler() {
         loopLists = new HashMap<String, Feature2DList>();
         clearLists();

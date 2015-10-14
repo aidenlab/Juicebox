@@ -66,27 +66,52 @@ public class SaveAnnotationsDialog extends JFileChooser {
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "Text Files", "txt", "text");
         setFileFilter(filter);
-        if (HiCGlobals.guiIsCurrentlyActive) {
-            MainWindow mainWindow = MainWindow.getInstance();
-            int actionDialog = showSaveDialog(mainWindow);
-            if (actionDialog == JFileChooser.APPROVE_OPTION) {
-                File file = getSelectedFile();
-                String outputPath = file.getAbsolutePath();
-                if (file.exists()) {
-                    actionDialog = JOptionPane.showConfirmDialog(mainWindow, "Replace existing file?");
-                    if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
-                        return;
+        int actionDialog = showSaveDialog(MainWindow.getInstance());
+        if (actionDialog == JFileChooser.APPROVE_OPTION) {
+            File file = getSelectedFile();
+            String outputPath = file.getAbsolutePath();
+            if (file.exists()) {
+                actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
+                if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
+                    return;
+            }
+            if (otherList == null) {
+                if (annotations.exportAnnotations(outputPath) < 0) {
+                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
-                if (otherList == null) {
-                    if (annotations.exportAnnotations(outputPath) < 0) {
-                        JOptionPane.showMessageDialog(mainWindow, "No annotations to output", "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    if (annotations.exportOverlap(otherList, outputPath) < 0) {
-                    }
+            } else {
+                if (annotations.exportOverlap(otherList, outputPath) < 0) {
                 }
             }
         }
+
+//        //Note: removed below code because it wasn't working and i have no idea where the changes
+          // came from. From an update on 10/7/2015 - Marie
+//        //if (HiCGlobals.guiIsCurrentlyActive) {
+//        if (true){
+//            System.out.println("true");
+//            MainWindow mainWindow = MainWindow.getInstance();
+//            int actionDialog = showSaveDialog(mainWindow);
+//            System.out.println("showing, maybe not connected to main window");
+//            if (actionDialog == JFileChooser.APPROVE_OPTION) {
+//                File file = getSelectedFile();
+//                String outputPath = file.getAbsolutePath();
+//                if (file.exists()) {
+//                    actionDialog = JOptionPane.showConfirmDialog(mainWindow, "Replace existing file?");
+//                    if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
+//                        return;
+//                }
+//                if (otherList == null) {
+//                    if (annotations.exportAnnotations(outputPath) < 0) {
+//                        JOptionPane.showMessageDialog(mainWindow, "No annotations to output", "Error",
+//                                JOptionPane.ERROR_MESSAGE);
+//                    }
+//                } else {
+//                    if (annotations.exportOverlap(otherList, outputPath) < 0) {
+//                    }
+//                }
+//            }
+//        }
     }
 }
