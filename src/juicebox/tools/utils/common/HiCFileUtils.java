@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.utils.original;
+package juicebox.tools.utils.common;
 
 import juicebox.HiC;
 import juicebox.data.*;

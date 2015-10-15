@@ -108,8 +108,8 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>\n" +
-                "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] \" +\n" +
-                "                \"<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
+                "\nhiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
+                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>\n");
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
     }
 
@@ -232,15 +232,16 @@ public class HiCCUPS extends JuicerCLT {
                     // need overall bounds for the chromosome
                     int chrLength = chromosome.getLength();
                     int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.getResolution());
+                    double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1;
                     long load_time = System.currentTimeMillis();
                     if (HiCGlobals.printVerboseComments)
                         System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
 
-                    for (int i = 0; i < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; i++) {
+                    for (int i = 0; i < chrWidthInTermsOfMatrixDimension; i++) {
                         int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
 
                         if (rowBounds[4] < chrMatrixWdith - regionMargin) {
-                            for (int j = i; j < Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1; j++) {
+                            for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
 
                                 if (columnBounds[4] < chrMatrixWdith - regionMargin) {

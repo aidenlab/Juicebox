@@ -288,12 +288,19 @@ public class HiCFileTools {
     }
 
 
+    public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
+                                                       NormalizationType norm) throws IOException {
+        return extractLocalBoundedRegion(zd, limStart, limEnd, limStart, limEnd, n, n, norm);
+    }
+
+
     /**
      * Extracts matrix from hic file for a specified region.
      * By default, only the top right part of the matrix is returned if the matrix is on the diagonal.
      *
      * @return section of the matrix
      */
+    // TODO how did limStart > limEnd not cause error?
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
                                                        NormalizationType normalizationType) throws IOException {
@@ -307,20 +314,22 @@ public class HiCFileTools {
         try {
             numDataReadingErrors += zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
-            System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
-            System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
-            System.err.println("Map is likely too sparse or a different normalization should be chosen.");
-            e.printStackTrace();
-            System.exit(-6);
+            triggerNormError(normalizationType);
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
+                System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
+                System.err.println("Map is likely too sparse or a different normalization should be chosen.");
+                e.printStackTrace();
+                System.exit(-6);
+            }
         }
 
         if (HiCGlobals.printVerboseComments && numDataReadingErrors > 0) {
-            System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
+            //System.err.println(numDataReadingErrors + " errors while reading data from region. Map is likely too sparse");
+            triggerNormError(normalizationType);
         }
 
         RealMatrix data = MatrixTools.cleanArray2DMatrix(numRows, numCols);
-
-        boolean atLeastOneDataRecordFound = false;
 
         if (blocks.size() > 0) {
             for (Block b : blocks) {
@@ -333,11 +342,6 @@ public class HiCFileTools {
                         if (relativeX >= 0 && relativeX < numRows) {
                             if (relativeY >= 0 && relativeY < numCols) {
                                 data.addToEntry(relativeX, relativeY, rec.getCounts());
-                                atLeastOneDataRecordFound = true;
-
-                                // was used to fill LL triangle for arrowhead
-                                //if (mirrorBlock && relativeY != relativeX)
-                                //    data.addToEntry(relativeY, relativeX, rec.getCounts());
                             }
                         }
                     }
@@ -346,10 +350,6 @@ public class HiCFileTools {
         }
         // ~force cleanup
         blocks = null;
-
-        if (!atLeastOneDataRecordFound) {
-            triggerNormError(normalizationType);
-        }
 
         return data;
     }
@@ -401,4 +401,6 @@ public class HiCFileTools {
         System.err.println("Region is likely too sparse/does not exist, or a different normalization should be chosen.");
         throw new IOException("Norm could not be found");
     }
+
+
 }

@@ -46,30 +46,34 @@ public class BlockBuster {
      *
      * @return
      */
-    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth,
-                           MatrixZoomData zd, ArrowheadScoreList list, ArrowheadScoreList control,
-                           NormalizationType norm, Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
+    public static void run(int chrIndex, String chrName, int chrLength, int resolution, int matrixWidth, MatrixZoomData zd,
+                           NormalizationType norm,
+                           ArrowheadScoreList list, ArrowheadScoreList control,
+                           Feature2DList contactDomainsGenomeWide, Feature2DList contactDomainListScoresGenomeWide,
                            Feature2DList contactDomainControlScoresGenomeWide) {
 
-        double signThreshold = 0.5;
         int increment = matrixWidth / 2;
         int maxDataLengthAtResolution = (int) Math.ceil(((double) chrLength) / resolution);
 
         try {
 
             CumulativeBlockResults results = null;
-            while (results == null || (results.getCumulativeResults().size() == 0 && signThreshold > 0)) {
-                signThreshold = signThreshold - 0.1; // TODO error? results in negative val run?
-                results = callSubBlockbuster(zd, maxDataLengthAtResolution, (double) increment, signThreshold, matrixWidth,
-                        increment, list, control, norm);
+            for (double signThreshold = 0.5; signThreshold >= 0; signThreshold -= 0.1) {
+                results = callSubBlockbuster(zd, maxDataLengthAtResolution, Double.NaN, signThreshold, matrixWidth,
+                        increment, list, control, norm, resolution);
+                if (results.getCumulativeResults().size() > 0) {
+                    break;
+                }
             }
 
             // high variance threshold, fewer blocks, high confidence
             CumulativeBlockResults highConfidenceResults = callSubBlockbuster(zd, maxDataLengthAtResolution,
-                    0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(), new ArrowheadScoreList(), norm);
+                    0.2f, 0.5f, matrixWidth, increment, new ArrowheadScoreList(resolution),
+                    new ArrowheadScoreList(resolution), norm, resolution);
 
             List<HighScore> uniqueBlocks = orderedSetDifference(results.getCumulativeResults()
                     , highConfidenceResults.getCumulativeResults());
+
             List<HighScore> filteredUniqueBlocks = filterBlocksBySize(uniqueBlocks, 60);
             appendNonConflictingBlocks(highConfidenceResults.getCumulativeResults(), filteredUniqueBlocks);
 
@@ -108,10 +112,66 @@ public class BlockBuster {
         }
     }
 
-    private static List<HighScore> binScoresByDistance(List<HighScore> results, int dist) {
+    /**
+     * Runs blockbuster for a sliding window along the diagonal of the matrix
+     *
+     * @param zd
+     * @param chrLength
+     * @param varThreshold
+     * @param signThreshold
+     * @param matrixWidth
+     * @param increment
+     * @param list
+     * @param control
+     * @return
+     */
+    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold,
+                                                             double signThreshold, int matrixWidth, int increment,
+                                                             ArrowheadScoreList list, ArrowheadScoreList control,
+                                                             NormalizationType norm, int resolution) throws IOException {
+
+        CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults(resolution);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Loading incr " + increment + " chrLength " + chrLength);
+        }
+
+        for (int limStart = 0; limStart < chrLength; limStart += increment) {
+            int adjustedLimStart = limStart;
+            int limEnd = Math.min(limStart + matrixWidth, chrLength);
+
+            if (limEnd == chrLength) {
+                if (chrLength > increment) {
+                    adjustedLimStart = limEnd - matrixWidth;
+                }
+            }
+
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("Reading " + limStart + ":" + limEnd);
+            }
+
+            int n = limEnd - adjustedLimStart + 1;
+            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd, n, norm);
+            observed = MatrixTools.fillLowerLeftTriangle(observed);
+
+            BlockResults results = new BlockResults(observed, varThreshold, signThreshold, list, control,
+                    adjustedLimStart, limEnd);
+
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("Found " + results.getResults().size() + " blocks");
+            }
+            results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
+
+            cumulativeBlockResults.add(results);
+            System.out.print(".");
+        }
+        System.out.println(".");
+        return cumulativeBlockResults;
+    }
+
+    private static List<HighScore> binScoresByDistance(List<HighScore> scores, int dist) {
 
         List<BinnedScore> binnedScores = new ArrayList<BinnedScore>();
-        for (HighScore score : results) {
+        for (HighScore score : scores) {
             boolean scoreNotAssigned = true;
             for (BinnedScore binnedScore : binnedScores) {
                 if (binnedScore.isNear(score)) {
@@ -185,55 +245,5 @@ public class BlockBuster {
         }
 
         return diffSet;
-    }
-
-    /**
-     * Runs blockbuster for a sliding window along the diagonal of the matrix
-     *
-     * @param zd
-     * @param chrLength
-     * @param varThreshold
-     * @param signThreshold
-     * @param matrixWidth
-     * @param increment
-     * @param list
-     * @param control
-     * @return
-     */
-    private static CumulativeBlockResults callSubBlockbuster(MatrixZoomData zd, int chrLength, double varThreshold,
-                                                             double signThreshold, int matrixWidth, int increment,
-                                                             ArrowheadScoreList list, ArrowheadScoreList control,
-                                                             NormalizationType norm) throws IOException {
-
-        CumulativeBlockResults cumulativeBlockResults = new CumulativeBlockResults();
-        if (HiCGlobals.printVerboseComments) {
-            System.out.println("Loading incr " + increment + " chrLength " + chrLength);
-        }
-        for (int limStart = 0; limStart < chrLength; limStart += increment) {
-            int limEnd = Math.min(limStart + matrixWidth, chrLength);
-            if (HiCGlobals.printVerboseComments) {
-                System.out.println("Reading " + limStart + ":" + limEnd);
-            }
-
-            list.setActiveListElements(limStart, limEnd);
-            control.setActiveListElements(limStart, limEnd);
-
-            // TODO how did limStart > limEnd not cause error?
-            int n = limEnd - limStart + 1;
-            RealMatrix observed = HiCFileTools.extractLocalBoundedRegion(zd, limStart, limEnd,
-                    limStart, limEnd, n, n, norm);
-
-            BlockResults results = new BlockResults(MatrixTools.fillLowerLeftTriangle(observed), varThreshold,
-                    signThreshold, increment, list, control);
-            if (HiCGlobals.printVerboseComments) {
-                System.out.println("Found " + results.getResults().size() + " blocks");
-            }
-            results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
-
-            cumulativeBlockResults.add(results);
-            System.out.print(".");
-        }
-        System.out.println(".");
-        return cumulativeBlockResults;
     }
 }

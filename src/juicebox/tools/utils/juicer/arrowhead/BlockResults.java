@@ -44,8 +44,8 @@ class BlockResults {
     private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
-    public BlockResults(RealMatrix observed, double varThreshold, double signThreshold, int increment,
-                        ArrowheadScoreList list, ArrowheadScoreList control) {
+    public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,
+                        ArrowheadScoreList list, ArrowheadScoreList control, int limStart, int limEnd) {
 
         internalList = list.deepCopy();
         internalControl = control.deepCopy();
@@ -57,9 +57,9 @@ class BlockResults {
         MatrixTriangles triangles = new MatrixTriangles(dUpstream);
 
         triangles.generateBlockScoreCalculations();
-        triangles.updateScoresUsingList(internalList);
-        triangles.updateScoresUsingList(internalControl);
-        triangles.thresholdScoreValues(varThreshold, signThreshold, increment);
+        triangles.updateScoresUsingList(internalList, limStart, limEnd);
+        triangles.updateScoresUsingList(internalControl, limStart, limEnd);
+        triangles.thresholdScoreValues(varThreshold, signThreshold);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
         //System.out.println("CC "+connectedComponents.size());
@@ -72,9 +72,6 @@ class BlockResults {
      * TODO
      */
     private void plotArrowheadFigures() {
-
-
-        // TODO
     }
 
     /**
@@ -90,10 +87,10 @@ class BlockResults {
         RealMatrix dUpstream = MatrixTools.cleanArray2DMatrix(n);
 
         for (int i = 0; i < n; i++) {
-            int window = Math.min(n - i - gap, i - gap);
+            // choose smaller window of two: from 0 to (i-gap) or from (i+gap) to n
+            int window = Math.min(n - (i + gap), i - gap);
             window = Math.min(window, n);
 
-            // TODO MSS Arrowhead fix window bug after MATLAB testing done
             if (window >= gap) {
                 double[] row = observed.getRow(i);
 
@@ -113,7 +110,6 @@ class BlockResults {
                 }
             }
         }
-
         return dUpstream;
     }
 

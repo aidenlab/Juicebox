@@ -115,15 +115,27 @@ class AggregateProcessing {
 
         // https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic
 
-        String[] ll1132 = new String[]{"arrowhead", "-m", "2000",
+        String[] ll1132 = new String[]{"arrowhead", "-m", "4000", "-c", "18",
                 "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_arrowhead_contact_domains", "10000"};
+                "/Users/muhammadsaadshamim/Desktop/atlantis/ch12lx_arrowhead_contact_domains_5000_18_v4", "5000"};
 
         String[] ll11323 = new String[]{"hiccups", "-m", "90", "-c", "15,16", "-r", "10000",
                 "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
-                "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_hiccups_loops_list"};
+                "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_hiccups_loops_list_"};
 
-        HiCTools.main(ll1132);
+        String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "18",
+                "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/gm_arrowhead_5000_18_v4_mapq30", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/list1", "/Users/muhammadsaadshamim/Desktop/atlantis/list2"};
+
+        //HiCTools.main(ll1132);
+
+
+        // /Users/muhammadsaadshamim/Desktop/atlantis
+
+        String[] ll51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic",
+                "chr18", "chr18", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/chr18"};
+
+        HiCTools.main(mll1132);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

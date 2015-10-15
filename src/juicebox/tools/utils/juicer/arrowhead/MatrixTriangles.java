@@ -180,7 +180,7 @@ class MatrixTriangles {
      * @param varThreshold
      * @param signThreshold
      */
-    public void thresholdScoreValues(double varThreshold, double signThreshold, int increment) {
+    public void thresholdScoreValues(double varThreshold, double signThreshold) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
@@ -196,7 +196,7 @@ class MatrixTriangles {
         //System.out.println("postthresh1 "+upSign.getNorm());
         //System.out.println("postthresh1 " + loSign.getNorm());
 
-        if (varThreshold != increment) {
+        if (!Double.isNaN(varThreshold)) {
             varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
         }
         blockScoresNotThresholded = false;
@@ -247,13 +247,13 @@ class MatrixTriangles {
      *
      * @return
      */
-    public void updateScoresUsingList(ArrowheadScoreList scoreList) {
+    public void updateScoresUsingList(ArrowheadScoreList scoreList, int limStart, int limEnd) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
         }
 
-        scoreList.updateActiveIndexScores(blockScore);
+        scoreList.updateActiveIndexScores(blockScore, limStart, limEnd);
     }
 
     public List<Set<Point>> extractConnectedComponents() {
@@ -264,14 +264,15 @@ class MatrixTriangles {
 
         //System.out.println("Norm "+blockScore.getNorm());
 
+        // TODO change 0.001 to 0
         return BinaryConnectedComponents.detection(blockScore.getData(), 0);
     }
 
     public List<HighScore> calculateResults(List<Set<Point>> connectedComponents) {
         /*  for each connected component, get result for highest scoring point  */
         ArrayList<HighScore> results = new ArrayList<HighScore>();
-        for (Set<Point> component : connectedComponents) {
-            Point score = getHighestScoringPoint(blockScore, component);
+        for (Set<Point> connectedComponent : connectedComponents) {
+            Point score = getHighestScoringPoint(blockScore, connectedComponent);
             int i = score.x, j = score.y;
             results.add(new HighScore(i, j, blockScore.getEntry(i, j), upVar.getEntry(i, j), loVar.getEntry(i, j),
                     -upSign.getEntry(i, j), loSign.getEntry(i, j)));

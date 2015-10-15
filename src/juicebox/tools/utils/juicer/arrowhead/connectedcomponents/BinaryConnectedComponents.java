@@ -39,7 +39,7 @@ public class BinaryConnectedComponents {
 
     private static Integer nextLabel = 0;
 
-    public static List<Set<Point>> detection(double[][] image, int threshold) {
+    public static List<Set<Point>> detection(double[][] image, double threshold) {
         int r = image.length;
         int c = image[0].length;
 

@@ -119,7 +119,7 @@ public class HighScore implements Comparable<HighScore> {
                 && uVarScore == o.getuVarScore()
                 && lVarScore == o.getlVarScore()
                 && upSign == o.getUpSign()
-                && loSign == o.loSign;
+                && loSign == o.getLoSign();
     }
 
     @Override
