@@ -169,77 +169,7 @@ apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
 > and save them under the results folder
 
 
--------
-HiCCUPS
--------
 
-hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window]
-    [-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>
-
-
-The required arguments are:
-
-<hic file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
-    load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
-    use the '+' symbol between the addresses (no whitespace between addresses).
-
-<finalLoopsList>: Final list of all loops found by HiCCUPS. Can be visualized directly in Juicebox as a 2D annotation.
-    By default, various values critical to the HICCUPS algorithm are saved as attributes for each loop found. These can be
-    disabled using the suppress flag below.
-
-The optional arguments are:
-    -m <int> Maximum size of the submatrix within the chromosome passed on to GPU (Must be an even number greater than 40
-        to prevent issues from running the CUDA kernel). The upper limit will depend on your GPU. Dedicated GPUs
-        should be able to use values such as 500, 1000, or 2048 without trouble. Integrated GPUs are unlikely to run
-        sizes larger than 90 or 100. Matrix size will not effect the result, merely the time it takes for hiccups.
-        Larger values (with a dedicated GPU) will run fastest.
-    -c <String(s)> Chromosome(s) on which HiCCUPS will be run. The number/letter for the chromosome can be used with or
-        without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
-    -r <int(s)> Resolution(s) for which HiCCUPS will be run. Multiple resolutions can be specified using commas
-        (e.g. 25000,10000,5000). Due ot the nature of DNA looping, it is unlikely that loops will be found at
-        lower resolutions (i.e. 50kB or 100kB)
-        IMPORTANT: if multiple resolutions are used, the flags below can be configured so that different parameters are
-        used for the different resolutions.
-    -f <int(s)> FDR values actually corresponding to max_q_val (i.e. for 1% FDR use 0.01, for 10%FDR use 0.1). Different
-        FDR values can be used for each resolution using commas. (e.g "-r 5000,10000 -f 0.1,0.15" would run HiCCUPS at
-        10% FDR for resolution 5000 and 15% FDR for resolution 10000)
-    -p <int(s)> Peak width used for finding enriched pixels in HiCCUPS. Different peak widths can be used for each
-        resolution using commas. (e.g "-r 5000,10000 -p 4,2" would run at peak width 4 for resolution 5000 and
-        peak width 2 for resolution 10000)
-    -w <int(s)> Window width used for finding enriched pixels in HiCCUPS. Different window widths can be used for each
-        resolution using commas. (e.g "-r 5000,10000 -p 10,6" would run at window width 10 for resolution 5000 and
-        window width 6 for resolution 10000)
-    -t <floats> Thresholds for merging loop lists of different resolutions. Four values must be given, separated by
-        commas (e.g. 0.02,1.5,1.75,2). These thresholds (in order) represent:
-        > threshold allowed for sum of FDR values of horizontal, vertical donut mask, and bottom left regions
-            (an accepted loop must stay below this threshold)
-        > threshold ratio of observed value to expected horizontal/vertical value
-            (an accepted loop must exceed this threshold)
-        > threshold ratio of observed value to expected donut mask value
-            (an accepted loop must exceed this threshold)
-        > threshold ratio of observed value to expected bottom left value
-            (an accepted loop must exceed this threshold)
-    -d <ints> Distances used for merging centroids across different resolutions. Three values must be given, separated by
-        commas (e.g. 20000,20000,50000). These thresholds (in order) represent:
-        > distance (radius) around centroid used for merging at 5kB resolution (if present)
-        > distance (radius) around centroid used for merging at 10kB resolution (if present)
-        > distance (radius) around centroid used for merging at 25kB resolution (if present)
-        If a resolution (5kB, 10kB, or 25kB) is not available, that centroid distance will be ignored during the merger
-        step (but a distance value should still be passed as a parameter for that resolution e.g. 0)
-
-----------------
-HiCCUPS Examples
-----------------
-
-hiccups HIC006.hic all_hiccups_loops
-> This command will run HiCCUPS on HIC006 and save all found loops to the all_hiccups_loops files
-
-hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
-> This command will run HiCCUPS on chromosome 22 of HIC006 at 5kB and 10kB resolution using the following values:
->> 5kB: fdr 10%, peak width 4, window width 7, and centroid distance 20kB
->> 10kB: fdr 10%, peak width 2, window width 5, and centroid distance 20kB
-> The resulting loop list will be merged and saved as all_hiccups_loops
-> Note that these are values used for generating the GM12878 loop list
 
 ---------
 Arrowhead
@@ -295,8 +225,7 @@ Instructions for installing CUDA 7 can be found on the NVIDIA Developer site:
 
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-NOTE - MotifFinder is not supported on Windows (Software used by MotifFinder,
-notably BedTools, is not supported on Windows).
+NOTE -
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 *

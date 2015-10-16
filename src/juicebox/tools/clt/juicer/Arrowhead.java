@@ -44,7 +44,7 @@ import org.broad.igv.feature.Chromosome;
 import java.util.*;
 
 /**
- * HiC Computational Unbiased Peak Search
+ * Arrowhead
  *
  * Developed by Neva Durand
  * Implemented by Muhammad Shamim
