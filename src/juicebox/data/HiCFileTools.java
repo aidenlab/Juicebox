@@ -318,7 +318,7 @@ public class HiCFileTools {
             if (HiCGlobals.printVerboseComments) {
                 System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region:");
                 System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
-                System.err.println("Map is likely too sparse or a different normalization should be chosen.");
+                System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
                 e.printStackTrace();
                 System.exit(-6);
             }
@@ -398,7 +398,7 @@ public class HiCFileTools {
     public static void triggerNormError(NormalizationType normalizationType) throws IOException {
         System.err.println("");
         System.err.println("You do not have " + normalizationType + " normalized maps available for this resolution/region.");
-        System.err.println("Region is likely too sparse/does not exist, or a different normalization should be chosen.");
+        System.err.println("Region is likely too sparse/does not exist, or a different normalization/resolution should be chosen.");
         throw new IOException("Norm could not be found");
     }
 

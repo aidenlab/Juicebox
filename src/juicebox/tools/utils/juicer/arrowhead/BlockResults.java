@@ -40,15 +40,12 @@ import java.util.Set;
  */
 class BlockResults {
 
-    private final ArrowheadScoreList internalList;
-    private final ArrowheadScoreList internalControl;
+    private ArrowheadScoreList internalList;
+    private ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
     public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,
                         ArrowheadScoreList list, ArrowheadScoreList control, int limStart, int limEnd) {
-
-        internalList = list.deepCopy();
-        internalControl = control.deepCopy();
 
         int n = Math.min(observed.getRowDimension(), observed.getColumnDimension());
         int gap = 7;
@@ -57,8 +54,8 @@ class BlockResults {
         MatrixTriangles triangles = new MatrixTriangles(dUpstream);
 
         triangles.generateBlockScoreCalculations();
-        triangles.updateScoresUsingList(internalList, limStart, limEnd);
-        triangles.updateScoresUsingList(internalControl, limStart, limEnd);
+        internalList = triangles.updateScoresUsingList(list, limStart, limEnd);
+        internalControl = triangles.updateScoresUsingList(control, limStart, limEnd);
         triangles.thresholdScoreValues(varThreshold, signThreshold);
 
         List<Set<Point>> connectedComponents = triangles.extractConnectedComponents();
@@ -72,6 +69,7 @@ class BlockResults {
      * TODO
      */
     private void plotArrowheadFigures() {
+        // TODO
     }
 
     /**

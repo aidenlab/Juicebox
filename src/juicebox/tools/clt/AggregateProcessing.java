@@ -125,9 +125,13 @@ class AggregateProcessing {
 
         String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "18",
                 "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
-                "/Users/muhammadsaadshamim/Desktop/atlantis/gm_arrowhead_5000_18_v4_mapq30", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/list1", "/Users/muhammadsaadshamim/Desktop/atlantis/list2"};
+                "/Users/muhammadsaadshamim/Desktop/atlantis/gm_arrowhead_5000_18_v8_mapq30", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/list1", "/Users/muhammadsaadshamim/Desktop/atlantis/list2"};
 
         //HiCTools.main(ll1132);
+
+        String[] mll11322 = new String[]{"arrowhead", "-m", "2000",
+                "KR", "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/lx_arrowhead_10k_v00_mapq30", "10000"};
 
 
         // /Users/muhammadsaadshamim/Desktop/atlantis
@@ -135,7 +139,7 @@ class AggregateProcessing {
         String[] ll51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic",
                 "chr18", "chr18", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/chr18"};
 
-        HiCTools.main(mll1132);
+        HiCTools.main(mll11322);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

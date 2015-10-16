@@ -59,16 +59,21 @@ public class ArrowheadScoreList {
         return copy;
     }
 
-    public void updateActiveIndexScores(RealMatrix blockScore, int limStart, int limEnd) {
+    public ArrowheadScoreList updateActiveIndexScores(RealMatrix blockScore, int limStart, int limEnd) {
 
         setActiveListElements(limStart, limEnd);
+
+        ArrowheadScoreList scoredList = new ArrowheadScoreList(resolution);
 
         for (ArrowheadScore score : arrowheadScores) {
             if (score.isActive) {
                 int[] transformedIndices = scaleAndTranslateIndices(score.indices, resolution, limStart);
                 score.updateScore(MatrixTools.calculateMax(MatrixTools.getSubMatrix(blockScore, transformedIndices)));
+                scoredList.arrowheadScores.add(new ArrowheadScore(score));
             }
         }
+
+        return scoredList;
     }
 
     private int[] scaleAndTranslateIndices(int[] indices, int resolution, int limStart) {

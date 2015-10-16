@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
@@ -45,21 +44,78 @@ import org.broad.igv.feature.Chromosome;
 import java.util.*;
 
 /**
- * Created by nchernia on 1/9/15.
+ * HiC Computational Unbiased Peak Search
+ *
+ * Developed by Neva Durand
+ * Implemented by Muhammad Shamim
+ *
+ * -------
+ * Arrowhead
+ * -------
+ *
+ * arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file>
+ *   <resolution> [feature_list] [control_list]
+ **
+ * The required arguments are:
+ *
+ * <NONE/VC/VC_SQRT/KR> One of the normalizations must be selected (case sensitive). Generally, KR (Knight-Ruiz)
+ *   balancing should be used.
+ *
+ * <input_HiC_file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
+ *   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+ *   use the '+' symbol between the addresses (no whitespace between addresses).
+ *
+ * <output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
+ *   as a 2D annotation.
+ *
+ * <resolution>: Integer resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
+ *   resolution is used depending on the depth of sequencing in the hic file(s).
+ *
+ *   -- NOTE -- If you want to find scores for a feature and control list, both must be provided:
+ *
+ * [feature_list]: Feature list of loops/domains for which block scores are to be calculated
+ *
+ * [control_list]: Control list of loops/domains for which block scores are to be calculated
+ *
+ *
+ * The optional arguments are:
+ *
+ * -m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
+ *   number as (m/2) is used as the increment for the sliding window. (Default 2000)
+ *
+ * -c <String(s)> Chromosome(s) on which Arrowhead will be run. The number/letter for the chromosome can be used with or
+ *   without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
+ *
+ *
+ * ----------------
+ * Arrowhead Examples
+ * ----------------
+ *
+ * arrowhead -m 2000 KR ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list 10000
+ *   This command will run Arrowhead on a mouse cell line HiC map and save all contact domains to the
+ *   contact_domains_list file. These are the settings used to generate the official contact domain list on the
+ *   ch12-lx-b-lymphoblast cell line.
+ *
+ * arrowhead KR GM12878_mapq_30.hic contact_domains_list 5000
+ *   This command will run Arrowhead on the GM12878 HiC map and save all contact domains to the contact_domains_list
+ *   file. These are the settings used to generate the official GM12878 contact domain list.
+ *
  */
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
-    private String file, outputPath;
-    private int resolution = -100;
-    private Set<String> givenChromosomes = null;
     private NormalizationType norm = NormalizationType.KR;
+    private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
 
+    // must be passed via command line
+    private int resolution = -100;
+    private String file, outputPath;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file> <resolution> [feature list] [control list]");// [list] [control]
+        super("arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file> " +
+                "<resolution> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -67,8 +123,8 @@ public class Arrowhead extends JuicerCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        //setUsage("juicebox arrowhead hicFile resolution");
         if (args.length != 5 && args.length != 7) {
+            // 5 - standard, 7 - when list/control provided
             printUsage();
         }
 
@@ -103,9 +159,7 @@ public class Arrowhead extends JuicerCLT {
     @Override
     public void run() {
 
-        // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
-
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 
@@ -115,12 +169,13 @@ public class Arrowhead extends JuicerCLT {
 
         Feature2DList inputList = new Feature2DList();
         Feature2DList inputControl = new Feature2DList();
-
         if (controlAndListProvided) {
             inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null));
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null));
         }
 
+        // chromosome filtering must be done after input/control created
+        // because full set of chromosomes required to parse lists
         if (givenChromosomes != null)
             chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
                     chromosomes));
@@ -128,21 +183,23 @@ public class Arrowhead extends JuicerCLT {
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
         for (Chromosome chr : chromosomes) {
+
             if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
             Matrix matrix = ds.getMatrix(chr, chr);
-
             if (matrix == null) continue;
-            System.out.println("\nProcessing " + chr.getName());
-            MatrixZoomData zd = matrix.getZoomData(zoom);
 
             ArrowheadScoreList list = new ArrowheadScoreList(inputList.get(chr.getIndex(), chr.getIndex()), resolution);
             ArrowheadScoreList control = new ArrowheadScoreList(inputControl.get(chr.getIndex(), chr.getIndex()), resolution);
 
-            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize, zd, norm, list, control,
-                    contactDomainsGenomeWide, contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
+            // actual Arrowhead algorithm
+            System.out.println("\nProcessing " + chr.getName());
+            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
+                    matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
+                    contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
         }
 
+        // save the data on local machine
         contactDomainsGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_blocks", false);
         contactDomainListScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_list_scores", false);
         contactDomainControlScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_control_scores", false);

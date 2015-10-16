@@ -134,15 +134,6 @@ class MatrixTriangles {
         loSign = MatrixTools.elementBasedDivision(loSign, loCount);
         loSquared = MatrixTools.elementBasedDivision(loSquared, loCount);
 
-/*
-        System.out.println("init "+up.getNorm());
-        System.out.println("init "+upSign.getNorm());
-        System.out.println("init "+upSquared.getNorm());
-        System.out.println("init "+lo.getNorm());
-        System.out.println("init "+loSign.getNorm());
-        System.out.println("init "+loSquared.getNorm());
-        */
-
         initialMatricesNotGenerated = false;
     }
 
@@ -163,15 +154,6 @@ class MatrixTriangles {
         blockScore = (diff.add(diffSign)).subtract(diffSquared);
 
         blockScoresNotCalculated = false;
-/*
-        System.out.println("calc "+upVar.getNorm());
-        System.out.println("calc "+loVar.getNorm());
-        System.out.println("calcd "+diff.getNorm());
-        System.out.println("calcd "+diffSign.getNorm());
-        System.out.println("calcd "+diffSquared.getNorm());
-        System.out.println("calc "+blockScore.getNorm());
-*/
-
     }
 
     /**
@@ -186,24 +168,12 @@ class MatrixTriangles {
             System.exit(-5);
         }
 
-        //System.out.println("prethresh "+blockScore.getNorm());
-        //System.out.println("prethresh "+upSign.getNorm());
-        //System.out.println("prethresh "+loSign.getNorm());
-
         signThresholdInternalValues(blockScore, upSign, loSign, signThreshold);
-
-        //System.out.println("postthresh1 "+blockScore.getNorm()); // TODO
-        //System.out.println("postthresh1 "+upSign.getNorm());
-        //System.out.println("postthresh1 " + loSign.getNorm());
 
         if (!Double.isNaN(varThreshold)) {
             varThresholdInternalValues(blockScore, upVar.add(loVar), varThreshold);
         }
         blockScoresNotThresholded = false;
-
-        //System.out.println("finthresh "+blockScore.getNorm());
-        //System.out.println("finthresh "+upSign.getNorm());
-        //System.out.println("finthresh " + loSign.getNorm());
     }
 
     /**
@@ -247,13 +217,13 @@ class MatrixTriangles {
      *
      * @return
      */
-    public void updateScoresUsingList(ArrowheadScoreList scoreList, int limStart, int limEnd) {
+    public ArrowheadScoreList updateScoresUsingList(ArrowheadScoreList scoreList, int limStart, int limEnd) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
             System.exit(-5);
         }
 
-        scoreList.updateActiveIndexScores(blockScore, limStart, limEnd);
+        return scoreList.updateActiveIndexScores(blockScore, limStart, limEnd);
     }
 
     public List<Set<Point>> extractConnectedComponents() {

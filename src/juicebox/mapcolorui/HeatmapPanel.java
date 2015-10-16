@@ -986,7 +986,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return valueString;
     }
 
-    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE, RESIZE}
+    //helper for getannotatemenu
+    private int geneXPos(HiC hic, int x, int displacement) {
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return -1;
+        HiCGridAxis xGridAxis = zd.getXGridAxis();
+        int binX = getXBin(hic, x) + displacement;
+        return xGridAxis.getGenomicStart(binX) + 1;
+    }
 
 
 //    @Override
@@ -994,6 +1001,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        return toolTipText(e.getX(), e.getY());
 //
 //    }
+
+    //helper for getannotatemenu
+    private int geneYPos(HiC hic, int y, int displacement) {
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return -1;
+        HiCGridAxis yGridAxis = zd.getYGridAxis();
+        int binY = getYBin(hic, y) + displacement;
+        return yGridAxis.getGenomicStart(binY) + 1;
+    }
+
+    private int getXBin(HiC hic, int x) {
+        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+    }
+
+    private int getYBin(HiC hic, int y) {
+        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+    }
+    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE, RESIZE}
 
     static class ImageTile {
         final int bLeft;
@@ -1203,7 +1228,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         return;
                     }
                     mostRecentRectFeaturePair.getSecond();
-
+                    break;
                 default:
                     lastMousePoint = e.getPoint();    // Always save the last Point
 
@@ -1358,31 +1383,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 repaint();
             }
         }
-    }
-
-    //helper for getannotatemenu
-    private int geneXPos(HiC hic, int x, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        int binX = getXBin(hic, x) + displacement;
-        return xGridAxis.getGenomicStart(binX) + 1;
-    }
-    //helper for getannotatemenu
-    private int geneYPos(HiC hic, int y, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-        int binY = getYBin(hic, y) + displacement;
-        return yGridAxis.getGenomicStart(binY) + 1;
-    }
-
-    private int getXBin(HiC hic, int x) {
-        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-    }
-
-    private int getYBin(HiC hic, int y) {
-        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
 
 

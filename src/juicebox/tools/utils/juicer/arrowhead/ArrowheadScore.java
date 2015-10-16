@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by muhammadsaadshamim on 10/15/15.
+ * Container class for Arrowhead blocks
  */
 public class ArrowheadScore {
     final int[] indices = new int[4];
@@ -43,7 +43,11 @@ public class ArrowheadScore {
         System.arraycopy(indices, 0, this.indices, 0, 4);
     }
 
-    // use for deep copying
+    /**
+     * use for deep copying
+     *
+     * @param arrowheadScore
+     */
     public ArrowheadScore(ArrowheadScore arrowheadScore) {
         System.arraycopy(arrowheadScore.indices, 0, this.indices, 0, 4);
         this.score = arrowheadScore.score;
@@ -57,7 +61,12 @@ public class ArrowheadScore {
             this.score = Math.max(score, this.score);
     }
 
-    // fully contained within bounds
+    /**
+     * @param limStart
+     * @param limEnd
+     * @param resolution
+     * @return true if block is fully contained within given bounds
+     */
     public boolean isWithin(int limStart, int limEnd, int resolution) {
         boolean containedInBounds = true;
         for (int index : indices) {

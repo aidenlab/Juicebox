@@ -67,9 +67,9 @@ class BinnedScore {
     /**
      * @return true if given data point is spatially proximate to this data bin
      */
-    public boolean isNear(HighScore score) { // TODO I've changed the code to be <= rather than < - MSS
-        return (Math.abs(minX - score.getI()) <= distanceThreshold || Math.abs(maxX - score.getI()) <= distanceThreshold)
-                && (Math.abs(minY - score.getJ()) <= distanceThreshold || Math.abs(maxY - score.getJ()) <= distanceThreshold);
+    public boolean isNear(HighScore score) {
+        return (Math.abs(minX - score.getI()) < distanceThreshold || Math.abs(maxX - score.getI()) < distanceThreshold)
+                && (Math.abs(minY - score.getJ()) < distanceThreshold || Math.abs(maxY - score.getJ()) < distanceThreshold);
     }
 
     /**
