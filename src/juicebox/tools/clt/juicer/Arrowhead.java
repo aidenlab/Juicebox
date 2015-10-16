@@ -36,6 +36,7 @@ import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.BlockBuster;
 import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -53,9 +54,12 @@ public class Arrowhead extends JuicerCLT {
     private int resolution = -100;
     private Set<String> givenChromosomes = null;
     private NormalizationType norm = NormalizationType.KR;
+    private boolean controlAndListProvided = false;
+    private String featureList, controlList;
+
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] [NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file> <resolution>");// [list] [control]
+        super("arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file> <resolution> [feature list] [control list]");// [list] [control]
         HiCGlobals.useCache = false;
     }
 
@@ -64,25 +68,29 @@ public class Arrowhead extends JuicerCLT {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
-        if (args.length < 4 || args.length > 5) {
+        if (args.length != 5 && args.length != 7) {
             printUsage();
         }
 
-        int i = 1;
-        if (args.length == 5) {
-            norm = retrieveNormalization(args[i++]);
-        }
-
-        file = args[i++];
-        outputPath = args[i++];
+        norm = retrieveNormalization(args[1]);
+        file = args[2];
+        outputPath = args[3];
 
         try {
-            resolution = Integer.valueOf(args[i++]);
+            resolution = Integer.valueOf(args[4]);
         } catch (NumberFormatException error) {
             printUsage();
         }
-        if (juicerParser.getChromosomeOption() != null)
-            givenChromosomes = new HashSet<String>(juicerParser.getChromosomeOption());
+
+        if (args.length == 7) {
+            controlAndListProvided = true;
+            featureList = args[5];
+            controlList = args[6];
+        }
+
+        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
+        if (potentialChromosomes != null)
+            givenChromosomes = new HashSet<String>(potentialChromosomes);
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize % 2 == 1)
             specifiedMatrixSize += 1;
@@ -91,23 +99,33 @@ public class Arrowhead extends JuicerCLT {
 
     }
 
+
     @Override
     public void run() {
 
         // might need to catch OutofMemory errors.  10Kb => 8GB, 5Kb => 12GB in original script
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
 
-        List<Chromosome> chromosomes = ds.getChromosomes();
-        if (givenChromosomes != null)
-            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    chromosomes));
 
-        // Note: could make this more general if we wanted, to arrowhead calculation at any BP or FRAG resolution
-        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
+        List<Chromosome> chromosomes = ds.getChromosomes();
 
         Feature2DList contactDomainsGenomeWide = new Feature2DList();
         Feature2DList contactDomainListScoresGenomeWide = new Feature2DList();
         Feature2DList contactDomainControlScoresGenomeWide = new Feature2DList();
+
+        Feature2DList inputList = new Feature2DList();
+        Feature2DList inputControl = new Feature2DList();
+
+        if (controlAndListProvided) {
+            inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null));
+            inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null));
+        }
+
+        if (givenChromosomes != null)
+            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                    chromosomes));
+
+        HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
         for (Chromosome chr : chromosomes) {
             if (chr.getName().equals(Globals.CHR_ALL)) continue;
@@ -117,12 +135,11 @@ public class Arrowhead extends JuicerCLT {
             if (matrix == null) continue;
             System.out.println("\nProcessing " + chr.getName());
             MatrixZoomData zd = matrix.getZoomData(zoom);
-            // todo use given lists
-            ArrowheadScoreList list = new ArrowheadScoreList();
-            ArrowheadScoreList control = new ArrowheadScoreList();
 
-            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
-                    zd, list, control, norm,
+            ArrowheadScoreList list = new ArrowheadScoreList(inputList.get(chr.getIndex(), chr.getIndex()), resolution);
+            ArrowheadScoreList control = new ArrowheadScoreList(inputControl.get(chr.getIndex(), chr.getIndex()), resolution);
+
+            BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize, zd, norm, list, control,
                     contactDomainsGenomeWide, contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
         }
 

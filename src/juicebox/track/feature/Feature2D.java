@@ -27,6 +27,7 @@ package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.anchor.FeatureAnchor;
 
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
 
 
 /**
@@ -180,18 +182,16 @@ public class Feature2D implements Comparable<Feature2D> {
             // sorting the entries, also filtering out f1-f5 flags
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 String tmpKey = entry.getKey();
-                if (!(tmpKey.equals("f1") || tmpKey.equals("f2") || tmpKey.equals("f3") || tmpKey.equals("f4") || tmpKey.equals("f5"))) {
-                    boolean categoryHasBeenAssigned = false;
-                    for (int i = 0; i < categories.length; i++) {
-                        if (tmpKey.contains(categories[i])) {
-                            sortedFeatureAttributes.get(i).add(entry);
-                            categoryHasBeenAssigned = true;
-                            break;
-                        }
+                boolean categoryHasBeenAssigned = false;
+                for (int i = 0; i < categories.length; i++) {
+                    if (tmpKey.contains(categories[i])) {
+                        sortedFeatureAttributes.get(i).add(entry);
+                        categoryHasBeenAssigned = true;
+                        break;
                     }
-                    if (!categoryHasBeenAssigned) {
-                        sortedFeatureAttributes.get(categories.length).add(entry);
-                    }
+                }
+                if (!categoryHasBeenAssigned) {
+                    sortedFeatureAttributes.get(categories.length).add(entry);
                 }
             }
 
@@ -374,5 +374,10 @@ public class Feature2D implements Comparable<Feature2D> {
             anchors.add(new FeatureAnchor(chr2, start2, end2));
         }
         return anchors;
+    }
+
+    public ArrowheadScore toArrowheadScore() {
+        int[] indices = new int[]{start1, end1, start2, end2};
+        return new ArrowheadScore(indices);
     }
 }

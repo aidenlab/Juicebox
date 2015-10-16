@@ -32,9 +32,15 @@ import java.util.List;
  */
 class CumulativeBlockResults {
 
-    private final ArrowheadScoreList cumulativeInternalList = new ArrowheadScoreList();
-    private final ArrowheadScoreList cumulativeInternalControl = new ArrowheadScoreList();
+    private final ArrowheadScoreList cumulativeInternalList;
+    private final ArrowheadScoreList cumulativeInternalControl;
     private List<HighScore> cumulativeResults = new ArrayList<HighScore>();
+
+    public CumulativeBlockResults(int resolution) {
+        cumulativeInternalList = new ArrowheadScoreList(resolution);
+        cumulativeInternalControl = new ArrowheadScoreList(resolution);
+    }
+
 
     public void add(BlockResults blockResults) {
         cumulativeResults.addAll(blockResults.getResults());

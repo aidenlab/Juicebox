@@ -29,8 +29,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import org.apache.commons.math.linear.RealMatrix;
 
-import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,37 +37,55 @@ import java.util.List;
  */
 public class ArrowheadScoreList {
 
+    private int resolution = -1;
     private List<ArrowheadScore> arrowheadScores = new ArrayList<ArrowheadScore>();
 
-    public ArrowheadScoreList() {
+    public ArrowheadScoreList(int resolution) {
+        this.resolution = resolution;
     }
 
-    private ArrowheadScoreList(List<ArrowheadScore> dataList) {
-        for (ArrowheadScore data : dataList) {
-            arrowheadScores.add(new ArrowheadScore(data));
+    public ArrowheadScoreList(List<Feature2D> features, int resolution) {
+        this.resolution = resolution;
+        for (Feature2D feature : features) {
+            arrowheadScores.add(feature.toArrowheadScore());
         }
     }
 
     public ArrowheadScoreList deepCopy() {
-        return new ArrowheadScoreList(arrowheadScores);
+        ArrowheadScoreList copy = new ArrowheadScoreList(resolution);
+        for (ArrowheadScore data : arrowheadScores) {
+            copy.arrowheadScores.add(new ArrowheadScore(data));
+        }
+        return copy;
     }
 
-    public void updateActiveIndexScores(RealMatrix blockScore) {
+    public void updateActiveIndexScores(RealMatrix blockScore, int limStart, int limEnd) {
+
+        setActiveListElements(limStart, limEnd);
 
         for (ArrowheadScore score : arrowheadScores) {
             if (score.isActive) {
-                score.updateScore(MatrixTools.calculateMax(MatrixTools.getSubMatrix(blockScore, score.indices)));
+                int[] transformedIndices = scaleAndTranslateIndices(score.indices, resolution, limStart);
+                score.updateScore(MatrixTools.calculateMax(MatrixTools.getSubMatrix(blockScore, transformedIndices)));
             }
         }
     }
 
-    public void setActiveListElements(int limStart, int limEnd) {
+    private int[] scaleAndTranslateIndices(int[] indices, int resolution, int limStart) {
+        int[] transformedIndices = new int[indices.length];
+        for (int i = 0; i < indices.length; i++) {
+            transformedIndices[i] = indices[i] / resolution - limStart;
+        }
+        return transformedIndices;
+    }
+
+    private void setActiveListElements(int limStart, int limEnd) {
         for (ArrowheadScore score : arrowheadScores) {
             score.isActive = false;
         }
 
         for (ArrowheadScore score : arrowheadScores) {
-            if (score.isWithin(limStart, limEnd)) {
+            if (score.isWithin(limStart, limEnd, resolution)) {
                 score.isActive = true;
             }
         }
@@ -104,51 +121,6 @@ public class ArrowheadScoreList {
             feature2DList.add(chrIndex, chrIndex, score.toFeature2D(chrName));
         }
         return feature2DList;
-    }
-
-
-    private class ArrowheadScore {
-        private final int[] indices = new int[4];
-        private double score = Double.NaN;
-        private boolean isActive = false;
-
-        public ArrowheadScore(int[] indices) {
-            System.arraycopy(indices, 0, this.indices, 0, 4);
-        }
-
-        // use for deep copying
-        public ArrowheadScore(ArrowheadScore arrowheadScore) {
-            System.arraycopy(arrowheadScore.indices, 0, this.indices, 0, 4);
-            this.score = arrowheadScore.score;
-            this.isActive = arrowheadScore.isActive;
-        }
-
-        public void updateScore(double score) {
-            if (Double.isNaN(this.score))
-                this.score = score;
-            else if (!Double.isNaN(score))
-                this.score = Math.max(score, this.score);
-        }
-
-        // fully contained within bounds
-        public boolean isWithin(int limStart, int limEnd) {
-            boolean containedInBounds = true;
-            for (int index : indices) {
-                containedInBounds = containedInBounds && index >= limStart && index <= limEnd;
-            }
-            return containedInBounds;
-        }
-
-        public boolean equivalentTo(ArrowheadScore mScore) {
-            return Arrays.equals(indices, mScore.indices);
-        }
-
-        public Feature2D toFeature2D(String chrName) {
-            Map<String, String> attributes = new HashMap<String, String>();
-            attributes.put("score", Double.toString(score));
-            return new Feature2D(Feature2D.generic, chrName, indices[0], indices[1],
-                    chrName, indices[2], indices[3], Color.yellow, attributes);
-        }
     }
 }
 
