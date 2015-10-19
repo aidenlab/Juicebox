@@ -137,12 +137,11 @@ public class Feature2DParser {
                     continue;
                 }
 
-                int featureNameSepindex = path.lastIndexOf("_");
-                String featureName = path.substring(featureNameSepindex + 1);
+                String featureName;
 
-                if (featureName.equals("blocks.txt")) {
+                if (path.contains("block") || path.contains("domain")) {
                     featureName = Feature2D.domain;
-                } else if (featureName.equals("peaks.txt")) {
+                } else if (path.contains("peak") || path.contains("loop")) {
                     featureName = Feature2D.peak;
                 } else {
                     featureName = Feature2D.generic;

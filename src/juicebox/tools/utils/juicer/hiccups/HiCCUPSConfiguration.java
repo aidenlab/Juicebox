@@ -67,6 +67,24 @@ public class HiCCUPSConfiguration {
         return new ArrayList<HiCCUPSConfiguration>(configurationMap.values());
     }
 
+    /*
+     * Reasonable Commands
+     *
+     * fdr = 0.10 for all resolutions
+     * peak width = 1 for 25kb, 2 for 10kb, 4 for 5kb
+     * window = 3 for 25kb, 5 for 10kb, 7 for 5kb
+     *
+     * cluster radius is 20kb for 5kb and 10kb res and 50kb for 25kb res
+     * fdrsumthreshold is 0.02 for all resolutions
+     * oeThreshold1 = 1.5 for all res
+     * oeThreshold2 = 1.75 for all res
+     * oeThreshold3 = 2 for all res
+     *
+     * published GM12878 looplist was only generated with 5kb and 10kb resolutions
+     * same with published IMR90 looplist
+     * published CH12 looplist only generated with 10kb
+     */
+
     public static HiCCUPSConfiguration[] extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser) {
         int[] resolutions = HiCCUPSUtils.extractIntegerValues(juicerParser.getMultipleResolutionOptions(), -1, -1);
         double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10

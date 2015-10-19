@@ -181,7 +181,7 @@ public class HiCCUPS extends JuicerCLT {
     /*
      * Reasonable Commands
      *
-     * fdr = 10 for all resolutions
+     * fdr = 0.10 for all resolutions
      * peak width = 1 for 25kb, 2 for 10kb, 4 for 5kb
      * window = 3 for 25kb, 5 for 10kb, 7 for 5kb
      *
@@ -447,8 +447,7 @@ public class HiCCUPS extends JuicerCLT {
 
         } catch (Exception e) {
             System.out.println("Either no resolution specified or other error. Defaults being used.");
-            configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000),
-                    new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+            configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 0.10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
         }
 
         try {
