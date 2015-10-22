@@ -149,7 +149,6 @@ public class APA extends JuicerCLT {
             // Metrics resulting from apa filtering
             final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
-
             Feature2DList loopList = Feature2DParser.loadFeatures(files[1], chromosomes, false,
                     new FeatureFilter() {
                         // Remove duplicates and filters by size
@@ -167,53 +166,58 @@ public class APA extends JuicerCLT {
                             return filteredUniqueFeatures;
                         }
                     });
+            if (loopList.getNumTotalFeatures() > 0) {
 
-            for (Chromosome chr : chromosomes) {
-                APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution).replace("/", "_"));
+                for (Chromosome chr : chromosomes) {
+                    APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution).replace("/", "_"));
 
-                if (chr.getName().equals(Globals.CHR_ALL)) continue;
+                    if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
-                Matrix matrix = ds.getMatrix(chr, chr);
-                if (matrix == null) continue;
+                    Matrix matrix = ds.getMatrix(chr, chr);
+                    if (matrix == null) continue;
 
-                MatrixZoomData zd = matrix.getZoomData(zoom);
+                    MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
-                List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
-                if (loops == null || loops.size() == 0) {
-                    System.out.println("CHR " + chr.getName() + " - no loops, check loop filtering constraints");
-                    continue;
-                }
-
-                Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr, chr));
-
-
-                if (loops.size() != peakNumbers[0])
-                    System.out.println("Error reading stat numbers fro " + chr);
-
-                for (int i = 0; i < peakNumbers.length; i++) {
-                    //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
-                    gwPeakNumbers[i] += peakNumbers[i];
-                }
-
-                //System.out.println("Loop");
-                for (Feature2D loop : loops) {
-                    //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
-                    try {
-                        apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                                norm));
-                    } catch (IOException e) {
-                        System.err.println("Unable to find data for loop: " + loop);
+                    System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
+                    List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
+                    if (loops == null || loops.size() == 0) {
+                        System.out.println("CHR " + chr.getName() + " - no loops, check loop filtering constraints");
+                        continue;
                     }
+
+                    Integer[] peakNumbers = filterMetrics.get(Feature2DList.getKey(chr, chr));
+
+
+                    if (loops.size() != peakNumbers[0])
+                        System.out.println("Error reading stat numbers fro " + chr);
+
+                    for (int i = 0; i < peakNumbers.length; i++) {
+                        //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
+                        gwPeakNumbers[i] += peakNumbers[i];
+                    }
+
+                    //System.out.println("Loop");
+                    for (Feature2D loop : loops) {
+                        //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
+                        try {
+                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
+                                    norm));
+                        } catch (IOException e) {
+                            System.err.println("Unable to find data for loop: " + loop);
+                        }
+                    }
+
+                    apaDataStack.updateGenomeWideData();
+                    if (saveAllData)
+                        apaDataStack.exportDataSet(chr.getName(), peakNumbers);
+
                 }
-
-                apaDataStack.updateGenomeWideData();
-                if (saveAllData)
-                    apaDataStack.exportDataSet(chr.getName(), peakNumbers);
-
+                APADataStack.exportGenomeWideData(gwPeakNumbers);
+                APADataStack.clearAllData();
+            } else {
+                System.err.println("Looplist is empty or incorrect path provided.");
+                System.exit(-8);
             }
-            APADataStack.exportGenomeWideData(gwPeakNumbers);
-            APADataStack.clearAllData();
         }
         System.exit(0);
     }
