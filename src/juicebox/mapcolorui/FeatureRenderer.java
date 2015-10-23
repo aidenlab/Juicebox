@@ -65,7 +65,6 @@ class FeatureRenderer {
                 int w = (int) rect.getWidth();
                 int h = (int) rect.getHeight();
 
-
                 if (onlyPlotLowerLeft) {
                     g2.drawLine(x, y, x, y + h);
                     g2.drawLine(x, y + h, x + w, y + h);

@@ -173,15 +173,27 @@ public class CustomAnnotation {
     }
 
     public void removeFromList(int idx1, int idx2, Feature2D feature) {
-        Feature2D lastFeature;
+
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> lastList;
             String featureIdentifier = getIdentifier(feature);
+            String mirrorIdentity = "" + feature.getStart2() + feature.getEnd2() + feature.getStart1() + feature.getEnd1();
+
             lastList = customAnnotationList.get(idx1, idx2);
             unsavedEdits = lastList.remove(feature);
+
+            if (!unsavedEdits) {
+                Feature2D removeFeature = null;
+                for (Feature2D aFeature : lastList) {
+                    if (getIdentifier(aFeature).compareTo(mirrorIdentity) == 0){
+                        removeFeature = aFeature;
+                        unsavedEdits = true;
+                    }
+                }
+                lastList.remove(removeFeature);
+            }
         }
         reSaveAll();
-        System.out.println("removed" + idx1 + " " + idx2);
     }
 
     // Export annotations

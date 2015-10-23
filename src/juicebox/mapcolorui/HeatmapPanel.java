@@ -92,7 +92,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean straightEdgeEnabled = false;
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
-    private boolean adjustAnnotation = false;
+    enum AdjustAnnotation {LEFT, RIGHT, NONE}
+    private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
 
     /**
      * feature highlight related variables
@@ -986,14 +987,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return valueString;
     }
 
-    //helper for getannotatemenu
-    private int geneXPos(HiC hic, int x, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        int binX = getXBin(hic, x) + displacement;
-        return xGridAxis.getGenomicStart(binX) + 1;
-    }
+    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE, RESIZE}
 
 
 //    @Override
@@ -1001,24 +995,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //        return toolTipText(e.getX(), e.getY());
 //
 //    }
-
-    //helper for getannotatemenu
-    private int geneYPos(HiC hic, int y, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-        int binY = getYBin(hic, y) + displacement;
-        return yGridAxis.getGenomicStart(binY) + 1;
-    }
-
-    private int getXBin(HiC hic, int x) {
-        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-    }
-
-    private int getYBin(HiC hic, int y) {
-        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-    }
-    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE, RESIZE}
 
     static class ImageTile {
         final int bLeft;
@@ -1033,7 +1009,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     class HeatmapMouseHandler extends MouseAdapter {
-
 
         DragMode dragMode = DragMode.NONE;
         private Point lastMousePoint;
@@ -1071,6 +1046,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
+            // Shift down for custom annotations
             } else if (e.isShiftDown()) {
                 boolean showWarning = false;
 
@@ -1087,9 +1063,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 MainMenuBar.customAnnotationHandler.doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-            } else if (adjustAnnotation) {
+            // Corners for resize annotation
+            } else if (adjustAnnotation != AdjustAnnotation.NONE) {
                 dragMode = DragMode.RESIZE;
+                Feature2D loop = mostRecentRectFeaturePair.getSecond();
+
+                HiCGridAxis xAxis = hic.getZd().getXGridAxis();
+                HiCGridAxis yAxis = hic.getZd().getYGridAxis();
+                final double scaleFactor = hic.getScaleFactor();
+                double binOriginX = hic.getXContext().getBinOrigin();
+                double binOriginY = hic.getYContext().getBinOrigin();
+
+                annotateRectangle = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
+                //annotateRectangle = new Rectangle(loop.getStart1(), loop.getStart2(), loop.getEnd1(), loop.getEnd2());
+                int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                MainMenuBar.customAnnotations.removeFromList(chr1Idx, chr2Idx, loop);
             } else {
                 dragMode = DragMode.PAN;
                 setCursor(MainWindow.fistCursor);
@@ -1115,9 +1104,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
-            } else if (dragMode == DragMode.ANNOTATE) {
+            } else if (dragMode == DragMode.ANNOTATE || dragMode == DragMode.RESIZE) {
                 MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
                 dragMode = DragMode.NONE;
+                adjustAnnotation = AdjustAnnotation.NONE;
                 annotateRectangle = null;
                 lastMousePoint = null;
                 zoomRectangle = null;
@@ -1221,13 +1211,53 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     break;
                 case RESIZE:
-                    //RESIZE: either make new annotation and remove or update the feature2D's things.
+                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                        lastRectangle = annotateRectangle;
 
-                    lastRectangle = annotateRectangle;
-                    if (deltaX == 0 || deltaY == 0) {
-                        return;
+                        if (deltaX == 0 || deltaY == 0) {
+                            return;
+                        }
+                        int rectX = (int) annotateRectangle.getX() + (int) annotateRectangle.getWidth();
+                        int rectY = (int) annotateRectangle.getY() + (int) annotateRectangle.getHeight();
+
+                        deltaX = e.getX() - rectX;
+                        deltaY = e.getY() - rectY;
+
+                        x = deltaX > 0 ? rectX : rectX + deltaX;
+                        y = deltaY > 0 ? rectY : rectY + deltaY;
+
+                        annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+                        damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+                        damageRect.x--;
+                        damageRect.y--;
+                        damageRect.width += 2;
+                        damageRect.height += 2;
+                        paintImmediately(damageRect);
+                        MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    } else {
+                        lastRectangle = annotateRectangle;
+
+                        if (deltaX == 0 || deltaY == 0) {
+                            return;
+                        }
+                        int rectX = (int) annotateRectangle.getX();
+                        int rectY = (int) annotateRectangle.getY();
+
+                        deltaX = e.getX() - rectX;
+                        deltaY = e.getY() - rectY;
+
+                        x = deltaX > 0 ? rectX : rectX + deltaX;
+                        y = deltaY > 0 ? rectY : rectY + deltaY;
+
+                        annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+                        damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+                        damageRect.x--;
+                        damageRect.y--;
+                        damageRect.width += 2;
+                        damageRect.height += 2;
+                        paintImmediately(damageRect);
+                        MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     }
-                    mostRecentRectFeaturePair.getSecond();
                     break;
                 default:
                     lastMousePoint = e.getPoint();    // Always save the last Point
@@ -1334,7 +1364,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseMoved(MouseEvent e) {
             if (hic.getXContext() != null && hic.getZd() != null) {
-                adjustAnnotation = false;
+                adjustAnnotation = AdjustAnnotation.NONE;
                 setCursor(Cursor.getDefaultCursor());
 
                 // Update tool tip text
@@ -1358,7 +1388,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Mouse near top left corner
                     if ((Math.abs(loop.getStart1() - x) <= minX &&
                             Math.abs(loop.getStart2() - y) <= minY)) {
-                        adjustAnnotation = true;
+                        adjustAnnotation = AdjustAnnotation.LEFT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
                         // uncomment below for cross hairs
                         //hic.setCursorPoint(e.getPoint());
@@ -1366,7 +1396,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Mouse near bottom right corner
                     } else if (Math.abs(loop.getEnd1() - x) <= minX &&
                             Math.abs(loop.getEnd2() - y) <= minY) {
-                        adjustAnnotation = true;
+                        adjustAnnotation = AdjustAnnotation.RIGHT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
                     }
                 }
@@ -1376,13 +1406,38 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         hic.setCursorPoint(e.getPoint());
                         superAdapter.repaintTrackPanels();
                     }
-                } else if (!adjustAnnotation) {
+                } else if (adjustAnnotation == AdjustAnnotation.NONE) {
                     hic.setCursorPoint(null);
                     setCursor(Cursor.getDefaultCursor());
                 }
                 repaint();
             }
         }
+    }
+
+    //helper for getannotatemenu
+    private int geneXPos(HiC hic, int x, int displacement) {
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return -1;
+        HiCGridAxis xGridAxis = zd.getXGridAxis();
+        int binX = getXBin(hic, x) + displacement;
+        return xGridAxis.getGenomicStart(binX) + 1;
+    }
+    //helper for getannotatemenu
+    private int geneYPos(HiC hic, int y, int displacement) {
+        final MatrixZoomData zd = hic.getZd();
+        if (zd == null) return -1;
+        HiCGridAxis yGridAxis = zd.getYGridAxis();
+        int binY = getYBin(hic, y) + displacement;
+        return yGridAxis.getGenomicStart(binY) + 1;
+    }
+
+    private int getXBin(HiC hic, int x) {
+        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
+    }
+
+    private int getYBin(HiC hic, int y) {
+        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
 
 
