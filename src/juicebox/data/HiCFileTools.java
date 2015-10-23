@@ -255,6 +255,7 @@ public class HiCFileTools {
     public static PrintWriter openWriter(String fileName) {
         try {
             File file = new File(fileName);
+            file.createNewFile();
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
             System.out.println("I/O error opening file: " + fileName);
@@ -265,10 +266,10 @@ public class HiCFileTools {
 
     public static PrintWriter openWriter(File file) {
         try {
-            //create a temp file
+            file.createNewFile();
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file temp file for AutoSave. ");
+            System.out.println("I/O error opening file temp file for AutoSave.");
             System.exit(0);
         }
         return null;
