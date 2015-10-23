@@ -59,7 +59,7 @@ class AggregateProcessing {
                 "22", "22", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_10000.bin"};
 
         String[] l53 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "22", "22", "BP", "25000", "/Users/muhammadsaadshamim/Desktop/j3/out9/chr22_25000.bin"};
+                "X", "X", "BP", "10000", "/Users/muhammadsaadshamim/Desktop/chrX_10k"};
 
         String[] l61 = {"dump", "expected", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
                 "22", "22", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/j3/out9/exp22_5000"};
@@ -139,7 +139,7 @@ class AggregateProcessing {
         String[] ll51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic",
                 "chr18", "chr18", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/chr18"};
 
-        HiCTools.main(mll11322);
+        HiCTools.main(l53);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

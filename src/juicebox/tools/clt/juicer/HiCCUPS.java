@@ -242,6 +242,8 @@ public class HiCCUPS extends JuicerCLT {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
+        PrintWriter outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
+
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
             Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes);
@@ -251,7 +253,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFinalLoopListFileName,
+            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
                     filteredConfigurations, preferredNormalization);
         }
         // else the thresholds and raw pixels were already saved when hiccups was run

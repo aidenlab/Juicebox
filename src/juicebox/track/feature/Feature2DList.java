@@ -158,8 +158,19 @@ public class Feature2DList {
      */
     public int exportFeatureList(String outputFilePath, final boolean useOldHiccupsOutput) {
         if (featureList != null && featureList.size() > 0) {
-
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
+            return exportFeatureList(outputFile, useOldHiccupsOutput);
+        }
+        return -1;
+    }
+
+    /**
+     * Export feature list to given file path
+     *
+     * @param outputFile
+     */
+    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsOutput) {
+        if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {

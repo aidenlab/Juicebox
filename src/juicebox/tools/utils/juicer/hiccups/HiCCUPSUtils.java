@@ -37,6 +37,7 @@ import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -506,7 +507,7 @@ public class HiCCUPSUtils {
     }
 
     public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
-                                   List<Chromosome> commonChromosomes, String outputFinalLoopListFileName,
+                                   List<Chromosome> commonChromosomes, PrintWriter writer,
                                    List<HiCCUPSConfiguration> configurations,
                                    NormalizationType norm) {
         for (HiCCUPSConfiguration conf : configurations) {
@@ -518,7 +519,7 @@ public class HiCCUPSUtils {
         }
 
         Feature2DList finalList = mergeAllResolutions(looplists);
-        finalList.exportFeatureList(outputFinalLoopListFileName + "_postprocessing", false);
+        finalList.exportFeatureList(writer, false);
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,

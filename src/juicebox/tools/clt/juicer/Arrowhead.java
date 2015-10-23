@@ -41,6 +41,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -174,6 +175,10 @@ public class Arrowhead extends JuicerCLT {
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null));
         }
 
+        PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
+        PrintWriter outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
+        PrintWriter outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+
         // chromosome filtering must be done after input/control created
         // because full set of chromosomes required to parse lists
         if (givenChromosomes != null)
@@ -200,8 +205,8 @@ public class Arrowhead extends JuicerCLT {
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_blocks", false);
-        contactDomainListScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_list_scores", false);
-        contactDomainControlScoresGenomeWide.exportFeatureList(outputPath + "_" + resolution + "_control_scores", false);
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
+        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
+        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
     }
 }
