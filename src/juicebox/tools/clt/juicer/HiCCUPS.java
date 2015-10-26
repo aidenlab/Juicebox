@@ -246,6 +246,7 @@ public class HiCCUPS extends JuicerCLT {
 
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
+            System.out.println("Running HiCCUPS for resolution " + conf.getResolution());
             Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes);
             if (enrichedPixels != null) {
                 loopLists.put(conf.getResolution(), enrichedPixels);
@@ -303,6 +304,8 @@ public class HiCCUPS extends JuicerCLT {
         Feature2DList globalList = new Feature2DList();
 
         // two runs, 1st to build histograms, 2nd to identify loops
+        double maxProgressStatus = 2 * commonChromosomes.size();
+        int currentProgressStatus = 0;
         for (int runNum : new int[]{0, 1}) {
             for (Chromosome chromosome : commonChromosomes) {
 
@@ -327,8 +330,9 @@ public class HiCCUPS extends JuicerCLT {
                     int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.getResolution());
                     double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1;
                     long load_time = System.currentTimeMillis();
-                    if (HiCGlobals.printVerboseComments)
+                    if (HiCGlobals.printVerboseComments) {
                         System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
+                    }
 
                     for (int i = 0; i < chrWidthInTermsOfMatrixDimension; i++) {
                         int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
@@ -336,6 +340,7 @@ public class HiCCUPS extends JuicerCLT {
                         if (rowBounds[4] < chrMatrixWdith - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
+                                System.out.print(".");
 
                                 if (columnBounds[4] < chrMatrixWdith - regionMargin) {
                                     try {
@@ -374,13 +379,14 @@ public class HiCCUPS extends JuicerCLT {
                         if (runNum == 0) {
                             System.out.println("Time to calculate chr " + chromosome.getName() + " expecteds and add to hist: " + (segmentTime - load_time) + "ms");
                         } else { // runNum = 1
-                            System.out.println("Time to print chr" + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
+                            System.out.println("Time to print chr " + chromosome.getName() + " peaks: " + (segmentTime - load_time) + "ms");
                         }
                     }
                 } else {
                     System.err.println("Data not available for " + chromosome + " at " + conf.getResolution() + " resolution");
                 }
 
+                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
             }
             if (runNum == 0) {
 
@@ -399,8 +405,10 @@ public class HiCCUPS extends JuicerCLT {
                     HiCCUPSUtils.calculateThresholdAndFDR(i, w2, conf.getFDRThreshold(), unitPoissonPMF, rcsHistV, thresholdV, fdrLogV);
                 }
 
-                long thresh_time1 = System.currentTimeMillis();
-                System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0) + "ms");
+                if (HiCGlobals.printVerboseComments) {
+                    long thresh_time1 = System.currentTimeMillis();
+                    System.out.println("Time to calculate thresholds: " + (thresh_time1 - thresh_time0) + "ms");
+                }
             }
 
         }
@@ -448,7 +456,7 @@ public class HiCCUPS extends JuicerCLT {
             configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
 
         } catch (Exception e) {
-            System.out.println("Either no resolution specified or other error. Defaults being used.");
+            System.err.println("Either no resolution specified or other error. Defaults being used.");
             configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
         }
 
@@ -481,6 +489,8 @@ public class HiCCUPS extends JuicerCLT {
             matrixSize = specifiedMatrixSize;
             regionWidth = specifiedMatrixSize - totalMargin;
         }
-        System.out.println("Using Matrix Size " + matrixSize);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Using Matrix Size " + matrixSize);
+        }
     }
 }

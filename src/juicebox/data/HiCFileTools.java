@@ -256,6 +256,7 @@ public class HiCFileTools {
         try {
             File file = new File(fileName);
             file.createNewFile();
+            file.setWritable(true);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
             System.out.println("I/O error opening file: " + fileName);
