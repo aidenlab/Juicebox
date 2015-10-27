@@ -26,6 +26,9 @@ package juicebox.track.anchor;
 
 
 import juicebox.data.HiCFileTools;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.FeatureFunction;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.ArrayList;
@@ -38,14 +41,20 @@ import java.util.Map;
  */
 public class AnchorList {
 
-    private Map<String, List<FeatureAnchor>> anchorLists = new HashMap<String, List<FeatureAnchor>>();
+    private Map<String, List<MotifAnchor>> anchorLists = new HashMap<String, List<MotifAnchor>>();
+
+    /**
+     * Private constructor only used for cloning
+     */
+    private AnchorList() {
+    }
 
     /**
      * @param chromosomes for genome
      */
     public AnchorList(List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
-            anchorLists.put(chr.getName(), new ArrayList<FeatureAnchor>());
+            anchorLists.put(chr.getName(), new ArrayList<MotifAnchor>());
         }
     }
 
@@ -60,7 +69,7 @@ public class AnchorList {
      * @param chromosomes for genome
      * @param anchors     to be added to list
      */
-    public AnchorList(List<Chromosome> chromosomes, List<FeatureAnchor> anchors) {
+    public AnchorList(List<Chromosome> chromosomes, List<MotifAnchor> anchors) {
         this(chromosomes);
         addAll(anchors);
     }
@@ -69,15 +78,45 @@ public class AnchorList {
      * @param genomeID
      * @param anchors  to be added to list
      */
-    public AnchorList(String genomeID, List<FeatureAnchor> anchors) {
+    public AnchorList(String genomeID, List<MotifAnchor> anchors) {
         this(HiCFileTools.loadChromosomes(genomeID), anchors);
+    }
+
+    /**
+     * @param features
+     * @return anchor list from features (i.e. split anchor1 and anchor2)
+     */
+    public static AnchorList extractAnchorsFromFeatures(Feature2DList features) {
+
+        final AnchorList extractedAnchorList = new AnchorList();
+
+        features.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+                for (Feature2D f : feature2DList) {
+                    anchors.addAll(f.getAnchors());
+                }
+                extractedAnchorList.anchorLists.put(chr, anchors);
+            }
+        });
+
+        return extractedAnchorList;
+    }
+
+    /**
+     * @param chr
+     * @return motifs for correspoding chromosome
+     */
+    private List<MotifAnchor> getAnchors(String chr) {
+        return anchorLists.get(chr);
     }
 
     /**
      * @param anchors to be added to this list
      */
-    private void addAll(List<FeatureAnchor> anchors) {
-        for (FeatureAnchor anchor : anchors) {
+    private void addAll(List<MotifAnchor> anchors) {
+        for (MotifAnchor anchor : anchors) {
             anchorLists.get(anchor.getChr()).add(anchor);
         }
     }
@@ -111,8 +150,20 @@ public class AnchorList {
     public void merge() {
         filterLists(new AnchorFilter() {
             @Override
-            public List<FeatureAnchor> filter(String chr, List<FeatureAnchor> anchorList) {
+            public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
                 return AnchorTools.merge(anchorList);
+            }
+        });
+    }
+
+    /**
+     * Merge anchors which have overlap
+     */
+    public void intersectWith(final AnchorList secondList) {
+        filterLists(new AnchorFilter() {
+            @Override
+            public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
+                return AnchorTools.intersect(anchorList, secondList.getAnchors(chr));
             }
         });
     }
@@ -120,12 +171,35 @@ public class AnchorList {
     /**
      * Expand anchors which are too small
      */
-    public void expandSmallAnchors() {
+    public void expandSmallAnchors(final int threshold) {
         processLists(new AnchorFunction() {
             @Override
-            public void process(String chr, List<FeatureAnchor> anchorList) {
-                AnchorTools.expandSmallAnchors(anchorList);
+            public void process(String chr, List<MotifAnchor> anchorList) {
+                AnchorTools.expandSmallAnchors(anchorList, threshold);
             }
         });
+    }
+
+    /**
+     * @return deep copy of the anchor list
+     */
+    public AnchorList deepClone() {
+        AnchorList clone = new AnchorList();
+        for (String key : anchorLists.keySet()) {
+            clone.anchorLists.put(key, cloneMotifList(anchorLists.get(key)));
+        }
+        return clone;
+    }
+
+    /**
+     * @param motifs
+     * @return deep copy of the list of motifs
+     */
+    private List<MotifAnchor> cloneMotifList(List<MotifAnchor> motifs) {
+        List<MotifAnchor> clonedMotifs = new ArrayList<MotifAnchor>();
+        for (MotifAnchor anchor : motifs) {
+            clonedMotifs.add(anchor.deepClone());
+        }
+        return clonedMotifs;
     }
 }

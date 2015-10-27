@@ -29,7 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.track.anchor.FeatureAnchor;
+import juicebox.track.anchor.MotifAnchor;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -44,6 +44,9 @@ import java.util.Map;
 /**
  * @author jrobinso
  * @modified mshamim, mhoeger
+ *
+ * reflection only used for plotting, should not be used by CLTs
+ *
  */
 public class Feature2D implements Comparable<Feature2D> {
 
@@ -63,16 +66,34 @@ public class Feature2D implements Comparable<Feature2D> {
     private int end1;
     private int end2;
     private Color color, translucentColor;
+    // true = +, false = -, null = NA
+    private boolean strand1, strand2;
+    // true - unique, false = inferred, null = NA
+    private boolean unique1, unique2;
+    private String sequence1, sequence2;
+    private int motifStart1, motifEnd1, motifStart2, motifEnd2;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
         this.featureName = featureName;
-        this.chr1 = chr1;
-        this.start1 = start1;
-        this.end1 = end1;
-        this.chr2 = chr2;
-        this.start2 = start2;
-        this.end2 = end2;
+
+        if (chr1.equals(chr2) && start1 > start2) {
+            // lower value should be first
+            this.chr2 = chr1;
+            this.start2 = start1;
+            this.end2 = end1;
+            this.chr1 = chr2;
+            this.start1 = start2;
+            this.end1 = end2;
+        } else {
+            this.chr1 = chr1;
+            this.start1 = start1;
+            this.end1 = end1;
+            this.chr2 = chr2;
+            this.start2 = start2;
+            this.end2 = end2;
+        }
+
         this.color = (c == null ? Color.black : c);
         setTranslucentColor();
         this.attributes = attributes;
@@ -296,7 +317,6 @@ public class Feature2D implements Comparable<Feature2D> {
         attributes.put(key, "" + value);
     }
 
-
     public void addStringAttribute(String key, String value) {
         attributes.put(key, value);
     }
@@ -322,7 +342,6 @@ public class Feature2D implements Comparable<Feature2D> {
         }
         return false;
     }
-
 
     @Override
     public int compareTo(Feature2D o) {
@@ -365,19 +384,47 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1 + "_" + start2;
     }
 
-    public List<FeatureAnchor> getAnchors() {
-        List<FeatureAnchor> anchors = new ArrayList<FeatureAnchor>();
-        if (chr1.equals(chr2) && start1 == start2 && end1 == end2) {
-            anchors.add(new FeatureAnchor(chr1, start1, end1));
+    public ArrowheadScore toArrowheadScore() {
+        int[] indices = new int[]{start1, end1, start2, end2};
+        return new ArrowheadScore(indices);
+    }
+
+    public List<MotifAnchor> getAnchors() {
+        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        if (isOnDiagonal()) {
+            anchors.add(new MotifAnchor(chr1, start1, end1));
         } else {
-            anchors.add(new FeatureAnchor(chr1, start1, end1));
-            anchors.add(new FeatureAnchor(chr2, start2, end2));
+            anchors.add(new MotifAnchor(chr1, start1, end1));
+            anchors.add(new MotifAnchor(chr2, start2, end2));
         }
         return anchors;
     }
 
-    public ArrowheadScore toArrowheadScore() {
-        int[] indices = new int[]{start1, end1, start2, end2};
-        return new ArrowheadScore(indices);
+    // TODO make all these motif related methods as an extended class Feature2DWithMotif
+    public String getOutputFileHeaderWithMotifs() {
+        return getOutputFileHeader() + "\tmotif_start1\tmotif_end1\tsequence_1\torientation_1\tuniqueness_1\t" +
+                "motif_start2\tmotif_end2\tsequence2\torientation_2\tuniqueness_2";
+    }
+
+    public String toStringWithMotif() {
+        String output = toString();
+
+        if (sequence1 == null) {
+            output += "\tNA\tNA\tNA\tNA\tNA";
+        } else {
+            String orientation = strand1 ? "p" : "n";
+            String uniqueness = unique1 ? "u" : "i";
+            output += "\t" + motifStart1 + "\t" + motifEnd1 + "\t" + sequence1 + "\t" + orientation + "\t" + uniqueness;
+        }
+
+        if (sequence2 == null) {
+            output += "\tNA\tNA\tNA\tNA\tNA";
+        } else {
+            String orientation = strand2 ? "p" : "n";
+            String uniqueness = unique2 ? "u" : "i";
+            output += "\t" + motifStart2 + "\t" + motifEnd2 + "\t" + sequence2 + "\t" + orientation + "\t" + uniqueness;
+        }
+
+        return output;
     }
 }

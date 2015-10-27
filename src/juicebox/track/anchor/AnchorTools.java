@@ -31,7 +31,7 @@ import java.util.*;
  */
 public class AnchorTools {
 
-    private static int gapThreshold = 15000;
+
 
     /**
      * BEDTools port of merge based on
@@ -42,23 +42,23 @@ public class AnchorTools {
      * @param anchors
      * @return merged list of anchors
      */
-    public static List<FeatureAnchor> merge(List<FeatureAnchor> anchors) {
+    public static List<MotifAnchor> merge(List<MotifAnchor> anchors) {
         Collections.sort(anchors);
 
-        Set<FeatureAnchor> merged = new HashSet<FeatureAnchor>();
-        FeatureAnchor current = anchors.get(0).clone();
+        Set<MotifAnchor> merged = new HashSet<MotifAnchor>();
+        MotifAnchor current = anchors.get(0).deepClone();
 
-        for (FeatureAnchor anchor : anchors) {
+        for (MotifAnchor anchor : anchors) {
             if (anchor.hasOverlapWith(current)) {
                 current.mergeWith(anchor);
             } else {
                 merged.add(current);
-                current = anchor.clone();
+                current = anchor.deepClone();
             }
         }
         merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
 
-        return new ArrayList<FeatureAnchor>(merged);
+        return new ArrayList<MotifAnchor>(merged);
     }
 
     /**
@@ -71,11 +71,11 @@ public class AnchorTools {
      * @param bottomAnchors
      * @return intersection of two anchor lists
      */
-    public static List<FeatureAnchor> intersect(List<FeatureAnchor> topAnchors, List<FeatureAnchor> bottomAnchors) {
+    public static List<MotifAnchor> intersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors) {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
-        Set<FeatureAnchor> intersected = new HashSet<FeatureAnchor>();
+        Set<MotifAnchor> intersected = new HashSet<MotifAnchor>();
 
         int topIndex = 0;
         int bottomIndex = 0;
@@ -83,12 +83,12 @@ public class AnchorTools {
         int maxBottomIndex = bottomAnchors.size();
 
         while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
-            FeatureAnchor topAnchor = topAnchors.get(topIndex);
-            FeatureAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
+            MotifAnchor topAnchor = topAnchors.get(topIndex);
+            MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
             if (topAnchor.hasOverlapWith(bottomAnchor)) {
                 // iterate over all possible intersections with top element
                 for (int i = bottomIndex; i < maxBottomIndex; i++) {
-                    FeatureAnchor newAnchor = bottomAnchors.get(i);
+                    MotifAnchor newAnchor = bottomAnchors.get(i);
                     if (topAnchor.hasOverlapWith(newAnchor)) {
                         intersected.add(intersection(topAnchor, newAnchor));
                     } else {
@@ -99,7 +99,7 @@ public class AnchorTools {
                 // iterate over all possible intersections with bottom element
                 // start from +1 because +0 checked in the for loop above
                 for (int i = topIndex + 1; i < maxTopIndex; i++) {
-                    FeatureAnchor newAnchor = topAnchors.get(i);
+                    MotifAnchor newAnchor = topAnchors.get(i);
                     if (bottomAnchor.hasOverlapWith(newAnchor)) {
                         intersected.add(intersection(bottomAnchor, newAnchor));
                     } else {
@@ -120,7 +120,7 @@ public class AnchorTools {
             }
         }
 
-        return new ArrayList<FeatureAnchor>(intersected);
+        return new ArrayList<MotifAnchor>(intersected);
     }
 
     /**
@@ -128,9 +128,9 @@ public class AnchorTools {
      * @param anchor2
      * @return intersection of anchor1 and anchor2
      */
-    private static FeatureAnchor intersection(FeatureAnchor anchor1, FeatureAnchor anchor2) {
+    private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2) {
         if (anchor1.getChr().equals(anchor2.getChr())) {
-            return new FeatureAnchor(anchor1.getChr(), Math.max(anchor1.getX1(), anchor2.getX1()),
+            return new MotifAnchor(anchor1.getChr(), Math.max(anchor1.getX1(), anchor2.getX1()),
                     Math.min(anchor1.getX2(), anchor2.getX2()));
         } else {
             System.err.println("Error calculating intersection of anchors");
@@ -147,12 +147,83 @@ public class AnchorTools {
      *
      * @param anchors
      */
-    public static void expandSmallAnchors(List<FeatureAnchor> anchors) {
-        for (FeatureAnchor anchor : anchors) {
+    public static void expandSmallAnchors(List<MotifAnchor> anchors, int gapThreshold) {
+        for (MotifAnchor anchor : anchors) {
             int width = anchor.getWidth();
             if (width < gapThreshold) {
                 anchor.widenMargins(gapThreshold - width);
             }
         }
+    }
+
+    /**
+     * @param anchors
+     * @param threshold
+     * @return unique motifs within a given threshold from a given AnchorList
+     */
+    public static AnchorList extractUniqueMotifs(AnchorList anchors, final int threshold) {
+
+        AnchorList uniqueAnchors = anchors.deepClone();
+        uniqueAnchors.filterLists(new AnchorFilter() {
+            @Override
+            public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
+
+                // bin the motifs within resolution/threshold
+                Map<String, List<MotifAnchor>> uniqueMapping = new HashMap<String, List<MotifAnchor>>();
+                for (MotifAnchor motif : anchorList) {
+                    String key = (motif.getX1() / threshold) + "_" + (motif.getX2() / threshold);
+                    if (uniqueMapping.containsKey(key)) {
+                        uniqueMapping.get(key).add(motif);
+                    } else {
+                        List<MotifAnchor> motifList = new ArrayList<MotifAnchor>();
+                        motifList.add(motif);
+                        uniqueMapping.put(key, motifList);
+                    }
+                }
+
+                // select for bins with only one value
+                List<MotifAnchor> uniqueMotifs = new ArrayList<MotifAnchor>();
+                for (List<MotifAnchor> motifList : uniqueMapping.values()) {
+                    if (motifList.size() == 1) {
+                        uniqueMotifs.add(motifList.get(0));
+                    }
+                }
+
+                return uniqueMotifs;
+            }
+        });
+
+        return uniqueAnchors;
+    }
+
+    /**
+     * @param anchors
+     * @param threshold
+     * @return best (highest scoring) motifs within a given threshold from a given anchors list
+     */
+    public static AnchorList extractBestMotifs(AnchorList anchors, final int threshold) {
+        AnchorList bestAnchors = anchors.deepClone();
+        bestAnchors.filterLists(new AnchorFilter() {
+            @Override
+            public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
+
+                // bin the motifs within resolution/threshold, saving only the highest scoring motif
+                Map<String, MotifAnchor> bestMapping = new HashMap<String, MotifAnchor>();
+                for (MotifAnchor motif : anchorList) {
+                    String key = (motif.getX1() / threshold) + "_" + (motif.getX2() / threshold);
+                    if (bestMapping.containsKey(key)) {
+                        if (bestMapping.get(key).getScore() < motif.getScore()) {
+                            bestMapping.put(key, motif);
+                        }
+                    } else {
+                        bestMapping.put(key, motif);
+                    }
+                }
+
+                return new ArrayList<MotifAnchor>(bestMapping.values());
+            }
+        });
+
+        return bestAnchors;
     }
 }

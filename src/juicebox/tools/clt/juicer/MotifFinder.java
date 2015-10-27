@@ -25,197 +25,139 @@
 package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.UNIXTools;
 import juicebox.track.anchor.AnchorList;
+import juicebox.track.anchor.AnchorParser;
+import juicebox.track.anchor.AnchorTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import org.broad.igv.feature.Chromosome;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
+ *
+ * the user provides (i) a loop list (ii) any number of 1-d peak tracks
+ * for use in uniqueness (iii) any number of 1-d peak tracks for use in
+ * inferring (iv) a genomewide list of motifs (i.e. our genomewide list
+ * of motifs or their own).
+ *
+ * first step: all the 1-d peak tracks provided in (ii) are intersected.
+ *
+ * second step: peak loci that have only one 1-d peak from the intersected 1-d
+ * peak track are identified (along with their corresponding unique 1-d peak)
+ *
+ * third step: the best motif match is identified by intersecting unique 1-d peaks
+ * and the genomewide list of motifs. This gives a mapping of peak loci to unique motifs
+ * (in the final loop list format, these motifs are outputted as 'u')
+ *
+ * fourth step: the 1-d peak tracks provided in (iii) are intersected.
+ *
+ * fifth step: the 1-d peak track from step 4 are intersected with the genomewide
+ * motif list (best motif match) and split into a forward motif track and a reverse motif track.
+ *
+ * sixth step: upstream peak loci that did not have a unique motif are intersected
+ * with the forward motif track from step 5, and for each peak locus if the peak
+ * locus has only one forward motif, that is an inferred mapping (these motifs
+ * are outputted as 'i'). downstream peak loci that did not have a unique motif
+ * are intersected with the reverse motif track from step 5, and for each peak
+ * locus if the peak locus has only one reverse motif, that is an inferred mapping
+ * (these motifs are outputted as 'i'). Peak loci that form loops in both directions are ignored.
+ *
+ * the final output is the original looplist + information about the
+ * motifs under each of the anchors (i.e. GEO format).
+ *
+ * Let me know if you have questions. I believe that these steps
+ * handle things in the way that we handled them for the Dec paper
+ * with the most reasonable and logical user inputs. the reason
+ * that both (ii) and (iii) are necessary is because in December
+ * we identified unique motifs with as much data as possible
+ * (CTCF+RAD21+SMC3) but inferred motifs using only CTCF.
+ *
+ *
  */
 public class MotifFinder extends JuicerCLT {
 
-    private String ctcfPath = "";
-    private String ctcfCollapsedPath = "";
-    private String rad21Path = "";
-    private String smc3Path = "";
-    private String genomeID;
     private String outputDir;
     private String loopListPath;
-
-    private String bedtoolsPath = "bedtools";
-
-
-    private String workingDir = "/Users/muhammadsaadshamim/Desktop/cleanRunMotifFinderCopy";
-    private String twoBitToFAPath = workingDir+"/twoBitToFa",
-            hg192bitPath = workingDir+"/hg19.2bit",
-            CTCF_FIMO_mat = workingDir+"/CTCF_FIMO.mat",
-            M1_FIMO_flipped_mat = workingDir+"/M1_FIMO_flipped.mat";
+    private String genomeID;
+    private String[] proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
+    private String globalMotifListPath;
 
     public MotifFinder() {
-        super("motifs [-b CTCF_collapsed_input_file] [-e RAD21_input_file] [-s SMC3_input_file]" +
-                "[-g bedtools custom path] <CTCF_input_file> <genomeID> <looplist> <output directory>");
-    }
-
-    public static void redirectOutput(List<String> command, String outputFilePath) {
-        String output = executeCommand(command);
-        File outputFile = new File(outputFilePath);
-        try {
-            outputFile.createNewFile();
-            PrintWriter writer = new PrintWriter(outputFile);
-            writer.print(output);
-            writer.close();
-        } catch (Exception e) {
-            System.err.println("Unable to write command line output to file: "+outputFilePath);
-            e.printStackTrace();
-        }
-    }
-
-    public static String executeCommand(List<String> command) {
-        StringBuffer output = new StringBuffer();
-
-        //System.out.println(System.getenv());
-
-        ProcessBuilder b = new ProcessBuilder(command);
-        //Map<String, String> env = b.environment();
-        //System.out.println(env);
-
-        Process p;
-        try {
-            //p = Runtime.getRuntime().exec(command);
-            p = b.redirectErrorStream(true).start();
-
-            System.out.println("Command exec " + p.waitFor());
-            //p.waitFor();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return output.toString();
-    }
-
-    public static String executeSimpleCommand(String command) {
-        StringBuffer output = new StringBuffer();
-        try {
-            Process p = Runtime.getRuntime().exec(command);
-            p.waitFor();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line = "";
-            while ((line = reader.readLine())!= null) {
-                output.append(line + "\n");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return output.toString();
+        super("motifs <protein_files_for_unique_motifs> <protein_files_for_inferred_motifs> <genomeID> " +
+                "[custom_global_motif_list] <looplist> <output directory>");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
 
-        ctcfPath = args[1];
-        genomeID = args[2];
-        loopListPath = args[3];
-        outputDir = args[4];
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        String ctcfCollapsed = juicerParser.getCTCFCollapsedOption();
-        String rad21 = juicerParser.getRAD21Option();
-        String smc3 = juicerParser.getSMC3Option();
-        //String bedToolsDir = juicerParser.getBEDToolsPathOption();
-
-        if (ctcfCollapsed != null) {
-            ctcfCollapsedPath = ctcfCollapsed;
-        }
-        if (rad21 != null) {
-            rad21Path = rad21;
-        }
-        if (smc3 != null) {
-            smc3Path = smc3;
+        if (args.length != 6 && args.length != 7) {
+            this.printUsage();
         }
 
-        //if (bedToolsDir != null && bedToolsDir.length() > 0) {
-        //    bedtoolsPath = bedToolsDir+"/bin/bedtools";
-        //}
+        int i = 1;
+        proteinsForUniqueMotifPaths = args[i++].split(",");
+        proteinsForInferredMotifPaths = args[i++].split(",");
+        genomeID = args[i++];
+        if (args.length == 7) {
+            globalMotifListPath = args[i++];
+        }
+        loopListPath = args[i++];
+        outputDir = args[i++];
     }
 
     @Override
     public void run() {
 
         // create the output directory if it doesn't exist
-        List<String> a = new ArrayList<String>();
-        a.add("mkdir");a.add("-p "+outputDir);
-        executeCommand(a);
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
-        Feature2DList features = Feature2DParser.loadFeaturesByGenome(loopListPath, genomeID, true, null);
 
-        // "awk -v g=" + genomeID + " '{if ((g==\"mm9\"||g==\"galGal4\")&&NR>1) {print $1 \"\\t\" $2 \"\\t\" $3; print $4 \"\\t\" $5 \"\\t\" $6} else if (g==\"hg19\"&&NR>1) {print \"chr\"$1 \"\\t\" $2 \"\\t\" $3; print \"chr\"$4 \"\\t\" $5 \"\\t\" $6}}' \"" + loopListPath + "\" | sort -k1,1 -k2n,2 | uniq"
-        //redirectOutput(, outputDir+"/temp_anchors_origsize.txt");
-        AnchorList anchors = new AnchorList(genomeID, features.extractAnchors());
+        // intersect all the 1d tracks for unique motifs
+        AnchorList proteinsForUniqueness = AnchorParser.loadFromBEDFile(chromosomes, proteinsForUniqueMotifPaths[0]);
+        for (int i = 1; i < proteinsForUniqueMotifPaths.length; i++) {
+            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, proteinsForUniqueMotifPaths[i]);
+            proteinsForUniqueness.intersectWith(nextProteinList);
+        }
+
+        // intersect all the 1d tracks for inferring motifs
+        AnchorList proteinsForInference = AnchorParser.loadFromBEDFile(chromosomes, proteinsForInferredMotifPaths[0]);
+        for (int i = 1; i < proteinsForInferredMotifPaths.length; i++) {
+            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, proteinsForInferredMotifPaths[i]);
+            proteinsForInference.intersectWith(nextProteinList);
+        }
+
+        // anchors from given loop list
+        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null);
+        AnchorList anchors = AnchorList.extractAnchorsFromFeatures(features);
         anchors.merge();
-        anchors.expandSmallAnchors();
+        anchors.expandSmallAnchors(15000);
 
-        // TODO merge
-        // redirectOutput(bedtoolsPath+" merge -i " + outputDir+"/temp_anchors_origsize.txt | awk '{if ($3-$2<15000){d=15000-($3-$2); print $1 \"\\t\" $2-int(d/2) \"\\t\" $3+int(d/2)} else {print $0}}'",
-        // outputDir+"/peak_loci.txt");
-        // executeCommand("rm " + outputDir+"/temp_anchors_origsize.txt");
+        AnchorList globalAnchors;
 
+        if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
+            globalAnchors = AnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+        } else {
+            globalAnchors = AnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+        }
 
+        AnchorList uniqueGlobalAnchors = AnchorTools.extractUniqueMotifs(globalAnchors, 5000);
+        AnchorList bestGlobalAnchors = AnchorTools.extractBestMotifs(globalAnchors, 5000);
 
 
         String t="";
         UNIXTools.extractElement(t,2);
 
 
-
-        //redirectOutput("awk -v f=\"" + outputDir + "/peak_loci.txt\" 'BEGIN{while(getline<f>0) {locus[$1 \" \" $2 \" \" $3]++;}}{end1=0;end2=0; if (NR>1) {for (i in locus) {split(i,a,\" \"); if (a[1]==\"chr\"$1&&$2>=a[2]&&$3<=a[3]) {end1=i} if (a[1]==\"chr\"$4&&$5>=a[2]&&$6<=a[3]) {end2=i}}} if (NR>1) {print end1 \"\\t\" end2;}}' \"" + loopListPath + "\"",
-        //        outputDir + "/combined_peakloci_looplist.txt");
-
-        executeSimpleCommand("mkdir -p " + outputDir + "/CTCF/REN_fimo_out");
-        executeSimpleCommand("mkdir -p " + outputDir + "/CTCF/M1_fimo_out");
-        executeSimpleCommand("mkdir -p " + outputDir + "/peak_loci");
+        UNIXTools.executeSimpleCommand("mkdir -p " + outputDir + "/CTCF/REN_fimo_out");
+        UNIXTools.executeSimpleCommand("mkdir -p " + outputDir + "/CTCF/M1_fimo_out");
+        UNIXTools.executeSimpleCommand("mkdir -p " + outputDir + "/peak_loci");
 
         /*
-        if (genomeID.equals("hg19")) {
-            redirectOutput("awk '{print $0 \"\\t\" NR}' " + ctcfPath + " ",
-                    outputDir+"/tmp1");
-            // TODO remove hardcoded files (and find them)
-            executeCommand(twoBitToFAPath + " " + hg192bitPath + " " + outputDir+"/CTCF/CTCF.fa -noMask -bed=" + outputDir + "/tmp1 -bedPos");
-            executeCommand("rm " + outputDir+"/tmp1");
-
-            executeCommand("fimo --thresh .001 -max-stored-scores 500000 --o " + outputDir+"/CTCF/REN_fimo_out "+CTCF_FIMO_mat+" " + outputDir+"/CTCF/CTCF.fa");
-            executeCommand("fimo --thresh .001 -max-stored-scores 500000 --o " + outputDir+"/CTCF/M1_fimo_out "+M1_FIMO_flipped_mat+" " + outputDir+"/CTCF/CTCF.fa");
-        }
-
-        redirectOutput("awk '{if (NR>1) {split($2,a,\":\");split(a[2],b,\"-\"); print NR-1 \"\\t\" a[1] \"\\t\" b[1] \"\\t\" b[2] \"\\t\" b[1]+$3 \"\\t\" b[1]+$4 \"\\t\" $5 \"\\t\" $6 \"\\t\" $7 \"\\t\" $8 \"\\t\" $9}}' " + outputDir+"/CTCF/REN_fimo_out/fimo.txt " ,
-                outputDir+"/CTCF/REN_fimo_out/motifs.txt");
-        redirectOutput("awk '{if (counter[$2 \" \" $3 \" \" $4]==0) {counter[$2 \" \" $3 \" \" $4]++;motif[$2 \" \" $3 \" \" $4]=$0;score[$2 \" \" $3 \" \" $4]=$8} else if (score[$2 \" \" $3 \" \" $4]<$8) {motif[$2 \" \" $3 \" \" $4]=$0;score[$2 \" \" $3 \" \" $4]=$8}}END{for (i in motif) {print motif[i]}}' " + outputDir+"/CTCF/REN_fimo_out/motifs.txt " ,
-                outputDir+"/CTCF/REN_fimo_out/motifs_best.txt");
-        redirectOutput("awk '{counter[$2 \" \" $3 \" \" $4]++;motif[$2 \" \" $3 \" \" $4]=$0}END{for (i in motif) {if (counter[i]==1) {print motif[i]}}}' " + outputDir+"/CTCF/REN_fimo_out/motifs.txt " ,
-                outputDir+"/CTCF/REN_fimo_out/motifs_unique.txt");
-        redirectOutput("awk '{if (NR>1) {split($2,a,\":\");split(a[2],b,\"-\"); print NR-1 \"\\t\" a[1] \"\\t\" b[1] \"\\t\" b[2] \"\\t\" b[1]+$3 \"\\t\" b[1]+$4 \"\\t\" $5 \"\\t\" $6 \"\\t\" $7 \"\\t\" $8 \"\\t\" $9}}' " + outputDir+"/CTCF/M1_fimo_out/fimo.txt " ,
-                outputDir+"/CTCF/M1_fimo_out/motifs.txt");
-        redirectOutput("awk '{if (counter[$2 \" \" $3 \" \" $4]==0) {counter[$2 \" \" $3 \" \" $4]++;motif[$2 \" \" $3 \" \" $4]=$0;score[$2 \" \" $3 \" \" $4]=$8} else if (score[$2 \" \" $3 \" \" $4]<$8) {motif[$2 \" \" $3 \" \" $4]=$0;score[$2 \" \" $3 \" \" $4]=$8}}END{for (i in motif) {print motif[i]}}' " + outputDir+"/CTCF/M1_fimo_out/motifs.txt " ,
-                outputDir+"/CTCF/M1_fimo_out/motifs_best.txt");
-        redirectOutput("awk '{counter[$2 \" \" $3 \" \" $4]++;motif[$2 \" \" $3 \" \" $4]=$0}END{for (i in motif) {if (counter[i]==1) {print motif[i]}}}' " + outputDir+"/CTCF/M1_fimo_out/motifs.txt " ,
-                outputDir+"/CTCF/M1_fimo_out/motifs_unique.txt");
 
         redirectOutput(bedtoolsPath + " intersect -a " + ctcfPath + " -b " + outputDir+"/peak_loci.txt -c | awk '{if ($NF>0) {print $1 \"\\t\" $2 \"\\t\" $3 \"\\t\" NR}}' " ,
                 outputDir+"/CTCF/CTCF_in_peak_loci.txt");

@@ -30,5 +30,5 @@ import java.util.List;
  * Created by muhammadsaadshamim on 7/30/15.
  */
 public interface AnchorFunction {
-    void process(String chr, List<FeatureAnchor> anchorList);
+    void process(String chr, List<MotifAnchor> anchorList);
 }

@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public class Feature2DParser {
 
-    public static Feature2DList loadFeaturesByGenome(String path, String genomeID, boolean loadAttributes, FeatureFilter featureFilter) {
+    public static Feature2DList loadFeatures(String path, String genomeID, boolean loadAttributes, FeatureFilter featureFilter) {
         return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter);
     }
 

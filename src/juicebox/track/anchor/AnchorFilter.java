@@ -30,5 +30,5 @@ import java.util.List;
  * Created by muhammadsaadshamim on 7/30/15.
  */
 public interface AnchorFilter {
-    List<FeatureAnchor> filter(String chr, List<FeatureAnchor> anchorList);
+    List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList);
 }

@@ -16,6 +16,7 @@
       <entry name="?*.ftl" />
       <entry name="?*.txt" />
       <entry name="?*.sizes" />
+      <entry name="?*.motifs" />
     </wildcardResourcePatterns>
     <annotationProcessing>
       <profile default="true" name="Default" enabled="false">
@@ -27,4 +28,3 @@
     <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:all -target 1.7" />
   </component>
 </project>
-

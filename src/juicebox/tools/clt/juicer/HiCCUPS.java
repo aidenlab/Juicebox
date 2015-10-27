@@ -37,6 +37,7 @@ import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -362,7 +363,7 @@ public class HiCCUPS extends JuicerCLT {
 
                                             Feature2DList peaksList = gpuOutputs.extractPeaks(chromosome.getIndex(), chromosome.getName(),
                                                     w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
-                                            peaksList.calculateFDR(fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                            Feature2DTools.calculateFDR(peaksList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
                                             globalList.add(peaksList);
                                         }
                                     } catch (IOException e) {
@@ -414,7 +415,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true);
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, false);
             if (outputFDR != null) {
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);

@@ -31,6 +31,7 @@ import juicebox.tools.clt.juicer.HiCCUPS;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DTools;
 import juicebox.track.feature.FeatureFilter;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -417,34 +418,34 @@ public class HiCCUPSUtils {
 
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
-        Feature2DList centroidsTwentyFiveKB = mergedList.extractReproducibleCentroids(twentyFiveKBList, 2 * 25000);
+        Feature2DList centroidsTwentyFiveKB = Feature2DTools.extractReproducibleCentroids(mergedList, twentyFiveKBList, 2 * 25000);
         //centroidsTwentyFiveKB.setAttributeFieldForAll(FilterStage, "58");
-        Feature2DList distant25 = twentyFiveKBList.extractPeaksNotNearCentroids(centroidsTwentyFiveKB);
+        Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB);
         //distant25.setAttributeFieldForAll(FilterStage, "66");
         mergedList.add(distant25);
     }
 
     private static Feature2DList handleFiveAndTenKBMerger(Feature2DList fiveKBList, Feature2DList tenKBList) {
         // add peaks commonly found between 5 and 10 kB
-        Feature2DList centroidsFiveKB = tenKBList.extractReproducibleCentroids(fiveKBList, 2 * 10000);
+        Feature2DList centroidsFiveKB = Feature2DTools.extractReproducibleCentroids(tenKBList, fiveKBList, 2 * 10000);
         //centroidsFiveKB.setAttributeFieldForAll(FilterStage, "11");
-        Feature2DList mergedList = fiveKBList.extractPeaksNearCentroids(centroidsFiveKB);
+        Feature2DList mergedList = Feature2DTools.extractPeaksNearCentroids(fiveKBList, centroidsFiveKB);
         //mergedList.setAttributeFieldForAll(FilterStage, "22");
 
         // add peaks unique to 10 kB
-        Feature2DList centroidsTenKB = fiveKBList.extractReproducibleCentroids(tenKBList, 2 * 10000);
+        Feature2DList centroidsTenKB = Feature2DTools.extractReproducibleCentroids(fiveKBList, tenKBList, 2 * 10000);
         //centroidsTenKB.setAttributeFieldForAll(FilterStage, "27");
-        Feature2DList distant10 = tenKBList.extractPeaksNotNearCentroids(centroidsTenKB);
+        Feature2DList distant10 = Feature2DTools.extractPeaksNotNearCentroids(tenKBList, centroidsTenKB);
         //distant10.setAttributeFieldForAll(FilterStage, "33");
         mergedList.add(distant10);
 
         // add peaks close to diagonal
-        Feature2DList nearDiag = fiveKBList.getPeaksNearDiagonal(110000);
+        Feature2DList nearDiag = Feature2DTools.getPeaksNearDiagonal(fiveKBList, 110000);
         //nearDiag.setAttributeFieldForAll(FilterStage, "44");
         mergedList.add(nearDiag);
 
         // add particularly strong peaks
-        Feature2DList strong = fiveKBList.getStrongPeaks(100);
+        Feature2DList strong = Feature2DTools.getStrongPeaks(fiveKBList, 100);
         //strong.setAttributeFieldForAll(FilterStage, "55");
         mergedList.add(strong);
 
@@ -519,7 +520,7 @@ public class HiCCUPSUtils {
         }
 
         Feature2DList finalList = mergeAllResolutions(looplists);
-        finalList.exportFeatureList(writer, false);
+        finalList.exportFeatureList(writer, false, false);
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,

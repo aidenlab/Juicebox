@@ -26,7 +26,6 @@ package juicebox.track.feature;
 
 import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.track.anchor.FeatureAnchor;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
@@ -123,7 +122,7 @@ public class Feature2DList {
 
     }
 
-    private void addByKey(String key, Feature2D feature) {
+    void addByKey(String key, Feature2D feature) {
         if (featureList.containsKey(key)) {
             featureList.get(key).add(feature);
         } else {
@@ -156,10 +155,10 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath, final boolean useOldHiccupsOutput) {
+    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsOutput, boolean includeMotifs) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, useOldHiccupsOutput);
+            return exportFeatureList(outputFile, useOldHiccupsOutput, includeMotifs);
         }
         return -1;
     }
@@ -169,24 +168,45 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsOutput) {
+    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsOutput, final boolean includeMotifs) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {
-                outputFile.println(featureZero.getOutputFileHeader());
-
-                processLists(new FeatureFunction() {
-                    @Override
-                    public void process(String chr, List<Feature2D> feature2DList) {
-                        for (Feature2D feature : feature2DList) {
-                            if (useOldHiccupsOutput)
-                                outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                            else
-                                outputFile.println(feature);
+                if (includeMotifs) {
+                    outputFile.println(featureZero.getOutputFileHeaderWithMotifs());
+                    processLists(new FeatureFunction() {
+                        @Override
+                        public void process(String chr, List<Feature2D> feature2DList) {
+                            for (Feature2D feature : feature2DList) {
+                                outputFile.println(feature.toStringWithMotif());
+                            }
                         }
+                    });
+                } else {
+                    outputFile.println(featureZero.getOutputFileHeader());
+                    if (useOldHiccupsOutput) {
+                        processLists(new FeatureFunction() {
+                            @Override
+                            public void process(String chr, List<Feature2D> feature2DList) {
+                                for (Feature2D feature : feature2DList) {
+                                    outputFile.println(HiCCUPSUtils.oldOutput(feature));
+                                }
+                            }
+                        });
+
+                    } else {
+                        processLists(new FeatureFunction() {
+                            @Override
+                            public void process(String chr, List<Feature2D> feature2DList) {
+                                for (Feature2D feature : feature2DList) {
+                                    outputFile.println(feature);
+                                }
+                            }
+                        });
                     }
-                });
+                }
+
             }
             outputFile.close();
 
@@ -249,26 +269,6 @@ public class Feature2DList {
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
                     feature.setColor(color);
-                }
-            }
-        });
-    }
-
-    /**
-     * Calculate FDR values for all peaks
-     *
-     * @param fdrLogBL
-     * @param fdrLogDonut
-     * @param fdrLogH
-     * @param fdrLogV
-     */
-    public void calculateFDR(final float[][] fdrLogBL, final float[][] fdrLogDonut,
-                             final float[][] fdrLogH, final float[][] fdrLogV) {
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                for (Feature2D feature : feature2DList) {
-                    HiCCUPSUtils.calculateFDR(feature, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
                 }
             }
         });
@@ -342,7 +342,7 @@ public class Feature2DList {
         return output;
     }
 
-    // Compares a feature against all other featuers in list
+    // Compares a feature against all other features in list
     private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures) {
         boolean repeat = false;
         for (Feature2D existingFeature : existingFeatures) {
@@ -406,7 +406,7 @@ public class Feature2DList {
      *
      * @return keySet
      */
-    private Set<String> getKeySet() {
+    Set<String> getKeySet() {
         return featureList.keySet();
     }
 
@@ -416,7 +416,7 @@ public class Feature2DList {
      * @param key
      * @return
      */
-    private List<Feature2D> getFeatureList(String key) {
+    List<Feature2D> getFeatureList(String key) {
         return featureList.get(key);
     }
 
@@ -443,142 +443,11 @@ public class Feature2DList {
         }
     }
 
-    public Feature2DList extractReproducibleCentroids(Feature2DList secondFeatureList, final int radius) {
-
-        final Feature2DList centroids = new Feature2DList();
-
-        final Map<String, List<Feature2D>> firstFeatureList = new HashMap<String, List<Feature2D>>(featureList);
-
-        secondFeatureList.processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> secondFeature2DList) {
-                if (firstFeatureList.containsKey(chr)) {
-                    List<Feature2D> base1FeatureList = firstFeatureList.get(chr);
-                    for (Feature2D f2 : secondFeature2DList) {
-                        for (Feature2D f1 : base1FeatureList) {
-                            int dx = f1.getStart1() - f2.getStart1();
-                            int dy = f1.getStart2() - f2.getStart2();
-                            double d = HiCCUPSUtils.hypotenuse(dx, dy);
-                            if (d <= radius) {
-                                //f2.setAttribute(HiCCUPSUtils.centroidAttr, "" + d);
-                                centroids.addByKey(chr, f2);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-        return centroids;
-    }
-
-    /**
-     * @return peaks within radius of diagonal
-     */
-    public Feature2DList getPeaksNearDiagonal(final int radius) {
-        final Feature2DList peaks = new Feature2DList();
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                for (Feature2D f : feature2DList) {
-                    int dist = Math.abs(f.getStart1() - f.getStart2());
-                    if (dist < radius) {
-                        //f.setAttribute(HiCCUPSUtils.nearDiagAttr, "1");
-                        peaks.addByKey(chr, f);
-                    }
-                }
-            }
-        });
-        return peaks;
-    }
-
-    /**
-     * @return peaks with observed values exceeding limit
-     */
-    public Feature2DList getStrongPeaks(final int limit) {
-        final Feature2DList peaks = new Feature2DList();
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                for (Feature2D f : feature2DList) {
-                    float obs = f.getFloatAttribute(HiCCUPSUtils.OBSERVED);
-                    if (obs > limit) {
-                        //f.setAttribute(HiCCUPSUtils.StrongAttr, "1");
-                        peaks.addByKey(chr, f);
-                    }
-                }
-            }
-        });
-        return peaks;
-    }
-
-    public Feature2DList extractPeaksNotNearCentroids(final Feature2DList centroids) {
-
-        final Feature2DList peaks = new Feature2DList();
-
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                if (centroids.containsKey(chr)) {
-                    final Set<String> keys = new HashSet<String>();
-                    for (Feature2D f : centroids.getFeatureList(chr)) {
-                        keys.add(f.getLocationKey());
-                    }
-
-                    for (Feature2D f : feature2DList) {
-                        if (!keys.contains(f.getLocationKey())) {
-                            //f.setAttribute(HiCCUPSUtils.notNearCentroidAttr, "1");
-                            peaks.addByKey(chr, f);
-                        }
-                    }
-                } else {
-                    System.out.println(chr + " key not found for centroids. NN. Possible error?");
-                    System.out.println("Centroid: " + centroids.getKeySet());
-                    System.out.println("Actual: " + Feature2DList.this.getKeySet());
-                }
-            }
-        });
-
-        return peaks;
-    }
-
-    public Feature2DList extractPeaksNearCentroids(final Feature2DList centroids) {
-
-        final Feature2DList peaks = new Feature2DList();
-
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-
-                if (centroids.containsKey(chr)) {
-
-                    final Set<String> keys = new HashSet<String>();
-                    for (Feature2D f : centroids.getFeatureList(chr)) {
-                        keys.add(f.getLocationKey());
-                    }
-
-
-                    for (Feature2D f : feature2DList) {
-                        if (keys.contains(f.getLocationKey())) {
-                            //f.setAttribute(HiCCUPSUtils.nearCentroidAttr, "1");
-                            peaks.addByKey(chr, f);
-                        }
-                    }
-                } else {
-                    System.out.println(chr + " key not found for centroids. NC. Possible error?");
-                    System.out.println("Centroid: " + centroids.getKeySet());
-                    System.out.println("Actual: " + Feature2DList.this.getKeySet());
-                }
-            }
-        });
-
-        return peaks;
-    }
 
     /**
      * @return true if features available for this region (key = "chr1_chr2")
      */
-    private boolean containsKey(String key) {
+    boolean containsKey(String key) {
         return featureList.containsKey(key);
     }
 
@@ -588,19 +457,5 @@ public class Feature2DList {
             total += chrList.size();
         }
         return total;
-    }
-
-    public List<FeatureAnchor> extractAnchors() {
-        final List<FeatureAnchor> anchors = new ArrayList<FeatureAnchor>();
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                for (Feature2D f : feature2DList) {
-                    anchors.addAll(f.getAnchors());
-                }
-            }
-        });
-
-        return new ArrayList<FeatureAnchor>(new HashSet<FeatureAnchor>(anchors));
     }
 }

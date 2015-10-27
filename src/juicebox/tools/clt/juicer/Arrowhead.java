@@ -205,8 +205,8 @@ public class Arrowhead extends JuicerCLT {
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
-        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
-        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false, false);
+        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, false);
+        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, false);
     }
 }
