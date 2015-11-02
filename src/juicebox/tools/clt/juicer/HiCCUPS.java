@@ -169,7 +169,6 @@ public class HiCCUPS extends JuicerCLT {
     private String outputEnrichedFileName;
     private String outputFinalLoopListFileName;
     private HiCCUPSConfiguration[] configurations;
-    private NormalizationType preferredNormalization = NormalizationType.KR;
 
     //public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
     // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
@@ -198,10 +197,13 @@ public class HiCCUPS extends JuicerCLT {
      */
 
     public HiCCUPS() {
-        super("hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
-                "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>\n" +
-                "\nhiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
-                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>\n");
+        super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
+                "<hicFile(s)> <finalLoopsList>" +
+                "\n" +
+                "\n" +
+                "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
+                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
     }
 
@@ -212,7 +214,7 @@ public class HiCCUPS extends JuicerCLT {
 
         if (args.length == 4) {
             dataShouldBePostProcessed = false;
-        } else if (!(args.length == 3)) {
+        } else if (args.length != 3) {
             printUsage();
         }
 
@@ -223,6 +225,10 @@ public class HiCCUPS extends JuicerCLT {
             outputFDRFileName = args[2];
             outputEnrichedFileName = args[3];
         }
+
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        if (preferredNorm != null)
+            norm = preferredNorm;
 
         determineValidMatrixSize(juicerParser);
         determineValidChromosomes(juicerParser);
@@ -256,7 +262,7 @@ public class HiCCUPS extends JuicerCLT {
 
         if (dataShouldBePostProcessed) {
             HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
-                    filteredConfigurations, preferredNormalization);
+                    filteredConfigurations, norm);
         }
         // else the thresholds and raw pixels were already saved when hiccups was run
     }
@@ -320,11 +326,11 @@ public class HiCCUPS extends JuicerCLT {
                 MatrixZoomData zd = matrix.getZoomData(zoom);
 
                 //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
-                NormalizationVector norm = ds.getNormalizationVector(chromosome.getIndex(), zoom, preferredNormalization);
+                NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
                 if (norm != null) {
-                    double[] normalizationVector = norm.getData();
+                    double[] normalizationVector = normVector.getData();
                     double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
-                            zoom, preferredNormalization);
+                            zoom, norm);
 
                     // need overall bounds for the chromosome
                     int chrLength = chromosome.getLength();
@@ -348,7 +354,7 @@ public class HiCCUPS extends JuicerCLT {
                                         GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
                                                 rowBounds, columnBounds, matrixSize,
                                                 thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                                boundRowIndex, boundColumnIndex, preferredNormalization);
+                                                boundRowIndex, boundColumnIndex, norm);
 
                                         int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
 

@@ -30,17 +30,10 @@ import juicebox.windowui.NormalizationType;
  * Created by muhammadsaadshamim on 9/21/15.
  */
 public abstract class JuicerCLT extends JuiceboxCLT {
+
+    protected NormalizationType norm = NormalizationType.KR;
+
     protected JuicerCLT(String usage) {
         super(usage);
-    }
-
-    protected NormalizationType retrieveNormalization(String norm) {
-        try {
-            return NormalizationType.valueOf(norm);
-        } catch (IllegalArgumentException error) {
-            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
-        }
-        return null;
     }
 }

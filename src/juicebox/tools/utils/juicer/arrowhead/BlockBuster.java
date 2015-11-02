@@ -107,7 +107,9 @@ public class BlockBuster {
                 contactDomainListScoresGenomeWide.add(blockResultListScores);
                 contactDomainControlScoresGenomeWide.add(blockResultControlScores);
             } else {
-                System.out.println("No contact domains found for chromosome " + chrName);
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("No contact domains found for chromosome " + chrName);
+                }
             }
         } catch (IOException e) {
             System.err.println("Data not available for this chromosome.");
@@ -168,9 +170,13 @@ public class BlockBuster {
             // accumulate results across the windows
             results.offsetResultsIndex(limStart); // +1? because genome index should start at 1 not 0?
             cumulativeBlockResults.add(results);
-            System.out.print(".");
+            if (HiCGlobals.printVerboseComments) {
+                System.out.print(".");
+            }
         }
-        System.out.println(".");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println(".");
+        }
         return cumulativeBlockResults;
     }
 

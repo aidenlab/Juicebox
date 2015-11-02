@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt.juicer;
 
+import com.google.common.primitives.Ints;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -57,7 +58,7 @@ public class APA extends JuicerCLT {
 
     public static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;
-    private String[] files;
+    private String hicFilePaths, loopListPath, outputFolderPath;
 
     //defaults
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
@@ -65,13 +66,14 @@ public class APA extends JuicerCLT {
     private int window = 10;
     private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
-    private NormalizationType norm;
+
 
     /**
      * Usage for APA
      */
     public APA() {
-        super("apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosomes] <NONE/VC/VC_SQRT/KR> <hic file(s)> <PeaksFile> <SaveFolder> [SavePrefix]");
+        super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
+                " [-k NONE/VC/VC_SQRT/KR] <hic file(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false; // TODO fix memory leak of contact records in cache (dataset?)
     }
 
@@ -80,42 +82,37 @@ public class APA extends JuicerCLT {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
-        if (!(args.length > 3 && args.length < 6)) {
+        if (args.length != 4) {
             printUsage();
         }
 
-        norm = retrieveNormalization(args[1]);
+        hicFilePaths = args[1];
+        loopListPath = args[2];
+        outputFolderPath = args[3];
 
-        files = new String[4];
-        files[3] = "";
-        System.arraycopy(args, 2, files, 0, args.length - 2);
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        if (preferredNorm != null)
+            norm = preferredNorm;
 
-        for (String s : files)
-            System.out.println("--- " + s);
-
-        //if (files.length > 4)
-        //    restrictionSiteFilename = files[4];
-        //[min value, max value, window, resolution]
         minPeakDist = juicerParser.getAPAMinVal();
-        if (minPeakDist == 0)
+        if (minPeakDist <= 0)
             minPeakDist = 30;
 
         maxPeakDist = juicerParser.getAPAMaxVal();
-        if (maxPeakDist == 0)
+        if (maxPeakDist <= 0)
             maxPeakDist = Double.POSITIVE_INFINITY;
 
         window = juicerParser.getAPAWindowSizeOption();
-        if (window == 0)
+        if (window <= 0)
             window = 10;
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
-            resolutions = new int[possibleResolutions.size()];
-            int i = 0;
+            List<Integer> intResolutions = new ArrayList<Integer>();
             for (String res : possibleResolutions) {
-                resolutions[i] = Integer.parseInt(res);
-                i++;
+                intResolutions.add(Integer.parseInt(res));
             }
+            resolutions = Ints.toArray(intResolutions);
         }
 
         List<String> possibleChromosomes = juicerParser.getChromosomeOption();
@@ -129,7 +126,7 @@ public class APA extends JuicerCLT {
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;
-        List<String> summedHiCFiles = Arrays.asList(files[0].split("\\+"));
+        List<String> summedHiCFiles = Arrays.asList(hicFilePaths.split("\\+"));
 
         Integer[] gwPeakNumbers = new Integer[3];
         for (int i = 0; i < gwPeakNumbers.length; i++)
@@ -138,7 +135,7 @@ public class APA extends JuicerCLT {
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
         for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
 
-            System.out.println("res " + resolution);
+            System.out.println("Processing APA for resolution " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
             List<Chromosome> chromosomes = ds.getChromosomes();
@@ -149,7 +146,7 @@ public class APA extends JuicerCLT {
             // Metrics resulting from apa filtering
             final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
-            Feature2DList loopList = Feature2DParser.loadFeatures(files[1], chromosomes, false,
+            Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, chromosomes, false,
                     new FeatureFilter() {
                         // Remove duplicates and filters by size
                         // also save internal metrics for these measures
@@ -166,10 +163,15 @@ public class APA extends JuicerCLT {
                             return filteredUniqueFeatures;
                         }
                     });
+
             if (loopList.getNumTotalFeatures() > 0) {
 
+                double maxProgressStatus = chromosomes.size();
+                int currentProgressStatus = 0;
+
                 for (Chromosome chr : chromosomes) {
-                    APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution).replace("/", "_"));
+                    APADataStack apaDataStack = new APADataStack(L, outputFolderPath,
+                            (hicFilePaths + "_" + resolution).replace("/", "_"));
 
                     if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
@@ -178,10 +180,15 @@ public class APA extends JuicerCLT {
 
                     MatrixZoomData zd = matrix.getZoomData(zoom);
 
-                    System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("CHR " + chr.getName() + " " + chr.getIndex());
+                    }
+
                     List<Feature2D> loops = loopList.get(chr.getIndex(), chr.getIndex());
                     if (loops == null || loops.size() == 0) {
-                        System.out.println("CHR " + chr.getName() + " - no loops, check loop filtering constraints");
+                        if (HiCGlobals.printVerboseComments) {
+                            System.out.println("CHR " + chr.getName() + " - no loops, check loop filtering constraints");
+                        }
                         continue;
                     }
 
@@ -189,16 +196,13 @@ public class APA extends JuicerCLT {
 
 
                     if (loops.size() != peakNumbers[0])
-                        System.out.println("Error reading stat numbers fro " + chr);
+                        System.err.println("Error reading statistics from " + chr);
 
                     for (int i = 0; i < peakNumbers.length; i++) {
-                        //System.out.println(chr + " " + i + " " + peakNumbers[i] + " " + gwPeakNumbers[i]);
                         gwPeakNumbers[i] += peakNumbers[i];
                     }
 
-                    //System.out.println("Loop");
                     for (Feature2D loop : loops) {
-                        //System.out.println(loop.getMidPt1()/resolution +"\t"+loop.getMidPt2()/resolution);
                         try {
                             apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
                                     norm));
@@ -208,14 +212,17 @@ public class APA extends JuicerCLT {
                     }
 
                     apaDataStack.updateGenomeWideData();
-                    if (saveAllData)
+                    if (saveAllData) {
                         apaDataStack.exportDataSet(chr.getName(), peakNumbers);
+                    }
 
+                    System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
                 }
+                System.out.println("Exporting APA results...");
                 APADataStack.exportGenomeWideData(gwPeakNumbers);
                 APADataStack.clearAllData();
             } else {
-                System.err.println("Looplist is empty or incorrect path provided.");
+                System.err.println("Loop list is empty or incorrect path provided.");
                 System.exit(-8);
             }
         }

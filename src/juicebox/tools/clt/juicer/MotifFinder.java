@@ -51,7 +51,7 @@ import java.util.List;
  * peak track are identified (along with their corresponding unique 1-d peak)
  *
  * third step: the best motif match is identified by intersecting unique 1-d peaks
- * and the genomewide list of motifs. This gives a mapping of peak loci to unique motifs
+ * and the genome wide list of motifs. This gives a mapping of peak loci to unique motifs
  * (in the final loop list format, these motifs are outputted as 'u')
  *
  * fourth step: the 1-d peak tracks provided in (iii) are intersected.
@@ -67,7 +67,7 @@ import java.util.List;
  * locus if the peak locus has only one reverse motif, that is an inferred mapping
  * (these motifs are outputted as 'i'). Peak loci that form loops in both directions are ignored.
  *
- * the final output is the original looplist + information about the
+ * the final output is the original loop list + information about the
  * motifs under each of the anchors (i.e. GEO format).
  *
  * Let me know if you have questions. I believe that these steps
