@@ -59,6 +59,7 @@ public class MainWindow extends JFrame {
     private final HiC hic; // The "model" object containing the state for this instance.
 
     private MainWindow() {
+        HiCGlobals.guiIsCurrentlyActive = true;
         hic = new HiC(superAdapter);
         MainMenuBar mainMenuBar = new MainMenuBar();
         MainViewPanel mainViewPanel = new MainViewPanel();
