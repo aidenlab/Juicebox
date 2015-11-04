@@ -38,7 +38,6 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
-
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
     private static final long serialVersionUID = 3238446384712613064L;
@@ -209,6 +208,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
             tree.setExpandsSelectedPaths(true);
             TreePath path = new TreePath(dNode.getPath());
             tree.scrollPathToVisible(path);
+            tree.setSelectionPath(path);
         }
     }
 
