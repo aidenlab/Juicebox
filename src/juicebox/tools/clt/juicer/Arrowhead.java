@@ -105,7 +105,6 @@ import java.util.*;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
-    private NormalizationType norm = NormalizationType.KR;
     private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
@@ -115,7 +114,7 @@ public class Arrowhead extends JuicerCLT {
     private String file, outputPath;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file> " +
+        super("arrowhead [-c chromosome(s)] [-m matrix size] [-k normalization (NONE/VC/VC_SQRT/KR)] <input_HiC_file(s)> <output_file> " +
                 "<resolution> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
@@ -124,25 +123,28 @@ public class Arrowhead extends JuicerCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        if (args.length != 5 && args.length != 7) {
+        if (args.length != 4 && args.length != 6) {
             // 5 - standard, 7 - when list/control provided
             printUsage();
         }
 
-        norm = retrieveNormalization(args[1]);
-        file = args[2];
-        outputPath = args[3];
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        if (preferredNorm != null)
+            norm = preferredNorm;
+
+        file = args[1];
+        outputPath = args[2];
 
         try {
-            resolution = Integer.valueOf(args[4]);
+            resolution = Integer.valueOf(args[3]);
         } catch (NumberFormatException error) {
             printUsage();
         }
 
-        if (args.length == 7) {
+        if (args.length == 6) {
             controlAndListProvided = true;
-            featureList = args[5];
-            controlList = args[6];
+            featureList = args[4];
+            controlList = args[5];
         }
 
         List<String> potentialChromosomes = juicerParser.getChromosomeOption();
@@ -187,6 +189,9 @@ public class Arrowhead extends JuicerCLT {
 
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
+        double maxProgressStatus = chromosomes.size();
+        int currentProgressStatus = 0;
+
         for (Chromosome chr : chromosomes) {
 
             if (chr.getName().equals(Globals.CHR_ALL)) continue;
@@ -197,11 +202,16 @@ public class Arrowhead extends JuicerCLT {
             ArrowheadScoreList list = new ArrowheadScoreList(inputList.get(chr.getIndex(), chr.getIndex()), resolution);
             ArrowheadScoreList control = new ArrowheadScoreList(inputControl.get(chr.getIndex(), chr.getIndex()), resolution);
 
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("\nProcessing " + chr.getName());
+            }
+
             // actual Arrowhead algorithm
-            System.out.println("\nProcessing " + chr.getName());
             BlockBuster.run(chr.getIndex(), chr.getName(), chr.getLength(), resolution, matrixSize,
                     matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
                     contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
+
+            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
         }
 
         // save the data on local machine

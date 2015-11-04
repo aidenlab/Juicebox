@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -97,7 +98,7 @@ public class APADataStack {
         if (!newFolder.exists()) {
             boolean result = newFolder.mkdir();
             if (!result) {
-                System.out.println("Error creating directory (data not saved): " + newFolder);
+                System.err.println("Error creating directory (data not saved): " + newFolder);
                 return null;
             }
         }
@@ -126,7 +127,6 @@ public class APADataStack {
         String[] titles = {"psea", "normedPsea", "centerNormedPsea", "rankPsea", "enhancement", "measures"};
 
         saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers);
-
     }
 
     private static void saveDataSet(String prefix,
@@ -136,7 +136,9 @@ public class APADataStack {
                                     Integer[] peakNumbers) {
 
         File subFolder = safeFolderCreation(dataDirectory.getAbsolutePath() + "/" + prefix);
-        System.out.println("Saving chr " + prefix + " data to " + subFolder);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Saving chr " + prefix + " data to " + subFolder);
+        }
         String dataPath = subFolder + "/";
 
         for (int i = 0; i < apaMatrices.length; i++) {

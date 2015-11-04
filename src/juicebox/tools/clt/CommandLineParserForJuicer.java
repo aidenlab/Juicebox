@@ -25,6 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,24 +36,16 @@ import java.util.List;
  */
 public class CommandLineParserForJuicer extends CmdLineParser {
 
-    // ints
-    private static Option apaWindowOption = null;
+    // General
     private static Option matrixSizeOption = null;
-    // doubles
-    private static Option apaMinValOption = null;
-    private static Option apaMaxValOption = null;
-    // sets of strings
     private static Option multipleChromosomesOption = null;
     private static Option multipleResolutionsOption = null;
-    // for motif finder
-    private static Option ctcfCollapsedOption = null;
-    private static Option rad21Option = null;
-    private static Option smc3Option = null;
-    private static Option bedToolsPath = null;
+    private static Option normalizationTypeOption = null;
 
-    // for AFA
-    private static Option relativeLocationOption = null;
-    private static Option multipleAttributesOption = null;
+    // APA
+    private static Option apaWindowOption = null;
+    private static Option apaMinValOption = null;
+    private static Option apaMaxValOption = null;
 
     // for HiCCUPS
     private static Option fdrOption = null;
@@ -61,41 +54,43 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option clusterRadiusOption = null;
     private static Option thresholdOption = null;
 
+    // for AFA
+    private static Option relativeLocationOption = null;
+    private static Option multipleAttributesOption = null;
 
     public CommandLineParserForJuicer() {
-
         // used flags
-        // wmnxcrbesplafdpt
+        // wmnxcrplafdptk
 
-        apaWindowOption = addIntegerOption('w', "window");
+        // available flags
+        // hjoqyzbesguv
+
+        // General
         matrixSizeOption = addIntegerOption('m', "matrix window width");
+        multipleChromosomesOption = addStringOption('c', "chromosomes");
+        multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
+        normalizationTypeOption = addStringOption('k', "normalization type (NONE/VC/VC_SQRT/KR)");
 
+        // APA
+        apaWindowOption = addIntegerOption('w', "window");
         apaMinValOption = addDoubleOption('n', "minimum value");
         apaMaxValOption = addDoubleOption('x', "maximum value");
 
-        multipleChromosomesOption = addStringOption('c', "chromosomes");
-        multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
-
-        ctcfCollapsedOption = addStringOption('b', "CTCF_collapsed_input_file");
-        rad21Option = addStringOption('e', "RAD21_input_file");
-        smc3Option = addStringOption('s', "SMC3_input_file");
-        bedToolsPath = addStringOption('g', "path to bedtools (e.g. /Applications/bedtools2)");
-
-        relativeLocationOption = addStringOption('l', "Location Type");
-        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
-
+        // HICCUPS
         fdrOption = addStringOption('f', "fdr threshold values");
         windowOption = addStringOption('i', "window width values");
         peakOption = addStringOption('p', "peak width values");
         clusterRadiusOption = addStringOption('d', "centroid radii");
         thresholdOption = addStringOption('t', "postprocessing threshold values");
 
-
+        // AFA
+        relativeLocationOption = addStringOption('l', "Location Type");
+        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("clustering") || cmd.equals("afa");
+                || cmd.equals("cluster") || cmd.equals("afa");
     }
 
     /**
@@ -106,24 +101,25 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return opt == null ? null : opt.toString();
     }
 
-    public String getCTCFCollapsedOption() {
-        return optionToString(ctcfCollapsedOption);
-    }
-
-    public String getRAD21Option() {
-        return optionToString(rad21Option);
-    }
-
-    public String getSMC3Option() {
-        return optionToString(smc3Option);
-    }
-
-    public String getBEDToolsPathOption() {
-        return optionToString(bedToolsPath);
-    }
-
     public String getRelativeLocationOption() {
         return optionToString(relativeLocationOption);
+    }
+
+    public NormalizationType getNormalizationTypeOption() {
+        return retrieveNormalization(optionToString(normalizationTypeOption));
+    }
+
+    protected NormalizationType retrieveNormalization(String norm) {
+        if (norm == null || norm.length() < 1)
+            return null;
+
+        try {
+            return NormalizationType.valueOf(norm);
+        } catch (IllegalArgumentException error) {
+            System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
+            System.exit(-1);
+        }
+        return null;
     }
 
     /**

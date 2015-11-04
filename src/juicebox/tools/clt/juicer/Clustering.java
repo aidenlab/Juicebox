@@ -46,12 +46,12 @@ public class Clustering extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
 
-    private int resolution;
-    private NormalizationType norm;
+    private int resolution = 1000000;
+    private NormalizationType norm = NormalizationType.KR;
     private String inputFiles, outputPath;
 
     public Clustering() {
-        super("clustering [-r resolution] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file>");
+        super("clustering [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
         HiCGlobals.useCache = false;
     }
 
@@ -60,14 +60,16 @@ public class Clustering extends JuicerCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
         //setUsage("juicebox arrowhead hicFile resolution");
-        if (args.length != 4) {
+        if (args.length != 3) {
             printUsage();
         }
 
-        norm = retrieveNormalization(args[1]);
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        if (preferredNorm != null)
+            norm = preferredNorm;
 
-        inputFiles = args[2];
-        outputPath = args[3];
+        inputFiles = args[1];
+        outputPath = args[2];
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
