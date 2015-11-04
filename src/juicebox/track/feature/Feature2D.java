@@ -40,13 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 
-
 /**
  * @author jrobinso
  * @modified mshamim, mhoeger
- *
+ * <p/>
  * reflection only used for plotting, should not be used by CLTs
- *
  */
 public class Feature2D implements Comparable<Feature2D> {
 
@@ -76,24 +74,12 @@ public class Feature2D implements Comparable<Feature2D> {
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
         this.featureName = featureName;
-
-        if (chr1.equals(chr2) && start1 > start2) {
-            // lower value should be first
-            this.chr2 = chr1;
-            this.start2 = start1;
-            this.end2 = end1;
-            this.chr1 = chr2;
-            this.start1 = start2;
-            this.end1 = end2;
-        } else {
-            this.chr1 = chr1;
-            this.start1 = start1;
-            this.end1 = end1;
-            this.chr2 = chr2;
-            this.start2 = start2;
-            this.end2 = end2;
-        }
-
+        this.chr1 = chr1;
+        this.start1 = start1;
+        this.end1 = end1;
+        this.chr2 = chr2;
+        this.start2 = start2;
+        this.end2 = end2;
         this.color = (c == null ? Color.black : c);
         setTranslucentColor();
         this.attributes = attributes;
