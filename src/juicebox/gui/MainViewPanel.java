@@ -411,7 +411,6 @@ public class MainViewPanel {
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
         mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
-
         mouseHoverTextPanel.setBackground(Color.white);
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
