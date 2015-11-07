@@ -47,25 +47,27 @@ import java.util.Map;
  */
 public class Feature2DParser {
 
-    public static Feature2DList loadFeatures(String path, String genomeID, boolean loadAttributes, FeatureFilter featureFilter) {
-        return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter);
+    public static Feature2DList loadFeatures(String path, String genomeID, boolean loadAttributes,
+                                             FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
+        return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter, useFeature2DWithMotif);
     }
 
-    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes, FeatureFilter featureFilter) {
+    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+                                             FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
         Feature2DList newList;
         if (path.endsWith(".px")) {
             newList = Feature2DParser.parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
         } else if (path.endsWith(".px2")) {
             newList = Feature2DParser.parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
         } else {
-            newList = Feature2DParser.parseLoopFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = Feature2DParser.parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
         }
         return newList;
     }
 
 
-    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
-                                              boolean loadAttributes, FeatureFilter featureFilter) {
+    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+                                               FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
 
         Feature2DList newList = new Feature2DList();
         int attCol = 7;
@@ -147,9 +149,16 @@ public class Feature2DParser {
                     featureName = Feature2D.generic;
                 }
                 // Convention is chr1 is lowest "index". Swap if necessary
-                Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                Feature2D feature;
+                if (useFeature2DWithMotif) {
+                    feature = chr1.getIndex() <= chr2.getIndex() ?
+                            new Feature2DWithMotif(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                            new Feature2DWithMotif(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                } else {
+                    feature = chr1.getIndex() <= chr2.getIndex() ?
+                            new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                            new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                }
 
                 newList.add(chr1.getIndex(), chr2.getIndex(), feature);
 

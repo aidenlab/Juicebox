@@ -181,7 +181,7 @@ public class Feature2DHandler {
             loopLists.get(path).setVisible(true);
             System.out.println("Making " + path + " visible");
         } else {
-            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null);
+            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
             loopLists.put(path, newList);
         }
         remakeRTree();

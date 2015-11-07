@@ -24,17 +24,28 @@
 
 package juicebox.track.anchor;
 
+import juicebox.track.feature.Feature2DWithMotif;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by muhammadsaadshamim on 9/28/15.
  */
 public class MotifAnchor implements Comparable<MotifAnchor> {
 
-    private int x1, x2;
+    // critical components of a motif anchor
     private String chr;
+    private int x1, x2;
 
-    private boolean fimoAttributesHaveBeenInitialized = false;
+    // references to original features if applicable
+    private List<Feature2DWithMotif> originalFeatures1 = new ArrayList<Feature2DWithMotif>();
+    private List<Feature2DWithMotif> originalFeatures2 = new ArrayList<Feature2DWithMotif>();
+
+    // fimo output loaded as attributes
+    private boolean fimoAttributesHaveBeenInitialized = false, strand;
     private double score = 0, pValue, qValue;
-    private String strand, sequence;
+    private String sequence;
 
     /**
      * Inititalize anchor given parameters (e.g. from BED file)
@@ -51,10 +62,25 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
             this.x2 = x2;
         } else {
             // x2 < x1 shouldn't ever happen, but just in case
-            System.err.println("Improperly formatted file");
+            System.err.println("Improperly formatted Motif file");
             //this.x1 = x2;
             //this.x2 = x1;
         }
+    }
+
+    /**
+     * Inititalize anchor given parameters (e.g. from feature list)
+     *
+     * @param chr
+     * @param x1
+     * @param x2
+     * @param originalFeatures1
+     * @param originalFeatures2
+     */
+    public MotifAnchor(String chr, int x1, int x2, List<Feature2DWithMotif> originalFeatures1, List<Feature2DWithMotif> originalFeatures2) {
+        this(chr, x1, x2);
+        this.originalFeatures1.addAll(originalFeatures1);
+        this.originalFeatures2.addAll(originalFeatures2);
     }
 
     /**
@@ -62,7 +88,7 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
      */
     public MotifAnchor deepClone() {
 
-        MotifAnchor clone = new MotifAnchor(chr, x1, x2);
+        MotifAnchor clone = new MotifAnchor(chr, x1, x2, originalFeatures1, originalFeatures2);
 
         if (fimoAttributesHaveBeenInitialized) {
             clone.setFIMOAttributes(score, pValue, qValue, strand, sequence);
@@ -148,6 +174,7 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
         if (chr.equals(anchor.chr)) {
             x1 = Math.min(x1, anchor.x1);
             x2 = Math.max(x2, anchor.x2);
+            addFeatureReferencesFrom(anchor);
         } else {
             System.err.println("Attempted to merge anchors on different chromosomes");
             System.err.println(this + " & " + anchor);
@@ -181,7 +208,7 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
         return chr.compareTo(o.chr);
     }
 
-    public void setFIMOAttributes(double score, double pValue, double qValue, String strand, String sequence) {
+    public void setFIMOAttributes(double score, double pValue, double qValue, boolean strand, String sequence) {
         this.score = score;
         this.pValue = pValue;
         this.qValue = qValue;
@@ -193,5 +220,35 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
 
     public double getScore() {
         return score;
+    }
+
+    public boolean hasFIMOAttributes() {
+        return fimoAttributesHaveBeenInitialized;
+    }
+
+    public void addFIMOAttributesFrom(MotifAnchor anchor) {
+        setFIMOAttributes(anchor.score, anchor.pValue, anchor.qValue, anchor.strand, anchor.sequence);
+    }
+
+    public void addFeatureReferencesFrom(MotifAnchor anchor) {
+        originalFeatures1.addAll(anchor.originalFeatures1);
+        originalFeatures2.addAll(anchor.originalFeatures2);
+    }
+
+    public void updateOriginalMotifs(boolean uniqueStatus) {
+        if (fimoAttributesHaveBeenInitialized && (originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
+            for (Feature2DWithMotif feature : originalFeatures1) {
+                feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true);
+            }
+            for (Feature2DWithMotif feature : originalFeatures2) {
+                feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false);
+            }
+        } else {
+            System.err.println("Attempting to assign motifs on incomplete anchor");
+        }
+    }
+
+    private void addMotifsToOriginalFeatures(List<Feature2DWithMotif> originalFeatures) {
+
     }
 }

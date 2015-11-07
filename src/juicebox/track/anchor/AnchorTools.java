@@ -71,7 +71,8 @@ public class AnchorTools {
      * @param bottomAnchors
      * @return intersection of two anchor lists
      */
-    public static List<MotifAnchor> intersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors) {
+    public static List<MotifAnchor> intersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors,
+                                              boolean conductFullIntersection) {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
@@ -85,12 +86,12 @@ public class AnchorTools {
         while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
             MotifAnchor topAnchor = topAnchors.get(topIndex);
             MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
-            if (topAnchor.hasOverlapWith(bottomAnchor)) {
+            if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
                 // iterate over all possible intersections with top element
                 for (int i = bottomIndex; i < maxBottomIndex; i++) {
                     MotifAnchor newAnchor = bottomAnchors.get(i);
-                    if (topAnchor.hasOverlapWith(newAnchor)) {
-                        intersected.add(intersection(topAnchor, newAnchor));
+                    if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
+                        intersected.add(intersection(topAnchor, newAnchor, conductFullIntersection));
                     } else {
                         break;
                     }
@@ -100,8 +101,8 @@ public class AnchorTools {
                 // start from +1 because +0 checked in the for loop above
                 for (int i = topIndex + 1; i < maxTopIndex; i++) {
                     MotifAnchor newAnchor = topAnchors.get(i);
-                    if (bottomAnchor.hasOverlapWith(newAnchor)) {
-                        intersected.add(intersection(bottomAnchor, newAnchor));
+                    if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
+                        intersected.add(intersection(bottomAnchor, newAnchor, conductFullIntersection));
                     } else {
                         break;
                     }
@@ -128,10 +129,24 @@ public class AnchorTools {
      * @param anchor2
      * @return intersection of anchor1 and anchor2
      */
-    private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2) {
+    private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
         if (anchor1.getChr().equals(anchor2.getChr())) {
-            return new MotifAnchor(anchor1.getChr(), Math.max(anchor1.getX1(), anchor2.getX1()),
+            MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), Math.max(anchor1.getX1(), anchor2.getX1()),
                     Math.min(anchor1.getX2(), anchor2.getX2()));
+
+            // if all secondary attributes are also to be copied
+            if (conductFullIntersection) {
+                if (anchor1.hasFIMOAttributes()) {
+                    intersectedMotif.addFIMOAttributesFrom(anchor1);
+                } else if (anchor2.hasFIMOAttributes()) {
+                    intersectedMotif.addFIMOAttributesFrom(anchor2);
+                }
+
+                intersectedMotif.addFeatureReferencesFrom(anchor1);
+                intersectedMotif.addFeatureReferencesFrom(anchor2);
+            }
+
+            return intersectedMotif;
         } else {
             System.err.println("Error calculating intersection of anchors");
             System.err.println(anchor1 + " & " + anchor2);
@@ -140,9 +155,9 @@ public class AnchorTools {
     }
 
     /**
-     * Guarantees that all anchors have minimum width of 15000
+     * Guarantees that all anchors have minimum width of gapThreshold
      * PreProcessing step for anchors in MotifFinder code
-     * equivalent to:
+     * derived from:
      * (awk on BED file) ... if($3-$2<15000){d=15000-($3-$2); print $1 \"\\t\" $2-int(d/2) \"\\t\" $3+int(d/2)
      *
      * @param anchors

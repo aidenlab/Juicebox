@@ -28,6 +28,7 @@ package juicebox.track.anchor;
 import juicebox.data.HiCFileTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DWithMotif;
 import juicebox.track.feature.FeatureFunction;
 import org.broad.igv.feature.Chromosome;
 
@@ -86,7 +87,7 @@ public class AnchorList {
      * @param features
      * @return anchor list from features (i.e. split anchor1 and anchor2)
      */
-    public static AnchorList extractAnchorsFromFeatures(Feature2DList features) {
+    public static AnchorList extractAnchorsFromFeatures(Feature2DList features, final boolean onlyUninitializedFeatures) {
 
         final AnchorList extractedAnchorList = new AnchorList();
 
@@ -95,9 +96,10 @@ public class AnchorList {
             public void process(String chr, List<Feature2D> feature2DList) {
                 List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
                 for (Feature2D f : feature2DList) {
-                    anchors.addAll(f.getAnchors());
+                    anchors.addAll(((Feature2DWithMotif) f).getAnchors(onlyUninitializedFeatures));
                 }
-                extractedAnchorList.anchorLists.put(chr, anchors);
+                String newKey = chr.split("_")[0];
+                extractedAnchorList.anchorLists.put(newKey, anchors);
             }
         });
 
@@ -159,11 +161,11 @@ public class AnchorList {
     /**
      * Merge anchors which have overlap
      */
-    public void intersectWith(final AnchorList secondList) {
+    public void intersectWith(final AnchorList secondList, final boolean conductFullIntersection) {
         filterLists(new AnchorFilter() {
             @Override
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
-                return AnchorTools.intersect(anchorList, secondList.getAnchors(chr));
+                return AnchorTools.intersect(anchorList, secondList.getAnchors(chr), conductFullIntersection);
             }
         });
     }
@@ -176,6 +178,17 @@ public class AnchorList {
             @Override
             public void process(String chr, List<MotifAnchor> anchorList) {
                 AnchorTools.expandSmallAnchors(anchorList, threshold);
+            }
+        });
+    }
+
+    public void updateOriginalMotifs(final boolean uniqueStatus) {
+        processLists(new AnchorFunction() {
+            @Override
+            public void process(String chr, List<MotifAnchor> anchorList) {
+                for (MotifAnchor motifAnchor : anchorList) {
+                    motifAnchor.updateOriginalMotifs(uniqueStatus);
+                }
             }
         });
     }
@@ -201,5 +214,17 @@ public class AnchorList {
             clonedMotifs.add(anchor.deepClone());
         }
         return clonedMotifs;
+    }
+
+    /**
+     * @return total number of anchors
+     */
+    public int size() {
+        int size = 0;
+        for (List<MotifAnchor> anchors : anchorLists.values()) {
+            size += anchors.size();
+
+        }
+        return size;
     }
 }

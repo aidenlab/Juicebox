@@ -138,7 +138,8 @@ public class AnchorParser {
                 System.exit(-5);
             }
 
-            String chr1Name, sequence, strand;
+            boolean strand;
+            String chr1Name, sequence;
             int start1, end1;
             double score, pValue, qValue;
 
@@ -156,7 +157,7 @@ public class AnchorParser {
                     end1 = Integer.parseInt(tokens[3]);
                 }
 
-                strand = tokens[4];
+                strand = tokens[4].contains("+");
                 score = Double.parseDouble(tokens[5]);
                 pValue = Double.parseDouble(tokens[6]);
                 qValue = Double.parseDouble(tokens[7]);
@@ -167,7 +168,7 @@ public class AnchorParser {
                     if (errorCount < 10) {
                         System.out.println("Skipping line: " + nextLine);
                     } else if (errorCount == 10) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;
@@ -226,7 +227,7 @@ public class AnchorParser {
                     if (errorCount < 10) {
                         System.out.println("Skipping line: " + nextLine);
                     } else if (errorCount == 10) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;

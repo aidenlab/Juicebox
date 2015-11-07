@@ -139,7 +139,16 @@ class AggregateProcessing {
         String[] ll51 = {"dump", "observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic",
                 "chr18", "chr18", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/chr18"};
 
-        HiCTools.main(l53);
+
+        String[] ll51231 = {"motifs",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/bed/CTCF_ENCFF001SUB.bed,/Users/muhammadsaadshamim/Desktop/atlantis/bed/RAD21_ENCFF001TYQ.bed",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/bed/CTCF_ENCFF001SUB.bed",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/chr10_test/hg19_chr10.txt",
+                "/Users/muhammadsaadshamim/Desktop/atlantis/chr10_test/chr10_loops.txt"};
+
+
+        HiCTools.main(ll51231);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

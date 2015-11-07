@@ -185,7 +185,7 @@ public class AFA extends JuicerCLT {
 
                                 return filteredUniqueFeatures;
                             }
-                        });
+                        }, false);
 
                 for (Chromosome chr : chromosomes) {
                     APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution + "_" + attribute).replace("/", "_"));

@@ -173,8 +173,8 @@ public class Arrowhead extends JuicerCLT {
         Feature2DList inputList = new Feature2DList();
         Feature2DList inputControl = new Feature2DList();
         if (controlAndListProvided) {
-            inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null));
-            inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null));
+            inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null, false));
+            inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null, false));
         }
 
         PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
@@ -215,8 +215,8 @@ public class Arrowhead extends JuicerCLT {
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false, false);
-        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, false);
-        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, false);
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
+        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
+        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
     }
 }

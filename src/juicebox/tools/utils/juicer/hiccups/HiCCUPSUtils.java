@@ -127,7 +127,8 @@ public class HiCCUPSUtils {
     }
 
     public static String oldOutput(Feature2D feature) {
-        return feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getChr2() + "\t" + feature.getStart2() + "\t" +
+        return feature.getChr1() + "\t" + feature.getStart1() + "\t" +
+                feature.getChr2() + "\t" + feature.getStart2() + "\t" +
                 feature.getAttribute(OBSERVED)
                 + "\t" + feature.getAttribute(EXPECTEDBL)
                 + "\t" + feature.getAttribute(EXPECTEDDONUT)
@@ -520,7 +521,7 @@ public class HiCCUPSUtils {
         }
 
         Feature2DList finalList = mergeAllResolutions(looplists);
-        finalList.exportFeatureList(writer, false, false);
+        finalList.exportFeatureList(writer, false);
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,

@@ -421,7 +421,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, false);
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true);
             if (outputFDR != null) {
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);

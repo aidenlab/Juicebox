@@ -155,10 +155,10 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsOutput, boolean includeMotifs) {
+    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, useOldHiccupsOutput, includeMotifs);
+            return exportFeatureList(outputFile, useOldHiccupsFormat);
         }
         return -1;
     }
@@ -168,45 +168,32 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsOutput, final boolean includeMotifs) {
+    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {
-                if (includeMotifs) {
-                    outputFile.println(featureZero.getOutputFileHeaderWithMotifs());
+                outputFile.println(featureZero.getOutputFileHeader());
+                if (useOldHiccupsFormat) {
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             for (Feature2D feature : feature2DList) {
-                                outputFile.println(feature.toStringWithMotif());
+                                outputFile.println(HiCCUPSUtils.oldOutput(feature));
                             }
                         }
                     });
+
                 } else {
-                    outputFile.println(featureZero.getOutputFileHeader());
-                    if (useOldHiccupsOutput) {
-                        processLists(new FeatureFunction() {
-                            @Override
-                            public void process(String chr, List<Feature2D> feature2DList) {
-                                for (Feature2D feature : feature2DList) {
-                                    outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                                }
+                    processLists(new FeatureFunction() {
+                        @Override
+                        public void process(String chr, List<Feature2D> feature2DList) {
+                            for (Feature2D feature : feature2DList) {
+                                outputFile.println(feature);
                             }
-                        });
-
-                    } else {
-                        processLists(new FeatureFunction() {
-                            @Override
-                            public void process(String chr, List<Feature2D> feature2DList) {
-                                for (Feature2D feature : feature2DList) {
-                                    outputFile.println(feature);
-                                }
-                            }
-                        });
-                    }
+                        }
+                    });
                 }
-
             }
             outputFile.close();
 

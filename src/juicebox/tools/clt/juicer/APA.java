@@ -162,7 +162,7 @@ public class APA extends JuicerCLT {
 
                             return filteredUniqueFeatures;
                         }
-                    });
+                    }, false);
 
             if (loopList.getNumTotalFeatures() > 0) {
 
