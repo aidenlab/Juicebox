@@ -214,7 +214,7 @@ public class MainMenuBar {
                 mainPanel.add(textPanel);
                 mainPanel.add(iconPanel, BorderLayout.WEST);
 
-                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
             }
         });
         fileMenu.add(creditsMenu);
@@ -280,11 +280,13 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
+        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
         // TODO hotkey?
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
+        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
 
         final JButton updateSparseOptions = new JButton("Update");
         updateSparseOptions.addActionListener(new ActionListener() {
@@ -295,12 +297,14 @@ public class MainMenuBar {
                 }
             }
         });
+        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
         JPanel sparseOptions = new JPanel();
         sparseOptions.setLayout(new GridLayout(0, 2));
         sparseOptions.add(numSparse);
         sparseOptions.add(updateSparseOptions);
         sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
+        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
 
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
@@ -327,9 +331,9 @@ public class MainMenuBar {
 
         feature2DPlottingOptions.add(showLoopsItem);
         feature2DPlottingOptions.add(enlarge2DFeatures);
+        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
         feature2DPlottingOptions.add(sparseOptions);
-        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
