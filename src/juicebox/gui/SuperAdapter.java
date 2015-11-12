@@ -322,9 +322,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.setZoom(initialZoom, 0, 0);
-        mainViewPanel.updateZoom(initialZoom);
-
+        hic.actuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
     }
 
     public void refresh() {
@@ -587,6 +585,10 @@ public class SuperAdapter {
 
     public void updateZoom(HiCZoom newZoom) {
         mainViewPanel.updateZoom(newZoom);
+    }
+
+    public void updateAndResetZoom(HiCZoom newZoom) {
+        mainViewPanel.updateAndResetZoom(newZoom);
     }
 
     public void launchFileLoadingError(String urlString) {

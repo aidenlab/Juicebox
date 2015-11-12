@@ -72,7 +72,7 @@ public class HiC {
     private List<Chromosome> chromosomes;
     private Dataset dataset;
     private Dataset controlDataset;
-    private HiCZoom zoom;
+    private HiCZoom currentZoom;
     //private MatrixZoomData matrixForReloadState;
     private Context xContext;
     private Context yContext;
@@ -223,31 +223,31 @@ public class HiC {
     }
 
     public HiCZoom getZoom() {
-        return zoom;
+        return currentZoom;
     }
 
     public MatrixZoomData getZd() throws UninitializedObjectException {
         Matrix matrix = getMatrix();
         if (matrix == null) {
             throw new UninitializedObjectException("Uninitialized matrix");
-        } else if (zoom == null) {
+        } else if (currentZoom == null) {
             throw new UninitializedObjectException("Uninitialized zoom");
         } else {
-            return matrix.getZoomData(zoom);
+            return matrix.getZoomData(currentZoom);
         }
     }
 
     public MatrixZoomData getControlZd() {
         Matrix matrix = getControlMatrix();
-        if (matrix == null || zoom == null) {
+        if (matrix == null || currentZoom == null) {
             return null;
         } else {
-            return matrix.getZoomData(zoom);
+            return matrix.getZoomData(currentZoom);
         }
     }
 
     public Matrix getControlMatrix() {
-        if (controlDataset == null || xContext == null || zoom == null) return null;
+        if (controlDataset == null || xContext == null || currentZoom == null) return null;
         return controlDataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
     }
 
@@ -339,68 +339,6 @@ public class HiC {
         this.chromosomes = chromosomes;
     }
 
-    /**
-     * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
-     * heatmap panel.
-     */
-    public boolean setZoom(HiCZoom newZoom, final double centerGenomeX, final double centerGenomeY) {
-
-        if (dataset == null) return false;
-
-        final Chromosome chrX = xContext.getChromosome();
-        final Chromosome chrY = yContext.getChromosome();
-
-        // Verify that all datasets have this zoom level
-
-        Matrix matrix = dataset.getMatrix(chrX, chrY);
-        if (matrix == null) return false;
-
-        MatrixZoomData newZD;
-        if (chrX.getName().equals("All")) {
-            newZD = matrix.getFirstZoomData(Unit.BP);
-        } else {
-            newZD = matrix.getZoomData(newZoom);
-        }
-        if (newZD == null) {
-            superAdapter.launchGenericMessageDialog("Sorry, this zoom is not available", "Zoom unavailable",
-                    JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        // Assumption is all datasets share the same grid axis
-        HiCGridAxis xGridAxis = newZD.getXGridAxis();
-        HiCGridAxis yGridAxis = newZD.getYGridAxis();
-
-        zoom = newZoom;
-
-        xContext.setZoom(zoom);
-        yContext.setZoom(zoom);
-
-        int xBinCount = xGridAxis.getBinCount();
-        int yBinCount = yGridAxis.getBinCount();
-        int maxBinCount = Math.max(xBinCount, yBinCount);
-
-        double scalefactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
-
-        setScaleFactor(scalefactor);
-
-        //Point binPosition = zd.getBinPosition(genomePositionX, genomePositionY);
-        int binX = xGridAxis.getBinNumberForGenomicPosition((int) centerGenomeX);
-        int binY = yGridAxis.getBinNumberForGenomicPosition((int) centerGenomeY);
-
-        center(binX, binY);
-
-        //Notify Heatmap panel render that the zoom has been changed. In that case,
-        //Render should update zoom slider (only once) with previous map range values
-        setZoomChanged();
-
-        if (linkedMode) {
-            broadcastLocation();
-        }
-
-        return true;
-    }
-
     private void setZoomChanged() {
         m_zoomChanged = true;
     }
@@ -414,66 +352,12 @@ public class HiC {
         return false;
     }
 
-    // Called from alt-drag
-    public void zoomTo(final int xBP0, final int yBP0, double targetBinSize) {
 
-
-        if (dataset == null) return;  // No data in view
-
-
-        final Chromosome chr1 = xContext.getChromosome();
-        final Chromosome chr2 = yContext.getChromosome();
-        final Matrix matrix = dataset.getMatrix(chr1, chr2);
-
-
-        HiC.Unit unit = zoom.getUnit();
-
-        // Find the new resolution,
-        HiCZoom newZoom = zoom;
-        if (!superAdapter.isResolutionLocked()) {
-            List<HiCZoom> zoomList = unit == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
-            zoomList.get(zoomList.size() - 1);   // Highest zoom level by default
-            for (int i = zoomList.size() - 1; i >= 0; i--) {
-                if (zoomList.get(i).getBinSize() > targetBinSize) {
-                    newZoom = zoomList.get(i);
-                    break;
-                }
-            }
-        }
-
-        final MatrixZoomData newZD = matrix.getZoomData(newZoom);
-
-        int binX0 = newZD.getXGridAxis().getBinNumberForGenomicPosition(xBP0);
-        int binY0 = newZD.getYGridAxis().getBinNumberForGenomicPosition(yBP0);
-
-        final double scaleFactor = newZD.getBinSize() / targetBinSize;
-
-        zoom = newZD.getZoom();
-
-
-        superAdapter.updateZoom(zoom);
-
-        setScaleFactor(scaleFactor);
-
-        xContext.setBinOrigin(binX0);
-        yContext.setBinOrigin(binY0);
-
-
-        if (linkedMode) {
-            broadcastLocation();
-        }
-
-//        try {
-//            mainWindow.refresh();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-    }
 
     public void centerFragment(int fragmentX, int fragmentY) {
-        if (zoom != null) {
+        if (currentZoom != null) {
 
-            MatrixZoomData zd = getMatrix().getZoomData(zoom);
+            MatrixZoomData zd = getMatrix().getZoomData(currentZoom);
             HiCGridAxis xAxis = zd.getXGridAxis();
             HiCGridAxis yAxis = zd.getYGridAxis();
             int binX;
@@ -491,8 +375,8 @@ public class HiC {
     }
 
     public void centerBP(int bpX, int bpY) {
-        if (zoom != null && getMatrix() != null) {
-            MatrixZoomData zd = getMatrix().getZoomData(zoom);
+        if (currentZoom != null && getMatrix() != null) {
+            MatrixZoomData zd = getMatrix().getZoomData(currentZoom);
             HiCGridAxis xAxis = zd.getXGridAxis();
             HiCGridAxis yAxis = zd.getYGridAxis();
 
@@ -605,18 +489,18 @@ public class HiC {
         if (dataset == null) return null;
 
         Chromosome chr = chromosomes.get(chrIdx);
-        return dataset.getEigenvector(chr, zoom, n, normalizationType);
+        return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
 
     }
 
     public ExpectedValueFunction getExpectedValues() {
         if (dataset == null) return null;
-        return dataset.getExpectedValues(zoom, normalizationType);
+        return dataset.getExpectedValues(currentZoom, normalizationType);
     }
 
     public NormalizationVector getNormalizationVector(int chrIdx) {
         if (dataset == null) return null;
-        return dataset.getNormalizationVector(chrIdx, zoom, normalizationType);
+        return dataset.getNormalizationVector(chrIdx, currentZoom, normalizationType);
     }
 
     // Note - this is an inefficient method, used to support tooltip text only.
@@ -631,24 +515,127 @@ public class HiC {
         return val;
     }
 
-
+    /**
+     * Called from alt-drag zoom
+     *
+     * @param xBP0
+     * @param yBP0
+     * @param targetBinSize
+     */
+    public void zoomToDrawnBox(final int xBP0, final int yBP0, double targetBinSize) {
+        HiCZoom newZoom = currentZoom;
+        if (!superAdapter.isResolutionLocked()) {
+            List<HiCZoom> zoomList = currentZoom.getUnit() == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
+            for (int i = zoomList.size() - 1; i >= 0; i--) {
+                if (zoomList.get(i).getBinSize() > targetBinSize) {
+                    newZoom = zoomList.get(i);
+                    break;
+                }
+            }
+        }
+        actuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false, ZoomCallType.DRAG);
+    }
 
     /**
-     * Change zoom level and recenter.  Triggered by the resolutionSlider, or by a double-click in the
-     * heatmap panel.
+     * Triggered by syncs, goto, and load state.
      */
     //reloading the previous location
-    public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scalefactor) {
+    public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scaleFactor) {
+        setChromosomesFromBroadcast(chrXName, chrYName);
+        HiCZoom newZoom = currentZoom;
+        if (currentZoom.getBinSize() != binSize) {
+            newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+        }
+        actuallySetZoomAndLocation(newZoom, (int) xOrigin, (int) yOrigin, scaleFactor, true, ZoomCallType.GOTO);
+    }
 
+    /**
+     * *************************************************************
+     * Official Method for setting the zoom and location for heatmap
+     * DO NOT IMPLEMENT A NEW FUNCTION
+     * Make the necessary customizations, then call this function
+     * *************************************************************
+     *
+     * @param newZoom
+     * @param genomeX
+     * @param genomeY
+     * @param scaleFactor (pass -1 if scaleFactor should be calculated)
+     * @return
+     */
+    public boolean actuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                              boolean resetZoom, ZoomCallType zoomCallType) {
+
+        if (dataset == null) return false;  // No data in view
+
+        if (newZoom == null) {
+            System.err.println("Invalid zoom " + newZoom);
+        }
+
+        final Chromosome chr1 = xContext.getChromosome();
+        final Chromosome chr2 = yContext.getChromosome();
+        final Matrix matrix = dataset.getMatrix(chr1, chr2);
+
+        MatrixZoomData newZD = matrix.getZoomData(newZoom);
+        if (chr1.getName().equals("All")) {
+            newZD = matrix.getFirstZoomData(Unit.BP);
+        }
+
+        if (newZD == null) {
+            superAdapter.launchGenericMessageDialog("Sorry, this zoom is not available", "Zoom unavailable",
+                    JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
+        currentZoom = newZoom;
+        xContext.setZoom(currentZoom);
+        yContext.setZoom(currentZoom);
+
+        if (scaleFactor > 0) {
+            setScaleFactor(scaleFactor);
+        } else {
+            int maxBinCount = Math.max(newZD.getXGridAxis().getBinCount(), newZD.getYGridAxis().getBinCount());
+            double defaultScaleFactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
+            setScaleFactor(defaultScaleFactor);
+        }
+
+        int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition(genomeX);
+        int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition(genomeY);
+        switch (zoomCallType) {
+            case STANDARD:
+                center(binX, binY);
+                break;
+            case DRAG:
+                xContext.setBinOrigin(binX);
+                yContext.setBinOrigin(binY);
+                break;
+            case GOTO:
+                xContext.setBinOrigin(genomeX);
+                yContext.setBinOrigin(genomeY);
+                break;
+        }
+
+        // Notify HeatmapPanel render that zoom has changed. Render should update zoom slider once with previous range values
+        setZoomChanged();
+        if (resetZoom) {
+            superAdapter.updateAndResetZoom(newZoom);
+        } else {
+            superAdapter.updateZoom(newZoom);
+        }
+        superAdapter.refresh();
+
+        if (linkedMode) {
+            broadcastLocation();
+        }
+        return true;
+    }
+
+    private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
-
             Chromosome chrX = HiCFileTools.getChromosomeNamed(chrXName, chromosomes);
             Chromosome chrY = HiCFileTools.getChromosomeNamed(chrYName, chromosomes);
 
             if (chrX == null || chrY == null) {
-                //Chromosomes do not appear to exist in current map.
-                log.info("Chromosome(s) not found.");
-                log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
+                //log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
                 return;
             }
 
@@ -659,29 +646,6 @@ public class HiC {
                 eigenvectorTrack.forceRefresh();
             }
         }
-
-        // if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null))
-        if (zoom.getBinSize() != binSize) {
-            HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-            zoom = newZoom;
-            xContext.setZoom(zoom);
-            yContext.setZoom(zoom);
-            setZoom(newZoom, xOrigin, yOrigin);
-            superAdapter.updateZoom(newZoom);
-        } else {
-            setZoom(zoom, xOrigin, yOrigin);
-        }
-
-        setScaleFactor(scalefactor);
-        xContext.setBinOrigin(xOrigin);
-        yContext.setBinOrigin(yOrigin);
-
-        try {
-            superAdapter.refresh();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     public void broadcastLocation() {
@@ -696,7 +660,7 @@ public class HiC {
         if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
         if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
-        return "setstate " + xChr + " " + yChr + " " + zoom.getUnit().toString() + " " + zoom.getBinSize() + " " +
+        return "setstate " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
     }
 
@@ -708,10 +672,9 @@ public class HiC {
         if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
         if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
-        return xChr + "@" + (long) (xContext.getBinOrigin() * zoom.getBinSize()) + "_" +
-                yChr + "@" + (long) (yContext.getBinOrigin() * zoom.getBinSize());
+        return xChr + "@" + (long) (xContext.getBinOrigin() * currentZoom.getBinSize()) + "_" +
+                yChr + "@" + (long) (yContext.getBinOrigin() * currentZoom.getBinSize());
     }
-
 
     public void restoreLocation(String cmd) {
         CommandExecutor cmdExe = new CommandExecutor(this);
@@ -828,6 +791,8 @@ public class HiC {
 
         feature2DHandler.removeFeaturePath(path);
     }
+
+    public enum ZoomCallType {STANDARD, DRAG, GOTO}
 
     public enum Unit {BP, FRAG}
 }

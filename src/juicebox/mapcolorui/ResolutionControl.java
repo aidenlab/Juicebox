@@ -41,10 +41,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ResolutionControl extends JPanel {
     private static final long serialVersionUID = -5982918928089196379L;
@@ -54,7 +55,7 @@ public class ResolutionControl extends JPanel {
     private final HeatmapPanel heatmapPanel;
     private final JideButton lockButton;
     private final JLabel resolutionLabel;
-    private final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
+    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>(); // TODO concurrentmodificationmap?
     private final Map<Integer, String> bpLabelMap;
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
@@ -93,7 +94,7 @@ public class ResolutionControl extends JPanel {
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
-        /* TODO not working
+        // TODO not working
         // supposed to underline "resolution text" but why? is this an important gui issue?
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
             private Font original;
@@ -101,22 +102,22 @@ public class ResolutionControl extends JPanel {
             @SuppressWarnings({"unchecked", "rawtypes"})
             @Override
             public void mouseEntered(MouseEvent e) {
-                //if (resolutionSlider.isEnabled()) {
+                original = e.getComponent().getFont();
+                if (resolutionSlider.isEnabled()) {
                     original = e.getComponent().getFont();
                     Map attributes = original.getAttributes();
                     attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
                     e.getComponent().setFont(original.deriveFont(attributes));
-                //}
+                }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                //if (resolutionSlider.isEnabled())
                 e.getComponent().setFont(original);
             }
 
         });
-        */
+
 
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
 
@@ -227,17 +228,16 @@ public class ResolutionControl extends JPanel {
                     final int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
 
                     if (zd == null) {
-                        hic.setZoom(zoom, 0, 0);
+                        hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
                     } else {
 
-                        if (hic.setZoom(zoom, xGenome, yGenome)) {
+                        if (hic.actuallySetZoomAndLocation(zoom, xGenome, yGenome, -1, true, HiC.ZoomCallType.STANDARD)) {
                             lastValue = resolutionSlider.getValue();
                         } else {
                             resolutionSlider.setValue(lastValue);
                         }
                     }
                 }
-
             }
 
         });
@@ -300,7 +300,6 @@ public class ResolutionControl extends JPanel {
         int newIdx = Math.min(currentIdx, maxIdx);
         HiCZoom newZoom = idxZoomMap.get(newIdx);
         setZoom(newZoom);
-
     }
 
 

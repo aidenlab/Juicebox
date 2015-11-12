@@ -467,6 +467,10 @@ public class MainViewPanel {
 
     public void updateZoom(HiCZoom newZoom) {
         resolutionSlider.setZoom(newZoom);
+    }
+
+    public void updateAndResetZoom(HiCZoom newZoom) {
+        resolutionSlider.setZoom(newZoom);
         resolutionSlider.reset();
     }
 

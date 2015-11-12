@@ -1198,7 +1198,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 double newYBinSize = hBins * currentZD.getBinSize() / getHeight();
                 double newBinSize = Math.max(newXBinSize, newYBinSize);
 
-                hic.zoomTo(xBP0, yBP0, newBinSize);
+                hic.zoomToDrawnBox(xBP0, yBP0, newBinSize);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1379,11 +1379,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.setZoom(newZoom, xGenome, yGenome);
+                hic.actuallySetZoomAndLocation(newZoom, xGenome, yGenome, -1, false, HiC.ZoomCallType.STANDARD);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            superAdapter.updateZoom(newZoom);
         }
 
         private void safeMouseClicked(final MouseEvent eF) {
