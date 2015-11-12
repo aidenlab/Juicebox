@@ -242,11 +242,12 @@ public class Feature2DParser {
                 }
 
 
-                Color c = Color.black;
+                Color c = tokens.length > 4 ? ColorUtilities.stringToColor(tokens[4].trim()) : Color.black;
+
 
                 Map<String, String> attrs = new LinkedHashMap<String, String>();
                 if (loadAttributes) {
-                    for (int i = attCol; i < tokens.length; i++) {
+                    for (int i = attCol + 1; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
                     }
                 }
