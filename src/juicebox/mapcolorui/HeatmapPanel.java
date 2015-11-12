@@ -724,14 +724,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi7);
             menu.add(mi8);
 
-            menu.addSeparator();
+            boolean menuSeparatorNotAdded = true;
+
             if (highlightedFeature != null) {
+                menu.addSeparator();
+                menuSeparatorNotAdded = false;
                 mi86Toggle.setSelected(showFeatureHighlight);
                 menu.add(mi86Toggle);
             }
 
             if (mostRecentRectFeaturePair != null) {//mouseIsOverFeature
                 featureOptionMenuEnabled = true;
+                if (menuSeparatorNotAdded) {
+                    menu.addSeparator();
+                }
 
                 if (highlightedFeature != null) {
                     if (mostRecentRectFeaturePair.getSecond() != highlightedFeature) {
