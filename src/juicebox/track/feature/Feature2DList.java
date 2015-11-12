@@ -37,8 +37,7 @@ import java.util.List;
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
  * Visibility depends on user selection.
  *
- * @author Neva Durand
- * @modified Muhammad Shamim, Marie Hoeger
+ * @author Neva Durand, Muhammad Shamim, Marie Hoeger
  */
 public class Feature2DList {
 

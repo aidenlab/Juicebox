@@ -39,8 +39,7 @@ import java.util.Map;
 
 
 /**
- * @author jrobinso
- * @modified mshamim, mhoeger
+ * @author jrobinso, mshamim, mhoeger
  * <p/>
  * reflection only used for plotting, should not be used by CLTs
  */

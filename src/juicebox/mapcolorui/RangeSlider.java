@@ -36,9 +36,7 @@ import java.io.Serializable;
  * supports an inner range defined by a value and an extent.  The upper value
  * returned by RangeSlider is simply the lower value plus the extent.</p>
  *
- * @author Ernest Yu
- * @modified Jim Robinson
- * @modified Muhammad S Shamim
+ * @author Ernest Yu, Jim Robinson, Muhammad S Shamim
  */
 class RangeSlider extends JSlider implements Serializable {
 
