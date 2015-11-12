@@ -661,12 +661,16 @@ public class HiC {
         }
 
         // if (!newZoom.equals(zoom) || (xContext.getZoom() == null) || (yContext.getZoom() == null))
-        HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
-        zoom = newZoom;
-        xContext.setZoom(zoom);
-        yContext.setZoom(zoom);
-        setZoom(newZoom, xOrigin, yOrigin);
-        superAdapter.updateZoom(newZoom);
+        if (zoom.getBinSize() != binSize) {
+            HiCZoom newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+            zoom = newZoom;
+            xContext.setZoom(zoom);
+            yContext.setZoom(zoom);
+            setZoom(newZoom, xOrigin, yOrigin);
+            superAdapter.updateZoom(newZoom);
+        } else {
+            setZoom(zoom, xOrigin, yOrigin);
+        }
 
         setScaleFactor(scalefactor);
         xContext.setBinOrigin(xOrigin);
