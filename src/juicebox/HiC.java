@@ -36,6 +36,7 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
+import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
@@ -106,7 +107,7 @@ public class HiC {
         clearFeatures();
     }
 
-    // TODO zgire - why iterate through trackstoremove if you end up calling clearFeatures() ?
+    // TODO zgire - why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
@@ -149,6 +150,10 @@ public class HiC {
         if (eigenvectorTrack != null) {
             eigenvectorTrack.forceRefresh();
         }
+    }
+
+    public LoadEncodeAction getEncodeAction() {
+        return encodeAction;
     }*/
 
     public ResourceTree getResourceTree() {
@@ -158,11 +163,6 @@ public class HiC {
     public void setResourceTree(ResourceTree rTree) {
         resourceTree = rTree;
     }
-
-    // todo, delete?
-    /*public LoadEncodeAction getEncodeAction() {
-        return encodeAction;
-    }*/
 
     public void setEncodeAction(LoadEncodeAction eAction) {
         encodeAction = eAction;
@@ -226,16 +226,12 @@ public class HiC {
         return zoom;
     }
 
-    public MatrixZoomData getZd() {
+    public MatrixZoomData getZd() throws UninitializedObjectException {
         Matrix matrix = getMatrix();
-        // TODO - every function which calls this needs to check for null values
-        // maybe throw an Exception to force this check
         if (matrix == null) {
-            //System.err.println("Matrix is null");
-            return null;
+            throw new UninitializedObjectException("Uninitialized matrix");
         } else if (zoom == null) {
-            //System.err.println("Zoom is null");
-            return null;
+            throw new UninitializedObjectException("Uninitialized zoom");
         } else {
             return matrix.getZoomData(zoom);
         }
@@ -542,25 +538,25 @@ public class HiC {
      * @param newBinY new location Y
      */
     private void moveTo(double newBinX, double newBinY) {
-        MatrixZoomData zd = getZd();
+        try {
+            MatrixZoomData zd = getZd();
 
-        final double wBins = (superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
-        double maxX = zd.getXGridAxis().getBinCount() - wBins;
+            final double wBins = (superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
+            double maxX = zd.getXGridAxis().getBinCount() - wBins;
 
-        final double hBins = (superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
-        double maxY = zd.getYGridAxis().getBinCount() - hBins;
+            final double hBins = (superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
+            double maxY = zd.getYGridAxis().getBinCount() - hBins;
 
-        double x = Math.max(0, Math.min(maxX, newBinX));
-        double y = Math.max(0, Math.min(maxY, newBinY));
+            double x = Math.max(0, Math.min(maxX, newBinX));
+            double y = Math.max(0, Math.min(maxY, newBinY));
 
-        xContext.setBinOrigin(x);
-        yContext.setBinOrigin(y);
+            xContext.setBinOrigin(x);
+            yContext.setBinOrigin(y);
 
-//        String locus1 = "chr" + (xContext.getChromosome().getName()) + ":" + x + "-" + (int) (x + bpWidthX);
-//        String locus2 = "chr" + (yContext.getChromosome().getName()) + ":" + x + "-" + (int) (y + bpWidthY);
-//        IGVUtils.sendToIGV(locus1, locus2);
-
-        superAdapter.repaint();
+            superAdapter.repaint();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (linkedMode) {
             broadcastLocation();
@@ -625,9 +621,14 @@ public class HiC {
 
     // Note - this is an inefficient method, used to support tooltip text only.
     public float getNormalizedObservedValue(int binX, int binY) {
+        float val = Float.NaN;
+        try {
+            val = getZd().getObservedValue(binX, binY, normalizationType);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        return getZd().getObservedValue(binX, binY, normalizationType);
-
+        return val;
     }
 
 

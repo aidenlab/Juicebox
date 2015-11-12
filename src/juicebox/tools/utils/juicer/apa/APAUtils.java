@@ -144,8 +144,6 @@ public class APAUtils {
         return matrix;
     }
 
-
-
     /**
      * Size filtering of loops
      *

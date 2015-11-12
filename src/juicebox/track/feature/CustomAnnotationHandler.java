@@ -167,30 +167,28 @@ public class CustomAnnotationHandler {
                     int tempBinX0 = getXBin(hic, selectionPoint.x);
                     int tempBinY0 = getYBin(hic, selectionPoint.y);
                     int tempBinX, tempBinY;
-                    final MatrixZoomData zd = hic.getZd();
+                    try {
+                        final MatrixZoomData zd = hic.getZd();
 
-                    float totObserved = 0;
-                    float totExpected = 0;
-                    int count = 0;
-                    float observedValue;
+                        float observedValue;
 
-                    for (int i = -1 * peakDisplacement; i <= peakDisplacement; i++) {
-                        tempBinX = tempBinX0 + i;
-                        for (int j = -1 * peakDisplacement; j <= peakDisplacement; j++) {
-                            tempBinY = tempBinY0 + j;
-                            observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
+                        for (int i = -1 * peakDisplacement; i <= peakDisplacement; i++) {
+                            tempBinX = tempBinX0 + i;
+                            for (int j = -1 * peakDisplacement; j <= peakDisplacement; j++) {
+                                tempBinY = tempBinY0 + j;
+                                observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
 
-                            double ev = zd.getAverageCount();
-                            ExpectedValueFunction df = hic.getExpectedValues();
-                            if (df != null) {
-                                int distance = Math.abs(tempBinX - tempBinY);
-                                ev = df.getExpectedValue(chr1Idx, distance);
+                                double ev = zd.getAverageCount();
+                                ExpectedValueFunction df = hic.getExpectedValues();
+                                if (df != null) {
+                                    int distance = Math.abs(tempBinX - tempBinY);
+                                    ev = df.getExpectedValue(chr1Idx, distance);
 
+                                }
                             }
-                            totObserved += observedValue;
-                            totExpected += ev;
-                            count++;
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -243,8 +241,14 @@ public class CustomAnnotationHandler {
     }
 
     public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null || hic.getXContext() == null) return customAnnotations;
+        try {
+            hic.getZd();
+        } catch (Exception e) {
+            return customAnnotations;
+        }
+
+        if (hic.getXContext() == null || hic.getYContext() == null)
+            return customAnnotations;
 
         java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
         if (loops == null) return customAnnotations;
@@ -271,20 +275,28 @@ public class CustomAnnotationHandler {
 
     //helper for getannotatemenu
     private int geneXPos(HiC hic, int x, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        int binX = getXBin(hic, x) + displacement;
-        return xGridAxis.getGenomicStart(binX) + 1;
+        try {
+            final MatrixZoomData zd = hic.getZd();
+            if (zd == null) return -1;
+            HiCGridAxis xGridAxis = zd.getXGridAxis();
+            int binX = getXBin(hic, x) + displacement;
+            return xGridAxis.getGenomicStart(binX) + 1;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     //helper for getannotatemenu
     private int geneYPos(HiC hic, int y, int displacement) {
-        final MatrixZoomData zd = hic.getZd();
-        if (zd == null) return -1;
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-        int binY = getYBin(hic, y) + displacement;
-        return yGridAxis.getGenomicStart(binY) + 1;
+        try {
+            final MatrixZoomData zd = hic.getZd();
+            if (zd == null) return -1;
+            HiCGridAxis yGridAxis = zd.getYGridAxis();
+            int binY = getYBin(hic, y) + displacement;
+            return yGridAxis.getGenomicStart(binY) + 1;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     private int getXBin(HiC hic, int x) {

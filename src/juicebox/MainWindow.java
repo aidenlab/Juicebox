@@ -168,7 +168,7 @@ public class MainWindow extends JFrame {
     public void exitActionPerformed() {
         setVisible(false);
         dispose();
-        //TODO - doesn't always delete temp file of annotations on exit
+        //TODO - meh doesn't always delete temp file of annotations on exit
         if (superAdapter.unsavedEditsExist()) {
             superAdapter.deleteUnsavedEdits();
         }

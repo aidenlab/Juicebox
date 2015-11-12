@@ -27,6 +27,7 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
@@ -190,20 +191,25 @@ public class ResolutionControl extends JPanel {
             // Centering is relative to the bounds of the data, which might not be the bounds of the window
 
             public void stateChanged(ChangeEvent e) {
-                if (hic == null || hic.getMatrix() == null || hic.getZd() == null || resolutionSlider.getValueIsAdjusting())
+                final MatrixZoomData zd;
+                try {
+                    zd = hic.getZd();
+                } catch (Exception ex) {
+                    return;
+                }
+                if (hic == null || hic.getMatrix() == null || zd == null || resolutionSlider.getValueIsAdjusting())
                     return;
                 final ChangeEvent eF = e;
                 Runnable runnable = new Runnable() {
                     public void run() {
-                        unsafeStateChanged(eF);
+                        unsafeStateChanged(eF, zd);
                     }
                 };
                 superAdapter.executeLongRunningTask(runnable, "Resolution slider change");
                 runnable.run();
             }
 
-            private void unsafeStateChanged(ChangeEvent e) {
-
+            private void unsafeStateChanged(ChangeEvent e, MatrixZoomData zd) {
 
                 int idx = resolutionSlider.getValue();
 
@@ -217,10 +223,10 @@ public class ResolutionControl extends JPanel {
 
                     double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
                     double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                    final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                    final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+                    final int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
+                    final int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
 
-                    if (hic.getZd() == null) {
+                    if (zd == null) {
                         hic.setZoom(zoom, 0, 0);
                     } else {
 

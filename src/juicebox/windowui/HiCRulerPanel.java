@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -117,8 +118,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         Graphics2D g2D = (Graphics2D) g;
 
+        try {
+            hic.getZd();
+        } catch (Exception e) {
+            return;
+        }
 
-        if (context == null || hic.getZd() == null) return;
+        if (context == null) return;
 
         g.setColor(Color.black);
 
@@ -186,6 +192,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         if (chromosome == null) return;
 
+        MatrixZoomData zd;
+        try {
+            zd = hic.getZd();
+        } catch (Exception e) {
+            return;
+        }
+
         if (chromosome.getName().equals("All")) {
             int x1 = 0;
             List<Chromosome> chromosomes = hic.getChromosomes();
@@ -198,7 +211,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 Chromosome c = chromosomes.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
-                int xBin = hic.getZd().getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+                int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
                 int x2 = (int) (xBin * hic.getScaleFactor());
 
                 int x = (x1 + x2) / 2;
@@ -214,7 +227,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             }
         } else {
 
-            HiCGridAxis axis = isHorizontal() ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
+            HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
             int binRange = (int) (w / hic.getScaleFactor());
             double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel

@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * TODO merge with MatrixTools i.e. 1 helper class to be called on
+ * Helper methods for handling arrays
  */
 public class ArrayTools {
 

@@ -59,7 +59,14 @@ public abstract class HiCDataAdapter implements HiCDataSource {
     @Override
     public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {
 
-        String zoom = hic.getZd().getZoom().getKey();
+        //String
+
+        String zoom;
+        try {
+            zoom = hic.getZd().getZoom().getKey();
+        } catch (Exception e) {
+            zoom = "null";
+        }
         String axisType = gridAxis.getClass().getName();
 
         if (loadedDataInterval != null && loadedDataInterval.contains(zoom, (int) scaleFactor, axisType, windowFunction,

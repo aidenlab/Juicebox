@@ -124,7 +124,6 @@ public class Feature2DWithMotif extends Feature2D {
     }
 
     @Override
-    // TODO make all these motif related methods as an extended class Feature2DWithMotif
     public String getOutputFileHeader() {
         return super.getOutputFileHeader() +
                 "\tmotif_start1\tmotif_end1\tsequence_1\torientation_1\tuniqueness_1" +

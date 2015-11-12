@@ -73,7 +73,7 @@ public class AFA extends JuicerCLT {
      */
     public AFA() {
         super("afa [-w window]  [-r resolution(s)] [-c chromosomes] [-a attribute(s)] [-l TopLeft/BottomRight/Center] <NONE/VC/VC_SQRT/KR> <hic file(s)> <FeatureFile> <SaveFolder> [SavePrefix]");
-        HiCGlobals.useCache = false; // TODO fix memory leak of contact records in cache (dataset?)
+        HiCGlobals.useCache = false;
     }
 
     @Override
@@ -171,7 +171,7 @@ public class AFA extends JuicerCLT {
                             public List<Feature2D> filter(String chr, List<Feature2D> features) {
 
                                 List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
-                                // TODO filter by tag
+
                                 List<Feature2D> filteredUniqueFeatures;
                                 if (attribute.length() > 0) {
                                     filteredUniqueFeatures = AFAUtils.filterFeaturesByAttribute(uniqueFeatures, attribute);

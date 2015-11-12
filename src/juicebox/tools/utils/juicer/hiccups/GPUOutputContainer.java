@@ -65,7 +65,9 @@ public class GPUOutputContainer {
         this.expectedV = ArrayTools.deepCopy(expectedV);
     }
 
-    // TODO maybe pass array of float[][]'s and condense the two nan cleaners
+    /**
+     * Ensure NaN entries are uniform across the various arrays
+     */
     public void cleanUpBinNans() {
 
         for (int i = 0; i < numRows; i++) {

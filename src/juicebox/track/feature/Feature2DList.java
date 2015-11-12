@@ -375,7 +375,7 @@ public class Feature2DList {
     }
 
     /**
-     * Simple of exact duplicates (memory address)
+     * Simple removal of exact duplicates (memory address)
      * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
      */
     public void removeDuplicates() {
@@ -420,7 +420,6 @@ public class Feature2DList {
 
     /**
      * pass interface implementing a process for all features
-     * TODO - alter above functions to use this
      *
      * @param function
      */

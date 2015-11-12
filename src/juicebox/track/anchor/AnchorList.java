@@ -136,7 +136,6 @@ public class AnchorList {
 
     /**
      * pass interface implementing a process for all anchors
-     * TODO - alter above functions to use this
      *
      * @param function
      */

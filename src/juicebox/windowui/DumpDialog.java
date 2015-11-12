@@ -29,6 +29,7 @@ import juicebox.DirectoryManager;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
+import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
 import juicebox.tools.clt.old.Dump;
 
@@ -51,25 +52,33 @@ public class DumpDialog extends JFileChooser {
         super();
         int result = showSaveDialog(mainWindow);
         if (result == JFileChooser.APPROVE_OPTION) {
+            MatrixZoomData zd;
+            try {
+                zd = hic.getZd();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "ZoomData error while writing", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             try {
                 if (box.getSelectedItem().equals("Matrix")) {
                     if (hic.getDisplayOption() == MatrixType.OBSERVED) {
                         double[] nv1 = null;
                         double[] nv2 = null;
                         if (!(hic.getNormalizationType() == NormalizationType.NONE)) {
-                            NormalizationVector nv = hic.getNormalizationVector(hic.getZd().getChr1Idx());
+                            NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
                             nv1 = nv.getData();
-                            if (hic.getZd().getChr1Idx() != hic.getZd().getChr2Idx()) {
-                                nv = hic.getNormalizationVector(hic.getZd().getChr2Idx());
+                            if (zd.getChr1Idx() != zd.getChr2Idx()) {
+                                nv = hic.getNormalizationVector(zd.getChr2Idx());
                                 nv2 = nv.getData();
                             } else {
                                 nv2 = nv1;
                             }
                         }
-                        hic.getZd().dump(new PrintWriter(getSelectedFile()), nv1, nv2);
+                        zd.dump(new PrintWriter(getSelectedFile()), nv1, nv2);
 
                     } else if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.PEARSON) {
-                        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZd().getZoom(),
+                        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(zd.getZoom(),
                                 hic.getNormalizationType());
                         if (df == null) {
                             JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
@@ -77,10 +86,10 @@ public class DumpDialog extends JFileChooser {
                             return;
                         }
                         if (hic.getDisplayOption() == MatrixType.OE) {
-                            hic.getZd().dumpOE(df, "oe",
+                            zd.dumpOE(df, "oe",
                                     hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
                         } else {
-                            hic.getZd().dumpOE(df, "pearson",
+                            zd.dumpOE(df, "pearson",
                                     hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
                         }
                     }
@@ -91,12 +100,12 @@ public class DumpDialog extends JFileChooser {
                         JOptionPane.showMessageDialog(this, "Selected normalization is None, nothing to write",
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        NormalizationVector nv = hic.getNormalizationVector(hic.getZd().getChr1Idx());
+                        NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
                         Dump.dumpVector(new PrintWriter(getSelectedFile()), nv.getData(), false);
                     }
                 } else if (box.getSelectedItem().toString().contains("Expected")) {
 
-                    final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZd().getZoom(),
+                    final ExpectedValueFunction df = hic.getDataset().getExpectedValues(zd.getZoom(),
                             hic.getNormalizationType());
                     if (df == null) {
                         JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
@@ -106,7 +115,7 @@ public class DumpDialog extends JFileChooser {
 
                     if (box.getSelectedItem().equals("Expected vector")) {
                         int length = df.getLength();
-                        int c = hic.getZd().getChr1Idx();
+                        int c = zd.getChr1Idx();
                         PrintWriter pw = new PrintWriter(getSelectedFile());
                         for (int i = 0; i < length; i++) {
                             pw.println((float) df.getExpectedValue(c, i));
@@ -116,7 +125,7 @@ public class DumpDialog extends JFileChooser {
                         Dump.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
                     }
                 } else if (box.getSelectedItem().equals("Eigenvector")) {
-                    int chrIdx = hic.getZd().getChr1Idx();
+                    int chrIdx = zd.getChr1Idx();
                     double[] eigenvector = hic.getEigenvector(chrIdx, 0);
 
                     if (eigenvector != null) {

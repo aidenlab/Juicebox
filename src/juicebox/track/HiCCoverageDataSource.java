@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -59,9 +60,16 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
 
     private void initDataRange() {
-        if (hic.getZd() != null) {
-            int chrIdx = hic.getZd().getChr1Idx();
-            HiCZoom zoom = hic.getZd().getZoom();
+        MatrixZoomData zd;
+        try {
+            zd = hic.getZd();
+        } catch (Exception e) {
+            return;
+        }
+
+        if (zd != null) {
+            int chrIdx = zd.getChr1Idx();
+            HiCZoom zoom = zd.getZoom();
             NormalizationVector nv = hic.getDataset().getNormalizationVector(chrIdx, zoom, normalizationType);
             if (nv == null) {
                 setDataRange(new DataRange(0, 1));
@@ -118,7 +126,12 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {
 
-        HiCZoom zoom = hic.getZd().getZoom();
+        HiCZoom zoom;
+        try {
+            zoom = hic.getZd().getZoom();
+        } catch (Exception e) {
+            return null;
+        }
 
         NormalizationVector nv = hic.getDataset().getNormalizationVector(chr.getIndex(), zoom, normalizationType);
         if (nv == null) return null;

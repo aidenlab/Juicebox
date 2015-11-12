@@ -206,7 +206,11 @@ public class HiCFeatureTrack extends HiCTrack {
     private IGVFeature getFeatureAtPixel(int x, Context context, TrackPanel.Orientation orientation) {
 
         HiCGridAxis gridAxis;
-        gridAxis = orientation == TrackPanel.Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
+        try {
+            gridAxis = orientation == TrackPanel.Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
+        } catch (Exception e) {
+            return null;
+        }
 
         int binOrigin = (int) (context.getBinOrigin());
         int bin = binOrigin + (int) (x / hic.getScaleFactor());

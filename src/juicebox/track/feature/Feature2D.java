@@ -301,7 +301,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     /**
-     * TODO description
      *
      * @param otherFeature
      * @return

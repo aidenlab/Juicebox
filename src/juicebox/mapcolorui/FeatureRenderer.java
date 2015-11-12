@@ -77,7 +77,7 @@ class FeatureRenderer {
                 }
                 //System.out.println(binStart1 + "-" + binEnd1);
                 if (w > 5) {
-                    // Thick line if there is room. TODO double check +/- 1
+                    // Thick line if there is room.
                     if (onlyPlotLowerLeft) {
                         g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
                         g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);

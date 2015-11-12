@@ -1,95 +1,119 @@
---------------
 About Juicer
 --------------
-Juicer is a platform for analyzing kilobase resolution Hi-C data.
-This distribution consists of a pipeline for generating Hi-C maps from
-fasta/fatsq reads and includes algorithms for analyzing features found
-in Hi-C data.
+Juicer is a platform for analyzing kilobase resolution Hi-C data. In this distribution, we include the pipeline for generating Hi-C maps from fastq raw
+data files and command line tools for feature annotation on the Hi-C maps.
 
 ----------------------
 Example for Reviewers
 ----------------------
 We've provided a step-by-step guide to showcase some of the features of
-Juicer.
+Juicer. If you run into problems, see below for more detailed documentation.
+This example runs on Amazon Web Services, but you can install the pipeline
+on any LSF, Univa Grid Engine, or SLURM cluster.
 
-[Pipeline]
+1. Make sure you're in the top-level directory, with this README and the pem
+   file.
+2. You were given an anonymous IP address. At a command line prompt, type:
+      ssh -i Juicer_AWS.pem ubuntu@<given IP address>
+3. This will log you into an AWS instance that contains all the software
+   needed to run the pipeline. Type
+      cd /opt/juicer/work/
+4. We will start by running the pipeline on a small sample. Type:
+      cd HIC003
+5. Run the Juicer pipeline on the data (which is stored in the fastq
+   directory):
+      /opt/juicer/scripts/juicer.sh -g hg19 -s MboI
+6. You will see a series of messages, ending with
+      “(-: Finished adding all jobs... please wait while processing.”
+   To see the progress of the pipeline as it works, type:
+      bjobs -w
+7. Eventually the bjobs command will report “No unfinished job found”. Type:
+      tail lsf.out
+   You should see “(-: Pipeline successfully completed (-:”
+8. Results are available in the aligned directory. The Hi-C maps are in
+   inter.hic (for MAPQ > 0) and inter_30.hic (for MAPQ >= 30). The Hi-C maps
+   can be loaded in Juicebox and explored. They can also be used for
+   automatic feature annotation and to extract matrices at specific
+   resolutions.  A complete list of the files in the aligned directory is
+   below.
+9. To download a map locally to load into Juicebox, type:
+      sftp -i Juicer_AWS.pem ubuntu@<given IP address>
+      cd /opt/juicer/work/HIC003/aligned
+      get inter.hic
+      quit
+10. Now let’s explore automatic feature annotation on a high resolution Hi-C
+    map. Since the data is so big, we’ll only look at chromosome 19. Type:
+      cd /opt/juicer/work/Mega_19/
+11. HiCCUPS automatically finds peaks in Hi-C data. Run HiCCUPS with a GPU
+    matrix size of 500 and 10Kb resolution:
+      /opt/juicer/scripts/juicebox_native_lib hiccups -m 500 -r 10000 inter_19.hic chr19_loops_list
+    This will produce the file “chr19_loops_list_postprocessing”, which
+    contains the peaks found in the input Hi-C file. The format is described
+    in the Juicebox tutorial online, and can be loaded into Juicebox as a 2D
+    annotation.
+13. APA determines the aggregate enrichment of a set of putative peak calls.
+    Run APA on the loops list you just created:
+      /opt/juicer/scripts/juicebox_native_lib apa KR inter_19.hic chr19_loops_list_postprocessing apa_results
+    The directory apa_results will contain data files and image files for APA
+    at 10Kb and 25Kb resolution.
+14. Arrowhead automatically finds contact domains in the Hi-C map. Run
+    Arrowhead by typing:
+      /opt/juicer/scripts/juicebox_native_lib arrowhead -m 2000 KR inter_19.hic arrowhead_contact_domains 10000
+    The resulting file arrowhead_contact_domains will contain the contact
+    domains found in the input Hi-C file. The format is the same as for peaks
+    and is described in the Juicebox tutorial online, and can be loaded into
+    Juicebox as a 2D annotation.
+15. TODO MOTIF FINDER
 
-
-[APA]
-
-
-[Arrowhead]
-
-
-[Clustering]
-
-
-[HiCCUPS - Loop Calling]
-NOTE: For Loop calling, you will need NVIDIA GPUs with a working installation
-of CUDA 7. For best performance, use a dedicated GPU. Some Macs come with integrated
-NVIDIA GPUs. You may also be able to obtain access to GPU clusters through Amazon AWS
-or a local research institution. See Installation instructions below.
-
-[HiCCUPS - Motif Finder]
-NOTE:
-
-
-
+See below for more documentation.
 
 ------------
 Distribution
 ------------
-The files included in this distribution are as follows:
-* README
-* Juicebox_CLT.jar, juicebox (executable), and juicebox.bat (executable)
-* build.xml and juicebox.properties (for compilation from source)
-* src (directory containing source code)
-* lib (directory containing native libraries for compilation)
-* data (directory containing test data)
+The files included on the AWS distribution are in /opt/juicer and are:
+*HiCTools          - Juicer binaries TODO change this
+*references        - Genome references
+*restriction_sites - Restriction positions for combinations of reference genome and restriction enzymes
+*scripts           - Juicer main scripts
+*work              - Data samples
+
+In this zip file, we include the scripts, reference data, and test data for
+running Juicer on LSF, Univa Grid Engine, and SLURM
+TODO file list goes here, the below seems wrong, we’ll include scripts e.g.
+[[[The files included in this distribution are as follows:
+README
+Juicebox_CLT.jar, juicebox (executable), and juicebox.bat (executable)
+build.xml and juicebox.properties (for compilation from source)
+src (directory containing source code)
+lib (directory containing native libraries for compilation)
+data (directory containing test data)]]]]
 
 ----------------------------------
 Hardware and Software Requirements
 ----------------------------------
+Juicer is a pipeline optimized for parallel computation on a cluster. Juicer
+consists of two parts: the pipeline that creates Hi-C files from raw data,
+and the post-processing command line tools.
+
+* Cluster requirements:
+[[TODO  write something here about how you can run the pipeline using SLURM on a personal computer.  Also write something about LSF Univa etc.]]
+
+* Command line tool requirements:
 The minimum software requirement to run Juicer is a working Java installation
-(version > 1.6) on Windows, Linux, and Mac OSX.  We recommend using the latest
-Java version available, but please do not use the Java Beta Version. Minimum
-system requirements for running Java can be found at
->>  http://java.com/en/download/help/sysreq.xml
+(version > 1.6) on Windows, Linux, and Mac OSX.  We recommend using the
+latest Java version available, but please do not use the Java Beta Version.
+Minimum system requirements for running Java can be found at
+http://java.com/en/download/help/sysreq.xml
 
-To download and install the latest
-Java Runtime Environment (JRE), please go to
->>  http://www.java.com/download
-
-For running the HiCCUPS loop caller, you will need:
->> NVIDIA GPUs
->> CUDA - you can install CUDA 7 from
->>>> https://developer.nvidia.com/cuda-downloads
-
-For running the HiCCUPS motif finder, you will need:
->> BedTools, available at
->>>> http://bedtools.readthedocs.org/en/latest/content/installation.html
->> FIMO (Find Individual Motif Occurrences), available at
->>>> [installation process...]
+To download and install the latest Java Runtime Environment (JRE), please go
+to http://www.java.com/download
 
 We recommend having at least 2GB free RAM for the best user experience with
 Juicer.
 
-To launch the command line tools, run the shell script “juicebox” on Unix or
-MacOS, run the batch script "juicebox.bat" on Windows, or type
-    java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar (command...)
-  	    [flags...] <parameters...>
-
-Note:
-> the -Xms512m flag sets the minimum memory heap size at 512 megabytes, and
-    the -Xmx2048m flag sets the maximum size at 2048 megabytes (2 gigabytes). These
-    values may be adjusted as appropriate for your machine.
-> for HiCCUPS loop calling without the shell or bat script,
-    you will need to call:
-        java -Xms512m -Xmx2048m -Djava.library.path=path/to/natives/
-            -jar Juicebox_CLT.jar hiccups [flags...] <parameters...>
-    where path/to/natives is the path to the native libraries used for Jcuda
-    By default, these are located in the lib/jcuda folder.
-
+NOTE: For the HiCCUPS peak caller, you will need NVIDIA GPUs with a working
+installation of CUDA 7. You can install CUDA 7 from https://developer.nvidia.com/cuda-downloads
+For best performance, use a dedicated GPU. Some Macs come with integrated NVIDIA GPUs. You may also be able to obtain access to GPU clusters through Amazon Web Services or a local research institution.
 
 -------------
 Documentation
@@ -100,28 +124,31 @@ We have extensive documentation for how to use Juicer at
 ------------------------
 Command Line Tools Usage
 ------------------------
+To launch the command line tools, run the shell script “juicebox” on Unix or
+MacOS, run the batch script "juicebox.bat" on Windows, or type
+   java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar (command...)
+      [flags...] <parameters...>
+
+The -Xms512m flag sets the minimum memory heap size at 512 megabytes, and
+the -Xmx2048m flag sets the maximum size at 2048 megabytes (2 gigabytes).
+These values may be adjusted as appropriate for your machine.
+
+For HiCCUPS loop calling without the shell or bat script, you will need to
+call:
+   java -Xms512m -Xmx2048m -Djava.library.path=path/to/natives/
+    -jar Juicebox_CLT.jar hiccups [flags...] <parameters...>
+   where path/to/natives is the path to the native libraries used for Jcuda
+   By default, these are located in the lib/jcuda folder.
+
 In the command line tools, there are 5 functions:
 > "apa" for conducting aggregate peak analysis
 > "hiccups" for annotating loops
-> "hiccups_motif" for finding CTCF motifs
+> "motifs" for finding CTCF motifs
 > "arrowhead" for annotating contact domains
-> "cluster" for clustering the hic data
 
 The "juicebox" (Mac/Linux) and "juicebox.bat" (Windows) script can be
 used in place of the unwieldy
 "java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar"
-
-Running the command line tools without any arguments produces the following
-usage message:
-Juicebox Command Line Tools Usage:
-    juicebox dump <observed/oe/pearson/norm> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1> <chr2> <BP/FRAG> <binsize>
-    juicebox pre <options> <infile> <outfile> <genomeID>
-<options>: -d only calculate intra chromosome (diagonal) [false]
-    : -f <restriction site file> calculate fragment map
-    : -m <int> only write cells with count above threshold m [0]
-    : -q <int> filter by MAPQ score greater than or equal to q
-    : -c <chromosome ID> only calculate map on specific chromosome
-    : -h print help
 
 ---
 APA
@@ -130,24 +157,36 @@ The "apa" command takes three required arguments and a number of optional
 arguments.
 
 apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
-    <HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
+   [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
 
 The required arguments are:
 
-<hic file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
-    load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
-    use the '+' symbol between the addresses (no whitespace between addresses)
+<hic file(s)>: Address of HiC File(s) which should end with ".hic". This is the file you will
+   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+   use the '+' symbol between the addresses (no whitespace between addresses)
+<PeaksFile>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
+<SaveFolder>: Working directory where outputs will be saved
 
 The optional arguments are:
-    -c <String(s)> Chromosome(s) on which APA will be run. The number/letter for the chromosome can be used with or
-        without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
-    -r <int(s)> resolution at which to conduct APA; multiple resolutions can be specified using commas (e.g. 5000,10000)
-    -n <int> minimum window size
-    -x <int> maximum window size
+   -n <int> minimum distance away from the diagonal. Used to filter peaks too close to the diagonal.
+       Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
+       within 30*(5000/sqrt(2)) units of the diagonal)
+   -x <int> maximum distance away from the diagonal. Used to filter peaks too far from the diagonal.
+       Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
+       further than 30*(5000/sqrt(2)) units of the diagonal)
+   -r <int(s)> resolution for APA; multiple resolutions can be specified using commas (e.g. 5000,10000)
+   -c <String(s)> Chromosome(s) on which APA will be run. The number/letter for the chromosome can be
+       used with or without appending the "chr" string. Multiple chromosomes can be specified using
+       commas (e.g. 1,chr2,X,chrY)
+   -k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally, KR (Knight-Ruiz)
+       balancing should be used when available.
 
-
-Default settings:
-
+Default settings of optional arguments:
+   -n 30
+   -x (infinity)
+   -r 25000,10000
+   -c (all chromosomes)
+   -k KR
 
 ------------
 APA Examples
@@ -158,28 +197,153 @@ apa HIC006.hic all_loops.txt results1
 > and save them under the results1 folder.
 
 apa https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
-    all_loops.txt results1
+   all_loops.txt results1
 > This command will run APA on the GM12878 mega map using loops from the all_loops
-> files
-> and save them under the results1 folder.
+> files and save them under the results1 folder.
 
 apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
 > This command will run APA at 50 kB resolution on chromosomes 17 and 18 for the
 > summed HiC maps (HIC006 and HIC007) using loops from the all_loops files
 > and save them under the results folder
 
+-------
+HiCCUPS
+-------
+
+hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window]
+   [-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>
 
 
+The required arguments are:
 
----------
+<hic file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
+   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+   use the '+' symbol between the addresses (no whitespace between addresses).
+
+<finalLoopsList>: Final list of all loops found by HiCCUPS. Can be visualized directly in Juicebox as a 2D annotation.
+   By default, various values critical to the HICCUPS algorithm are saved as attributes for each loop found. These can be
+   disabled using the suppress flag below.
+
+The optional arguments are:
+   -m <int> Maximum size of the submatrix within the chromosome passed on to GPU (Must be an even number greater than 40
+       to prevent issues from running the CUDA kernel). The upper limit will depend on your GPU. Dedicated GPUs
+       should be able to use values such as 500, 1000, or 2048 without trouble. Integrated GPUs are unlikely to run
+       sizes larger than 90 or 100. Matrix size will not effect the result, merely the time it takes for hiccups.
+       Larger values (with a dedicated GPU) will run fastest.
+   -c <String(s)> Chromosome(s) on which HiCCUPS will be run. The number/letter for the chromosome can be used with or
+       without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
+   -r <int(s)> Resolution(s) for which HiCCUPS will be run. Multiple resolutions can be specified using commas
+       (e.g. 25000,10000,5000). Due ot the nature of DNA looping, it is unlikely that loops will be found at
+       lower resolutions (i.e. 50kB or 100kB)
+       IMPORTANT: if multiple resolutions are used, the flags below can be configured so that different parameters are
+       used for the different resolutions.
+   -f <int(s)> FDR values actually corresponding to max_q_val (i.e. for 1% FDR use 0.01, for 10%FDR use 0.1). Different
+       FDR values can be used for each resolution using commas. (e.g "-r 5000,10000 -f 0.1,0.15" would run HiCCUPS at
+       10% FDR for resolution 5000 and 15% FDR for resolution 10000)
+   -p <int(s)> Peak width used for finding enriched pixels in HiCCUPS. Different peak widths can be used for each
+       resolution using commas. (e.g "-r 5000,10000 -p 4,2" would run at peak width 4 for resolution 5000 and
+       peak width 2 for resolution 10000)
+   -w <int(s)> Window width used for finding enriched pixels in HiCCUPS. Different window widths can be used for each
+       resolution using commas. (e.g "-r 5000,10000 -p 10,6" would run at window width 10 for resolution 5000 and
+       window width 6 for resolution 10000)
+   -t <floats> Thresholds for merging loop lists of different resolutions. Four values must be given, separated by
+       commas (e.g. 0.02,1.5,1.75,2). These thresholds (in order) represent:
+       > threshold allowed for sum of FDR values of horizontal, vertical donut mask, and bottom left regions
+           (an accepted loop must stay below this threshold)
+       > threshold ratio of observed value to expected horizontal/vertical value
+           (an accepted loop must exceed this threshold)
+       > threshold ratio of observed value to expected donut mask value
+           (an accepted loop must exceed this threshold)
+       > threshold ratio of observed value to expected bottom left value
+           (an accepted loop must exceed this threshold)
+   -d <ints> Distances used for merging centroids across different resolutions. Three values must be given, separated by
+       commas (e.g. 20000,20000,50000). These thresholds (in order) represent:
+       > distance (radius) around centroid used for merging at 5kB resolution (if present)
+       > distance (radius) around centroid used for merging at 10kB resolution (if present)
+       > distance (radius) around centroid used for merging at 25kB resolution (if present)
+       If a resolution (5kB, 10kB, or 25kB) is not available, that centroid distance will be ignored during the merger
+       step (but a distance value should still be passed as a parameter for that resolution e.g. 0)
+
+Defaults:
+
+
+----------------
+HiCCUPS Examples
+----------------
+
+hiccups HIC006.hic all_hiccups_loops
+> This command will run HiCCUPS on HIC006 and save all found loops to the all_hiccups_loops files
+
+hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
+> This command will run HiCCUPS on chromosome 22 of HIC006 at 5kB and 10kB resolution using the following values:
+>> 5kB: fdr 10%, peak width 4, window width 7, and centroid distance 20kB
+>> 10kB: fdr 10%, peak width 2, window width 5, and centroid distance 20kB
+> The resulting loop list will be merged and saved as all_hiccups_loops
+> Note that these are values used for generating the GM12878 loop list
+
+
+-------
 Arrowhead
----------
+-------
 
-arrowhead [-c chromosome(s)] [-m matrix size] <input_HiC_file(s)> <output_file> <resolution>
+arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file>
+  <resolution> [feature_list] [control_list]
 
-------------------
+The required arguments are:
+
+<NONE/VC/VC_SQRT/KR> One of the normalizations must be selected (case sensitive). Generally, KR (Knight-Ruiz)
+  balancing should be used.
+
+<input_HiC_file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
+  load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+  use the '+' symbol between the addresses (no whitespace between addresses).
+
+<output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
+  as a 2D annotation.
+
+<resolution>: Integer resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
+  resolution is used depending on the depth of sequencing in the hic file(s).
+
+  -- NOTE -- If you want to find scores for a feature and control list, both must be provided:
+
+[feature_list]: Feature list of loops/domains for which block scores are to be calculated
+
+[control_list]: Control list of loops/domains for which block scores are to be calculated
+
+
+The optional arguments are:
+
+-m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
+  number as (m/2) is used as the increment for the sliding window. (Default 2000)
+
+-c <String(s)> Chromosome(s) on which Arrowhead will be run. The number/letter for the chromosome can be used with or
+  without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
+
+
+----------------
 Arrowhead Examples
-------------------
+----------------
+
+arrowhead -m 2000 KR ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list 10000
+  This command will run Arrowhead on a mouse cell line HiC map and save all contact domains to the
+  contact_domains_list file. These are the settings used to generate the official contact domain list on the
+  ch12-lx-b-lymphoblast cell line.
+
+arrowhead KR GM12878_mapq_30.hic contact_domains_list 5000
+  This command will run Arrowhead on the GM12878 HiC map and save all contact domains to the contact_domains_list
+  file. These are the settings used to generate the official GM12878 contact domain list.
+
+
+
+
+-----------------------
+Motif Finder (Eventually)
+-----------------------
+
+-------------------
+Motif Finder Examples
+-------------------
+
 
 -----------------------
 Clustering (Eventually)
@@ -196,131 +360,58 @@ Clustering Examples
 Compiling Jars from Source Files
 --------------------------------
 1. You should have Java 1.8 JDK and Apache Ant installed on your system. See
-    below for more information.
+   below for more information.
 2. Go to the folder containing the Juicebox source files and edit the
-    juicebox.properties file with the proper Java JDK Address.
+   juicebox.properties file with the proper Java JDK Address.
 3. Open the command line, navigate to the folder containing the build.xml file
-    and type
-        ant
-    The process should take no more than a minute to build on most machines.
+   and type
+       ant
+   The process should take no more than a minute to build on most machines.
 4. The jars are written to the directory out/.  You can change this by editing
-    the build.xml file.
+   the build.xml file.
 
 --------------------------------
 Installation Help (Dependencies)
 --------------------------------
+* Installing CUDA (for HiCCUPS peak calling)
 
-*
-* Installing CUDA (for HiCCUPS Loop Finding)
-*
-
-Note: You must have an NVIDIA GPU to install CUDA
+You must have an NVIDIA GPU to install CUDA
 Instructions for installing CUDA 7 can be found on the NVIDIA Developer site:
-    https://developer.nvidia.com/cuda-downloads
+   https://developer.nvidia.com/cuda-downloads
 
-    Note: The native libraries included with Juicer are compiled for CUDA 7.
-    Other versions of CUDA can be used, but you will need to download the
-    respective native libraries from http://www.jcuda.org/downloads/downloads.html
+The native libraries included with Juicer are compiled for CUDA 7.
+Other versions of CUDA can be used, but you will need to download the
+respective native libraries from
+   http://www.jcuda.org/downloads/downloads.html
 
-
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-NOTE -
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-*
-* Installing twoBitToFa (for MotifFinder)
-*
-
-Download the twoBitToFa script appropriate for your machine (Mac/Linux) from
-  http://hgdownload.soe.ucsc.edu/admin/exe/
-
-*
-* Installing BedTools (for MotifFinder)
-*
-
-Mac
-    In the command prompt, type
-        brew install bedtools
-    or
-        port install bedtools
-    depending on your package installer
-
-    Alternatively:
-
-    1 Download the most recent stable release of BEDTools from Github: https://github.com/arq5x/bedtools2/releases.
-      For the user, this was v2.21.0.
-
-    2 Unzip the download and move entire folder to Applications. For us, this folder was called bedtools2.
-
-    3 Use Command + Spacebar function on the Mac to search for the Terminal application. Open this.
-      At the prompt, type "cd /Applications/bedtools2".
-
-    4 At the next prompt, typing "ls" lists the contents of the bedtools2 folder.
-      If at any point, Terminal asks for a password, enter the credentials for an
-      account that has permissions to install software.
-
-    5 At the prompt, type "make". This will build and compile the BEDTools package.
-      After the installation, type "pwd" into the prompt to print the directory path.
-      For us, this path was
-        /Applications/bedtools2
-
-    //If you use this installation method, make sure to pass the path above with the -p flag
-    //juicebox motif_finder -g /Applications/bedtools2 ...
-
-      Edit your shell configuration file to add the above path's bin folder
-        "/Applications/bedtools2/bin"
-      to your shell's path.
-
-Linux
-    In the command prompt, type
-        sudo apt-get install bedtools
-    or
-        sudo yum install BEDTools
-    depending on your package installer
-
-*
-* Installing FIMO (for HiCCUPS Motif Finding)
-*
-
-    Instructions for installing FIMO are available here:
-    http://meme-suite.org/doc/download.html
-
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-*
-* Installing Java 1.8 JDK (for Compiling from Source Files)
-*
+* Installing Java 1.8 JDK (for compiling from source files)
 
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
-    http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+   http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 (Alternative) For Ubuntu/LinuxMint
-    http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
+   http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
 
-*
-* Installing Apache Ant (for Compiling from Source Files)
-*
+* Installing Apache Ant (for compiling from source files)
 
 Mac
-    Ant should be installed on most Macs. To verify installation via the command
-    prompt, type
-        ant -version
-    If Ant is not on your Mac, install it via homebrew. At the command prompt, type
-        brew update
-        brew install ant
-    You may need to install Homebrew (http://brew.sh/) on your machine
-    See the following Stackoverflow post for more details:
-        http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
+   Ant should be installed on most Macs. To verify installation via the
+command prompt, type
+       ant -version
+   If Ant is not on your Mac, install it via homebrew. At the command prompt,
+type
+       brew update
+       brew install ant
+   You may need to install Homebrew (http://brew.sh/) on your machine
+   See the following Stackoverflow post for more details:
+       http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
 
 Windows
-    Installing Ant requires some minor changes to your system environment. Follow
-    the instructions in this article:
-        http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
+   Installing Ant requires some minor changes to your system environment. Follow the instructions in this article:
+       http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
 
 Linux
-    In the command prompt, type
-        brew install bedtools
-    or
-        port install bedtools
-    depending on your package installer
+   In the command prompt, type
+       sudo apt-get install ant
+or
+       sudo yum install ant
+depending on your package installer

@@ -131,7 +131,7 @@ public class AnchorParser {
         int errorCount = 0;
         while ((nextLine = br.readLine()) != null) {
             String[] tokens = Globals.tabPattern.split(nextLine);
-            if (tokens.length != 9) { //TODO why greater, use "!=" ? (also below)
+            if (tokens.length != 9) {
                 String text = "Improperly formatted FIMO output file: \npattern_name\tsequence_name\t" +
                         "start\tstop\tstrand\tscore\tp-value\tq-value\tmatched_sequence";
                 System.err.println(text);

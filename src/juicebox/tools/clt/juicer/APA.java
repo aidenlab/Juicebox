@@ -52,7 +52,63 @@ import java.util.*;
  * Aggregate Peak Analysis developed by mhuntley
  * (AKA PSEA - peak set enrichment analysis)
  *
- * @author mshamim
+ * Implemented in Juicer by mshamim
+ *
+ * ---
+ * APA
+ * ---
+ * The "apa" command takes three required arguments and a number of optional
+ * arguments.
+ *
+ * apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
+ *     [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
+ *
+ * The required arguments are:
+ *
+ *  <hic file(s)>: Address of HiC File(s) which should end with ".hic". This is the file you will
+ *     load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+ *     use the '+' symbol between the addresses (no whitespace between addresses)
+ *  <PeaksFile>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
+ *  <SaveFolder>: Working directory where outputs will be saved
+ *
+ * The optional arguments are:
+ *  -n <int> minimum distance away from the diagonal. Used to filter peaks too close to the diagonal.
+ *     Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
+ *     within 30*(5000/sqrt(2)) units of the diagonal)
+ *  -x <int> maximum distance away from the diagonal. Used to filter peaks too far from the diagonal.
+ *     Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
+ *     further than 30*(5000/sqrt(2)) units of the diagonal)
+ *  -r <int(s)> resolution for APA; multiple resolutions can be specified using commas (e.g. 5000,10000)
+ *  -c <String(s)> Chromosome(s) on which APA will be run. The number/letter for the chromosome can be
+ *     used with or without appending the "chr" string. Multiple chromosomes can be specified using
+ *     commas (e.g. 1,chr2,X,chrY)
+ *  -k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally,
+ *     KR (Knight-Ruiz) balancing should be used when available.
+ *
+ * Default settings of optional arguments:
+ *  -n 30
+ *  -x (infinity)
+ *  -r 25000,10000
+ *  -c (all_chromosomes)
+ *  -k KR
+ *
+ * ------------
+ * APA Examples
+ * ------------
+ *
+ * apa HIC006.hic all_loops.txt results1
+ * > This command will run APA on HIC006 using loops from the all_loops files
+ * > and save them under the results1 folder.
+ *
+ * apa https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic
+ * all_loops.txt results1
+ * > This command will run APA on the GM12878 mega map using loops from the all_loops
+ * > files and save them under the results1 folder.
+ *
+ * apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
+ * > This command will run APA at 50 kB resolution on chromosomes 17 and 18 for the
+ * > summed HiC maps (HIC006 and HIC007) using loops from the all_loops files
+ * > and save them under the results folder
  */
 public class APA extends JuicerCLT {
 
@@ -61,6 +117,8 @@ public class APA extends JuicerCLT {
     private String hicFilePaths, loopListPath, outputFolderPath;
 
     //defaults
+    // TODO right now these units are based on n*res/sqrt(2)
+    // TODO the sqrt(2) scaling should be removed (i.e. handle scaling internally)
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
@@ -73,8 +131,8 @@ public class APA extends JuicerCLT {
      */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
-                " [-k NONE/VC/VC_SQRT/KR] <hic file(s)> <PeaksFile> <SaveFolder>");
-        HiCGlobals.useCache = false; // TODO fix memory leak of contact records in cache (dataset?)
+                " [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder>");
+        HiCGlobals.useCache = false;
     }
 
     @Override
