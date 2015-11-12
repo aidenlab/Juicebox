@@ -703,9 +703,22 @@ public class MainViewPanel {
         resolutionSlider.reset();
     }
 
-    public void setSelectedDisplayOption(MatrixType[] options) {
-        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
-        displayOptionComboBox.setSelectedIndex(0);
+    public void setSelectedDisplayOption(MatrixType[] options, boolean control) {
+        if (control) {
+            MatrixType originalMatrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
+            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+            int indx = 0;
+            for (int i = 0; i < displayOptionComboBox.getItemCount(); i++) {
+                if (originalMatrixType.equals(displayOptionComboBox.getItemAt(i))) {
+                    indx = i;
+                    break;
+                }
+            }
+            displayOptionComboBox.setSelectedIndex(indx);
+        } else {
+            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+            displayOptionComboBox.setSelectedIndex(0);
+        }
     }
 
     public JEditorPane getMouseHoverTextPanel() {

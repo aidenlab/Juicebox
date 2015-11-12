@@ -362,7 +362,9 @@ public class SuperAdapter {
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
         mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
-        hic.setNormalizationType(NormalizationType.NONE);
+        if (!control) {
+            hic.setNormalizationType(NormalizationType.NONE);
+        }
 
         if (allFilesAreHiC) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
@@ -417,7 +419,7 @@ public class SuperAdapter {
                 mainViewPanel.unsafeRefreshChromosomes(SuperAdapter.this);
 
             }
-            mainViewPanel.setSelectedDisplayOption(options);
+            mainViewPanel.setSelectedDisplayOption(options, control);
             setEnableForAllElements(true);
 
             if (control) {

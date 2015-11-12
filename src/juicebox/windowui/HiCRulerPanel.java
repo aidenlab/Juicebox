@@ -227,57 +227,61 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             }
         } else {
 
-            HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+            try {
+                HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
-            int binRange = (int) (w / hic.getScaleFactor());
-            double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
+                int binRange = (int) (w / hic.getScaleFactor());
+                double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
 
-            int genomeOrigin = axis.getGenomicStart(binOrigin);
+                int genomeOrigin = axis.getGenomicStart(binOrigin);
 
-            int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+                int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
 
-            int range = genomeEnd - genomeOrigin;
+                int range = genomeEnd - genomeOrigin;
 
 
-            TickSpacing ts = findSpacing(range, false);
-            double spacing = ts.getMajorTick();
+                TickSpacing ts = findSpacing(range, false);
+                double spacing = ts.getMajorTick();
 
-            // Find starting point closest to the current origin
-            int maxX = context.getChromosome().getLength();
-            int nTick = (int) (genomeOrigin / spacing) - 1;
-            int genomePosition = (int) (nTick * spacing);
+                // Find starting point closest to the current origin
+                int maxX = context.getChromosome().getLength();
+                int nTick = (int) (genomeOrigin / spacing) - 1;
+                int genomePosition = (int) (nTick * spacing);
 
-            //int x = frame.getScreenPosition(genomeTickNumber);
-            int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                //int x = frame.getScreenPosition(genomeTickNumber);
+                int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
 
-            int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
 
-            while (genomePosition < maxX && x < w) {
-                Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
-                g.setColor(tColor);
+                while (genomePosition < maxX && x < w) {
+                    Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                    g.setColor(tColor);
 
-                genomePosition = (int) (nTick * spacing);
+                    genomePosition = (int) (nTick * spacing);
 
-                // x = frame.getScreenPosition(genomeTickNumber);
-                binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                    // x = frame.getScreenPosition(genomeTickNumber);
+                    binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
 
-                x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                    x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
 
-                String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                int strWidth = g.getFontMetrics().stringWidth(chrPosition);
-                int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
-                //if (strPosition > strEnd) {
+                    String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                    int strWidth = g.getFontMetrics().stringWidth(chrPosition);
+                    int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
+                    //if (strPosition > strEnd) {
 
-                if (nTick % 2 == 0) {
-                    g.drawString(chrPosition, strPosition, h - 15);
+                    if (nTick % 2 == 0) {
+                        g.drawString(chrPosition, strPosition, h - 15);
+                    }
+                    //strEnd = strPosition + strWidth;
+                    //}
+
+                    int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
+
+                    g.drawLine(xpos, h - 10, xpos, h - 2);
+                    nTick++;
                 }
-                //strEnd = strPosition + strWidth;
-                //}
-
-                int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
-
-                g.drawLine(xpos, h - 10, xpos, h - 2);
-                nTick++;
+            } catch (Exception e) {
+                return;
             }
         }
     }
