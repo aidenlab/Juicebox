@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -268,6 +269,45 @@ public class MainMenuBar {
         });
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 
+        final JMenu featureRenderingOptions = new JMenu("Partial Plotting");
+        final JCheckBoxMenuItem renderFullFeatureItem = new JCheckBoxMenuItem("Full Feature");
+        final JCheckBoxMenuItem renderLLFeatureItem = new JCheckBoxMenuItem("Lower Left");
+        final JCheckBoxMenuItem renderURFeatureItem = new JCheckBoxMenuItem("Upper Right");
+        renderFullFeatureItem.setSelected(true);
+        FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
+
+        renderFullFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
+                renderFullFeatureItem.setSelected(true);
+                renderLLFeatureItem.setSelected(false);
+                renderURFeatureItem.setSelected(false);
+            }
+        });
+        renderLLFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
+                renderFullFeatureItem.setSelected(false);
+                renderLLFeatureItem.setSelected(true);
+                renderURFeatureItem.setSelected(false);
+            }
+        });
+        renderURFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
+                renderFullFeatureItem.setSelected(false);
+                renderLLFeatureItem.setSelected(false);
+                renderURFeatureItem.setSelected(true);
+            }
+        });
+
+        featureRenderingOptions.add(renderFullFeatureItem);
+        featureRenderingOptions.add(renderLLFeatureItem);
+        featureRenderingOptions.add(renderURFeatureItem);
+
         final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
         toggleSparse2DFeaturePlotting.setSelected(false);
         toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
@@ -284,6 +324,7 @@ public class MainMenuBar {
         numSparse.setEnabled(true);
         numSparse.isEditable();
         numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
+
 
         final JButton updateSparseOptions = new JButton("Update");
         updateSparseOptions.addActionListener(new ActionListener() {
@@ -329,6 +370,8 @@ public class MainMenuBar {
         feature2DPlottingOptions.add(showLoopsItem);
         feature2DPlottingOptions.add(enlarge2DFeatures);
         feature2DPlottingOptions.add(toggle2DFeatureOpacity);
+        feature2DPlottingOptions.add(featureRenderingOptions);
+        feature2DPlottingOptions.addSeparator();
         feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
         feature2DPlottingOptions.add(sparseOptions);
         annotationsMenu.add(feature2DPlottingOptions);

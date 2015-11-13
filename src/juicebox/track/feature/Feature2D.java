@@ -59,6 +59,7 @@ public class Feature2D implements Comparable<Feature2D> {
     int start2;
     int end1;
     int end2;
+
     private Feature2D reflection = null;
     private Color color, translucentColor;
 
@@ -342,11 +343,18 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Feature2D reflectionAcrossDiagonal() {
         if (reflection == null) {
-            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color,
-                    attributes);
+            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color, attributes);
             reflection.reflection = this;
         }
         return reflection;
+    }
+
+    public boolean isInLowerLeft() {
+        return chr1.equals(chr2) && start2 > start1;
+    }
+
+    public boolean isInUpperRight() {
+        return chr1.equals(chr2) && start2 < start1;
     }
 
     public boolean containsAttributeKey(String attribute) {

@@ -35,14 +35,9 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 6/4/15.
  */
-class FeatureRenderer {
+public class FeatureRenderer {
 
-    // TODO make these variables accessible as user options
-    // the other day, Erez mentioned his preferred was everything in lower left
-    // can change for future.
-    private static final boolean onlyPlotUpperRight = false;
-    private static final boolean onlyPlotLowerLeft = false;
-    private static final boolean allowUpperRightLoops = true;
+    public static PlottingOption enablePlottingOption = PlottingOption.ONLY_LOWER_LEFT;
 
     public static void render(Graphics2D g2, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
@@ -53,9 +48,20 @@ class FeatureRenderer {
         HiCGridAxis xAxis = zd.getXGridAxis();
         HiCGridAxis yAxis = zd.getYGridAxis();
 
-
         if (loops != null) {
             for (Feature2D feature : loops) {
+
+                if (!feature.isOnDiagonal()) {
+                    if (feature.isInLowerLeft()) {
+                        if (enablePlottingOption == PlottingOption.ONLY_UPPER_RIGHT) {
+                            continue;
+                        }
+                    } else if (feature.isInUpperRight()) {
+                        if (enablePlottingOption == PlottingOption.ONLY_LOWER_LEFT) {
+                            continue;
+                        }
+                    }
+                }
 
                 g2.setColor(feature.getColor());
 
@@ -65,29 +71,41 @@ class FeatureRenderer {
                 int w = (int) rect.getWidth();
                 int h = (int) rect.getHeight();
 
-                if (onlyPlotLowerLeft) {
-                    g2.drawLine(x, y, x, y + h);
-                    g2.drawLine(x, y + h, x + w, y + h);
-                } else if (onlyPlotUpperRight) {
-                    g2.drawLine(x, y, x + w, y);
-                    g2.drawLine(x + w, y, x + w, y + h);
-                } else {
-                    //g2.setColor(Color.yellow);
-                    g2.drawRect(x, y, w, h);
+                switch (enablePlottingOption) {
+                    case ONLY_LOWER_LEFT:
+                        g2.drawLine(x, y, x, y + h);
+                        g2.drawLine(x, y + h, x + w, y + h);
+                        if (w > 5) {
+                            if (feature.isOnDiagonal()) {
+                                g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
+                                g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
+                            } else {
+                                g2.drawRect(x + 1, y + 1, w - 2, h - 2);
+                            }
+                        }
+                        break;
+                    case ONLY_UPPER_RIGHT:
+                        g2.drawLine(x, y, x + w, y);
+                        g2.drawLine(x + w, y, x + w, y + h);
+                        if (w > 5) {
+                            if (feature.isOnDiagonal()) {
+                                g2.drawLine(x + 1, y + 1, x + w + 1, y + 1);
+                                g2.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
+                            } else {
+                                g2.drawRect(x + 1, y + 1, w - 2, h - 2);
+                            }
+                        }
+                        break;
+                    case EVERYTHING:
+                        //g2.setColor(Color.yellow);
+                        g2.drawRect(x, y, w, h);
+                        if (w > 5) {
+                            g2.drawRect(x + 1, y + 1, w - 2, h - 2);
+                        }
+                        break;
                 }
-                //System.out.println(binStart1 + "-" + binEnd1);
-                if (w > 5) {
-                    // Thick line if there is room.
-                    if (onlyPlotLowerLeft) {
-                        g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
-                        g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
-                    } else if (onlyPlotUpperRight) {
-                        g2.drawLine(x + 1, y + 1, x + w + 1, y + 1);
-                        g2.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
-                    } else {
-                        g2.drawRect(x + 1, y + 1, w - 2, h - 2);
-                    }
-                } else {
+
+                if (w <= 5) {
                     g2.drawRect(x - 1, y - 1, w + 2, h + 2);
                 }
             }
@@ -119,4 +137,6 @@ class FeatureRenderer {
         }
         g2.dispose();
     }
+
+    public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}
 }
