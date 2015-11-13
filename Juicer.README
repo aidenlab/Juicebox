@@ -375,9 +375,13 @@ The required arguments are:
 
 <protein_files_for_unique_motifs>: BED file(s) separated by commas (no spaces) used to find
   unique motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files.
+  By intersecting these 1D tracks, the strongest peaks will be identified. Unique motifs
+  generally use a more stringent combination of BED files than inferred motifs.
 
-<protein_files_for_unique_motifs>: BED file(s) separated by commas (no spaces) used to find
-  inferred motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files.
+<protein_files_for_inferred_motifs>: BED file(s) separated by commas (no spaces) used to find
+  inferred motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files are used.
+  By intersecting these 1D tracks, the strongest peaks will be identified. Inferred motifs
+  generally use a less stringent combination of BED files than unique motifs.
 
 <output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
   as a 2D annotation.
