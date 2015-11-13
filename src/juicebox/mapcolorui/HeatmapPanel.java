@@ -92,6 +92,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean straightEdgeEnabled = false;
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
+    private enum AdjustAnnotation {LEFT, RIGHT, NONE};
+    private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE};
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
     /**
      * feature highlight related variables
@@ -1045,38 +1047,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return valueString;
     }
 
-    //helper for getannotatemenu
-    private int geneXPos(HiC hic, int x, int displacement, final MatrixZoomData zd) {
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        int binX = getXBin(hic, x) + displacement;
-        return xGridAxis.getGenomicStart(binX) + 1;
-    }
-
-    //helper for getannotatemenu
-    private int geneYPos(HiC hic, int y, int displacement, final MatrixZoomData zd) {
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
-        int binY = getYBin(hic, y) + displacement;
-        return yGridAxis.getGenomicStart(binY) + 1;
-    }
-
-
 //    @Override
 //    public String getToolTipText(MouseEvent e) {
 //        return toolTipText(e.getX(), e.getY());
 //
 //    }
-
-    private int getXBin(HiC hic, int x) {
-        return (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
-    }
-
-    private int getYBin(HiC hic, int y) {
-        return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
-    }
-
-    enum AdjustAnnotation {LEFT, RIGHT, NONE}
-
-    enum DragMode {NONE, PAN, ZOOM, SELECT, ANNOTATE, RESIZE}
 
     static class ImageTile {
         final int bLeft;
@@ -1492,30 +1467,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
                 }
                 // Set check if hovering over feature corner
-
-                //-Rectangle rect = mostRecentRectFeaturePair.getFirst();
-
                 if (mostRecentRectFeaturePair != null) {
-                    Point mousePoint = e.getPoint();
-                    int x = geneXPos(hic, (int) mousePoint.getX(), 0, zd);
-                    int y = geneYPos(hic, (int) mousePoint.getY(), 0, zd);
-                    int minDist = 10;
-                    int minX = geneXPos(hic, (int) mousePoint.getX() + minDist, 0, zd) - x;
-                    int minY = geneXPos(hic, (int) mousePoint.getY() + minDist, 0, zd) - y;
-                    //int minX = geneXPos(hic, (int) mousePoint.getX() + minDist, 0);
-                    Feature2D loop = mostRecentRectFeaturePair.getSecond();
 
+                    Rectangle loop = mostRecentRectFeaturePair.getFirst();
+                    Point mousePoint = e.getPoint();
+                    int minDist = 20;
                     // Mouse near top left corner
-                    if ((Math.abs(loop.getStart1() - x) <= minX &&
-                            Math.abs(loop.getStart2() - y) <= minY)) {
+                    if ((Math.abs(loop.getMinX() - mousePoint.getX()) <= minDist &&
+                            Math.abs(loop.getMinY() - mousePoint.getY()) <= minDist)) {
                         adjustAnnotation = AdjustAnnotation.LEFT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
-                        // uncomment below for cross hairs
-                        //hic.setCursorPoint(e.getPoint());
-                        //repaint();
-                        // Mouse near bottom right corner
-                    } else if (Math.abs(loop.getEnd1() - x) <= minX &&
-                            Math.abs(loop.getEnd2() - y) <= minY) {
+                    // Mouse near bottom right corner
+                    } else if (Math.abs(loop.getMaxX() - mousePoint.getX()) <= minDist &&
+                            Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
                         adjustAnnotation = AdjustAnnotation.RIGHT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
                     }
@@ -1534,6 +1498,4 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
     }
-
-
 }

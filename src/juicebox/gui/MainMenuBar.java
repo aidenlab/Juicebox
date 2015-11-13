@@ -382,8 +382,8 @@ public class MainMenuBar {
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
         final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-        loadLastMI = new JMenuItem("Load Last");
-        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
+        loadLastMI = new JMenuItem("Load Unsaved Edits");
+        final JMenuItem mergeVisibleMI = new JMenuItem("Edit Visible");
         undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
 
@@ -408,6 +408,7 @@ public class MainMenuBar {
                 customAnnotations = superAdapter.generateNewCustomAnnotation(temp, "1");
                 temp.delete();
                 loadLastMI.setEnabled(false);
+                exportAnnotationsMI.setEnabled(true);
             }
         });
 
@@ -457,11 +458,12 @@ public class MainMenuBar {
         //Add annotate menu items
         customAnnotationMenu.add(showCustomLoopsItem);
         customAnnotationMenu.add(exportAnnotationsMI);
-        customAnnotationMenu.add(exportOverlapMI);
+        //customAnnotationMenu.add(exportOverlapMI);
         customAnnotationMenu.add(mergeVisibleMI);
         customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
-        if (unsavedEdits) {
+        if (unsavedEditsExist()) {
+            customAnnotationMenu.add(new JSeparator());
             customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
         }
