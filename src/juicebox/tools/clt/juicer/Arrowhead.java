@@ -180,8 +180,12 @@ public class Arrowhead extends JuicerCLT {
         }
 
         PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
-        PrintWriter outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
-        PrintWriter outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+        PrintWriter outputListFile = null;
+        PrintWriter outputControlFile = null;
+        if (controlAndListProvided) {
+            outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
+            outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+        }
 
         // chromosome filtering must be done after input/control created
         // because full set of chromosomes required to parse lists
@@ -218,7 +222,9 @@ public class Arrowhead extends JuicerCLT {
 
         // save the data on local machine
         contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
-        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
-        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
+        if (controlAndListProvided) {
+            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
+            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
+        }
     }
 }
