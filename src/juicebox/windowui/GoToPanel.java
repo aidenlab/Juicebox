@@ -140,7 +140,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         positionChrTop.setText(newPositionDate);
     }
 
-
     private void parsePositionText() {
         //Expected format: <chr>:<start>-<end>:<resolution>
 
@@ -168,6 +167,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             parseGenePositionText();
             return;
         }
+
         //Read Chromosomes:
         //First chromosome:
         List<Chromosome> chromosomeList = hic.getDataset().getChromosomes();
@@ -197,8 +197,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (topChrTokens.length > 2 && topDashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                topStart = Integer.min(Integer.valueOf(topChrTokens[1].replaceAll(",", "")), Integer.valueOf(topChrTokens[2].replaceAll(",", "")));
-                topEnd = Integer.max(Integer.valueOf(topChrTokens[1].replaceAll(",", "")), Integer.valueOf(topChrTokens[2].replaceAll(",", "")));
+                topStart = Integer.min(cleanUpNumber(topChrTokens[1]), cleanUpNumber(topChrTokens[2]));
+                topEnd = Integer.max(cleanUpNumber(topChrTokens[1]), cleanUpNumber(topChrTokens[2]));
             } catch (Exception e) {
                 positionChrTop.setBackground(Color.yellow);
                 log.error("Cannot parse " + topChrTokens[1] + " or " + topChrTokens[2] + ". Expecting int");
@@ -229,7 +229,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         } else if (topChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                outBinTop = Integer.valueOf(topChrTokens[1].replaceAll(",", ""));
+                outBinTop = cleanUpNumber(topChrTokens[1]);
             } catch (Exception e) {
                 positionChrTop.setBackground(Color.yellow);
                 log.error("Cannot parse " + topChrTokens[1] + ". Expecting int");
@@ -241,8 +241,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (leftChrTokens.length > 2 && leftDashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                leftStart = Integer.min(Integer.valueOf(leftChrTokens[1].replaceAll(",", "")), Integer.valueOf(leftChrTokens[2].replaceAll(",", "")));
-                leftEnd = Integer.max(Integer.valueOf(leftChrTokens[1].replaceAll(",", "")), Integer.valueOf(leftChrTokens[2].replaceAll(",", "")));
+                leftStart = Integer.min(cleanUpNumber(leftChrTokens[1]), cleanUpNumber(leftChrTokens[2]));
+                leftEnd = Integer.max(cleanUpNumber(leftChrTokens[1]), cleanUpNumber(leftChrTokens[2]));
             } catch (Exception e) {
                 positionChrLeft.setBackground(Color.yellow);
                 log.error("Cannot parse " + leftChrTokens[1] + " or " + leftChrTokens[2] + ". Expecting int");
@@ -273,7 +273,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         } else if (leftChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                outBinLeft = Integer.valueOf(leftChrTokens[1].replaceAll(",", ""));
+                outBinLeft = cleanUpNumber(leftChrTokens[1]);
             } catch (Exception e) {
                 positionChrLeft.setBackground(Color.yellow);
                 log.error("Cannot parse " + leftChrTokens[1] + ". Expecting int");
@@ -347,6 +347,13 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         //We might end with ALL->All view, make sure normalization state is updates accordingly...
         superAdapter.setNormalizationDisplayState();
+    }
+
+    private int cleanUpNumber(String number) {
+        return Integer.valueOf(number.toLowerCase()
+                .replaceAll(",", "")
+                .replaceAll("m", "000000")
+                .replaceAll("k", "000"));
     }
 
     private void parseGenePositionText() {
