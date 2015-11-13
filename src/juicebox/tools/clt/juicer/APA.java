@@ -125,7 +125,6 @@ public class APA extends JuicerCLT {
     private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
 
-
     /**
      * Usage for APA
      */

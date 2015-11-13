@@ -533,7 +533,9 @@ public class HiC {
                 }
             }
         }
-        actuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false, ZoomCallType.DRAG);
+
+        actuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false,
+                ZoomCallType.DRAG);
     }
 
     /**
@@ -541,12 +543,18 @@ public class HiC {
      */
     //reloading the previous location
     public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scaleFactor) {
-        setChromosomesFromBroadcast(chrXName, chrYName);
+
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         }
-        actuallySetZoomAndLocation(newZoom, (int) xOrigin, (int) yOrigin, scaleFactor, true, ZoomCallType.GOTO);
+        actuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+                true, ZoomCallType.GOTO);
+    }
+
+    public boolean actuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                              boolean resetZoom, ZoomCallType zoomCallType) {
+        return actuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
     }
 
     /**
@@ -562,17 +570,25 @@ public class HiC {
      * @param scaleFactor (pass -1 if scaleFactor should be calculated)
      * @return
      */
-    public boolean actuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+    public boolean actuallySetZoomAndLocation(String chrXName, String chrYName,
+                                              HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
                                               boolean resetZoom, ZoomCallType zoomCallType) {
 
+
         if (dataset == null) return false;  // No data in view
+
+        String chr1OriginalName = xContext.getChromosome().getName();
+        String chr2OriginalName = yContext.getChromosome().getName();
+        if (chrXName.length() > 0 && chrYName.length() > 0) {
+            setChromosomesFromBroadcast(chrXName, chrYName);
+        }
 
         if (newZoom == null) {
             System.err.println("Invalid zoom " + newZoom);
         }
 
-        final Chromosome chr1 = xContext.getChromosome();
-        final Chromosome chr2 = yContext.getChromosome();
+        Chromosome chr1 = xContext.getChromosome();
+        Chromosome chr2 = yContext.getChromosome();
         final Matrix matrix = dataset.getMatrix(chr1, chr2);
 
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
@@ -585,6 +601,13 @@ public class HiC {
                     JOptionPane.WARNING_MESSAGE);
             return false;
         }
+
+        /* Undo Zoom implementation _UZI
+        if(currentZoom != null) {
+            tempZoomState = new ZoomState(chr1OriginalName, chr2OriginalName, currentZoom.clone(), (int) xContext.getBinOrigin(),
+                    (int) yContext.getBinOrigin(), getScaleFactor(), resetZoom, ZoomCallType.GOTO);
+        }
+        */
 
         currentZoom = newZoom;
         xContext.setZoom(currentZoom);
@@ -601,6 +624,7 @@ public class HiC {
         int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition(genomeX);
         int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition(genomeY);
         switch (zoomCallType) {
+            case INITIAL:
             case STANDARD:
                 center(binX, binY);
                 break;
@@ -626,8 +650,89 @@ public class HiC {
         if (linkedMode) {
             broadcastLocation();
         }
+        /* Undo Zoom implementation _UZI
+        if(zoomCallType == ZoomCallType.INITIAL || tempZoomState == null || chrXName.equals(Globals.CHR_ALL) || chrYName.equals(Globals.CHR_ALL)
+                || tempZoomState.chr1Name.equals(Globals.CHR_ALL) || tempZoomState.chr2Name.equals(Globals.CHR_ALL)){
+            canRedoZoomChange = false;
+            canUndoZoomChange = false;
+        }
+        else {
+            // defauts for a normal zoom operation
+            canRedoZoomChange = false;
+            canUndoZoomChange = true;
+            previousZoomState = tempZoomState;
+        }
+        */
         return true;
     }
+
+    /*  Undo Zoom implementation _UZI
+    private boolean canUndoZoomChange = false;
+    private boolean canRedoZoomChange = false;
+    private ZoomState previousZoomState, tempZoomState;
+
+    public boolean isCanUndoZoomChangeAvailable(){
+        return canUndoZoomChange;
+    }
+
+    public boolean isCanRedoZoomChangeAvailable(){
+        return canRedoZoomChange;
+    }
+
+    public void undoZoomChange(){
+        if(canUndoZoomChange){
+            System.err.println(previousZoomState);
+            System.err.println(previousZoomState.loadZoomState());
+            System.err.println(previousZoomState+"\n\n");
+            // override when undoing zoom
+            canUndoZoomChange = false;
+            canRedoZoomChange = true;
+        }
+
+    }
+
+    public void redoZoomChange(){
+        if(canRedoZoomChange){
+            System.err.println(previousZoomState);
+            System.err.println(previousZoomState.loadZoomState());
+            System.err.println(previousZoomState+"\n\n");
+            // override when redoing zoom
+            canRedoZoomChange = false;
+            canUndoZoomChange = true;
+        }
+    }
+
+    private class ZoomState {
+        String chr1Name, chr2Name;
+        HiCZoom zoom;
+        int genomeX, genomeY;
+        double scaleFactor;
+        boolean resetZoom;
+        ZoomCallType zoomCallType;
+
+        ZoomState(String chr1Name, String chr2Name,
+                  HiCZoom zoom, int genomeX, int genomeY, double scaleFactor,
+                  boolean resetZoom, ZoomCallType zoomCallType){
+            this.chr1Name = chr1Name;
+            this.chr2Name = chr2Name;
+            this.zoom = zoom;
+            this.genomeX = genomeX;
+            this.genomeY = genomeY;
+            this.scaleFactor = scaleFactor;
+            this.resetZoom = resetZoom;
+            this.zoomCallType = zoomCallType;
+        }
+
+        boolean loadZoomState(){
+            return actuallySetZoomAndLocation(chr1Name, chr2Name, zoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
+        }
+
+        @Override
+        public String toString(){
+            return ""+chr1Name+" "+chr2Name+" "+zoom;
+        }
+    }
+    */
 
     private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
@@ -792,7 +897,7 @@ public class HiC {
         feature2DHandler.removeFeaturePath(path);
     }
 
-    public enum ZoomCallType {STANDARD, DRAG, GOTO}
+    public enum ZoomCallType {STANDARD, DRAG, GOTO, INITIAL}
 
     public enum Unit {BP, FRAG}
 }

@@ -521,6 +521,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         JidePopupMenu menu = new JidePopupMenu();
 
+        /* Undo Zoom implementation _UZI
+        if(hic.isCanRedoZoomChangeAvailable() || hic.isCanUndoZoomChangeAvailable()) {
+            String title = "Undo Zoom";
+            final boolean timeToUndoZoom;
+            if(hic.isCanRedoZoomChangeAvailable()){
+                timeToUndoZoom = false;
+                title = "Redo Zoom";
+            }
+            else {
+                timeToUndoZoom = true;
+            }
+            final JMenuItem mi0UndoOrRedo = new JMenuItem(title);
+            mi0UndoOrRedo.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if(timeToUndoZoom){
+                        hic.undoZoomChange();
+                    }
+                    else {
+                        hic.redoZoomChange();
+                    }
+                }
+            });
+            menu.add(mi0UndoOrRedo);
+        }
+        */
+
         final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
         mi.setSelected(straightEdgeEnabled);
         mi.addActionListener(new ActionListener() {

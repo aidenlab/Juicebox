@@ -110,12 +110,12 @@ public class Arrowhead extends JuicerCLT {
     private String featureList, controlList;
 
     // must be passed via command line
-    private int resolution = -100;
+    private int resolution = 10000;
     private String file, outputPath;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] [-k normalization (NONE/VC/VC_SQRT/KR)] <input_HiC_file(s)> <output_file> " +
-                "<resolution> [feature_list] [control_list]");
+        super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
+                "<HiC file(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -123,8 +123,8 @@ public class Arrowhead extends JuicerCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        if (args.length != 4 && args.length != 6) {
-            // 5 - standard, 7 - when list/control provided
+        if (args.length != 3 && args.length != 5) {
+            // 3 - standard, 5 - when list/control provided
             printUsage();
         }
 
@@ -135,27 +135,29 @@ public class Arrowhead extends JuicerCLT {
         file = args[1];
         outputPath = args[2];
 
-        try {
-            resolution = Integer.valueOf(args[3]);
-        } catch (NumberFormatException error) {
-            printUsage();
+        List<String> potentialResolution = juicerParser.getChromosomeOption();
+        if (potentialResolution != null) {
+            resolution = Integer.parseInt(potentialResolution.get(0));
         }
 
-        if (args.length == 6) {
+        if (args.length == 5) {
             controlAndListProvided = true;
-            featureList = args[4];
-            controlList = args[5];
+            featureList = args[3];
+            controlList = args[4];
         }
 
         List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null)
+        if (potentialChromosomes != null) {
             givenChromosomes = new HashSet<String>(potentialChromosomes);
-        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
-        if (specifiedMatrixSize % 2 == 1)
-            specifiedMatrixSize += 1;
-        if (specifiedMatrixSize > 50)
-            matrixSize = specifiedMatrixSize;
+        }
 
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+        if (specifiedMatrixSize % 2 == 1) {
+            specifiedMatrixSize += 1;
+        }
+        if (specifiedMatrixSize > 50) {
+            matrixSize = specifiedMatrixSize;
+        }
     }
 
 

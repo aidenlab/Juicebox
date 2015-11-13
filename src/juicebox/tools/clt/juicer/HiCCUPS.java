@@ -199,7 +199,7 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
-                "<hicFile(s)> <finalLoopsList>" +
+                "<hicFile(s)> <outputLoopsList>" +
                 "\n" +
                 "\n" +
                 "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +

@@ -53,17 +53,33 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
     annotation.
 13. APA determines the aggregate enrichment of a set of putative peak calls.
     Run APA on the loops list you just created:
-      /opt/juicer/scripts/juicebox_native_lib apa KR inter_19.hic chr19_loops_list_postprocessing apa_results
+      /opt/juicer/scripts/juicebox_native_lib apa inter_19.hic chr19_loops_list_postprocessing apa_results
     The directory apa_results will contain data files and image files for APA
     at 10Kb and 25Kb resolution.
-14. Arrowhead automatically finds contact domains in the Hi-C map. Run
+14. MotifFinder automatically finds motifs of provided loops. Run MotifFinder by typing:
+      /opt/juicer/scripts/juicebox_native_lib motifs ctcf.bed,rad21.bed
+              ctcf.bed hg19 chr19_loops_list
+    The resulting file chr19_loops_list_with_motifs.txt will contain the loops
+    list with motifs as attributes. The format is described in the Juicebox
+    tutorial online, and can be loaded into Juicebox as a 2D annotation.
+15. Arrowhead automatically finds contact domains in the Hi-C map. Run
     Arrowhead by typing:
-      /opt/juicer/scripts/juicebox_native_lib arrowhead -m 2000 KR inter_19.hic arrowhead_contact_domains 10000
+      /opt/juicer/scripts/juicebox_native_lib arrowhead -m 2000 inter_19.hic arrowhead_contact_domains
     The resulting file arrowhead_contact_domains will contain the contact
     domains found in the input Hi-C file. The format is the same as for peaks
     and is described in the Juicebox tutorial online, and can be loaded into
     Juicebox as a 2D annotation.
-15. TODO MOTIF FINDER
+
+----
+New script?
+----
+
+10. Run post-processing on the hic file by typing the following:
+       ./juicer_postprocessing /opt/juicer/scripts/juicebox_native_lib inter_19.hic
+    This will run the major postprocessing on the HiC file, including finding
+    loops with HiCCUPS, finding motifs of these loops with MotifFinder, and
+    finding contact domains with Arrowhead.
+
 
 See below for more documentation.
 
@@ -157,11 +173,11 @@ The "apa" command takes three required arguments and a number of optional
 arguments.
 
 apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
-   [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder> [SavePrefix]
+   [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder>
 
 The required arguments are:
 
-<hic file(s)>: Address of HiC File(s) which should end with ".hic". This is the file you will
+<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
    load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
    use the '+' symbol between the addresses (no whitespace between addresses)
 <PeaksFile>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
@@ -174,6 +190,7 @@ The optional arguments are:
    -x <int> maximum distance away from the diagonal. Used to filter peaks too far from the diagonal.
        Units are in terms of the provided resolution. (e.g. -n 30 @ resolution 5kB will filter loops
        further than 30*(5000/sqrt(2)) units of the diagonal)
+   -w <int> width of region to be aggregated around the specified loops (units of resolution)
    -r <int(s)> resolution for APA; multiple resolutions can be specified using commas (e.g. 5000,10000)
    -c <String(s)> Chromosome(s) on which APA will be run. The number/letter for the chromosome can be
        used with or without appending the "chr" string. Multiple chromosomes can be specified using
@@ -184,6 +201,7 @@ The optional arguments are:
 Default settings of optional arguments:
    -n 30
    -x (infinity)
+   -w 10
    -r 25000,10000
    -c (all chromosomes)
    -k KR
@@ -210,17 +228,16 @@ apa -r 10000,5000 -c 17,18 HIC006.hic+HIC007.hic all_loops.txt results
 HiCCUPS
 -------
 
-hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-w window]
-   [-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>
-
+hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-k normalization (NONE/VC/VC_SQRT/KR)] [-f fdr] [-p peak width] [-i window]
+   [-t thresholds] [-d centroid distances] <HiC file(s)> <outputLoopsList>
 
 The required arguments are:
 
-<hic file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
+<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
    load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
-   use the '+' symbol between the addresses (no whitespace between addresses).
+   use the '+' symbol between the addresses (no whitespace between addresses)
 
-<finalLoopsList>: Final list of all loops found by HiCCUPS. Can be visualized directly in Juicebox as a 2D annotation.
+<outputLoopsList>: Final list of all loops found by HiCCUPS. Can be visualized directly in Juicebox as a 2D annotation.
    By default, various values critical to the HICCUPS algorithm are saved as attributes for each loop found. These can be
    disabled using the suppress flag below.
 
@@ -237,6 +254,8 @@ The optional arguments are:
        lower resolutions (i.e. 50kB or 100kB)
        IMPORTANT: if multiple resolutions are used, the flags below can be configured so that different parameters are
        used for the different resolutions.
+   -k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally, KR (Knight-Ruiz)
+       balancing should be used when available.
    -f <int(s)> FDR values actually corresponding to max_q_val (i.e. for 1% FDR use 0.01, for 10%FDR use 0.1). Different
        FDR values can be used for each resolution using commas. (e.g "-r 5000,10000 -f 0.1,0.15" would run HiCCUPS at
        10% FDR for resolution 5000 and 15% FDR for resolution 10000)
@@ -286,75 +305,94 @@ hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  H
 Arrowhead
 -------
 
-arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file>
-  <resolution> [feature_list] [control_list]
+arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
+                "<HiC file(s)> <output_file> [feature_list] [control_list]
 
 The required arguments are:
 
-<NONE/VC/VC_SQRT/KR> One of the normalizations must be selected (case sensitive). Generally, KR (Knight-Ruiz)
-  balancing should be used.
-
-<input_HiC_file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
-  load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
-  use the '+' symbol between the addresses (no whitespace between addresses).
+<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
+   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+   use the '+' symbol between the addresses (no whitespace between addresses)
 
 <output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
   as a 2D annotation.
 
-<resolution>: Integer resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
-  resolution is used depending on the depth of sequencing in the hic file(s).
-
-  -- NOTE -- If you want to find scores for a feature and control list, both must be provided:
+-- NOTE -- If you want to find scores for a feature and control list, both must be provided:
 
 [feature_list]: Feature list of loops/domains for which block scores are to be calculated
-
 [control_list]: Control list of loops/domains for which block scores are to be calculated
 
 
 The optional arguments are:
 
--m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
-  number as (m/2) is used as the increment for the sliding window. (Default 2000)
-
 -c <String(s)> Chromosome(s) on which Arrowhead will be run. The number/letter for the chromosome can be used with or
   without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
+-m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
+  number as (m/2) is used as the increment for the sliding window. (Default 2000)
+-r <int> resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
+  resolution is used depending on the depth of sequencing in the HiC file(s).
+-k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally, KR (Knight-Ruiz)
+       balancing should be used when available.
 
+
+Default settings of optional arguments:
+   -c (all chromosomes)
+   -m 2000
+   -r 10000
+   -k KR
 
 ----------------
 Arrowhead Examples
 ----------------
 
-arrowhead -m 2000 KR ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list 10000
-  This command will run Arrowhead on a mouse cell line HiC map and save all contact domains to the
-  contact_domains_list file. These are the settings used to generate the official contact domain list on the
+arrowhead ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list
+  This command will run Arrowhead on a mouse cell line HiC map at resolution 10 kB and save all contact domains
+  to the contact_domains_list file. These are the settings used to generate the official contact domain list on the
   ch12-lx-b-lymphoblast cell line.
 
-arrowhead KR GM12878_mapq_30.hic contact_domains_list 5000
-  This command will run Arrowhead on the GM12878 HiC map and save all contact domains to the contact_domains_list
-  file. These are the settings used to generate the official GM12878 contact domain list.
-
-
-
+arrowhead -r 5000 GM12878_mapq_30.hic contact_domains_list
+  This command will run Arrowhead at resolution 5kB on the GM12878 HiC map and save all contact domains
+  to the contact_domains_list file. These are the settings used to generate the official GM12878
+  contact domain list.
 
 -----------------------
-Motif Finder (Eventually)
+Motif Finder
 -----------------------
+
+motifs <protein_files_for_unique_motifs> <protein_files_for_inferred_motifs> <genomeID>
+                [custom_global_motif_list] <looplist>
+
+The required arguments are:
+
+<protein_files_for_unique_motifs>: BED file(s) separated by commas (no spaces) used to find
+  unique motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files.
+
+<protein_files_for_unique_motifs>: BED file(s) separated by commas (no spaces) used to find
+  inferred motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files.
+
+<output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
+  as a 2D annotation.
+
+<looplist>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
+
+-- NOTE -- If you want to use a custom list of potential motifs:
+
+[custom_global_motif_list]: Motif list output using FIMO format can be used as an alternative
+  to the internal motif list
 
 -------------------
 Motif Finder Examples
 -------------------
 
+motifs ctcf.bed,rad21.bed,smc3.bed ctcf.bed,rad21.bed hg19 gm12878_hiccups_loops.txt
+  This command will find motifs from the internal hg19 motif list for the loops in gm12878_hiccups_loops.txt
+  and save them to gm12878_hiccups_loops_with_motifs.txt. The CTCF, RAD21, and SMC3 BED files will be used
+  together (i.e. intersected) to find unique motifs. The CTCF and RAD21 track will be used to infer best motifs.
 
------------------------
-Clustering (Eventually)
------------------------
-
--------------------
-Clustering Examples
--------------------
-
-
-
+motifs ctcf.bed,rad21.bed,smc3.bed ctcf.bed hg19 hg_19_custom_motif_list.txt gm12878_hiccups_loops.txt
+  This command will find motifs from hg_19_custom_motif_list.txt for the loops in gm12878_hiccups_loops.txt
+  and save them to gm12878_hiccups_loops_with_motifs.txt. The CTCF, RAD21, and SMC3 BED files will be used
+  together (i.e. intersected) to find unique motifs. Just the CTCF track will be used to infer best motifs.
 
 --------------------------------
 Compiling Jars from Source Files

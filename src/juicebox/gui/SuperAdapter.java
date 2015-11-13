@@ -322,7 +322,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.actuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
+        hic.actuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL);
     }
 
     public void refresh() {
