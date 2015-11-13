@@ -135,7 +135,7 @@ public class Arrowhead extends JuicerCLT {
         file = args[1];
         outputPath = args[2];
 
-        List<String> potentialResolution = juicerParser.getChromosomeOption();
+        List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
             resolution = Integer.parseInt(potentialResolution.get(0));
         }
