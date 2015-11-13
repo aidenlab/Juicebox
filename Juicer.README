@@ -70,9 +70,9 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
     and is described in the Juicebox tutorial online, and can be loaded into
     Juicebox as a 2D annotation.
 
-----
-New script?
-----
+*****----
+Or new script?
+*****----
 
 10. Run post-processing on the hic file by typing the following:
        ./juicer_postprocessing /opt/juicer/scripts/juicebox_native_lib inter_19.hic
@@ -285,6 +285,15 @@ The optional arguments are:
 
 Defaults:
 
+   -m 512
+   -c (all chromosomes)
+   -r 10000
+   -k KR
+   -f .1
+   -p 2
+   -w 5
+   -t 0.02,1.5,1.75,2
+   -d 20000,20000,50000
 
 ----------------
 HiCCUPS Examples
@@ -411,7 +420,9 @@ Compiling Jars from Source Files
 --------------------------------
 Installation Help (Dependencies)
 --------------------------------
+*
 * Installing CUDA (for HiCCUPS peak calling)
+*
 
 You must have an NVIDIA GPU to install CUDA
 Instructions for installing CUDA 7 can be found on the NVIDIA Developer site:
@@ -422,14 +433,18 @@ Other versions of CUDA can be used, but you will need to download the
 respective native libraries from
    http://www.jcuda.org/downloads/downloads.html
 
+*
 * Installing Java 1.8 JDK (for compiling from source files)
+*
 
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
    http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 (Alternative) For Ubuntu/LinuxMint
    http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
 
+*
 * Installing Apache Ant (for compiling from source files)
+*
 
 Mac
    Ant should be installed on most Macs. To verify installation via the
