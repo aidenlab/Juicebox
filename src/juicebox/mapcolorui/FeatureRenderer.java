@@ -71,42 +71,40 @@ public class FeatureRenderer {
                 int w = (int) rect.getWidth();
                 int h = (int) rect.getHeight();
 
-                switch (enablePlottingOption) {
-                    case ONLY_LOWER_LEFT:
-                        g2.drawLine(x, y, x, y + h);
-                        g2.drawLine(x, y + h, x + w, y + h);
-                        if (w > 5) {
-                            if (feature.isOnDiagonal()) {
+                if (feature.isOnDiagonal()) {
+                    // contact domains
+                    switch (enablePlottingOption) {
+                        case ONLY_LOWER_LEFT:
+                            g2.drawLine(x, y, x, y + h);
+                            g2.drawLine(x, y + h, x + w, y + h);
+                            if (w > 5) {
                                 g2.drawLine(x + 1, y + 1, x + 1, y + h + 1);
                                 g2.drawLine(x + 1, y + h + 1, x + w + 1, y + h + 1);
-                            } else {
-                                g2.drawRect(x + 1, y + 1, w - 2, h - 2);
                             }
-                        }
-                        break;
-                    case ONLY_UPPER_RIGHT:
-                        g2.drawLine(x, y, x + w, y);
-                        g2.drawLine(x + w, y, x + w, y + h);
-                        if (w > 5) {
-                            if (feature.isOnDiagonal()) {
+                            break;
+                        case ONLY_UPPER_RIGHT:
+                            g2.drawLine(x, y, x + w, y);
+                            g2.drawLine(x + w, y, x + w, y + h);
+                            if (w > 5) {
                                 g2.drawLine(x + 1, y + 1, x + w + 1, y + 1);
                                 g2.drawLine(x + w + 1, y + 1, x + w + 1, y + h - 1);
-                            } else {
+                            }
+                            break;
+                        case EVERYTHING:
+                            g2.drawRect(x, y, w, h);
+                            if (w > 5) {
                                 g2.drawRect(x + 1, y + 1, w - 2, h - 2);
                             }
-                        }
-                        break;
-                    case EVERYTHING:
-                        //g2.setColor(Color.yellow);
-                        g2.drawRect(x, y, w, h);
-                        if (w > 5) {
-                            g2.drawRect(x + 1, y + 1, w - 2, h - 2);
-                        }
-                        break;
-                }
-
-                if (w <= 5) {
-                    g2.drawRect(x - 1, y - 1, w + 2, h + 2);
+                            break;
+                    }
+                } else {
+                    // loops, other features, etc
+                    g2.drawRect(x, y, w, h);
+                    if (w > 5) {
+                        g2.drawRect(x + 1, y + 1, w - 2, h - 2);
+                    } else {
+                        g2.drawRect(x - 1, y - 1, w + 2, h + 2);
+                    }
                 }
             }
         }
