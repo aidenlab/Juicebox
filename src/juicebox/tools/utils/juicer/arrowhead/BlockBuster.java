@@ -93,8 +93,8 @@ public class BlockBuster {
                 }
 
                 // merge/bin domains in very close proximity
-                List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5);
-                binnedScores = binScoresByDistance(binnedScores, 10);
+                List<HighScore> binnedScores = binScoresByDistance(results.getCumulativeResults(), 5 * resolution);
+                binnedScores = binScoresByDistance(binnedScores, 10 * resolution);
                 Collections.sort(binnedScores, Collections.reverseOrder());
 
                 // convert to Feature2DList format
@@ -190,7 +190,7 @@ public class BlockBuster {
         for (HighScore score : scores) {
             boolean scoreNotBinned = true;
             for (BinnedScore binnedScore : binnedScores) {
-                if (binnedScore.isNear(score)) {
+                if (binnedScore.isNear(score, dist)) {
                     binnedScore.addScoreToBin(score);
                     scoreNotBinned = false;
                     break;
@@ -198,7 +198,7 @@ public class BlockBuster {
             }
 
             if (scoreNotBinned) {
-                binnedScores.add(new BinnedScore(score, dist));
+                binnedScores.add(new BinnedScore(score));
             }
         }
 

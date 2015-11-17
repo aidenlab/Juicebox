@@ -36,7 +36,6 @@ import java.util.List;
  */
 class BinnedScore {
 
-    private final int distanceThreshold;
     private final List<Double> scores = new ArrayList<Double>();
     private final List<Double> uVarScores = new ArrayList<Double>();
     private final List<Double> lVarScores = new ArrayList<Double>();
@@ -47,12 +46,11 @@ class BinnedScore {
     private int minY;
     private int maxY;
 
-    public BinnedScore(HighScore score, int distanceThreshold) {
+    public BinnedScore(HighScore score) {
         minX = score.getI();
         maxX = score.getI();
         minY = score.getJ();
         maxY = score.getJ();
-        this.distanceThreshold = distanceThreshold;
         appendDataValues(score);
     }
 
@@ -67,7 +65,7 @@ class BinnedScore {
     /**
      * @return true if given data point is spatially proximate to this data bin
      */
-    public boolean isNear(HighScore score) {
+    public boolean isNear(HighScore score, int distanceThreshold) {
         return (Math.abs(minX - score.getI()) < distanceThreshold || Math.abs(maxX - score.getI()) < distanceThreshold)
                 && (Math.abs(minY - score.getJ()) < distanceThreshold || Math.abs(maxY - score.getJ()) < distanceThreshold);
     }
