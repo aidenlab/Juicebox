@@ -34,6 +34,9 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,34 +86,46 @@ public class MotifFinder extends JuicerCLT {
     private String outputPath;
     private String loopListPath;
     private String genomeID;
-    private String[] proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
+    private List<String> proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
+    private String bedFileDirPath;
     private String globalMotifListPath;
 
     public MotifFinder() {
-        super("motifs <protein_files_for_unique_motifs> <protein_files_for_inferred_motifs> <genomeID> " +
-                "[custom_global_motif_list] <looplist>");
+        super("motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
 
-        if (args.length != 5 && args.length != 6) {
+        if (args.length != 4 && args.length != 5) {
             this.printUsage();
         }
 
         int i = 1;
-        proteinsForUniqueMotifPaths = args[i++].split(",");
-        proteinsForInferredMotifPaths = args[i++].split(",");
         genomeID = args[i++];
-        if (args.length == 6) {
+        bedFileDirPath = args[i++];
+        //proteinsForUniqueMotifPaths = args[i++].split(",");
+        //proteinsForInferredMotifPaths = args[i++].split(",");
+        loopListPath = args[i++];
+        if (args.length == 5) {
             globalMotifListPath = args[i++];
         }
-        loopListPath = args[i++];
 
         if (loopListPath.endsWith(".txt")) {
             outputPath = loopListPath.substring(0, loopListPath.length() - 4) + "_with_motifs.txt";
         } else {
             outputPath = loopListPath + "_with_motifs.txt";
+        }
+
+        try {
+            retrieveAllBEDFiles(bedFileDirPath);
+        } catch (Exception e) {
+            System.err.println("Unable to locate BED files");
+            System.err.println("All BED files should include the '.bed' extension");
+            System.err.println("BED files for locating unique motifs should be located in given_bed_file_dir/unique");
+            System.err.println("BED files for locating inferred motifs should be located in given_bed_file_dir/inferred");
+            //e.printStackTrace();
+            System.exit(-4);
         }
 
     }
@@ -128,11 +143,7 @@ public class MotifFinder extends JuicerCLT {
         }
 
         // 1st step - intersect all the 1d tracks for unique motifs
-        AnchorList proteinsForUniqueness = AnchorParser.loadFromBEDFile(chromosomes, proteinsForUniqueMotifPaths[0]);
-        for (int i = 1; i < proteinsForUniqueMotifPaths.length; i++) {
-            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, proteinsForUniqueMotifPaths[i]);
-            proteinsForUniqueness.intersectWith(nextProteinList, false);
-        }
+        AnchorList proteinsForUniqueness = getIntersectionOfBEDFiles(chromosomes, proteinsForUniqueMotifPaths);
 
         // second step: peak loci that have only one 1-d peak from the intersected 1-d
         //  peak track are identified (along with their corresponding unique 1-d peak)
@@ -153,11 +164,7 @@ public class MotifFinder extends JuicerCLT {
         anchors.updateOriginalMotifs(true);
 
         // 4th step - intersect all the 1d tracks for inferring motifs
-        AnchorList proteinsForInference = AnchorParser.loadFromBEDFile(chromosomes, proteinsForInferredMotifPaths[0]);
-        for (int i = 1; i < proteinsForInferredMotifPaths.length; i++) {
-            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, proteinsForInferredMotifPaths[i]);
-            proteinsForInference.intersectWith(nextProteinList, false);
-        }
+        AnchorList proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
 
         // fifth step: the 1-d peak track from step 4 are intersected with the genome wide
         // motif list (best motif match) and split into a forward motif track and a reverse motif track.
@@ -181,6 +188,56 @@ public class MotifFinder extends JuicerCLT {
         // motifs under each of the anchors (i.e. GEO format).
 
         features.exportFeatureList(outputPath, false);
+    }
 
+    private void retrieveAllBEDFiles(String path) throws IOException {
+        File bedFileDir = new File(path);
+        if (bedFileDir.exists()) {
+            String uniqueBEDFilesPath = path + "/unique";
+            String inferredBEDFilesPath = path + "/inferred";
+
+            // if the '/' was already included
+            if (path.endsWith("/")) {
+                uniqueBEDFilesPath = path + "unique";
+                inferredBEDFilesPath = path + "inferred";
+            }
+
+            proteinsForUniqueMotifPaths = retrieveBEDFilesByExtensionInFolder(uniqueBEDFilesPath, "Unique");
+            proteinsForInferredMotifPaths = retrieveBEDFilesByExtensionInFolder(inferredBEDFilesPath, "Inferred");
+        } else {
+            throw new IOException("BED files directory not valid");
+        }
+    }
+
+    private List<String> retrieveBEDFilesByExtensionInFolder(String directoryPath, String description) throws IOException {
+
+        List<String> bedFiles = new ArrayList<String>();
+
+        File folder = new File(directoryPath);
+        File[] listOfFiles = folder.listFiles();
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                String path = file.getAbsolutePath();
+                if (path.endsWith(".bed")) {
+                    bedFiles.add(path);
+                }
+            }
+        }
+
+        if (bedFiles.size() < 1) {
+            throw new IOException(description + " BED files not found");
+        }
+
+        return bedFiles;
+    }
+
+    private AnchorList getIntersectionOfBEDFiles(List<Chromosome> chromosomes, List<String> bedFiles) {
+        AnchorList proteins = AnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(0));
+        for (int i = 1; i < bedFiles.size(); i++) {
+            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(i));
+            proteins.intersectWith(nextProteinList, false);
+        }
+        return proteins;
     }
 }

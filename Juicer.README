@@ -368,23 +368,16 @@ arrowhead -r 5000 GM12878_mapq_30.hic contact_domains_list
 Motif Finder
 -----------------------
 
-motifs <protein_files_for_unique_motifs> <protein_files_for_inferred_motifs> <genomeID>
-                [custom_global_motif_list] <looplist>
+motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]
 
 The required arguments are:
 
-<protein_files_for_unique_motifs>: BED file(s) separated by commas (no spaces) used to find
-  unique motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files.
+<genomeID>: Currently only hg19 is supported
+
+<bed_file_dir> File path to a directory (e.g. ) which contains two folders: "unique" and
+  "inferred". These folders should contain a combination of RAD21, SMC3, and CTCF BED files.
   By intersecting these 1D tracks, the strongest peaks will be identified. Unique motifs
   generally use a more stringent combination of BED files than inferred motifs.
-
-<protein_files_for_inferred_motifs>: BED file(s) separated by commas (no spaces) used to find
-  inferred motif anchors. Generally a combination of RAD21, SMC3, and CTCF BED files are used.
-  By intersecting these 1D tracks, the strongest peaks will be identified. Inferred motifs
-  generally use a less stringent combination of BED files than unique motifs.
-
-<output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
-  as a 2D annotation.
 
 <looplist>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
 
@@ -397,12 +390,18 @@ The required arguments are:
 Motif Finder Examples
 -------------------
 
-motifs ctcf.bed,rad21.bed,smc3.bed ctcf.bed,rad21.bed hg19 gm12878_hiccups_loops.txt
+Assuming the following file structure is present:
+/path/to/local/bed/files/unique/CTCF.bed
+/path/to/local/bed/files/unique/RAD21.bed
+/path/to/local/bed/files/unique/SMC3.bed
+/path/to/local/bed/files/inferred/CTCF.bed
+
+motifs hg19 /path/to/local/bed/files /gm12878_hiccups_loops.txt
   This command will find motifs from the internal hg19 motif list for the loops in gm12878_hiccups_loops.txt
   and save them to gm12878_hiccups_loops_with_motifs.txt. The CTCF, RAD21, and SMC3 BED files will be used
-  together (i.e. intersected) to find unique motifs. The CTCF and RAD21 track will be used to infer best motifs.
+  together (i.e. intersected) to find unique motifs. Just the CTCF track will be used to infer best motifs.
 
-motifs ctcf.bed,rad21.bed,smc3.bed ctcf.bed hg19 hg_19_custom_motif_list.txt gm12878_hiccups_loops.txt
+motifs hg19 /path/to/local/bed/files gm12878_hiccups_loops.txt hg_19_custom_motif_list.txt
   This command will find motifs from hg_19_custom_motif_list.txt for the loops in gm12878_hiccups_loops.txt
   and save them to gm12878_hiccups_loops_with_motifs.txt. The CTCF, RAD21, and SMC3 BED files will be used
   together (i.e. intersected) to find unique motifs. Just the CTCF track will be used to infer best motifs.

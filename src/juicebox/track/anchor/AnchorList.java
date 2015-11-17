@@ -164,9 +164,17 @@ public class AnchorList {
         filterLists(new AnchorFilter() {
             @Override
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
-                return AnchorTools.intersect(anchorList, secondList.getAnchors(chr), conductFullIntersection);
+                if (secondList.containsKey(chr)) {
+                    return AnchorTools.intersect(anchorList, secondList.getAnchors(chr), conductFullIntersection);
+                } else {
+                    return new ArrayList<MotifAnchor>();
+                }
             }
         });
+    }
+
+    private boolean containsKey(String key) {
+        return anchorLists.containsKey(key);
     }
 
     /**

@@ -62,9 +62,9 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
             this.x2 = x2;
         } else {
             // x2 < x1 shouldn't ever happen, but just in case
-            System.err.println("Improperly formatted Motif file");
-            //this.x1 = x2;
-            //this.x2 = x1;
+            //System.err.println("Improperly formatted Motif file");
+            this.x1 = x2;
+            this.x2 = x1;
         }
     }
 

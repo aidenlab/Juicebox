@@ -123,9 +123,9 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_hiccups_loops_list_"};
 
-        String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "18",
-                "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
-                "/Users/muhammadsaadshamim/Desktop/atlantis/gm_arrowhead_5000_18_v8_mapq30", "5000", "/Users/muhammadsaadshamim/Desktop/atlantis/list1", "/Users/muhammadsaadshamim/Desktop/atlantis/list2"};
+        String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "20", "-r", "10000",
+                "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
+                "/Users/muhammadsaadshamim/Desktop/test_arrows/new_run"};
 
         //HiCTools.main(ll1132);
 
@@ -147,8 +147,13 @@ class AggregateProcessing {
                 "/Users/muhammadsaadshamim/Desktop/atlantis/chr10_test/hg19_chr10.txt",
                 "/Users/muhammadsaadshamim/Desktop/atlantis/chr10_test/chr10_loops.txt"};
 
+        String[] ll51231123 = {"motifs",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
+                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
 
-        HiCTools.main(ll51231);
+
+        HiCTools.main(ll51231123);
 
 
         //MotifFinder.redirectOutput("ls","/Users/muhammadsaadshamim/Desktop/suhas_motif/templs");

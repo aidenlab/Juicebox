@@ -24,6 +24,7 @@
 
 package juicebox.track.anchor;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.motifs.GlobalMotifs;
 import org.broad.igv.Globals;
@@ -165,10 +166,12 @@ public class AnchorParser {
 
                 Chromosome chr = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 if (chr == null) {
-                    if (errorCount < 10) {
-                        System.out.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 10) {
-                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 10) {
+                            System.out.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 10) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;

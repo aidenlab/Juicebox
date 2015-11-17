@@ -234,7 +234,6 @@ public class Feature2DList {
      */
     public Feature2D extractSingleFeature() {
         for (List<Feature2D> features : featureList.values()) {
-            System.out.println("List1 Size " + features.size());
             for (Feature2D feature : features) {
                 return feature;
             }
