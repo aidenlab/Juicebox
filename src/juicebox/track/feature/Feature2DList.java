@@ -38,6 +38,10 @@ import java.util.List;
  * Visibility depends on user selection.
  *
  * @author Neva Durand, Muhammad Shamim, Marie Hoeger
+ *
+ * TODO cleanup code and eliminate this class
+ * It should become GenomeWideList<Feature2D>
+ * Helper functions should be relocated to Feature2DTools
  */
 public class Feature2DList {
 

@@ -30,5 +30,5 @@ package juicebox.data.feature;
 public abstract class Feature {
     public abstract String getKey();
 
-    abstract public <T extends Feature> T deepClone();
+    public abstract Feature deepClone();
 }

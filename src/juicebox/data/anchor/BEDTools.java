@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.anchor;
 
 import java.util.*;
 
@@ -43,14 +43,14 @@ public class BEDTools {
         Collections.sort(anchors);
 
         Set<MotifAnchor> merged = new HashSet<MotifAnchor>();
-        MotifAnchor current = anchors.get(0).deepClone();
+        MotifAnchor current = (MotifAnchor) anchors.get(0).deepClone();
 
         for (MotifAnchor anchor : anchors) {
             if (anchor.hasOverlapWith(current)) {
                 current.mergeWith(anchor);
             } else {
                 merged.add(current);
-                current = anchor.deepClone();
+                current = (MotifAnchor) anchor.deepClone();
             }
         }
         merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)

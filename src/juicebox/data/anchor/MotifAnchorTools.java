@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.anchor;
 
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;

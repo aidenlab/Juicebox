@@ -26,11 +26,11 @@ package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
+import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.track.anchor.MotifAnchor;
-import juicebox.track.anchor.MotifAnchorParser;
-import juicebox.track.anchor.MotifAnchorTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import org.broad.igv.feature.Chromosome;

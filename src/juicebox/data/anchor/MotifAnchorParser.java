@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.anchor;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;

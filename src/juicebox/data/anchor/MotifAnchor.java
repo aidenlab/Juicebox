@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.anchor;
 
 import juicebox.data.feature.Feature;
 import juicebox.track.feature.Feature2DWithMotif;
@@ -84,12 +84,13 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         this.originalFeatures2.addAll(originalFeatures2);
     }
 
-    /**
-     * @return copy of this anchor
-     */
     @Override
-    public MotifAnchor deepClone() {
+    public String getKey() {
+        return chr;
+    }
 
+    @Override
+    public Feature deepClone() {
         MotifAnchor clone = new MotifAnchor(chr, x1, x2, originalFeatures1, originalFeatures2);
 
         if (fimoAttributesHaveBeenInitialized) {
@@ -97,11 +98,6 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         }
 
         return clone;
-    }
-
-    @Override
-    public String getKey() {
-        return chr;
     }
 
     /**

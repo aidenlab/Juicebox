@@ -25,7 +25,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
-import juicebox.track.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchor;
 
 import java.awt.*;
 import java.util.ArrayList;

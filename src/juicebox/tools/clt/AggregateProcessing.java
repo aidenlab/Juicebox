@@ -123,9 +123,9 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
                 "/Users/muhammadsaadshamim/Desktop/juicer/ch12lx_hiccups_loops_list_"};
 
-        String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "20", "-r", "10000",
+        String[] mll1132 = new String[]{"arrowhead", "-m", "2000", "-c", "20", "-r", "5000",
                 "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic",
-                "/Users/muhammadsaadshamim/Desktop/test_arrows/new_run"};
+                "/Users/muhammadsaadshamim/Desktop/test_arrows/new_run20"};
 
         //HiCTools.main(ll1132);
 
@@ -149,9 +149,8 @@ class AggregateProcessing {
 
         String[] ll51231123 = {"motifs",
                 "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
+                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878",
                 "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
-
 
         HiCTools.main(ll51231123);
 

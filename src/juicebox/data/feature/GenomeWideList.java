@@ -171,10 +171,11 @@ public class GenomeWideList<T extends Feature> {
      * @param features
      * @return deep copy of the list of features
      */
+    @SuppressWarnings("unchecked")
     private List<T> cloneFeatureList(List<T> features) {
         List<T> clonedFeatures = new ArrayList<T>();
         for (T feature : features) {
-            clonedFeatures.add(feature.<T>deepClone());
+            clonedFeatures.add((T) feature.deepClone());//feature.<T>deepClone()
         }
         return clonedFeatures;
     }
