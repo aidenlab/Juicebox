@@ -30,6 +30,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.InMemoryMatrix;
+//import juicebox.state.Slideshow;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -42,6 +43,7 @@ import org.apache.commons.math.linear.RealVector;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
+//import juicebox.gui.SuperAdapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -70,6 +72,9 @@ public class MatrixZoomData {
     private final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
     DatasetReader reader;
     private double averageCount = -1;
+//    private static final SuperAdapter superAdapter = new SuperAdapter();
+//    private static final Slideshow slideshow = superAdapter.getSlideshow();
+
 
 
 //    float sumCounts;
@@ -197,9 +202,16 @@ public class MatrixZoomData {
                 Block b;
                 if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                     b = blockCache.get(key);
+//                    System.out.println("Cache used 1: "+ key); //TODO delete -  for debugging
                     blockList.add(b);
+///                    if(HiCGlobals.slideshowEnabled){
+//                        System.out.println("NumSlide: " + slideshow.currentSlideNumber() + " slideName: " +
+//                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
+//                    }
+
                 } else {
                     blocksToLoad.add(blockNumber);
+//                    System.out.println("Cache missed used 1"); //TODO delete
                 }
             }
         }
@@ -219,8 +231,14 @@ public class MatrixZoomData {
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
+//                            System.out.println("Cache used 2 " + key); //TODO delete - for debugging
+//                            if(HiCGlobals.slideshowEnabled){
+//                                System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
+//                                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
+//                            }
                         }
                         blockList.add(b);
+//                        System.out.println("Cache missed used 2");// TODO delete
                     } catch (IOException e) {
                         errorCounter.incrementAndGet();
                     }
@@ -277,8 +295,14 @@ public class MatrixZoomData {
                 if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                     b = blockCache.get(key);
                     blockList.add(b);
+//                    System.out.println("Cache used 3: " + key); //TODO delete - for debugging
+//                    if(HiCGlobals.slideshowEnabled){
+//                        System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
+//                                slideshow.currentSlideName(slideshow.currentSlideNumber()));
+//                    }
                 } else {
                     blocksToLoad.add(blockNumber);
+//                    System.out.println("Cache missed used 3");
                 }
             }
         }
@@ -298,8 +322,15 @@ public class MatrixZoomData {
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
+//                            System.out.println("Cache used 4: " + key); //TODO delete -  for debugging
+//                            if(HiCGlobals.slideshowEnabled){
+//                                System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
+//                                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
+//                            }
+//
                         }
                         blockList.add(b);
+//                        System.out.println("Cache missed 4"); //TODO delete
                     } catch (IOException e) {
                         errorCounter.incrementAndGet();
                     }
@@ -325,7 +356,7 @@ public class MatrixZoomData {
 
 
     /**
-     * Return the observed value at the specified location.   Supports tooltip text
+     * Return the observed value at the specified location. Supports tooltip text
      * This implementation is naive, but might get away with it for tooltip.
      *
      * @param binX              X bin
@@ -871,4 +902,7 @@ public class MatrixZoomData {
             throw new RuntimeException("remove() is not supported");
         }
     }
+//    public void preloadSlides(){
+
+//    }
 }

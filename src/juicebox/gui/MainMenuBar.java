@@ -576,6 +576,7 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchSlideShow();
+                HiCGlobals.slideshowEnabled = true;
             }
         });
         bookmarksMenu.add(slideShow);

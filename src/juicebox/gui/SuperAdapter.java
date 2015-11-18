@@ -135,6 +135,8 @@ public class SuperAdapter {
         new Slideshow(mainWindow, this);
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void launchImportState(File fileForExport) {
         new ImportFileDialog(fileForExport, mainWindow);
     }
