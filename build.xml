@@ -82,6 +82,7 @@
     <include name="**/?*.ftl"/>
     <include name="**/?*.txt"/>
     <include name="**/?*.sizes"/>
+    <include name="**/?*.motifs"/>
   </patternset>
   
   <!-- JDK definitions -->
