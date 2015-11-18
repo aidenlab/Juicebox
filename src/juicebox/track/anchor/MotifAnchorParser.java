@@ -26,6 +26,8 @@ package juicebox.track.anchor;
 
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
+import juicebox.data.feature.FeatureFilter;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.motifs.GlobalMotifs;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -44,9 +46,9 @@ import java.util.Set;
  * <p/>
  * FIMO -
  */
-public class AnchorParser {
+public class MotifAnchorParser {
 
-    public static AnchorList loadGlobalMotifs(String idOrFile, List<Chromosome> chromosomes) {
+    public static GenomeWideList<MotifAnchor> loadGlobalMotifs(String idOrFile, List<Chromosome> chromosomes) {
 
         InputStream is = null;
         Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
@@ -84,21 +86,21 @@ public class AnchorParser {
             }
         }
 
-        return new AnchorList(chromosomes, new ArrayList<MotifAnchor>(anchors));
+        return new GenomeWideList<MotifAnchor>(chromosomes, new ArrayList<MotifAnchor>(anchors));
     }
 
-    public static AnchorList loadMotifsByGenome(String path, String genomeID, AnchorFilter anchorFilter) {
+    public static GenomeWideList<MotifAnchor> loadMotifsByGenome(String path, String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
         return loadMotifs(path, HiCFileTools.loadChromosomes(genomeID), anchorFilter);
     }
 
-    public static AnchorList loadMotifs(String path, List<Chromosome> chromosomes, AnchorFilter anchorFilter) {
-        AnchorList newList = parseMotifFile(path, chromosomes, anchorFilter);
+    public static GenomeWideList<MotifAnchor> loadMotifs(String path, List<Chromosome> chromosomes, FeatureFilter<MotifAnchor> anchorFilter) {
+        GenomeWideList<MotifAnchor> newList = parseMotifFile(path, chromosomes, anchorFilter);
         return newList;
     }
 
 
-    private static AnchorList parseMotifFile(String path, List<Chromosome> chromosomes,
-                                             AnchorFilter anchorFilter) {
+    private static GenomeWideList<MotifAnchor> parseMotifFile(String path, List<Chromosome> chromosomes,
+                                                              FeatureFilter<MotifAnchor> anchorFilter) {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
@@ -108,7 +110,7 @@ public class AnchorParser {
             ec.printStackTrace();
         }
 
-        AnchorList newAnchorList = new AnchorList(chromosomes, anchors);
+        GenomeWideList<MotifAnchor> newAnchorList = new GenomeWideList<MotifAnchor>(chromosomes, anchors);
         if (anchorFilter != null)
             newAnchorList.filterLists(anchorFilter);
 
@@ -195,7 +197,7 @@ public class AnchorParser {
     }
 
 
-    public static AnchorList loadFromBEDFile(List<Chromosome> chromosomes, String bedFilePath) {
+    public static GenomeWideList<MotifAnchor> loadFromBEDFile(List<Chromosome> chromosomes, String bedFilePath) {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
@@ -205,7 +207,7 @@ public class AnchorParser {
             ec.printStackTrace();
         }
 
-        return new AnchorList(chromosomes, anchors);
+        return new GenomeWideList<MotifAnchor>(chromosomes, anchors);
     }
 
     private static List<MotifAnchor> parseBEDFile(BufferedReader br, List<Chromosome> chromosomes) throws IOException {

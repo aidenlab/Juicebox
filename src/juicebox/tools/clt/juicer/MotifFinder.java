@@ -26,10 +26,11 @@ package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.track.anchor.AnchorList;
-import juicebox.track.anchor.AnchorParser;
-import juicebox.track.anchor.AnchorTools;
+import juicebox.track.anchor.MotifAnchor;
+import juicebox.track.anchor.MotifAnchorParser;
+import juicebox.track.anchor.MotifAnchorTools;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import org.broad.igv.feature.Chromosome;
@@ -135,42 +136,46 @@ public class MotifFinder extends JuicerCLT {
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
-        AnchorList globalAnchors;
+        GenomeWideList<MotifAnchor> globalAnchors;
         if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
-            globalAnchors = AnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+            globalAnchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
         } else {
-            globalAnchors = AnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+            globalAnchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
         }
 
         // 1st step - intersect all the 1d tracks for unique motifs
-        AnchorList proteinsForUniqueness = getIntersectionOfBEDFiles(chromosomes, proteinsForUniqueMotifPaths);
+        GenomeWideList<MotifAnchor> proteinsForUniqueness = getIntersectionOfBEDFiles(chromosomes, proteinsForUniqueMotifPaths);
+        System.out.println("unique proteins " + proteinsForUniqueness.size());
 
         // second step: peak loci that have only one 1-d peak from the intersected 1-d
         //  peak track are identified (along with their corresponding unique 1-d peak)
 
         // anchors from given loop list
         Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
-        AnchorList anchors = AnchorList.extractAnchorsFromFeatures(features, false);
-        //anchors.merge();
-        //anchors.expandSmallAnchors(15000);
+        GenomeWideList<MotifAnchor> anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
+        MotifAnchorTools.mergeAnchors(anchors);
+        MotifAnchorTools.expandSmallAnchors(anchors, 15000);
+        System.out.println("Num anchors" + anchors.size());
+
+
 
         // third step: the best motif match is identified by intersecting unique 1-d peaks
         // and the genome wide list of motifs. This gives a mapping of peak loci to unique motifs
         // (in the final loop list format, these motifs are outputted as 'u')
 
-        AnchorList uniqueGlobalAnchors = AnchorTools.extractUniqueMotifs(globalAnchors, 5000);
-        uniqueGlobalAnchors.intersectWith(proteinsForUniqueness, true);
-        anchors.intersectWith(uniqueGlobalAnchors, true);
-        anchors.updateOriginalMotifs(true);
+        GenomeWideList<MotifAnchor> uniqueGlobalAnchors = MotifAnchorTools.extractUniqueMotifs(globalAnchors, 5000);
+        MotifAnchorTools.intersectLists(uniqueGlobalAnchors, proteinsForUniqueness, true);
+        MotifAnchorTools.intersectLists(anchors, uniqueGlobalAnchors, true);
+        MotifAnchorTools.updateOriginalFeatures(anchors, true);
 
         // 4th step - intersect all the 1d tracks for inferring motifs
-        AnchorList proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
+        GenomeWideList<MotifAnchor> proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
 
         // fifth step: the 1-d peak track from step 4 are intersected with the genome wide
         // motif list (best motif match) and split into a forward motif track and a reverse motif track.
 
-        AnchorList bestGlobalAnchors = AnchorTools.extractBestMotifs(globalAnchors, 5000);
-        bestGlobalAnchors.intersectWith(proteinsForInference, true);
+        GenomeWideList<MotifAnchor> bestGlobalAnchors = MotifAnchorTools.extractBestMotifs(globalAnchors, 5000);
+        MotifAnchorTools.intersectLists(bestGlobalAnchors, proteinsForInference, true);
 
         // sixth step: upstream peak loci that did not have a unique motif are intersected
         // with the forward motif track from step 5, and for each peak locus if the peak
@@ -180,12 +185,13 @@ public class MotifFinder extends JuicerCLT {
         // locus if the peak locus has only one reverse motif, that is an inferred mapping
         // (these motifs are outputted as 'i'). Peak loci that form loops in both directions are ignored.
 
-        AnchorList remainingAnchors = AnchorList.extractAnchorsFromFeatures(features, true);
-        remainingAnchors.intersectWith(bestGlobalAnchors, true);
-        remainingAnchors.updateOriginalMotifs(false);
+        GenomeWideList<MotifAnchor> remainingAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
+        MotifAnchorTools.intersectLists(remainingAnchors, bestGlobalAnchors, true);
+        MotifAnchorTools.updateOriginalFeatures(remainingAnchors, false);
 
         // seventh step: the final output is the original loop list + information about the
         // motifs under each of the anchors (i.e. GEO format).
+
 
         features.exportFeatureList(outputPath, false);
     }
@@ -232,11 +238,11 @@ public class MotifFinder extends JuicerCLT {
         return bedFiles;
     }
 
-    private AnchorList getIntersectionOfBEDFiles(List<Chromosome> chromosomes, List<String> bedFiles) {
-        AnchorList proteins = AnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(0));
+    private GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(List<Chromosome> chromosomes, List<String> bedFiles) {
+        GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(0));
         for (int i = 1; i < bedFiles.size(); i++) {
-            AnchorList nextProteinList = AnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(i));
-            proteins.intersectWith(nextProteinList, false);
+            GenomeWideList<MotifAnchor> nextProteinList = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(i));
+            MotifAnchorTools.intersectLists(proteins, nextProteinList, false);
         }
         return proteins;
     }

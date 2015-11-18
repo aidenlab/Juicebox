@@ -24,6 +24,7 @@
 
 package juicebox.track.anchor;
 
+import juicebox.data.feature.Feature;
 import juicebox.track.feature.Feature2DWithMotif;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/28/15.
  */
-public class MotifAnchor implements Comparable<MotifAnchor> {
+public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     // critical components of a motif anchor
     private String chr;
@@ -86,6 +87,7 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
     /**
      * @return copy of this anchor
      */
+    @Override
     public MotifAnchor deepClone() {
 
         MotifAnchor clone = new MotifAnchor(chr, x1, x2, originalFeatures1, originalFeatures2);
@@ -95,6 +97,11 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
         }
 
         return clone;
+    }
+
+    @Override
+    public String getKey() {
+        return chr;
     }
 
     /**
@@ -235,7 +242,7 @@ public class MotifAnchor implements Comparable<MotifAnchor> {
         originalFeatures2.addAll(anchor.originalFeatures2);
     }
 
-    public void updateOriginalMotifs(boolean uniqueStatus) {
+    public void updateOriginalFeatures(boolean uniqueStatus) {
         if (fimoAttributesHaveBeenInitialized && (originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
             for (Feature2DWithMotif feature : originalFeatures1) {
                 feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true);
