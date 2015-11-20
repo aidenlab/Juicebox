@@ -204,6 +204,10 @@ public class CustomAnnotationHandler {
                 start1 = geneXPos(hic, selectionRegion.x, 0);
                 end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0) - 1;
 
+                System.out.println("After:");
+                System.out.println("  Pixel info (1): " + selectionRegion.x + ", " + (selectionRegion.x + selectionRegion.getWidth()));
+                System.out.println("  Genomic positioning (1): " + start1 + ", " + end1);
+
                 // Snap if close to diagonal
                 if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {
                     // Snap to min of horizontal stretch and vertical stretch
@@ -252,8 +256,10 @@ public class CustomAnnotationHandler {
 
         java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
         if (loops == null) return customAnnotations;
-        if (customAnnotations == null)
+        if (customAnnotations == null) {
+            System.out.println("Error! Custom annotations should not be null!");
             return null;
+        }
 
         for (Feature2DList list : loops) {
             customAnnotations.addVisibleToCustom(list);

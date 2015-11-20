@@ -50,12 +50,11 @@ public class Feature2D implements Comparable<Feature2D> {
     public static final String generic = "feature";
     private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
-    public static int tolerance = 0;
-    protected final Map<String, String> attributes;
     final String chr1;
     final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final String featureName;
+    private final Map<String, String> attributes;
     int start1;
     int start2;
     int end1;
@@ -411,5 +410,13 @@ public class Feature2D implements Comparable<Feature2D> {
         hash = 53 * hash + chr1.hashCode() + end1 - start1;
         hash = 53 * hash + chr2.hashCode() + end2 - start2;
         return hash;
+    }
+
+    private boolean test = false;
+    public void doTest(){
+        test = true;
+    }
+    public boolean getTest(){
+        return test;
     }
 }

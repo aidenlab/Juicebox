@@ -4,9 +4,6 @@
       <root url="file://$PROJECT_DIR$/lib/lwjgl" />
     </CLASSES>
     <JAVADOC />
-    <NATIVE>
-      <root url="file://$PROJECT_DIR$/lib/lwjgl" />
-    </NATIVE>
     <SOURCES />
     <jarDirectory url="file://$PROJECT_DIR$/lib/lwjgl" recursive="false" />
   </library>

@@ -248,9 +248,6 @@ public class Feature2DList {
             }
         }
         return null;
-        // TODO this should not give no such element exceptions
-        // TODO meh - custom annotation must be adding unnecessary keys?
-        //return featureList.get(featureList.keySet().iterator().next()).iterator().next();
     }
 
     /*
@@ -450,5 +447,11 @@ public class Feature2DList {
             total += chrList.size();
         }
         return total;
+    }
+
+    public void checkAndRemoveEmptyList(int idx1, int idx2){
+        String key = getKey(idx1, idx2);
+        if (featureList.get(key).size() == 0)
+            featureList.remove(key);
     }
 }

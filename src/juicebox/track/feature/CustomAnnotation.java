@@ -176,7 +176,6 @@ public class CustomAnnotation {
 
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> lastList;
-            String featureIdentifier = getIdentifier(feature);
             String mirrorIdentity = "" + feature.getStart2() + feature.getEnd2() + feature.getStart1() + feature.getEnd1();
 
             lastList = customAnnotationList.get(idx1, idx2);
@@ -191,6 +190,7 @@ public class CustomAnnotation {
                     }
                 }
                 lastList.remove(removeFeature);
+                customAnnotationList.checkAndRemoveEmptyList(idx1, idx2);
             }
         }
         reSaveAll();
@@ -218,7 +218,8 @@ public class CustomAnnotation {
             }
         }
         getAndAddAttributes(featureKeys);
-        customAnnotationList.addUnique(newAnnotations);
+        //customAnnotationList.addUnique(newAnnotations);
+        customAnnotationList.add(newAnnotations);
     }
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
@@ -240,9 +241,7 @@ public class CustomAnnotation {
         }
     }
 
-    // TODO meh - technically this isn't actually changing all attributes
-    // should this be renamed addAllAttributeValues?
-    public void changeAllAttributeValues(String key, String newValue) {
+    public void addAllAttributeValues(String key, String newValue) {
         attributeKeys.add(key);
         customAnnotationList.addAttributeFieldToAll(key, newValue);
     }

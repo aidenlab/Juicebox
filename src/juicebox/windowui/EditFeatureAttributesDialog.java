@@ -176,20 +176,16 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                         // New Attribute
                         if (key.equals("New Field Name")) {
                             String newAttributeText = textFields.get("New Field Value").getText();
-                            // TODO meh - should verify that the key doesn't already exist as an attribute
-                            // just in case someone is using this improperly
-                            // right now the bug is not caused, but that's because
-                            // changeAllAttributeValues isn't doing what it says
-
+                            // TODO meh - if add to all (echo), things after won't work.
 
                             // If added new attribute with valid field
                             if (!typedText.equals(defaultNewAttributeName) && typedText != null) {
                                 if (!newAttributeText.equals(defaultNewAttributeValue) &&
                                         newAttributeText != null) {
                                     if (echoOption.isSelected()) {
-                                        customAnnotations.changeAllAttributeValues(typedText, newAttributeText);
+                                        customAnnotations.addAllAttributeValues(typedText, newAttributeText);
                                     } else {
-                                        customAnnotations.changeAllAttributeValues(typedText, "null");
+                                        customAnnotations.addAllAttributeValues(typedText, "null");
                                         feature.setAttribute(typedText, newAttributeText);
                                     }
                                 }
