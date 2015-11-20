@@ -33,7 +33,6 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
-import juicebox.track.feature.Feature2DWithMotif;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -137,8 +136,7 @@ public class MotifFinder extends JuicerCLT {
         MotifAnchorTools.updateOriginalFeatures(remainingAnchors, false);
 
         features.exportFeatureList(outputPath, false);
-        System.out.println("written is pn " + Feature2DWithMotif.posNull + " pw " + Feature2DWithMotif.posWritten +
-                " nn " + Feature2DWithMotif.negNull + " nw " + Feature2DWithMotif.negWritten);
+        System.out.println("Motif Finder complete");
     }
 
     private void retrieveAllBEDFiles(String path) throws IOException {

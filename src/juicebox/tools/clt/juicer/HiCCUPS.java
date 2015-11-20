@@ -264,6 +264,7 @@ public class HiCCUPS extends JuicerCLT {
             HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
                     filteredConfigurations, norm);
         }
+        System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
     }
 
