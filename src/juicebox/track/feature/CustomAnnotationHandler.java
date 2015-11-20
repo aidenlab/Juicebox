@@ -204,9 +204,9 @@ public class CustomAnnotationHandler {
                 start1 = geneXPos(hic, selectionRegion.x, 0);
                 end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0) - 1;
 
-                System.out.println("After:");
-                System.out.println("  Pixel info (1): " + selectionRegion.x + ", " + (selectionRegion.x + selectionRegion.getWidth()));
-                System.out.println("  Genomic positioning (1): " + start1 + ", " + end1);
+//                System.out.println("After:");
+//                System.out.println("  Pixel info (1): " + selectionRegion.x + ", " + (selectionRegion.x + selectionRegion.getWidth()));
+//                System.out.println("  Genomic positioning (1): " + start1 + ", " + end1);
 
                 // Snap if close to diagonal
                 if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {

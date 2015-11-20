@@ -1133,12 +1133,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     double binOriginX = hic.getXContext().getBinOrigin();
                     double binOriginY = hic.getYContext().getBinOrigin();
 
-                    System.out.println("Before:");
-                    System.out.println("  Genomic positioning (1): " + loop.getStart1() + ", " + loop.getEnd1());
-                    System.out.println("  Genomic positioning (2): " + loop.getStart2() + ", " + loop.getEnd2());
+//                    System.out.println("Before:");
+//                    System.out.println("  Genomic positioning (1): " + loop.getStart1() + ", " + loop.getEnd1());
+//                    System.out.println("  Genomic positioning (2): " + loop.getStart2() + ", " + loop.getEnd2());
                     loop.doTest();
                     annotateRectangle = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
-                    System.out.println("end");
+//                    System.out.println("end");
                     //annotateRectangle = new Rectangle(loop.getStart1(), loop.getStart2(), loop.getEnd1(), loop.getEnd2());
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
