@@ -196,6 +196,7 @@ public class Feature2DList {
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
+                            Collections.sort(feature2DList);
                             for (Feature2D feature : feature2DList) {
                                 outputFile.println(feature);
                             }
@@ -417,8 +418,10 @@ public class Feature2DList {
      * @param filter
      */
     public void filterLists(FeatureFilter filter) {
-        for (String chr : featureList.keySet()) {
-            featureList.put(chr, filter.filter(chr, featureList.get(chr)));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            featureList.put(key, filter.filter(key, featureList.get(key)));
         }
     }
 
@@ -428,8 +431,10 @@ public class Feature2DList {
      * @param function
      */
     public void processLists(FeatureFunction function) {
-        for (String chr : featureList.keySet()) {
-            function.process(chr, featureList.get(chr));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            function.process(key, featureList.get(key));
         }
     }
 
