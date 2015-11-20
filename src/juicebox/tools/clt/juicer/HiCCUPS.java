@@ -328,7 +328,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
                 NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
-                if (norm != null) {
+                if (normVector != null) {
                     double[] normalizationVector = normVector.getData();
                     double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
                             zoom, norm);
