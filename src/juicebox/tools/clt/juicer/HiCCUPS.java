@@ -463,7 +463,7 @@ public class HiCCUPS extends JuicerCLT {
             configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
 
         } catch (Exception e) {
-            System.err.println("Either no resolution specified or other error. Defaults being used.");
+            System.err.println("No configurations specified, using default resolution of 10000");
             configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
         }
 

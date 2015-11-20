@@ -50,11 +50,12 @@ public class Feature2D implements Comparable<Feature2D> {
     public static final String generic = "feature";
     private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
+    public static int tolerance = 0;
+    protected final Map<String, String> attributes;
     final String chr1;
     final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final String featureName;
-    private final Map<String, String> attributes;
     int start1;
     int start2;
     int end1;
@@ -372,5 +373,43 @@ public class Feature2D implements Comparable<Feature2D> {
     public ArrowheadScore toArrowheadScore() {
         int[] indices = new int[]{start1, end1, start2, end2};
         return new ArrowheadScore(indices);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+
+        final Feature2D other = (Feature2D) obj;
+        if (chr1.equals(other.chr1)) {
+            if (chr2.equals(other.chr2)) {
+                if (Math.abs(start1 - other.start1) <= tolerance) {
+                    if (Math.abs(start2 - other.start2) <= tolerance) {
+                        if (Math.abs(end1 - other.end1) <= tolerance) {
+                            if (Math.abs(end2 - other.end2) <= tolerance) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 53 * hash + chr1.hashCode() + end1 - start1;
+        hash = 53 * hash + chr2.hashCode() + end2 - start2;
+        return hash;
     }
 }

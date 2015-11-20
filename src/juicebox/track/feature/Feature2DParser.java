@@ -78,6 +78,11 @@ public class Feature2DParser {
 
             // header
             nextLine = br.readLine();
+            if (nextLine == null || nextLine.length() < 1) {
+                System.err.println("Empty list provided");
+                System.exit(-5);
+            }
+
             String[] headers = Globals.tabPattern.split(nextLine);
 
             int errorCount = 0;

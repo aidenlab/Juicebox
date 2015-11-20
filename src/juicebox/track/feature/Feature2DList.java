@@ -62,6 +62,11 @@ public class Feature2DList {
         isVisible = true;
     }
 
+    public Feature2DList(Feature2DList list) {
+        super();
+        add(list);
+    }
+
     /**
      * Helper method to get the key, lowest ordinal chromosome first
      *

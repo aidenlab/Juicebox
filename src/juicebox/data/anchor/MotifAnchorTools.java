@@ -79,12 +79,12 @@ public class MotifAnchorTools {
     /**
      * update the original features that the motifs belong to
      */
-    public static void updateOriginalFeatures(GenomeWideList<MotifAnchor> anchorList, final boolean status) {
+    public static void updateOriginalFeatures(GenomeWideList<MotifAnchor> anchorList, final boolean uniqueStatus) {
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> anchorList) {
                 for (MotifAnchor anchor : anchorList) {
-                    anchor.updateOriginalFeatures(status);
+                    anchor.updateOriginalFeatures(uniqueStatus);
                 }
             }
         });

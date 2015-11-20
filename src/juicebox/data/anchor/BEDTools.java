@@ -128,8 +128,15 @@ public class BEDTools {
      */
     private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
         if (anchor1.getChr().equals(anchor2.getChr())) {
-            MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), Math.max(anchor1.getX1(), anchor2.getX1()),
-                    Math.min(anchor1.getX2(), anchor2.getX2()));
+
+            int start = Math.max(anchor1.getX1(), anchor2.getX1());
+            int end = Math.min(anchor1.getX2(), anchor2.getX2());
+
+            if (start > end) {
+                System.err.println("err _ " + start + " " + end);
+            }
+
+            MotifAnchor intersectedMotif = new MotifAnchor(anchor1.getChr(), start, end);
 
             // if all secondary attributes are also to be copied
             if (conductFullIntersection) {

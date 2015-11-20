@@ -35,16 +35,16 @@ import java.util.List;
  */
 public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
+    public static int posCount = 0, negCount = 0;
+    public boolean strand;
     // critical components of a motif anchor
     private String chr;
     private int x1, x2;
-
     // references to original features if applicable
     private List<Feature2DWithMotif> originalFeatures1 = new ArrayList<Feature2DWithMotif>();
     private List<Feature2DWithMotif> originalFeatures2 = new ArrayList<Feature2DWithMotif>();
-
     // fimo output loaded as attributes
-    private boolean fimoAttributesHaveBeenInitialized = false, strand;
+    private boolean fimoAttributesHaveBeenInitialized = false;
     private double score = 0, pValue, qValue;
     private String sequence;
 
@@ -57,15 +57,15 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      */
     public MotifAnchor(String chr, int x1, int x2) {
         this.chr = chr;
-        if (x1 < x2) {
+        if (x1 <= x2) {
             // x1 < x2
             this.x1 = x1;
             this.x2 = x2;
         } else {
             // x2 < x1 shouldn't ever happen, but just in case
-            //System.err.println("Improperly formatted Motif file");
-            this.x1 = x2;
-            this.x2 = x1;
+            System.err.println("Improperly formatted Motif file");
+            //this.x1 = x2;
+            //this.x2 = x1;
         }
     }
 
@@ -241,17 +241,19 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     public void updateOriginalFeatures(boolean uniqueStatus) {
         if (fimoAttributesHaveBeenInitialized && (originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
             for (Feature2DWithMotif feature : originalFeatures1) {
-                feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true);
+                if (strand || uniqueStatus) {
+                    posCount++;
+                    feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                }
             }
             for (Feature2DWithMotif feature : originalFeatures2) {
-                feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false);
+                if (!strand || uniqueStatus) {
+                    negCount++;
+                    feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                }
             }
         } else {
             System.err.println("Attempting to assign motifs on incomplete anchor");
         }
-    }
-
-    private void addMotifsToOriginalFeatures(List<Feature2DWithMotif> originalFeatures) {
-
     }
 }

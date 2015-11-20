@@ -33,6 +33,7 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.track.feature.Feature2DWithMotif;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -42,44 +43,6 @@ import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
- *
- * the user provides (i) a loop list (ii) any number of 1-d peak tracks
- * for use in uniqueness (iii) any number of 1-d peak tracks for use in
- * inferring (iv) a genomewide list of motifs (i.e. our genomewide list
- * of motifs or their own).
- *
- * first step: all the 1-d peak tracks provided in (ii) are intersected.
- *
- * second step: peak loci that have only one 1-d peak from the intersected 1-d
- * peak track are identified (along with their corresponding unique 1-d peak)
- *
- * third step: the best motif match is identified by intersecting unique 1-d peaks
- * and the genome wide list of motifs. This gives a mapping of peak loci to unique motifs
- * (in the final loop list format, these motifs are outputted as 'u')
- *
- * fourth step: the 1-d peak tracks provided in (iii) are intersected.
- *
- * fifth step: the 1-d peak track from step 4 are intersected with the genomewide
- * motif list (best motif match) and split into a forward motif track and a reverse motif track.
- *
- * sixth step: upstream peak loci that did not have a unique motif are intersected
- * with the forward motif track from step 5, and for each peak locus if the peak
- * locus has only one forward motif, that is an inferred mapping (these motifs
- * are outputted as 'i'). downstream peak loci that did not have a unique motif
- * are intersected with the reverse motif track from step 5, and for each peak
- * locus if the peak locus has only one reverse motif, that is an inferred mapping
- * (these motifs are outputted as 'i'). Peak loci that form loops in both directions are ignored.
- *
- * the final output is the original loop list + information about the
- * motifs under each of the anchors (i.e. GEO format).
- *
- * Let me know if you have questions. I believe that these steps
- * handle things in the way that we handled them for the Dec paper
- * with the most reasonable and logical user inputs. the reason
- * that both (ii) and (iii) are necessary is because in December
- * we identified unique motifs with as much data as possible
- * (CTCF+RAD21+SMC3) but inferred motifs using only CTCF.
- *
  *
  */
 public class MotifFinder extends JuicerCLT {
@@ -136,6 +99,13 @@ public class MotifFinder extends JuicerCLT {
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
+        // anchors from loops
+        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
+        GenomeWideList<MotifAnchor> anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
+        MotifAnchorTools.mergeAnchors(anchors);
+        MotifAnchorTools.expandSmallAnchors(anchors, 15000);
+
+        // global anchors
         GenomeWideList<MotifAnchor> globalAnchors;
         if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
             globalAnchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
@@ -143,57 +113,32 @@ public class MotifFinder extends JuicerCLT {
             globalAnchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
         }
 
-        // 1st step - intersect all the 1d tracks for unique motifs
+        // intersect all the 1d tracks for unique motifs and get appropriate global anchors
         GenomeWideList<MotifAnchor> proteinsForUniqueness = getIntersectionOfBEDFiles(chromosomes, proteinsForUniqueMotifPaths);
-        System.out.println("unique proteins " + proteinsForUniqueness.size());
+        MotifAnchorTools.intersectLists(globalAnchors, proteinsForUniqueness, true);
 
-        // second step: peak loci that have only one 1-d peak from the intersected 1-d
-        //  peak track are identified (along with their corresponding unique 1-d peak)
-
-        // anchors from given loop list
-        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
-        GenomeWideList<MotifAnchor> anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
-        MotifAnchorTools.mergeAnchors(anchors);
-        MotifAnchorTools.expandSmallAnchors(anchors, 15000);
-        System.out.println("Num anchors" + anchors.size());
-
-
-
-        // third step: the best motif match is identified by intersecting unique 1-d peaks
-        // and the genome wide list of motifs. This gives a mapping of peak loci to unique motifs
-        // (in the final loop list format, these motifs are outputted as 'u')
-
-        GenomeWideList<MotifAnchor> uniqueGlobalAnchors = MotifAnchorTools.extractUniqueMotifs(globalAnchors, 5000);
-        MotifAnchorTools.intersectLists(uniqueGlobalAnchors, proteinsForUniqueness, true);
-        MotifAnchorTools.intersectLists(anchors, uniqueGlobalAnchors, true);
+        // update original loop motifs
+        MotifAnchorTools.intersectLists(anchors, globalAnchors, true);
         MotifAnchorTools.updateOriginalFeatures(anchors, true);
 
-        // 4th step - intersect all the 1d tracks for inferring motifs
+        // reload motif list
+        if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
+            globalAnchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+        } else {
+            globalAnchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+        }
+
+        // intersect all the 1d tracks for inferring motifs
         GenomeWideList<MotifAnchor> proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
-
-        // fifth step: the 1-d peak track from step 4 are intersected with the genome wide
-        // motif list (best motif match) and split into a forward motif track and a reverse motif track.
-
-        GenomeWideList<MotifAnchor> bestGlobalAnchors = MotifAnchorTools.extractBestMotifs(globalAnchors, 5000);
-        MotifAnchorTools.intersectLists(bestGlobalAnchors, proteinsForInference, true);
-
-        // sixth step: upstream peak loci that did not have a unique motif are intersected
-        // with the forward motif track from step 5, and for each peak locus if the peak
-        // locus has only one forward motif, that is an inferred mapping (these motifs
-        // are outputted as 'i'). downstream peak loci that did not have a unique motif
-        // are intersected with the reverse motif track from step 5, and for each peak
-        // locus if the peak locus has only one reverse motif, that is an inferred mapping
-        // (these motifs are outputted as 'i'). Peak loci that form loops in both directions are ignored.
+        MotifAnchorTools.intersectLists(globalAnchors, proteinsForInference, true);
 
         GenomeWideList<MotifAnchor> remainingAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
-        MotifAnchorTools.intersectLists(remainingAnchors, bestGlobalAnchors, true);
+        MotifAnchorTools.intersectLists(remainingAnchors, globalAnchors, true);
         MotifAnchorTools.updateOriginalFeatures(remainingAnchors, false);
 
-        // seventh step: the final output is the original loop list + information about the
-        // motifs under each of the anchors (i.e. GEO format).
-
-
         features.exportFeatureList(outputPath, false);
+        System.out.println("written is pn " + Feature2DWithMotif.posNull + " pw " + Feature2DWithMotif.posWritten +
+                " nn " + Feature2DWithMotif.negNull + " nw " + Feature2DWithMotif.negWritten);
     }
 
     private void retrieveAllBEDFiles(String path) throws IOException {

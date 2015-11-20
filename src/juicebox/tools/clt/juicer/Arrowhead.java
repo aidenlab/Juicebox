@@ -152,10 +152,7 @@ public class Arrowhead extends JuicerCLT {
         }
 
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
-        if (specifiedMatrixSize % 2 == 1) {
-            specifiedMatrixSize += 1;
-        }
-        if (specifiedMatrixSize > 50) {
+        if (specifiedMatrixSize > 1) {
             matrixSize = specifiedMatrixSize;
         }
     }
@@ -226,5 +223,6 @@ public class Arrowhead extends JuicerCLT {
             contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
             contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
         }
+        System.out.println("Arrowhead complete");
     }
 }
