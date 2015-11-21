@@ -234,37 +234,40 @@ public class ResourceTree {
         add2DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                File file = FileDialogUtils.chooseFile("Choose 2D Annotation file", openAnnotationPath, null, FileDialog.LOAD);
+                File files[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
-                if (file != null) {
-                    String path = file.getAbsolutePath();
-                    openAnnotationPath = new File(path);
-                    ResourceLocator locator = new ResourceLocator(path);
-                    locator.setName(file.getName());
-                    locator.setType("loop"); // TODO 2D not all are loops?
-                    CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                    if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
-                        leafResources.add(resource);
+                if (files != null && files.length > 0){
+                    for (File file : files) {
 
-                        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                        twoDFeatureRoot.add(treeNode);
-                        if (addedNodes == null) {
-                            addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                        String path = file.getAbsolutePath();
+                        openAnnotationPath = new File(path);
+                        ResourceLocator locator = new ResourceLocator(path);
+                        locator.setName(file.getName());
+                        locator.setType("loop"); // TODO 2D not all are loops?
+                        CheckableResource resource = new CheckableResource(file.getName(), true, locator);
+                        if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
+                            leafResources.add(resource);
+
+                            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+                            twoDFeatureRoot.add(treeNode);
+                            if (addedNodes == null) {
+                                addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                            }
+                            addedNodes.add(treeNode);
+                            ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
+                            treeNode.setUserObject(resource);
+
+                            expandTree();
+                            dialogTree.updateUI();
+                        } else {
+                            if (HiCGlobals.guiIsCurrentlyActive)
+                                JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
+                                                "like to reload it, right click and delete the currently loaded version first.",
+                                        "Error", JOptionPane.ERROR_MESSAGE);
                         }
-                        addedNodes.add(treeNode);
-                        ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
-                        treeNode.setUserObject(resource);
 
-                        expandTree();
-                        dialogTree.updateUI();
-                    } else {
-                        if (HiCGlobals.guiIsCurrentlyActive)
-                            JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
-                                        "like to reload it, right click and delete the currently loaded version first.",
-                                "Error", JOptionPane.ERROR_MESSAGE);
                     }
-
-                }
+            }
 
             }
         });
@@ -272,32 +275,35 @@ public class ResourceTree {
         add1DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                File file = FileDialogUtils.chooseFile("Choose 1D Annotation file", openAnnotationPath, null, FileDialog.LOAD);
+                File files[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
 
-                if (file != null) {
-                    String path = file.getAbsolutePath();
-                    openAnnotationPath = new File(path);
-                    ResourceLocator locator = new ResourceLocator(path);
-                    locator.setName(file.getName());
-                    locator.setType(file.getName());
-                    CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                    leafResources.add(resource);
+                if (files != null && files.length > 0) {
+                    for (File file : files) {
+
+                        String path = file.getAbsolutePath();
+                        openAnnotationPath = new File(path);
+                        ResourceLocator locator = new ResourceLocator(path);
+                        locator.setName(file.getName());
+                        locator.setType(file.getName());
+                        CheckableResource resource = new CheckableResource(file.getName(), true, locator);
+                        leafResources.add(resource);
 
 
-                    DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                    oneDFeatureRoot.add(treeNode);
-                    if (addedNodes == null) {
-                        addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+                        oneDFeatureRoot.add(treeNode);
+                        if (addedNodes == null) {
+                            addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                        }
+                        addedNodes.add(treeNode);
+                        ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
+                        treeNode.setUserObject(resource);
+
+                        expandTree();
+                        dialogTree.updateUI();
+
                     }
-                    addedNodes.add(treeNode);
-                    ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
-                    treeNode.setUserObject(resource);
-
-                    expandTree();
-                    dialogTree.updateUI();
 
                 }
-
             }
         });
 
