@@ -56,11 +56,11 @@ public class Feature2DParser {
                                              FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
         Feature2DList newList;
         if (path.endsWith(".px")) {
-            newList = Feature2DParser.parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
         } else if (path.endsWith(".px2")) {
-            newList = Feature2DParser.parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
         } else {
-            newList = Feature2DParser.parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
+            newList = parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
         }
         return newList;
     }
@@ -78,6 +78,11 @@ public class Feature2DParser {
 
             // header
             nextLine = br.readLine();
+            if (nextLine == null || nextLine.length() < 1) {
+                System.err.println("Empty list provided");
+                System.exit(-5);
+            }
+
             String[] headers = Globals.tabPattern.split(nextLine);
 
             int errorCount = 0;

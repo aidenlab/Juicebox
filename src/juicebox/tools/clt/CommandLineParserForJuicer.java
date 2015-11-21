@@ -90,7 +90,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("afa");
+                || cmd.equals("cluster") || cmd.equals("afa") || cmd.equals("compare");
     }
 
     /**

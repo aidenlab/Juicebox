@@ -264,6 +264,7 @@ public class HiCCUPS extends JuicerCLT {
             HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
                     filteredConfigurations, norm);
         }
+        System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
     }
 
@@ -327,7 +328,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
                 NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
-                if (norm != null) {
+                if (normVector != null) {
                     double[] normalizationVector = normVector.getData();
                     double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
                             zoom, norm);
@@ -463,7 +464,7 @@ public class HiCCUPS extends JuicerCLT {
             configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
 
         } catch (Exception e) {
-            System.err.println("Either no resolution specified or other error. Defaults being used.");
+            System.err.println("No configurations specified, using default resolution of 10000");
             configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
         }
 

@@ -238,6 +238,6 @@ public class AFA extends JuicerCLT {
 
             }
         }
-        System.exit(0);
+        System.out.println("AFA complete");
     }
 }

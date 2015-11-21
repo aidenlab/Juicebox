@@ -283,6 +283,6 @@ public class APA extends JuicerCLT {
                 System.exit(-8);
             }
         }
-        System.exit(0);
+        System.out.println("APA complete");
     }
 }

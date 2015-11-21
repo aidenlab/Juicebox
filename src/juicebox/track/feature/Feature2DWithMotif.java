@@ -25,7 +25,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
-import juicebox.track.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchor;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -38,38 +38,44 @@ import java.util.Map;
  */
 public class Feature2DWithMotif extends Feature2D {
 
+    public static int negReceived = 0, negWritten = 0, posNull = 0, posWritten = 0, negNull = 0;
     // true = +, false = -, null = NA
     private boolean strand1, strand2;
     // true - unique, false = inferred, null = NA
     private boolean unique1, unique2;
     private String sequence1, sequence2;
     private int motifStart1, motifEnd1, motifStart2, motifEnd2;
-
+    private double score1, score2;
+    private String MFS1 = "motif_start_1";
+    private String MFE1 = "motif_end_1";
+    private String MFSEQ1 = "sequence_1";
+    private String MFO1 = "orientation_1";
+    private String MFU1 = "uniqueness_1";
+    private String MFS2 = "motif_start_2";
+    private String MFE2 = "motif_end_2";
+    private String MFSEQ2 = "sequence_2";
+    private String MFO2 = "orientation_2";
+    private String MFU2 = "uniqueness_2";
     public Feature2DWithMotif(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2,
                               Color c, Map<String, String> attributes) {
         super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
-    }
 
-    public Feature2DWithMotif(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2,
-                              Color c, Map<String, String> attributes,
-                              boolean strand1, boolean unique1, String sequence1, int motifStart1, int motifEnd1,
-                              boolean strand2, boolean unique2, String sequence2, int motifStart2, int motifEnd2) {
-        super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
-        updateMotifData(strand1, unique1, sequence1, motifStart1, motifEnd1, true); // motif1
-        updateMotifData(strand2, unique2, sequence2, motifStart2, motifEnd2, false); // motif2
+        searchAttributesForMotifInformation();
+
     }
 
     public void updateMotifData(boolean strand, boolean unique, String sequence, int motifStart, int motifEnd,
-                                boolean dataBelongsToAnchor1) {
+                                boolean dataBelongsToAnchor1, double score) {
         if (unique) {
-            if (dataBelongsToAnchor1 && strand) {
-                if (sequence1 == null) {
+            if (dataBelongsToAnchor1) {
+                if (sequence1 == null) {//unique
                     this.strand1 = strand;
                     this.unique1 = unique;
                     this.sequence1 = sequence;
                     this.motifStart1 = motifStart;
                     this.motifEnd1 = motifEnd;
-                } else {
+                    this.score1 = score;
+                } else if (!(sequence.equals(sequence1) && motifStart1 == motifStart)) {//check equivalence for dups; otherwise not unique
                     if (HiCGlobals.printVerboseComments) {
                         System.err.println("Not unique motif1 - error\n" + this + "\n" +
                                 motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
@@ -77,12 +83,15 @@ public class Feature2DWithMotif extends Feature2D {
                     sequence1 = "null";
                 }
             } else {
-                if (sequence2 == null && !strand) {
+                if (sequence2 == null) {//unique
+                    negReceived++;
+                    this.sequence2 = sequence;
                     this.strand2 = strand;
                     this.unique2 = unique;
                     this.motifStart2 = motifStart;
                     this.motifEnd2 = motifEnd;
-                } else {
+                    this.score2 = score;
+                } else if (!(sequence.equals(sequence2) && motifStart2 == motifStart)) {//check equivalence for dups; otherwise not unique
                     if (HiCGlobals.printVerboseComments) {
                         System.err.println("Not unique motif2 - error\n" + this + "\n" +
                                 motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
@@ -90,44 +99,63 @@ public class Feature2DWithMotif extends Feature2D {
                     sequence2 = "null";
                 }
             }
-        } else {
-            if (dataBelongsToAnchor1 && strand) {
-                if (sequence1 == null) {
+        } else {//inferred
+            if (dataBelongsToAnchor1) {
+                if (sequence1 == null || score > score1) {
                     this.strand1 = strand;
                     this.unique1 = unique;
                     this.sequence1 = sequence;
                     this.motifStart1 = motifStart;
                     this.motifEnd1 = motifEnd;
-                } else {
-                    if (HiCGlobals.printVerboseComments) {
-                        System.err.println("Not unique motif1 - error\n" + this + "\n" +
-                                motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
-                    }
-                    sequence1 = "null";
+                    this.score1 = score;
                 }
             } else {
-                if (sequence2 == null && !strand) {
+                if (sequence2 == null || score > score2) {
                     this.strand2 = strand;
                     this.unique2 = unique;
                     this.motifStart2 = motifStart;
                     this.motifEnd2 = motifEnd;
-                } else {
-                    if (HiCGlobals.printVerboseComments) {
-                        System.err.println("Not unique motif2 - error\n" + this + "\n" +
-                                motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
-                    }
-                    sequence2 = "null";
+                    this.score2 = score;
                 }
             }
         }
 
     }
 
+    private void searchAttributesForMotifInformation() {
+        try {
+            strand1 = getAttribute(MFO1).contains("p");
+            strand2 = getAttribute(MFO2).contains("p");
+            unique1 = getAttribute(MFU1).contains("u");
+            unique2 = getAttribute(MFU2).contains("u");
+            sequence1 = getAttribute(MFSEQ1);
+            sequence2 = getAttribute(MFSEQ2);
+            motifStart1 = Integer.parseInt(getAttribute(MFS1));
+            motifEnd1 = Integer.parseInt(getAttribute(MFE1));
+            motifStart2 = Integer.parseInt(getAttribute(MFS2));
+            motifEnd2 = Integer.parseInt(getAttribute(MFE2));
+
+            attributes.remove(MFS1);
+            attributes.remove(MFE1);
+            attributes.remove(MFSEQ1);
+            attributes.remove(MFO1);
+            attributes.remove(MFU1);
+
+            attributes.remove(MFS2);
+            attributes.remove(MFE2);
+            attributes.remove(MFSEQ2);
+            attributes.remove(MFO2);
+            attributes.remove(MFU2);
+        } catch (Exception e) {
+            // attributes not present
+        }
+
+    }
+
     @Override
     public String getOutputFileHeader() {
-        return super.getOutputFileHeader() +
-                "\tmotif_start1\tmotif_end1\tsequence_1\torientation_1\tuniqueness_1" +
-                "\tmotif_start2\tmotif_end2\tsequence2\torientation_2\tuniqueness_2";
+        return super.getOutputFileHeader() + "\t" + MFS1 + "\t" + MFE1 + "\t" + MFSEQ1 + "\t" + MFO1 + "\t" + MFU1 + "\t" +
+                MFS2 + "\t" + MFE2 + "\t" + MFSEQ2 + "\t" + MFO2 + "\t" + MFU2;
     }
 
 
@@ -136,16 +164,20 @@ public class Feature2DWithMotif extends Feature2D {
         String output = super.toString();
 
         if (sequence1 == null || sequence1.equals("null")) {
+            posNull++;
             output += "\tNA\tNA\tNA\tNA\tNA";
         } else {
+            posWritten++;
             String orientation = strand1 ? "p" : "n";
             String uniqueness = unique1 ? "u" : "i";
             output += "\t" + motifStart1 + "\t" + motifEnd1 + "\t" + sequence1 + "\t" + orientation + "\t" + uniqueness;
         }
 
         if (sequence2 == null || sequence2.equals("null")) {
+            negNull++;
             output += "\tNA\tNA\tNA\tNA\tNA";
         } else {
+            negWritten++;
             String orientation = strand2 ? "p" : "n";
             String uniqueness = unique2 ? "u" : "i";
             output += "\t" + motifStart2 + "\t" + motifEnd2 + "\t" + sequence2 + "\t" + orientation + "\t" + uniqueness;
@@ -165,11 +197,14 @@ public class Feature2DWithMotif extends Feature2D {
         } else {
             java.util.List<Feature2DWithMotif> emptyList = new ArrayList<Feature2DWithMotif>();
 
+            // always should be only uninitialized?
             if (onlyUninitializedFeatures) {
-                if (sequence1 == null) {
+                if (sequence1 == null || sequence1.equals("null")) {
+                    sequence1 = null;
                     anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, emptyList));
                 }
-                if (sequence2 == null) {
+                if (sequence2 == null || sequence2.equals("null")) {
+                    sequence2 = null;
                     anchors.add(new MotifAnchor(chr2, start2, end2, emptyList, originalFeatures));
                 }
             } else {

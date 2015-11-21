@@ -22,29 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
+package juicebox.data.feature;
 
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.HiCTools;
-
-import java.io.IOException;
+import java.util.List;
 
 /**
- * Created for testing multiple CLTs at once
- * Basically scratch space
+ * Created by muhammadsaadshamim on 7/30/15.
  */
-class AggregateProcessing {
-
-
-    public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
-
-        String[] ll51231123 = {"motifs",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
-
-        //HiCGlobals.printVerboseComments = true;
-        HiCTools.main(ll51231123);
-
-    }
+public interface FeatureFilter<T> {
+    List<T> filter(String chr, List<T> featureList);
 }

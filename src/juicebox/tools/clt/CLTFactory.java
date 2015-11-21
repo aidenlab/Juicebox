@@ -94,6 +94,8 @@ public class CLTFactory {
             return new APA();
         } else if (cmd.equals("afa")) {
             return new AFA();
+        } else if (cmd.equals("compare")) {
+            return new CompareLists();
         } else if (cmd.equals("arrowhead")) {
             return new Arrowhead();
         } else if (cmd.equals("bigWig".toLowerCase())) {

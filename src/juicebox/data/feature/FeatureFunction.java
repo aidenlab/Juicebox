@@ -22,13 +22,13 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.feature;
 
 import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 7/30/15.
  */
-public interface AnchorFilter {
-    List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList);
+public interface FeatureFunction<T> {
+    void process(String chr, List<T> featureList);
 }

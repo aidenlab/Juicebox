@@ -38,6 +38,10 @@ import java.util.List;
  * Visibility depends on user selection.
  *
  * @author Neva Durand, Muhammad Shamim, Marie Hoeger
+ *
+ * TODO cleanup code and eliminate this class
+ * It should become GenomeWideList<Feature2D>
+ * Helper functions should be relocated to Feature2DTools
  */
 public class Feature2DList {
 
@@ -56,6 +60,11 @@ public class Feature2DList {
      */
     public Feature2DList() {
         isVisible = true;
+    }
+
+    public Feature2DList(Feature2DList list) {
+        super();
+        add(list);
     }
 
     /**
@@ -187,6 +196,7 @@ public class Feature2DList {
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
+                            Collections.sort(feature2DList);
                             for (Feature2D feature : feature2DList) {
                                 outputFile.println(feature);
                             }
@@ -239,9 +249,6 @@ public class Feature2DList {
             }
         }
         return null;
-        // TODO this should not give no such element exceptions
-        // TODO meh - custom annotation must be adding unnecessary keys?
-        //return featureList.get(featureList.keySet().iterator().next()).iterator().next();
     }
 
     /*
@@ -411,8 +418,10 @@ public class Feature2DList {
      * @param filter
      */
     public void filterLists(FeatureFilter filter) {
-        for (String chr : featureList.keySet()) {
-            featureList.put(chr, filter.filter(chr, featureList.get(chr)));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            featureList.put(key, filter.filter(key, featureList.get(key)));
         }
     }
 
@@ -422,8 +431,10 @@ public class Feature2DList {
      * @param function
      */
     public void processLists(FeatureFunction function) {
-        for (String chr : featureList.keySet()) {
-            function.process(chr, featureList.get(chr));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            function.process(key, featureList.get(key));
         }
     }
 
@@ -441,5 +452,11 @@ public class Feature2DList {
             total += chrList.size();
         }
         return total;
+    }
+
+    public void checkAndRemoveEmptyList(int idx1, int idx2){
+        String key = getKey(idx1, idx2);
+        if (featureList.get(key).size() == 0)
+            featureList.remove(key);
     }
 }

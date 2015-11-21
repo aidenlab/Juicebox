@@ -43,12 +43,12 @@ public class CustomAnnotationHandler {
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
     private final int threshold = 10;
-    String id;
-    private PrintWriter outputFile;
     private Rectangle selectionRegion;
     private Point selectionPoint;
     private FeatureType featureType;
-    private boolean hasPoint, hasRegion;
+    private Feature2D lastResizeLoop = null;
+    private int lastChr1Idx = -1;
+    private int lastChr2Idx = -1;
 
     public CustomAnnotationHandler() {
         featureType = FeatureType.NONE;
@@ -56,8 +56,6 @@ public class CustomAnnotationHandler {
     }
 
     private void resetSelection() {
-        hasPoint = false;
-        hasRegion = false;
         selectionRegion = null;
         selectionPoint = null;
         featureType = FeatureType.NONE;
@@ -85,18 +83,26 @@ public class CustomAnnotationHandler {
 
     // Update selection region from new rectangle
     public void updateSelectionRegion(Rectangle newRegion) {
-        hasPoint = false;
-        hasRegion = true;
         doDomain();
         selectionRegion = newRegion;
+    }
+
+    public void setLastItem(int idx1, int idx2, Feature2D lastLoop){
+        lastChr1Idx = idx1;
+        lastChr2Idx = idx2;
+        lastResizeLoop = lastLoop;
+    }
+
+    private void clearLastItem(){
+        lastChr1Idx = -1;
+        lastChr2Idx = -1;
+        lastResizeLoop = null;
     }
 
     // Update selection region from new coordinates
     public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
 
         int x2, y2;
-        hasPoint = false;
-        hasRegion = true;
         doDomain();
         Rectangle lastRegion, damageRect;
 
@@ -120,7 +126,6 @@ public class CustomAnnotationHandler {
 
     public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
-        hasPoint = true;
     }
 
     public void addFeature(HiC hic, CustomAnnotation customAnnotations) {
@@ -129,6 +134,7 @@ public class CustomAnnotationHandler {
         Feature2D newFeature;
         MainMenuBar.exportAnnotationsMI.setEnabled(true);
         MainMenuBar.undoMenuItem.setEnabled(true);
+        clearLastItem();
         String chr1 = hic.getXContext().getChromosome().getName();
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -204,6 +210,10 @@ public class CustomAnnotationHandler {
                 start1 = geneXPos(hic, selectionRegion.x, 0);
                 end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0) - 1;
 
+//                System.out.println("After:");
+//                System.out.println("  Pixel info (1): " + selectionRegion.x + ", " + (selectionRegion.x + selectionRegion.getWidth()));
+//                System.out.println("  Genomic positioning (1): " + start1 + ", " + end1);
+
                 // Snap if close to diagonal
                 if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {
                     // Snap to min of horizontal stretch and vertical stretch
@@ -252,9 +262,12 @@ public class CustomAnnotationHandler {
 
         java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
         if (loops == null) return customAnnotations;
-        if (customAnnotations == null)
+        if (customAnnotations == null) {
+            System.out.println("Error! Custom annotations should not be null!");
             return null;
+        }
 
+        // Add each loop list to the custom annotation list
         for (Feature2DList list : loops) {
             customAnnotations.addVisibleToCustom(list);
         }
@@ -263,6 +276,10 @@ public class CustomAnnotationHandler {
 
     public void undo(CustomAnnotation customAnnotations) {
         customAnnotations.undo();
+        if (lastResizeLoop != null) {
+            customAnnotations.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
+            resetSelection();
+        }
         MainMenuBar.undoMenuItem.setEnabled(false);
     }
 
