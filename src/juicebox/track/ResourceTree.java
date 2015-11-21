@@ -234,10 +234,10 @@ public class ResourceTree {
         add2DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                File files[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+                File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
-                if (files != null && files.length > 0){
-                    for (File file : files) {
+                if (twoDfiles != null && twoDfiles.length > 0){
+                    for (File file : twoDfiles) {
 
                         String path = file.getAbsolutePath();
                         openAnnotationPath = new File(path);
@@ -275,10 +275,10 @@ public class ResourceTree {
         add1DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                File files[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
+                File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
 
-                if (files != null && files.length > 0) {
-                    for (File file : files) {
+                if (oneDfiles != null && oneDfiles.length > 0) {
+                    for (File file : oneDfiles) {
 
                         String path = file.getAbsolutePath();
                         openAnnotationPath = new File(path);
