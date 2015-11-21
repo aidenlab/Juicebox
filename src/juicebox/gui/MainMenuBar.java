@@ -367,10 +367,22 @@ public class MainMenuBar {
         });
         // TODO hotkey?
 
+        final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
+        editVisibleMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
+                showLoopsItem.setSelected(false);
+                superAdapter.setShowLoops(false);
+                superAdapter.repaint();
+            }
+        });
+
         feature2DPlottingOptions.add(showLoopsItem);
         feature2DPlottingOptions.add(enlarge2DFeatures);
         feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         feature2DPlottingOptions.add(featureRenderingOptions);
+        feature2DPlottingOptions.add(editVisibleMI);
         feature2DPlottingOptions.addSeparator();
         feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
         feature2DPlottingOptions.add(sparseOptions);
@@ -382,8 +394,7 @@ public class MainMenuBar {
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
         final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-        loadLastMI = new JMenuItem("Load Unsaved Edits");
-        final JMenuItem editVisibleMI = new JMenuItem("Edit Loaded Annotations");
+        loadLastMI = new JMenuItem("Load Last Session");
         undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
 
@@ -409,16 +420,6 @@ public class MainMenuBar {
                 temp.delete();
                 loadLastMI.setEnabled(false);
                 exportAnnotationsMI.setEnabled(true);
-            }
-        });
-
-        editVisibleMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
-                showLoopsItem.setSelected(false);
-                superAdapter.setShowLoops(false);
-                superAdapter.repaint();
             }
         });
 
@@ -462,7 +463,6 @@ public class MainMenuBar {
         customAnnotationMenu.add(showCustomLoopsItem);
         customAnnotationMenu.add(exportAnnotationsMI);
         //customAnnotationMenu.add(exportOverlapMI);
-        customAnnotationMenu.add(editVisibleMI);
         customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
         if (unsavedEditsExist()) {

@@ -121,11 +121,11 @@ public class CustomAnnotation {
         } else {
             tempWriter.println(singleFeature.getOutputFileHeader());
         }
-        System.out.println("Made temp file " + tempFile.getAbsolutePath());
+        //System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
     public void deleteTempFile() {
-        System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
+        //System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         tempWriter.close();
         tempFile.delete();
     }
@@ -170,6 +170,16 @@ public class CustomAnnotation {
         deleteTempFile();
         makeTempFile();
         customAnnotationList.autoSaveAll(tempWriter);
+    }
+
+    public boolean hasLoop(int idx1, int idx2, Feature2D feature){
+        if (idx1 > 0 && idx2 > 0) {
+            List<Feature2D> featureList = customAnnotationList.get(idx1, idx2);
+            if (featureList.contains(feature)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void removeFromList(int idx1, int idx2, Feature2D feature) {
@@ -220,6 +230,14 @@ public class CustomAnnotation {
         getAndAddAttributes(featureKeys);
         //customAnnotationList.addUnique(newAnnotations);
         customAnnotationList.add(newAnnotations);
+
+        // Autosave the information
+        unsavedEdits = true;
+        if (firstSave) {
+            makeTempFile();
+            firstSave = false;
+        }
+        updateAutoSave();
     }
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
