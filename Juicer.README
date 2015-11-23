@@ -1,7 +1,8 @@
 About Juicer
 --------------
-Juicer is a platform for analyzing kilobase resolution Hi-C data. In this distribution, we include the pipeline for generating Hi-C maps from fastq raw
-data files and command line tools for feature annotation on the Hi-C maps.
+Juicer is a platform for analyzing kilobase resolution Hi-C data. In this distribution,
+we include the pipeline for generating Hi-C maps from fastq raw data files and command
+line tools for feature annotation on the Hi-C maps.
 
 ----------------------
 Example for Reviewers
@@ -11,8 +12,8 @@ Juicer. If you run into problems, see below for more detailed documentation.
 This example runs on Amazon Web Services, but you can install the pipeline
 on any LSF, Univa Grid Engine, or SLURM cluster.
 
-1. Make sure you're in the top-level directory, with this README and the pem
-   file.
+1. Make sure you're in the top-level directory, with this README and the 
+   Juicer_AWS.pem file.
 2. You were given an anonymous IP address. At a command line prompt, type:
       ssh -i Juicer_AWS.pem ubuntu@<given IP address>
 3. This will log you into an AWS instance that contains all the software
@@ -34,53 +35,21 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
    inter.hic (for MAPQ > 0) and inter_30.hic (for MAPQ >= 30). The Hi-C maps
    can be loaded in Juicebox and explored. They can also be used for
    automatic feature annotation and to extract matrices at specific
-   resolutions.  A complete list of the files in the aligned directory is
-   below.
-9. To download a map locally to load into Juicebox, type:
+   resolutions.
+   These results also include automatic feature annotation, including finding
+   loops in the data (HiCCUPS), aggregate enrichment of the set putative peak
+   calls (APA), CTCF motifs of the loops (MotifFinder), and contact domains
+   in the Hi-C map (Arrowhead). The format of the loops (with motifs) and contact
+   domains is described in the Juicebox tutorial online, and can be loaded into
+   Juicebox as a 2D annotation.
+   
+9. To download a file (e.g. inter.hic) from AWS to load into Juicebox, type:
       sftp -i Juicer_AWS.pem ubuntu@<given IP address>
-      cd /opt/juicer/work/HIC003/aligned
+      cd /opt/juicer/work/MBR19/aligned
       get inter.hic
-      quit
-10. Now let’s explore automatic feature annotation on a high resolution Hi-C
-    map. Since the data is so big, we’ll only look at chromosome 19. Type:
-      cd /opt/juicer/work/Mega_19/
-11. HiCCUPS automatically finds peaks in Hi-C data. Run HiCCUPS with a GPU
-    matrix size of 500 and 10Kb resolution:
-      /opt/juicer/scripts/juicebox_native_lib hiccups -m 500 -r 10000 inter_19.hic chr19_loops_list
-    This will produce the file “chr19_loops_list_postprocessing”, which
-    contains the peaks found in the input Hi-C file. The format is described
-    in the Juicebox tutorial online, and can be loaded into Juicebox as a 2D
-    annotation.
-13. APA determines the aggregate enrichment of a set of putative peak calls.
-    Run APA on the loops list you just created:
-      /opt/juicer/scripts/juicebox_native_lib apa inter_19.hic chr19_loops_list_postprocessing apa_results
-    The directory apa_results will contain data files and image files for APA
-    at 10Kb and 25Kb resolution.
-14. MotifFinder automatically finds motifs of provided loops. Run MotifFinder by typing:
-      /opt/juicer/scripts/juicebox_native_lib motifs ctcf.bed,rad21.bed
-              ctcf.bed hg19 chr19_loops_list
-    The resulting file chr19_loops_list_with_motifs.txt will contain the loops
-    list with motifs as attributes. The format is described in the Juicebox
-    tutorial online, and can be loaded into Juicebox as a 2D annotation.
-15. Arrowhead automatically finds contact domains in the Hi-C map. Run
-    Arrowhead by typing:
-      /opt/juicer/scripts/juicebox_native_lib arrowhead -m 2000 inter_19.hic arrowhead_contact_domains
-    The resulting file arrowhead_contact_domains will contain the contact
-    domains found in the input Hi-C file. The format is the same as for peaks
-    and is described in the Juicebox tutorial online, and can be loaded into
-    Juicebox as a 2D annotation.
-
-*****----
-Or new script?
-*****----
-
-10. Run post-processing on the hic file by typing the following:
-       ./juicer_postprocessing /opt/juicer/scripts/juicebox_native_lib inter_19.hic
-    This will run the major postprocessing on the HiC file, including finding
-    loops with HiCCUPS, finding motifs of these loops with MotifFinder, and
-    finding contact domains with Arrowhead.
-
-
+      get inter_30.hic
+      get ... (each of hiccups, apa, motifs, and arrowhead output files)
+   
 See below for more documentation.
 
 ------------
