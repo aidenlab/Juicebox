@@ -88,6 +88,7 @@ public class PreProcessing extends JuiceboxCLT {
             NormalizationVectorUpdater.updateHicFile(outputFile);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }
