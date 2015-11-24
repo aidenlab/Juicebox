@@ -236,11 +236,11 @@ The optional arguments are:
        window width 6 for resolution 10000)
    -t <floats> Thresholds for merging loop lists of different resolutions. Four values must be given, separated by
        commas (e.g. 0.02,1.5,1.75,2). These thresholds (in order) represent:
-       > threshold allowed for sum of FDR values of horizontal, vertical donut mask, and bottom left regions
+       > threshold allowed for sum of FDR values of the horizontal, vertical, donut, and bottom left filters
            (an accepted loop must stay below this threshold)
-       > threshold ratio that both the horizontal and vertical masks must exceed
-       > threshold ratio that both the donut and bottom left masks must exceed
-       > threshold ratio that at least one of the donut and bottom left values must exceed
+       > threshold ratio that both the horizontal and vertical filters must exceed
+       > threshold ratio that both the donut and bottom left filters must exceed
+       > threshold ratio that at least one of the donut and bottom left filters must exceed
    -d <ints> Distances used for merging centroids across different resolutions. Three values must be given, separated by
        commas (e.g. 20000,20000,50000). These thresholds (in order) represent:
        > distance (radius) around centroid used for merging at 5kB resolution (if present)
