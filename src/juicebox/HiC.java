@@ -398,7 +398,7 @@ public class HiC {
         double w = superAdapter.getHeatmapPanel().getWidth() / getScaleFactor();  // view width in bins
         int newOriginX = (int) (binX - w / 2);
 
-        double h = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();  // view hieght in bins
+        double h = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();  // view height in bins
         int newOriginY = (int) (binY - h / 2);
         moveTo(newOriginX, newOriginY);
     }

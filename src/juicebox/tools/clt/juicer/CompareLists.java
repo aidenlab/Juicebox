@@ -26,23 +26,39 @@ package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
-import juicebox.track.feature.Feature2DTools;
+import juicebox.track.feature.*;
+import org.broad.igv.feature.Chromosome;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
  */
 public class CompareLists extends JuicerCLT {
 
-    private int threshold = 0, compareTypeID = 0;
+    /**
+     * Arbitrary colors for comparison list
+     **/
+    public static Color AB = new Color(34, 139, 34);
+    public static Color AA = new Color(0, 255, 150);
+    public static Color BB = new Color(150, 255, 0);
+    public static Color AAA = new Color(102, 0, 153);
+    public static Color BBB = new Color(255, 102, 0);
+
+    private int threshold = 10000, compareTypeID = 0;
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
+    private Set<String> givenChromosomes = null;
+
 
     public CompareLists() {
-        super("compare [-m threshold] <compareType> <genomeID> <list1> <list2> [output_path]");
+        super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]");
         HiCGlobals.useCache = false;
     }
 
@@ -61,11 +77,22 @@ public class CompareLists extends JuicerCLT {
         inputFileB = args[4];
         if (args.length == 6) {
             outputPath = args[5];
+        } else {
+            if (inputFileB.endsWith(".txt")) {
+                outputPath = inputFileB.substring(0, inputFileB.length() - 4) + "_with_motifs.txt";
+            } else {
+                outputPath = inputFileB + "_comparison_results.txt";
+            }
         }
 
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 0) {
             threshold = specifiedMatrixSize;
+        }
+
+        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
+        if (potentialChromosomes != null) {
+            givenChromosomes = new HashSet<String>(potentialChromosomes);
         }
     }
 
@@ -73,17 +100,73 @@ public class CompareLists extends JuicerCLT {
     @Override
     public void run() {
 
-        if (compareTypeID == 0) {
-            Feature2DList listA = Feature2DParser.loadFeatures(inputFileA, genomeID, true, null, false);
-            Feature2DList listB = Feature2DParser.loadFeatures(inputFileB, genomeID, true, null, false);
-            Feature2D.tolerance = this.threshold;
-            Feature2DList listResults = Feature2DTools.compareLists(listA, listB);
-            listResults.exportFeatureList(outputPath, false);
-        } else if (compareTypeID == 1) {
-            Feature2DList listA = Feature2DParser.loadFeatures(inputFileA, genomeID, true, null, false);
-            Feature2DList listB = Feature2DParser.loadFeatures(inputFileB, genomeID, true, null, false);
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
+        if (givenChromosomes != null)
+            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                    chromosomes));
 
+        Feature2DList listA = null, listB = null;
+        if (compareTypeID == 0) {
+            listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, false, null, false);
+            listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, false, null, false);
+
+        } else if (compareTypeID == 1) {
+            Feature2DWithMotif.useSimpleOutput = true;
+            listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, true, null, true);
+            listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, true, null, true);
         }
+
+        listA.removeDuplicates();
+        listB.removeDuplicates();
+
+        int sizeA = listA.getNumTotalFeatures();
+        int sizeB = listB.getNumTotalFeatures();
+        System.out.println("List Size: " + sizeA + "(A) " + sizeB + "(B)");
+
+        Feature2D.tolerance = 0;
+        Feature2DList exactMatches = Feature2DList.getIntersection(listA, listB);
+        int numExactMatches = exactMatches.getNumTotalFeatures();
+        System.out.println("Number of exact matches: " + numExactMatches);
+
+        Feature2D.tolerance = this.threshold;
+        Feature2DList matchesWithinToleranceFromA = Feature2DList.getIntersection(listA, listB);
+        Feature2DList matchesWithinToleranceFromB = Feature2DList.getIntersection(listB, listA);
+
+        Feature2D.tolerance = 0;
+        Feature2DList matchesWithinToleranceUniqueToA = Feature2DTools.subtract(matchesWithinToleranceFromA, exactMatches);
+        Feature2DList matchesWithinToleranceUniqueToB = Feature2DTools.subtract(matchesWithinToleranceFromB, exactMatches);
+        Feature2DList uniqueToA = Feature2DTools.subtract(listA, matchesWithinToleranceFromA);
+        Feature2DList uniqueToB = Feature2DTools.subtract(listB, matchesWithinToleranceFromB);
+
+        int numMatchesWithinTolA = matchesWithinToleranceUniqueToA.getNumTotalFeatures();
+        int numMatchesWithinTolB = matchesWithinToleranceUniqueToB.getNumTotalFeatures();
+        System.out.println("Number of matches within tolerance: " + numMatchesWithinTolA + "(A) " + numMatchesWithinTolB + "(B)");
+
+        int numUniqueToA = uniqueToA.getNumTotalFeatures();
+        int numUniqueToB = uniqueToB.getNumTotalFeatures();
+        System.out.println("Number of unique features: " + numUniqueToA + "(A) " + numUniqueToB + "(B)");
+
+        // set parent attribute
+        exactMatches.addAttributeFieldToAll("parent_list", "Common");
+        matchesWithinToleranceUniqueToA.addAttributeFieldToAll("parent_list", "A");
+        matchesWithinToleranceUniqueToB.addAttributeFieldToAll("parent_list", "B");
+        uniqueToA.addAttributeFieldToAll("parent_list", "A");
+        uniqueToB.addAttributeFieldToAll("parent_list", "B");
+
+        // set colors
+        exactMatches.setColor(AB);
+        matchesWithinToleranceUniqueToA.setColor(AA);
+        matchesWithinToleranceUniqueToB.setColor(BB);
+        uniqueToA.setColor(AAA);
+        uniqueToB.setColor(BBB);
+
+        Feature2DList finalResults = new Feature2DList(exactMatches);
+        finalResults.add(matchesWithinToleranceFromA);
+        finalResults.add(matchesWithinToleranceFromB);
+        finalResults.add(uniqueToA);
+        finalResults.add(uniqueToB);
+
+        finalResults.exportFeatureList(outputPath, false);
     }
 
 

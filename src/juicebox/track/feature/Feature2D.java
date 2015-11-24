@@ -48,9 +48,10 @@ public class Feature2D implements Comparable<Feature2D> {
     public static final String peak = "Peak";
     public static final String domain = "Contact domain";
     public static final String generic = "feature";
-    private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    protected static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
     public static int tolerance = 0;
+    public static boolean allowHiCCUPSOrdering = false;
     protected final Map<String, String> attributes;
     final String chr1;
     final String chr2;
@@ -60,7 +61,6 @@ public class Feature2D implements Comparable<Feature2D> {
     int start2;
     int end1;
     int end2;
-
     private Feature2D reflection = null;
     private Color color, translucentColor;
     private boolean test = false;
@@ -252,14 +252,18 @@ public class Feature2D implements Comparable<Feature2D> {
         return output;
     }
 
-    @Override
-    public String toString() {
+    public String simpleString() {
         String output = chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
         output += "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+        return output;
+    }
+
+    @Override
+    public String toString() {
+        String output = simpleString();
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);
-
         for (String key : keys) {
             output += "\t" + attributes.get(key);
         }
@@ -325,12 +329,11 @@ public class Feature2D implements Comparable<Feature2D> {
     @Override
     public int compareTo(Feature2D o) {
         // highest observed point ordering needed for hiccups sorting
-        if (attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
+        if (allowHiCCUPSOrdering && attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
             return Math.round(Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
         }
-        // technically chr1/2 should be checked before observed val
         int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
-                start2 - o.start2, end1 - o.end1, end2 - o.end2};
+                start2 - o.start2, end1 - o.end1, end2 - o.end2, color.getRGB() - o.color.getRGB()};
         for (int i : comparisons) {
             if (i != 0)
                 return i;

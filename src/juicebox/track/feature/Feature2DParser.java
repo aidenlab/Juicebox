@@ -134,10 +134,12 @@ public class Feature2DParser {
                 Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
                 if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        System.out.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.out.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -260,10 +262,12 @@ public class Feature2DParser {
                 Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
                 if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        System.err.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.err.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -355,10 +359,12 @@ public class Feature2DParser {
 
                 Chromosome chrA = HiCFileTools.getChromosomeNamed(chrAName, chromosomes);
                 if (chrA == null) {
-                    if (errorCount < 100) {
-                        System.err.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.err.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -391,6 +397,4 @@ public class Feature2DParser {
 
         return newList;
     }
-
-
 }

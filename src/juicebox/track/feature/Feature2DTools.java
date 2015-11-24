@@ -24,9 +24,9 @@
 
 package juicebox.track.feature;
 
+import juicebox.tools.clt.juicer.CompareLists;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
-import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +35,7 @@ import java.util.Set;
  * Created by muhammadsaadshamim on 10/27/15.
  */
 public class Feature2DTools {
+
 
     public static Feature2DList extractPeaksNearCentroids(final Feature2DList featureList, final Feature2DList centroids) {
         final Feature2DList peaks = new Feature2DList();
@@ -215,8 +216,8 @@ public class Feature2DTools {
         });
 
         // color code results
-        featuresUniqueToA.setColor(Color.BLUE);
-        featuresUniqueToB.setColor(Color.GREEN);
+        featuresUniqueToA.setColor(CompareLists.AAA);
+        featuresUniqueToB.setColor(CompareLists.BBB);
 
         // also add an attribute in addition to color coding
         featuresUniqueToA.addAttributeFieldToAll("parent_list", "A");
@@ -227,5 +228,21 @@ public class Feature2DTools {
         results.add(featuresUniqueToB);
 
         return results;
+    }
+
+
+    public static Feature2DList subtract(final Feature2DList listA, final Feature2DList listB) {
+        Feature2DList result = new Feature2DList(listA);
+        result.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                if (listB.containsKey(chr)) {
+                    feature2DList.removeAll(listB.getFeatureList(chr));
+                }
+                return feature2DList;
+            }
+        });
+        result.removeDuplicates();
+        return result;
     }
 }

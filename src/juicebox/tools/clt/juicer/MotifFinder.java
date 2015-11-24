@@ -25,12 +25,14 @@
 package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import org.broad.igv.feature.Chromosome;
@@ -55,6 +57,7 @@ public class MotifFinder extends JuicerCLT {
 
     public MotifFinder() {
         super("motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]");
+        MotifAnchor.uniquenessShouldSupercedeConvergentRule = false;
     }
 
     @Override
@@ -127,12 +130,41 @@ public class MotifFinder extends JuicerCLT {
             globalAnchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
         }
 
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Found " + MotifAnchorTools.searchForFeature(10, "CTGGCCACCAGGTGGCGCTG", globalAnchors));
+        }
         // intersect all the 1d tracks for inferring motifs
         GenomeWideList<MotifAnchor> proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
         MotifAnchorTools.intersectLists(globalAnchors, proteinsForInference, true);
 
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Found " + MotifAnchorTools.searchForFeature(10, 4891921, 4892143, proteinsForInference));
+        }
         GenomeWideList<MotifAnchor> remainingAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
+
+        Feature2D f0 = features.searchForFeature(10, 4890000, 4900000, 10, 5420000, 5430000);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Feature: " + f0);
+
+            System.out.println("Found X1 " + MotifAnchorTools.searchForFeature(10, 4890000, 4900000, remainingAnchors));
+        }
         MotifAnchorTools.intersectLists(remainingAnchors, globalAnchors, true);
+
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Found X2 " + MotifAnchorTools.searchForFeature(10, 4890000, 4900000, remainingAnchors));
+        }
+
+        MotifAnchor an = MotifAnchorTools.searchForFeature(10, "CTGGCCACCAGGTGGCGCTG", remainingAnchors);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Found " + an);
+            System.out.println("Found " + an.getSequence());
+            System.out.println("Found " + an.getScore());
+            System.out.println("Found " + an.getX1());
+            System.out.println("Found " + an.getX2());
+            System.out.println("Found " + an.getOriginalFeatures1());
+            System.out.println("Found " + an.getOriginalFeatures2());
+        }
+
         MotifAnchorTools.updateOriginalFeatures(remainingAnchors, false);
 
         features.exportFeatureList(outputPath, false);

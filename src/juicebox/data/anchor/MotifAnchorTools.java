@@ -207,4 +207,34 @@ public class MotifAnchorTools {
 
         return bestAnchors;
     }
+
+    public static MotifAnchor searchForFeature(final int chrID, final String sequence, GenomeWideList<MotifAnchor> anchorList) {
+        final MotifAnchor[] anchor = new MotifAnchor[1];
+        anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor motif : featureList) {
+                    if (motif.getChr().contains("" + chrID) && motif.getSequence().equals(sequence)) {
+                        anchor[0] = (MotifAnchor) motif.deepClone();
+                    }
+                }
+            }
+        });
+        return anchor[0];
+    }
+
+    public static MotifAnchor searchForFeature(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+        final MotifAnchor[] anchor = new MotifAnchor[1];
+        anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor motif : featureList) {
+                    if (motif.getChr().contains("" + chrID) && motif.getX1() == start && motif.getX2() == end) {
+                        anchor[0] = (MotifAnchor) motif.deepClone();
+                    }
+                }
+            }
+        });
+        return anchor[0];
+    }
 }

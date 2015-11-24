@@ -99,4 +99,6 @@ public class HiCGlobals {
         colors.add(new Color(0, 0, 0));
         return colors;
     }
+
+
 }

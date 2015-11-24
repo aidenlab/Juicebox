@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
@@ -153,7 +154,9 @@ public class HiCCUPSUtils {
         for (Chromosome chr : chromosomes) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
-        System.out.println("Initial: " + list.getNumTotalFeatures());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Initial: " + list.getNumTotalFeatures());
+        }
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
@@ -287,14 +290,10 @@ public class HiCCUPSUtils {
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            //pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(RADIUS, (int) Math.round(pixelClusterRadius));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
-
-            //System.out.println("Pixels: " + pixelList);
-            //System.out.println("Pixels: " + pixelList.size());
 
             for (Feature2D px : pixelList) {
                 featureLL.remove(px);
@@ -337,8 +336,6 @@ public class HiCCUPSUtils {
         float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
         float fdrH = pixel.getFloatAttribute(FDRH);
         float fdrV = pixel.getFloatAttribute(FDRV);
-        //System.out.println("FDR Process "+pixel);
-        //System.out.println("Collapse "+numCollapsed+" Radius "+pixel.getAttribute(RADIUS));
 
         return observed > (t2 * expectedBL)
                 && observed > (t2 * expectedDonut)
@@ -390,7 +387,9 @@ public class HiCCUPSUtils {
             mergedList.add(hiccupsLooplists.get(10000));
             listHasBeenAltered = true;
         }
-        System.out.println("Remove duplicates");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Removing duplicates");
+        }
         mergedList.removeDuplicates();
 
         if (hiccupsLooplists.containsKey(25000)) {

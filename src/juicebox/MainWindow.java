@@ -127,7 +127,9 @@ public class MainWindow extends JFrame {
     }
 
     private void initComponents() {
-        System.out.println("Initializing Components");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Initializing Components");
+        }
 
         MainWindow.superAdapter.initializeCustomAnnotations();
 

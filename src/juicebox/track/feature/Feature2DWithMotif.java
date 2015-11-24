@@ -39,6 +39,8 @@ import java.util.Map;
 public class Feature2DWithMotif extends Feature2D {
 
     public static int negReceived = 0, negWritten = 0, posNull = 0, posWritten = 0, negNull = 0;
+    public static boolean useSimpleOutput = false;
+    public static boolean uniquenessCheckEnabled = true;
     // true = +, false = -, null = NA
     private boolean strand1, strand2;
     // true - unique, false = inferred, null = NA
@@ -56,11 +58,11 @@ public class Feature2DWithMotif extends Feature2D {
     private String MFSEQ2 = "sequence_2";
     private String MFO2 = "orientation_2";
     private String MFU2 = "uniqueness_2";
-    public Feature2DWithMotif(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2,
-                              Color c, Map<String, String> attributes) {
-        super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
 
-        searchAttributesForMotifInformation();
+    public Feature2DWithMotif(String featureName, String chr1, int start1, int end1,
+                              String chr2, int start2, int end2, Color c, Map<String, String> attributes) {
+        super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
+        importAttributesForMotifInformation();
 
     }
 
@@ -122,30 +124,46 @@ public class Feature2DWithMotif extends Feature2D {
 
     }
 
-    private void searchAttributesForMotifInformation() {
+    private void importAttributesForMotifInformation() {
         try {
-            strand1 = getAttribute(MFO1).contains("p");
-            strand2 = getAttribute(MFO2).contains("p");
-            unique1 = getAttribute(MFU1).contains("u");
-            unique2 = getAttribute(MFU2).contains("u");
-            sequence1 = getAttribute(MFSEQ1);
-            sequence2 = getAttribute(MFSEQ2);
-            motifStart1 = Integer.parseInt(getAttribute(MFS1));
-            motifEnd1 = Integer.parseInt(getAttribute(MFE1));
-            motifStart2 = Integer.parseInt(getAttribute(MFS2));
-            motifEnd2 = Integer.parseInt(getAttribute(MFE2));
+            boolean strand1 = getAttribute(MFO1).contains("p");
+            boolean unique1 = getAttribute(MFU1).contains("u");
+            String sequence1 = getAttribute(MFSEQ1);
+            int motifStart1 = Integer.parseInt(getAttribute(MFS1));
+            int motifEnd1 = Integer.parseInt(getAttribute(MFE1));
 
+            attributes.remove(MFO1);
+            attributes.remove(MFU1);
             attributes.remove(MFS1);
             attributes.remove(MFE1);
             attributes.remove(MFSEQ1);
-            attributes.remove(MFO1);
-            attributes.remove(MFU1);
 
-            attributes.remove(MFS2);
-            attributes.remove(MFE2);
-            attributes.remove(MFSEQ2);
+            this.strand1 = strand1;
+            this.unique1 = unique1;
+            this.sequence1 = sequence1;
+            this.motifStart1 = motifStart1;
+            this.motifEnd1 = motifEnd1;
+        } catch (Exception e) {
+            // attributes not present
+        }
+        try {
+            boolean strand2 = getAttribute(MFO2).contains("p");
+            boolean unique2 = getAttribute(MFU2).contains("u");
+            String sequence2 = getAttribute(MFSEQ2);
+            int motifStart2 = Integer.parseInt(getAttribute(MFS2));
+            int motifEnd2 = Integer.parseInt(getAttribute(MFE2));
+
             attributes.remove(MFO2);
             attributes.remove(MFU2);
+            attributes.remove(MFSEQ2);
+            attributes.remove(MFS2);
+            attributes.remove(MFE2);
+
+            this.strand2 = strand2;
+            this.unique2 = unique2;
+            this.sequence2 = sequence2;
+            this.motifStart2 = motifStart2;
+            this.motifEnd2 = motifEnd2;
         } catch (Exception e) {
             // attributes not present
         }
@@ -154,14 +172,20 @@ public class Feature2DWithMotif extends Feature2D {
 
     @Override
     public String getOutputFileHeader() {
-        return super.getOutputFileHeader() + "\t" + MFS1 + "\t" + MFE1 + "\t" + MFSEQ1 + "\t" + MFO1 + "\t" + MFU1 + "\t" +
+        String additionalAttributes = "\t" + MFS1 + "\t" + MFE1 + "\t" + MFSEQ1 + "\t" + MFO1 + "\t" + MFU1 + "\t" +
                 MFS2 + "\t" + MFE2 + "\t" + MFSEQ2 + "\t" + MFO2 + "\t" + MFU2;
+        if (useSimpleOutput) {
+            return genericHeader + additionalAttributes;
+        }
+        return super.getOutputFileHeader() + additionalAttributes;
     }
-
 
     @Override
     public String toString() {
         String output = super.toString();
+        if (useSimpleOutput) {
+            output = simpleString();
+        }
 
         if (sequence1 == null || sequence1.equals("null")) {
             posNull++;
@@ -187,15 +211,15 @@ public class Feature2DWithMotif extends Feature2D {
     }
 
     public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures) {
-        java.util.List<Feature2DWithMotif> originalFeatures = new ArrayList<Feature2DWithMotif>();
+        List<Feature2DWithMotif> originalFeatures = new ArrayList<Feature2DWithMotif>();
         originalFeatures.add(this);
 
-        java.util.List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
         if (isOnDiagonal()) {
             // loops should not be on diagonal
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
-            java.util.List<Feature2DWithMotif> emptyList = new ArrayList<Feature2DWithMotif>();
+            List<Feature2DWithMotif> emptyList = new ArrayList<Feature2DWithMotif>();
 
             // always should be only uninitialized?
             if (onlyUninitializedFeatures) {
@@ -213,5 +237,36 @@ public class Feature2DWithMotif extends Feature2D {
             }
         }
         return anchors;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (super.equals(obj)) {
+            Feature2DWithMotif o = (Feature2DWithMotif) obj;
+            try {
+                if ((sequence1 == null && o.sequence1 == null) || sequence1.equals(o.sequence1)) {
+                    if ((sequence2 == null && o.sequence2 == null) || sequence2.equals(o.sequence2)) {
+                        //if (unique1 == o.unique1 && unique2 == o.unique2) {
+                        //if (strand1 == o.strand1 && strand2 == o.strand2) {
+                        return true;
+                        //}
+                        //}
+                    }
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        if (sequence1 != null) hash = 51 * hash + sequence1.hashCode();
+        if (sequence2 != null) hash = 53 * hash + sequence2.hashCode();
+
+        return hash;
     }
 }

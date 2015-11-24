@@ -101,6 +101,37 @@ public class Feature2DList {
     }
 
     /**
+     * values from list A that are common to list B within tolerance
+     *
+     * @param listA
+     * @param listB
+     * @return
+     */
+    public static Feature2DList getIntersection(final Feature2DList listA, Feature2DList listB) {
+
+        Feature2DList commonFeatures = new Feature2DList(listB);
+        commonFeatures.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                List<Feature2D> commonVals = new ArrayList<Feature2D>();
+                if (listA.containsKey(chr)) {
+                    List<Feature2D> listAFeatures = listA.getFeatureList(chr);
+                    for (Feature2D feature : listAFeatures) {
+                        if (feature2DList.contains(feature)) {
+                            commonVals.add(feature);
+                        }
+                    }
+                }
+                return commonVals;
+            }
+        });
+
+
+        commonFeatures.removeDuplicates();
+        return commonFeatures;
+    }
+
+    /**
      * Returns list of features on this chromosome pair
      *
      * @param chr1Idx First chromosome index
@@ -392,7 +423,6 @@ public class Feature2DList {
         });
     }
 
-
     /**
      * Get all keys (chromosome pairs) for hashmap
      *
@@ -438,7 +468,6 @@ public class Feature2DList {
         }
     }
 
-
     /**
      * @return true if features available for this region (key = "chr1_chr2")
      */
@@ -458,5 +487,22 @@ public class Feature2DList {
         String key = getKey(idx1, idx2);
         if (featureList.get(key).size() == 0)
             featureList.remove(key);
+    }
+
+    public Feature2D searchForFeature(final int c1, final int start1, final int end1,
+                                      final int c2, final int start2, final int end2) {
+        final Feature2D[] feature = new Feature2D[1];
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    if (f.getChr1().contains("" + c1) && f.getChr2().contains("" + c2) && f.start1 == start1 &&
+                            f.start2 == start2 && f.end1 == end1 && f.end2 == end2) {
+                        feature[0] = f;
+                    }
+                }
+            }
+        });
+        return feature[0];
     }
 }

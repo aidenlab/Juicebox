@@ -36,6 +36,7 @@ import java.util.List;
 public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     public static int posCount = 0, negCount = 0;
+    public static boolean uniquenessShouldSupercedeConvergentRule = true;
     public boolean strand;
     // critical components of a motif anchor
     private String chr;
@@ -240,20 +241,47 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     public void updateOriginalFeatures(boolean uniqueStatus) {
         if (fimoAttributesHaveBeenInitialized && (originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
-            for (Feature2DWithMotif feature : originalFeatures1) {
-                if (strand || uniqueStatus) {
-                    posCount++;
-                    feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+            if (uniquenessShouldSupercedeConvergentRule) {
+                for (Feature2DWithMotif feature : originalFeatures1) {
+                    if (strand || uniqueStatus) {
+                        posCount++;
+                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                    }
                 }
-            }
-            for (Feature2DWithMotif feature : originalFeatures2) {
-                if (!strand || uniqueStatus) {
-                    negCount++;
-                    feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                for (Feature2DWithMotif feature : originalFeatures2) {
+                    if (!strand || uniqueStatus) {
+                        negCount++;
+                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                    }
+                }
+            } else {
+                for (Feature2DWithMotif feature : originalFeatures1) {
+                    if (strand) {
+                        posCount++;
+                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                    }
+                }
+                for (Feature2DWithMotif feature : originalFeatures2) {
+                    if (!strand) {
+                        negCount++;
+                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                    }
                 }
             }
         } else {
             System.err.println("Attempting to assign motifs on incomplete anchor");
         }
+    }
+
+    public String getSequence() {
+        return sequence;
+    }
+
+    public List<Feature2DWithMotif> getOriginalFeatures1() {
+        return originalFeatures1;
+    }
+
+    public List<Feature2DWithMotif> getOriginalFeatures2() {
+        return originalFeatures2;
     }
 }

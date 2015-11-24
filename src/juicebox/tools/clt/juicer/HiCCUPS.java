@@ -36,6 +36,7 @@ import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
@@ -204,6 +205,7 @@ public class HiCCUPS extends JuicerCLT {
                 "\n" +
                 "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
+        Feature2D.allowHiCCUPSOrdering = true;
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
     }
 
