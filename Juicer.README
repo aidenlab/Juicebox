@@ -24,7 +24,8 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
 5. Run the Juicer pipeline on the data (which is stored in the fastq
    directory):
       /opt/juicer/scripts/juicer.sh -g hg19 -s MboI
-6. You will see a series of messages, ending with
+6. You will see a series of messages sending jobs to the cluster. Do not
+   kill the script or close the server connection until you see:
       “(-: Finished adding all jobs... please wait while processing.”
    To see the progress of the pipeline as it works, type:
       bjobs -w
