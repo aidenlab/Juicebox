@@ -20,7 +20,7 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
    needed to run the pipeline. Type
       cd /opt/juicer/work/
 4. We will start by running the pipeline on a small sample. Type:
-      cd HIC003
+      cd MBR19
 5. Run the Juicer pipeline on the data (which is stored in the fastq
    directory):
       /opt/juicer/scripts/juicer.sh -g hg19 -s MboI
