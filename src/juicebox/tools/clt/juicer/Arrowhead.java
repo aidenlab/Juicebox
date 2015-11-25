@@ -28,6 +28,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
+import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -126,6 +127,7 @@ public class Arrowhead extends JuicerCLT {
         if (args.length != 3 && args.length != 5) {
             // 3 - standard, 5 - when list/control provided
             printUsage();
+            System.exit(0);
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -162,6 +164,16 @@ public class Arrowhead extends JuicerCLT {
     public void run() {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+
+        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+        // then the map had more than 300M contacts.
+        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        if (firstExpected < 100000) {
+            System.err.println("HiC contact map is too sparse to run Arrowhead, exiting.");
+            System.exit(0);
+        }
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 

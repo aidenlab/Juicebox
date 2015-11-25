@@ -27,6 +27,7 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import jargs.gnu.CmdLineParser;
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -243,6 +244,16 @@ public class HiCCUPS extends JuicerCLT {
     public void run() {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+
+        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+        // then the map had more than 300M contacts.
+        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        if (firstExpected < 100000) {
+            System.err.println("HiC contact map is too sparse to run HiCCUPs, exiting.");
+            System.exit(0);
+        }
 
         List<Chromosome> commonChromosomes = ds.getChromosomes();
         if (chrSpecified)

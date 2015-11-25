@@ -353,7 +353,8 @@ public class Dump extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        if (args.length < 2) {
+
+        if (args.length < 7) {
             printUsage();
             System.exit(0);
         }
@@ -380,6 +381,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         int idx = 3;
+        // TODO make this consistent with rest of summing hic maps syntax
         while (idx < args.length && args[idx].endsWith("hic")) {
             files.add(args[idx]);
             idx++;
