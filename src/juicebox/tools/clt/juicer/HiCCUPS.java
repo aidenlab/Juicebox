@@ -164,6 +164,7 @@ public class HiCCUPS extends JuicerCLT {
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
+    private boolean configurationsSetByUser = false;
     private boolean chrSpecified = false;
     private Set<String> chromosomesSpecified = new HashSet<String>();
     private String inputHiCFileName;
@@ -255,6 +256,18 @@ public class HiCCUPS extends JuicerCLT {
             System.exit(0);
         }
 
+        // high quality (IMR90, GM12878) maps have different settings
+        if (!configurationsSetByUser) {
+            if (firstExpected > 250000) {
+                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000),
+                        new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+                System.out.println("Default settings for 5kb and 10kb being used");
+            } else {
+                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};
+                System.out.println("Default settings for 10kb being used");
+            }
+        }
+
         List<Chromosome> commonChromosomes = ds.getChromosomes();
         if (chrSpecified)
             commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
@@ -318,8 +331,16 @@ public class HiCCUPS extends JuicerCLT {
         float[] boundRowIndex = new float[1];
         float[] boundColumnIndex = new float[1];
 
-        GPUController gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                conf.getPeakWidth(), conf.divisor());
+        GPUController gpuController = null;
+        try {
+            gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
+                    conf.getPeakWidth(), conf.divisor());
+        } catch (Exception e) {
+            System.err.println("GPU/CUDA Installation Not Detected");
+            System.err.println("Exiting HiCCUPS");
+            System.exit(-9);
+        }
+
 
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
@@ -361,7 +382,9 @@ public class HiCCUPS extends JuicerCLT {
                         if (rowBounds[4] < chrMatrixWdith - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
-                                System.out.print(".");
+                                if (HiCGlobals.printVerboseComments) {
+                                    System.out.print(".");
+                                }
 
                                 if (columnBounds[4] < chrMatrixWdith - regionMargin) {
                                     try {
@@ -407,7 +430,7 @@ public class HiCCUPS extends JuicerCLT {
                     System.err.println("Data not available for " + chromosome + " at " + conf.getResolution() + " resolution");
                 }
 
-                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
+                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
             }
             if (runNum == 0) {
 
@@ -475,10 +498,10 @@ public class HiCCUPS extends JuicerCLT {
 
         try {
             configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
-
+            configurationsSetByUser = true;
         } catch (Exception e) {
-            System.err.println("No configurations specified, using default resolution of 10000");
-            configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+            System.err.println("No configurations specified, using default settings");
+            configurationsSetByUser = false;
         }
 
         try {

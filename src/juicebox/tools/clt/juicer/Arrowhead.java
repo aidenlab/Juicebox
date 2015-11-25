@@ -106,6 +106,7 @@ import java.util.*;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
+    private boolean configurationsSetByUser = false;
     private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
@@ -140,6 +141,7 @@ public class Arrowhead extends JuicerCLT {
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
             resolution = Integer.parseInt(potentialResolution.get(0));
+            configurationsSetByUser = true;
         }
 
         if (args.length == 5) {
@@ -173,6 +175,18 @@ public class Arrowhead extends JuicerCLT {
         if (firstExpected < 100000) {
             System.err.println("HiC contact map is too sparse to run Arrowhead, exiting.");
             System.exit(0);
+        }
+
+        // high quality (IMR90, GM12878) maps have different settings
+        if (!configurationsSetByUser) {
+            matrixSize = 2000;
+            if (firstExpected > 250000) {
+                resolution = 5000;
+                System.out.println("Default settings for 5kb being used");
+            } else {
+                resolution = 10000;
+                System.out.println("Default settings for 10kb being used");
+            }
         }
 
         List<Chromosome> chromosomes = ds.getChromosomes();
@@ -226,7 +240,7 @@ public class Arrowhead extends JuicerCLT {
                     matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
                     contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
 
-            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
+            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
         }
 
         // save the data on local machine

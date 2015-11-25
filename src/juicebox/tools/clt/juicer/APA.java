@@ -273,7 +273,7 @@ public class APA extends JuicerCLT {
                         apaDataStack.exportDataSet(chr.getName(), peakNumbers);
                     }
 
-                    System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
+                    System.out.print(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
                 }
                 System.out.println("Exporting APA results...");
                 APADataStack.exportGenomeWideData(gwPeakNumbers);

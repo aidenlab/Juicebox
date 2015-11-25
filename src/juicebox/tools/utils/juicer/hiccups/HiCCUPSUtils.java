@@ -373,17 +373,16 @@ public class HiCCUPSUtils {
         Feature2DList mergedList = new Feature2DList();
         boolean listHasBeenAltered = false;
 
-
         if (hiccupsLooplists.containsKey(5000) && hiccupsLooplists.containsKey(10000)) {
-            System.out.println("Merge 5k and 10k");
+            //System.out.println("Merge 5k and 10k res loops");
             mergedList.add(handleFiveAndTenKBMerger(hiccupsLooplists.get(5000), hiccupsLooplists.get(10000)));
             listHasBeenAltered = true;
         } else if (hiccupsLooplists.containsKey(5000)) {
-            System.out.println("Only 5k");
+            //System.out.println("Only 5k");
             mergedList.add(hiccupsLooplists.get(5000));
             listHasBeenAltered = true;
         } else if (hiccupsLooplists.containsKey(10000)) {
-            System.out.println("Only 10k");
+            //System.out.println("Only 10k");
             mergedList.add(hiccupsLooplists.get(10000));
             listHasBeenAltered = true;
         }
