@@ -36,12 +36,12 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
    can be loaded in Juicebox and explored. They can also be used for
    automatic feature annotation and to extract matrices at specific
    resolutions.
-   These results also include automatic feature annotation, including finding
-   loops in the data (HiCCUPS), aggregate enrichment of the set putative peak
-   calls (APA), CTCF motifs of the loops (MotifFinder), and contact domains
-   in the Hi-C map (Arrowhead). The format of the loops (with motifs) and contact
-   domains is described in the Juicebox tutorial online, and can be loaded into
-   Juicebox as a 2D annotation.
+   These results also include automatic feature annotation. The output files include 
+   a genome-wide annotation of loops and, whenever possible, the CTCF motifs that anchor 
+   them (identified using the HiCCUPS algorithm). The files also include a genome-wide 
+   annotation of contact domains (identified using the Arrowhead algorithm). The formats 
+   of these files are described in the Juicebox tutorial online; both files can be loaded 
+   into Juicebox as a 2D annotation.
    
 9. To download a file (e.g. inter.hic) from AWS to load into Juicebox, type:
       sftp -i Juicer_AWS.pem ubuntu@<given IP address>
