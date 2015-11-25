@@ -287,8 +287,10 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
+            Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     filteredConfigurations, norm);
+            finalList.exportFeatureList(outputFile, false);
+            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputFinalLoopListFileName);
         }
         System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
