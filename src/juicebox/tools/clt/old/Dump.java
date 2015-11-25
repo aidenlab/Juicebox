@@ -41,6 +41,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.DoubleStream;
 
 public class Dump extends JuiceboxCLT {
 
@@ -155,6 +156,7 @@ public class Dump extends JuiceboxCLT {
                 System.err.println("Norm not available at " + chr + " " + binSize + " " + unit + " " + norm);
                 System.exit(-1);
             }
+
             dumpVector(pw, nv.getData(), false);
 
         } else if (type.equals("expected")) {
@@ -164,6 +166,7 @@ public class Dump extends JuiceboxCLT {
                 System.exit(-1);
             }
             int length = df.getLength();
+
             if (chr.equals("All")) { // removed cast to ExpectedValueFunctionImpl
                 dumpVector(pw, df.getExpectedValues(), false);
             } else {
@@ -350,7 +353,10 @@ public class Dump extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        //juicebox dump <observed/oe/pearson/norm/expected/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile> <chr1> <chr2> <BP/FRAG> <binsize> [outfile]")
+        if (args.length < 2) {
+            printUsage();
+            System.exit(0);
+        }
 
         String mType = args[1].toLowerCase();
         if (!(mType.equals("observed") || mType.equals("oe") ||
