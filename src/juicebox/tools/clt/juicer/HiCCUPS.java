@@ -348,7 +348,17 @@ public class HiCCUPS extends JuicerCLT {
         Feature2DList globalList = new Feature2DList();
 
         // two runs, 1st to build histograms, 2nd to identify loops
-        double maxProgressStatus = 2 * commonChromosomes.size();
+
+        // determine which chromosomes will run
+        double maxProgressStatus = 0;
+        for (Chromosome chr : commonChromosomes) {
+            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+            Matrix matrix = ds.getMatrix(chr, chr);
+            if (matrix == null) continue;
+            maxProgressStatus++;
+        }
+        maxProgressStatus *= 2;
+
         int currentProgressStatus = 0;
         for (int runNum : new int[]{0, 1}) {
             for (Chromosome chromosome : commonChromosomes) {
