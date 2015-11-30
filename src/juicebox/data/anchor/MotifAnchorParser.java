@@ -180,7 +180,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                MotifAnchor anchor = new MotifAnchor(chr.getName(), start1, end1);
+                MotifAnchor anchor = new MotifAnchor(chr.getIndex(), start1, end1);
                 anchor.setFIMOAttributes(score, pValue, qValue, strand, sequence);
 
                 anchors.add(anchor);
@@ -227,6 +227,7 @@ public class MotifAnchorParser {
                 start1 = Integer.parseInt(tokens[1]);
                 end1 = Integer.parseInt(tokens[2]);
 
+
                 Chromosome chr = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 if (chr == null) {
                     if (errorCount < 10) {
@@ -239,7 +240,7 @@ public class MotifAnchorParser {
                     continue;
                 }
 
-                anchors.add(new MotifAnchor(chr.getName(), start1, end1));
+                anchors.add(new MotifAnchor(chr.getIndex(), start1, end1));
             } else {
                 continue; // header line/description; all BED files start with chr
             }

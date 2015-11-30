@@ -27,10 +27,7 @@ package juicebox.data.feature;
 import juicebox.data.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 11/17/15.
@@ -56,7 +53,7 @@ public class GenomeWideList<T extends Feature> {
      */
     public GenomeWideList(List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
-            featureLists.put(chr.getName(), new ArrayList<T>());
+            featureLists.put("" + chr.getIndex(), new ArrayList<T>());
         }
     }
 
@@ -178,5 +175,19 @@ public class GenomeWideList<T extends Feature> {
             clonedFeatures.add((T) feature.deepClone());//feature.<T>deepClone()
         }
         return clonedFeatures;
+    }
+
+    public Set<String> keySet() {
+        return featureLists.keySet();
+    }
+
+    public void addFeature(String key, T feature) {
+        if (featureLists.containsKey(key)) {
+            featureLists.get(key).add(feature);
+        } else {
+            List<T> features = new ArrayList<T>();
+            features.add(feature);
+            featureLists.put(key, features);
+        }
     }
 }

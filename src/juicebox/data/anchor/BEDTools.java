@@ -43,18 +43,19 @@ public class BEDTools {
         Collections.sort(anchors);
 
         Set<MotifAnchor> merged = new HashSet<MotifAnchor>();
-        MotifAnchor current = (MotifAnchor) anchors.get(0).deepClone();
+        if (anchors.size() > 0) {
+            MotifAnchor current = (MotifAnchor) anchors.get(0).deepClone();
 
-        for (MotifAnchor anchor : anchors) {
-            if (anchor.hasOverlapWith(current)) {
-                current.mergeWith(anchor);
-            } else {
-                merged.add(current);
-                current = (MotifAnchor) anchor.deepClone();
+            for (MotifAnchor anchor : anchors) {
+                if (anchor.hasOverlapWith(current)) {
+                    current.mergeWith(anchor);
+                } else {
+                    merged.add(current);
+                    current = (MotifAnchor) anchor.deepClone();
+                }
             }
+            merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
         }
-        merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
-
         return new ArrayList<MotifAnchor>(merged);
     }
 
@@ -132,7 +133,7 @@ public class BEDTools {
      * @return intersection of anchor1 and anchor2
      */
     private static MotifAnchor intersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr().equals(anchor2.getChr())) {
+        if (anchor1.getChr() == anchor2.getChr()) {
 
             int start = Math.max(anchor1.getX1(), anchor2.getX1());
             int end = Math.min(anchor1.getX2(), anchor2.getX2());
@@ -163,7 +164,8 @@ public class BEDTools {
         return null;
     }
 
-    public static List<MotifAnchor> preservativeIntersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors, boolean conductFullIntersection) {
+    public static List<MotifAnchor> preservativeIntersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors,
+                                                          boolean conductFullIntersection) {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
@@ -226,7 +228,7 @@ public class BEDTools {
      * @return preservative intersection of anchor1 and anchor2
      */
     private static MotifAnchor preservativeIntersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
-        if (anchor1.getChr().equals(anchor2.getChr())) {
+        if (anchor1.getChr() == anchor2.getChr()) {
 
             MotifAnchor intersectedMotif = (MotifAnchor) anchor1.deepClone();
 

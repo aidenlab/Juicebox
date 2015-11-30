@@ -25,6 +25,7 @@
 package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
@@ -52,10 +53,13 @@ public class MotifFinder extends JuicerCLT {
     private List<String> proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
     private String bedFileDirPath;
     private String globalMotifListPath;
+    private List<String> tierOneFiles = new ArrayList<String>();
+    private List<String> tierTwoFiles = new ArrayList<String>();
+    private List<String> tierThreeFiles = new ArrayList<String>();
 
     public MotifFinder() {
         super("motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]");
-        MotifAnchor.uniquenessShouldSupercedeConvergentRule = false;
+        MotifAnchor.uniquenessShouldSupercedeConvergentRule = true;
     }
 
     @Override
@@ -96,64 +100,171 @@ public class MotifFinder extends JuicerCLT {
 
     @Override
     public void run() {
-
-        //System.out.println("Found X3 " + MotifAnchorTools.searchForFeatureWithin(10, 22230000,	22240000, anchors));
-        //System.out.println("Found Y1 " + MotifAnchorTools.searchForFeature(10, 4891921, 4892143, proteinsForInference));
-        //Feature2D f00 = features.searchForFeature(10	,4890000,	4900000,	10,	5320000,	5330000);
-        //System.out.println("Found1 " + MotifAnchorTools.searchForFeature(10, "ATGACCAACAAGGGTCGCCA", globalAnchors));
-
-
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
-        // anchors from loops
         Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
-        GenomeWideList<MotifAnchor> anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
-        //GenomeWideList<MotifAnchor> anchors2 = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
 
-        // global anchors
-        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
-
-        // intersect all the 1d tracks for unique motifs and get appropriate global anchors
-        GenomeWideList<MotifAnchor> proteinsForUniqueness = getIntersectionOfBEDFiles(chromosomes, proteinsForUniqueMotifPaths);
-
-        // try1
-        MotifAnchorTools.intersectLists(globalAnchors, proteinsForUniqueness, true);
-        MotifAnchorTools.intersectLists(anchors, globalAnchors, true);
-        MotifAnchorTools.updateOriginalFeatures(anchors, true);
-
-        //try 2
-        //globalAnchors = loadMotifs(chromosomes);
-        //anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
-        //MotifAnchorTools.preservativeIntersectLists(anchors, proteinsForUniqueness, false);
-        //MotifAnchorTools.intersectLists(anchors, globalAnchors, true);
-        //MotifAnchorTools.updateOriginalFeatures(anchors, true);
-
-        //System.out.println("Found1 " + MotifAnchorTools.searchForFeature(10, "GCTGGCAGGAGAGGCCGGCC", anchors).getOriginalFeatures2());
-        //System.out.println("Found1 " + MotifAnchorTools.searchForFeature(10, "GCTGGCAGGAGAGGCCGGCC", anchors).getScore());
-
-        //System.out.println("Found1 " + MotifAnchorTools.searchForFeature(10, "GTCACCACAAGATGGCCCCA", anchors).getOriginalFeatures2());
-        //System.out.println("Found1 " + MotifAnchorTools.searchForFeature(10, "GTCACCACAAGATGGCCCCA", anchors).getScore());
+        // unique motifs
+        findUniqueMotifs(chromosomes, features);
 
 
-        // reload motif list
-        anchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
-        //anchors2 = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
-
-        // intersect all the 1d tracks for inferring motifs
-        globalAnchors = loadMotifs(chromosomes);
-        GenomeWideList<MotifAnchor> proteinsForInference = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
-        MotifAnchorTools.intersectLists(globalAnchors, proteinsForInference, true);
-        MotifAnchorTools.intersectLists(anchors, globalAnchors, true);
-        MotifAnchorTools.updateOriginalFeatures(anchors, false);
-
-        // try2
-        //globalAnchors = loadMotifs(chromosomes);
-        //MotifAnchorTools.preservativeIntersectLists(anchors2, proteinsForInference, false);
-        //MotifAnchorTools.intersectLists(anchors2, globalAnchors, true);
-        //MotifAnchorTools.updateOriginalFeatures(anchors2, true);
+        // inferred motifs
+        findInferredMotifs(chromosomes, features, true);
+        findInferredMotifs(chromosomes, features, false);
 
         features.exportFeatureList(outputPath, false);
         System.out.println("Motif Finder complete");
+    }
+
+    private void findInferredMotifs(List<Chromosome> chromosomes, Feature2DList features, boolean direction) {
+        /*
+        1. identify all peak loci that overlap multiple CTCF peaks in the track CTCF_collapsed.narrowpeak.
+
+        2. split peak loci from step 1 by whether they are upstream peak loci or downstream peak loci.
+
+        3. For upstream peak loci, find the best motif match in each of the overlapping CTCF peaks from step 1.
+        If there is only 1 overlapping CTCF peak with a best match motif that is a forward motif, retain that
+        motif as the inferred motif for the peak locus.
+
+        4. For downstream peak loci, find the best motif match in each of the overlapping CTCF peaks from step 1.
+        If there is only 1 overlapping CTCF peak with a best match motif that is a reverse motif,
+        retain that motif as the inferred motif for the peak locus.
+         */
+
+        GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
+        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
+        GenomeWideList<MotifAnchor> directionalStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, direction);
+        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+
+        MotifAnchorTools.retainProteinsInLocus(inferredProteins, directionalStreamAnchors, false, true);
+        //MotifAnchorTools.intersectLists(inferredProteins, globalAnchors, true);
+
+        if (HiCGlobals.printVerboseComments) {
+            try {
+                System.out.println("dir " + direction);
+                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, inferredProteins)) {
+                    System.out.println("asd " + m);
+                }
+                //System.out.println(MotifAnchorTools.searchForFeature(10, 5671893, 5672113, inferredProteins).getOriginalFeatures2());
+
+                System.out.println("dir2 " + direction);
+                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, globalAnchors)) {
+                    System.out.println("asd " + m);
+                }
+                //System.out.println(MotifAnchorTools.searchForFeature(10, 5671893, 5672113, inferredProteins).getOriginalFeatures2());
+            } catch (Exception e) {
+
+            }
+        }
+
+        MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
+
+        if (HiCGlobals.printVerboseComments) {
+            try {
+                System.out.println("dir " + direction);
+                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, globalAnchors)) {
+                    System.out.println("JHB " + m);
+                    //System.out.println(m.getOriginalFeatures2());
+                    //System.out.println(m.getSequence());
+                    //System.out.println(m.getStrand());
+                }
+            } catch (Exception e) {
+
+            }
+        }
+
+        if (direction) {
+            MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
+        } else {
+            MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, -1);
+        }
+    }
+
+    private void setUpThreeTieredFiltration() {
+        for (String filename : proteinsForUniqueMotifPaths) {
+            String nameLC = filename.toLowerCase();
+            if (nameLC.contains("ctcf") || nameLC.startsWith("1")) {
+                tierOneFiles.add(filename);
+            } else if (nameLC.contains("rad21") || nameLC.startsWith("2")) {
+                tierTwoFiles.add(filename);
+            } else {
+                // smc3, and anything else
+                tierThreeFiles.add(filename);
+            }
+        }
+    }
+
+    public GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
+                                                                        GenomeWideList<MotifAnchor> baseList) {
+
+        GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(chromosomes, tierOneFiles);
+        GenomeWideList<MotifAnchor> tierTwoProteins = getIntersectionOfBEDFiles(chromosomes, tierTwoFiles);
+        GenomeWideList<MotifAnchor> tierThreeProteins = getIntersectionOfBEDFiles(chromosomes, tierThreeFiles);
+
+        MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, false);
+
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("T1 " + tierOneProteins.size());
+        }
+
+        if (tierTwoProteins.size() > 0) {
+            MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierTwoProteins, false);
+        }
+
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("T2 " + tierOneProteins.size());
+        }
+
+        if (tierThreeProteins.size() > 0) {
+            MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierThreeProteins, false);
+        }
+
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("T3 " + tierOneProteins.size());
+        }
+
+        return tierOneProteins;
+    }
+
+    private void findUniqueMotifs(List<Chromosome> chromosomes, Feature2DList features) {
+
+        /*
+         1. take in loop list
+
+         2. convert to anchor list by splitting out each anchor of each loop, removing duplicates,
+         merging adjacent anchors, and expanding anchors to 15kb if they are less than 15kb --->
+         (should be 12,903 peak loci using GEO GM12878 loop list)
+
+         3. intersecting peak loci with CTCF track, retaining CTCF sites that are unique in a peak
+         locus ---> (should be 8,011 CTCF sites using CTCF_collasped.narrowpeak track and 12,903 peak
+         loci from step 2)
+
+         4 (optional). intersecting unique CTCF sites with RAD21 sites and retaining sites that overlap a RAD21--->
+         (should be 7,727 sites left using 8,011 from above and RAD21_collapsed.narrowPeak track)
+
+         5. (optional). intersection unique CTCF+RAD21 sites with SMC3 sites and retaining sites that
+         overlap an SMC3. ---> (should be 7,599 sites left using 7,727 sites from above and SMC3 track)
+
+         6. intersecting list from latest step of {3,4,5} with motif list and retaining best
+         (positive match score) motifs in each of the sites from latest step of {3,4,5}
+         (Throw out sites that do not have a positive match score; if a huge number of sites
+         are getting filtered here, we may want to increase the p-val threshold parameter on FIMO).
+         */
+        setUpThreeTieredFiltration();
+        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
+        GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(chromosomes, featureAnchors);
+        updateFeaturesWithIntersectedMotifs(features, chromosomes, threeTierFilteredProteins, true);
+    }
+
+    private void updateFeaturesWithIntersectedMotifs(Feature2DList features, List<Chromosome> chromosomes,
+                                                     GenomeWideList<MotifAnchor> proteins, boolean uniqueStatus) {
+
+        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
+        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+
+        MotifAnchorTools.intersectLists(globalAnchors, proteins, true);
+        MotifAnchorTools.intersectLists(featureAnchors, globalAnchors, true);
+        MotifAnchorTools.updateOriginalFeatures(featureAnchors, uniqueStatus, 0);
     }
 
     private GenomeWideList<MotifAnchor> loadMotifs(List<Chromosome> chromosomes) {
@@ -217,4 +328,6 @@ public class MotifFinder extends JuicerCLT {
         }
         return proteins;
     }
+
+
 }

@@ -24,6 +24,7 @@
 
 package juicebox.data.anchor;
 
+import juicebox.HiCGlobals;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.track.feature.Feature2D;
@@ -31,10 +32,7 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DWithMotif;
 import juicebox.track.feature.FeatureFunction;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 9/28/15.
@@ -56,7 +54,7 @@ public class MotifAnchorTools {
                 for (Feature2D f : feature2DList) {
                     anchors.addAll(((Feature2DWithMotif) f).getAnchors(onlyUninitializedFeatures));
                 }
-                String newKey = chr.split("_")[0];
+                String newKey = chr.split("_")[0].replace("chr", "");
                 extractedAnchorList.setFeatures(newKey, anchors);
             }
         });
@@ -82,12 +80,13 @@ public class MotifAnchorTools {
     /**
      * update the original features that the motifs belong to
      */
-    public static void updateOriginalFeatures(GenomeWideList<MotifAnchor> anchorList, final boolean uniqueStatus) {
+    public static void updateOriginalFeatures(GenomeWideList<MotifAnchor> anchorList, final boolean uniqueStatus,
+                                              final int specificStatus) {
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> anchorList) {
                 for (MotifAnchor anchor : anchorList) {
-                    anchor.updateOriginalFeatures(uniqueStatus);
+                    anchor.updateOriginalFeatures(uniqueStatus, specificStatus);
                 }
             }
         });
@@ -231,7 +230,7 @@ public class MotifAnchorTools {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr().contains("" + chrID) && motif.getSequence().equals(sequence)) {
+                    if (motif.getChr() == chrID && motif.getSequence().equals(sequence)) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -246,7 +245,7 @@ public class MotifAnchorTools {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr().contains("" + chrID) && motif.getX1() == start && motif.getX2() == end) {
+                    if (motif.getChr() == chrID && motif.getX1() == start && motif.getX2() == end) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -261,7 +260,7 @@ public class MotifAnchorTools {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
                 for (MotifAnchor motif : featureList) {
-                    if (motif.getChr().contains("" + chrID) && motif.getX1() >= start && motif.getX2() <= end) {
+                    if (motif.getChr() == chrID && motif.getX1() >= start && motif.getX2() <= end) {
                         anchor[0] = (MotifAnchor) motif.deepClone();
                     }
                 }
@@ -270,6 +269,231 @@ public class MotifAnchorTools {
         return anchor[0];
     }
 
+    public static List<MotifAnchor> searchForFeaturesWithin(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+        final List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor motif : featureList) {
+                    if (motif.getChr() == chrID && motif.getX1() >= start && motif.getX2() <= end) {
+                        anchors.add((MotifAnchor) motif.deepClone());
+                    }
+                }
+            }
+        });
+        return anchors;
+    }
 
 
+    public static void retainProteinsInLocus(final GenomeWideList<MotifAnchor> firstList, final GenomeWideList<MotifAnchor> secondList,
+                                             final boolean retainUniqueSites, final boolean copyFeatureReferences) {
+        firstList.filterLists(new FeatureFilter<MotifAnchor>() {
+            @Override
+            public List<MotifAnchor> filter(String key, List<MotifAnchor> anchorList) {
+                if (secondList.containsKey(key)) {
+                    return retainProteinsInLocus(anchorList, secondList.getFeatures(key), retainUniqueSites, copyFeatureReferences);
+                } else {
+                    return new ArrayList<MotifAnchor>();
+                }
+            }
+        });
+    }
+
+    private static List<MotifAnchor> retainProteinsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList,
+                                                           boolean retainUniqueSites, boolean copyFeatureReferences) {
+        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<MotifAnchor, Set<MotifAnchor>>();
+
+        for (MotifAnchor anchor : baseList) {
+            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+        }
+
+        int topIndex = 0;
+        int bottomIndex = 0;
+        int maxTopIndex = topAnchors.size();
+        int maxBottomIndex = baseList.size();
+        Collections.sort(topAnchors);
+        Collections.sort(baseList);
+
+
+        while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
+            MotifAnchor topAnchor = topAnchors.get(topIndex);
+            MotifAnchor bottomAnchor = baseList.get(bottomIndex);
+            if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
+
+                bottomListToTopList.get(bottomAnchor).add(topAnchor);
+
+                // iterate over all possible intersections with top element
+                for (int i = bottomIndex; i < maxBottomIndex; i++) {
+                    MotifAnchor newAnchor = baseList.get(i);
+                    if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
+                        bottomListToTopList.get(newAnchor).add(topAnchor);
+                    } else {
+                        break;
+                    }
+                }
+
+                // iterate over all possible intersections with bottom element
+                // start from +1 because +0 checked in the for loop above
+                for (int i = topIndex + 1; i < maxTopIndex; i++) {
+                    MotifAnchor newAnchor = topAnchors.get(i);
+                    if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
+                        bottomListToTopList.get(bottomAnchor).add(newAnchor);
+                    } else {
+                        break;
+                    }
+                }
+
+                // increment both
+                topIndex++;
+                bottomIndex++;
+            } else if (topAnchor.isStrictlyToTheLeftOf(bottomAnchor)) {
+                topIndex++;
+            } else if (topAnchor.isStrictlyToTheRightOf(bottomAnchor)) {
+                bottomIndex++;
+            } else {
+                System.err.println("Error while intersecting anchors.");
+                System.err.println(topAnchor + " & " + bottomAnchor);
+            }
+        }
+
+        List<MotifAnchor> uniqueAnchors = new ArrayList<MotifAnchor>();
+
+        if (copyFeatureReferences) {
+            for (MotifAnchor anchor : bottomListToTopList.keySet()) {
+                for (MotifAnchor anchor2 : bottomListToTopList.get(anchor)) {
+                    anchor2.addFeatureReferencesFrom(anchor);
+                }
+            }
+        }
+
+        if (retainUniqueSites) {
+            for (Set<MotifAnchor> motifs : bottomListToTopList.values()) {
+                if (motifs.size() == 1) {
+                    uniqueAnchors.addAll(motifs);
+                }
+            }
+        } else {
+            for (Set<MotifAnchor> motifs : bottomListToTopList.values()) {
+                if (motifs.size() > 1) {
+                    uniqueAnchors.addAll(motifs);
+                }
+            }
+        }
+        return uniqueAnchors;
+    }
+
+    // true --> upstream
+    public static GenomeWideList<MotifAnchor> extractDirectionalAnchors(GenomeWideList<MotifAnchor> featureAnchors,
+                                                                        final boolean direction) {
+        final GenomeWideList<MotifAnchor> directionalAnchors = new GenomeWideList<MotifAnchor>();
+        featureAnchors.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor anchor : featureList) {
+                    if (anchor.isDirectionalAnchor(direction)) {
+                        directionalAnchors.addFeature(chr, anchor);
+                    }
+                }
+            }
+        });
+
+        return directionalAnchors;
+    }
+
+    public static void retainBestMotifsInLocus(final GenomeWideList<MotifAnchor> firstList, final GenomeWideList<MotifAnchor> secondList) {
+        firstList.filterLists(new FeatureFilter<MotifAnchor>() {
+            @Override
+            public List<MotifAnchor> filter(String key, List<MotifAnchor> anchorList) {
+                if (secondList.containsKey(key)) {
+                    return retainBestMotifsInLocus(anchorList, secondList.getFeatures(key));
+                } else {
+                    return new ArrayList<MotifAnchor>();
+                }
+            }
+        });
+    }
+
+    public static List<MotifAnchor> retainBestMotifsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList) {
+        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<MotifAnchor, Set<MotifAnchor>>();
+
+        for (MotifAnchor anchor : baseList) {
+            bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
+        }
+
+        int topIndex = 0;
+        int bottomIndex = 0;
+        int maxTopIndex = topAnchors.size();
+        int maxBottomIndex = baseList.size();
+        Collections.sort(topAnchors);
+        Collections.sort(baseList);
+
+
+        while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
+            MotifAnchor topAnchor = topAnchors.get(topIndex);
+            MotifAnchor bottomAnchor = baseList.get(bottomIndex);
+            if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
+
+                bottomListToTopList.get(bottomAnchor).add(topAnchor);
+
+                // iterate over all possible intersections with top element
+                for (int i = bottomIndex; i < maxBottomIndex; i++) {
+                    MotifAnchor newAnchor = baseList.get(i);
+                    if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
+                        bottomListToTopList.get(newAnchor).add(topAnchor);
+                    } else {
+                        break;
+                    }
+                }
+
+                // iterate over all possible intersections with bottom element
+                // start from +1 because +0 checked in the for loop above
+                for (int i = topIndex + 1; i < maxTopIndex; i++) {
+                    MotifAnchor newAnchor = topAnchors.get(i);
+                    if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
+                        bottomListToTopList.get(bottomAnchor).add(newAnchor);
+                    } else {
+                        break;
+                    }
+                }
+
+                // increment both
+                topIndex++;
+                bottomIndex++;
+            } else if (topAnchor.isStrictlyToTheLeftOf(bottomAnchor)) {
+                topIndex++;
+            } else if (topAnchor.isStrictlyToTheRightOf(bottomAnchor)) {
+                bottomIndex++;
+            } else {
+                System.err.println("Error while intersecting anchors.");
+                System.err.println(topAnchor + " & " + bottomAnchor);
+            }
+        }
+
+        for (MotifAnchor anchor : bottomListToTopList.keySet()) {
+            for (MotifAnchor anchor2 : bottomListToTopList.get(anchor)) {
+                anchor2.addFeatureReferencesFrom(anchor);
+                if (HiCGlobals.printVerboseComments) {
+                    if (anchor2.getSequence().equals("TGAGTCACTAGAGGGAGGCA")) {
+                        System.out.println(bottomListToTopList.get(anchor));
+                    }
+                }
+            }
+        }
+
+        List<MotifAnchor> uniqueAnchors = new ArrayList<MotifAnchor>();
+        for (Set<MotifAnchor> motifs : bottomListToTopList.values()) {
+            if (motifs.size() == 1) {
+                uniqueAnchors.addAll(motifs);
+            } else if (motifs.size() > 1) {
+                MotifAnchor best = motifs.iterator().next();
+                for (MotifAnchor an : motifs) {
+                    if (an.getScore() > best.getScore()) {
+                        best = an;
+                    }
+                }
+                uniqueAnchors.add(best);
+            }
+        }
+        return uniqueAnchors;
+    }
 }

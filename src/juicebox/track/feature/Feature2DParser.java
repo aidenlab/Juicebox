@@ -159,8 +159,8 @@ public class Feature2DParser {
                 Feature2D feature;
                 if (useFeature2DWithMotif) {
                     feature = chr1.getIndex() <= chr2.getIndex() ?
-                            new Feature2DWithMotif(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                            new Feature2DWithMotif(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                            new Feature2DWithMotif(featureName, chr1Name, chr1.getIndex(), start1, end1, chr2Name, chr2.getIndex(), start2, end2, c, attrs) :
+                            new Feature2DWithMotif(featureName, chr2Name, chr2.getIndex(), start2, end2, chr1Name, chr1.getIndex(), start1, end1, c, attrs);
                 } else {
                     feature = chr1.getIndex() <= chr2.getIndex() ?
                             new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
