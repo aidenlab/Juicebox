@@ -218,15 +218,7 @@ public class Arrowhead extends JuicerCLT {
 
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-        // determine which chromosomes will run
-        double maxProgressStatus = 0;
-        for (Chromosome chr : chromosomes) {
-            if (chr.getName().equals(Globals.CHR_ALL)) continue;
-            Matrix matrix = ds.getMatrix(chr, chr);
-            if (matrix == null) continue;
-            maxProgressStatus++;
-        }
-
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomes);
         int currentProgressStatus = 0;
 
         for (Chromosome chr : chromosomes) {

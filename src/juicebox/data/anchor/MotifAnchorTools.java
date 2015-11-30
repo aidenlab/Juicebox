@@ -61,6 +61,9 @@ public class MotifAnchorTools {
             }
         });
 
+        MotifAnchorTools.mergeAnchors(extractedAnchorList);
+        MotifAnchorTools.expandSmallAnchors(extractedAnchorList, 15000);
+
         return extractedAnchorList;
     }
 
@@ -100,6 +103,20 @@ public class MotifAnchorTools {
             public List<MotifAnchor> filter(String key, List<MotifAnchor> anchorList) {
                 if (secondList.containsKey(key)) {
                     return BEDTools.intersect(anchorList, secondList.getFeatures(key), conductFullIntersection);
+                } else {
+                    return new ArrayList<MotifAnchor>();
+                }
+            }
+        });
+    }
+
+    public static void preservativeIntersectLists(final GenomeWideList<MotifAnchor> firstList, final GenomeWideList<MotifAnchor> secondList,
+                                                  final boolean conductFullIntersection) {
+        firstList.filterLists(new FeatureFilter<MotifAnchor>() {
+            @Override
+            public List<MotifAnchor> filter(String key, List<MotifAnchor> anchorList) {
+                if (secondList.containsKey(key)) {
+                    return BEDTools.preservativeIntersect(anchorList, secondList.getFeatures(key), conductFullIntersection);
                 } else {
                     return new ArrayList<MotifAnchor>();
                 }
@@ -237,4 +254,22 @@ public class MotifAnchorTools {
         });
         return anchor[0];
     }
+
+    public static MotifAnchor searchForFeatureWithin(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
+        final MotifAnchor[] anchor = new MotifAnchor[1];
+        anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor motif : featureList) {
+                    if (motif.getChr().contains("" + chrID) && motif.getX1() >= start && motif.getX2() <= end) {
+                        anchor[0] = (MotifAnchor) motif.deepClone();
+                    }
+                }
+            }
+        });
+        return anchor[0];
+    }
+
+
+
 }

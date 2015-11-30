@@ -71,8 +71,8 @@ public class Feature2DParser {
 
         Feature2DList newList = new Feature2DList();
         int attCol = 7;
-
         try {
+
             BufferedReader br = ParsingUtils.openBufferedReader(path);
             String nextLine;
 
@@ -172,8 +172,12 @@ public class Feature2DParser {
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)
@@ -294,8 +298,12 @@ public class Feature2DParser {
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)
@@ -388,8 +396,12 @@ public class Feature2DParser {
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)

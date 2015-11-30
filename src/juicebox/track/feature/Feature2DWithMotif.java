@@ -24,8 +24,8 @@
 
 package juicebox.track.feature;
 
-import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.tools.clt.juicer.CompareLists;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -41,6 +41,7 @@ public class Feature2DWithMotif extends Feature2D {
     public static int negReceived = 0, negWritten = 0, posNull = 0, posWritten = 0, negNull = 0;
     public static boolean useSimpleOutput = false;
     public static boolean uniquenessCheckEnabled = true;
+    public static boolean lenientEqualityEnabled = false;
     // true = +, false = -, null = NA
     private boolean strand1, strand2;
     // true - unique, false = inferred, null = NA
@@ -70,22 +71,22 @@ public class Feature2DWithMotif extends Feature2D {
                                 boolean dataBelongsToAnchor1, double score) {
         if (unique) {
             if (dataBelongsToAnchor1) {
-                if (sequence1 == null) {//unique
+                if (sequence1 == null || score > score1) {//unique
                     this.strand1 = strand;
                     this.unique1 = unique;
                     this.sequence1 = sequence;
                     this.motifStart1 = motifStart;
                     this.motifEnd1 = motifEnd;
                     this.score1 = score;
-                } else if (!(sequence.equals(sequence1) && motifStart1 == motifStart)) {//check equivalence for dups; otherwise not unique
+                }/* else if (!(sequence.equals(sequence1) && motifStart1 == motifStart)) {//check equivalence for dups; otherwise not unique
                     if (HiCGlobals.printVerboseComments) {
                         System.err.println("Not unique motif1 - error\n" + this + "\n" +
                                 motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
                     }
                     sequence1 = "null";
-                }
+                }*/
             } else {
-                if (sequence2 == null) {//unique
+                if (sequence2 == null || score > score1) {//unique
                     negReceived++;
                     this.sequence2 = sequence;
                     this.strand2 = strand;
@@ -93,13 +94,13 @@ public class Feature2DWithMotif extends Feature2D {
                     this.motifStart2 = motifStart;
                     this.motifEnd2 = motifEnd;
                     this.score2 = score;
-                } else if (!(sequence.equals(sequence2) && motifStart2 == motifStart)) {//check equivalence for dups; otherwise not unique
+                }/* else if (!(sequence.equals(sequence2) && motifStart2 == motifStart)) {//check equivalence for dups; otherwise not unique
                     if (HiCGlobals.printVerboseComments) {
                         System.err.println("Not unique motif2 - error\n" + this + "\n" +
                                 motifStart + "\t" + motifEnd + "\t" + sequence + "\t" + strand + "\t" + unique);
                     }
                     sequence2 = "null";
-                }
+                }*/
             }
         } else {//inferred
             if (dataBelongsToAnchor1) {
@@ -175,7 +176,11 @@ public class Feature2DWithMotif extends Feature2D {
         String additionalAttributes = "\t" + MFS1 + "\t" + MFE1 + "\t" + MFSEQ1 + "\t" + MFO1 + "\t" + MFU1 + "\t" +
                 MFS2 + "\t" + MFE2 + "\t" + MFSEQ2 + "\t" + MFO2 + "\t" + MFU2;
         if (useSimpleOutput) {
-            return genericHeader + additionalAttributes;
+            if (attributes.containsKey(CompareLists.PARENT_ATTRIBUTE)) {
+                return genericHeader + "\t" + CompareLists.PARENT_ATTRIBUTE + additionalAttributes;
+            } else {
+                return genericHeader + additionalAttributes;
+            }
         }
         return super.getOutputFileHeader() + additionalAttributes;
     }
@@ -185,11 +190,17 @@ public class Feature2DWithMotif extends Feature2D {
         String output = super.toString();
         if (useSimpleOutput) {
             output = simpleString();
+            if (attributes.containsKey(CompareLists.PARENT_ATTRIBUTE)) {
+                output += "\t" + attributes.get(CompareLists.PARENT_ATTRIBUTE);
+            }
         }
 
-        if (sequence1 == null || sequence1.equals("null")) {
+        if (sequence1 == null) {
             posNull++;
             output += "\tNA\tNA\tNA\tNA\tNA";
+        } else if (sequence1.equals("null")) {
+            posNull++;
+            output += "\tna\tna\tna\tna\tna";
         } else {
             posWritten++;
             String orientation = strand1 ? "p" : "n";
@@ -197,9 +208,12 @@ public class Feature2DWithMotif extends Feature2D {
             output += "\t" + motifStart1 + "\t" + motifEnd1 + "\t" + sequence1 + "\t" + orientation + "\t" + uniqueness;
         }
 
-        if (sequence2 == null || sequence2.equals("null")) {
+        if (sequence2 == null) {
             negNull++;
             output += "\tNA\tNA\tNA\tNA\tNA";
+        } else if (sequence2.equals("null")) {
+            negNull++;
+            output += "\tna\tna\tna\tna\tna";
         } else {
             negWritten++;
             String orientation = strand2 ? "p" : "n";
@@ -246,15 +260,61 @@ public class Feature2DWithMotif extends Feature2D {
             try {
                 if ((sequence1 == null && o.sequence1 == null) || sequence1.equals(o.sequence1)) {
                     if ((sequence2 == null && o.sequence2 == null) || sequence2.equals(o.sequence2)) {
-                        //if (unique1 == o.unique1 && unique2 == o.unique2) {
-                        //if (strand1 == o.strand1 && strand2 == o.strand2) {
-                        return true;
-                        //}
-                        //}
+                        if (unique1 == o.unique1 && unique2 == o.unique2) {
+                            if (strand1 == o.strand1 && strand2 == o.strand2) {
+                                return true;
+                            }
+                        }
                     }
                 }
             } catch (Exception e) {
-                return false;
+            }
+            if (lenientEqualityEnabled) {
+                // assuming this is B, obj is reference
+                boolean motifsAreEqual = true;
+
+                // reference has more data
+                if (o.sequence1 != null && sequence1 == null) {
+                    // only if reference also follows convergent rule
+                    if (o.strand1) {
+                        motifsAreEqual = false;
+                    }
+                }
+                if (o.sequence2 != null && sequence2 == null) {
+                    // only if reference also follows convergent rule
+                    if (!o.strand2) {
+                        motifsAreEqual = false;
+                    }
+                }
+
+                // actually different data
+                if (o.sequence1 != null && sequence1 != null && !sequence1.equals(o.sequence1)) {
+                    // only if reference also follows convergent rule
+                    if (o.strand1) {
+                        motifsAreEqual = false;
+                    }
+                }
+                if (o.sequence2 != null && sequence2 != null && !sequence2.equals(o.sequence2)) {
+                    // only if reference also follows convergent rule
+                    if (!o.strand2) {
+                        motifsAreEqual = false;
+                    }
+                }
+
+                /*
+                if(o.sequence1 != null && sequence1 != null && sequence1.equals(o.sequence1)){
+                    if(unique1 != o.unique1){
+                        motifsAreEqual = false;
+                    }
+                }
+                if(o.sequence2 != null && sequence2 != null && sequence2.equals(o.sequence2)){
+                    if(unique2 != o.unique2){
+                        motifsAreEqual = false;
+                    }
+                }
+                */
+
+                return motifsAreEqual;
             }
         }
 

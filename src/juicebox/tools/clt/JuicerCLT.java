@@ -24,7 +24,13 @@
 
 package juicebox.tools.clt;
 
+import juicebox.data.Dataset;
+import juicebox.data.Matrix;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.Globals;
+import org.broad.igv.feature.Chromosome;
+
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/21/15.
@@ -35,5 +41,16 @@ public abstract class JuicerCLT extends JuiceboxCLT {
 
     protected JuicerCLT(String usage) {
         super(usage);
+    }
+
+    protected int determineHowManyChromosomesWillActuallyRun(Dataset ds, List<Chromosome> chromosomes) {
+        int maxProgressStatus = 0;
+        for (Chromosome chr : chromosomes) {
+            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+            Matrix matrix = ds.getMatrix(chr, chr);
+            if (matrix == null) continue;
+            maxProgressStatus++;
+        }
+        return maxProgressStatus;
     }
 }

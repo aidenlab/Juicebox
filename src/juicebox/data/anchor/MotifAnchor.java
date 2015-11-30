@@ -192,8 +192,11 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
         MotifAnchor o = (MotifAnchor) obj;
-        return (chr.equals(o.chr) && x1 == o.x1 && x2 == o.x2);
+        return chr.equals(o.chr) && x1 == o.x1 && x2 == o.x2;
     }
 
     @Override
@@ -205,6 +208,9 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     public int compareTo(MotifAnchor o) {
         if (chr.equals(o.chr)) {
             if (x1 == o.x1) {
+                if (x2 == o.x2 && sequence != null && o.sequence != null) {
+                    return sequence.compareTo(o.sequence);
+                }
                 return (new Integer(x2)).compareTo(o.x2);
             }
             return (new Integer(x1)).compareTo(o.x1);
@@ -240,36 +246,38 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     }
 
     public void updateOriginalFeatures(boolean uniqueStatus) {
-        if (fimoAttributesHaveBeenInitialized && (originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
-            if (uniquenessShouldSupercedeConvergentRule) {
-                for (Feature2DWithMotif feature : originalFeatures1) {
-                    if (strand || uniqueStatus) {
-                        posCount++;
-                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+        if ((originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
+            if (fimoAttributesHaveBeenInitialized) {
+                if (uniquenessShouldSupercedeConvergentRule) {
+                    for (Feature2DWithMotif feature : originalFeatures1) {
+                        if (strand || uniqueStatus) {
+                            posCount++;
+                            feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                        }
                     }
-                }
-                for (Feature2DWithMotif feature : originalFeatures2) {
-                    if (!strand || uniqueStatus) {
-                        negCount++;
-                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                    for (Feature2DWithMotif feature : originalFeatures2) {
+                        if (!strand || uniqueStatus) {
+                            negCount++;
+                            feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                        }
+                    }
+                } else {
+                    for (Feature2DWithMotif feature : originalFeatures1) {
+                        if (strand) {
+                            posCount++;
+                            feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                        }
+                    }
+                    for (Feature2DWithMotif feature : originalFeatures2) {
+                        if (!strand) {
+                            negCount++;
+                            feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                        }
                     }
                 }
             } else {
-                for (Feature2DWithMotif feature : originalFeatures1) {
-                    if (strand) {
-                        posCount++;
-                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
-                    }
-                }
-                for (Feature2DWithMotif feature : originalFeatures2) {
-                    if (!strand) {
-                        negCount++;
-                        feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
-                    }
-                }
+                System.err.println("Attempting to assign motifs on incomplete anchor");
             }
-        } else {
-            System.err.println("Attempting to assign motifs on incomplete anchor");
         }
     }
 

@@ -84,6 +84,9 @@ public class BEDTools {
             MotifAnchor topAnchor = topAnchors.get(topIndex);
             MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
             if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
+
+                //List<MotifAnchor> tempIntersected = new ArrayList<MotifAnchor>();
+
                 // iterate over all possible intersections with top element
                 for (int i = bottomIndex; i < maxBottomIndex; i++) {
                     MotifAnchor newAnchor = bottomAnchors.get(i);
@@ -104,6 +107,8 @@ public class BEDTools {
                         break;
                     }
                 }
+
+                //intersected.addAll(merge(tempIntersected));
 
                 // increment both
                 topIndex++;
@@ -158,4 +163,87 @@ public class BEDTools {
         return null;
     }
 
+    public static List<MotifAnchor> preservativeIntersect(List<MotifAnchor> topAnchors, List<MotifAnchor> bottomAnchors, boolean conductFullIntersection) {
+        Collections.sort(topAnchors);
+        Collections.sort(bottomAnchors);
+
+        Set<MotifAnchor> intersected = new HashSet<MotifAnchor>();
+
+        int topIndex = 0;
+        int bottomIndex = 0;
+        int maxTopIndex = topAnchors.size();
+        int maxBottomIndex = bottomAnchors.size();
+
+        while (topIndex < maxTopIndex && bottomIndex < maxBottomIndex) {
+            MotifAnchor topAnchor = topAnchors.get(topIndex);
+            MotifAnchor bottomAnchor = bottomAnchors.get(bottomIndex);
+            if (topAnchor.hasOverlapWith(bottomAnchor) || bottomAnchor.hasOverlapWith(topAnchor)) {
+                // iterate over all possible intersections with top element
+
+                //List<MotifAnchor> tempIntersection = new ArrayList<MotifAnchor>();
+
+                for (int i = bottomIndex; i < maxBottomIndex; i++) {
+                    MotifAnchor newAnchor = bottomAnchors.get(i);
+                    if (topAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(topAnchor)) {
+                        intersected.add(preservativeIntersection(topAnchor, newAnchor, conductFullIntersection));
+                    } else {
+                        break;
+                    }
+                }
+
+                // iterate over all possible intersections with bottom element
+                // start from +1 because +0 checked in the for loop above
+                for (int i = topIndex + 1; i < maxTopIndex; i++) {
+                    MotifAnchor newAnchor = topAnchors.get(i);
+                    if (bottomAnchor.hasOverlapWith(newAnchor) || newAnchor.hasOverlapWith(bottomAnchor)) {
+                        intersected.add(preservativeIntersection(newAnchor, bottomAnchor, conductFullIntersection));
+                    } else {
+                        break;
+                    }
+                }
+
+                //intersected.addAll(merge(tempIntersection));
+
+                // increment both
+                topIndex++;
+                bottomIndex++;
+            } else if (topAnchor.isStrictlyToTheLeftOf(bottomAnchor)) {
+                topIndex++;
+            } else if (topAnchor.isStrictlyToTheRightOf(bottomAnchor)) {
+                bottomIndex++;
+            } else {
+                System.err.println("Error while intersecting anchors.");
+                System.err.println(topAnchor + " & " + bottomAnchor);
+            }
+        }
+
+        return new ArrayList<MotifAnchor>(intersected);
+    }
+
+    /**
+     * @param anchor1
+     * @param anchor2
+     * @return preservative intersection of anchor1 and anchor2
+     */
+    private static MotifAnchor preservativeIntersection(MotifAnchor anchor1, MotifAnchor anchor2, boolean conductFullIntersection) {
+        if (anchor1.getChr().equals(anchor2.getChr())) {
+
+            MotifAnchor intersectedMotif = (MotifAnchor) anchor1.deepClone();
+
+            // if all secondary attributes are also to be copied
+            if (conductFullIntersection) {
+                if (anchor2.hasFIMOAttributes()) {
+                    intersectedMotif.addFIMOAttributesFrom(anchor2);
+                }
+
+                intersectedMotif.addFeatureReferencesFrom(anchor2);
+            }
+
+            return intersectedMotif;
+        } else {
+            System.err.println("Error calculating preservative intersection of anchors");
+            System.err.println(anchor1 + " & " + anchor2);
+        }
+        return null;
+    }
 }

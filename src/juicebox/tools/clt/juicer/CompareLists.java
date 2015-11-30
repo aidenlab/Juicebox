@@ -43,6 +43,7 @@ import java.util.Set;
  */
 public class CompareLists extends JuicerCLT {
 
+    public final static String PARENT_ATTRIBUTE = "parent_list";
     /**
      * Arbitrary colors for comparison list
      **/
@@ -51,7 +52,6 @@ public class CompareLists extends JuicerCLT {
     public static Color BB = new Color(150, 255, 0);
     public static Color AAA = new Color(102, 0, 153);
     public static Color BBB = new Color(255, 102, 0);
-
     private int threshold = 10000, compareTypeID = 0;
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
     private Set<String> givenChromosomes = null;
@@ -79,7 +79,7 @@ public class CompareLists extends JuicerCLT {
             outputPath = args[5];
         } else {
             if (inputFileB.endsWith(".txt")) {
-                outputPath = inputFileB.substring(0, inputFileB.length() - 4) + "_with_motifs.txt";
+                outputPath = inputFileB.substring(0, inputFileB.length() - 4) + "_comparison_results.txt";
             } else {
                 outputPath = inputFileB + "_comparison_results.txt";
             }
@@ -123,16 +123,31 @@ public class CompareLists extends JuicerCLT {
         int sizeB = listB.getNumTotalFeatures();
         System.out.println("List Size: " + sizeA + "(A) " + sizeB + "(B)");
 
-        Feature2D.tolerance = 0;
+        if (compareTypeID == 0) {
+            Feature2D.tolerance = 0;
+        } else if (compareTypeID == 1) {
+            Feature2D.tolerance = threshold;
+        }
+        Feature2DWithMotif.lenientEqualityEnabled = false;
+
         Feature2DList exactMatches = Feature2DList.getIntersection(listA, listB);
         int numExactMatches = exactMatches.getNumTotalFeatures();
         System.out.println("Number of exact matches: " + numExactMatches);
 
+
         Feature2D.tolerance = this.threshold;
+        Feature2DWithMotif.lenientEqualityEnabled = true;
+
         Feature2DList matchesWithinToleranceFromA = Feature2DList.getIntersection(listA, listB);
         Feature2DList matchesWithinToleranceFromB = Feature2DList.getIntersection(listB, listA);
 
-        Feature2D.tolerance = 0;
+        if (compareTypeID == 0) {
+            Feature2D.tolerance = 0;
+        } else if (compareTypeID == 1) {
+            Feature2D.tolerance = threshold;
+        }
+        Feature2DWithMotif.lenientEqualityEnabled = false;
+
         Feature2DList matchesWithinToleranceUniqueToA = Feature2DTools.subtract(matchesWithinToleranceFromA, exactMatches);
         Feature2DList matchesWithinToleranceUniqueToB = Feature2DTools.subtract(matchesWithinToleranceFromB, exactMatches);
         Feature2DList uniqueToA = Feature2DTools.subtract(listA, matchesWithinToleranceFromA);
@@ -140,6 +155,7 @@ public class CompareLists extends JuicerCLT {
 
         int numMatchesWithinTolA = matchesWithinToleranceUniqueToA.getNumTotalFeatures();
         int numMatchesWithinTolB = matchesWithinToleranceUniqueToB.getNumTotalFeatures();
+
         System.out.println("Number of matches within tolerance: " + numMatchesWithinTolA + "(A) " + numMatchesWithinTolB + "(B)");
 
         int numUniqueToA = uniqueToA.getNumTotalFeatures();
@@ -147,11 +163,11 @@ public class CompareLists extends JuicerCLT {
         System.out.println("Number of unique features: " + numUniqueToA + "(A) " + numUniqueToB + "(B)");
 
         // set parent attribute
-        exactMatches.addAttributeFieldToAll("parent_list", "Common");
-        matchesWithinToleranceUniqueToA.addAttributeFieldToAll("parent_list", "A");
-        matchesWithinToleranceUniqueToB.addAttributeFieldToAll("parent_list", "B");
-        uniqueToA.addAttributeFieldToAll("parent_list", "A");
-        uniqueToB.addAttributeFieldToAll("parent_list", "B");
+        exactMatches.addAttributeFieldToAll(PARENT_ATTRIBUTE, "Common");
+        matchesWithinToleranceUniqueToA.addAttributeFieldToAll(PARENT_ATTRIBUTE, "A");
+        matchesWithinToleranceUniqueToB.addAttributeFieldToAll(PARENT_ATTRIBUTE, "B");
+        uniqueToA.addAttributeFieldToAll(PARENT_ATTRIBUTE, "A*");
+        uniqueToB.addAttributeFieldToAll(PARENT_ATTRIBUTE, "B*");
 
         // set colors
         exactMatches.setColor(AB);
@@ -161,12 +177,19 @@ public class CompareLists extends JuicerCLT {
         uniqueToB.setColor(BBB);
 
         Feature2DList finalResults = new Feature2DList(exactMatches);
-        finalResults.add(matchesWithinToleranceFromA);
-        finalResults.add(matchesWithinToleranceFromB);
+        finalResults.add(matchesWithinToleranceUniqueToA);
+        finalResults.add(matchesWithinToleranceUniqueToB);
         finalResults.add(uniqueToA);
         finalResults.add(uniqueToB);
 
         finalResults.exportFeatureList(outputPath, false);
+
+        int percentMatch = (int) Math.round(100 * ((double) (sizeB - numUniqueToB)) / ((double) sizeB));
+        if (percentMatch > 95) {
+            System.out.println("Test passed");
+        } else {
+            System.out.println("Test failed - " + percentMatch + "% match with reference list");
+        }
     }
 
 
