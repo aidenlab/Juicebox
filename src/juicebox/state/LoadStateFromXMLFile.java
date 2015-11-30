@@ -130,7 +130,7 @@ public class LoadStateFromXMLFile {
         double upColor = doubleInfo[5];
         double maxColor = doubleInfo[6];
 
-        // only do this if not identical to current file
+        // TODO only do this if not identical to current file
         List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
         superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
 
@@ -139,7 +139,7 @@ public class LoadStateFromXMLFile {
         superAdapter.getMainViewPanel().updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
         superAdapter.setEnableForAllElements(true);
 
-        hic.setLocation(chrXName, chrYName, "BP", binSize, xOrigin, yOrigin, scalefactor);
+        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
         LoadAction loadAction = superAdapter.getTrackLoadAction();

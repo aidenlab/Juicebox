@@ -27,6 +27,7 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
@@ -40,10 +41,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ResolutionControl extends JPanel {
     private static final long serialVersionUID = -5982918928089196379L;
@@ -53,7 +55,7 @@ public class ResolutionControl extends JPanel {
     private final HeatmapPanel heatmapPanel;
     private final JideButton lockButton;
     private final JLabel resolutionLabel;
-    private final Map<Integer, HiCZoom> idxZoomMap = new HashMap<Integer, HiCZoom>();
+    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>(); // TODO concurrentmodificationmap?
     private final Map<Integer, String> bpLabelMap;
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
@@ -92,7 +94,7 @@ public class ResolutionControl extends JPanel {
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
-        /* TODO not working
+        // TODO not working
         // supposed to underline "resolution text" but why? is this an important gui issue?
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
             private Font original;
@@ -100,22 +102,22 @@ public class ResolutionControl extends JPanel {
             @SuppressWarnings({"unchecked", "rawtypes"})
             @Override
             public void mouseEntered(MouseEvent e) {
-                //if (resolutionSlider.isEnabled()) {
+                original = e.getComponent().getFont();
+                if (resolutionSlider.isEnabled()) {
                     original = e.getComponent().getFont();
                     Map attributes = original.getAttributes();
                     attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
                     e.getComponent().setFont(original.deriveFont(attributes));
-                //}
+                }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                //if (resolutionSlider.isEnabled())
                 e.getComponent().setFont(original);
             }
 
         });
-        */
+
 
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
 
@@ -190,20 +192,25 @@ public class ResolutionControl extends JPanel {
             // Centering is relative to the bounds of the data, which might not be the bounds of the window
 
             public void stateChanged(ChangeEvent e) {
-                if (hic == null || hic.getMatrix() == null || hic.getZd() == null || resolutionSlider.getValueIsAdjusting())
+                final MatrixZoomData zd;
+                try {
+                    zd = hic.getZd();
+                } catch (Exception ex) {
+                    return;
+                }
+                if (hic == null || hic.getMatrix() == null || zd == null || resolutionSlider.getValueIsAdjusting())
                     return;
                 final ChangeEvent eF = e;
                 Runnable runnable = new Runnable() {
                     public void run() {
-                        unsafeStateChanged(eF);
+                        unsafeStateChanged(eF, zd);
                     }
                 };
                 superAdapter.executeLongRunningTask(runnable, "Resolution slider change");
                 runnable.run();
             }
 
-            private void unsafeStateChanged(ChangeEvent e) {
-
+            private void unsafeStateChanged(ChangeEvent e, MatrixZoomData zd) {
 
                 int idx = resolutionSlider.getValue();
 
@@ -217,21 +224,20 @@ public class ResolutionControl extends JPanel {
 
                     double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
                     double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                    final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                    final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
+                    final int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
+                    final int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
 
-                    if (hic.getZd() == null) {
-                        hic.setZoom(zoom, 0, 0);
+                    if (zd == null) {
+                        hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
                     } else {
 
-                        if (hic.setZoom(zoom, xGenome, yGenome)) {
+                        if (hic.actuallySetZoomAndLocation(zoom, xGenome, yGenome, -1, true, HiC.ZoomCallType.STANDARD)) {
                             lastValue = resolutionSlider.getValue();
                         } else {
                             resolutionSlider.setValue(lastValue);
                         }
                     }
                 }
-
             }
 
         });
@@ -294,7 +300,6 @@ public class ResolutionControl extends JPanel {
         int newIdx = Math.min(currentIdx, maxIdx);
         HiCZoom newZoom = idxZoomMap.get(newIdx);
         setZoom(newZoom);
-
     }
 
 

@@ -29,20 +29,17 @@ import juicebox.HiCGlobals;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.track.anchor.MotifAnchor;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 
 /**
- * @author jrobinso
- * @modified mshamim, mhoeger
+ * @author jrobinso, mshamim, mhoeger
  * <p/>
  * reflection only used for plotting, should not be used by CLTs
  */
@@ -51,25 +48,22 @@ public class Feature2D implements Comparable<Feature2D> {
     public static final String peak = "Peak";
     public static final String domain = "Contact domain";
     public static final String generic = "feature";
-    private static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    protected static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
+    public static int tolerance = 0;
+    public static boolean allowHiCCUPSOrdering = false;
+    protected final Map<String, String> attributes;
+    final String chr1;
+    final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    private final String chr1;
-    private final int start1;
-    private final String chr2;
-    private final int start2;
     private final String featureName;
-    private final Map<String, String> attributes;
+    int start1;
+    int start2;
+    int end1;
+    int end2;
     private Feature2D reflection = null;
-    private int end1;
-    private int end2;
     private Color color, translucentColor;
-    // true = +, false = -, null = NA
-    private boolean strand1, strand2;
-    // true - unique, false = inferred, null = NA
-    private boolean unique1, unique2;
-    private String sequence1, sequence2;
-    private int motifStart1, motifEnd1, motifStart2, motifEnd2;
+    private boolean test = false;
 
     public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
@@ -258,14 +252,18 @@ public class Feature2D implements Comparable<Feature2D> {
         return output;
     }
 
-    @Override
-    public String toString() {
+    public String simpleString() {
         String output = chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
         output += "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+        return output;
+    }
+
+    @Override
+    public String toString() {
+        String output = simpleString();
 
         ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
         Collections.sort(keys);
-
         for (String key : keys) {
             output += "\t" + attributes.get(key);
         }
@@ -308,7 +306,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     /**
-     * TODO description
      *
      * @param otherFeature
      * @return
@@ -332,12 +329,11 @@ public class Feature2D implements Comparable<Feature2D> {
     @Override
     public int compareTo(Feature2D o) {
         // highest observed point ordering needed for hiccups sorting
-        if (attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
+        if (allowHiCCUPSOrdering && attributes.containsKey(HiCCUPSUtils.OBSERVED) && o.attributes.containsKey(HiCCUPSUtils.OBSERVED)) {
             return Math.round(Float.parseFloat(getAttribute(HiCCUPSUtils.OBSERVED)) - Float.parseFloat(o.getAttribute(HiCCUPSUtils.OBSERVED)));
         }
-        // technically chr1/2 should be checked before observed val
         int[] comparisons = new int[]{chr1.compareTo(o.chr1), chr2.compareTo(o.chr2), start1 - o.start1,
-                start2 - o.start2, end1 - o.end1, end2 - o.end2};
+                start2 - o.start2, end1 - o.end1, end2 - o.end2, color.getRGB() - o.color.getRGB()};
         for (int i : comparisons) {
             if (i != 0)
                 return i;
@@ -351,11 +347,18 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Feature2D reflectionAcrossDiagonal() {
         if (reflection == null) {
-            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color,
-                    attributes);
+            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color, attributes);
             reflection.reflection = this;
         }
         return reflection;
+    }
+
+    public boolean isInLowerLeft() {
+        return chr1.equals(chr2) && start2 > start1;
+    }
+
+    public boolean isInUpperRight() {
+        return chr1.equals(chr2) && start2 < start1;
     }
 
     public boolean containsAttributeKey(String attribute) {
@@ -375,42 +378,48 @@ public class Feature2D implements Comparable<Feature2D> {
         return new ArrowheadScore(indices);
     }
 
-    public List<MotifAnchor> getAnchors() {
-        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
-        if (isOnDiagonal()) {
-            anchors.add(new MotifAnchor(chr1, start1, end1));
-        } else {
-            anchors.add(new MotifAnchor(chr1, start1, end1));
-            anchors.add(new MotifAnchor(chr2, start2, end2));
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
         }
-        return anchors;
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+
+        final Feature2D other = (Feature2D) obj;
+        if (chr1.equals(other.chr1)) {
+            if (chr2.equals(other.chr2)) {
+                if (Math.abs(start1 - other.start1) <= tolerance) {
+                    if (Math.abs(start2 - other.start2) <= tolerance) {
+                        if (Math.abs(end1 - other.end1) <= tolerance) {
+                            if (Math.abs(end2 - other.end2) <= tolerance) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
-    // TODO make all these motif related methods as an extended class Feature2DWithMotif
-    public String getOutputFileHeaderWithMotifs() {
-        return getOutputFileHeader() + "\tmotif_start1\tmotif_end1\tsequence_1\torientation_1\tuniqueness_1\t" +
-                "motif_start2\tmotif_end2\tsequence2\torientation_2\tuniqueness_2";
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 53 * hash + chr1.hashCode() + end1 - start1;
+        hash = 53 * hash + chr2.hashCode() + end2 - start2;
+        return hash;
     }
 
-    public String toStringWithMotif() {
-        String output = toString();
-
-        if (sequence1 == null) {
-            output += "\tNA\tNA\tNA\tNA\tNA";
-        } else {
-            String orientation = strand1 ? "p" : "n";
-            String uniqueness = unique1 ? "u" : "i";
-            output += "\t" + motifStart1 + "\t" + motifEnd1 + "\t" + sequence1 + "\t" + orientation + "\t" + uniqueness;
-        }
-
-        if (sequence2 == null) {
-            output += "\tNA\tNA\tNA\tNA\tNA";
-        } else {
-            String orientation = strand2 ? "p" : "n";
-            String uniqueness = unique2 ? "u" : "i";
-            output += "\t" + motifStart2 + "\t" + motifEnd2 + "\t" + sequence2 + "\t" + orientation + "\t" + uniqueness;
-        }
-
-        return output;
+    public void doTest(){
+        test = true;
+    }
+    public boolean getTest(){
+        return test;
     }
 }

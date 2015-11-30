@@ -45,7 +45,7 @@ public abstract class JuiceboxCLT {
         usage = newUsage;
     }
 
-    protected void printUsage() {
+    public void printUsage() {
         System.err.println("Usage:   juicebox " + usage);
         System.exit(-2);
     }

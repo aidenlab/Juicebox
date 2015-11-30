@@ -146,14 +146,14 @@ public class Clustering extends JuicerCLT {
         return matrix;
     }
 
+    // TODO
     private void runKmeansClustering(int[][] matrix, int v0, int v1, int z0, int z1) {
         matrix = normalizeMatrix(matrix, v0, v1, z0, z1);
-        // TODO
         //centroids = kmeans(x,k)
         //idx = vq(x,centroids)
         //export(idx+1)
 
-        /* todo
+        /*
         KMeansLearner<ObservationVector> kml = new KMeansLearner<ObservationVector>(2,new OpdfMultiGaussianFactory<?>(21), sequences);
         Hmm<ObservationVector> fittedHmm = kml.iterate();//kml.learn();
 
@@ -165,9 +165,9 @@ public class Clustering extends JuicerCLT {
 
     }
 
+    // TODO
     private void runHMMClustering(int[][] matrix, int v0, int v1, int z0, int z1) {
         matrix = normalizeMatrix(matrix, v0, v1, z0, z1);
-        //TODO
         //from sklearn.hmm import GaussianHMM
         //model = GaussianHMM(n_components=k, covariance_type="diag",n_iter=1000)
         //model.fit([x])

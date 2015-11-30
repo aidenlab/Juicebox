@@ -47,12 +47,10 @@ public class CLTFactory {
             //        "fragmentToBed","fragmentToBed <fragmentFile>",
             //        "pairsToBin",   "pairsToBin <input_HiC_file> <output_HiC_file> <genomeID>",
             //        "db",           "db <frag|annot|update> [items]",
-            "pre", "pre <options> <infile> <outfile> <genomeID>"
-    };
-    private final static String[] juicerNameToCommandLineTool = {
-            "apa", "apa <minval maxval window  resolution> CountsFolder PeaksFile/PeaksFolder SaveFolder SavePrefix",
-            "arrowhead", "arrowhead <input_HiC_file> <resolution>",
-            "hiccups", ""
+            "pre", "pre <options> <infile> <outfile> <genomeID>",
+            "apa", "apa <HiC file(s)> <PeaksFile> <SaveFolder>",
+            "arrowhead", "arrowhead <HiC file(s)> <outfile>",
+            "hiccups", "hiccups <HiC file(s)> <fdrThresholds> <enrichedPixelsList>"
     };
 
     public static void generalUsage() {
@@ -61,21 +59,8 @@ public class CLTFactory {
         for (int i = 0; i < nameToCommandLineTool.length; i += 2) {
             System.out.println("       juicebox " + nameToCommandLineTool[i + 1]);
         }
+        System.out.println("Type juicebox <command name> for further usage instructions");
 
-        System.out.println("  <options>: -d only calculate intra chromosome (diagonal) [false]");
-        System.out.println("           : -f <restriction site file> calculate fragment map");
-        System.out.println("           : -m <int> only write cells with count above threshold m [0]");
-        System.out.println("           : -q <int> filter by MAPQ score greater than or equal to q");
-        System.out.println("           : -c <chromosome ID> only calculate map on specific chromosome");
-        System.out.println("           : -h print help");
-    }
-
-    public static void juicerUsage() {
-
-        System.out.println("Juicebox Command Line Tools Usage:");
-        for (int i = 0; i < juicerNameToCommandLineTool.length; i += 3) {
-            System.out.println("       juicebox " + juicerNameToCommandLineTool[i + 2]);
-        }
     }
 
     public static JuiceboxCLT getCLTCommand(String cmd) {
@@ -94,6 +79,8 @@ public class CLTFactory {
             return new APA();
         } else if (cmd.equals("afa")) {
             return new AFA();
+        } else if (cmd.equals("compare")) {
+            return new CompareLists();
         } else if (cmd.equals("arrowhead")) {
             return new Arrowhead();
         } else if (cmd.equals("bigWig".toLowerCase())) {

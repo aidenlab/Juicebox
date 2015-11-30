@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
@@ -214,7 +215,7 @@ public class MainMenuBar {
                 mainPanel.add(textPanel);
                 mainPanel.add(iconPanel, BorderLayout.WEST);
 
-                JOptionPane.showMessageDialog(null, mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), mainPanel, "About", JOptionPane.PLAIN_MESSAGE);//INFORMATION_MESSAGE
             }
         });
         fileMenu.add(creditsMenu);
@@ -255,9 +256,6 @@ public class MainMenuBar {
             }
         });
 
-
-
-
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
         // todo final JMenu show2DFeatureDisplayOptions = new DisplayOptionsJMenu();
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
@@ -271,6 +269,45 @@ public class MainMenuBar {
         });
         showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
 
+        final JMenu featureRenderingOptions = new JMenu("Partial Plotting");
+        final JCheckBoxMenuItem renderFullFeatureItem = new JCheckBoxMenuItem("Full Feature");
+        final JCheckBoxMenuItem renderLLFeatureItem = new JCheckBoxMenuItem("Lower Left");
+        final JCheckBoxMenuItem renderURFeatureItem = new JCheckBoxMenuItem("Upper Right");
+        renderFullFeatureItem.setSelected(true);
+        FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
+
+        renderFullFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
+                renderFullFeatureItem.setSelected(true);
+                renderLLFeatureItem.setSelected(false);
+                renderURFeatureItem.setSelected(false);
+            }
+        });
+        renderLLFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
+                renderFullFeatureItem.setSelected(false);
+                renderLLFeatureItem.setSelected(true);
+                renderURFeatureItem.setSelected(false);
+            }
+        });
+        renderURFeatureItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
+                renderFullFeatureItem.setSelected(false);
+                renderLLFeatureItem.setSelected(false);
+                renderURFeatureItem.setSelected(true);
+            }
+        });
+
+        featureRenderingOptions.add(renderFullFeatureItem);
+        featureRenderingOptions.add(renderLLFeatureItem);
+        featureRenderingOptions.add(renderURFeatureItem);
+
         final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
         toggleSparse2DFeaturePlotting.setSelected(false);
         toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
@@ -280,11 +317,14 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
+        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
         // TODO hotkey?
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
+        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
+
 
         final JButton updateSparseOptions = new JButton("Update");
         updateSparseOptions.addActionListener(new ActionListener() {
@@ -295,12 +335,14 @@ public class MainMenuBar {
                 }
             }
         });
+        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
         JPanel sparseOptions = new JPanel();
         sparseOptions.setLayout(new GridLayout(0, 2));
         sparseOptions.add(numSparse);
         sparseOptions.add(updateSparseOptions);
         sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
+        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
 
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
@@ -325,11 +367,25 @@ public class MainMenuBar {
         });
         // TODO hotkey?
 
+        final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
+        editVisibleMI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
+                showLoopsItem.setSelected(false);
+                superAdapter.setShowLoops(false);
+                superAdapter.repaint();
+            }
+        });
+
         feature2DPlottingOptions.add(showLoopsItem);
         feature2DPlottingOptions.add(enlarge2DFeatures);
+        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
+        feature2DPlottingOptions.add(featureRenderingOptions);
+        feature2DPlottingOptions.add(editVisibleMI);
+        feature2DPlottingOptions.addSeparator();
         feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
         feature2DPlottingOptions.add(sparseOptions);
-        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
@@ -338,8 +394,7 @@ public class MainMenuBar {
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
         final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-        loadLastMI = new JMenuItem("Load Last");
-        final JMenuItem mergeVisibleMI = new JMenuItem("Merge Visible");
+        loadLastMI = new JMenuItem("Load Last Session");
         undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
 
@@ -364,13 +419,7 @@ public class MainMenuBar {
                 customAnnotations = superAdapter.generateNewCustomAnnotation(temp, "1");
                 temp.delete();
                 loadLastMI.setEnabled(false);
-            }
-        });
-
-        mergeVisibleMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
+                exportAnnotationsMI.setEnabled(true);
             }
         });
 
@@ -413,11 +462,11 @@ public class MainMenuBar {
         //Add annotate menu items
         customAnnotationMenu.add(showCustomLoopsItem);
         customAnnotationMenu.add(exportAnnotationsMI);
-        customAnnotationMenu.add(exportOverlapMI);
-        customAnnotationMenu.add(mergeVisibleMI);
+        //customAnnotationMenu.add(exportOverlapMI);
         customAnnotationMenu.add(undoMenuItem);
         customAnnotationMenu.add(clearCurrentMI);
-        if (unsavedEdits) {
+        if (unsavedEditsExist()) {
+            customAnnotationMenu.add(new JSeparator());
             customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
         }
@@ -530,6 +579,7 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchSlideShow();
+                HiCGlobals.slideshowEnabled = true;
             }
         });
         bookmarksMenu.add(slideShow);

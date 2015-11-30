@@ -47,35 +47,42 @@ import java.util.Map;
  */
 public class Feature2DParser {
 
-    public static Feature2DList loadFeatures(String path, String genomeID, boolean loadAttributes, FeatureFilter featureFilter) {
-        return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter);
+    public static Feature2DList loadFeatures(String path, String genomeID, boolean loadAttributes,
+                                             FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
+        return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter, useFeature2DWithMotif);
     }
 
-    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes, FeatureFilter featureFilter) {
+    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+                                             FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
         Feature2DList newList;
         if (path.endsWith(".px")) {
-            newList = Feature2DParser.parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
         } else if (path.endsWith(".px2")) {
-            newList = Feature2DParser.parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
         } else {
-            newList = Feature2DParser.parseLoopFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
         }
         return newList;
     }
 
 
-    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes,
-                                              boolean loadAttributes, FeatureFilter featureFilter) {
+    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+                                               FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
 
         Feature2DList newList = new Feature2DList();
         int attCol = 7;
-
         try {
+
             BufferedReader br = ParsingUtils.openBufferedReader(path);
             String nextLine;
 
             // header
             nextLine = br.readLine();
+            if (nextLine == null || nextLine.length() < 1) {
+                System.err.println("Empty list provided");
+                System.exit(-5);
+            }
+
             String[] headers = Globals.tabPattern.split(nextLine);
 
             int errorCount = 0;
@@ -127,10 +134,12 @@ public class Feature2DParser {
                 Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
                 if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        System.out.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.out.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -147,17 +156,28 @@ public class Feature2DParser {
                     featureName = Feature2D.generic;
                 }
                 // Convention is chr1 is lowest "index". Swap if necessary
-                Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                Feature2D feature;
+                if (useFeature2DWithMotif) {
+                    feature = chr1.getIndex() <= chr2.getIndex() ?
+                            new Feature2DWithMotif(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                            new Feature2DWithMotif(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                } else {
+                    feature = chr1.getIndex() <= chr2.getIndex() ?
+                            new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                            new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                }
 
                 newList.add(chr1.getIndex(), chr2.getIndex(), feature);
 
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)
@@ -233,11 +253,12 @@ public class Feature2DParser {
                 }
 
 
-                Color c = Color.black;
+                Color c = tokens.length > 4 ? ColorUtilities.stringToColor(tokens[4].trim()) : Color.black;
+
 
                 Map<String, String> attrs = new LinkedHashMap<String, String>();
                 if (loadAttributes) {
-                    for (int i = attCol; i < tokens.length; i++) {
+                    for (int i = attCol + 1; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
                     }
                 }
@@ -245,10 +266,12 @@ public class Feature2DParser {
                 Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
                 if (chr1 == null || chr2 == null) {
-                    if (errorCount < 100) {
-                        System.err.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.err.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -275,8 +298,12 @@ public class Feature2DParser {
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)
@@ -340,10 +367,12 @@ public class Feature2DParser {
 
                 Chromosome chrA = HiCFileTools.getChromosomeNamed(chrAName, chromosomes);
                 if (chrA == null) {
-                    if (errorCount < 100) {
-                        System.err.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 100) {
-                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 100) {
+                            System.err.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 100) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -367,8 +396,12 @@ public class Feature2DParser {
             }
 
             br.close();
-        } catch (IOException ec) {
-            ec.printStackTrace();
+        } catch (Exception ec) {
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                ec.printStackTrace();
+            } else {
+                System.err.println("File " + path + " could not be parsed");
+            }
         }
 
         if (featureFilter != null)
@@ -376,6 +409,4 @@ public class Feature2DParser {
 
         return newList;
     }
-
-
 }

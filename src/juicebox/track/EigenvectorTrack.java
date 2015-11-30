@@ -26,6 +26,7 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.MatrixZoomData;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.renderer.Renderer;
@@ -143,12 +144,19 @@ public class EigenvectorTrack extends HiCTrack {
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
 
-        int zoom = hic.getZd().getZoom().getBinSize();
+        MatrixZoomData zd;
+        try {
+            zd = hic.getZd();
+        } catch (Exception e) {
+            return;
+        }
+
+        int zoom = zd.getZoom().getBinSize();
         if (zoom != currentZoom) {
             clearDataCache();
         }
 
-        int chrIdx = orientation == TrackPanel.Orientation.X ? hic.getZd().getChr1Idx() : hic.getZd().getChr2Idx();
+        int chrIdx = orientation == TrackPanel.Orientation.X ? zd.getChr1Idx() : zd.getChr2Idx();
         double[] eigen = dataCache.get(chrIdx);
         if (eigen == null) {
             eigen = hic.getEigenvector(chrIdx, 0);

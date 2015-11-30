@@ -231,30 +231,34 @@ public class TrackPanel extends JPanel {
         //int rectBottom = orientation == Orientation.X ? rect.y + rect.height : rect.x + rect.width;
         int y = orientation == Orientation.X ? rect.y : rect.x;
 
-        HiCGridAxis gridAxis = orientation == Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
+        try {
+            HiCGridAxis gridAxis = orientation == Orientation.X ? hic.getZd().getXGridAxis() : hic.getZd().getYGridAxis();
 
-        for (HiCTrack hicTrack : tracks) {
-            if (hicTrack.getHeight() > 0) {
-                int h = hicTrack.getHeight();
+            for (HiCTrack hicTrack : tracks) {
+                if (hicTrack.getHeight() > 0) {
+                    int h = hicTrack.getHeight();
 
-                Rectangle trackRectangle;
-                if (orientation == Orientation.X) {
-                    trackRectangle = new Rectangle(rect.x, y, rect.width, h);
-                } else {
-                    //noinspection SuspiciousNameCombination
-                    trackRectangle = new Rectangle(y, rect.y, h, rect.height);
+                    Rectangle trackRectangle;
+                    if (orientation == Orientation.X) {
+                        trackRectangle = new Rectangle(rect.x, y, rect.width, h);
+                    } else {
+                        //noinspection SuspiciousNameCombination
+                        trackRectangle = new Rectangle(y, rect.y, h, rect.height);
+                    }
+
+                    if (getContext() != null) {
+
+                        hicTrack.render(graphics, getContext(), trackRectangle, orientation, gridAxis);
+                        y += h;
+
+                        trackRectangles.add(new Pair<Rectangle, HiCTrack>(trackRectangle, hicTrack));
+                    }
+
+
                 }
-
-                if (getContext() != null) {
-
-                    hicTrack.render(graphics, getContext(), trackRectangle, orientation, gridAxis);
-                    y += h;
-
-                    trackRectangles.add(new Pair<Rectangle, HiCTrack>(trackRectangle, hicTrack));
-                }
-
-
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         graphics.setTransform(t);

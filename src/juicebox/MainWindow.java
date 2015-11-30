@@ -127,7 +127,9 @@ public class MainWindow extends JFrame {
     }
 
     private void initComponents() {
-        System.out.println("Initializing Components");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Initializing Components");
+        }
 
         MainWindow.superAdapter.initializeCustomAnnotations();
 
@@ -168,7 +170,7 @@ public class MainWindow extends JFrame {
     public void exitActionPerformed() {
         setVisible(false);
         dispose();
-        //TODO - doesn't always delete temp file of annotations on exit
+        //TODO - meh doesn't always delete temp file of annotations on exit
         if (superAdapter.unsavedEditsExist()) {
             superAdapter.deleteUnsavedEdits();
         }

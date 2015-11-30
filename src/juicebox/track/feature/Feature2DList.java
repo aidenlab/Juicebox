@@ -37,8 +37,11 @@ import java.util.List;
  * List of two-dimensional features.  Hashtable for each chromosome for quick viewing.
  * Visibility depends on user selection.
  *
- * @author Neva Durand
- * @modified Muhammad Shamim, Marie Hoeger
+ * @author Neva Durand, Muhammad Shamim, Marie Hoeger
+ *
+ * TODO cleanup code and eliminate this class
+ * It should become GenomeWideList<Feature2D>
+ * Helper functions should be relocated to Feature2DTools
  */
 public class Feature2DList {
 
@@ -57,6 +60,11 @@ public class Feature2DList {
      */
     public Feature2DList() {
         isVisible = true;
+    }
+
+    public Feature2DList(Feature2DList list) {
+        super();
+        add(list);
     }
 
     /**
@@ -90,6 +98,37 @@ public class Feature2DList {
      */
     public static String getKey(Chromosome chr1, Chromosome chr2) {
         return getKey(chr1.getIndex(), chr2.getIndex());
+    }
+
+    /**
+     * values from list A that are common to list B within tolerance
+     *
+     * @param listA
+     * @param listB
+     * @return
+     */
+    public static Feature2DList getIntersection(final Feature2DList listA, Feature2DList listB) {
+
+        Feature2DList commonFeatures = new Feature2DList(listB);
+        commonFeatures.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                List<Feature2D> commonVals = new ArrayList<Feature2D>();
+                if (listA.containsKey(chr)) {
+                    List<Feature2D> listAFeatures = listA.getFeatureList(chr);
+                    for (Feature2D feature : listAFeatures) {
+                        if (feature2DList.contains(feature)) {
+                            commonVals.add(feature);
+                        }
+                    }
+                }
+                return commonVals;
+            }
+        });
+
+
+        commonFeatures.removeDuplicates();
+        return commonFeatures;
     }
 
     /**
@@ -155,10 +194,10 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsOutput, boolean includeMotifs) {
+    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, useOldHiccupsOutput, includeMotifs);
+            return exportFeatureList(outputFile, useOldHiccupsFormat);
         }
         return -1;
     }
@@ -168,45 +207,33 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsOutput, final boolean includeMotifs) {
+    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {
-                if (includeMotifs) {
-                    outputFile.println(featureZero.getOutputFileHeaderWithMotifs());
+                outputFile.println(featureZero.getOutputFileHeader());
+                if (useOldHiccupsFormat) {
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             for (Feature2D feature : feature2DList) {
-                                outputFile.println(feature.toStringWithMotif());
+                                outputFile.println(HiCCUPSUtils.oldOutput(feature));
                             }
                         }
                     });
+
                 } else {
-                    outputFile.println(featureZero.getOutputFileHeader());
-                    if (useOldHiccupsOutput) {
-                        processLists(new FeatureFunction() {
-                            @Override
-                            public void process(String chr, List<Feature2D> feature2DList) {
-                                for (Feature2D feature : feature2DList) {
-                                    outputFile.println(HiCCUPSUtils.oldOutput(feature));
-                                }
+                    processLists(new FeatureFunction() {
+                        @Override
+                        public void process(String chr, List<Feature2D> feature2DList) {
+                            Collections.sort(feature2DList);
+                            for (Feature2D feature : feature2DList) {
+                                outputFile.println(feature);
                             }
-                        });
-
-                    } else {
-                        processLists(new FeatureFunction() {
-                            @Override
-                            public void process(String chr, List<Feature2D> feature2DList) {
-                                for (Feature2D feature : feature2DList) {
-                                    outputFile.println(feature);
-                                }
-                            }
-                        });
-                    }
+                        }
+                    });
                 }
-
             }
             outputFile.close();
 
@@ -248,15 +275,11 @@ public class Feature2DList {
      */
     public Feature2D extractSingleFeature() {
         for (List<Feature2D> features : featureList.values()) {
-            System.out.println("List1 Size " + features.size());
             for (Feature2D feature : features) {
                 return feature;
             }
         }
         return null;
-        // TODO this should not give no such element exceptions
-        // TODO meh - custom annotation must be adding unnecessary keys?
-        //return featureList.get(featureList.keySet().iterator().next()).iterator().next();
     }
 
     /*
@@ -388,7 +411,7 @@ public class Feature2DList {
     }
 
     /**
-     * Simple of exact duplicates (memory address)
+     * Simple removal of exact duplicates (memory address)
      * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
      */
     public void removeDuplicates() {
@@ -399,7 +422,6 @@ public class Feature2DList {
             }
         });
     }
-
 
     /**
      * Get all keys (chromosome pairs) for hashmap
@@ -426,23 +448,25 @@ public class Feature2DList {
      * @param filter
      */
     public void filterLists(FeatureFilter filter) {
-        for (String chr : featureList.keySet()) {
-            featureList.put(chr, filter.filter(chr, featureList.get(chr)));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            featureList.put(key, filter.filter(key, featureList.get(key)));
         }
     }
 
     /**
      * pass interface implementing a process for all features
-     * TODO - alter above functions to use this
      *
      * @param function
      */
     public void processLists(FeatureFunction function) {
-        for (String chr : featureList.keySet()) {
-            function.process(chr, featureList.get(chr));
+        List<String> keys = new ArrayList<String>(featureList.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            function.process(key, featureList.get(key));
         }
     }
-
 
     /**
      * @return true if features available for this region (key = "chr1_chr2")
@@ -457,5 +481,28 @@ public class Feature2DList {
             total += chrList.size();
         }
         return total;
+    }
+
+    public void checkAndRemoveEmptyList(int idx1, int idx2){
+        String key = getKey(idx1, idx2);
+        if (featureList.get(key).size() == 0)
+            featureList.remove(key);
+    }
+
+    public Feature2D searchForFeature(final int c1, final int start1, final int end1,
+                                      final int c2, final int start2, final int end2) {
+        final Feature2D[] feature = new Feature2D[1];
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    if (f.getChr1().contains("" + c1) && f.getChr2().contains("" + c2) && f.start1 == start1 &&
+                            f.start2 == start2 && f.end1 == end1 && f.end2 == end2) {
+                        feature[0] = f;
+                    }
+                }
+            }
+        });
+        return feature[0];
     }
 }

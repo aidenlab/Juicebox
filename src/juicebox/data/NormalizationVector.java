@@ -53,10 +53,6 @@ public class NormalizationVector {
         return type + "_" + chrIdx + "_" + unit + "_" + resolution;
     }
 
-    public static void main(String[] args) {
-        System.out.println(getKey(NormalizationType.GW_KR, 1, "x", 0));
-    }
-
     public String getKey() {
         return NormalizationVector.getKey(type, chrIdx, unit.toString(), resolution);
     }

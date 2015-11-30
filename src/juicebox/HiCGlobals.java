@@ -61,6 +61,7 @@ public class HiCGlobals {
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
+    public static boolean slideshowEnabled = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
@@ -98,4 +99,6 @@ public class HiCGlobals {
         colors.add(new Color(0, 0, 0));
         return colors;
     }
+
+
 }

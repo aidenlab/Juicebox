@@ -38,8 +38,7 @@ import java.awt.event.MouseEvent;
  * UI delegate for the RangeSlider component.  RangeSliderUI paints two thumbs,
  * one for the lower value and one for the upper value.
  *
- * @author Ernest Yu
- * @modified Muhammad S Shamim
+ * @author Ernest Yu, Muhammad S Shamim
  */
 class RangeSliderUI extends BasicSliderUI {
 

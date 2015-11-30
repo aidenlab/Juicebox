@@ -22,9 +22,12 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.data.anchor;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
+import juicebox.data.feature.FeatureFilter;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.motifs.GlobalMotifs;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -43,9 +46,9 @@ import java.util.Set;
  * <p/>
  * FIMO -
  */
-public class AnchorParser {
+public class MotifAnchorParser {
 
-    public static AnchorList loadGlobalMotifs(String idOrFile, List<Chromosome> chromosomes) {
+    public static GenomeWideList<MotifAnchor> loadGlobalMotifs(String idOrFile, List<Chromosome> chromosomes) {
 
         InputStream is = null;
         Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
@@ -83,21 +86,21 @@ public class AnchorParser {
             }
         }
 
-        return new AnchorList(chromosomes, new ArrayList<MotifAnchor>(anchors));
+        return new GenomeWideList<MotifAnchor>(chromosomes, new ArrayList<MotifAnchor>(anchors));
     }
 
-    public static AnchorList loadMotifsByGenome(String path, String genomeID, AnchorFilter anchorFilter) {
+    public static GenomeWideList<MotifAnchor> loadMotifsByGenome(String path, String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
         return loadMotifs(path, HiCFileTools.loadChromosomes(genomeID), anchorFilter);
     }
 
-    public static AnchorList loadMotifs(String path, List<Chromosome> chromosomes, AnchorFilter anchorFilter) {
-        AnchorList newList = parseMotifFile(path, chromosomes, anchorFilter);
+    public static GenomeWideList<MotifAnchor> loadMotifs(String path, List<Chromosome> chromosomes, FeatureFilter<MotifAnchor> anchorFilter) {
+        GenomeWideList<MotifAnchor> newList = parseMotifFile(path, chromosomes, anchorFilter);
         return newList;
     }
 
 
-    private static AnchorList parseMotifFile(String path, List<Chromosome> chromosomes,
-                                             AnchorFilter anchorFilter) {
+    private static GenomeWideList<MotifAnchor> parseMotifFile(String path, List<Chromosome> chromosomes,
+                                                              FeatureFilter<MotifAnchor> anchorFilter) {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
@@ -107,7 +110,7 @@ public class AnchorParser {
             ec.printStackTrace();
         }
 
-        AnchorList newAnchorList = new AnchorList(chromosomes, anchors);
+        GenomeWideList<MotifAnchor> newAnchorList = new GenomeWideList<MotifAnchor>(chromosomes, anchors);
         if (anchorFilter != null)
             newAnchorList.filterLists(anchorFilter);
 
@@ -131,14 +134,15 @@ public class AnchorParser {
         int errorCount = 0;
         while ((nextLine = br.readLine()) != null) {
             String[] tokens = Globals.tabPattern.split(nextLine);
-            if (tokens.length != 9) { //TODO why greater, use "!=" ? (also below)
+            if (tokens.length != 9) {
                 String text = "Improperly formatted FIMO output file: \npattern_name\tsequence_name\t" +
                         "start\tstop\tstrand\tscore\tp-value\tq-value\tmatched_sequence";
                 System.err.println(text);
                 System.exit(-5);
             }
 
-            String chr1Name, sequence, strand;
+            boolean strand;
+            String chr1Name, sequence;
             int start1, end1;
             double score, pValue, qValue;
 
@@ -156,7 +160,7 @@ public class AnchorParser {
                     end1 = Integer.parseInt(tokens[3]);
                 }
 
-                strand = tokens[4];
+                strand = tokens[4].contains("+");
                 score = Double.parseDouble(tokens[5]);
                 pValue = Double.parseDouble(tokens[6]);
                 qValue = Double.parseDouble(tokens[7]);
@@ -164,10 +168,12 @@ public class AnchorParser {
 
                 Chromosome chr = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
                 if (chr == null) {
-                    if (errorCount < 10) {
-                        System.out.println("Skipping line: " + nextLine);
-                    } else if (errorCount == 10) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                    if (HiCGlobals.printVerboseComments) {
+                        if (errorCount < 10) {
+                            System.out.println("Skipping line: " + nextLine);
+                        } else if (errorCount == 10) {
+                            System.err.println("Maximum error count exceeded.  Further errors will not be logged");
+                        }
                     }
 
                     errorCount++;
@@ -191,7 +197,7 @@ public class AnchorParser {
     }
 
 
-    public static AnchorList loadFromBEDFile(List<Chromosome> chromosomes, String bedFilePath) {
+    public static GenomeWideList<MotifAnchor> loadFromBEDFile(List<Chromosome> chromosomes, String bedFilePath) {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
@@ -201,7 +207,7 @@ public class AnchorParser {
             ec.printStackTrace();
         }
 
-        return new AnchorList(chromosomes, anchors);
+        return new GenomeWideList<MotifAnchor>(chromosomes, anchors);
     }
 
     private static List<MotifAnchor> parseBEDFile(BufferedReader br, List<Chromosome> chromosomes) throws IOException {
@@ -226,7 +232,7 @@ public class AnchorParser {
                     if (errorCount < 10) {
                         System.out.println("Skipping line: " + nextLine);
                     } else if (errorCount == 10) {
-                        System.out.println("Maximum error count exceeded.  Further errors will not be logged");
+                        System.err.println("Maximum error count exceeded.  Further errors will not be logged");
                     }
 
                     errorCount++;

@@ -135,6 +135,8 @@ public class SuperAdapter {
         new Slideshow(mainWindow, this);
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void launchImportState(File fileForExport) {
         new ImportFileDialog(fileForExport, mainWindow);
     }
@@ -193,7 +195,7 @@ public class SuperAdapter {
 
     public CustomAnnotation generateNewCustomAnnotation(File temp, String s) {
         return new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
-                hic.getChromosomes(), true, null), s);
+                hic.getChromosomes(), true, null, false), s);
     }
 
     public int clearCustomAnnotationDialog() {
@@ -267,8 +269,12 @@ public class SuperAdapter {
 
     public Point2D.Double getHiCScale(int width, int height) {
         // TODO - why does this sometimes return null?
-        return new Point2D.Double((double) hic.getZd().getXGridAxis().getBinCount() / width,
-                (double) hic.getZd().getYGridAxis().getBinCount() / height);
+        try {
+            return new Point2D.Double((double) hic.getZd().getXGridAxis().getBinCount() / width,
+                    (double) hic.getZd().getYGridAxis().getBinCount() / height);
+        } catch (Exception e) {
+            return null; // TODO is there a good default to return?
+        }
     }
 
     public Point getHeatMapPanelDimensions() {
@@ -318,9 +324,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.setZoom(initialZoom, 0, 0);
-        mainViewPanel.updateZoom(initialZoom);
-
+        hic.actuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL);
     }
 
     public void refresh() {
@@ -358,7 +362,9 @@ public class SuperAdapter {
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
         mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
-        hic.setNormalizationType(NormalizationType.NONE);
+        if (!control) {
+            hic.setNormalizationType(NormalizationType.NONE);
+        }
 
         if (allFilesAreHiC) {
             DatasetReader reader = DatasetReaderFactory.getReader(files);
@@ -413,7 +419,7 @@ public class SuperAdapter {
                 mainViewPanel.unsafeRefreshChromosomes(SuperAdapter.this);
 
             }
-            mainViewPanel.setSelectedDisplayOption(options);
+            mainViewPanel.setSelectedDisplayOption(options, control);
             setEnableForAllElements(true);
 
             if (control) {
@@ -511,16 +517,23 @@ public class SuperAdapter {
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return;
 
-            } else if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
-                mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
-                return;
+            } else {
+                try {
+                    if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
+                        JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
+                        mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                        return;
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this region");
+                    mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                    return;
+                }
             }
         }
 
         hic.setDisplayOption(option);
         refresh(); // necessary to invalidate minimap when changing view
-
     }
 
     /**
@@ -574,6 +587,10 @@ public class SuperAdapter {
 
     public void updateZoom(HiCZoom newZoom) {
         mainViewPanel.updateZoom(newZoom);
+    }
+
+    public void updateAndResetZoom(HiCZoom newZoom) {
+        mainViewPanel.updateAndResetZoom(newZoom);
     }
 
     public void launchFileLoadingError(String urlString) {

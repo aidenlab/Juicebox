@@ -27,6 +27,7 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import jargs.gnu.CmdLineParser;
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -36,6 +37,7 @@ import juicebox.tools.utils.juicer.hiccups.GPUController;
 import juicebox.tools.utils.juicer.hiccups.GPUOutputContainer;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
@@ -162,6 +164,7 @@ public class HiCCUPS extends JuicerCLT {
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
+    private boolean configurationsSetByUser = false;
     private boolean chrSpecified = false;
     private Set<String> chromosomesSpecified = new HashSet<String>();
     private String inputHiCFileName;
@@ -199,11 +202,12 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
-                "<hicFile(s)> <finalLoopsList>" +
+                "<hicFile(s)> <outputLoopsList>" +
                 "\n" +
                 "\n" +
                 "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
+        Feature2D.allowHiCCUPSOrdering = true;
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
     }
 
@@ -242,6 +246,28 @@ public class HiCCUPS extends JuicerCLT {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
 
+        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+        // then the map had more than 300M contacts.
+        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        if (firstExpected < 100000) {
+            System.err.println("HiC contact map is too sparse to run HiCCUPs, exiting.");
+            System.exit(0);
+        }
+
+        // high quality (IMR90, GM12878) maps have different settings
+        if (!configurationsSetByUser) {
+            if (firstExpected > 250000) {
+                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000),
+                        new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+                System.out.println("Default settings for 5kb and 10kb being used");
+            } else {
+                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};
+                System.out.println("Default settings for 10kb being used");
+            }
+        }
+
         List<Chromosome> commonChromosomes = ds.getChromosomes();
         if (chrSpecified)
             commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
@@ -261,9 +287,12 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes, outputFile,
+            Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     filteredConfigurations, norm);
+            finalList.exportFeatureList(outputFile, false);
+            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputFinalLoopListFileName);
         }
+        System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
     }
 
@@ -304,14 +333,25 @@ public class HiCCUPS extends JuicerCLT {
         float[] boundRowIndex = new float[1];
         float[] boundColumnIndex = new float[1];
 
-        GPUController gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
-                conf.getPeakWidth(), conf.divisor());
+        GPUController gpuController = null;
+        try {
+            gpuController = new GPUController(conf.getWindowWidth(), matrixSize,
+                    conf.getPeakWidth(), conf.divisor());
+        } catch (Exception e) {
+            System.err.println("GPU/CUDA Installation Not Detected");
+            System.err.println("Exiting HiCCUPS");
+            System.exit(-9);
+        }
+
 
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
 
         // two runs, 1st to build histograms, 2nd to identify loops
-        double maxProgressStatus = 2 * commonChromosomes.size();
+
+        // determine which chromosomes will run
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, commonChromosomes) * 2;
+
         int currentProgressStatus = 0;
         for (int runNum : new int[]{0, 1}) {
             for (Chromosome chromosome : commonChromosomes) {
@@ -327,7 +367,7 @@ public class HiCCUPS extends JuicerCLT {
 
                 //NormalizationType preferredNormalization = HiCFileTools.determinePreferredNormalization(ds);
                 NormalizationVector normVector = ds.getNormalizationVector(chromosome.getIndex(), zoom, norm);
-                if (norm != null) {
+                if (normVector != null) {
                     double[] normalizationVector = normVector.getData();
                     double[] expectedVector = HiCFileTools.extractChromosomeExpectedVector(ds, chromosome.getIndex(),
                             zoom, norm);
@@ -347,7 +387,9 @@ public class HiCCUPS extends JuicerCLT {
                         if (rowBounds[4] < chrMatrixWdith - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
                                 int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
-                                System.out.print(".");
+                                if (HiCGlobals.printVerboseComments) {
+                                    System.out.print(".");
+                                }
 
                                 if (columnBounds[4] < chrMatrixWdith - regionMargin) {
                                     try {
@@ -393,7 +435,7 @@ public class HiCCUPS extends JuicerCLT {
                     System.err.println("Data not available for " + chromosome + " at " + conf.getResolution() + " resolution");
                 }
 
-                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
+                System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
             }
             if (runNum == 0) {
 
@@ -421,7 +463,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, false);
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true);
             if (outputFDR != null) {
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
@@ -461,10 +503,10 @@ public class HiCCUPS extends JuicerCLT {
 
         try {
             configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
-
+            configurationsSetByUser = true;
         } catch (Exception e) {
-            System.err.println("Either no resolution specified or other error. Defaults being used.");
-            configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};//new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+            System.err.println("No configurations specified, using default settings");
+            configurationsSetByUser = false;
         }
 
         try {

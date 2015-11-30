@@ -80,6 +80,11 @@ public class Feature2DHandler {
         int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1)) + offsetDoubled;
         int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2)) + offsetDoubled;
 
+        if (feature.getTest()) {
+//            System.out.println("  Pixel data (1): " + x + ", " + (x + w));
+//            System.out.println("  Pixel data (2): " + y + ", " + (y + h));
+        }
+
         return new Rectangle(x, y, w, h);
     }
 
@@ -181,7 +186,7 @@ public class Feature2DHandler {
             loopLists.get(path).setVisible(true);
             System.out.println("Making " + path + " visible");
         } else {
-            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null);
+            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
             loopLists.put(path, newList);
         }
         remakeRTree();

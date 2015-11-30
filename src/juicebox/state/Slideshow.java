@@ -61,6 +61,9 @@ public class Slideshow extends JDialog {
     private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
     private static final long serialVersionUID = -1443095232042271867L;
     private final JLabel slideLabel;
+    private int counter;
+    private int currentSlideNum;
+    private static ArrayList<String> slideNames = new ArrayList<String>();
 
     public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
         //super(mainWindow);
@@ -87,6 +90,9 @@ public class Slideshow extends JDialog {
 
         try {
             final ArrayList<String> savedStatePaths = new ArrayList<String>();
+            final ArrayList<String> xChromosomesForReload = new ArrayList<String>();
+            final ArrayList<String> yChromosomesForReload = new ArrayList<String>();
+            final ArrayList<String> unitNamesForReload = new ArrayList<String>();
             Document dom;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
@@ -100,18 +106,27 @@ public class Slideshow extends JDialog {
                     if(childNodes.item(k).getNodeName().equals("MapURL")) {
                         files.add(childNodes.item(k).getTextContent());
                     }
+                    if(childNodes.item(k).getNodeName().equals("XChromosome")){
+                        xChromosomesForReload.add(childNodes.item(k).getTextContent());
+                    }
+                    if(childNodes.item(k).getNodeName().equals("YChromosome")){
+                        yChromosomesForReload.add(childNodes.item(k).getTextContent());
+                    }
+                    if(childNodes.item(k).getNodeName().equals("UnitName")){
+                        unitNamesForReload.add(childNodes.item(k).getTextContent());
+                    }
                 }
             }
 
-            DatasetReader datasetReader = DatasetReaderFactory.getReader(files);
-            Dataset dataset = datasetReader.read();
-            HiCGlobals.verifySupportedHiCFileVersion(datasetReader.getVersion());
-
-            System.out.println(savedStatePaths);
             final int numSlides = savedStatePaths.size();
+            //for(int j=0; j<numSlides; j++){
+            //    System.out.println(savedStatePaths.get(j)+"_"+xChromosomesForReload.get(j)+"_"+yChromosomesForReload.get(j)
+            //    +"_"+unitNamesForReload.get(j));
+            //}
+
+            slideNames = savedStatePaths;
 
             slideLabel.setText(savedStatePaths.get(0));
-
             carouselFrame.setLayout(new FlowLayout());
             carouselFrame.setResizable(true);
             carouselFrame.setVisible(true);
@@ -129,14 +144,17 @@ public class Slideshow extends JDialog {
             nextPanel.add(nextButton, BorderLayout.WEST);
             nextPanel.setVisible(true);
 
+            counter = savedStatePaths.indexOf(slideLabel.getText());
+
             prevButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    int counter = savedStatePaths.indexOf(slideLabel.getText());
+                    //int counter = savedStatePaths.indexOf(slideLabel.getText());
                     if (counter >= 0) {
                         counter = ((counter - 1) + numSlides) % numSlides;
                         slideLabel.setText(savedStatePaths.get(counter));
                         LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
+                        currentSlideNum = counter;
                     }
                 }
             });
@@ -145,11 +163,12 @@ public class Slideshow extends JDialog {
             nextButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    int counter = savedStatePaths.indexOf(slideLabel.getText());
+                    //int counter = savedStatePaths.indexOf(slideLabel.getText());
                     if (counter < numSlides) {
                         counter = (counter + 1) % numSlides;
                         slideLabel.setText(savedStatePaths.get(counter));
                         LoadStateFromXMLFile.reloadSelectedState(superAdapter, savedStatePaths.get(counter));
+                        currentSlideNum = counter;
                     }
                 }
             });
@@ -163,7 +182,11 @@ public class Slideshow extends JDialog {
             e.printStackTrace();
         }
 
-
         setLocationRelativeTo(getOwner());
     }
+
+    public int currentSlideNumber(){ return currentSlideNum+1;}
+
+    public String currentSlideName(int count){ return slideNames.get(count);}
 }
+

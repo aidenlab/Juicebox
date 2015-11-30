@@ -28,6 +28,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
+import juicebox.data.ExpectedValueFunction;
 import juicebox.data.HiCFileTools;
 import juicebox.data.Matrix;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -105,17 +106,18 @@ import java.util.*;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
+    private boolean configurationsSetByUser = false;
     private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
 
     // must be passed via command line
-    private int resolution = -100;
+    private int resolution = 10000;
     private String file, outputPath;
 
     public Arrowhead() {
-        super("arrowhead [-c chromosome(s)] [-m matrix size] [-k normalization (NONE/VC/VC_SQRT/KR)] <input_HiC_file(s)> <output_file> " +
-                "<resolution> [feature_list] [control_list]");
+        super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
+                "<HiC file(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -123,9 +125,10 @@ public class Arrowhead extends JuicerCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        if (args.length != 4 && args.length != 6) {
-            // 5 - standard, 7 - when list/control provided
+        if (args.length != 3 && args.length != 5) {
+            // 3 - standard, 5 - when list/control provided
             printUsage();
+            System.exit(0);
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -135,27 +138,27 @@ public class Arrowhead extends JuicerCLT {
         file = args[1];
         outputPath = args[2];
 
-        try {
-            resolution = Integer.valueOf(args[3]);
-        } catch (NumberFormatException error) {
-            printUsage();
+        List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
+        if (potentialResolution != null) {
+            resolution = Integer.parseInt(potentialResolution.get(0));
+            configurationsSetByUser = true;
         }
 
-        if (args.length == 6) {
+        if (args.length == 5) {
             controlAndListProvided = true;
-            featureList = args[4];
-            controlList = args[5];
+            featureList = args[3];
+            controlList = args[4];
         }
 
         List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null)
+        if (potentialChromosomes != null) {
             givenChromosomes = new HashSet<String>(potentialChromosomes);
-        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
-        if (specifiedMatrixSize % 2 == 1)
-            specifiedMatrixSize += 1;
-        if (specifiedMatrixSize > 50)
-            matrixSize = specifiedMatrixSize;
+        }
 
+        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+        if (specifiedMatrixSize > 1) {
+            matrixSize = specifiedMatrixSize;
+        }
     }
 
 
@@ -163,6 +166,28 @@ public class Arrowhead extends JuicerCLT {
     public void run() {
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+
+        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+        // then the map had more than 300M contacts.
+        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        if (firstExpected < 100000) {
+            System.err.println("HiC contact map is too sparse to run Arrowhead, exiting.");
+            System.exit(0);
+        }
+
+        // high quality (IMR90, GM12878) maps have different settings
+        if (!configurationsSetByUser) {
+            matrixSize = 2000;
+            if (firstExpected > 250000) {
+                resolution = 5000;
+                System.out.println("Default settings for 5kb being used");
+            } else {
+                resolution = 10000;
+                System.out.println("Default settings for 10kb being used");
+            }
+        }
 
         List<Chromosome> chromosomes = ds.getChromosomes();
 
@@ -173,13 +198,17 @@ public class Arrowhead extends JuicerCLT {
         Feature2DList inputList = new Feature2DList();
         Feature2DList inputControl = new Feature2DList();
         if (controlAndListProvided) {
-            inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null));
-            inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null));
+            inputList.add(Feature2DParser.loadFeatures(featureList, chromosomes, true, null, false));
+            inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null, false));
         }
 
         PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
-        PrintWriter outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
-        PrintWriter outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+        PrintWriter outputListFile = null;
+        PrintWriter outputControlFile = null;
+        if (controlAndListProvided) {
+            outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
+            outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+        }
 
         // chromosome filtering must be done after input/control created
         // because full set of chromosomes required to parse lists
@@ -189,7 +218,7 @@ public class Arrowhead extends JuicerCLT {
 
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-        double maxProgressStatus = chromosomes.size();
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomes);
         int currentProgressStatus = 0;
 
         for (Chromosome chr : chromosomes) {
@@ -211,12 +240,17 @@ public class Arrowhead extends JuicerCLT {
                     matrix.getZoomData(zoom), norm, list, control, contactDomainsGenomeWide,
                     contactDomainListScoresGenomeWide, contactDomainControlScoresGenomeWide);
 
-            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "%");
+            System.out.println(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false, false);
-        contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, false);
-        contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, false);
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
+        System.out.println(contactDomainsGenomeWide.getNumTotalFeatures() + " domains written to file: " +
+                outputPath + "_" + resolution + "_blocks");
+        if (controlAndListProvided) {
+            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
+            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
+        }
+        System.out.println("Arrowhead complete");
     }
 }

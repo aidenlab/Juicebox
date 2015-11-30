@@ -22,13 +22,33 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track.anchor;
+package juicebox.tools.clt.juicer;
 
-import java.util.List;
+import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.JuicerCLT;
 
 /**
- * Created by muhammadsaadshamim on 7/30/15.
+ * Created by Marie on 10/23/15.
  */
-public interface AnchorFunction {
-    void process(String chr, List<MotifAnchor> anchorList);
+public class HiccupsOnList extends JuicerCLT {
+
+    public HiccupsOnList(){
+        super("enrichments [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
+                "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>\n" +
+                "\nhiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
+                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>\n");
+    }
+
+///data/eleanor/suhas/peakcalling/scripts/peakcallingGPU18_short3.py    input_file_name    output_file_name1    output_file_name2    fdr    p    w
+///data/eleanor/suhas/peakcalling/scripts/peakcallingGPU_listgivD.py    input_file_name    output_file_name1    output_file_name2    fdr     input_list    p    w
+
+    @Override
+    public void readArguments(String[] args, CmdLineParser parser) {
+
+    }
+
+    @Override
+    public void run() {
+
+    }
 }

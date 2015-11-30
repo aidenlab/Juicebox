@@ -121,11 +121,11 @@ public class CustomAnnotation {
         } else {
             tempWriter.println(singleFeature.getOutputFileHeader());
         }
-        System.out.println("Made temp file " + tempFile.getAbsolutePath());
+        //System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
     public void deleteTempFile() {
-        System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
+        //System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         tempWriter.close();
         tempFile.delete();
     }
@@ -172,11 +172,20 @@ public class CustomAnnotation {
         customAnnotationList.autoSaveAll(tempWriter);
     }
 
+    public boolean hasLoop(int idx1, int idx2, Feature2D feature){
+        if (idx1 > 0 && idx2 > 0) {
+            List<Feature2D> featureList = customAnnotationList.get(idx1, idx2);
+            if (featureList.contains(feature)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void removeFromList(int idx1, int idx2, Feature2D feature) {
 
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> lastList;
-            String featureIdentifier = getIdentifier(feature);
             String mirrorIdentity = "" + feature.getStart2() + feature.getEnd2() + feature.getStart1() + feature.getEnd1();
 
             lastList = customAnnotationList.get(idx1, idx2);
@@ -191,6 +200,7 @@ public class CustomAnnotation {
                     }
                 }
                 lastList.remove(removeFeature);
+                customAnnotationList.checkAndRemoveEmptyList(idx1, idx2);
             }
         }
         reSaveAll();
@@ -199,7 +209,7 @@ public class CustomAnnotation {
     // Export annotations
     public int exportAnnotations(String outputFilePath) {
         int ok;
-        ok = customAnnotationList.exportFeatureList(outputFilePath, false, false);
+        ok = customAnnotationList.exportFeatureList(outputFilePath, false);
         if (ok < 0)
             return ok;
         unsavedEdits = false;
@@ -218,12 +228,21 @@ public class CustomAnnotation {
             }
         }
         getAndAddAttributes(featureKeys);
-        customAnnotationList.addUnique(newAnnotations);
+        //customAnnotationList.addUnique(newAnnotations);
+        customAnnotationList.add(newAnnotations);
+
+        // Autosave the information
+        unsavedEdits = true;
+        if (firstSave) {
+            makeTempFile();
+            firstSave = false;
+        }
+        updateAutoSave();
     }
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
-        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false, false);
+        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false);
         if (ok < 0)
             return ok;
         unsavedEdits = false;
@@ -240,9 +259,7 @@ public class CustomAnnotation {
         }
     }
 
-    // TODO meh - technically this isn't actually changing all attributes
-    // should this be renamed addAllAttributeValues?
-    public void changeAllAttributeValues(String key, String newValue) {
+    public void addAllAttributeValues(String key, String newValue) {
         attributeKeys.add(key);
         customAnnotationList.addAttributeFieldToAll(key, newValue);
     }

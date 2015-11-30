@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.tools.clt.juicer.CompareLists;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
 import java.util.HashSet;
@@ -34,6 +35,7 @@ import java.util.Set;
  * Created by muhammadsaadshamim on 10/27/15.
  */
 public class Feature2DTools {
+
 
     public static Feature2DList extractPeaksNearCentroids(final Feature2DList featureList, final Feature2DList centroids) {
         final Feature2DList peaks = new Feature2DList();
@@ -182,5 +184,65 @@ public class Feature2DTools {
             }
         });
         return peaks;
+    }
+
+    /**
+     * @param listA
+     * @param listB
+     * @return feature list where duplicates/common features are removed and results are color coded
+     */
+    public static Feature2DList compareLists(final Feature2DList listA, final Feature2DList listB) {
+        Feature2DList featuresUniqueToA = new Feature2DList(listA);
+        Feature2DList featuresUniqueToB = new Feature2DList(listB);
+
+        featuresUniqueToA.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                if (listB.containsKey(chr)) {
+                    feature2DList.removeAll(listB.getFeatureList(chr));
+                }
+                return feature2DList;
+            }
+        });
+
+        featuresUniqueToB.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                if (listA.containsKey(chr)) {
+                    feature2DList.removeAll(listA.getFeatureList(chr));
+                }
+                return feature2DList;
+            }
+        });
+
+        // color code results
+        featuresUniqueToA.setColor(CompareLists.AAA);
+        featuresUniqueToB.setColor(CompareLists.BBB);
+
+        // also add an attribute in addition to color coding
+        featuresUniqueToA.addAttributeFieldToAll("parent_list", "A");
+        featuresUniqueToB.addAttributeFieldToAll("parent_list", "B");
+
+        // combine into one list
+        Feature2DList results = new Feature2DList(featuresUniqueToA);
+        results.add(featuresUniqueToB);
+
+        return results;
+    }
+
+
+    public static Feature2DList subtract(final Feature2DList listA, final Feature2DList listB) {
+        Feature2DList result = new Feature2DList(listA);
+        result.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                if (listB.containsKey(chr)) {
+                    feature2DList.removeAll(listB.getFeatureList(chr));
+                }
+                return feature2DList;
+            }
+        });
+        result.removeDuplicates();
+        return result;
     }
 }

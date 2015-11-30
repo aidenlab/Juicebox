@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
@@ -38,7 +39,6 @@ import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -127,7 +127,8 @@ public class HiCCUPSUtils {
     }
 
     public static String oldOutput(Feature2D feature) {
-        return feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getChr2() + "\t" + feature.getStart2() + "\t" +
+        return feature.getChr1() + "\t" + feature.getStart1() + "\t" +
+                feature.getChr2() + "\t" + feature.getStart2() + "\t" +
                 feature.getAttribute(OBSERVED)
                 + "\t" + feature.getAttribute(EXPECTEDBL)
                 + "\t" + feature.getAttribute(EXPECTEDDONUT)
@@ -152,7 +153,9 @@ public class HiCCUPSUtils {
         for (Chromosome chr : chromosomes) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
-        System.out.println("Initial: " + list.getNumTotalFeatures());
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Initial: " + list.getNumTotalFeatures());
+        }
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
@@ -286,14 +289,10 @@ public class HiCCUPSUtils {
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            //pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(RADIUS, (int) Math.round(pixelClusterRadius));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
-
-            //System.out.println("Pixels: " + pixelList);
-            //System.out.println("Pixels: " + pixelList.size());
 
             for (Feature2D px : pixelList) {
                 featureLL.remove(px);
@@ -336,8 +335,6 @@ public class HiCCUPSUtils {
         float fdrDonut = pixel.getFloatAttribute(FDRDONUT);
         float fdrH = pixel.getFloatAttribute(FDRH);
         float fdrV = pixel.getFloatAttribute(FDRV);
-        //System.out.println("FDR Process "+pixel);
-        //System.out.println("Collapse "+numCollapsed+" Radius "+pixel.getAttribute(RADIUS));
 
         return observed > (t2 * expectedBL)
                 && observed > (t2 * expectedDonut)
@@ -375,21 +372,22 @@ public class HiCCUPSUtils {
         Feature2DList mergedList = new Feature2DList();
         boolean listHasBeenAltered = false;
 
-
         if (hiccupsLooplists.containsKey(5000) && hiccupsLooplists.containsKey(10000)) {
-            System.out.println("Merge 5k and 10k");
+            //System.out.println("Merge 5k and 10k res loops");
             mergedList.add(handleFiveAndTenKBMerger(hiccupsLooplists.get(5000), hiccupsLooplists.get(10000)));
             listHasBeenAltered = true;
         } else if (hiccupsLooplists.containsKey(5000)) {
-            System.out.println("Only 5k");
+            //System.out.println("Only 5k");
             mergedList.add(hiccupsLooplists.get(5000));
             listHasBeenAltered = true;
         } else if (hiccupsLooplists.containsKey(10000)) {
-            System.out.println("Only 10k");
+            //System.out.println("Only 10k");
             mergedList.add(hiccupsLooplists.get(10000));
             listHasBeenAltered = true;
         }
-        System.out.println("Remove duplicates");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Removing duplicates");
+        }
         mergedList.removeDuplicates();
 
         if (hiccupsLooplists.containsKey(25000)) {
@@ -507,10 +505,9 @@ public class HiCCUPSUtils {
         return null;
     }
 
-    public static void postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
-                                   List<Chromosome> commonChromosomes, PrintWriter writer,
-                                   List<HiCCUPSConfiguration> configurations,
-                                   NormalizationType norm) {
+    public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
+                                            List<Chromosome> commonChromosomes, List<HiCCUPSConfiguration> configurations,
+                                            NormalizationType norm) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
@@ -519,8 +516,7 @@ public class HiCCUPSUtils {
             filterOutFeaturesByFDR(looplists.get(res));
         }
 
-        Feature2DList finalList = mergeAllResolutions(looplists);
-        finalList.exportFeatureList(writer, false, false);
+        return mergeAllResolutions(looplists);
     }
 
     public static void calculateThresholdAndFDR(int index, int width, double fdr, float[] poissonPMF,

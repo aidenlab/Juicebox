@@ -43,7 +43,14 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
 
     public PreProcessing() {
-        super("pre <options> <infile> <outfile> <genomeID>");
+        super("pre <options> <infile> <outfile> <genomeID>\n"
+                + "           : -d only calculate intra chromosome (diagonal) [false]\n"
+                + "           : -f <restriction site file> calculate fragment map\n"
+                + "           : -m <int> only write cells with count above threshold m [0]\n"
+                + "           : -q <int> filter by MAPQ score greater than or equal to q\n"
+                + "           : -c <chromosome ID> only calculate map on specific chromosome\n"
+                + "           : -h print help"
+        );
     }
 
     @Override
@@ -88,6 +95,7 @@ public class PreProcessing extends JuiceboxCLT {
             NormalizationVectorUpdater.updateHicFile(outputFile);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }
