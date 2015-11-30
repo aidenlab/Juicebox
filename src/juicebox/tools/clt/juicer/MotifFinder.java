@@ -109,14 +109,13 @@ public class MotifFinder extends JuicerCLT {
 
 
         // inferred motifs
-        findInferredMotifs(chromosomes, features, true);
-        findInferredMotifs(chromosomes, features, false);
+        findInferredMotifs(chromosomes, features);
 
         features.exportFeatureList(outputPath, false);
         System.out.println("Motif Finder complete");
     }
 
-    private void findInferredMotifs(List<Chromosome> chromosomes, Feature2DList features, boolean direction) {
+    private void findInferredMotifs(List<Chromosome> chromosomes, Feature2DList features) {
         /*
         1. identify all peak loci that overlap multiple CTCF peaks in the track CTCF_collapsed.narrowpeak.
 
@@ -133,51 +132,22 @@ public class MotifFinder extends JuicerCLT {
 
         GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
-        GenomeWideList<MotifAnchor> directionalStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, direction);
+
         GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
-
-        MotifAnchorTools.retainProteinsInLocus(inferredProteins, directionalStreamAnchors, false, true);
-        //MotifAnchorTools.intersectLists(inferredProteins, globalAnchors, true);
-
-        if (HiCGlobals.printVerboseComments) {
-            try {
-                System.out.println("dir " + direction);
-                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, inferredProteins)) {
-                    System.out.println("asd " + m);
-                }
-                //System.out.println(MotifAnchorTools.searchForFeature(10, 5671893, 5672113, inferredProteins).getOriginalFeatures2());
-
-                System.out.println("dir2 " + direction);
-                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, globalAnchors)) {
-                    System.out.println("asd " + m);
-                }
-                //System.out.println(MotifAnchorTools.searchForFeature(10, 5671893, 5672113, inferredProteins).getOriginalFeatures2());
-            } catch (Exception e) {
-
-            }
-        }
-
+        GenomeWideList<MotifAnchor> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
+        MotifAnchorTools.retainProteinsInLocus(inferredProteins, upStreamAnchors, false, true);
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
+        MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
 
-        if (HiCGlobals.printVerboseComments) {
-            try {
-                System.out.println("dir " + direction);
-                for (MotifAnchor m : MotifAnchorTools.searchForFeaturesWithin(10, 6440000, 6455000, globalAnchors)) {
-                    System.out.println("JHB " + m);
-                    //System.out.println(m.getOriginalFeatures2());
-                    //System.out.println(m.getSequence());
-                    //System.out.println(m.getStrand());
-                }
-            } catch (Exception e) {
+        // reset
+        inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
+        globalAnchors = loadMotifs(chromosomes);
 
-            }
-        }
-
-        if (direction) {
-            MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
-        } else {
-            MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, -1);
-        }
+        GenomeWideList<MotifAnchor> downStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, false);
+        MotifAnchorTools.retainProteinsInLocus(inferredProteins, downStreamAnchors, false, true);
+        MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
+        MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, 1);
+        MotifAnchorTools.updateOriginalFeatures(globalAnchors, false, -1);
     }
 
     private void setUpThreeTieredFiltration() {
@@ -201,7 +171,7 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> tierTwoProteins = getIntersectionOfBEDFiles(chromosomes, tierTwoFiles);
         GenomeWideList<MotifAnchor> tierThreeProteins = getIntersectionOfBEDFiles(chromosomes, tierThreeFiles);
 
-        MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, false);
+        MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, true);
 
         if (HiCGlobals.printVerboseComments) {
             System.out.println("T1 " + tierOneProteins.size());
@@ -253,18 +223,14 @@ public class MotifFinder extends JuicerCLT {
         setUpThreeTieredFiltration();
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
         GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(chromosomes, featureAnchors);
-        updateFeaturesWithIntersectedMotifs(features, chromosomes, threeTierFilteredProteins, true);
-    }
 
-    private void updateFeaturesWithIntersectedMotifs(Feature2DList features, List<Chromosome> chromosomes,
-                                                     GenomeWideList<MotifAnchor> proteins, boolean uniqueStatus) {
-
-        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
         GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+        //MotifAnchorTools.intersectLists(threeTierFilteredProteins,globalAnchors, true);
 
-        MotifAnchorTools.intersectLists(globalAnchors, proteins, true);
-        MotifAnchorTools.intersectLists(featureAnchors, globalAnchors, true);
-        MotifAnchorTools.updateOriginalFeatures(featureAnchors, uniqueStatus, 0);
+        // try
+        MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, threeTierFilteredProteins);
+
+        MotifAnchorTools.updateOriginalFeatures(globalAnchors, true, 0);
     }
 
     private GenomeWideList<MotifAnchor> loadMotifs(List<Chromosome> chromosomes) {

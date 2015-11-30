@@ -27,6 +27,7 @@ package juicebox.tools.clt.juicer;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
+import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.*;
@@ -110,15 +111,25 @@ public class CompareLists extends JuicerCLT {
             listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, false, null, false);
             listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, false, null, false);
 
-        } else if (compareTypeID == 1) {
+        } else if (compareTypeID == 1 || compareTypeID == 2) {
             Feature2DWithMotif.useSimpleOutput = true;
             listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, true, null, true);
             listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, true, null, true);
         }
 
-        listA.removeDuplicates();
-        listB.removeDuplicates();
+        if (compareTypeID == 2) {
+            generateHistogramMetrics(listB);
+        } else {
+            compareTwoLists(listA, listB, compareTypeID);
+        }
+    }
 
+    private void generateHistogramMetrics(Feature2DList list) {
+        final int[] metrics = MotifAnchorTools.calculateConvergenceHistogram(list);
+        System.out.println("++ : " + metrics[0] + " +- : " + metrics[1] + " -+ : " + metrics[2] + " -- : " + metrics[3]);
+    }
+
+    private void compareTwoLists(Feature2DList listA, Feature2DList listB, int compareTypeID) {
         int sizeA = listA.getNumTotalFeatures();
         int sizeB = listB.getNumTotalFeatures();
         System.out.println("List Size: " + sizeA + "(A) " + sizeB + "(B)");
@@ -134,10 +145,8 @@ public class CompareLists extends JuicerCLT {
         int numExactMatches = exactMatches.getNumTotalFeatures();
         System.out.println("Number of exact matches: " + numExactMatches);
 
-
         Feature2D.tolerance = this.threshold;
         Feature2DWithMotif.lenientEqualityEnabled = true;
-
         Feature2DList matchesWithinToleranceFromA = Feature2DList.getIntersection(listA, listB);
         Feature2DList matchesWithinToleranceFromB = Feature2DList.getIntersection(listB, listA);
 
@@ -150,16 +159,16 @@ public class CompareLists extends JuicerCLT {
 
         Feature2DList matchesWithinToleranceUniqueToA = Feature2DTools.subtract(matchesWithinToleranceFromA, exactMatches);
         Feature2DList matchesWithinToleranceUniqueToB = Feature2DTools.subtract(matchesWithinToleranceFromB, exactMatches);
-        Feature2DList uniqueToA = Feature2DTools.subtract(listA, matchesWithinToleranceFromA);
-        Feature2DList uniqueToB = Feature2DTools.subtract(listB, matchesWithinToleranceFromB);
-
         int numMatchesWithinTolA = matchesWithinToleranceUniqueToA.getNumTotalFeatures();
         int numMatchesWithinTolB = matchesWithinToleranceUniqueToB.getNumTotalFeatures();
 
         System.out.println("Number of matches within tolerance: " + numMatchesWithinTolA + "(A) " + numMatchesWithinTolB + "(B)");
 
+        Feature2DList uniqueToA = Feature2DTools.subtract(listA, matchesWithinToleranceFromA);
+        Feature2DList uniqueToB = Feature2DTools.subtract(listB, matchesWithinToleranceFromB);
         int numUniqueToA = uniqueToA.getNumTotalFeatures();
         int numUniqueToB = uniqueToB.getNumTotalFeatures();
+
         System.out.println("Number of unique features: " + numUniqueToA + "(A) " + numUniqueToB + "(B)");
 
         // set parent attribute

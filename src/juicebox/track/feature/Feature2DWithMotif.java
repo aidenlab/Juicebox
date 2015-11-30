@@ -333,4 +333,29 @@ public class Feature2DWithMotif extends Feature2D {
 
         return hash;
     }
+
+    public int getConvergenceStatus() {
+
+        // ++, +- (convergent), -+ (divergent), --, other (incomplete)
+
+        if (sequence1 != null && sequence2 != null) {
+            if (unique1 && unique2) {
+                if (strand1) {
+                    if (strand2) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                } else {
+                    if (strand2) {
+                        return 2;
+                    } else {
+                        return 3;
+                    }
+                }
+            }
+        }
+
+        return 4;
+    }
 }

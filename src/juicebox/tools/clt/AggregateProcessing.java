@@ -38,13 +38,49 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
+        /*
+        /Users/muhammadsaadshamim/Desktop/test_motifs/original
+muhammads-mbp:original muhammadsaadshamim$ ls
+geo.txt		java_motifs.txt
+         */
+
         String[] ll51231123 = {"motifs",
                 "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/gm12878",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean.txt",
+                "/Users/muhammadsaadshamim/Dropbox (Lab at Large)/GenomeWideMotifs/motif_list/REN_fimo_full_out_1M/fimo.txt"};
 
         //HiCGlobals.printVerboseComments = true;
         HiCTools.main(ll51231123);
 
+        String[] ll512123431123 = new String[]{"compare",
+                "0", "-m", "25000",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test/test_aws_hiccups/geo.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_aws_hiccups/aws_loops_30.txt"};
+
+        ll512123431123 = new String[]{"compare",
+                "-m", "5000", "1",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt"};
+
+        HiCTools.main(ll512123431123);
+
+        ll512123431123 = new String[]{"compare",
+                "-m", "5000", "2",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt"};
+
+        HiCTools.main(ll512123431123);
+
+        ll512123431123 = new String[]{"compare",
+                "-m", "5000", "2",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt"};
+
+        HiCTools.main(ll512123431123);
     }
 }

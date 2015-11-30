@@ -496,4 +496,22 @@ public class MotifAnchorTools {
         }
         return uniqueAnchors;
     }
+
+    public static int[] calculateConvergenceHistogram(Feature2DList features) {
+
+        // ++, +- (convergent), -+ (divergent), --, other (incomplete)
+        final int[] results = new int[5];
+
+        features.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    Feature2DWithMotif feature2DWithMotif = (Feature2DWithMotif) feature;
+                    results[feature2DWithMotif.getConvergenceStatus()]++;
+                }
+            }
+        });
+
+        return results;
+    }
 }

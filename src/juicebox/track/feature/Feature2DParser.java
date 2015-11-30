@@ -62,6 +62,7 @@ public class Feature2DParser {
         } else {
             newList = parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
         }
+        newList.removeDuplicates();
         return newList;
     }
 

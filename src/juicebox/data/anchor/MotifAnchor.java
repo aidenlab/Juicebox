@@ -297,9 +297,9 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
     public boolean isDirectionalAnchor(boolean direction) {
         if (direction) {
-            return originalFeatures1.size() > 0;
+            return originalFeatures1.size() > 0 && originalFeatures2.size() == 0;
         } else {
-            return originalFeatures2.size() > 0;
+            return originalFeatures2.size() > 0 && originalFeatures1.size() == 0;
         }
     }
 
