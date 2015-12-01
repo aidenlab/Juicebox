@@ -460,7 +460,8 @@ motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]
 
 The required arguments are:
 
-<genomeID>: Currently only hg19 is supported
+<genomeID>: hg19 supported by default. For other genome assemblies, provide a 
+  custom_global_motif_list in FIMO format.
 
 <bed_file_dir> File path to a directory (e.g. ) which contains two folders: "unique" and
   "inferred". These folders should contain a combination of RAD21, SMC3, and CTCF BED files.
