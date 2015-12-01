@@ -365,7 +365,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 FeatureRenderer.render(g2, loops, zd, binOriginX, binOriginY, scaleFactor,
                         highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
-                //System.out.println("rendered 2d annotation");
 
                 if (zoomRectangle != null) {
                     ((Graphics2D) g).draw(zoomRectangle);
@@ -1137,14 +1136,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     final double scaleFactor = hic.getScaleFactor();
                     double binOriginX = hic.getXContext().getBinOrigin();
                     double binOriginY = hic.getYContext().getBinOrigin();
-
-//                    System.out.println("Before:");
-//                    System.out.println("  Genomic positioning (1): " + loop.getStart1() + ", " + loop.getEnd1());
-//                    System.out.println("  Genomic positioning (2): " + loop.getStart2() + ", " + loop.getEnd2());
                     loop.doTest();
                     annotateRectangle = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
-//                    System.out.println("end");
-                    //annotateRectangle = new Rectangle(loop.getStart1(), loop.getStart2(), loop.getEnd1(), loop.getEnd2());
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
                     preAdjustLoop = new Pair<Pair<Integer, Integer>, Feature2D>(new Pair<Integer, Integer>(chr1Idx, chr2Idx), loop);
@@ -1187,7 +1180,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int idx1 = preAdjustLoop.getFirst().getFirst();
                 int idx2 = preAdjustLoop.getFirst().getSecond();
                 Feature2D loop = preAdjustLoop.getSecond();
-                System.out.println(annotateRectangle);
+                // Add a new loop if it was resized (prevents deletion on single click)
                 if (MainMenuBar.customAnnotations.hasLoop(idx1, idx2, loop) && changedSize == true) {
                     MainMenuBar.customAnnotations.removeFromList(idx1, idx2, loop);
                     MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
@@ -1235,7 +1228,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 e.printStackTrace();
             }
 
-
             dragMode = DragMode.NONE;
             lastMousePoint = null;
             zoomRectangle = null;
@@ -1248,6 +1240,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             Rectangle lastRectangle, damageRect;
             int x, y;
+            double x_d, y_d;
 
             try {
                 hic.getZd();
@@ -1266,6 +1259,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             int deltaX = e.getX() - lastMousePoint.x;
             int deltaY = e.getY() - lastMousePoint.y;
+            double deltaX_d =  e.getX() - lastMousePoint.x;
+            double deltaY_d = e.getY() - lastMousePoint.y;
+
             switch (dragMode) {
                 case ZOOM:
                     lastRectangle = zoomRectangle;
@@ -1297,7 +1293,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 case ANNOTATE:
                     lastRectangle = annotateRectangle;
 
-                    if (deltaX == 0 || deltaY == 0) {
+                    if (deltaX_d == 0 || deltaY_d == 0) {
                         return;
                     }
 
@@ -1314,64 +1310,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     break;
                 case RESIZE:
-                    if (deltaX == 0 || deltaY == 0) {
+                    if (deltaX_d == 0 || deltaY_d == 0) {
                         return;
                     }
 
                     lastRectangle = annotateRectangle;
-                    int rectX;
-                    int rectY;
+                    double rectX;
+                    double rectY;
 
                     if (adjustAnnotation == AdjustAnnotation.LEFT) {
-
-                        rectX = (int) annotateRectangle.getX() + (int) annotateRectangle.getWidth();
-                        rectY = (int) annotateRectangle.getY() + (int) annotateRectangle.getHeight();
-//
-//                        deltaX = e.getX() - rectX;
-//                        deltaY = e.getY() - rectY;
-//
-//                        x = deltaX > 0 ? rectX : rectX + deltaX;
-//                        y = deltaY > 0 ? rectY : rectY + deltaY;
-//
-//                        annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
-//                        damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-//                        damageRect.x--;
-//                        damageRect.y--;
-//                        damageRect.width += 2;
-//                        damageRect.height += 2;
-//                        paintImmediately(damageRect);
-//                        MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
+                        rectX = annotateRectangle.getX() + annotateRectangle.getWidth();
+                        rectY = annotateRectangle.getY() + annotateRectangle.getHeight();
                     } else {
-                        rectX = (int) annotateRectangle.getX();
-                        rectY = (int) annotateRectangle.getY();
-
-//                        deltaX = e.getX() - rectX;
-//                        deltaY = e.getY() - rectY;
-//
-//                        x = deltaX > 0 ? rectX : rectX + deltaX;
-//                        y = deltaY > 0 ? rectY : rectY + deltaY;
-//
-//                        annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
-//                        damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-//                        damageRect.x--;
-//                        damageRect.y--;
-//                        damageRect.width += 2;
-//                        damageRect.height += 2;
-//                        paintImmediately(damageRect);
-//                        MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
+                        rectX = annotateRectangle.getX();
+                        rectY = annotateRectangle.getY();
                     }
-                    deltaX = e.getX() - rectX;
-                    deltaY = e.getY() - rectY;
+                    deltaX_d = e.getX() - rectX;
+                    deltaY_d = e.getY() - rectY;
 
-                    x = deltaX > 0 ? rectX : rectX + deltaX;
-                    y = deltaY > 0 ? rectY : rectY + deltaY;
+                    x_d = deltaX_d > 0 ? rectX : rectX + deltaX_d;
+                    y_d = deltaY_d > 0 ? rectY : rectY + deltaY_d;
 
-                    annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
+                    annotateRectangle = new Rectangle((int) x_d, (int) y_d, (int) Math.abs(deltaX_d), (int) Math.abs(deltaY_d));
                     damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-                    damageRect.x--;
-                    damageRect.y--;
-                    damageRect.width += 2;
-                    damageRect.height += 2;
+                    damageRect.width += 1;
+                    damageRect.height += 1;
                     paintImmediately(damageRect);
                     MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     changedSize = true;

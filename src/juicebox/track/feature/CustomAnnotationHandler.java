@@ -142,13 +142,18 @@ public class CustomAnnotationHandler {
         int rightBound = hic.getXContext().getChromosome().getLength();
         int bottomBound = hic.getYContext().getChromosome().getLength();
         int leftBound = 0;
+        int x = selectionRegion.x;
+        int y = selectionRegion.y;
+        int width = selectionRegion.width - 1;
+        int height = selectionRegion.height - 1;
+
 
         switch (featureType) {
             case GENERIC:
-                start1 = geneXPos(hic, selectionRegion.x, 0);
-                start2 = geneYPos(hic, selectionRegion.y, 0);
-                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0);
-                end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0);
+                start1 = geneXPos(hic, x, 0);
+                start2 = geneYPos(hic, y, 0);
+                end1 = geneXPos(hic, x + width, 0);
+                end2 = geneYPos(hic, y + height, 0);
                 newFeature = new Feature2D(Feature2D.generic, chr1, start1, end1, chr2, start2, end2,
                         java.awt.Color.orange, attributes);
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
@@ -206,29 +211,25 @@ public class CustomAnnotationHandler {
                 customAnnotations.add(chr1Idx, chr2Idx, newFeature);
                 break;
             case DOMAIN:
-                start1 = geneXPos(hic, selectionRegion.x, 0);
-                end1 = geneXPos(hic, selectionRegion.x + selectionRegion.width, 0) - 1;
-
-//                System.out.println("After:");
-//                System.out.println("  Pixel info (1): " + selectionRegion.x + ", " + (selectionRegion.x + selectionRegion.getWidth()));
-//                System.out.println("  Genomic positioning (1): " + start1 + ", " + end1);
+                start1 = geneXPos(hic, x, 0);
+                end1 = geneXPos(hic, x + width, 0) - 1;
 
                 // Snap if close to diagonal
-                if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionRegion.x, selectionRegion.y)) {
+                if (chr1Idx == chr2Idx && nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)) {
                     // Snap to min of horizontal stretch and vertical stretch
-                    if (selectionRegion.width <= selectionRegion.y) {
+                    if (width <= y) {
                         start2 = start1;
                         end2 = end1;
                     } else {
-                        start2 = geneYPos(hic, selectionRegion.y, 0);
-                        end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0) - 1;
+                        start2 = geneYPos(hic, y, 0);
+                        end2 = geneYPos(hic, y + height, 0) - 1;
                         start1 = start2;
                         end1 = end2;
                     }
                     // Otherwise record as drawn
                 } else {
-                    start2 = geneYPos(hic, selectionRegion.y, 0);
-                    end2 = geneYPos(hic, selectionRegion.y + selectionRegion.height, 0) - 1;
+                    start2 = geneYPos(hic, y, 0);
+                    end2 = geneYPos(hic, y + height, 0) - 1;
                 }
 
                 // Make sure bounds aren't unreasonable (out of HiC map)
