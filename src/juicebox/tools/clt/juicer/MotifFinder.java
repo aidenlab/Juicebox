@@ -43,7 +43,6 @@ import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/4/15.
- *
  */
 public class MotifFinder extends JuicerCLT {
 

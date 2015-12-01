@@ -183,8 +183,7 @@ public class HiCTrackManager {
                 for (HiCTrack t : tracks) {
                     loadedTracks.add(t);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Error loading track: " + locator.getPath(), e);
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }

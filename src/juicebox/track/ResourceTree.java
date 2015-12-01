@@ -236,7 +236,7 @@ public class ResourceTree {
             public void actionPerformed(ActionEvent actionEvent) {
                 File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
-                if (twoDfiles != null && twoDfiles.length > 0){
+                if (twoDfiles != null && twoDfiles.length > 0) {
                     for (File file : twoDfiles) {
 
                         String path = file.getAbsolutePath();
@@ -267,7 +267,7 @@ public class ResourceTree {
                         }
 
                     }
-            }
+                }
 
             }
         });

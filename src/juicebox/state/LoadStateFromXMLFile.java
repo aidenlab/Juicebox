@@ -175,19 +175,18 @@ public class LoadStateFromXMLFile {
                     for (int i = 0; i < trackNames.length; i++) {
                         if (trackURLs[i].contains(loadedTrack.getName())) {
                             loadedTrack.setName(trackNames[i].trim());
-                            if(!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())){
+                            if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
                                 HiCDataTrack hiCDataTrack = (HiCDataTrack) loadedTrack;
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");
-                                for(int k=0; k<configTrackInfo.length; k++) {
+                                for (int k = 0; k < configTrackInfo.length; k++) {
 
                                     String[] configInfo = configTrackInfo[k].split("\\,");
                                     hiCDataTrack.setColor(new Color(Integer.parseInt(configInfo[1])));
                                     hiCDataTrack.setAltColor(new Color(Integer.parseInt(configInfo[2])));
                                     DataRange newDataRange = new DataRange(Float.parseFloat(configInfo[3]), Float.parseFloat(configInfo[4]));//min,max
-                                    if(Boolean.parseBoolean(configInfo[5])){
+                                    if (Boolean.parseBoolean(configInfo[5])) {
                                         newDataRange.setType(DataRange.Type.LOG);
-                                    }
-                                    else {
+                                    } else {
                                         newDataRange.setType(DataRange.Type.LINEAR);
                                     }
                                     hiCDataTrack.setDataRange(newDataRange);

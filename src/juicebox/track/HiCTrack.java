@@ -55,10 +55,13 @@ public abstract class HiCTrack {
         return height;
     }
 
+    public void setHeight(int height) {
+        juicebox.track.HiCTrack.height = height;
+    }
+
     public ResourceLocator getLocator() {
         return locator;
     }
-
 
     public void mouseClicked(int x, int y, Context context, TrackPanel.Orientation orientation) {
         // Ignore by default, override in subclasses
@@ -96,8 +99,4 @@ public abstract class HiCTrack {
     public abstract void setColor(Color selectedColor);
 
     public abstract void setAltColor(Color selectedColor);
-
-    public void setHeight(int height) {
-        juicebox.track.HiCTrack.height = height;
-    }
 }

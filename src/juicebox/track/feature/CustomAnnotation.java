@@ -172,10 +172,10 @@ public class CustomAnnotation {
         customAnnotationList.autoSaveAll(tempWriter);
     }
 
-    public boolean hasLoop(int idx1, int idx2, Feature2D feature){
+    public boolean hasLoop(int idx1, int idx2, Feature2D feature) {
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> featureList = customAnnotationList.get(idx1, idx2);
-            if (featureList.contains(feature)){
+            if (featureList.contains(feature)) {
                 return true;
             }
         }
@@ -194,7 +194,7 @@ public class CustomAnnotation {
             if (!unsavedEdits) {
                 Feature2D removeFeature = null;
                 for (Feature2D aFeature : lastList) {
-                    if (getIdentifier(aFeature).compareTo(mirrorIdentity) == 0){
+                    if (getIdentifier(aFeature).compareTo(mirrorIdentity) == 0) {
                         removeFeature = aFeature;
                         unsavedEdits = true;
                     }

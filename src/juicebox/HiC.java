@@ -353,7 +353,6 @@ public class HiC {
     }
 
 
-
     public void centerFragment(int fragmentX, int fragmentY) {
         if (currentZoom != null) {
 

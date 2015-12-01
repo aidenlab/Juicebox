@@ -478,7 +478,6 @@ public class MainMenuBar {
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
 
-
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
         saveLocationList = new JMenuItem();
@@ -613,7 +612,7 @@ public class MainMenuBar {
         return menuBar;
     }
 
-    public void deleteUnsavedEdits(){
+    public void deleteUnsavedEdits() {
         customAnnotations.deleteTempFile();
     }
 

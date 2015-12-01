@@ -47,61 +47,60 @@ import java.util.*;
 
 /**
  * Arrowhead
- *
+ * <p/>
  * Developed by Neva Durand
  * Implemented by Muhammad Shamim
- *
+ * <p/>
  * -------
  * Arrowhead
  * -------
- *
+ * <p/>
  * arrowhead [-c chromosome(s)] [-m matrix size] <NONE/VC/VC_SQRT/KR> <input_HiC_file(s)> <output_file>
- *   <resolution> [feature_list] [control_list]
- **
+ * <resolution> [feature_list] [control_list]
+ * *
  * The required arguments are:
- *
+ * <p/>
  * <NONE/VC/VC_SQRT/KR> One of the normalizations must be selected (case sensitive). Generally, KR (Knight-Ruiz)
- *   balancing should be used.
- *
+ * balancing should be used.
+ * <p/>
  * <input_HiC_file(s)>: Address of HiC File(s) which should end with .hic.  This is the file you will
- *   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
- *   use the '+' symbol between the addresses (no whitespace between addresses).
- *
+ * load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+ * use the '+' symbol between the addresses (no whitespace between addresses).
+ * <p/>
  * <output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
- *   as a 2D annotation.
- *
+ * as a 2D annotation.
+ * <p/>
  * <resolution>: Integer resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
- *   resolution is used depending on the depth of sequencing in the hic file(s).
- *
- *   -- NOTE -- If you want to find scores for a feature and control list, both must be provided:
- *
+ * resolution is used depending on the depth of sequencing in the hic file(s).
+ * <p/>
+ * -- NOTE -- If you want to find scores for a feature and control list, both must be provided:
+ * <p/>
  * [feature_list]: Feature list of loops/domains for which block scores are to be calculated
- *
+ * <p/>
  * [control_list]: Control list of loops/domains for which block scores are to be calculated
- *
- *
+ * <p/>
+ * <p/>
  * The optional arguments are:
- *
+ * <p/>
  * -m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
- *   number as (m/2) is used as the increment for the sliding window. (Default 2000)
- *
+ * number as (m/2) is used as the increment for the sliding window. (Default 2000)
+ * <p/>
  * -c <String(s)> Chromosome(s) on which Arrowhead will be run. The number/letter for the chromosome can be used with or
- *   without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
- *
- *
+ * without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
+ * <p/>
+ * <p/>
  * ----------------
  * Arrowhead Examples
  * ----------------
- *
+ * <p/>
  * arrowhead -m 2000 KR ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list 10000
- *   This command will run Arrowhead on a mouse cell line HiC map and save all contact domains to the
- *   contact_domains_list file. These are the settings used to generate the official contact domain list on the
- *   ch12-lx-b-lymphoblast cell line.
- *
+ * This command will run Arrowhead on a mouse cell line HiC map and save all contact domains to the
+ * contact_domains_list file. These are the settings used to generate the official contact domain list on the
+ * ch12-lx-b-lymphoblast cell line.
+ * <p/>
  * arrowhead KR GM12878_mapq_30.hic contact_domains_list 5000
- *   This command will run Arrowhead on the GM12878 HiC map and save all contact domains to the contact_domains_list
- *   file. These are the settings used to generate the official GM12878 contact domain list.
- *
+ * This command will run Arrowhead on the GM12878 HiC map and save all contact domains to the contact_domains_list
+ * file. These are the settings used to generate the official GM12878 contact domain list.
  */
 public class Arrowhead extends JuicerCLT {
 

@@ -538,6 +538,7 @@ public class SuperAdapter {
 
     /**
      * TODO phase out
+     *
      * @return hic
      */
     public HiC getHiC() {
@@ -546,6 +547,7 @@ public class SuperAdapter {
 
     /**
      * TODO phase out
+     *
      * @return mainwindow
      */
     public MainWindow getMainWindow() {
@@ -674,7 +676,7 @@ public class SuperAdapter {
         setInitialZoom();
     }
 
-    public void deleteUnsavedEdits(){
+    public void deleteUnsavedEdits() {
         mainMenuBar.deleteUnsavedEdits();
     }
 

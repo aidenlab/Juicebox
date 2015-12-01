@@ -40,8 +40,8 @@ import java.util.Map;
 
 /**
  * @author jrobinso, mshamim, mhoeger
- * <p/>
- * reflection only used for plotting, should not be used by CLTs
+ *         <p/>
+ *         reflection only used for plotting, should not be used by CLTs
  */
 public class Feature2D implements Comparable<Feature2D> {
 
@@ -306,7 +306,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     /**
-     *
      * @param otherFeature
      * @return
      */
@@ -416,10 +415,11 @@ public class Feature2D implements Comparable<Feature2D> {
         return hash;
     }
 
-    public void doTest(){
+    public void doTest() {
         test = true;
     }
-    public boolean getTest(){
+
+    public boolean getTest() {
         return test;
     }
 }

@@ -253,28 +253,28 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
                             posCount++;
                             feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
                         }
-                        }
-                    } else if (specificStatus == -1) {
+                    }
+                } else if (specificStatus == -1) {
                     for (Feature2DWithMotif feature : originalFeatures2) {
                         if (!strand || uniqueStatus) {
                             negCount++;
                             feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
                         }
-                        }
-                    } else {
+                    }
+                } else {
                     for (Feature2DWithMotif feature : originalFeatures1) {
                         if (strand || uniqueStatus) {
                             posCount++;
                             feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
                         }
-                        }
+                    }
                     for (Feature2DWithMotif feature : originalFeatures2) {
                         if (!strand || uniqueStatus) {
                             negCount++;
                             feature.updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
                         }
                     }
-                    }
+                }
 
 
             } else {

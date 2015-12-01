@@ -31,7 +31,6 @@ import juicebox.gui.MainMenuBar;
 import juicebox.track.HiCGridAxis;
 
 import java.awt.*;
-import java.io.PrintWriter;
 import java.util.HashMap;
 
 /**
@@ -87,13 +86,13 @@ public class CustomAnnotationHandler {
         selectionRegion = newRegion;
     }
 
-    public void setLastItem(int idx1, int idx2, Feature2D lastLoop){
+    public void setLastItem(int idx1, int idx2, Feature2D lastLoop) {
         lastChr1Idx = idx1;
         lastChr2Idx = idx2;
         lastResizeLoop = lastLoop;
     }
 
-    private void clearLastItem(){
+    private void clearLastItem() {
         lastChr1Idx = -1;
         lastChr2Idx = -1;
         lastResizeLoop = null;
@@ -235,10 +234,10 @@ public class CustomAnnotationHandler {
                 // Make sure bounds aren't unreasonable (out of HiC map)
 //                int rightBound = hic.getChromosomes().get(0).getLength();
 //                int bottomBound = hic.getChromosomes().get(1).getLength();
-                start1 = Math.min(Math.max(start1,leftBound),rightBound);
-                start2 = Math.min(Math.max(start2,leftBound),bottomBound);
-                end1 = Math.max(Math.min(end1,rightBound),leftBound);
-                end2 = Math.max(Math.min(end2,bottomBound),leftBound);
+                start1 = Math.min(Math.max(start1, leftBound), rightBound);
+                start2 = Math.min(Math.max(start2, leftBound), bottomBound);
+                end1 = Math.max(Math.min(end1, rightBound), leftBound);
+                end2 = Math.max(Math.min(end2, bottomBound), leftBound);
 
                 // Add new feature
                 newFeature = new Feature2D(Feature2D.domain, chr1, start1, end1, chr2, start2, end2,
@@ -325,6 +324,8 @@ public class CustomAnnotationHandler {
     }
 
     // TODO merge with Feature2D as public enum type
-    enum FeatureType {NONE, PEAK, DOMAIN, GENERIC}
+    enum FeatureType {
+        NONE, PEAK, DOMAIN, GENERIC
+    }
 
 }

@@ -30,7 +30,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
 import juicebox.matrix.InMemoryMatrix;
-//import juicebox.state.Slideshow;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -43,12 +42,14 @@ import org.apache.commons.math.linear.RealVector;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
-//import juicebox.gui.SuperAdapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+//import juicebox.state.Slideshow;
+//import juicebox.gui.SuperAdapter;
 
 
 /**
@@ -74,7 +75,6 @@ public class MatrixZoomData {
     private double averageCount = -1;
 //    private static final SuperAdapter superAdapter = new SuperAdapter();
 //    private static final Slideshow slideshow = superAdapter.getSlideshow();
-
 
 
 //    float sumCounts;

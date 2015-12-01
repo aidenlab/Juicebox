@@ -46,7 +46,7 @@ public class HiCTools {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
 
-        if (argv.length == 0)  {
+        if (argv.length == 0) {
             CLTFactory.generalUsage();
             System.exit(0);
         }
@@ -65,8 +65,7 @@ public class HiCTools {
         String cmd = "";
         if (args.length == 0) {
             instanceOfCLT = null;
-        }
-        else {
+        } else {
             cmd = args[0];
             instanceOfCLT = CLTFactory.getCLTCommand(cmd);
         }
@@ -77,8 +76,7 @@ public class HiCTools {
             }
             instanceOfCLT.readArguments(args, parser);
             instanceOfCLT.run();
-        }
-        else {
+        } else {
             throw new RuntimeException("Unknown command: " + cmd);
         }
     }

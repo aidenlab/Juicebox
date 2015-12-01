@@ -275,7 +275,7 @@ public class CombinedDatasetReader implements DatasetReader {
                 e.printStackTrace();
                 if (HiCGlobals.guiIsCurrentlyActive)
                     JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to retrieve statistics for one of the maps.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.ERROR_MESSAGE);
             }
         }
 

@@ -31,7 +31,7 @@ import juicebox.tools.clt.juicer.HiCCUPS;
  */
 class GPUKernel {
 
-        public static final String kernelName = "BasicPeakCallingKernel";
+    public static final String kernelName = "BasicPeakCallingKernel";
 
     /**
      * hiccups Kernel Code

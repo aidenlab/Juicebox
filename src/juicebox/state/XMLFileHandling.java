@@ -54,7 +54,7 @@ public class XMLFileHandling {
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
         String currentTrack = "";
         String currentTrackName = "";
-        String configTrackInfo="none";
+        String configTrackInfo = "none";
 
         String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
 
@@ -70,19 +70,18 @@ public class XMLFileHandling {
                 currentTrack += track.getLocator() + ", ";
                 currentTrackName += track.getName() + ", ";
                 track.getLocator().getColor();
-                    try {
-                        HiCDataTrack hiCDataTrack = (HiCDataTrack) track;
-                        configTrackInfo = hiCDataTrack.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
-                                + hiCDataTrack.getAltColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
-                                + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
-                        //Name, PosColor, AltColor, Min, Max, isLogScale
-                    } catch (Exception e){
-                        // Expected for tracks that cannot be configured
+                try {
+                    HiCDataTrack hiCDataTrack = (HiCDataTrack) track;
+                    configTrackInfo = hiCDataTrack.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
+                            + hiCDataTrack.getAltColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
+                            + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
+                    //Name, PosColor, AltColor, Min, Max, isLogScale
+                } catch (Exception e) {
+                    // Expected for tracks that cannot be configured
                 }
             }
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
-        }
-        else{
+        } else {
             currentTrack = "none";
             currentTrackName = "none";
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;

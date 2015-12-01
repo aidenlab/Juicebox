@@ -26,9 +26,6 @@ package juicebox.state;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReader;
-import juicebox.data.DatasetReaderFactory;
 import juicebox.gui.SuperAdapter;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -60,10 +57,10 @@ public class Slideshow extends JDialog {
     private final static JButton prevButton = new JButton("\u25C4");
     private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
     private static final long serialVersionUID = -1443095232042271867L;
+    private static ArrayList<String> slideNames = new ArrayList<String>();
     private final JLabel slideLabel;
     private int counter;
     private int currentSlideNum;
-    private static ArrayList<String> slideNames = new ArrayList<String>();
 
     public Slideshow(MainWindow mainWindow, final SuperAdapter superAdapter) {
         //super(mainWindow);
@@ -102,17 +99,17 @@ public class Slideshow extends JDialog {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());
                 NodeList childNodes = nodeList.item(i).getChildNodes();
-                for(int k=0; k<childNodes.getLength(); k++){
-                    if(childNodes.item(k).getNodeName().equals("MapURL")) {
+                for (int k = 0; k < childNodes.getLength(); k++) {
+                    if (childNodes.item(k).getNodeName().equals("MapURL")) {
                         files.add(childNodes.item(k).getTextContent());
                     }
-                    if(childNodes.item(k).getNodeName().equals("XChromosome")){
+                    if (childNodes.item(k).getNodeName().equals("XChromosome")) {
                         xChromosomesForReload.add(childNodes.item(k).getTextContent());
                     }
-                    if(childNodes.item(k).getNodeName().equals("YChromosome")){
+                    if (childNodes.item(k).getNodeName().equals("YChromosome")) {
                         yChromosomesForReload.add(childNodes.item(k).getTextContent());
                     }
-                    if(childNodes.item(k).getNodeName().equals("UnitName")){
+                    if (childNodes.item(k).getNodeName().equals("UnitName")) {
                         unitNamesForReload.add(childNodes.item(k).getTextContent());
                     }
                 }
@@ -185,8 +182,12 @@ public class Slideshow extends JDialog {
         setLocationRelativeTo(getOwner());
     }
 
-    public int currentSlideNumber(){ return currentSlideNum+1;}
+    public int currentSlideNumber() {
+        return currentSlideNum + 1;
+    }
 
-    public String currentSlideName(int count){ return slideNames.get(count);}
+    public String currentSlideName(int count) {
+        return slideNames.get(count);
+    }
 }
 

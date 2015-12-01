@@ -38,10 +38,10 @@ import java.util.List;
  * Visibility depends on user selection.
  *
  * @author Neva Durand, Muhammad Shamim, Marie Hoeger
- *
- * TODO cleanup code and eliminate this class
- * It should become GenomeWideList<Feature2D>
- * Helper functions should be relocated to Feature2DTools
+ *         <p/>
+ *         TODO cleanup code and eliminate this class
+ *         It should become GenomeWideList<Feature2D>
+ *         Helper functions should be relocated to Feature2DTools
  */
 public class Feature2DList {
 
@@ -483,7 +483,7 @@ public class Feature2DList {
         return total;
     }
 
-    public void checkAndRemoveEmptyList(int idx1, int idx2){
+    public void checkAndRemoveEmptyList(int idx1, int idx2) {
         String key = getKey(idx1, idx2);
         if (featureList.get(key).size() == 0)
             featureList.remove(key);

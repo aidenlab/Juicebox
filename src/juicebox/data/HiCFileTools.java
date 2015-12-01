@@ -197,6 +197,7 @@ public class HiCFileTools {
     /**
      * Set intersection
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
+     *
      * @param set1
      * @param set2
      * @return intersection of set1 and set2

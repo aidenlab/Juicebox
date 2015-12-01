@@ -153,6 +153,7 @@ public class MatrixTools {
 
     /**
      * Write data from matrix out to specified file with each row on a separate line
+     *
      * @param filename
      * @param realMatrix
      */
@@ -178,12 +179,13 @@ public class MatrixTools {
 
     /**
      * Reshape array into square matrix
+     *
      * @param flatMatrix
      * @param n
      * @return properly dimensioned matrix
      */
     public static float[][] reshapeFlatMatrix(float[] flatMatrix, int n) {
-        return reshapeFlatMatrix(flatMatrix,n,n);
+        return reshapeFlatMatrix(flatMatrix, n, n);
     }
 
     /**
@@ -407,6 +409,7 @@ public class MatrixTools {
 
     /**
      * Normalize matrix by dividing by max element
+     *
      * @return matrix * (1/max_element)
      */
     public static RealMatrix normalizeByMax(RealMatrix matrix) {

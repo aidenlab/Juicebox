@@ -100,6 +100,7 @@ public class BinaryConnectedComponents {
 
     /**
      * Label the neighbors of the pixel
+     *
      * @param labels
      * @param indices
      * @param i

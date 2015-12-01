@@ -50,7 +50,7 @@ public class HiCFixedGridAxis implements HiCGridAxis {
     }
 
     @Override
-    public int getBinSize(){
+    public int getBinSize() {
         return binSize;
     }
 

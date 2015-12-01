@@ -119,7 +119,7 @@ public class BlockBuster {
     /**
      * Runs blockbuster for a sliding window along the diagonal of the matrix
      *
-     * @param zd - zoomData from hic file
+     * @param zd            - zoomData from hic file
      * @param chrLength
      * @param varThreshold
      * @param signThreshold

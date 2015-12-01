@@ -32,7 +32,7 @@ import juicebox.tools.clt.JuicerCLT;
  */
 public class HiccupsOnList extends JuicerCLT {
 
-    public HiccupsOnList(){
+    public HiccupsOnList() {
         super("enrichments [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
                 "[-t thresholds] [-d centroid distances] <hicFile(s)> <finalLoopsList>\n" +
                 "\nhiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +

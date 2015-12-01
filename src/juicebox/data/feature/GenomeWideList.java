@@ -66,7 +66,7 @@ public class GenomeWideList<T extends Feature> {
 
     /**
      * @param chromosomes for genome
-     * @param features     to be added to list
+     * @param features    to be added to list
      */
     public GenomeWideList(List<Chromosome> chromosomes, List<T> features) {
         this(chromosomes);
@@ -75,7 +75,7 @@ public class GenomeWideList<T extends Feature> {
 
     /**
      * @param genomeID
-     * @param features  to be added to list
+     * @param features to be added to list
      */
     public GenomeWideList(String genomeID, List<T> features) {
         this(HiCFileTools.loadChromosomes(genomeID), features);

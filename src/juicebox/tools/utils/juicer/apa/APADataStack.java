@@ -79,7 +79,8 @@ public class APADataStack {
 
     /**
      * Ensure that directory for saving exists
-     * @param path to directory
+     *
+     * @param path   to directory
      * @param prefix of files to be saved
      */
     private static void initializeDataSaveFolder(String path, String prefix) {

@@ -92,18 +92,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean straightEdgeEnabled = false;
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
-    private enum AdjustAnnotation {LEFT, RIGHT, NONE};
-    private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE};
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
+
     /**
      * feature highlight related variables
      */
     private boolean showFeatureHighlight = true;
+
     private Feature2D highlightedFeature = null;
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
-
     /**
      */
     public HeatmapPanel(SuperAdapter superAdapter) {
@@ -1050,6 +1049,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return valueString;
     }
 
+    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+
+    private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
+
 //    @Override
 //    public String getToolTipText(MouseEvent e) {
 //        return toolTipText(e.getX(), e.getY());
@@ -1106,7 +1109,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
-            // Shift down for custom annotations
+                // Shift down for custom annotations
             } else if (e.isShiftDown()) {
                 boolean showWarning = false;
 
@@ -1123,7 +1126,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 MainMenuBar.customAnnotationHandler.doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            // Corners for resize annotation
+                // Corners for resize annotation
             } else if (adjustAnnotation != AdjustAnnotation.NONE) {
                 dragMode = DragMode.RESIZE;
                 Feature2D loop = mostRecentRectFeaturePair.getSecond();
@@ -1144,7 +1147,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     //annotateRectangle = new Rectangle(loop.getStart1(), loop.getStart2(), loop.getEnd1(), loop.getEnd2());
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                    preAdjustLoop = new Pair<Pair<Integer,Integer>, Feature2D>(new Pair(chr1Idx, chr2Idx), loop);
+                    preAdjustLoop = new Pair<Pair<Integer, Integer>, Feature2D>(new Pair<Integer, Integer>(chr1Idx, chr2Idx), loop);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -1175,7 +1178,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 };
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
-            } else if (dragMode == DragMode.ANNOTATE ) {
+            } else if (dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
                 MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
                 restoreDefaultVariables();
@@ -1196,7 +1199,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
-        private void restoreDefaultVariables(){
+        private void restoreDefaultVariables() {
             dragMode = DragMode.NONE;
             adjustAnnotation = AdjustAnnotation.NONE;
             annotateRectangle = null;
@@ -1518,7 +1521,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             Math.abs(loop.getMinY() - mousePoint.getY()) <= minDist)) {
                         adjustAnnotation = AdjustAnnotation.LEFT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
-                    // Mouse near bottom right corner
+                        // Mouse near bottom right corner
                     } else if (Math.abs(loop.getMaxX() - mousePoint.getX()) <= minDist &&
                             Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
                         adjustAnnotation = AdjustAnnotation.RIGHT;
