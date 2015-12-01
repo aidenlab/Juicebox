@@ -72,8 +72,6 @@ public class MotifFinder extends JuicerCLT {
         int i = 1;
         genomeID = args[i++];
         bedFileDirPath = args[i++];
-        //proteinsForUniqueMotifPaths = args[i++].split(",");
-        //proteinsForInferredMotifPaths = args[i++].split(",");
         loopListPath = args[i++];
         if (args.length == 5) {
             globalMotifListPath = args[i++];
@@ -92,7 +90,6 @@ public class MotifFinder extends JuicerCLT {
             System.err.println("All BED files should include the '.bed' extension");
             System.err.println("BED files for locating unique motifs should be located in given_bed_file_dir/unique");
             System.err.println("BED files for locating inferred motifs should be located in given_bed_file_dir/inferred");
-            //e.printStackTrace();
             System.exit(-4);
         }
 
@@ -104,11 +101,8 @@ public class MotifFinder extends JuicerCLT {
 
         Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
 
-        // unique motifs
         findUniqueMotifs(chromosomes, features);
 
-
-        // inferred motifs
         findInferredMotifs(chromosomes, features);
 
         features.exportFeatureList(outputPath, false);
@@ -128,6 +122,19 @@ public class MotifFinder extends JuicerCLT {
         4. For downstream peak loci, find the best motif match in each of the overlapping CTCF peaks from step 1.
         If there is only 1 overlapping CTCF peak with a best match motif that is a reverse motif,
         retain that motif as the inferred motif for the peak locus.
+
+        Previously on Motif Finder:
+        fourth step: the 1-d peak tracks provided in (iii) are intersected.
+
+        fifth step: the 1-d peak track from step 4 are intersected with the genomewide motif list (best motif match)
+        and split into a forward motif track and a reverse motif track.
+
+        sixth step: upstream peak loci that did not have a unique motif are intersected with the forward motif
+        track from step 5, and for each peak locus if the peak locus has only one forward motif, that is an
+        inferred mapping (these motifs are outputted as 'i'). downstream peak loci that did not have a unique
+        motif are intersected with the reverse motif track from step 5, and for each peak locus if the peak
+        locus has only one reverse motif, that is an inferred mapping (these motifs are outputted as 'i').
+        Peak loci that form loops in both directions are ignored.
          */
 
         GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
@@ -227,9 +234,7 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
         //MotifAnchorTools.intersectLists(threeTierFilteredProteins,globalAnchors, true);
 
-        // try
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, threeTierFilteredProteins);
-
         MotifAnchorTools.updateOriginalFeatures(globalAnchors, true, 0);
     }
 

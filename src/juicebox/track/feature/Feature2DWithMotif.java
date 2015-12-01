@@ -100,7 +100,7 @@ public class Feature2DWithMotif extends Feature2D {
                 }*/
             }
         } else {//inferred
-            if (dataBelongsToAnchor1) {
+            if (dataBelongsToAnchor1 && strand) {
                 if (sequence1 == null) {
                     this.strand1 = strand;
                     this.unique1 = unique;
@@ -111,7 +111,7 @@ public class Feature2DWithMotif extends Feature2D {
                 } else if (!(sequence.equals(sequence1) && motifStart1 == motifStart)) {
                     sequence1 = "null";
                 }
-            } else {
+            } else if (!dataBelongsToAnchor1 && !strand) {
                 if (sequence2 == null) {
                     this.strand2 = strand;
                     this.unique2 = unique;
