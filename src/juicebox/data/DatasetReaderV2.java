@@ -29,6 +29,7 @@ import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -431,13 +432,15 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         if (version >= 6) {
 
-//            dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
+            //dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
             dis = new LittleEndianInputStream(new BufferedInputStream(stream, 104857600));
 
             try {
                 nExpectedValues = dis.readInt();
             } catch (EOFException e) {
-                log.info("No normalization vectors");
+                if (HiCGlobals.printVerboseComments) {
+                    log.info("No normalization vectors");
+                }
                 return;
             }
 

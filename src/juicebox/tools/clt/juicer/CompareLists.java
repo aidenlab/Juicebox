@@ -87,7 +87,7 @@ public class CompareLists extends JuicerCLT {
         }
 
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
-        if (specifiedMatrixSize > 0) {
+        if (specifiedMatrixSize >= 0) {
             threshold = specifiedMatrixSize;
         }
 
