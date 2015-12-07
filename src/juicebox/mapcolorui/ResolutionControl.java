@@ -224,9 +224,6 @@ public class ResolutionControl extends JPanel {
                     int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
                     int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
 
-                    hic.setScaleFactor(1.0);
-                    hic.setScaleFactor(1.0);
-
                     if (zd == null) {
                         hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
                     } else {
