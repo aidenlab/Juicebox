@@ -83,7 +83,7 @@ public class ArrowheadScore {
     public Feature2D toFeature2D(String chrName) {
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put("score", Double.toString(score));
-        return new Feature2D(Feature2D.domain, chrName, indices[0], indices[1],
+        return new Feature2D(Feature2D.FeatureType.DOMAIN, chrName, indices[0], indices[1],
                 chrName, indices[2], indices[3], Color.yellow, attributes);
     }
 }

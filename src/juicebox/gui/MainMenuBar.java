@@ -257,7 +257,6 @@ public class MainMenuBar {
         });
 
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
-        // todo final JMenu show2DFeatureDisplayOptions = new DisplayOptionsJMenu();
         final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {
@@ -318,7 +317,7 @@ public class MainMenuBar {
             }
         });
         toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        // TODO hotkey?
+        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
@@ -354,7 +353,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        // TODO hotkey?
+        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0));
 
         final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
         toggle2DFeatureOpacity.setSelected(false);
@@ -365,7 +364,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        // TODO hotkey?
+        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0));
 
         final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
         editVisibleMI.addActionListener(new ActionListener() {

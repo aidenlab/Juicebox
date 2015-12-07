@@ -148,25 +148,18 @@ public class Feature2DParser {
                     continue;
                 }
 
-                String featureName;
+                Feature2D.FeatureType featureType = parseTitleForFeatureType(path);
 
-                if (path.contains("block") || path.contains("domain")) {
-                    featureName = Feature2D.domain;
-                } else if (path.contains("peak") || path.contains("loop")) {
-                    featureName = Feature2D.peak;
-                } else {
-                    featureName = Feature2D.generic;
-                }
                 // Convention is chr1 is lowest "index". Swap if necessary
                 Feature2D feature;
                 if (useFeature2DWithMotif) {
                     feature = chr1.getIndex() <= chr2.getIndex() ?
-                            new Feature2DWithMotif(featureName, chr1Name, chr1.getIndex(), start1, end1, chr2Name, chr2.getIndex(), start2, end2, c, attrs) :
-                            new Feature2DWithMotif(featureName, chr2Name, chr2.getIndex(), start2, end2, chr1Name, chr1.getIndex(), start1, end1, c, attrs);
+                            new Feature2DWithMotif(featureType, chr1Name, chr1.getIndex(), start1, end1, chr2Name, chr2.getIndex(), start2, end2, c, attrs) :
+                            new Feature2DWithMotif(featureType, chr2Name, chr2.getIndex(), start2, end2, chr1Name, chr1.getIndex(), start1, end1, c, attrs);
                 } else {
                     feature = chr1.getIndex() <= chr2.getIndex() ?
-                            new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                            new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                            new Feature2D(featureType, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                            new Feature2D(featureType, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
                 }
 
                 newList.add(chr1.getIndex(), chr2.getIndex(), feature);
@@ -186,6 +179,16 @@ public class Feature2DParser {
             newList.filterLists(featureFilter);
 
         return newList;
+    }
+
+    private static Feature2D.FeatureType parseTitleForFeatureType(String path) {
+        if (path.contains("block") || path.contains("domain")) {
+            return Feature2D.FeatureType.DOMAIN;
+        } else if (path.contains("peak") || path.contains("loop")) {
+            return Feature2D.FeatureType.PEAK;
+        } else {
+            return Feature2D.FeatureType.GENERIC;
+        }
     }
 
     public static Feature2DList parseHighScoreList(int chrIndex, String chrName, int resolution, List<HighScore> binnedScores) {
@@ -281,20 +284,12 @@ public class Feature2DParser {
                     continue;
                 }
 
-                //int featureNameSepindex = path.lastIndexOf("_");
-                String featureName;// = path.substring(featureNameSepindex + 1);
+                Feature2D.FeatureType featureType = parseTitleForFeatureType(path);
 
-                if (path.contains("block")) {
-                    featureName = Feature2D.domain;
-                } else if (path.contains("peak")) {
-                    featureName = Feature2D.peak;
-                } else {
-                    featureName = Feature2D.generic;
-                }
                 // Convention is chr1 is lowest "index". Swap if necessary
                 Feature2D feature = chr1.getIndex() <= chr2.getIndex() ?
-                        new Feature2D(featureName, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
-                        new Feature2D(featureName, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
+                        new Feature2D(featureType, chr1Name, start1, end1, chr2Name, start2, end2, c, attrs) :
+                        new Feature2D(featureType, chr2Name, start2, end2, chr1Name, start1, end1, c, attrs);
 
                 newList.add(chr1.getIndex(), chr2.getIndex(), feature);
 
@@ -383,18 +378,10 @@ public class Feature2DParser {
                     continue;
                 }
 
-                //int featureNameSepindex = path.lastIndexOf("_");
-                String featureName;// = path.substring(featureNameSepindex + 1);
+                Feature2D.FeatureType featureType = parseTitleForFeatureType(path);
 
-                if (path.contains("block")) {
-                    featureName = Feature2D.domain;
-                } else if (path.contains("peak")) {
-                    featureName = Feature2D.peak;
-                } else {
-                    featureName = Feature2D.generic;
-                }
                 // Convention is chr1 is lowest "index". Swap if necessary
-                Feature2D feature = new Feature2D(featureName, chrAName, startA, endA, chrAName, startA, endA, c, attrs);
+                Feature2D feature = new Feature2D(featureType, chrAName, startA, endA, chrAName, startA, endA, c, attrs);
 
                 newList.add(chrA.getIndex(), chrA.getIndex(), feature);
             }

@@ -202,16 +202,9 @@ public class MatrixZoomData {
                 Block b;
                 if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                     b = blockCache.get(key);
-//                    System.out.println("Cache used 1: "+ key); //TODO delete -  for debugging
                     blockList.add(b);
-///                    if(HiCGlobals.slideshowEnabled){
-//                        System.out.println("NumSlide: " + slideshow.currentSlideNumber() + " slideName: " +
-//                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
-//                    }
-
                 } else {
                     blocksToLoad.add(blockNumber);
-//                    System.out.println("Cache missed used 1"); //TODO delete
                 }
             }
         }
@@ -231,14 +224,8 @@ public class MatrixZoomData {
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
-//                            System.out.println("Cache used 2 " + key); //TODO delete - for debugging
-//                            if(HiCGlobals.slideshowEnabled){
-//                                System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
-//                                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
-//                            }
                         }
                         blockList.add(b);
-//                        System.out.println("Cache missed used 2");// TODO delete
                     } catch (IOException e) {
                         errorCounter.incrementAndGet();
                     }
@@ -295,14 +282,8 @@ public class MatrixZoomData {
                 if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                     b = blockCache.get(key);
                     blockList.add(b);
-//                    System.out.println("Cache used 3: " + key); //TODO delete - for debugging
-//                    if(HiCGlobals.slideshowEnabled){
-//                        System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
-//                                slideshow.currentSlideName(slideshow.currentSlideNumber()));
-//                    }
                 } else {
                     blocksToLoad.add(blockNumber);
-//                    System.out.println("Cache missed used 3");
                 }
             }
         }
@@ -322,15 +303,8 @@ public class MatrixZoomData {
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
-//                            System.out.println("Cache used 4: " + key); //TODO delete -  for debugging
-//                            if(HiCGlobals.slideshowEnabled){
-//                                System.out.println("NumSlide: " + slideshow.currentSlideNumber() + "slideName: " +
-//                                        slideshow.currentSlideName(slideshow.currentSlideNumber()));
-//                            }
-//
                         }
                         blockList.add(b);
-//                        System.out.println("Cache missed 4"); //TODO delete
                     } catch (IOException e) {
                         errorCounter.incrementAndGet();
                     }

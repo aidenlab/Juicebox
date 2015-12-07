@@ -55,7 +55,7 @@ public class ResolutionControl extends JPanel {
     private final HeatmapPanel heatmapPanel;
     private final JideButton lockButton;
     private final JLabel resolutionLabel;
-    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>(); // TODO concurrentmodificationmap?
+    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;

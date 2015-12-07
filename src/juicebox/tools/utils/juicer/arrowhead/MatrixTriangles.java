@@ -234,7 +234,6 @@ class MatrixTriangles {
 
         //System.out.println("Norm "+blockScore.getNorm());
 
-        // TODO change 0.001 to 0
         return BinaryConnectedComponents.detection(blockScore.getData(), 0);
     }
 

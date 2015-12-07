@@ -62,14 +62,7 @@ class BlockResults {
         //System.out.println("CC "+connectedComponents.size());
 
         results = triangles.calculateResults(connectedComponents);
-        plotArrowheadFigures();
-    }
-
-    /**
-     * TODO
-     */
-    private void plotArrowheadFigures() {
-        // TODO
+        // TODO plotArrowheadFigures();
     }
 
     /**

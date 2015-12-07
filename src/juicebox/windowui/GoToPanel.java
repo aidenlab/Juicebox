@@ -364,21 +364,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
             initializeGeneHashMap(genomeID);
         } else {
-            GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
-            GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
-            if (location1 == null) {
-                positionChrTop.setBackground(Color.yellow);
-                log.error("Gene location map doesn't contain " + positionChrTop.getText().trim());
-                return;
-            }
-            if (location2 == null) {
-                positionChrLeft.setBackground(Color.yellow);
-                log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
-                return;
-            }
-            hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
-            hic.centerBP(location1.centerPosition, location2.centerPosition);
-            superAdapter.setNormalizationDisplayState();
+            extractGeneLocation();
+
         }
     }
 
@@ -433,16 +420,20 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         }
         if (geneLocationHashMap != null) this.genomeID = genomeID;
+        extractGeneLocation();
+    }
+
+    private void extractGeneLocation() {
         GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
         GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
         if (location1 == null) {
             positionChrTop.setBackground(Color.yellow);
-            log.error("Gene location map doesn't contain " + positionChrTop.getText().trim());
+            MessageUtils.showMessage("Gene location map doesn't contain " + positionChrTop.getText().trim());
             return;
         }
         if (location2 == null) {
             positionChrLeft.setBackground(Color.yellow);
-            log.error("Gene location map doesn't contain " + positionChrLeft.getText().trim());
+            MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
         hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());

@@ -537,7 +537,7 @@ public class SuperAdapter {
     }
 
     /**
-     * TODO phase out
+     * TODO deprecate
      *
      * @return hic
      */
@@ -546,7 +546,7 @@ public class SuperAdapter {
     }
 
     /**
-     * TODO phase out
+     * TODO deprecate
      *
      * @return mainwindow
      */

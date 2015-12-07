@@ -303,7 +303,6 @@ public class HiCFileTools {
      *
      * @return section of the matrix
      */
-    // TODO how did limStart > limEnd not cause error?
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int binXStart, int binXEnd,
                                                        int binYStart, int binYEnd, int numRows, int numCols,
                                                        NormalizationType normalizationType) throws IOException {

@@ -100,7 +100,7 @@ public class HiCCUPSUtils {
         int pos1 = Math.min(rowPos, colPos);
         int pos2 = Math.max(rowPos, colPos);
 
-        return new Feature2D(Feature2D.peak, chrName, pos1, pos1 + 1, chrName, pos2, pos2 + 1, Color.black, attributes);
+        return new Feature2D(Feature2D.FeatureType.PEAK, chrName, pos1, pos1 + 1, chrName, pos2, pos2 + 1, Color.black, attributes);
     }
 
     /**

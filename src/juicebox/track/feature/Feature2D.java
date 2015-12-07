@@ -45,18 +45,19 @@ import java.util.Map;
  */
 public class Feature2D implements Comparable<Feature2D> {
 
-    public static final String peak = "Peak";
-    public static final String domain = "Contact domain";
-    public static final String generic = "feature";
     protected static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
+
+    //public static final String peak = "Peak";
+    //public static final String domain = "Contact domain";
+    //public static final String generic = "feature";
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
     protected final Map<String, String> attributes;
     final String chr1;
     final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    private final String featureName;
+    private final FeatureType featureType;
     int start1;
     int start2;
     int end1;
@@ -65,9 +66,9 @@ public class Feature2D implements Comparable<Feature2D> {
     private Color color, translucentColor;
     private boolean test = false;
 
-    public Feature2D(String featureName, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
+    public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
                      Map<String, String> attributes) {
-        this.featureName = featureName;
+        this.featureType = featureType;
         this.chr1 = chr1;
         this.start1 = start1;
         this.end1 = end1;
@@ -81,6 +82,19 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public static String getDefaultOutputFileHeader() {
         return genericHeader;
+    }
+
+    public String getFeatureName() {
+        switch (featureType) {
+            case PEAK:
+                return "Peak";
+            case DOMAIN:
+                return "Contact Domain";
+            case GENERIC:
+            case NONE:
+            default:
+                return "Feature";
+        }
     }
 
     public String getChr1() {
@@ -154,7 +168,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
         StringBuilder txt = new StringBuilder();
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
-        txt.append(featureName);
+        txt.append(getFeatureName());
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.topChromosomeColor + ";'>");
@@ -346,7 +360,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public Feature2D reflectionAcrossDiagonal() {
         if (reflection == null) {
-            reflection = new Feature2D(featureName, chr2, start2, end2, chr1, start1, end1, color, attributes);
+            reflection = new Feature2D(featureType, chr2, start2, end2, chr1, start1, end1, color, attributes);
             reflection.reflection = this;
         }
         return reflection;
@@ -421,5 +435,9 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public boolean getTest() {
         return test;
+    }
+
+    public enum FeatureType {
+        NONE, PEAK, DOMAIN, GENERIC
     }
 }

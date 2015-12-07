@@ -61,7 +61,7 @@ public class Feature2DWithMotif extends Feature2D {
     private String MFU2 = "uniqueness_2";
     private int chr1Index, chr2Index;
 
-    public Feature2DWithMotif(String featureName, String chr1, int chr1Index, int start1, int end1,
+    public Feature2DWithMotif(FeatureType featureName, String chr1, int chr1Index, int start1, int end1,
                               String chr2, int chr2Index, int start2, int end2, Color c, Map<String, String> attributes) {
         super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
         this.chr1Index = chr1Index;

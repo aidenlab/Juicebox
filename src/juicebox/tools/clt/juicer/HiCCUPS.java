@@ -172,13 +172,6 @@ public class HiCCUPS extends JuicerCLT {
     private String outputFinalLoopListFileName;
     private HiCCUPSConfiguration[] configurations;
 
-    //public static final int originalPixelClusterRadius = 20000; //TODO --> 10000? original 20000
-    // w1 (40) corresponds to the number of expected bins (so the max allowed expected is 2^(40/3))
-    // w2 (10000) corresponds to the number of reads (so it can't handle pixels with more than 10,000 reads)
-    //private static final int fdr = 10;
-    //private static final int peakWidth = 1;
-    //private static final int window = 3;
-    // defaults are set based on GM12878/IMR90
 
     /*
      * Reasonable Commands
@@ -263,6 +256,7 @@ public class HiCCUPS extends JuicerCLT {
             } else {
                 configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};
                 System.out.println("Default settings for 10kb being used");
+                // TODO - check that ch12, hela, etc use this setting
             }
         }
 
