@@ -62,6 +62,10 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
+    //public static final int bufferSize = 1048576;
+    //public static final int bufferSize = 4194304;
+    public static final int bufferSize = 2097152;
+    //public static final int bufferSize = 102400;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

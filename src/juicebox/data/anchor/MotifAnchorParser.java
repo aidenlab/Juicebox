@@ -24,10 +24,12 @@
 
 package juicebox.data.anchor;
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.HiCTools;
 import juicebox.tools.motifs.GlobalMotifs;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -72,7 +74,7 @@ public class MotifAnchorParser {
                 }
             }
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
             anchors.addAll(parseGlobalMotifFile(reader, chromosomes));
         } catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +106,8 @@ public class MotifAnchorParser {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
-            BufferedReader br = ParsingUtils.openBufferedReader(path);
+            //BufferedReader br = ParsingUtils.openBufferedReader(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
             anchors.addAll(parseGlobalMotifFile(br, chromosomes));
         } catch (IOException ec) {
             ec.printStackTrace();
@@ -201,7 +204,8 @@ public class MotifAnchorParser {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
         try {
-            BufferedReader br = ParsingUtils.openBufferedReader(bedFilePath);
+            //BufferedReader br = ParsingUtils.openBufferedReader(bedFilePath);
+            BufferedReader br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(bedFilePath)), HiCGlobals.bufferSize);
             anchors.addAll(parseBEDFile(br, chromosomes));
         } catch (IOException ec) {
             ec.printStackTrace();
