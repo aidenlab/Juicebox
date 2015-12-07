@@ -25,6 +25,7 @@
 
 package juicebox.encode;
 
+import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.broad.igv.util.HttpUtils;
 import org.broad.igv.util.ParsingUtils;
@@ -87,7 +88,8 @@ class UCSCEncodeUtils {
 
         BufferedReader reader = null;
 
-        reader = ParsingUtils.openBufferedReader(url);
+        //reader = ParsingUtils.openBufferedReader(url);
+        reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(url)), HiCGlobals.bufferSize);
 
         String[] headers = Globals.tabPattern.split(reader.readLine());
 
@@ -115,7 +117,8 @@ class UCSCEncodeUtils {
         List<EncodeFileRecord> records = new ArrayList<EncodeFileRecord>();
 
         BufferedReader reader = null;
-        reader = ParsingUtils.openBufferedReader(inputFile);
+        //reader = ParsingUtils.openBufferedReader(inputFile);
+        reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(inputFile)), HiCGlobals.bufferSize);
 
         String rootPath = reader.readLine();
 
@@ -179,7 +182,8 @@ class UCSCEncodeUtils {
         BufferedReader reader = null;
 
 
-        reader = ParsingUtils.openBufferedReader(url);
+        //reader = ParsingUtils.openBufferedReader(url);
+        reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(url)), HiCGlobals.bufferSize);
         String nextLine;
         while ((nextLine = reader.readLine()) != null) {
 

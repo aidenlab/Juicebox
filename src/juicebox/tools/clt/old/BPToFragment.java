@@ -28,6 +28,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import htsjdk.samtools.util.Locatable;
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.FragmentCalculation;
 import org.broad.igv.util.ParsingUtils;
@@ -53,7 +54,7 @@ public class BPToFragment extends JuiceboxCLT {
         Pattern pattern = Pattern.compile("\\s");
         Map<String, int[]> fragmentMap = new HashMap<String, int[]>();  // Map of chr -> site positions
         try {
-            fragmentReader = new BufferedReader(new FileReader(fragmentFile));
+            fragmentReader = new BufferedReader(new FileReader(fragmentFile), HiCGlobals.bufferSize);
 
             String nextLine;
             while ((nextLine = fragmentReader.readLine()) != null) {
@@ -83,7 +84,7 @@ public class BPToFragment extends JuiceboxCLT {
                 System.out.println("Output directory does not exist, or is not directory");
                 System.exit(1);
             }
-            reader = new BufferedReader(new FileReader(inputFile));
+            reader = new BufferedReader(new FileReader(inputFile), HiCGlobals.bufferSize);
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 String path = nextLine.trim();
@@ -117,7 +118,9 @@ public class BPToFragment extends JuiceboxCLT {
         PrintWriter bedWriter = null;
         try {
 
-            bedReader = ParsingUtils.openBufferedReader(bedFile);
+            //bedReader = ParsingUtils.openBufferedReader(bedFile);
+            bedReader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(bedFile)), HiCGlobals.bufferSize);
+
             bedWriter = new PrintWriter(new BufferedWriter(new FileWriter(outputBedFile)));
 
             String nextLine;

@@ -27,6 +27,8 @@ package juicebox.tools.utils.original;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import juicebox.HiCGlobals;
+import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
 import java.util.HashMap;
@@ -59,9 +61,10 @@ public class AsciiPairIterator implements PairIterator {
             InputStream fileStream = new FileInputStream(path);
             InputStream gzipStream = new GZIPInputStream(fileStream);
             Reader decoder = new InputStreamReader(gzipStream, "UTF8");
-            this.reader = new BufferedReader(decoder);
+            this.reader = new BufferedReader(decoder, 4194304);
         } else {
-            this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
+            //this.reader = org.broad.igv.util.ParsingUtils.openBufferedReader(path);
+            this.reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
         }
         this.chromosomeOrdinals = chromosomeOrdinals;
         advance();

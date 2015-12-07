@@ -28,6 +28,7 @@ package juicebox.tools.utils.original;
 
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
@@ -143,7 +144,7 @@ public class Preprocessor {
                 FileInputStream is = null;
                 try {
                     is = new FileInputStream(statsFileName);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
                     stats = "";
                     String nextLine;
                     while ((nextLine = reader.readLine()) != null) {
@@ -163,7 +164,7 @@ public class Preprocessor {
                 FileInputStream is = null;
                 try {
                     is = new FileInputStream(graphFileName);
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
                     graphs = "";
                     String nextLine;
                     while ((nextLine = reader.readLine()) != null) {
@@ -207,7 +208,7 @@ public class Preprocessor {
 
             System.out.println("Start preprocess");
 
-            los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
+            los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
 
             System.out.println("Writing header");
             writeHeader(stats, graphs);
@@ -1323,7 +1324,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         private void dumpBlocks(File file) throws IOException {
             LittleEndianOutputStream los = null;
             try {
-                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file), 4194304));
 
                 List<BlockPP> blockList = new ArrayList<BlockPP>(blocks.values());
                 Collections.sort(blockList, new Comparator<BlockPP>() {
@@ -1488,7 +1489,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 // Restore
                 FileOutputStream fos = new FileOutputStream(outputFile, true);
                 fos.getChannel().position(losPos);
-                los = new LittleEndianOutputStream(new BufferedOutputStream(fos));
+                los = new LittleEndianOutputStream(new BufferedOutputStream(fos, HiCGlobals.bufferSize));
                 los.setWrittenCount(losPos);
 
             }

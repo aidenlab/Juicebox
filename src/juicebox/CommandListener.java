@@ -115,7 +115,7 @@ class CommandListener implements Runnable {
         BufferedReader in = null;
 
         try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()), HiCGlobals.bufferSize);
             String cmd;
             while (!halt && (cmd = in.readLine()) != null) {
                 if (cmd.toLowerCase().equals("halt")) {

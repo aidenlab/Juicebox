@@ -27,6 +27,7 @@ package juicebox.tools.clt.old;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.JuiceboxCLT;
 
 import java.io.*;
@@ -54,7 +55,7 @@ public class FragmentToBed extends JuiceboxCLT {
         PrintWriter writer = null;
         try {
             File inputFile = new File(filename);
-            reader = new BufferedReader(new FileReader(inputFile));
+            reader = new BufferedReader(new FileReader(inputFile), HiCGlobals.bufferSize);
 
             writer = new PrintWriter(new BufferedWriter(new FileWriter(filename + ".bed")));
 

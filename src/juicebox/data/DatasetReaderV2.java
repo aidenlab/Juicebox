@@ -433,7 +433,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         if (version >= 6) {
 
             //dis = new LittleEndianInputStream(new BufferedInputStream(stream, 512000));
-            dis = new LittleEndianInputStream(new BufferedInputStream(stream, 104857600));
+            dis = new LittleEndianInputStream(new BufferedInputStream(stream, HiCGlobals.bufferSize));
 
             try {
                 nExpectedValues = dis.readInt();

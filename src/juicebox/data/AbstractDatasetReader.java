@@ -25,6 +25,7 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -35,6 +36,7 @@ import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Abstract base class for methods that can be shared by V1 and V2 readers.
@@ -94,6 +96,8 @@ public abstract class AbstractDatasetReader implements DatasetReader {
 
             try {
                 br = ParsingUtils.openBufferedReader(fullPath);
+                br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(fullPath)), HiCGlobals.bufferSize);
+
                 String nextLine = br.readLine();  // The track line, ignored
                 DoubleArrayList arrayList = new DoubleArrayList(10000);  // TODO -- can size this exactly
                 while ((nextLine = br.readLine()) != null) {

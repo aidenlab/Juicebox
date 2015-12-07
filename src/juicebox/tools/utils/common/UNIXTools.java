@@ -24,6 +24,8 @@
 
 package juicebox.tools.utils.common;
 
+import juicebox.HiCGlobals;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -59,7 +61,7 @@ public class UNIXTools {
             Process p = Runtime.getRuntime().exec(command);
             p.waitFor();
             BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    new BufferedReader(new InputStreamReader(p.getInputStream()), HiCGlobals.bufferSize);
 
             String line = "";
             while ((line = reader.readLine()) != null) {
@@ -87,8 +89,7 @@ public class UNIXTools {
 
             System.out.println("Command exec " + p.waitFor());
             //p.waitFor();
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), HiCGlobals.bufferSize);
 
             String line = "";
             while ((line = reader.readLine()) != null) {

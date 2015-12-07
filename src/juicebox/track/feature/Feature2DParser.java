@@ -38,6 +38,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,7 +211,8 @@ public class Feature2DParser {
         int attCol = 4;
 
         try {
-            BufferedReader br = ParsingUtils.openBufferedReader(path);
+            //BufferedReader br = ParsingUtils.openBufferedReader(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
             String nextLine;
 
             // header
@@ -319,7 +321,8 @@ public class Feature2DParser {
         int attCol = 3;
 
         try {
-            BufferedReader br = ParsingUtils.openBufferedReader(path);
+            //BufferedReader br = ParsingUtils.openBufferedReader(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
             String nextLine;
 
             // header

@@ -407,7 +407,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         try {
             SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
 
-            reader = new BufferedReader(new InputStreamReader(stream));
+            reader = new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);

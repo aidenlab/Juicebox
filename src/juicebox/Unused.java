@@ -37,7 +37,7 @@ import java.util.List;
 class Unused {
 
     private void loadNormalizationVector(File file, HiC hic) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)), HiCGlobals.bufferSize);
         String nextLine = reader.readLine();
         String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
         int resolution = Integer.valueOf(tokens[0]);

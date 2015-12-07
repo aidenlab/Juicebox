@@ -24,6 +24,8 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiCGlobals;
+
 import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class FragmentCalculation {
 
     private static FragmentCalculation readFragments(InputStream is) throws IOException {
         Pattern pattern = Pattern.compile("\\s");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         String nextLine;
         Map<String, int[]> sitesMap = new LinkedHashMap<String, int[]>();
 

@@ -62,7 +62,7 @@ class IGVUtils {
             try {
                 socket = new Socket("127.0.0.1", 60151);
                 out = new PrintWriter(socket.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()), HiCGlobals.bufferSize);
                 helper = new SocketHelper(in, out, socket);
             } catch (IOException e) {
                 log.error("IOException", e);

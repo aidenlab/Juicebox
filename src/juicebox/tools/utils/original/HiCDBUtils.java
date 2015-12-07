@@ -24,12 +24,14 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.*;
 import java.util.regex.Pattern;
 
@@ -74,7 +76,8 @@ public class HiCDBUtils {
         BufferedReader reader = null;
 
         try {
-            reader = ParsingUtils.openBufferedReader(annotListFile);
+            //reader = ParsingUtils.openBufferedReader(annotListFile);
+            reader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(annotListFile)), HiCGlobals.bufferSize);
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 if (!nextLine.startsWith("#")) {
@@ -111,7 +114,8 @@ public class HiCDBUtils {
         BufferedReader annotationReader = null;
 
         try {
-            annotationReader = ParsingUtils.openBufferedReader(fragmentFile);
+            //annotationReader = ParsingUtils.openBufferedReader(fragmentFile);
+            annotationReader = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(fragmentFile)), HiCGlobals.bufferSize);
 
             dbConnection = getDBConnection();
             ps = dbConnection.prepareStatement(insertAnnotationSql);
@@ -182,7 +186,7 @@ public class HiCDBUtils {
         BufferedReader fragmentReader = null;
         Pattern pattern = Pattern.compile("\\s");
         try {
-            fragmentReader = new BufferedReader(new FileReader(fragmentFile));
+            fragmentReader = new BufferedReader(new FileReader(fragmentFile), HiCGlobals.bufferSize);
 
             dbConnection = getDBConnection();
             ps = dbConnection.prepareStatement(insertTableSQL);
