@@ -207,7 +207,6 @@ public class ResolutionControl extends JPanel {
                     }
                 };
                 superAdapter.executeLongRunningTask(runnable, "Resolution slider change");
-                runnable.run();
             }
 
             private void unsafeStateChanged(ChangeEvent e, MatrixZoomData zd) {
@@ -322,7 +321,6 @@ public class ResolutionControl extends JPanel {
         }
 
     }
-
 
     public void setZoom(HiCZoom newZoom) {
         unit = newZoom.getUnit();

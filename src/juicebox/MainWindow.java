@@ -185,7 +185,9 @@ public class MainWindow extends JFrame {
      * @return thread
      */
     public Future<?> executeLongRunningTask(final Runnable runnable, final String caller) {
-
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("long_execute " + caller);
+        }
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
                 MainWindow.this.showDisabledGlassPane(caller);

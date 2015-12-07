@@ -576,8 +576,8 @@ public class HiC {
 
         if (dataset == null) return false;  // No data in view
 
-        String chr1OriginalName = xContext.getChromosome().getName();
-        String chr2OriginalName = yContext.getChromosome().getName();
+        //String chr1OriginalName = xContext.getChromosome().getName();
+        //String chr2OriginalName = yContext.getChromosome().getName();
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
         }
