@@ -221,10 +221,18 @@ public class ResolutionControl extends JPanel {
                     hic.setScaleFactor(1.0);
                     hic.setScaleFactor(1.0);
 
-                    double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
-                    double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-                    final int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
-                    final int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
+                    double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / 2);
+                    double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / 2);
+
+                    int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
+                    int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
+
+                    if (xGenome > hic.getXContext().getChrLength()) {
+                        xGenome = hic.getXContext().getChrLength() / 2;
+                    }
+                    if (yGenome > hic.getYContext().getChrLength()) {
+                        yGenome = hic.getYContext().getChrLength() / 2;
+                    }
 
                     if (zd == null) {
                         hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
