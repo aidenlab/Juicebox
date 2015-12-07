@@ -131,7 +131,7 @@ public class HiC {
     }
 
     public void setScaleFactor(double scaleFactor) {
-        this.scaleFactor = Math.min(50, scaleFactor);
+        this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 
     public void setControlDataset(Dataset controlDataset) {

@@ -1,5 +1,4 @@
-About Juicer
---------------
+# Juicer
 Juicer is a platform for analyzing kilobase resolution Hi-C data. In this distribution,
 we include the pipeline for generating Hi-C maps from fastq raw data files and command
 line tools for feature annotation on the Hi-C maps.
@@ -12,8 +11,8 @@ Juicer. If you run into problems, see below for more detailed documentation.
 This example runs on Amazon Web Services, but you can install the pipeline
 on any LSF, Univa Grid Engine, or SLURM cluster.
 
-1. Make sure you're in the top-level directory, with this README and the 
-   Juicer_AWS.pem file.
+1. Make sure you're in the top-level directory, with this README and the
+   Juicer_AWS.pem file. (NOTE: please do not share this .pem file with anyone)
 2. You were given an anonymous IP address. At a command line prompt, type:
       ssh -i Juicer_AWS.pem ubuntu@<given IP address>
 3. This will log you into an AWS instance that contains all the software
@@ -24,11 +23,11 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
       cd MBR19
 5. Run the Juicer pipeline on the raw data, which is stored in the fastq
    directory:
-      /opt/juicer/scripts/juicer.sh
+      /opt/juicer/scripts/juicer.sh -g hg19 -s MboI
 6. You will see a series of messages sending jobs to the cluster. Do not
    kill the script or close the server connection until you see:
       “(-: Finished adding all jobs... please wait while processing.”
-7. At this point you can close the connection and come back later. 
+7. At this point you can close the connection and come back later.
    To see the progress of the pipeline as it works, type:
       bjobs -w
 7. Eventually the bjobs command will report “No unfinished job found”. Type:
@@ -39,11 +38,11 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
    can be loaded in Juicebox and explored. They can also be used for
    automatic feature annotation and to extract matrices at specific
    resolutions.
-   These results also include automatic feature annotation. The output files include 
-   a genome-wide annotation of loops and, whenever possible, the CTCF motifs that anchor 
-   them (identified using the HiCCUPS algorithm). The files also include a genome-wide 
-   annotation of contact domains (identified using the Arrowhead algorithm). The formats 
-   of these files are described in the Juicebox tutorial online; both files can be loaded 
+   These results also include automatic feature annotation. The output files include
+   a genome-wide annotation of loops and, whenever possible, the CTCF motifs that anchor
+   them (identified using the HiCCUPS algorithm). The files also include a genome-wide
+   annotation of contact domains (identified using the Arrowhead algorithm). The formats
+   of these files are described in the Juicebox tutorial online; both files can be loaded
    into Juicebox as a 2D annotation.
 9. To download a file (e.g. inter.hic) from AWS to load into Juicebox, type:
       sftp -i Juicer_AWS.pem ubuntu@<given IP address>
@@ -54,33 +53,31 @@ on any LSF, Univa Grid Engine, or SLURM cluster.
 10. You can also run the pipeline on genome-wide dataset that is lower resolution. Type
       cd /opt/juicer/work/HIC003
    Then
-      /opt/juicer/scripts/juicer.sh
+      /opt/juicer/scripts/juicer.sh -g hg19 -s MboI
    Again the pipeline will run. The results will be available in the aligned directory.
-   Because this is not a deeply sequenced map, loop lists and domain lists will not be 
+   Because this is not a deeply sequenced map, loop lists and domain lists will not be
    produced.
-   
+
 See below for more documentation.
 
 ------------
 Distribution
 ------------
 The files included on the AWS distribution are in /opt/juicer and are:
-*HiCTools          - Juicer binaries TODO change this
 *references        - Genome references
 *restriction_sites - Restriction positions for combinations of reference genome and restriction enzymes
 *scripts           - Juicer main scripts
 *work              - Data samples
+*hic_files         - Internal property file
 
-In this zip file, we include the scripts, reference data, and test data for
-running Juicer on LSF, Univa Grid Engine, and SLURM
-TODO file list goes here, the below seems wrong, we’ll include scripts e.g.
-[[[The files included in this distribution are as follows:
-README
-Juicebox_CLT.jar, juicebox (executable), and juicebox.bat (executable)
-build.xml and juicebox.properties (for compilation from source)
-src (directory containing source code)
-lib (directory containing native libraries for compilation)
-data (directory containing test data)]]]]
+In this zip file, we include the scripts for running Juicer on LSF,
+Univa Grid Engine, and SLURM
+
+/AWS - scripts for running pipeline and postprocessing on AWS
+/UGER - scripts for running pipeline and postprocessing on UGER
+/SLURM - scripts for running pipeline and postprocessing on SLURM
+/juicebox_tools - source files for postprocessing algorithms
+/Juicer_AWS.pem - ssh key to access anonymous AWS server
 
 ----------------------------------
 Hardware and Software Requirements
@@ -107,16 +104,13 @@ Juicer currently works with the following resource management software:
 *
 
 The minimum software requirement to run Juicer is a working Java installation
-(version > 1.6) on Windows, Linux, and Mac OSX.  We recommend using the
+(version >= 1.7) on Windows, Linux, and Mac OSX.  We recommend using the
 latest Java version available, but please do not use the Java Beta Version.
 Minimum system requirements for running Java can be found at
 http://java.com/en/download/help/sysreq.xml
 
 To download and install the latest Java Runtime Environment (JRE), please go
 to http://www.java.com/download
-
-We recommend having at least 2GB free RAM for the best user experience with
-Juicer.
 
 
 *
@@ -153,9 +147,10 @@ access to GPU clusters through Amazon Web Services or a local research
 institution.
 
 *
-* Java 1.8 JDK (for compiling from source files)
+* Java 1.7 or 1.8 JDK (for compiling from source files)
 *
 
+The instructions here are for the Java 1.8 JDK.
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
    http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 (Alternative) For Ubuntu/LinuxMint
@@ -192,7 +187,7 @@ depending on your package installer
 --------------------------------
 Compiling Jars from Source Files
 --------------------------------
-1. You should have Java 1.8 JDK and Apache Ant installed on your system. See
+1. You should have Java 1.7 (or 1.8) JDK and Apache Ant installed on your system. See
    below for more information.
 2. Go to the folder containing the Juicebox source files and edit the
    juicebox.properties file with the proper Java JDK Address.
@@ -211,14 +206,9 @@ We have extensive documentation below for how to use Juicer.
 ------------------------
 Command Line Tools Usage
 ------------------------
-To launch the command line tools, run the shell script “juicebox” on Unix or
-MacOS, run the batch script "juicebox.bat" on Windows, or type
-   java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar (command...)
-      [flags...] <parameters...>
-
-The -Xms512m flag sets the minimum memory heap size at 512 megabytes, and
-the -Xmx2048m flag sets the maximum size at 2048 megabytes (2 gigabytes).
-These values may be adjusted as appropriate for your machine.
+To launch the command line tools, use the shell script “juicebox.sh” on Unix/MacOS
+or type
+   java -jar juicebox_tools.jar (command...) [flags...] <parameters...>
 
 For HiCCUPS loop calling without the shell or bat script, you will need to
 call:
@@ -233,9 +223,8 @@ In the command line tools, there are 4 functions:
 > "motifs" for finding CTCF motifs
 > "arrowhead" for annotating contact domains
 
-The "juicebox" (Mac/Linux) and "juicebox.bat" (Windows) script can be
-used in place of the unwieldy
-"java -Xms512m -Xmx2048m -jar Juicebox_CLT.jar"
+The "juicebox.sh” (Unix/MacOS) script can be used in place of the unwieldy
+	"java -Djava.library.path=path/to/natives/ -jar juicebox_tools.jar"
 
 ---
 APA
@@ -321,7 +310,7 @@ The optional arguments are:
    -c <String(s)> Chromosome(s) on which HiCCUPS will be run. The number/letter for the chromosome can be used with or
        without appending the "chr" string. Multiple chromosomes can be specified using commas (e.g. 1,chr2,X,chrY)
    -r <int(s)> Resolution(s) for which HiCCUPS will be run. Multiple resolutions can be specified using commas
-       (e.g. 25000,10000,5000). Due ot the nature of DNA looping, it is unlikely that loops will be found at
+       (e.g. 25000,10000,5000). Due to the nature of DNA looping, it is unlikely that loops will be found at
        lower resolutions (i.e. 50kB or 100kB)
        IMPORTANT: if multiple resolutions are used, the flags below can be configured so that different parameters are
        used for the different resolutions.
@@ -343,13 +332,9 @@ The optional arguments are:
        > threshold ratio that both the horizontal and vertical filters must exceed
        > threshold ratio that both the donut and bottom left filters must exceed
        > threshold ratio that at least one of the donut and bottom left filters must exceed
-   -d <ints> Distances used for merging centroids across different resolutions. Three values must be given, separated by
-       commas (e.g. 20000,20000,50000). These thresholds (in order) represent:
-       > distance (radius) around centroid used for merging at 5kB resolution (if present)
-       > distance (radius) around centroid used for merging at 10kB resolution (if present)
-       > distance (radius) around centroid used for merging at 25kB resolution (if present)
-       If a resolution (5kB, 10kB, or 25kB) is not available, that centroid distance will be ignored during the merger
-       step (but a distance value should still be passed as a parameter for that resolution e.g. 0)
+   -d <ints> Distances used for merging nearby pixels to a centroid. Different distances can be used for each
+       resolution using commas. (e.g "-r 5000,10000 -d 20000,21000” would merge pixels within 20kB of each
+       other at 5kB resolution and within 21kB at 10kB resolution.
 
 Defaults:
 
@@ -442,14 +427,16 @@ Default settings of optional arguments:
 Arrowhead Examples
 ----------------
 
-arrowhead ch12-lx-b-lymphoblasts_mapq_30.hic contact_domains_list
-  This command will run Arrowhead on a mouse cell line HiC map at resolution 10 kB and save all contact domains
-  to the contact_domains_list file. These are the settings used to generate the official contact domain list on the
-  ch12-lx-b-lymphoblast cell line.
+NOTE: Arrowhead will choose appropriate defaults for HiC files if no specifications are given
 
-arrowhead -r 5000 GM12878_mapq_30.hic contact_domains_list
-  This command will run Arrowhead at resolution 5kB on the GM12878 HiC map and save all contact domains
-  to the contact_domains_list file. These are the settings used to generate the official GM12878
+arrowhead https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic contact_domains_list
+  This command will run Arrowhead on a mouse cell line HiC map (medium resolution) at resolution 10 kB and save all
+  contact domains to the contact_domains_list file. These are the settings used to generate the official contact
+  domain list on the ch12-lx-b-lymphoblast cell line.
+
+arrowhead https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_30.hic contact_domains_list
+  This command will run Arrowhead at resolution 5kB on the GM12878 HiC map (high resolution) and save all contact
+  domains to the contact_domains_list file. These are the settings used to generate the official GM12878
   contact domain list.
 
 -----------------------
