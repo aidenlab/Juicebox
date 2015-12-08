@@ -41,10 +41,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by nchernia on 4/2/15.
@@ -64,54 +64,52 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         super();
         this.hic = superAdapter.getHiC();
         this.superAdapter = superAdapter;
-        setBackground(new Color(238, 238, 238));
-        setBorder(LineBorder.createGrayLineBorder());
-        setLayout(new BorderLayout());
+
+        JLabel goLabel = new JLabel("Goto");
+        goLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         JPanel goLabelPanel = new JPanel();
         goLabelPanel.setBackground(HiCGlobals.backgroundColor);
         goLabelPanel.setLayout(new BorderLayout());
-        JLabel goLabel = new JLabel("Goto");
-        goLabel.setHorizontalAlignment(SwingConstants.CENTER);
         goLabelPanel.add(goLabel, BorderLayout.CENTER);
-        add(goLabelPanel, BorderLayout.PAGE_START);
-        JPanel goButtonPanel = new JPanel();
-        goButtonPanel.setBackground(new Color(238, 238, 238));
-        goButtonPanel.setLayout(new BoxLayout(goButtonPanel, BoxLayout.X_AXIS));
-        positionChrTop = new JTextField();
-        positionChrTop.setFont(new Font("Arial", Font.ITALIC, 10));
-        positionChrTop.setEnabled(false);
-        positionChrTop.addActionListener(this);
-        positionChrTop.addFocusListener(this);
-        //positionChrTop.setPreferredSize(new Dimension(10, 10));
 
+        positionChrTop = initializeGoToTextField();
+        positionChrLeft = initializeGoToTextField();
 
-        positionChrLeft = new JTextField();
-        positionChrLeft.setFont(new Font("Arial", Font.ITALIC, 10));
-        positionChrLeft.setEnabled(false);
-        positionChrLeft.addActionListener(this);
-        positionChrLeft.addFocusListener(this);
-        //positionChrLeft.setPreferredSize(new Dimension(10, 10));
         JPanel goPositionPanel = new JPanel();
         goPositionPanel.setLayout(new BorderLayout());
-
-
         goPositionPanel.add(positionChrTop, BorderLayout.PAGE_START);
         goPositionPanel.add(positionChrLeft, BorderLayout.PAGE_END);
 
-        goButtonPanel.add(goPositionPanel, BorderLayout.PAGE_START);
         goButton = new JideButton();
         goButton.setEnabled(false);
         goButton.setIcon(new ImageIcon(getClass().getResource("/toolbarButtonGraphics/general/Refresh24.gif")));
         goButton.addActionListener(this);
+
+        JPanel goButtonPanel = new JPanel();
+        goButtonPanel.setBackground(new Color(238, 238, 238));
+        goButtonPanel.setLayout(new BoxLayout(goButtonPanel, BoxLayout.X_AXIS));
+        goButtonPanel.add(goPositionPanel, BorderLayout.PAGE_START);
         goButtonPanel.add(goButton);
 
+        setBackground(new Color(238, 238, 238));
+        setBorder(LineBorder.createGrayLineBorder());
+        setLayout(new BorderLayout());
+        add(goLabelPanel, BorderLayout.PAGE_START);
         add(goButtonPanel);
-
         setMinimumSize(new Dimension(100, 70));
         setPreferredSize(new Dimension(120, 70));
         setMaximumSize(new Dimension(200, 70));
     }
 
+    private JTextField initializeGoToTextField() {
+        JTextField textField = new JTextField();
+        textField.setFont(new Font("Arial", Font.ITALIC, 10));
+        textField.setEnabled(false);
+        textField.addActionListener(this);
+        textField.addFocusListener(this);
+        return textField;
+    }
 
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
@@ -141,186 +139,83 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void parsePositionText() {
-        //Expected format: <chr>:<start>-<end>:<resolution>
+        //Expected format 1: <chr>:<start>-<end>:<resolution>
+        //Expected format 2: <chr>:<midpt>:<resolution>
 
         String delimiters = "\\s+|:\\s*|\\-\\s*";
         String dashDelimiters = "\\s+|\\-\\s*";
-        int outBinSize = 0;
-        int outBinLeft = 0;
-        int outBinTop = 0;
-        int estimatedOutBinSize = 0;
-        int topStart = 0;
-        int topEnd = 0;
-        int leftStart = 0;
-        int leftEnd = 0;
 
         String[] leftChrTokens = positionChrLeft.getText().split(delimiters);
         String[] topChrTokens = positionChrTop.getText().split(delimiters);
         String[] leftDashChrTokens = positionChrLeft.getText().split(dashDelimiters);
         String[] topDashChrTokens = positionChrTop.getText().split(dashDelimiters);
 
-        String resolutionUnits = "BP";
-        Chromosome leftChr;
-        Chromosome topChr;
-
-        if (topChrTokens.length == 1) {
+        if (topChrTokens.length == 1 || leftChrTokens.length == 1) {
             parseGenePositionText();
             return;
         }
 
         //Read Chromosomes:
-        //First chromosome:
-        List<Chromosome> chromosomeList = hic.getDataset().getChromosomes();
-
         HashMap<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
-        for (Chromosome c : chromosomeList) {
+        for (Chromosome c : hic.getDataset().getChromosomes()) {
             chromosomeMap.put(c.getName().toLowerCase(), c);
             chromosomeMap.put("chr" + c.getName().toLowerCase(), c);
             if (c.getName().equals("MT")) chromosomeMap.put("chrm", c);
         }
 
-
-        topChr = chromosomeMap.get(topChrTokens[0].toLowerCase());
+        Chromosome topChr = chromosomeMap.get(topChrTokens[0].toLowerCase());
         if (topChr == null) {
             positionChrTop.setBackground(Color.yellow);
             log.error("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
             return;
         }
-        leftChr = chromosomeMap.get(leftChrTokens[0].toLowerCase());
+
+        Chromosome leftChr = chromosomeMap.get(leftChrTokens[0].toLowerCase());
         if (leftChr == null) {
             positionChrLeft.setBackground(Color.yellow);
             log.error("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
             return;
         }
 
-        //Read positions:
-        if (topChrTokens.length > 2 && topDashChrTokens.length > 1) {
-            //Make sure values are numerical:
-            try {
-                topStart = Integer.min(cleanUpNumber(topChrTokens[1]), cleanUpNumber(topChrTokens[2]));
-                topEnd = Integer.max(cleanUpNumber(topChrTokens[1]), cleanUpNumber(topChrTokens[2]));
-            } catch (Exception e) {
-                positionChrTop.setBackground(Color.yellow);
-                log.error("Cannot parse " + topChrTokens[1] + " or " + topChrTokens[2] + ". Expecting int");
-                return;
-            }
-            outBinTop = topStart + ((topEnd - topStart) / 2);
-            int diff = topEnd - topStart;
-            diff = diff / 1000;
-            // TODO replace with simple floor search, also remove magic strings, use hicglobals array
-            if (diff >= 2500000) {
-                estimatedOutBinSize = 2500000;
-            } else if (diff >= 1000000) {
-                estimatedOutBinSize = 1000000;
-            } else if (diff >= 500000) {
-                estimatedOutBinSize = 500000;
-            } else if (diff >= 100000) {
-                estimatedOutBinSize = 100000;
-            } else if (diff >= 50000) {
-                estimatedOutBinSize = 50000;
-            } else if (diff >= 25000) {
-                estimatedOutBinSize = 25000;
-            } else if (diff >= 10000) {
-                estimatedOutBinSize = 10000;
-            } else {
-                estimatedOutBinSize = 5000;
-            }
-
-        } else if (topChrTokens.length > 1) {
-            //Make sure values are numerical:
-            try {
-                outBinTop = cleanUpNumber(topChrTokens[1]);
-            } catch (Exception e) {
-                positionChrTop.setBackground(Color.yellow);
-                log.error("Cannot parse " + topChrTokens[1] + ". Expecting int");
-                return;
-            }
-
+        // chrPositions {start, end, outBin, estimatedOutBinSize}
+        int[] topChrPositions;
+        try {
+            topChrPositions = extractParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
+        } catch (Exception e) {
+            return;
         }
 
-        if (leftChrTokens.length > 2 && leftDashChrTokens.length > 1) {
-            //Make sure values are numerical:
-            try {
-                leftStart = Integer.min(cleanUpNumber(leftChrTokens[1]), cleanUpNumber(leftChrTokens[2]));
-                leftEnd = Integer.max(cleanUpNumber(leftChrTokens[1]), cleanUpNumber(leftChrTokens[2]));
-            } catch (Exception e) {
-                positionChrLeft.setBackground(Color.yellow);
-                log.error("Cannot parse " + leftChrTokens[1] + " or " + leftChrTokens[2] + ". Expecting int");
-                return;
-            }
-            outBinLeft = leftStart + ((leftEnd - leftStart) / 2);
-            int diff = topEnd - topStart;
-            int estimatedOutBinSize2;
-            diff = diff / 1000;
-            if (diff >= 2500000) {
-                estimatedOutBinSize2 = 2500000;
-            } else if (diff >= 1000000) {
-                estimatedOutBinSize2 = 1000000;
-            } else if (diff >= 500000) {
-                estimatedOutBinSize2 = 500000;
-            } else if (diff >= 100000) {
-                estimatedOutBinSize2 = 100000;
-            } else if (diff >= 50000) {
-                estimatedOutBinSize2 = 50000;
-            } else if (diff >= 25000) {
-                estimatedOutBinSize2 = 25000;
-            } else if (diff >= 10000) {
-                estimatedOutBinSize2 = 10000;
-            } else {
-                estimatedOutBinSize2 = 5000;
-            }
-            estimatedOutBinSize = Math.max(estimatedOutBinSize, estimatedOutBinSize2);
-        } else if (leftChrTokens.length > 1) {
-            //Make sure values are numerical:
-            try {
-                outBinLeft = cleanUpNumber(leftChrTokens[1]);
-            } catch (Exception e) {
-                positionChrLeft.setBackground(Color.yellow);
-                log.error("Cannot parse " + leftChrTokens[1] + ". Expecting int");
-                return;
-            }
+        int[] leftChrPositions;
+        try {
+            leftChrPositions = extractParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
+        } catch (Exception e) {
+            return;
         }
 
         //Read resolution:
+        int outBinSize = 0;
+        String resolutionUnits = "BP";
+        int estimatedOutBinSize = Math.max(topChrPositions[3], leftChrPositions[3]);
+
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
-            if (topDashChrTokens.length == 1) {
-                outBinSize = hic.validateBinSize(topChrTokens[2].toLowerCase());
-                if (outBinSize != Integer.MIN_VALUE && topChrTokens[2].toLowerCase().contains("f")) {
+            try {
+                int[] resolutionParameters = extractResolutionParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
+                outBinSize = resolutionParameters[0];
+                if (resolutionParameters[1] < 0) {
                     resolutionUnits = "FRAG";
-                } else {
-                    positionChrTop.setBackground(Color.yellow);
-                    log.error("Invalid resolution " + topChrTokens[2].toLowerCase());
-                    return;
                 }
-            } else if (topChrTokens.length > 3) {
-                outBinSize = hic.validateBinSize(topChrTokens[3].toLowerCase());
-                if (outBinSize != Integer.MIN_VALUE && topChrTokens[3].toLowerCase().contains("f")) {
-                    resolutionUnits = "FRAG";
-                } else if (outBinSize == Integer.MIN_VALUE) {
-                    positionChrTop.setBackground(Color.yellow);
-                    log.error("Invalid resolution " + topChrTokens[3].toLowerCase());
-                    return;
-                }
+            } catch (Exception e) {
+                return;
             }
         } else if (leftChrTokens.length > 3 || (leftDashChrTokens.length == 1 && leftChrTokens.length > 2)) {
-            if (leftDashChrTokens.length == 1) {
-                outBinSize = hic.validateBinSize(leftChrTokens[2].toLowerCase());
-                if (outBinSize != Integer.MIN_VALUE && leftChrTokens[2].toLowerCase().contains("f")) {
+            try {
+                int[] resolutionParameters = extractResolutionParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
+                outBinSize = resolutionParameters[0];
+                if (resolutionParameters[1] < 0) {
                     resolutionUnits = "FRAG";
-                } else if (outBinSize == Integer.MIN_VALUE) {
-                    positionChrLeft.setBackground(Color.yellow);
-                    log.error("Invalid resolution " + leftChrTokens[2].toLowerCase());
-                    return;
                 }
-            } else if (leftChrTokens.length > 3) {
-                outBinSize = hic.validateBinSize(leftChrTokens[3].toLowerCase());
-                if (outBinSize != Integer.MIN_VALUE && leftChrTokens[3].toLowerCase().contains("f")) {
-                    resolutionUnits = "FRAG";
-                } else {
-                    positionChrLeft.setBackground(Color.yellow);
-                    log.error("Invalid resolution " + leftChrTokens[3].toLowerCase());
-                    return;
-                }
+            } catch (Exception e) {
+                return;
             }
         } else if (estimatedOutBinSize > 0) {
             outBinSize = estimatedOutBinSize;
@@ -329,24 +224,99 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             if (outBinSize != Integer.MIN_VALUE) {
                 resolutionUnits = hic.getZoom().getUnit().toString();
             }
-
         }
 
         positionChrTop.setBackground(Color.white);
         positionChrLeft.setBackground(Color.white);
 
         if (outBinSize == Integer.MIN_VALUE) {
-            // If bin size is not valid, set to max bin size:
-            outBinSize = 250000;
+            outBinSize = 250000; // If bin size is not valid, set to max bin size
         }
 
         hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
-        if (outBinTop > 0 && outBinLeft > 0) {
-            hic.centerBP(outBinTop, outBinLeft);
+        if (topChrPositions[2] > 0 && leftChrPositions[2] > 0) {
+            hic.centerBP(topChrPositions[2], leftChrPositions[2]);
         }
 
-        //We might end with ALL->All view, make sure normalization state is updates accordingly...
+        //We might end with All->All view, make sure normalization state is updates accordingly...
         superAdapter.setNormalizationDisplayState();
+    }
+
+    private int[] extractResolutionParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) {
+        int outBinSize = 0;
+        int resolutionUnits = 1;//BP
+
+        if (dashChrTokens.length == 1) {
+            outBinSize = hic.validateBinSize(chrTokens[2].toLowerCase());
+            if (outBinSize != Integer.MIN_VALUE && chrTokens[2].toLowerCase().contains("f")) {
+                resolutionUnits = -1; //FRAG
+            } else if (outBinSize == Integer.MIN_VALUE) {
+                positionChr.setBackground(Color.yellow);
+                log.error("Invalid resolution " + chrTokens[2].toLowerCase());
+            }
+        } else if (chrTokens.length > 3) {
+            outBinSize = hic.validateBinSize(chrTokens[3].toLowerCase());
+            if (outBinSize != Integer.MIN_VALUE && chrTokens[3].toLowerCase().contains("f")) {
+                resolutionUnits = -1; //FRAG
+            } else if (outBinSize == Integer.MIN_VALUE) {
+                positionChr.setBackground(Color.yellow);
+                log.error("Invalid resolution " + chrTokens[3].toLowerCase());
+            }
+        }
+        return new int[]{outBinSize, resolutionUnits};
+    }
+
+    private int[] extractParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) throws IOException {
+        //Read positions:
+        int start = 0, end = 0, outBin = 0, estimatedOutBinSize = 0;
+        if (chrTokens.length > 2 && dashChrTokens.length > 1) {
+            //Make sure values are numerical:
+            try {
+                start = Integer.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+                end = Integer.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+            } catch (Exception e) {
+                log.error("Cannot parse " + chrTokens[1] + " or " + chrTokens[2] + ". Expecting int");
+                positionChr.setBackground(Color.yellow);
+                throw new IOException();
+            }
+            outBin = start + ((end - start) / 2);
+            int diff = end - start;
+            estimatedOutBinSize = getEstimationOfAppropriateZoomLevel(diff);
+
+        } else if (chrTokens.length > 1) {
+            //Make sure values are numerical:
+            try {
+                outBin = cleanUpNumber(chrTokens[1]);
+            } catch (Exception e) {
+                log.error("Cannot parse " + chrTokens[1] + ". Expecting int");
+                positionChr.setBackground(Color.yellow);
+                throw new IOException();
+            }
+        }
+        return new int[]{start, end, outBin, estimatedOutBinSize};
+    }
+
+    // TODO this should get map keys from official list of resolutions, sort the list, then return appropriately
+    private int getEstimationOfAppropriateZoomLevel(int diff0) {
+        // divide because the width from x1 to x2 in chromosome should be significantly bigger then the resolution
+        int diff = diff0 / 1000;
+        if (diff >= 2500000) {
+            return 2500000;
+        } else if (diff >= 1000000) {
+            return 1000000;
+        } else if (diff >= 500000) {
+            return 500000;
+        } else if (diff >= 100000) {
+            return 100000;
+        } else if (diff >= 50000) {
+            return 50000;
+        } else if (diff >= 25000) {
+            return 25000;
+        } else if (diff >= 10000) {
+            return 10000;
+        } else {
+            return 5000;
+        }
     }
 
     private int cleanUpNumber(String number) {
@@ -365,7 +335,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             initializeGeneHashMap(genomeID);
         } else {
             extractGeneLocation();
-
         }
     }
 

@@ -653,6 +653,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
+        // TODO - can we remove this second option and just have a copy position to clipboard? Is this used?
         final JCheckBoxMenuItem mi8 = new JCheckBoxMenuItem("Copy left position to clipboard");
         mi8.addActionListener(new ActionListener() {
             @Override

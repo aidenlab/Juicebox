@@ -48,9 +48,6 @@ public class Feature2D implements Comparable<Feature2D> {
     protected static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
 
-    //public static final String peak = "Peak";
-    //public static final String domain = "Contact domain";
-    //public static final String generic = "feature";
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
     protected final Map<String, String> attributes;

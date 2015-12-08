@@ -447,8 +447,8 @@ public class HiCCUPSUtils {
         //strong.setAttributeFieldForAll(FilterStage, "55");
         mergedList.add(strong);
 
-        // filter duplicates
-        // TODO mergedList.removeDuplicates();
+        // TODO expand filter duplicates?
+        mergedList.removeDuplicates();
 
         return mergedList;
     }

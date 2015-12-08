@@ -241,6 +241,5 @@ public class EigenvectorTrack extends HiCTrack {
         g2.translate(-x, 0);
         g2.drawString(string, x, y);
         g2.setTransform(orig);
-
     }
 }

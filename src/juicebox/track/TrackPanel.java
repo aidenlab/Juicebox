@@ -207,7 +207,6 @@ public class TrackPanel extends JPanel {
         Graphics2D graphics = (Graphics2D) g;
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-
         AffineTransform t = graphics.getTransform();
         if (orientation == Orientation.Y) {
             AffineTransform rotateTransform = new AffineTransform();
@@ -215,7 +214,6 @@ public class TrackPanel extends JPanel {
             rotateTransform.scale(1, -1);
             graphics.transform(rotateTransform);
         }
-
 
         trackRectangles.clear();
         java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
