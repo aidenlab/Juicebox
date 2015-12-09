@@ -350,7 +350,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
                 for (Feature2D feature2D : cLoops) {
-                    if (!feature2D.isOnDiagonal()) {
+                    if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
                         cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
                     }
                 }
