@@ -44,40 +44,40 @@ public class CustomAnnotationHandler {
     private final int threshold = 10;
     private Rectangle selectionRegion;
     private Point selectionPoint;
-    private Feature2D.FeatureType featureType;
+    private FeatureType featureType;
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
 
     public CustomAnnotationHandler() {
-        featureType = Feature2D.FeatureType.NONE;
+        featureType = FeatureType.NONE;
         resetSelection();
     }
 
     private void resetSelection() {
         selectionRegion = null;
         selectionPoint = null;
-        featureType = Feature2D.FeatureType.NONE;
+        featureType = FeatureType.NONE;
     }
 
     public boolean isEnabled() {
-        return featureType != Feature2D.FeatureType.NONE;
+        return featureType != FeatureType.NONE;
     }
 
     public boolean isPeak() {
-        return featureType == Feature2D.FeatureType.PEAK;
+        return featureType == FeatureType.PEAK;
     }
 
     public void doGeneric() {
-        featureType = Feature2D.FeatureType.GENERIC;
+        featureType = FeatureType.GENERIC;
     }
 
     public void doPeak() {
-        featureType = Feature2D.FeatureType.PEAK;
+        featureType = FeatureType.PEAK;
     }
 
     private void doDomain() {
-        featureType = Feature2D.FeatureType.DOMAIN;
+        featureType = FeatureType.DOMAIN;
     }
 
     // Update selection region from new rectangle
@@ -147,107 +147,40 @@ public class CustomAnnotationHandler {
         int width = selectionRegion.width - 1;
         int height = selectionRegion.height - 1;
 
+        start1 = geneXPos(hic, x, 0);
+        end1 = geneXPos(hic, x + width, 0) - 1;
 
-        switch (featureType) {
-            case GENERIC:
-                start1 = geneXPos(hic, x, 0);
+        // Snap if close to diagonal
+        if (chr1Idx == chr2Idx && nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)) {
+            // Snap to min of horizontal stretch and vertical stretch
+            if (width <= y) {
+                start2 = start1;
+                end2 = end1;
+            } else {
                 start2 = geneYPos(hic, y, 0);
-                end1 = geneXPos(hic, x + width, 0);
-                end2 = geneYPos(hic, y + height, 0);
-                newFeature = new Feature2D(Feature2D.FeatureType.GENERIC, chr1, start1, end1, chr2, start2, end2,
-                        java.awt.Color.orange, attributes);
-                customAnnotations.add(chr1Idx, chr2Idx, newFeature);
-                break;
-            case PEAK:
-                start1 = geneXPos(hic, selectionPoint.x, -1 * peakDisplacement);
-                end1 = geneXPos(hic, selectionPoint.x, peakDisplacement) - 1;
+                end2 = geneYPos(hic, y + height, 0) - 1;
+                start1 = start2;
+                end1 = end2;
+            }
+            // Otherwise record as drawn
+        } else {
+            start2 = geneYPos(hic, y, 0);
+            end2 = geneYPos(hic, y + height, 0) - 1;
+        }
 
-                if (chr1Idx == chr2Idx && nearDiagonal(hic, selectionPoint.x, selectionPoint.y)) {
-                    start2 = start1;
-                    end2 = end1;
-                } else {
-                    //Displacement inside before geneYPos scales to resolution
-                    start2 = geneYPos(hic, selectionPoint.y, -1 * peakDisplacement);
-                    end2 = geneYPos(hic, selectionPoint.y, peakDisplacement) - 1;
-                }
-
-                //UNCOMMENT to take out annotation data
-                boolean exportData = true;
-                if (exportData) {
-                    int tempBinX0 = getXBin(hic, selectionPoint.x);
-                    int tempBinY0 = getYBin(hic, selectionPoint.y);
-                    int tempBinX, tempBinY;
-                    try {
-                        final MatrixZoomData zd = hic.getZd();
-
-                        float observedValue;
-
-                        for (int i = -1 * peakDisplacement; i <= peakDisplacement; i++) {
-                            tempBinX = tempBinX0 + i;
-                            for (int j = -1 * peakDisplacement; j <= peakDisplacement; j++) {
-                                tempBinY = tempBinY0 + j;
-                                observedValue = hic.getNormalizedObservedValue(tempBinX, tempBinY);
-
-                                double ev = zd.getAverageCount();
-                                ExpectedValueFunction df = hic.getExpectedValues();
-                                if (df != null) {
-                                    int distance = Math.abs(tempBinX - tempBinY);
-                                    ev = df.getExpectedValue(chr1Idx, distance);
-
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // Check if peak out of bounds
-                if (end1 > rightBound || end2 > bottomBound)
-                    return;
-
-                newFeature = new Feature2D(Feature2D.FeatureType.PEAK, chr1, start1, end1, chr2, start2, end2,
-                        Color.DARK_GRAY, attributes);
-                customAnnotations.add(chr1Idx, chr2Idx, newFeature);
-                break;
-            case DOMAIN:
-                start1 = geneXPos(hic, x, 0);
-                end1 = geneXPos(hic, x + width, 0) - 1;
-
-                // Snap if close to diagonal
-                if (chr1Idx == chr2Idx && nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)) {
-                    // Snap to min of horizontal stretch and vertical stretch
-                    if (width <= y) {
-                        start2 = start1;
-                        end2 = end1;
-                    } else {
-                        start2 = geneYPos(hic, y, 0);
-                        end2 = geneYPos(hic, y + height, 0) - 1;
-                        start1 = start2;
-                        end1 = end2;
-                    }
-                    // Otherwise record as drawn
-                } else {
-                    start2 = geneYPos(hic, y, 0);
-                    end2 = geneYPos(hic, y + height, 0) - 1;
-                }
-
-                // Make sure bounds aren't unreasonable (out of HiC map)
+        // Make sure bounds aren't unreasonable (out of HiC map)
 //                int rightBound = hic.getChromosomes().get(0).getLength();
 //                int bottomBound = hic.getChromosomes().get(1).getLength();
-                start1 = Math.min(Math.max(start1, leftBound), rightBound);
-                start2 = Math.min(Math.max(start2, leftBound), bottomBound);
-                end1 = Math.max(Math.min(end1, rightBound), leftBound);
-                end2 = Math.max(Math.min(end2, bottomBound), leftBound);
+        start1 = Math.min(Math.max(start1, leftBound), rightBound);
+        start2 = Math.min(Math.max(start2, leftBound), bottomBound);
+        end1 = Math.max(Math.min(end1, rightBound), leftBound);
+        end2 = Math.max(Math.min(end2, bottomBound), leftBound);
 
-                // Add new feature
-                newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                        Color.GREEN, attributes);
-                customAnnotations.add(chr1Idx, chr2Idx, newFeature);
-                break;
-            default:
-                resetSelection();
-        }
+        // Add new feature
+        newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
+                Color.GREEN, attributes);
+        customAnnotations.add(chr1Idx, chr2Idx, newFeature);
+
     }
 
     public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
@@ -323,4 +256,10 @@ public class CustomAnnotationHandler {
     private int getYBin(HiC hic, int y) {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
+
+    // TODO merge with Feature2D as public enum type
+    enum FeatureType {
+        NONE, PEAK, DOMAIN, GENERIC
+    }
+
 }
