@@ -75,6 +75,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final MainWindow mainWindow;
     private final HiC hic;
     private final SuperAdapter superAdapter;
+    private final int RESIZE_SNAP = 5;
     /**
      * Image tile width in pixels
      */
@@ -304,7 +305,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     x = (int) (xBin * scaleFactor);
                     g.drawLine(x, 0, x, getTickHeight(zd));
                 }
-
 
                 int yGenomeCoord = 0;
                 int y = 0;
@@ -1184,6 +1184,27 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Add a new loop if it was resized (prevents deletion on single click)
                 if (MainMenuBar.customAnnotations.hasLoop(idx1, idx2, loop) && changedSize == true) {
                     MainMenuBar.customAnnotations.removeFromList(idx1, idx2, loop);
+
+                    // Snap to nearest neighbor, if close enough
+                    MatrixZoomData zd = null;
+                    try {
+                        zd = hic.getZd();
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                    List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), e.getX(), e.getY(), NUM_NEIGHBORS);
+                    // Look for left neighbors
+                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                        for (Pair<Rectangle, Feature2D> neighbor : neighbors){
+                            double neighborEdge = neighbor.getFirst().getX() + neighbor.getFirst().getWidth();
+
+                        }
+                    // Look for right neighbors
+                    } else {
+
+                    }
+
+
                     MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
                     MainMenuBar.customAnnotationHandler.setLastItem(idx1, idx2, loop);
                 }
@@ -1319,9 +1340,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     double rectX;
                     double rectY;
 
+                    // Resizing upper left corner
                     if (adjustAnnotation == AdjustAnnotation.LEFT) {
                         rectX = annotateRectangle.getX() + annotateRectangle.getWidth();
                         rectY = annotateRectangle.getY() + annotateRectangle.getHeight();
+                    // Resizing lower right corner
                     } else {
                         rectX = annotateRectangle.getX();
                         rectY = annotateRectangle.getY();
