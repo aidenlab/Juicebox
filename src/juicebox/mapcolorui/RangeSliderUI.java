@@ -478,14 +478,19 @@ class RangeSliderUI extends BasicSliderUI {
     public void setDisplayToPreDef(boolean isPreDef) {
 
         this.colorIsPreDef = isPreDef;
+        if (MainViewPanel.preDefMapColorFractions.size() == 0)
+        {
+            return;
+        }
         int colorArraySize = MainViewPanel.preDefMapColorFractions.size();
         gradientColorsPreDef = MainViewPanel.preDefMapColorGradient.toArray(new Color[colorArraySize]);
 
         fractionsPreDef = new float[colorArraySize];
         int i = 0;
 
-        for (Float f : MainViewPanel.preDefMapColorFractions) {
-            fractionsPreDef[i++] = (f != null ? f : Float.NaN);
+        float fractionSize = 1.0f / colorArraySize;
+        for (;i < colorArraySize; i++){
+            fractionsPreDef[i] = fractionSize * i;
         }
 
         this.preDefColorMax = PreDefColorScale.defaultMaxPreDefVal;

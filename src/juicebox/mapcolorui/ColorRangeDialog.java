@@ -193,8 +193,8 @@ class ColorRangeDialog extends JDialog {
             }
         });
 
-        colorChooserButton.setEnabled(!MainViewPanel.preDefMapColor);
-        contentPanel.add(panel5);
+//        colorChooserButton.setEnabled(!MainViewPanel.preDefMapColor);
+//        contentPanel.add(panel5);
 
         final JButton paletteChooserButton = new JButton("Create gradient");
         paletteChooserButton.setSize(50, 50);
@@ -237,17 +237,17 @@ class ColorRangeDialog extends JDialog {
                 paletteChooserButton.setEnabled(val);
             }
         });
-        ButtonGroup group = new ButtonGroup();
-        group.add(rColor);
-        group.add(rGradient);
+//        ButtonGroup group = new ButtonGroup();
+//        group.add(rColor);
+//        group.add(rGradient);
 
-        panel5.add(rColor);
-        panel5.add(colorChooserButton);
-        panel6.add(rGradient);
+//        panel5.add(rColor);
+//        panel5.add(colorChooserButton);
+//        panel6.add(rGradient);
 
-        panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
-        panel6.add(paletteChooserButton);
-        contentPanel.add(panel6);
+//        panel6.setLayout(new FlowLayout(FlowLayout.LEADING));
+//        panel6.add(paletteChooserButton);
+//        contentPanel.add(panel6);
 
         dialogPane.add(contentPanel, BorderLayout.CENTER);
 

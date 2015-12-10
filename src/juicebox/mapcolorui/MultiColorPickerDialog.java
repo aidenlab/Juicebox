@@ -68,8 +68,8 @@ class MultiColorPickerDialog extends JDialog {
 
         chooserPanel.add(chooser);
 
-        prvPanel1.add(new JLabel("RGB"));
-        prvPanel2.add(new JLabel("Pick"));
+        prvPanel1.add(new JLabel("RGB "));
+        prvPanel2.add(new JLabel("Pick "));
         prvPanel3.add(new JLabel("Clear"));
 
         for (int idx = 0; idx < 24; idx++) {
@@ -96,12 +96,14 @@ class MultiColorPickerDialog extends JDialog {
             bChoose[x].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    //bColor[x].setVisible(true);
                     bColor[x].setBackground(chooser.getColor());
                 }
             });
             bDelete[x].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    //bColor[x].setVisible(false);
                     bColor[x].setBackground(defaultColor);
                 }
             });
@@ -134,7 +136,7 @@ class MultiColorPickerDialog extends JDialog {
 
                 //todo - make the bColor add/remove behavior instead.
                 for (JButton aBColor : bColor) {
-                    if (aBColor.isVisible())
+                    if (aBColor.getBackground() != defaultColor)
                         MainViewPanel.preDefMapColorGradient.add(aBColor.getBackground());
                 }
 
