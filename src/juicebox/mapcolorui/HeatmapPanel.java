@@ -500,9 +500,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //           if (scaleFactor > 0.999 && scaleFactor < 1.001) {
             tile = new ImageTile(image, bx0, by0);
             tileCache.put(key, tile);
-            if(HiCGlobals.slideshowEnabled) {
-            tileCache.put(key,tile);
-            }
+            //if(HiCGlobals.slideshowEnabled) {
+            //tileCache.put(key,tile);
+            //}
         }
         //System.out.println("tile: "+key); //TODO for debugging
         return tile;

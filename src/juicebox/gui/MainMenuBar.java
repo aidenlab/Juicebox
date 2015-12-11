@@ -25,7 +25,6 @@
 package juicebox.gui;
 
 import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
@@ -539,7 +538,7 @@ public class MainMenuBar {
 
             private static final long serialVersionUID = 4205L;
 
-            public void onSelectPosition(final String mapPath) {
+            public void onSelectPosition(String mapPath) {
                 superAdapter.launchLoadStateFromXML(mapPath);
             }
 
@@ -570,7 +569,7 @@ public class MainMenuBar {
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport, MainWindow.getInstance());
+                new SaveFileDialog(fileForExport);
             }
         });
 

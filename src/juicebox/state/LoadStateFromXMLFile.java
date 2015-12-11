@@ -133,17 +133,8 @@ public class LoadStateFromXMLFile {
         double upColor = doubleInfo[5];
         double maxColor = doubleInfo[6];
 
-        // TODO only do this if not identical to current file
-        List<String> controlURLs = Arrays.asList(mapURLs.split("\\,"));
-        if(controlURLs.size()>1) {
-            List<String> mainMapURLs = Arrays.asList(controlURLs.get(0).split("\\@\\@"));
-            superAdapter.unsafeLoadWithTitleFix(mainMapURLs,false,mapNames);
-            List<String> controlMapURLs = Arrays.asList(controlURLs.get(1).split("\\@\\@"));
-            superAdapter.unsafeLoadWithTitleFix(controlMapURLs,true,mapNames);
-        } else{
-            List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
-            superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
-        }
+        List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
+        superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
 
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());

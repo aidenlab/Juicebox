@@ -58,7 +58,7 @@ public class XMLFileHandling {
         String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
         String controlURLs = SuperAdapter.currentlyLoadedControlFiles;
 
-        String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "," +controlURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
+        String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                 hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getNormalizationType().name()
                 + "$$" + colorVals;
