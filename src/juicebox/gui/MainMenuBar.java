@@ -40,7 +40,9 @@ import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 /**
@@ -72,8 +74,9 @@ public class MainMenuBar {
     private static LoadEncodeAction encodeAction;
     private static LoadAction trackLoadAction;
     private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
+    // created separately because it will be enabled after an initial map is loaded
+    private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
-
 
     public LoadAction getTrackLoadAction() {
         return trackLoadAction;
@@ -89,7 +92,6 @@ public class MainMenuBar {
         unsavedEdits = temp.exists();
         return unsavedEdits;
     }
-
 
     public void addRecentMapMenuEntry(String title, boolean status) {
         recentMapMenu.addEntry(title, status);
@@ -113,22 +115,23 @@ public class MainMenuBar {
         fileMenu.setMnemonic('F');
 
         //---- openMenuItem ----
-        JMenuItem openItem = new JMenuItem("Open...");
 
-        openItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadFromListActionPerformed(false);
-            }
-        });
-        fileMenu.add(openItem);
-
-        JMenuItem loadControlFromList = new JMenuItem();
+        // create control first because it is enabled by regular open
         loadControlFromList.setText("Open Control...");
         loadControlFromList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.loadFromListActionPerformed(true);
             }
         });
+        loadControlFromList.setEnabled(false);
+
+        JMenuItem openItem = new JMenuItem("Open...");
+        openItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.loadFromListActionPerformed(false);
+            }
+        });
+        fileMenu.add(openItem);
         fileMenu.add(loadControlFromList);
 
         recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
@@ -638,5 +641,9 @@ public class MainMenuBar {
 
     public void updatePrevStateNameFromImport(String path) {
         previousStates.updateNamesFromImport(path);
+    }
+
+    public void setContolMapLoadableEnabled(boolean status) {
+        loadControlFromList.setEnabled(status);
     }
 }

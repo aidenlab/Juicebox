@@ -429,6 +429,8 @@ public class SuperAdapter {
             } else {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
+
+            mainMenuBar.setContolMapLoadableEnabled(true);
             //refresh(); // an additional refresh seems to remove the upper left black corner
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");

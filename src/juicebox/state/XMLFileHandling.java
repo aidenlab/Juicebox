@@ -56,14 +56,14 @@ public class XMLFileHandling {
         String currentTrackName = "";
         String configTrackInfo = "none";
         String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
-        String controlURLs = superAdapter.currentlyLoadedControlFiles;
+        String controlURLs = SuperAdapter.currentlyLoadedControlFiles;
 
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "," +controlURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                 hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getNormalizationType().name()
                 + "$$" + colorVals;
 
-        //System.out.println(textToWrite); //TODO for debuggging
+        //System.out.println(textToWrite); //TODO for debugging
 
         if (currentTracks != null && !currentTracks.isEmpty()) {
             for (HiCTrack track : currentTracks) {
