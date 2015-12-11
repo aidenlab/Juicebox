@@ -218,11 +218,27 @@ public class ResolutionControl extends JPanel {
 
                 if (hic.getXContext() != null) {
 
-                    double centerBinX = hic.getXContext().getBinOrigin() + (heatmapPanel.getWidth() / (2 * hic.getScaleFactor()));
-                    double centerBinY = hic.getYContext().getBinOrigin() + (heatmapPanel.getHeight() / (2 * hic.getScaleFactor()));
-
+                    double scaledXWidth = heatmapPanel.getWidth() / hic.getScaleFactor();
+                    double scaledYHeight = heatmapPanel.getHeight() / hic.getScaleFactor();
+                    double centerBinX = hic.getXContext().getBinOrigin() + scaledXWidth / 2;
+                    double centerBinY = hic.getYContext().getBinOrigin() + scaledYHeight / 2;
                     int xGenome = zd.getXGridAxis().getGenomicMid(centerBinX);
                     int yGenome = zd.getYGridAxis().getGenomicMid(centerBinY);
+
+                    // this to center zooming when there is lots of whitespace in the margins
+                    try {
+                        if (heatmapPanel.getWidth() > hic.getZd().getXGridAxis().getBinCount() / hic.getScaleFactor()) {
+                            xGenome = hic.getXContext().getChrLength() / 2;
+                        }
+                    } catch (Exception ee) {
+                    }
+
+                    try {
+                        if (heatmapPanel.getHeight() > hic.getZd().getYGridAxis().getBinCount() / hic.getScaleFactor()) {
+                            yGenome = hic.getYContext().getChrLength() / 2;
+                        }
+                    } catch (Exception ee) {
+                    }
 
                     if (zd == null) {
                         hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
