@@ -25,6 +25,7 @@
 package juicebox.gui;
 
 import juicebox.HiCGlobals;
+import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
@@ -39,9 +40,7 @@ import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 
 /**
@@ -526,6 +525,7 @@ public class MainMenuBar {
                 temp = mapPath.split(delimiter);
                 superAdapter.restoreLocation(temp[1]);
                 superAdapter.setNormalizationDisplayState();
+
             }
         };
         recentLocationMenu.setMnemonic('S');
@@ -536,10 +536,25 @@ public class MainMenuBar {
 
             private static final long serialVersionUID = 4205L;
 
-            public void onSelectPosition(String mapPath) {
+            public void onSelectPosition(final String mapPath) {
                 superAdapter.launchLoadStateFromXML(mapPath);
             }
+
         };
+
+            /*previousStates.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    super.mouseClicked(e);
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+                        System.out.println("Left Click");
+                        //superAdapter.launchLoadStateFromXML(mapPath);
+                    } else if (SwingUtilities.isRightMouseButton(e)) {
+                        //previousStates.rightClickMenu(mapPath);
+                        System.out.println("Right Click");
+                    }
+                }
+            });*/
         previousStates.setEnabled(true);
         bookmarksMenu.add(previousStates);
 
@@ -552,7 +567,7 @@ public class MainMenuBar {
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport);
+                new SaveFileDialog(fileForExport, MainWindow.getInstance());
             }
         });
 

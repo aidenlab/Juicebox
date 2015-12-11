@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.w3c.dom.Document;
@@ -109,17 +110,6 @@ public abstract class RecentMenu extends JMenu {
         });
         addSeparator();
         add(clearMapList);
-    }
-
-    public String getRecentMapName() {
-        String recentMapName = "";
-        /*String delimeter = "@@";
-        String[] temp;*/
-        if (m_items.get(0) != null && !m_items.get(0).equals("")) {
-            //temp = m_items.get(0).split(delimeter);
-            recentMapName += m_items.get(0);
-        }
-        return recentMapName;
     }
 
     /**
@@ -257,5 +247,56 @@ public abstract class RecentMenu extends JMenu {
 
     }
 
+    /*public void rightClickRemove(String mapPath){
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            File file = new File(HiCGlobals.xmlSavedStatesFileName);
+            Document doc = db.parse(file);
+
+            NodeList nodeList = doc.getElementsByTagName("STATE");
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+
+                if (nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue().equals(mapPath)) {
+                    nodeList.item(i).getParentNode().removeChild(nodeList.item(i));
+                }
+
+            }
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File(HiCGlobals.xmlSavedStatesFileName));
+            transformer.transform(source, result);
+
+
+        } catch (ParserConfigurationException pce) {
+            pce.printStackTrace();
+        } catch (SAXException sax) {
+            sax.printStackTrace();
+        } catch (IOException io) {
+            io.printStackTrace();
+        } catch (TransformerConfigurationException tce) {
+            tce.printStackTrace();
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
+
+    }
+
+    public JPopupMenu rightClickMenu(final String mapPath){
+        JPopupMenu rightMenu = new JPopupMenu(getName());
+
+        JMenuItem removeState = new JMenuItem("Remove State");
+        removeState.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                rightClickRemove(mapPath);
+            }
+        });
+        rightMenu.add(removeState);
+        return rightMenu;
+    }*/
 
 }

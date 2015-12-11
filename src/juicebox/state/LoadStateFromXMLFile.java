@@ -60,7 +60,7 @@ public class LoadStateFromXMLFile {
         String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
         String[] trackURLsAndNamesAndConfigInfo = new String[3];
-        System.out.println("Executing: " + Arrays.toString(infoForReload));
+        //System.out.println("Executing: " + Arrays.toString(infoForReload));
         if (infoForReload.length > 0) {
             //int fileSize = infoForReload.length;
             if (infoForReload.length > 14) {
@@ -68,6 +68,7 @@ public class LoadStateFromXMLFile {
                     // TODO cleanup extraction of data
                     initialInfo[0] = infoForReload[1]; //HiC Map Name
                     initialInfo[1] = infoForReload[2]; //hicURL
+                    //System.out.println(initialInfo[1]); //TODO for debugging
                     initialInfo[2] = infoForReload[3]; //xChr
                     initialInfo[3] = infoForReload[4]; //yChr
                     initialInfo[4] = infoForReload[5]; //unitSize
@@ -103,12 +104,14 @@ public class LoadStateFromXMLFile {
                                              final NormalizationType normSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
+                //System.out.println("load start "+System.currentTimeMillis());//TODO - delete timer
                 try {
                     unsafeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo,
                             displaySelection, normSelection, tracks);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                //System.out.println("load end "+System.currentTimeMillis());//TODO - delete timer
             }
         };
         superAdapter.executeLongRunningTask(runnable, "Loading a saved state from XML");
@@ -131,8 +134,16 @@ public class LoadStateFromXMLFile {
         double maxColor = doubleInfo[6];
 
         // TODO only do this if not identical to current file
-        List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
-        superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
+        List<String> controlURLs = Arrays.asList(mapURLs.split("\\,"));
+        if(controlURLs.size()>1) {
+            List<String> mainMapURLs = Arrays.asList(controlURLs.get(0).split("\\@\\@"));
+            superAdapter.unsafeLoadWithTitleFix(mainMapURLs,false,mapNames);
+            List<String> controlMapURLs = Arrays.asList(controlURLs.get(1).split("\\@\\@"));
+            superAdapter.unsafeLoadWithTitleFix(controlMapURLs,true,mapNames);
+        } else{
+            List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
+            superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
+        }
 
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());

@@ -26,6 +26,7 @@ package juicebox.state;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import sun.applet.Main;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -43,7 +44,7 @@ public class SaveFileDialog extends JFileChooser {
     private static final long serialVersionUID = 2910799798390074194L;
 
 
-    public SaveFileDialog(File fileToSave) {
+    public SaveFileDialog(File fileToSave, MainWindow mainWindow) {
         super();
         setCurrentDirectory(new File(System.getProperty("user.dir")));
         FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml", "XML");
@@ -57,6 +58,8 @@ public class SaveFileDialog extends JFileChooser {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                JOptionPane.showMessageDialog(mainWindow, "File has been exported:\n" + file.getName(), "Exporting",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }

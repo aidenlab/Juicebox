@@ -47,7 +47,7 @@ import java.nio.channels.FileChannel;
 public class ImportFileDialog extends JFileChooser {
 
     private static final long serialVersionUID = -1038991737399792883L;
-    private final File originalStates = new File("OriginalJuiceboxSavedStates.xml");
+    private final File originalStates = new File("OriginalSavedStates.xml");
 
     public ImportFileDialog(File currentStates, MainWindow mainWindow) {
         super();
@@ -98,6 +98,8 @@ public class ImportFileDialog extends JFileChooser {
                 copyFile(currentFile, originalStates);
                 copyFile(importedFile, currentFile);
                 JOptionPane.showMessageDialog(mainWindow, "Importing File:\n" + importedFile.getName(), "Opening",
+                        JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(mainWindow, "Previous states have been saved under file:\n" + originalStates.getName(), "Creating Backup",
                         JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(mainWindow, "Error while importing file:\n" + e.getMessage(), "Error",

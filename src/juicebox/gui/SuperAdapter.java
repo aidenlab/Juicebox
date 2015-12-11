@@ -63,7 +63,7 @@ import java.util.Properties;
 public class SuperAdapter {
     private static final Logger log = Logger.getLogger(SuperAdapter.class);
     public static String currentlyLoadedMainFiles = "";
-    private static String currentlyLoadedControlFiles = "";
+    public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
     private MainWindow mainWindow;
@@ -354,6 +354,7 @@ public class SuperAdapter {
             return;
         } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
+            //System.out.println("Control Files: " + currentlyLoadedControlFiles);
             return;
         }
 
@@ -424,6 +425,7 @@ public class SuperAdapter {
 
             if (control) {
                 currentlyLoadedControlFiles = newFilesToBeLoaded;
+                //System.out.println("Control Files: " + currentlyLoadedControlFiles);
             } else {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
@@ -448,6 +450,7 @@ public class SuperAdapter {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
+        //System.out.println("files: "+files);
         try {
             unsafeLoad(files, control);
             mainViewPanel.updateThumbnail(hic);
