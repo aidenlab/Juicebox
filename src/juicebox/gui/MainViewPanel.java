@@ -499,7 +499,7 @@ public class MainViewPanel {
 
         setNormalizationDisplayState(superAdapter.getHiC());
 
-        superAdapter.updateHiCChromosomes(chrX, chrY);
+        superAdapter.unsafeUpdateHiCChromosomes(chrX, chrY);
 
         updateThumbnail(superAdapter.getHiC());
     }

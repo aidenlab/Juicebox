@@ -285,7 +285,7 @@ public class SuperAdapter {
         mainViewPanel.initializeMainView(this, contentPane, bigPanelDim, panelDim);
     }
 
-    private void setInitialZoom() {
+    private void unsafeSetInitialZoom() {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
         if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
@@ -324,7 +324,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.safeActuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, "Initial");
+        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL);
     }
 
     public void refresh() {
@@ -351,13 +351,11 @@ public class SuperAdapter {
             allFilesAreHiC &= file.endsWith(".hic");
         }
 
-
         if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
             JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             return;
         } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
-            //System.out.println("Control Files: " + currentlyLoadedControlFiles);
             return;
         }
 
@@ -428,7 +426,6 @@ public class SuperAdapter {
 
             if (control) {
                 currentlyLoadedControlFiles = newFilesToBeLoaded;
-                //System.out.println("Control Files: " + currentlyLoadedControlFiles);
             } else {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
@@ -446,7 +443,6 @@ public class SuperAdapter {
             public void run() {
                 unsafeLoadWithTitleFix(files, control, title);
             }
-
         };
         mainWindow.executeLongRunningTask(runnable, "MainWindow safe load");
     }
@@ -455,7 +451,6 @@ public class SuperAdapter {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
-        //System.out.println("files: "+files);
         try {
             unsafeLoad(files, control);
             mainViewPanel.updateThumbnail(hic);
@@ -677,11 +672,11 @@ public class SuperAdapter {
         initialZoom = null;
     }
 
-    public void updateHiCChromosomes(Chromosome chrX, Chromosome chrY) {
+    public void unsafeUpdateHiCChromosomes(Chromosome chrX, Chromosome chrY) {
         hic.setSelectedChromosomes(chrX, chrY);
         mainViewPanel.getRulerPanelX().setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
         mainViewPanel.getRulerPanelY().setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
-        setInitialZoom();
+        unsafeSetInitialZoom();
     }
 
     public void deleteUnsavedEdits() {
