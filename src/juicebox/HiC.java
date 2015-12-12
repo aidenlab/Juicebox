@@ -521,7 +521,7 @@ public class HiC {
      * @param yBP0
      * @param targetBinSize
      */
-    public void zoomToDrawnBox(final int xBP0, final int yBP0, double targetBinSize) {
+    public void zoomToDrawnBox(final int xBP0, final int yBP0, final double targetBinSize) {
         HiCZoom newZoom = currentZoom;
         if (!superAdapter.isResolutionLocked()) {
             List<HiCZoom> zoomList = currentZoom.getUnit() == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
@@ -533,8 +533,8 @@ public class HiC {
             }
         }
 
-        actuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false,
-                ZoomCallType.DRAG);
+        safeActuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false,
+                ZoomCallType.DRAG, "DragZoom");
     }
 
     /**
@@ -547,13 +547,28 @@ public class HiC {
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         }
-        actuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
-                true, ZoomCallType.GOTO);
+        safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+                true, ZoomCallType.GOTO, "GOTO");
     }
 
-    public boolean actuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
-                                              boolean resetZoom, ZoomCallType zoomCallType) {
-        return actuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
+    public boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                                  boolean resetZoom, ZoomCallType zoomCallType, String message) {
+        return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, message);
+    }
+
+    public boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
+                                                  final HiCZoom newZoom, final int genomeX, final int genomeY,
+                                                  final double scaleFactor, final boolean resetZoom,
+                                                  final ZoomCallType zoomCallType, String message) {
+        final boolean[] returnVal = new boolean[1];
+        superAdapter.executeLongRunningTask(new Runnable() {
+            @Override
+            public void run() {
+                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                        resetZoom, zoomCallType);
+            }
+        }, message);
+        return returnVal[0];
     }
 
     /**
@@ -569,9 +584,9 @@ public class HiC {
      * @param scaleFactor (pass -1 if scaleFactor should be calculated)
      * @return
      */
-    public boolean actuallySetZoomAndLocation(String chrXName, String chrYName,
-                                              HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
-                                              boolean resetZoom, ZoomCallType zoomCallType) {
+    public boolean unsafeActuallySetZoomAndLocation(String chrXName, String chrYName,
+                                                    HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                                    boolean resetZoom, ZoomCallType zoomCallType) {
 
 
         if (dataset == null) return false;  // No data in view

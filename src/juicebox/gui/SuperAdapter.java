@@ -324,7 +324,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.actuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL);
+        hic.safeActuallySetZoomAndLocation(initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, "Initial");
     }
 
     public void refresh() {

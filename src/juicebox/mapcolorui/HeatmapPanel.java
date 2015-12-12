@@ -1415,7 +1415,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.actuallySetZoomAndLocation(newZoom, xGenome, yGenome, -1, false, HiC.ZoomCallType.STANDARD);
+                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false, HiC.ZoomCallType.STANDARD);
             } catch (Exception e) {
                 e.printStackTrace();
             }

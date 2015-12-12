@@ -216,6 +216,9 @@ public class ResolutionControl extends JPanel {
                 final HiCZoom zoom = idxZoomMap.get(idx);
                 if (zoom == null) return;
 
+                if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
+                        zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
+
                 if (hic.getXContext() != null) {
 
                     double scaledXWidth = heatmapPanel.getWidth() / hic.getScaleFactor();
@@ -241,10 +244,10 @@ public class ResolutionControl extends JPanel {
                     }
 
                     if (zd == null) {
-                        hic.actuallySetZoomAndLocation(zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
+                        hic.unsafeActuallySetZoomAndLocation("", "", zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD);
                     } else {
 
-                        if (hic.actuallySetZoomAndLocation(zoom, xGenome, yGenome, -1, true, HiC.ZoomCallType.STANDARD)) {
+                        if (hic.unsafeActuallySetZoomAndLocation("", "", zoom, xGenome, yGenome, -1, true, HiC.ZoomCallType.STANDARD)) {
                             lastValue = resolutionSlider.getValue();
                         } else {
                             resolutionSlider.setValue(lastValue);
