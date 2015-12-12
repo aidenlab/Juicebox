@@ -57,34 +57,34 @@ public class LoadStateFromXMLFile {
 
     private static void loadSavedStatePreliminaryStep(String[] infoForReload, SuperAdapter superAdapter, HiC hic) throws IOException {
         String result = "OK";
-        String[] initialInfo = new String[5]; //hicURL,xChr,yChr,unitSize
+        String[] initialInfo = new String[6]; //hicURL,, controlURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
         String[] trackURLsAndNamesAndConfigInfo = new String[3];
-        //System.out.println("Executing: " + Arrays.toString(infoForReload));
+        //System.out.println("Executing: " + Arrays.toString(infoForReload)); //TODO for reload
         if (infoForReload.length > 0) {
             //int fileSize = infoForReload.length;
-            if (infoForReload.length > 14) {
+            if (infoForReload.length > 15) {
                 try {
                     // TODO cleanup extraction of data
                     initialInfo[0] = infoForReload[1]; //HiC Map Name
                     initialInfo[1] = infoForReload[2]; //hicURL
-                    //System.out.println(initialInfo[1]); //TODO for debugging
-                    initialInfo[2] = infoForReload[3]; //xChr
-                    initialInfo[3] = infoForReload[4]; //yChr
-                    initialInfo[4] = infoForReload[5]; //unitSize
-                    int binSize = Integer.parseInt(infoForReload[6]); //binSize
-                    doubleInfo[0] = Double.parseDouble(infoForReload[7]); //xOrigin
-                    doubleInfo[1] = Double.parseDouble(infoForReload[8]); //yOrigin
-                    doubleInfo[2] = Double.parseDouble(infoForReload[9]); //ScaleFactor
-                    MatrixType displayOption = MatrixType.valueOf(infoForReload[10].toUpperCase());
-                    NormalizationType normType = NormalizationType.valueOf(infoForReload[11].toUpperCase());
-                    doubleInfo[3] = Double.parseDouble(infoForReload[12]); //minColorVal
-                    doubleInfo[4] = Double.parseDouble(infoForReload[13]); //lowerColorVal
-                    doubleInfo[5] = Double.parseDouble(infoForReload[14]); //upperColorVal
-                    doubleInfo[6] = Double.parseDouble(infoForReload[15]); //maxColorVal
-                    trackURLsAndNamesAndConfigInfo[0] = (infoForReload[16]); //trackURLs
-                    trackURLsAndNamesAndConfigInfo[1] = (infoForReload[17]); //trackNames
-                    trackURLsAndNamesAndConfigInfo[2] = (infoForReload[18]); //trackConfigInfo
+                    initialInfo[2] = infoForReload[3]; //controlURL
+                    initialInfo[3] = infoForReload[4]; //xChr
+                    initialInfo[4] = infoForReload[5]; //yChr
+                    initialInfo[5] = infoForReload[6]; //unitSize
+                    int binSize = Integer.parseInt(infoForReload[7]); //binSize
+                    doubleInfo[0] = Double.parseDouble(infoForReload[8]); //xOrigin
+                    doubleInfo[1] = Double.parseDouble(infoForReload[9]); //yOrigin
+                    doubleInfo[2] = Double.parseDouble(infoForReload[10]); //ScaleFactor
+                    MatrixType displayOption = MatrixType.valueOf(infoForReload[11].toUpperCase());
+                    NormalizationType normType = NormalizationType.valueOf(infoForReload[12].toUpperCase());
+                    doubleInfo[3] = Double.parseDouble(infoForReload[13]); //minColorVal
+                    doubleInfo[4] = Double.parseDouble(infoForReload[14]); //lowerColorVal
+                    doubleInfo[5] = Double.parseDouble(infoForReload[15]); //upperColorVal
+                    doubleInfo[6] = Double.parseDouble(infoForReload[16]); //maxColorVal
+                    trackURLsAndNamesAndConfigInfo[0] = (infoForReload[17]); //trackURLs
+                    trackURLsAndNamesAndConfigInfo[1] = (infoForReload[18]); //trackNames
+                    trackURLsAndNamesAndConfigInfo[2] = (infoForReload[19]); //trackConfigInfo
 
                     safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
@@ -104,14 +104,12 @@ public class LoadStateFromXMLFile {
                                              final NormalizationType normSelection, final String[] tracks) {
         Runnable runnable = new Runnable() {
             public void run() {
-                //System.out.println("load start "+System.currentTimeMillis());//TODO - delete timer
                 try {
                     unsafeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo,
                             displaySelection, normSelection, tracks);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //System.out.println("load end "+System.currentTimeMillis());//TODO - delete timer
             }
         };
         superAdapter.executeLongRunningTask(runnable, "Loading a saved state from XML");
@@ -122,9 +120,10 @@ public class LoadStateFromXMLFile {
                                                String[] tracks) {
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
-        String chrXName = initialInfo[2];
-        String chrYName = initialInfo[3];
-        String unitName = initialInfo[4];
+        String controlURLs = initialInfo[2];
+        String chrXName = initialInfo[3];
+        String chrYName = initialInfo[4];
+        String unitName = initialInfo[5];
         double xOrigin = doubleInfo[0];
         double yOrigin = doubleInfo[1];
         double scalefactor = doubleInfo[2];
@@ -133,8 +132,19 @@ public class LoadStateFromXMLFile {
         double upColor = doubleInfo[5];
         double maxColor = doubleInfo[6];
 
-        List<String> urls = Arrays.asList(mapURLs.split("\\@\\@"));
-        superAdapter.unsafeLoadWithTitleFix(urls, false, mapNames);
+        // TODO only do this if not identical to current file
+        String[] temp = mapNames.split("\\(control=");
+        String mainMapNames = temp[0];
+
+
+        List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));
+        superAdapter.unsafeLoadWithTitleFix(urls, false, mainMapNames);
+
+        if(!controlURLs.contains("null") && temp.length >1){
+            String ctrlMapNames = temp[1].substring(0,temp[1].length()-1);
+            List<String> ctrlURLs = Arrays.asList(controlURLs.split("\\#\\#"));
+            superAdapter.unsafeLoadWithTitleFix(ctrlURLs, true, ctrlMapNames);
+        }
 
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());

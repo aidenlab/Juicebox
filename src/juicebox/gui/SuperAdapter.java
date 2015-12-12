@@ -344,6 +344,9 @@ public class SuperAdapter {
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
         for (String file : files) {
+            if(newFilesToBeLoaded.length() > 1){
+                newFilesToBeLoaded += "##";
+            }
             newFilesToBeLoaded += file;
             allFilesAreHiC &= file.endsWith(".hic");
         }

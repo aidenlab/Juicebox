@@ -31,6 +31,7 @@ class State {
     private static final String MAPPATH = "MapPath";
     private static final String MAP = "Map";
     private static final String MAPURL = "MapURL";
+    private static final String CONTROLURL = "ControlURL";
     private static final String XCHR = "XChromosome";
     private static final String YCHR = "YChromosome";
     private static final String UNIT = "UnitName";
@@ -50,6 +51,6 @@ class State {
 
     /* TODO implement switch case on enum
     enum StateVar {}*/
-    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL, XCHR, YCHR, UNIT, BINSIZE,
+    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL,CONTROLURL, XCHR, YCHR, UNIT, BINSIZE,
             XORIGIN, YORIGIN, SCALE, DISPLAY, NORM, MINCOLOR, LOWCOLOR, UPPERCOLOR, MAXCOLOR, TRACKURLS, TRACKNAMES, CONFIGTRACKINFO};
 }

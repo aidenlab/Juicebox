@@ -55,15 +55,18 @@ public class XMLFileHandling {
         String currentTrack = "";
         String currentTrackName = "";
         String configTrackInfo = "none";
-        String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles;
-        String controlURLs = SuperAdapter.currentlyLoadedControlFiles;
+        String controlFiles = SuperAdapter.currentlyLoadedControlFiles;
+        if(controlFiles.length() < 1 || controlFiles.isEmpty()){
+            controlFiles = "null";
+        }
+
+        String mapNameAndURLs = superAdapter.getMainWindow().getTitle().replace(HiCGlobals.juiceboxTitle, "") + "@@" + SuperAdapter.currentlyLoadedMainFiles
+                + "@@" + controlFiles;
 
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                 hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getNormalizationType().name()
                 + "$$" + colorVals;
-
-        //System.out.println(textToWrite); //TODO for debugging
 
         if (currentTracks != null && !currentTracks.isEmpty()) {
             for (HiCTrack track : currentTracks) {

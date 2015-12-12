@@ -89,12 +89,23 @@ class XMLFileWriter {
 
             if (i == 0) {//mappath or id
                 n = xmlDoc.createTextNode(title[0]);
+                System.out.println(title[0]);
             } else if (i == 1) {//mapname
                 n = xmlDoc.createTextNode(mapName[0]);
+                System.out.println(mapName[0]);
             } else if (i == 2) {//mapurl
                 n = xmlDoc.createTextNode(mapName[1]);
-            } else if (i < 17 || elements.length > 16) { // elements.length checked in case no annotations
-                n = xmlDoc.createTextNode(elements[i - 1]);
+                System.out.println(mapName[1]);
+            } else if(i == 3){//controlURL
+                if(mapName.length > 2 && !mapName[2].contains("null") && mapName[2].length() > 1){
+                    n = xmlDoc.createTextNode(mapName[2]);
+                    System.out.println(mapName[2]);
+                } else{
+                    n = xmlDoc.createTextNode("null");
+                }
+            } else if (i < 18 || elements.length > 17) { // elements.length checked in case no annotations
+                n = xmlDoc.createTextNode(elements[i - 2]);
+                System.out.println(elements[i-2]);
             }
 
             e.appendChild(n);
