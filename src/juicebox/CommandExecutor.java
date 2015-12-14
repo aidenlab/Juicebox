@@ -78,7 +78,8 @@ class CommandExecutor {
                         double xOrigin = Double.parseDouble(args.get(5));
                         double yOrigin = Double.parseDouble(args.get(6));
                         double scaleFactor = Double.parseDouble(args.get(7));
-                        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor);
+                        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor,
+                                HiC.ZoomCallType.DIRECT, "Goto Sync");
                     } else {
                         result = "Not enough parameters";
                     }

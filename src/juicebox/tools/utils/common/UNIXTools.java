@@ -87,8 +87,12 @@ public class UNIXTools {
             //p = Runtime.getRuntime().exec(command);
             p = b.redirectErrorStream(true).start();
 
-            System.out.println("Command exec " + p.waitFor());
-            //p.waitFor();
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("Command exec " + p.waitFor());
+            } else {
+                p.waitFor();
+            }
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), HiCGlobals.bufferSize);
 
             String line = "";

@@ -233,10 +233,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             outBinSize = 250000; // If bin size is not valid, set to max bin size
         }
 
-        hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, 0, 0, hic.getScaleFactor());
-        if (topChrPositions[2] > 0 && leftChrPositions[2] > 0) {
-            hic.centerBP(topChrPositions[2], leftChrPositions[2]);
-        }
+        hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, Math.max(topChrPositions[2], 0),
+                Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto");
 
         //We might end with All->All view, make sure normalization state is updates accordingly...
         superAdapter.setNormalizationDisplayState();
@@ -405,8 +403,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, 0, 0, hic.getScaleFactor());
-        hic.centerBP(location1.centerPosition, location2.centerPosition);
+        hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, location1.centerPosition,
+                location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto");
+        
         superAdapter.setNormalizationDisplayState();
     }
 

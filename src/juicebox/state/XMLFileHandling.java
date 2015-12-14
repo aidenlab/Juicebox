@@ -71,7 +71,7 @@ public class XMLFileHandling {
         if (currentTracks != null && !currentTracks.isEmpty()) {
             for (HiCTrack track : currentTracks) {
                 //System.out.println("trackLocator: "+track.getLocator()); for debugging
-                System.out.println("track name: " + track.getName());
+                //System.out.println("track name: " + track.getName());
                 currentTrack += track.getLocator() + ", ";
                 currentTrackName += track.getName() + ", ";
                 track.getLocator().getColor();

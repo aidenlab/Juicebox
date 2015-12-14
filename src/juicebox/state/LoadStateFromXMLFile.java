@@ -151,7 +151,8 @@ public class LoadStateFromXMLFile {
         superAdapter.getMainViewPanel().updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
         superAdapter.setEnableForAllElements(true);
 
-        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor);
+        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT,
+                "Load State");
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
         LoadAction loadAction = superAdapter.getTrackLoadAction();

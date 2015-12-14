@@ -541,14 +541,15 @@ public class HiC {
      * Triggered by syncs, goto, and load state.
      */
     //reloading the previous location
-    public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin, double yOrigin, double scaleFactor) {
+    public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin,
+                            double yOrigin, double scaleFactor, ZoomCallType zoomCallType, String message) {
 
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         }
         safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
-                true, ZoomCallType.GOTO, "GOTO");
+                true, zoomCallType, message);
     }
 
     public boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
@@ -646,7 +647,7 @@ public class HiC {
                 xContext.setBinOrigin(binX);
                 yContext.setBinOrigin(binY);
                 break;
-            case GOTO:
+            case DIRECT:
                 xContext.setBinOrigin(genomeX);
                 yContext.setBinOrigin(genomeY);
                 break;
@@ -911,7 +912,7 @@ public class HiC {
         feature2DHandler.removeFeaturePath(path);
     }
 
-    public enum ZoomCallType {STANDARD, DRAG, GOTO, INITIAL}
+    public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
 
     public enum Unit {BP, FRAG}
 }

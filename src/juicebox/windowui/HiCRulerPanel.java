@@ -199,6 +199,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             return;
         }
 
+        if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
+
         if (chromosome.getName().equals("All")) {
             int x1 = 0;
             List<Chromosome> chromosomes = hic.getChromosomes();
