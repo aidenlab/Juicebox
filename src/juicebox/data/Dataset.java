@@ -96,10 +96,6 @@ public class Dataset {
 
     }
 
-    private boolean onPeaksList(String path) {
-        return (path.contains("combined") || path.contains("primary") || path.contains("replicate"));
-    }
-
     public ResourceLocator getSubcompartments() {
         ResourceLocator locator = null;
         if (reader.getPath().contains("gm12878/in-situ/combined")) {
@@ -133,41 +129,47 @@ public class Dataset {
     }
 
     public ResourceLocator getPeaks() {
-        if (onPeaksList(reader.getPath())) {
-            String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
-            if (path.lastIndexOf("_30") > -1) {
-                path = path.substring(0, path.lastIndexOf("_30"));
-            }
+        String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+        if (path.lastIndexOf("_30") > -1) {
+            path = path.substring(0, path.lastIndexOf("_30"));
+        }
 
-            String location = path + "_peaks.txt";
+        String location = path + "_peaks.txt";
 
+        if (FileUtils.resourceExists(location)) {
+            return new ResourceLocator(location);
+        } else {
+            location = path + "_loops.txt";
             if (FileUtils.resourceExists(location)) {
                 return new ResourceLocator(location);
             } else {
                 return null;
             }
-        } else {
-            return null;
         }
+
     }
 
     public ResourceLocator getBlocks() {
         String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
-        if (onPeaksList(reader.getPath())) {
-            if (path.lastIndexOf("_30") > -1) {
-                path = path.substring(0, path.lastIndexOf("_30"));
-            }
 
-            String location = path + "_blocks.txt";
+        if (path.lastIndexOf("_30") > -1) {
+            path = path.substring(0, path.lastIndexOf("_30"));
+        }
 
+        String location = path + "_blocks.txt";
+
+        if (FileUtils.resourceExists(location)) {
+            return new ResourceLocator(location);
+        } else {
+            location = path + "_domains.txt";
             if (FileUtils.resourceExists(location)) {
                 return new ResourceLocator(location);
             } else {
                 return null;
             }
-        } else {
-            return null;
+
         }
+
     }
 
     public void setAttributes(Map<String, String> map) {
@@ -759,19 +761,18 @@ public class Dataset {
         String key = chr.getName() + "_" + zoom.getKey() + "_" + number + "_" + type;
         if (!eigenvectorCache.containsKey(key)) {
 
-            double[] eigenvector = null;
+            double[] eigenvector;
             //eigenvector = reader.readEigenvector(chr.getName(), zoom, number, type.toString());
 
-            if (eigenvector == null) {
-                ExpectedValueFunction df = getExpectedValues(zoom, type);
-                Matrix m = getMatrix(chr, chr);
-                MatrixZoomData mzd = m.getZoomData(zoom);
-                if (df != null && mzd.getPearsons(df) != null) {
-                    eigenvector = mzd.computeEigenvector(df, number);
-                } else {
-                    eigenvector = new double[0];
-                }
+            ExpectedValueFunction df = getExpectedValues(zoom, type);
+            Matrix m = getMatrix(chr, chr);
+            MatrixZoomData mzd = m.getZoomData(zoom);
+            if (df != null && mzd.getPearsons(df) != null) {
+                eigenvector = mzd.computeEigenvector(df, number);
+            } else {
+                eigenvector = new double[0];
             }
+
             eigenvectorCache.put(key, eigenvector);
         }
 
@@ -867,11 +868,12 @@ public class Dataset {
             if (sites == 1157974) return "MseI";
             if (sites == 60953) return "NcoI";
             if (sites == 933321) return "NlaIII";
+        } else if (genomeId.equals("mm10")) {
+            if (sites == 480062) return "DpnII/MboI";
+            if (sites == 63013) return "HindIII";
         } else if (genomeId.equals("Pf3D7")) {
             if (sites == 13) return "DpnII/MboI";
-        } else if (genomeId.equals("sacCer3")) {
-            // No restriction site file for this so unknown
-        } else if (genomeId.equals("sCerS288c")) {
+        }  else if (genomeId.equals("sCerS288c")) {
             // chrI
             if (sites == 65) return "HindIII";
         } else if (genomeId.equals("susScr3")) {
