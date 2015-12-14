@@ -405,7 +405,10 @@ public class Dataset {
             newStats += "<tr><td>Unique Reads:</td>";
             String value = statsMap.get("Unique Reads");
             newStats += "<td>" + value + "</td></tr>";
-            value = value.substring(0, value.indexOf('('));
+            if (value.indexOf('(') >= 0) {
+                value = value.substring(0, value.indexOf('('));
+            }
+
             try {
                 unique = numberFormat.parse(value.trim()).intValue();
             } catch (ParseException error) {
