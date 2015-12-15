@@ -108,7 +108,6 @@ public class MatrixZoomData {
         this.blockColumnCount = blockColumnCount;
 
         int correctedBinCount = blockBinCount;
-        // TODO this 8 should not be hardcoded
         if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
             boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
             int len1 = isFrag ? (chr1Sites.length + 1) : chr1.getLength();

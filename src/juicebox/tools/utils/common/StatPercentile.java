@@ -39,7 +39,6 @@ public class StatPercentile {
         Arrays.sort(statsData);
     }
 
-    // TODO optimize using binary search
     // TODO actually could be much more optimized since same vals are queried
     public double evaluate(double val) {
         return internalEvaluate(val) * 100;

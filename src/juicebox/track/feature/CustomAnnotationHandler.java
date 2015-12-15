@@ -25,7 +25,6 @@
 package juicebox.track.feature;
 
 import juicebox.HiC;
-import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
 import juicebox.track.HiCGridAxis;
@@ -44,40 +43,40 @@ public class CustomAnnotationHandler {
     private final int threshold = 10;
     private Rectangle selectionRegion;
     private Point selectionPoint;
-    private FeatureType featureType;
+    private Feature2D.FeatureType featureType;
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
 
     public CustomAnnotationHandler() {
-        featureType = FeatureType.NONE;
+        featureType = Feature2D.FeatureType.NONE;
         resetSelection();
     }
 
     private void resetSelection() {
         selectionRegion = null;
         selectionPoint = null;
-        featureType = FeatureType.NONE;
+        featureType = Feature2D.FeatureType.NONE;
     }
 
     public boolean isEnabled() {
-        return featureType != FeatureType.NONE;
+        return featureType != Feature2D.FeatureType.NONE;
     }
 
     public boolean isPeak() {
-        return featureType == FeatureType.PEAK;
+        return featureType == Feature2D.FeatureType.PEAK;
     }
 
     public void doGeneric() {
-        featureType = FeatureType.GENERIC;
+        featureType = Feature2D.FeatureType.GENERIC;
     }
 
     public void doPeak() {
-        featureType = FeatureType.PEAK;
+        featureType = Feature2D.FeatureType.PEAK;
     }
 
     private void doDomain() {
-        featureType = FeatureType.DOMAIN;
+        featureType = Feature2D.FeatureType.DOMAIN;
     }
 
     // Update selection region from new rectangle
@@ -256,10 +255,4 @@ public class CustomAnnotationHandler {
     private int getYBin(HiC hic, int y) {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
-
-    // TODO merge with Feature2D as public enum type
-    enum FeatureType {
-        NONE, PEAK, DOMAIN, GENERIC
-    }
-
 }

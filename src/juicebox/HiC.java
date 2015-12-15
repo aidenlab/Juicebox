@@ -145,16 +145,11 @@ public class HiC {
         trackManager.add(eigenvectorTrack);
     }
 
-    // todo, delete?
-    /*public void refreshEigenvectorTrackIfExists() {
+    public void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
             eigenvectorTrack.forceRefresh();
         }
     }
-
-    public LoadEncodeAction getEncodeAction() {
-        return encodeAction;
-    }*/
 
     public ResourceTree getResourceTree() {
         return resourceTree;
@@ -215,11 +210,7 @@ public class HiC {
     public void setSelectedChromosomes(Chromosome chrX, Chromosome chrY) {
         this.xContext = new Context(chrX);
         this.yContext = new Context(chrY);
-
-        if (eigenvectorTrack != null) {
-            eigenvectorTrack.forceRefresh();
-        }
-
+        refreshEigenvectorTrackIfExists();
     }
 
     public HiCZoom getZoom() {
@@ -762,9 +753,7 @@ public class HiC {
             this.xContext = new Context(chrX);
             this.yContext = new Context(chrY);
             superAdapter.setSelectedChromosomesNoRefresh(chrX, chrY);
-            if (eigenvectorTrack != null) {
-                eigenvectorTrack.forceRefresh();
-            }
+            refreshEigenvectorTrackIfExists();
         }
     }
 

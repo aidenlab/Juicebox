@@ -174,10 +174,9 @@ public class EigenvectorTrack extends HiCTrack {
             } else {
                 drawRotatedString(g2d, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
             }
-            //***TODO center the "Eigenvector" label************
-            g2d.setFont(original);
-            return;  // No data available
 
+            g2d.setFont(original);
+            return;
         }
 
         double dataMax = dataMaxCache.get(chrIdx);
@@ -231,7 +230,6 @@ public class EigenvectorTrack extends HiCTrack {
         clearDataCache();
     }
 
-    // TODO this may be duplicated somewhere
     private void drawRotatedString(Graphics2D g2, String string, float x, float y) {
         AffineTransform orig = g2.getTransform();
         g2.rotate(0);

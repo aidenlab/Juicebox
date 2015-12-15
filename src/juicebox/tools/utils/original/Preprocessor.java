@@ -48,11 +48,7 @@ import java.util.zip.Deflater;
  */
 public class Preprocessor {
 
-    // Base-pair resolutions
-    // TODO move to hicglobals
-    private static final int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
-    // Fragment resolutions
-    private static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+
     private static final int VERSION = 8;
     private static final int BLOCK_SIZE = 1000;
 
@@ -181,7 +177,7 @@ public class Preprocessor {
             }
 
             expectedValueCalculations = new LinkedHashMap<String, ExpectedValueCalculation>();
-            for (int bBinSize : bpBinSizes) {
+            for (int bBinSize : HiCGlobals.bpBinSizes) {
                 ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, bBinSize, null, NormalizationType.NONE);
                 String key = "BP_" + bBinSize;
                 expectedValueCalculations.put(key, calc);
@@ -198,7 +194,7 @@ public class Preprocessor {
                 }
 
 
-                for (int fBinSize : fragBinSizes) {
+                for (int fBinSize : HiCGlobals.fragBinSizes) {
                     ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, fBinSize, fragmentCountMap, NormalizationType.NONE);
                     String key = "FRAG_" + fBinSize;
                     expectedValueCalculations.put(key, calc);
@@ -275,17 +271,17 @@ public class Preprocessor {
         }
 
         //BP resolution levels
-        int nBpRes = bpBinSizes.length;
+        int nBpRes = HiCGlobals.bpBinSizes.length;
         los.writeInt(nBpRes);
-        for (int bpBinSize : bpBinSizes) {
+        for (int bpBinSize : HiCGlobals.bpBinSizes) {
             los.writeInt(bpBinSize);
         }
 
         //fragment resolutions
-        int nFragRes = fragmentCalculation == null ? 0 : fragBinSizes.length;
+        int nFragRes = fragmentCalculation == null ? 0 : HiCGlobals.fragBinSizes.length;
         los.writeInt(nFragRes);
         for (int i = 0; i < nFragRes; i++) {
-            los.writeInt(fragBinSizes[i]);
+            los.writeInt(HiCGlobals.fragBinSizes[i]);
         }
 
         // fragment sites
@@ -1062,16 +1058,16 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             this.chr1Idx = chr1Idx;
             this.chr2Idx = chr2Idx;
 
-            int nResolutions = bpBinSizes.length;
+            int nResolutions = HiCGlobals.bpBinSizes.length;
             if (fragmentCalculation != null) {
-                nResolutions += fragBinSizes.length;
+                nResolutions += HiCGlobals.fragBinSizes.length;
             }
 
             zoomData = new MatrixZoomDataPP[nResolutions];
 
             int zoom = 0; //
-            for (int idx = 0; idx < bpBinSizes.length; idx++) {
-                int binSize = bpBinSizes[zoom];
+            for (int idx = 0; idx < HiCGlobals.bpBinSizes.length; idx++) {
+                int binSize = HiCGlobals.bpBinSizes[zoom];
                 Chromosome chrom1 = chromosomes.get(chr1Idx);
                 Chromosome chrom2 = chromosomes.get(chr2Idx);
 
@@ -1091,8 +1087,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                         fragmentCalculation.getNumberFragments(chrom2.getName()));
 
                 zoom = 0;
-                for (int idx = bpBinSizes.length; idx < nResolutions; idx++) {
-                    int binSize = fragBinSizes[zoom];
+                for (int idx = HiCGlobals.bpBinSizes.length; idx < nResolutions; idx++) {
+                    int binSize = HiCGlobals.fragBinSizes[zoom];
                     int nBins = nFragBins1 / binSize + 1;
                     int nColumns = nBins / BLOCK_SIZE + 1;
                     zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, true);

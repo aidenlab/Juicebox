@@ -52,6 +52,15 @@ public class HiCGlobals {
     public static final ArrayList<String> savedStatesList = new ArrayList<String>();
     // min hic file version supported
     public static final int minVersion = 6;
+    //public static final int bufferSize = 1048576;
+    //public static final int bufferSize = 4194304;
+    public static final int bufferSize = 2097152;
+    // Base-pair resolutions
+    public static final int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
+    public static final String[] bpBinSizeNames = {"2.5 MB", "1 MB", "500 KB", "250 KB", "100 KB", "50 KB", "25 KB",
+            "10 KB", "5 KB"};
+    // Fragment resolutions
+    public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.2;
     // Juicebox title
@@ -59,13 +68,10 @@ public class HiCGlobals {
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
+    //public static final int bufferSize = 102400;
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-    //public static final int bufferSize = 1048576;
-    //public static final int bufferSize = 4194304;
-    public static final int bufferSize = 2097152;
-    //public static final int bufferSize = 102400;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
@@ -103,6 +109,5 @@ public class HiCGlobals {
         colors.add(new Color(0, 0, 0));
         return colors;
     }
-
 
 }
