@@ -405,7 +405,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
         hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, location1.centerPosition,
                 location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto");
-        
+
         superAdapter.setNormalizationDisplayState();
     }
 

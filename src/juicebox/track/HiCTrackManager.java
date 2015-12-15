@@ -56,7 +56,7 @@ public class HiCTrackManager {
     //static String path = "http://www.broadinstitute.org/igvdata/hic/tracksMenu.xml";
     //static String path = "/Users/jrobinso/Documents/IGV/hg19_encode.xml";
 
-    private final java.util.List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
+    private final List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
     private final List<HiCTrack> reloadTrackNames = new ArrayList<HiCTrack>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<NormalizationType, HiCTrack>();
     private final SuperAdapter superAdapter;
@@ -80,9 +80,7 @@ public class HiCTrackManager {
     }
 
     public void loadCoverageTrack(NormalizationType no) {
-
         if (coverageTracks.containsKey(no)) return; // Already loaded
-
         HiCDataSource source = new HiCCoverageDataSource(hic, no);
         ResourceLocator locator = new ResourceLocator(no.getLabel());
         HiCDataTrack track = new HiCDataTrack(hic, locator, source);
@@ -247,12 +245,15 @@ public class HiCTrackManager {
         return loadedTracks;
     }
 
-    public Map<NormalizationType, HiCTrack> getCoverageTracks() {
-        return coverageTracks;
-    }
-
     public void clearTracks() {
         loadedTracks.clear();
+        coverageTracks.clear();
+    }
+
+    /* TODO @zgire, is this old code that can be deleted?
+
+    public Map<NormalizationType, HiCTrack> getCoverageTracks() {
+        return coverageTracks;
     }
 
     public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks) {
@@ -264,7 +265,7 @@ public class HiCTrackManager {
     public List<HiCTrack> getReloadTrackNames() {
         return reloadTrackNames;
     }
-
+    */
 
     private Genome loadGenome() {
         String genomePath;

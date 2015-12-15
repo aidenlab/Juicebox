@@ -36,7 +36,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.util.HashMap;
 
 /**
  * @author Jim Robinson
@@ -150,6 +149,7 @@ class TrackConfigDialog extends JDialog {
         setVisible(false);
     }
 
+    /* TODO @zgire, is this old code that can be deleted?
     private Color getReloadColors(String temp) {
         HashMap<String, Color> reloadColors = new HashMap<String, Color>();
         for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
@@ -158,6 +158,7 @@ class TrackConfigDialog extends JDialog {
         return reloadColors.get(temp);
     }
 
+    /*
     public void setStateForReloadTracks(String currentTrack) {
 
         for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
@@ -170,6 +171,7 @@ class TrackConfigDialog extends JDialog {
             }
         }
     }
+    */
 
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents
