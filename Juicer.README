@@ -345,7 +345,7 @@ Defaults:
    -k KR
    -f .1
    -p 2
-   -w 5
+   -i 5
    -t 0.02,1.5,1.75,2
    -d 20000,20000,50000
 
@@ -356,7 +356,7 @@ Defaults:
    -k KR
    -f .1,.1
    -p 4,2
-   -w 7,5
+   -i 7,5
    -t 0.02,1.5,1.75,2
    -d 20000,20000,50000
 
@@ -367,7 +367,7 @@ HiCCUPS Examples
 hiccups HIC006.hic all_hiccups_loops
 > This command will run HiCCUPS on HIC006 and save all found loops to the all_hiccups_loops files
 
-hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -w 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
+hiccups -m 500 -r 5000,10000 -f 0.1,0.1 -p 4,2 -i 7,5 -d 20000,20000,0  -c 22  HIC006.hic all_hiccups_loops
 > This command will run HiCCUPS on chromosome 22 of HIC006 at 5kB and 10kB resolution using the following values:
 >> 5kB: fdr 10%, peak width 4, window width 7, and centroid distance 20kB
 >> 10kB: fdr 10%, peak width 2, window width 5, and centroid distance 20kB
