@@ -322,7 +322,7 @@ The optional arguments are:
    -p <int(s)> Peak width used for finding enriched pixels in HiCCUPS. Different peak widths can be used for each
        resolution using commas. (e.g "-r 5000,10000 -p 4,2" would run at peak width 4 for resolution 5000 and
        peak width 2 for resolution 10000)
-   -w <int(s)> Window width used for finding enriched pixels in HiCCUPS. Different window widths can be used for each
+   -i <int(s)> Window width used for finding enriched pixels in HiCCUPS. Different window widths can be used for each
        resolution using commas. (e.g "-r 5000,10000 -p 10,6" would run at window width 10 for resolution 5000 and
        window width 6 for resolution 10000)
    -t <floats> Thresholds for merging loop lists of different resolutions. Four values must be given, separated by
