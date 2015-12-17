@@ -274,6 +274,7 @@ public class JColorRangePanel extends JPanel {
 
     }
 
+    // todo remove
     private void resetRegularColorRangeSlider(boolean preDefMapColor) {
         if (colorValuesToRestore != null) {
             //refreshChromosomes();
@@ -297,6 +298,7 @@ public class JColorRangePanel extends JPanel {
         }
     }
 
+    // todo remove
     private void resetOEColorRangeSlider() {
 
         colorRangeSlider.setDisplayToBlank(false);

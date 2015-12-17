@@ -120,7 +120,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     public void reset() {
-        renderer.reset();
+            renderer.reset();
         clearTileCache();
     }
 
