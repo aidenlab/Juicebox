@@ -241,7 +241,6 @@ public class HiCCUPSUtils {
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
         double r = 0;
-
         while (!featureLL.isEmpty()) {
 
             // See Feature2D
@@ -526,7 +525,11 @@ public class HiCCUPSUtils {
             float[] rcsExpected = ArrayTools.makeReverseCumulativeArray(expected);
             for (int j = 0; j < width; j++) {
                 if (fdr * rcsExpected[j] <= rcsHist[index][j]) {
-                    threshold[index] = (j - 1);
+                    if (j == 0) {
+                        threshold[index] = (width - 2);
+                    } else {
+                        threshold[index] = (j - 1);
+                    }
                     break;
                 }
             }
