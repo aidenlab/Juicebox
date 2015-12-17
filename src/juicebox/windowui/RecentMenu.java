@@ -255,24 +255,30 @@ public abstract class RecentMenu extends JMenu {
 
     }
 
-    public String checkForDuplicateNames(String savedName){
+    public String checkForDuplicateNames(String savedNameOriginal){
         //check for saved states
-        boolean repFound = false;
-        for(String item: m_items){
-            System.out.println("item: " + item);
-            if(item.equals(savedName)){
-                repFound = true;
-                break;
+        String savedName = savedNameOriginal;
+
+        boolean suitableNameNotFound = true;
+        while(suitableNameNotFound) {
+            suitableNameNotFound = false;
+            boolean repFound = false;
+            for (String item : m_items) {
+                System.out.println("item: " + item);
+                if (item.equals(savedName)) {
+                    repFound = true;
+                    break;
+                }
             }
-        }
-        if(repFound) {
-            int option = JOptionPane.showConfirmDialog(null, "State name: \n" + savedName + "\n" +
-                    "already exists. Do you want to overwrite it?", "Confirm", JOptionPane.YES_NO_OPTION);
-            if (option == JOptionPane.YES_OPTION) {
-                return savedName;
-            } else if (option == JOptionPane.NO_OPTION) {
-                String newStateName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
-                return newStateName;
+            if (repFound) {
+                suitableNameNotFound = true;
+                int option = JOptionPane.showConfirmDialog(null, "State name: \n" + savedName + "\n" +
+                        "already exists. Do you want to overwrite it?", "Confirm", JOptionPane.YES_NO_OPTION);
+                if (option == JOptionPane.YES_OPTION) {
+                    return savedName;
+                } else if (option == JOptionPane.NO_OPTION) {
+                    savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
+                }
             }
         }
         return savedName;
