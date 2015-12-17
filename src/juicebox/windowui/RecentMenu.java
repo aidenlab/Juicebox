@@ -58,10 +58,12 @@ public abstract class RecentMenu extends JMenu {
     private final File currentStates = new File(HiCGlobals.stateFileName);
     private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private List<String> m_items = new ArrayList<String>();
+    private boolean thisMenuChecksForDuplicates = false;
 
-    public RecentMenu(String name, int count, String prefEntry) {
+    public RecentMenu(String name, int count, String prefEntry, boolean thisMenuChecksForDuplicates) {
         super(name);
 
+        this.thisMenuChecksForDuplicates = thisMenuChecksForDuplicates;
         this.m_maxItems = count;
         this.m_entry = prefEntry;
         String[] recentEntries = new String[count];
@@ -115,17 +117,23 @@ public abstract class RecentMenu extends JMenu {
     /**
      * Add new recent entry, update file and menu
      *
-     * @param savedEntry Name and Value of entry.
+     * @param savedEntryOriginal Name and Value of entry.
      * @param updateFile also save to file, Constructor call with false - no need to re-write.
      */
-    public void addEntry(String savedEntry, boolean updateFile) {
+    public void addEntry(String savedEntryOriginal, boolean updateFile) {
 
         //clear the existing items
         this.removeAll();
+        String savedEntry = savedEntryOriginal;
 
         //Add item, remove previous existing duplicate:
-        m_items.remove(savedEntry);
-        m_items.add(0, savedEntry);
+        if(thisMenuChecksForDuplicates){
+            System.out.println("mitems" + m_items);
+            savedEntry = checkForDuplicateNames(savedEntry);
+        }
+
+            m_items.remove(savedEntry);
+            m_items.add(0, savedEntry);
 
         //Chop last item if list is over size:
         if (this.m_items.size() > this.m_maxItems) {
@@ -245,6 +253,29 @@ public abstract class RecentMenu extends JMenu {
         }
 
 
+    }
+
+    public String checkForDuplicateNames(String savedName){
+        //check for saved states
+        boolean repFound = false;
+        for(String item: m_items){
+            System.out.println("item: " + item);
+            if(item.equals(savedName)){
+                repFound = true;
+                break;
+            }
+        }
+        if(repFound) {
+            int option = JOptionPane.showConfirmDialog(null, "State name: \n" + savedName + "\n" +
+                    "already exists. Do you want to overwrite it?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                return savedName;
+            } else if (option == JOptionPane.NO_OPTION) {
+                String newStateName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
+                return newStateName;
+            }
+        }
+        return savedName;
     }
 
     /*public void rightClickRemove(String mapPath){

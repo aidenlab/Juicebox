@@ -131,6 +131,14 @@ public class SuperAdapter {
         mainMenuBar.setEnableForAllElements(status);
     }
 
+    public void resetControlMap(){
+        hic.setControlDataset(null);
+        MatrixType[] options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+        mainViewPanel.setSelectedDisplayOption(options, false);
+        currentlyLoadedControlFiles = "";
+        updateTitle();
+    }
+
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
     }

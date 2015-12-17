@@ -118,6 +118,9 @@ public class LoadStateFromXMLFile {
     private static void unsafeLoadStateFromXML(SuperAdapter superAdapter, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
                                                MatrixType displaySelection, NormalizationType normSelection,
                                                String[] tracks) {
+
+        superAdapter.resetControlMap(); //TODO test
+
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
         String controlURLs = initialInfo[2];
