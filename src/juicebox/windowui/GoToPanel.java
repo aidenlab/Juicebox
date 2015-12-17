@@ -234,7 +234,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
 
         hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, Math.max(topChrPositions[2], 0),
-                Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto");
+                Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto", true);
 
         //We might end with All->All view, make sure normalization state is updates accordingly...
         superAdapter.setNormalizationDisplayState();
@@ -404,7 +404,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
         hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, location1.centerPosition,
-                location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto");
+                location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();
     }

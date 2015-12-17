@@ -61,6 +61,7 @@ public class HiCGlobals {
             "10 KB", "5 KB"};
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+    public static final boolean showSparsePlottingOptions = false;
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.2;
     // Juicebox title

@@ -155,7 +155,7 @@ public class LoadStateFromXMLFile {
         superAdapter.setEnableForAllElements(true);
 
         hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT,
-                "Load State");
+                "Load State", true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
         LoadAction loadAction = superAdapter.getTrackLoadAction();

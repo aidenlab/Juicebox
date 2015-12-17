@@ -525,7 +525,7 @@ public class HiC {
         }
 
         safeActuallySetZoomAndLocation(newZoom, xBP0, yBP0, newZoom.getBinSize() / targetBinSize, false,
-                ZoomCallType.DRAG, "DragZoom");
+                ZoomCallType.DRAG, "DragZoom", true);
     }
 
     /**
@@ -533,31 +533,35 @@ public class HiC {
      */
     //reloading the previous location
     public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin,
-                            double yOrigin, double scaleFactor, ZoomCallType zoomCallType, String message) {
+                            double yOrigin, double scaleFactor, ZoomCallType zoomCallType, String message,
+                            boolean allowLocationBroadcast) {
 
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
         }
         safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
-                true, zoomCallType, message);
+                true, zoomCallType, message, allowLocationBroadcast);
     }
 
     public boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
-                                                  boolean resetZoom, ZoomCallType zoomCallType, String message) {
-        return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, message);
+                                                  boolean resetZoom, ZoomCallType zoomCallType, String message,
+                                                  boolean allowLocationBroadcast) {
+        return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType,
+                message, allowLocationBroadcast);
     }
 
     public boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
                                                   final double scaleFactor, final boolean resetZoom,
-                                                  final ZoomCallType zoomCallType, String message) {
+                                                  final ZoomCallType zoomCallType, String message,
+                                                  final boolean allowLocationBroadcast) {
         final boolean[] returnVal = new boolean[1];
         superAdapter.executeLongRunningTask(new Runnable() {
             @Override
             public void run() {
                 returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                        resetZoom, zoomCallType);
+                        resetZoom, zoomCallType, allowLocationBroadcast);
             }
         }, message);
         return returnVal[0];
@@ -578,7 +582,8 @@ public class HiC {
      */
     public boolean unsafeActuallySetZoomAndLocation(String chrXName, String chrYName,
                                                     HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
-                                                    boolean resetZoom, ZoomCallType zoomCallType) {
+                                                    boolean resetZoom, ZoomCallType zoomCallType,
+                                                    boolean allowLocationBroadcast) {
 
 
         if (dataset == null) return false;  // No data in view
@@ -653,7 +658,7 @@ public class HiC {
         }
         superAdapter.refresh();
 
-        if (linkedMode) {
+        if (linkedMode && allowLocationBroadcast) {
             broadcastLocation();
         }
         /* Undo Zoom implementation _UZI
@@ -769,7 +774,7 @@ public class HiC {
         if (!(xChr.toLowerCase().contains("chr"))) xChr = "chr" + xChr;
         if (!(yChr.toLowerCase().contains("chr"))) yChr = "chr" + yChr;
 
-        return "setstate " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
+        return "setlocation " + xChr + " " + yChr + " " + currentZoom.getUnit().toString() + " " + currentZoom.getBinSize() + " " +
                 xContext.getBinOrigin() + " " + yContext.getBinOrigin() + " " + getScaleFactor();
     }
 

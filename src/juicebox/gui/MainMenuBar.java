@@ -383,9 +383,13 @@ public class MainMenuBar {
         feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         feature2DPlottingOptions.add(featureRenderingOptions);
         feature2DPlottingOptions.add(editVisibleMI);
-        feature2DPlottingOptions.addSeparator();
-        feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
-        feature2DPlottingOptions.add(sparseOptions);
+
+        // use hidden hotkey instead of plot sparse button
+        if (HiCGlobals.showSparsePlottingOptions) {
+            feature2DPlottingOptions.addSeparator();
+            feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+            feature2DPlottingOptions.add(sparseOptions);
+        }
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
