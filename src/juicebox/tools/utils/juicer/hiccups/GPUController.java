@@ -65,7 +65,7 @@ public class GPUController {
     public GPUOutputContainer process(MatrixZoomData zd, double[] normalizationVector, double[] expectedVector,
                                       int[] rowBounds, int[] columnBounds, int matrixSize,
                                       float[] thresholdBL, float[] thresholdDonut, float[] thresholdH, float[] thresholdV,
-                                      float[] boundRowIndex, float[] boundColumnIndex, NormalizationType normalizationType)
+                                      NormalizationType normalizationType)
             throws NegativeArraySizeException, IOException {
 
         RealMatrix localizedRegionData = HiCFileTools.extractLocalBoundedRegion(zd, rowBounds[0], rowBounds[1],
@@ -86,7 +86,9 @@ public class GPUController {
         if (kr2CPU.length < matrixSize)
             kr2CPU = ArrayTools.padEndOfArray(kr2CPU, matrixSize, Float.NaN);
 
+        float[] boundRowIndex = new float[1];
         boundRowIndex[0] = rowBounds[0];
+        float[] boundColumnIndex = new float[1];
         boundColumnIndex[0] = columnBounds[0];
 
         //long gpu_time1 = System.currentTimeMillis();

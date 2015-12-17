@@ -68,8 +68,7 @@ class CommandExecutor {
             if (args.size() > 0) {
 
                 String cmd = args.get(0).toLowerCase();
-                if (cmd.equals("setstate")) {
-                    //    public void setState(String chrXName, String chrYName, String unitName, int binSize, int xOrigin, int yOrigin, double scalefactor) {
+                if (cmd.equals("setlocation")) {
                     if (args.size() > 7) {
                         String chrXName = args.get(1);
                         String chrYName = args.get(2);
@@ -79,7 +78,7 @@ class CommandExecutor {
                         double yOrigin = Double.parseDouble(args.get(6));
                         double scaleFactor = Double.parseDouble(args.get(7));
                         hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor,
-                                HiC.ZoomCallType.DIRECT, "Goto Sync");
+                                HiC.ZoomCallType.DIRECT, "Goto Sync", false);
                     } else {
                         result = "Not enough parameters";
                     }

@@ -131,6 +131,14 @@ public class SuperAdapter {
         mainMenuBar.setEnableForAllElements(status);
     }
 
+    public void resetControlMap(){
+        hic.setControlDataset(null);
+        MatrixType[] options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+        mainViewPanel.setSelectedDisplayOption(options, false);
+        currentlyLoadedControlFiles = "";
+        updateTitle();
+    }
+
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
     }
@@ -324,7 +332,7 @@ public class SuperAdapter {
             }
 
         }
-        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL);
+        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
     }
 
     public void refresh() {

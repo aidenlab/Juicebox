@@ -133,7 +133,7 @@ public class MainMenuBar {
         fileMenu.add(openItem);
         fileMenu.add(loadControlFromList);
 
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, false) {
 
             private static final long serialVersionUID = 4202L;
 
@@ -383,9 +383,13 @@ public class MainMenuBar {
         feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         feature2DPlottingOptions.add(featureRenderingOptions);
         feature2DPlottingOptions.add(editVisibleMI);
-        feature2DPlottingOptions.addSeparator();
-        feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
-        feature2DPlottingOptions.add(sparseOptions);
+
+        // use hidden hotkey instead of plot sparse button
+        if (HiCGlobals.showSparsePlottingOptions) {
+            feature2DPlottingOptions.addSeparator();
+            feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+            feature2DPlottingOptions.add(sparseOptions);
+        }
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
@@ -517,7 +521,7 @@ public class MainMenuBar {
         saveStateForReload.setEnabled(true);
         bookmarksMenu.add(saveStateForReload);
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode) {
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, true) {
 
             private static final long serialVersionUID = 4204L;
 
@@ -534,7 +538,7 @@ public class MainMenuBar {
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
 
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode) {
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, true) {
 
             private static final long serialVersionUID = 4205L;
 

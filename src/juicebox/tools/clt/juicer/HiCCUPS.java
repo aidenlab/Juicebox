@@ -322,8 +322,6 @@ public class HiCCUPS extends JuicerCLT {
         float[] thresholdDonut = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
         float[] thresholdH = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
         float[] thresholdV = ArrayTools.newValueInitializedFloatArray(w1, (float) w2);
-        float[] boundRowIndex = new float[1];
-        float[] boundColumnIndex = new float[1];
 
         GPUController gpuController = null;
         try {
@@ -353,6 +351,10 @@ public class HiCCUPS extends JuicerCLT {
                 Matrix matrix = ds.getMatrix(chromosome, chromosome);
                 if (matrix == null) continue;
 
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Processing " + chromosome + " ; run num " + runNum);
+                }
+
                 // get matrix data access
                 long start_time = System.currentTimeMillis();
                 MatrixZoomData zd = matrix.getZoomData(zoom);
@@ -366,29 +368,34 @@ public class HiCCUPS extends JuicerCLT {
 
                     // need overall bounds for the chromosome
                     int chrLength = chromosome.getLength();
-                    int chrMatrixWdith = (int) Math.ceil((double) chrLength / conf.getResolution());
-                    double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWdith * 1.0 / regionWidth) + 1;
+                    int chrMatrixWidth = (int) Math.ceil((double) chrLength / conf.getResolution());
+                    double chrWidthInTermsOfMatrixDimension = Math.ceil(chrMatrixWidth * 1.0 / regionWidth) + 1;
                     long load_time = System.currentTimeMillis();
                     if (HiCGlobals.printVerboseComments) {
                         System.out.println("Time to load chr " + chromosome.getName() + " matrix: " + (load_time - start_time) + "ms");
                     }
 
                     for (int i = 0; i < chrWidthInTermsOfMatrixDimension; i++) {
-                        int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWdith);
+                        int[] rowBounds = calculateRegionBounds(i, regionWidth, chrMatrixWidth);
 
-                        if (rowBounds[4] < chrMatrixWdith - regionMargin) {
+                        if (rowBounds[4] < chrMatrixWidth - regionMargin) {
                             for (int j = i; j < chrWidthInTermsOfMatrixDimension; j++) {
-                                int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWdith);
+                                int[] columnBounds = calculateRegionBounds(j, regionWidth, chrMatrixWidth);
                                 if (HiCGlobals.printVerboseComments) {
                                     System.out.print(".");
                                 }
 
-                                if (columnBounds[4] < chrMatrixWdith - regionMargin) {
+                                if (columnBounds[4] < chrMatrixWidth - regionMargin) {
                                     try {
+                                        if (HiCGlobals.printVerboseComments) {
+                                            System.out.println("");
+                                            System.out.println("GPU Run Details");
+                                            System.out.println("Row bounds " + Arrays.toString(rowBounds));
+                                            System.out.println("Col bounds " + Arrays.toString(columnBounds));
+                                        }
                                         GPUOutputContainer gpuOutputs = gpuController.process(zd, normalizationVector, expectedVector,
                                                 rowBounds, columnBounds, matrixSize,
-                                                thresholdBL, thresholdDonut, thresholdH, thresholdV,
-                                                boundRowIndex, boundColumnIndex, norm);
+                                                thresholdBL, thresholdDonut, thresholdH, thresholdV, norm);
 
                                         int diagonalCorrection = (rowBounds[4] - columnBounds[4]) + conf.getPeakWidth() + 2;
 

@@ -118,6 +118,9 @@ public class LoadStateFromXMLFile {
     private static void unsafeLoadStateFromXML(SuperAdapter superAdapter, HiC hic, String[] initialInfo, int binSize, double[] doubleInfo,
                                                MatrixType displaySelection, NormalizationType normSelection,
                                                String[] tracks) {
+
+        superAdapter.resetControlMap(); //TODO test
+
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
         String controlURLs = initialInfo[2];
@@ -152,7 +155,7 @@ public class LoadStateFromXMLFile {
         superAdapter.setEnableForAllElements(true);
 
         hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT,
-                "Load State");
+                "Load State", true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
         LoadAction loadAction = superAdapter.getTrackLoadAction();
