@@ -98,8 +98,16 @@ public class Dataset {
 
     public ResourceLocator getSubcompartments() {
         ResourceLocator locator = null;
-        if (reader.getPath().contains("gm12878/in-situ/combined")) {
-            String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+
+        String path = reader.getPath();
+        //Special case for combined maps:
+        if (path == null)
+        {
+            return null;
+        }
+
+        if (path.contains("gm12878/in-situ/combined")) {
+            path = path.substring(0, path.lastIndexOf('.'));
             if (path.lastIndexOf("_30") > -1) {
                 path = path.substring(0, path.lastIndexOf("_30"));
             }
@@ -114,8 +122,17 @@ public class Dataset {
 
     public ResourceLocator getSuperLoops() {
         ResourceLocator locator = null;
-        if (reader.getPath().contains("gm12878/in-situ/combined")) {
-            String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+
+        String path = reader.getPath();
+        //Special case for combined maps:
+        if (path == null)
+        {
+            return null;
+        }
+
+        if (path.contains("gm12878/in-situ/combined")) {
+            path = path.substring(0, path.lastIndexOf('.'));
+
             if (path.lastIndexOf("_30") > -1) {
                 path = path.substring(0, path.lastIndexOf("_30"));
             }
@@ -129,7 +146,18 @@ public class Dataset {
     }
 
     public ResourceLocator getPeaks() {
-        String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+
+        String path = reader.getPath();
+
+        //Special case for combined maps:
+        if (path == null)
+        {
+            return null;
+        }
+
+        path = path.substring(0, path.lastIndexOf('.'));
+
+
         if (path.lastIndexOf("_30") > -1) {
             path = path.substring(0, path.lastIndexOf("_30"));
         }
@@ -150,7 +178,16 @@ public class Dataset {
     }
 
     public ResourceLocator getBlocks() {
-        String path = reader.getPath().substring(0, reader.getPath().lastIndexOf('.'));
+
+        String path = reader.getPath();
+
+        //Special case for combined maps:
+        if (path == null)
+        {
+            return null;
+        }
+
+        path = path.substring(0, path.lastIndexOf('.'));
 
         if (path.lastIndexOf("_30") > -1) {
             path = path.substring(0, path.lastIndexOf("_30"));
