@@ -493,12 +493,12 @@ public class MainMenuBar {
                 String stateDescription = superAdapter.getStateDescription();
                 if (null != stateDescription) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+                    recentLocationMenu.setEnabled(true);
                 }
             }
         });
-
-        saveLocationList.setEnabled(false);
         bookmarksMenu.add(saveLocationList);
+        saveLocationList.setEnabled(true);
         //---Save State test-----
         saveStateForReload = new JMenuItem();
         saveStateForReload.setText("Save current state");
@@ -520,7 +520,7 @@ public class MainMenuBar {
             }
         });
 
-        saveStateForReload.setEnabled(true);
+        //saveStateForReload.setEnabled(true);
         bookmarksMenu.add(saveStateForReload);
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, true) {
@@ -602,13 +602,16 @@ public class MainMenuBar {
                 HiCGlobals.slideshowEnabled = true;
             }
         });
-        bookmarksMenu.add(slideShow);
+        //bookmarksMenu.add(slideShow);
 
 
         //Add menu items
-        shareMenu.add(exportMapAsFile);
-        shareMenu.add(importMapAsFile);
+        //shareMenu.add(exportMapAsFile);
+        //shareMenu.add(importMapAsFile);
 
+        bookmarksMenu.addSeparator();
+        bookmarksMenu.add(exportMapAsFile);
+        bookmarksMenu.add(importMapAsFile);
         /*
         //---3D Model Menu-----
         JMenu toolsMenu = new JMenu("Tools");
@@ -628,7 +631,7 @@ public class MainMenuBar {
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
-        menuBar.add(shareMenu);
+        //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
     }
@@ -640,7 +643,7 @@ public class MainMenuBar {
     public void setEnableForAllElements(boolean status) {
         annotationsMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
-        recentLocationMenu.setEnabled(status);
+        saveStateForReload.setEnabled(status);
     }
 
     public void updatePrevStateNameFromImport(String path) {
