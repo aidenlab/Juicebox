@@ -139,7 +139,6 @@ public class LoadStateFromXMLFile {
         String[] temp = mapNames.split("\\(control=");
         String mainMapNames = temp[0];
 
-
         List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));
         superAdapter.unsafeLoadWithTitleFix(urls, false, mainMapNames);
 
@@ -151,6 +150,7 @@ public class LoadStateFromXMLFile {
 
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
+        superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
         superAdapter.getMainViewPanel().updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
         superAdapter.setEnableForAllElements(true);
 

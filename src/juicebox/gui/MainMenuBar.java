@@ -506,12 +506,14 @@ public class MainMenuBar {
 
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
+                try{
                 String stateDescription = superAdapter.getStateDescription();
                 if (stateDescription != null && stateDescription.length() > 0) {
+                    stateDescription = previousStates.checkForDuplicateNames(stateDescription);
                     previousStates.addEntry(stateDescription, true);
-                }
-                try {
                     superAdapter.addNewStateToXML(stateDescription);
+                }
+                    previousStates.setEnabled(true);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -561,7 +563,6 @@ public class MainMenuBar {
                     }
                 }
             });*/
-        previousStates.setEnabled(true);
         bookmarksMenu.add(previousStates);
 
         //---Export Menu-----

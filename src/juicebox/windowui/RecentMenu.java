@@ -127,11 +127,9 @@ public abstract class RecentMenu extends JMenu {
         String savedEntry = savedEntryOriginal;
 
         //Add item, remove previous existing duplicate:
-        if(thisMenuChecksForDuplicates){
-            System.out.println("mitems" + m_items);
-            savedEntry = checkForDuplicateNames(savedEntry);
-        }
-
+      //  if(thisMenuChecksForDuplicates){
+       //     savedEntry = checkForDuplicateNames(savedEntry);
+        //}
             m_items.remove(savedEntry);
             m_items.add(0, savedEntry);
 
@@ -264,7 +262,6 @@ public abstract class RecentMenu extends JMenu {
             suitableNameNotFound = false;
             boolean repFound = false;
             for (String item : m_items) {
-                System.out.println("item: " + item);
                 if (item.equals(savedName)) {
                     repFound = true;
                     break;
@@ -278,6 +275,10 @@ public abstract class RecentMenu extends JMenu {
                     return savedName;
                 } else if (option == JOptionPane.NO_OPTION) {
                     savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
+                    return savedName;
+                } else if (option == JOptionPane.CLOSED_OPTION){
+                    savedName = "";
+                    return savedName;
                 }
             }
         }

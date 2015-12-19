@@ -659,6 +659,9 @@ public class MainViewPanel {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
+    public void setNormalizationEnabledForReload(){
+        normalizationComboBox.setEnabled(true);
+    }
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
     }
