@@ -267,7 +267,6 @@ public class HiCCUPS extends JuicerCLT {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
-        PrintWriter outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
 
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
@@ -279,6 +278,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
+            PrintWriter outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     filteredConfigurations, norm);
             finalList.exportFeatureList(outputFile, false);
