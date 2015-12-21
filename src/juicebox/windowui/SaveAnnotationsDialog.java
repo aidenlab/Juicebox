@@ -43,10 +43,12 @@ public class SaveAnnotationsDialog extends JFileChooser {
     private static final long serialVersionUID = -6338086600062738308L;
     private final CustomAnnotation annotations;
     private Feature2DList otherList = null;
+    private String mapName = "";
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations) {
+    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, String mapName) {
         super();
         this.annotations = customAnnotations;
+        this.mapName = mapName;
         menuOptions();
     }
 
@@ -58,8 +60,9 @@ public class SaveAnnotationsDialog extends JFileChooser {
     }
 
     private void menuOptions() {
-        String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        setSelectedFile(new File("Author-" + timeStamp + ".txt"));
+        //String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyy.MM.dd-HH.mm").format(new Date());
+        setSelectedFile(new File(mapName + "-" + timeStamp + ".txt"));
 
         setCurrentDirectory(new File(System.getProperty("user.dir")));
 

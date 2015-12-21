@@ -623,6 +623,9 @@ public class SuperAdapter {
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
+    public String getMapName(){
+        return this.datasetTitle.split(" ")[0];
+    }
 
     public void launchGenericMessageDialog(String message, String error, int errorMessage) {
         JOptionPane.showMessageDialog(mainWindow, message, error, errorMessage);

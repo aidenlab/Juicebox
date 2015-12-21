@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -56,6 +57,7 @@ public class MainMenuBar {
     private static final Logger log = Logger.getLogger(MainMenuBar.class);
     public static JMenuItem exportAnnotationsMI;
     public static JMenuItem undoMenuItem;
+    //meh - public static ArrayList<CustomAnnotation> customAnnotations;
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
     private static JMenuItem loadLastMI;
@@ -101,6 +103,7 @@ public class MainMenuBar {
     }
 
     public void initializeCustomAnnotations() {
+        // meh - customAnnotations = new ArrayList<CustomAnnotation>();
         customAnnotations = new CustomAnnotation("1");
         customAnnotationHandler = new CustomAnnotationHandler();
     }
@@ -367,12 +370,25 @@ public class MainMenuBar {
         });
         toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0));
 
+        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
+
+        showCustomLoopsItem.setSelected(true);
+        showCustomLoopsItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
+
         final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
         editVisibleMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
                 showLoopsItem.setSelected(false);
+                showCustomLoopsItem.setSelected(true);
                 superAdapter.setShowLoops(false);
                 superAdapter.repaint();
             }
@@ -406,7 +422,7 @@ public class MainMenuBar {
         exportAnnotationsMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveAnnotationsDialog(customAnnotations);
+                new SaveAnnotationsDialog(customAnnotations, superAdapter.getMapName());
             }
         });
 
@@ -450,18 +466,6 @@ public class MainMenuBar {
             }
         });
         undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
-
-        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
-
-        showCustomLoopsItem.setSelected(true);
-        showCustomLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
 
         //Add annotate menu items
         customAnnotationMenu.add(showCustomLoopsItem);

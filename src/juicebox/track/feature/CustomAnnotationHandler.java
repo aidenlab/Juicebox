@@ -40,7 +40,7 @@ public class CustomAnnotationHandler {
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
-    private final int threshold = 10;
+    private final int threshold = 15;
     private Rectangle selectionRegion;
     private Point selectionPoint;
     private Feature2D.FeatureType featureType;
