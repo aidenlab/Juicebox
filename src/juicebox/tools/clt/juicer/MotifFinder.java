@@ -25,7 +25,6 @@
 package juicebox.tools.clt.juicer;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
@@ -173,34 +172,33 @@ public class MotifFinder extends JuicerCLT {
     public GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
                                                                         GenomeWideList<MotifAnchor> baseList) {
 
-        GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(chromosomes, tierOneFiles);
-        GenomeWideList<MotifAnchor> tierTwoProteins = getIntersectionOfBEDFiles(chromosomes, tierTwoFiles);
-        GenomeWideList<MotifAnchor> tierThreeProteins = getIntersectionOfBEDFiles(chromosomes, tierThreeFiles);
+        if (tierOneFiles.size() > 0) {
+            GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(chromosomes, tierOneFiles);
+            MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, true);
 
-        MotifAnchorTools.retainProteinsInLocus(tierOneProteins, baseList, true, true);
+            if (tierTwoFiles.size() > 0) {
+                GenomeWideList<MotifAnchor> tierTwoProteins = getIntersectionOfBEDFiles(chromosomes, tierTwoFiles);
+                if (tierTwoProteins.size() > 0) {
+                    MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierTwoProteins, false);
+                }
+            }
 
-        if (HiCGlobals.printVerboseComments) {
-            System.out.println("T1 " + tierOneProteins.size());
+            if (tierThreeFiles.size() > 0) {
+                GenomeWideList<MotifAnchor> tierThreeProteins = getIntersectionOfBEDFiles(chromosomes, tierThreeFiles);
+                if (tierThreeProteins.size() > 0) {
+                    MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierThreeProteins, false);
+                }
+            }
+
+            return tierOneProteins;
+        } else {
+            // no files
+            System.err.println("No CTCF files provided");
+            System.exit(-5);
+            return null;
         }
-
-        if (tierTwoProteins.size() > 0) {
-            MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierTwoProteins, false);
-        }
-
-        if (HiCGlobals.printVerboseComments) {
-            System.out.println("T2 " + tierOneProteins.size());
-        }
-
-        if (tierThreeProteins.size() > 0) {
-            MotifAnchorTools.preservativeIntersectLists(tierOneProteins, tierThreeProteins, false);
-        }
-
-        if (HiCGlobals.printVerboseComments) {
-            System.out.println("T3 " + tierOneProteins.size());
-        }
-
-        return tierOneProteins;
     }
+
 
     private void findUniqueMotifs(List<Chromosome> chromosomes, Feature2DList features) {
 
