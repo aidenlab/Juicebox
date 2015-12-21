@@ -502,7 +502,7 @@ public class MainMenuBar {
             }
         });
         bookmarksMenu.add(saveLocationList);
-        saveLocationList.setEnabled(true);
+        saveLocationList.setEnabled(false);
         //---Save State test-----
         saveStateForReload = new JMenuItem();
         saveStateForReload.setText("Save current state");
@@ -524,7 +524,7 @@ public class MainMenuBar {
             }
         });
 
-        //saveStateForReload.setEnabled(true);
+        saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, true) {
