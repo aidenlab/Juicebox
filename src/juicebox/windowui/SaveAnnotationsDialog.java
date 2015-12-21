@@ -60,11 +60,10 @@ public class SaveAnnotationsDialog extends JFileChooser {
     }
 
     private void menuOptions() {
-        //String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd-HH.mm").format(new Date());
         setSelectedFile(new File(mapName + "-" + timeStamp + ".txt"));
 
-        setCurrentDirectory(new File(System.getProperty("user.dir")));
+        //setCurrentDirectory(new File(System.getProperty("user.dir")));
 
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
                 "Text Files", "txt", "text");
