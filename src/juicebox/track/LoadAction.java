@@ -299,6 +299,7 @@ public class LoadAction extends AbstractAction {
         if (repaint) {
             mainWindow.repaint();
         }
+        hic.setShowLoops(true);
         return newLoadList;
     }
 
