@@ -243,12 +243,12 @@ public class Arrowhead extends JuicerCLT {
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, false);
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, true, "arrowhead");
         System.out.println(contactDomainsGenomeWide.getNumTotalFeatures() + " domains written to file: " +
                 outputPath + "_" + resolution + "_blocks");
         if (controlAndListProvided) {
-            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false);
-            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false);
+            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, "NA");
+            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, "NA");
         }
         System.out.println("Arrowhead complete");
     }

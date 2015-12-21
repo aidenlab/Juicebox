@@ -126,25 +126,6 @@ public class HiCCUPSUtils {
 
     }
 
-    public static String oldOutput(Feature2D feature) {
-        return feature.getChr1() + "\t" + feature.getStart1() + "\t" +
-                feature.getChr2() + "\t" + feature.getStart2() + "\t" +
-                feature.getAttribute(OBSERVED)
-                + "\t" + feature.getAttribute(EXPECTEDBL)
-                + "\t" + feature.getAttribute(EXPECTEDDONUT)
-                + "\t" + feature.getAttribute(EXPECTEDH)
-                + "\t" + feature.getAttribute(EXPECTEDV)
-                + "\t" + feature.getAttribute(BINBL)
-                + "\t" + feature.getAttribute(BINDONUT)
-                + "\t" + feature.getAttribute(BINH)
-                + "\t" + feature.getAttribute(BINV)
-                + "\t" + feature.getAttribute(FDRBL)
-                + "\t" + feature.getAttribute(FDRDONUT)
-                + "\t" + feature.getAttribute(FDRH)
-                + "\t" + feature.getAttribute(FDRV);
-    }
-
-
     public static void removeLowMapQFeatures(Feature2DList list, final int resolution,
                                              final Dataset ds, final List<Chromosome> chromosomes,
                                              final NormalizationType norm) {

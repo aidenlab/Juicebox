@@ -25,7 +25,6 @@
 package juicebox.track.feature;
 
 import juicebox.data.HiCFileTools;
-import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
@@ -194,10 +193,10 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath, boolean useOldHiccupsFormat) {
+    public int exportFeatureList(String outputFilePath, boolean formattedOutput, String listFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, useOldHiccupsFormat);
+            return exportFeatureList(outputFile, formattedOutput, listFormat);
         }
         return -1;
     }
@@ -207,23 +206,41 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean useOldHiccupsFormat) {
+    public int exportFeatureList(final PrintWriter outputFile, final boolean formattedOutput, final String listFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {
-                outputFile.println(featureZero.getOutputFileHeader());
-                if (useOldHiccupsFormat) {
+                if (formattedOutput) {
+                    String header = Feature2D.genericHeader;
+                    final ArrayList<String> outputKeys = new ArrayList<String>();
+                    if (listFormat.matches("hiccupsEnriched")) {
+                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
+                    } else if (listFormat.matches("hiccupsFinal")) {
+                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
+                    } else if (listFormat.matches("arrowhead")) {
+                        outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
+                    }
+                    for (String key : outputKeys) {
+                        header += "\t" + key;
+                    }
+                    outputFile.println(header);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             for (Feature2D feature : feature2DList) {
-                                outputFile.println(HiCCUPSUtils.oldOutput(feature));
+                                String output = feature.simpleString();
+                                for (String key : outputKeys) {
+                                    output += "\t" + feature.attributes.get(key);
+                                }
+                                outputFile.println(output);
                             }
                         }
                     });
-
                 } else {
+                    outputFile.println(featureZero.getOutputFileHeader());
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {

@@ -267,6 +267,10 @@ public class HiCCUPS extends JuicerCLT {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
+        PrintWriter outputFile = null;
+        if (dataShouldBePostProcessed) {
+            outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
+        }
 
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
@@ -278,10 +282,9 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (dataShouldBePostProcessed) {
-            PrintWriter outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     filteredConfigurations, norm);
-            finalList.exportFeatureList(outputFile, false);
+            finalList.exportFeatureList(outputFile, true, "hiccupsFinal");
             System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputFinalLoopListFileName);
         }
         System.out.println("HiCCUPS complete");
@@ -462,7 +465,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true);
+            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, "hiccupsEnriched");
             if (outputFDR != null) {
                 for (int i = 0; i < w1; i++) {
                     outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
