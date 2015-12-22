@@ -175,7 +175,7 @@ public class CustomAnnotation {
     public boolean hasLoop(int idx1, int idx2, Feature2D feature) {
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> featureList = customAnnotationList.get(idx1, idx2);
-            if (featureList.contains(feature)) {
+            if (featureList.contains(feature) || featureList.contains(feature.reflectionAcrossDiagonal())) {
                 return true;
             }
         }
