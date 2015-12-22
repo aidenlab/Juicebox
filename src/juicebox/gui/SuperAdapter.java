@@ -347,7 +347,7 @@ public class SuperAdapter {
         mainWindow.repaint();
     }
 
-    private void unsafeLoad(final List<String> files, final boolean control) throws IOException {
+    private void unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
@@ -359,11 +359,18 @@ public class SuperAdapter {
             allFilesAreHiC &= file.endsWith(".hic");
         }
 
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
-            JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
-            return;
-        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
-            JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
+        if (!restore) {
+            if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+                JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
+                return;
+            } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+                JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
+                return;
+            }
+        }
+        else
+        {
+            //In restore mode, no dialog required.
             return;
         }
 
@@ -449,18 +456,19 @@ public class SuperAdapter {
         addRecentMapMenuEntry(title.trim() + "@@" + files.get(0), true);
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeLoadWithTitleFix(files, control, title);
+                boolean isRestorenMode = false;
+                unsafeLoadWithTitleFix(files, control, title, isRestorenMode);
             }
         };
         mainWindow.executeLongRunningTask(runnable, "MainWindow safe load");
     }
 
-    public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title) {
+    public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title, boolean restore) {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
         try {
-            unsafeLoad(files, control);
+            unsafeLoad(files, control, restore);
             mainViewPanel.updateThumbnail(hic);
             refresh();
             updateTitle(control, title);

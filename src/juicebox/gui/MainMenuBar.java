@@ -495,14 +495,14 @@ public class MainMenuBar {
                 //code to add a recent location to the menu
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getStateDescription();
-                if (null != stateDescription) {
+                if (null != stateDescription && stateDescription.length() > 0) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
                     recentLocationMenu.setEnabled(true);
                 }
             }
         });
         bookmarksMenu.add(saveLocationList);
-        saveLocationList.setEnabled(true);
+        saveLocationList.setEnabled(false);
         //---Save State test-----
         saveStateForReload = new JMenuItem();
         saveStateForReload.setText("Save current state");
@@ -514,6 +514,9 @@ public class MainMenuBar {
                 String stateDescription = superAdapter.getStateDescription();
                 if (stateDescription != null && stateDescription.length() > 0) {
                     stateDescription = previousStates.checkForDuplicateNames(stateDescription);
+                    if (stateDescription == null || stateDescription.length() < 0) {
+                        return;
+                    }
                     previousStates.addEntry(stateDescription, true);
                     superAdapter.addNewStateToXML(stateDescription);
                 }
@@ -524,7 +527,7 @@ public class MainMenuBar {
             }
         });
 
-        //saveStateForReload.setEnabled(true);
+        saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
         recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, true) {
@@ -554,19 +557,6 @@ public class MainMenuBar {
 
         };
 
-            /*previousStates.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    super.mouseClicked(e);
-                    if (SwingUtilities.isLeftMouseButton(e)) {
-                        System.out.println("Left Click");
-                        //superAdapter.launchLoadStateFromXML(mapPath);
-                    } else if (SwingUtilities.isRightMouseButton(e)) {
-                        //previousStates.rightClickMenu(mapPath);
-                        System.out.println("Right Click");
-                    }
-                }
-            });*/
         bookmarksMenu.add(previousStates);
 
         //---Export Menu-----
@@ -648,6 +638,7 @@ public class MainMenuBar {
         annotationsMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
+        saveLocationList.setEnabled(status);
     }
 
     public void updatePrevStateNameFromImport(String path) {

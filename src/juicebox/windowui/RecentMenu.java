@@ -121,17 +121,12 @@ public abstract class RecentMenu extends JMenu {
      * @param updateFile also save to file, Constructor call with false - no need to re-write.
      */
     public void addEntry(String savedEntryOriginal, boolean updateFile) {
-
         //clear the existing items
         this.removeAll();
         String savedEntry = savedEntryOriginal;
 
-        //Add item, remove previous existing duplicate:
-      //  if(thisMenuChecksForDuplicates){
-       //     savedEntry = checkForDuplicateNames(savedEntry);
-        //}
-            m_items.remove(savedEntry);
-            m_items.add(0, savedEntry);
+        m_items.remove(savedEntry);
+        m_items.add(0, savedEntry);
 
         //Chop last item if list is over size:
         if (this.m_items.size() > this.m_maxItems) {
@@ -163,6 +158,7 @@ public abstract class RecentMenu extends JMenu {
         //update the file
         if (updateFile) {
             try {
+                //todo: null in savedEntryOriginal will cause an exception...
                 for (int i = 0; i < this.m_maxItems; i++) {
                     if (i < this.m_items.size()) {
                         prefs.put(this.m_entry + i, this.m_items.get(i));
