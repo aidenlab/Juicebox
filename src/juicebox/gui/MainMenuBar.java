@@ -287,6 +287,7 @@ public class MainMenuBar {
                 renderFullFeatureItem.setSelected(true);
                 renderLLFeatureItem.setSelected(false);
                 renderURFeatureItem.setSelected(false);
+                superAdapter.repaint();
             }
         });
         renderLLFeatureItem.addActionListener(new ActionListener() {
@@ -296,6 +297,7 @@ public class MainMenuBar {
                 renderFullFeatureItem.setSelected(false);
                 renderLLFeatureItem.setSelected(true);
                 renderURFeatureItem.setSelected(false);
+                superAdapter.repaint();
             }
         });
         renderURFeatureItem.addActionListener(new ActionListener() {
@@ -305,6 +307,7 @@ public class MainMenuBar {
                 renderFullFeatureItem.setSelected(false);
                 renderLLFeatureItem.setSelected(false);
                 renderURFeatureItem.setSelected(true);
+                superAdapter.repaint();
             }
         });
 
