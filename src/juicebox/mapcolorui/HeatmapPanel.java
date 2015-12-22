@@ -31,6 +31,7 @@ import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
+import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -57,6 +58,7 @@ import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import juicebox.HiC;
 
 import static java.awt.Toolkit.getDefaultToolkit;
 
@@ -94,6 +96,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
+    private MainViewPanel mainViewPanel;
+    private HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.valueOf("BP"), 500000);
+
+
 
     /**
      * feature highlight related variables
@@ -115,8 +121,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
         this.firstAnnotation = true;
-        //drawnLoopFeatures = new ArrayList<Pair<Rectangle, Feature2D>>();
-        //setToolTipText(""); // Turns tooltip on
+        this.mainViewPanel = superAdapter.getMainViewPanel();
     }
 
 
@@ -150,7 +155,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
         if (hic.getDisplayOption() == MatrixType.PEARSON) {
             // Possibly force asynchronous computation of pearsons
             if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution, use 500KB or lower resolution.");
+
+                //todo: call this at selection of new zoom level and spare the extra load of map.
+                mainViewPanel.getResolutionSlider().setZoom(pearsonZoom);
                 return;
             }
         }

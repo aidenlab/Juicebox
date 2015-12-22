@@ -600,7 +600,7 @@ public class MainViewPanel {
         }
     }
 
-    public void setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
+    public boolean setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
@@ -615,7 +615,7 @@ public class MainViewPanel {
         } else {
             resolutionSlider.setForeground(Color.BLACK);
         }
-        superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
 
@@ -690,10 +690,6 @@ public class MainViewPanel {
     public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor) {
         colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
     }
-
-    /*public void refreshMapcolors() {
-        unsafeDisplayOptionComboBoxActionPerformed();
-    }*/
 
     public void setEnabledForNormalization(String[] normalizationOptions, boolean status) {
         if (normalizationOptions.length == 1) {

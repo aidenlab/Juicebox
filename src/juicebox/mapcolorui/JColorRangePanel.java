@@ -215,7 +215,7 @@ public class JColorRangePanel extends JPanel {
     }
 
 
-    public void setColorRangeSliderVisible(boolean state, SuperAdapter superAdapter) {
+    public boolean setColorRangeSliderVisible(boolean state, SuperAdapter superAdapter) {
         plusButton.setEnabled(state);
         minusButton.setEnabled(state);
         colorRangeSlider.setEnabled(state);
@@ -224,7 +224,7 @@ public class JColorRangePanel extends JPanel {
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
-        superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {

@@ -506,13 +506,15 @@ public class SuperAdapter {
         mainWindow.executeLongRunningTask(runnable, "Refresh Button");
     }
 
-    public void safeDisplayOptionComboBoxActionPerformed() {
+    public boolean safeDisplayOptionComboBoxActionPerformed() {
+        boolean retVal;
         Runnable runnable = new Runnable() {
             public void run() {
                 unsafeDisplayOptionComboBoxActionPerformed();
             }
         };
         mainWindow.executeLongRunningTask(runnable, "DisplayOptionsComboBox");
+        return true;
     }
 
 
@@ -525,13 +527,13 @@ public class SuperAdapter {
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
     }
 
-    private void unsafeDisplayOptionComboBoxActionPerformed() {
+    private boolean unsafeDisplayOptionComboBoxActionPerformed(){//boolean testBeforeSet) {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
         if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
             JOptionPane.showMessageDialog(mainWindow, option + " matrix is not available for whole-genome view.");
             mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
-            return;
+            return false;
         }
 
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
@@ -540,25 +542,31 @@ public class SuperAdapter {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
-                return;
+                return false;
 
             } else {
                 try {
                     if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
-                        return;
+                        return false;
                     }
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this region");
                     mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
-                    return;
+                    return false;
                 }
             }
         }
 
+//        if (testBeforeSet)
+//        {
+//            return true;
+//        }
+
         hic.setDisplayOption(option);
         refresh(); // necessary to invalidate minimap when changing view
+        return true;
     }
 
     /**

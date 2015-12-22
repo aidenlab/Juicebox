@@ -73,6 +73,7 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
+    public static enum menuType {MAP, LOCATION, STATE}
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

@@ -137,7 +137,7 @@ public class MainMenuBar {
         fileMenu.add(openItem);
         fileMenu.add(loadControlFromList);
 
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, false) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP, false) {
 
             private static final long serialVersionUID = 4202L;
 
@@ -534,7 +534,7 @@ public class MainMenuBar {
         saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, true) {
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION, true) {
 
             private static final long serialVersionUID = 4204L;
 
@@ -551,7 +551,7 @@ public class MainMenuBar {
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
 
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, true) {
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE, true) {
 
             private static final long serialVersionUID = 4205L;
 

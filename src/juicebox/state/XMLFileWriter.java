@@ -44,7 +44,7 @@ import java.io.File;
 /**
  * Created by Zulkifl Gire on 7/15/2015.
  */
-class XMLFileWriter {
+public class XMLFileWriter {
     private static final File currentStatesToXML = new File(HiCGlobals.xmlSavedStatesFileName);
     private static StreamResult streamResult;
     private static Document xmlDoc;

@@ -24,8 +24,8 @@
 
 package juicebox.windowui;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.state.XMLFileWriter;
 import org.broad.igv.Globals;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,14 +58,16 @@ public abstract class RecentMenu extends JMenu {
     private final File currentStates = new File(HiCGlobals.stateFileName);
     private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
     private List<String> m_items = new ArrayList<String>();
-    private boolean thisMenuChecksForDuplicates = false;
+    private boolean checkForDuplicates = false;
+    private HiCGlobals.menuType myType;
 
-    public RecentMenu(String name, int count, String prefEntry, boolean thisMenuChecksForDuplicates) {
+    public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type, boolean checkForDuplicates) {
         super(name);
 
-        this.thisMenuChecksForDuplicates = thisMenuChecksForDuplicates;
+        this.checkForDuplicates = checkForDuplicates;
         this.m_maxItems = count;
         this.m_entry = prefEntry;
+        this.myType = type;
         String[] recentEntries = new String[count];
         Arrays.fill(recentEntries, "");
 
@@ -100,13 +102,21 @@ public abstract class RecentMenu extends JMenu {
                 removeAll();
                 m_items = new ArrayList<String>();
                 setEnabled(false);
-                try {
-                    BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
-                    BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML, false));
-                    buffWriter.close();
-                    bWriter.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+
+                //Clean state data:
+                if (myType == HiCGlobals.menuType.STATE) {
+                    try {
+                        BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                        BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML, false));
+
+                        HiCGlobals.savedStatesList.clear();
+                        XMLFileWriter.overwriteXMLFile();
+
+                        buffWriter.close();
+                        bWriter.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
         });
@@ -150,7 +160,6 @@ public abstract class RecentMenu extends JMenu {
                         onSelectPosition(actionEvent.getActionCommand());
                     }
                 });
-                //menuItem.addMouseListener(new MouseListener() );
                 this.add(menuItem);
             }
 
@@ -172,7 +181,7 @@ public abstract class RecentMenu extends JMenu {
         }
         addClearItem();
 
-        //check if this is disabled
+        //Enable saved states restore, if not already enabled:
         if (!this.isEnabled()) {
             this.setEnabled(true);
         }
@@ -280,57 +289,4 @@ public abstract class RecentMenu extends JMenu {
         }
         return savedName;
     }
-
-    /*public void rightClickRemove(String mapPath){
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            File file = new File(HiCGlobals.xmlSavedStatesFileName);
-            Document doc = db.parse(file);
-
-            NodeList nodeList = doc.getElementsByTagName("STATE");
-
-            for (int i = 0; i < nodeList.getLength(); i++) {
-
-                if (nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue().equals(mapPath)) {
-                    nodeList.item(i).getParentNode().removeChild(nodeList.item(i));
-                }
-
-            }
-
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File(HiCGlobals.xmlSavedStatesFileName));
-            transformer.transform(source, result);
-
-
-        } catch (ParserConfigurationException pce) {
-            pce.printStackTrace();
-        } catch (SAXException sax) {
-            sax.printStackTrace();
-        } catch (IOException io) {
-            io.printStackTrace();
-        } catch (TransformerConfigurationException tce) {
-            tce.printStackTrace();
-        } catch (TransformerException te) {
-            te.printStackTrace();
-        }
-
-    }
-
-    public JPopupMenu rightClickMenu(final String mapPath){
-        JPopupMenu rightMenu = new JPopupMenu(getName());
-
-        JMenuItem removeState = new JMenuItem("Remove State");
-        removeState.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                rightClickRemove(mapPath);
-            }
-        });
-        rightMenu.add(removeState);
-        return rightMenu;
-    }*/
-
 }

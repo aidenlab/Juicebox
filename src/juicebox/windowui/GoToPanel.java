@@ -362,7 +362,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
 
             reader = new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
-            MessageUtils.showMessage("Initializing gene database for " + genomeID);
+            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take few minutes. ");
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -403,7 +403,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setLocation(location1.chromosome, location2.chromosome, "BP", 5000, location1.centerPosition,
+        hic.setLocation(location1.chromosome, location2.chromosome, "BP", hic.getZoom().getBinSize(), location1.centerPosition,
                 location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();
