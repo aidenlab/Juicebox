@@ -422,7 +422,7 @@ public class MainMenuBar {
         exportAnnotationsMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveAnnotationsDialog(customAnnotations, superAdapter.getMapName());
+                superAdapter.exportAnnotations();
             }
         });
 
@@ -628,6 +628,10 @@ public class MainMenuBar {
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
+    }
+
+    public void clearAllAnnotations(){
+        customAnnotations.clearAnnotations();
     }
 
     public void deleteUnsavedEdits() {

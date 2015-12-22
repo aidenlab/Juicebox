@@ -126,7 +126,13 @@ public class CustomAnnotation {
 
     public void deleteTempFile() {
         //System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
-        tempWriter.close();
+        if (tempWriter != null) {
+            tempWriter.close();
+        }
+        if (tempFile == null){
+            String prefix = "unsaved-hiC-annotations" + id;
+            tempFile = HiCFileTools.openTempFile(prefix);
+        }
         tempFile.delete();
     }
 

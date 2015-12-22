@@ -109,6 +109,7 @@ public class MainWindow extends JFrame {
     }
 
     private static void initApplication() {
+
         DirectoryManager.initializeLog();
 
         log.debug("Default User Directory: " + DirectoryManager.getUserDirectory());
@@ -127,6 +128,13 @@ public class MainWindow extends JFrame {
     }
 
     private void initComponents() {
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                superAdapter.exitActionPerformed();
+            }
+        });
+
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Initializing Components");
         }
@@ -170,10 +178,7 @@ public class MainWindow extends JFrame {
     public void exitActionPerformed() {
         setVisible(false);
         dispose();
-        //TODO - meh doesn't always delete temp file of annotations on exit
-        if (superAdapter.unsavedEditsExist()) {
-            superAdapter.deleteUnsavedEdits();
-        }
+        System.out.println("Exiting Main Window");
         System.exit(0);
     }
 

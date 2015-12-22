@@ -170,10 +170,12 @@ public class SuperAdapter {
     }
 
     public void loadFromListActionPerformed(boolean control) {
+        new UnsavedAnnotationWarning(this);
         HiCFileLoader.loadFromListActionPerformed(this, control);
     }
 
     public void loadFromRecentActionPerformed(String url, String title, boolean control) {
+        new UnsavedAnnotationWarning(this);
         HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
     }
 
@@ -181,7 +183,12 @@ public class SuperAdapter {
         new SaveImageDialog(null, hic, mainViewPanel.getHiCPanel());
     }
 
+    public void exportAnnotations() {
+        new SaveAnnotationsDialog(mainMenuBar.customAnnotations, getMapName());
+    }
+
     public void exitActionPerformed() {
+        new UnsavedAnnotationWarning(this);
         mainWindow.exitActionPerformed();
     }
 
@@ -700,6 +707,10 @@ public class SuperAdapter {
 
     public void deleteUnsavedEdits() {
         mainMenuBar.deleteUnsavedEdits();
+    }
+
+    public void clearAllAnnotations() {
+        mainMenuBar.clearAllAnnotations();
     }
 
     public void setSparseFeaturePlotting(boolean status) {
