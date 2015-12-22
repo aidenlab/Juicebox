@@ -78,6 +78,7 @@ public class MainMenuBar {
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
+    private JCheckBoxMenuItem showLoopsItem;
 
     public LoadAction getTrackLoadAction() {
         return trackLoadAction;
@@ -261,7 +262,7 @@ public class MainMenuBar {
         });
 
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
-        final JCheckBoxMenuItem showLoopsItem = new JCheckBoxMenuItem("Show");
+        showLoopsItem = new JCheckBoxMenuItem("Show");
         showLoopsItem.setSelected(true);
         showLoopsItem.addActionListener(new ActionListener() {
             @Override
@@ -628,6 +629,10 @@ public class MainMenuBar {
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
+    }
+
+    public void setShow2DAnnotations(boolean show){
+        showLoopsItem.setSelected(show);
     }
 
     public void clearAllAnnotations(){

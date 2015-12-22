@@ -171,11 +171,13 @@ public class SuperAdapter {
 
     public void loadFromListActionPerformed(boolean control) {
         new UnsavedAnnotationWarning(this);
+        mainMenuBar.setShow2DAnnotations(true);
         HiCFileLoader.loadFromListActionPerformed(this, control);
     }
 
     public void loadFromRecentActionPerformed(String url, String title, boolean control) {
         new UnsavedAnnotationWarning(this);
+        mainMenuBar.setShow2DAnnotations(true);
         HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
     }
 
