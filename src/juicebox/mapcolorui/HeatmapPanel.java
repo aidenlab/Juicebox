@@ -119,30 +119,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         //setToolTipText(""); // Turns tooltip on
     }
 
-    public void reset() {
-            renderer.reset();
-        clearTileCache();
-    }
 
-    public void setObservedRange(double min, double max) {
-        renderer.setObservedRange(min, max);
-        clearTileCache();
-        repaint();
-    }
-
-    public void setOEMax(double max) {
-        renderer.setOEMax(max);
-        clearTileCache();
-        repaint();
-
-    }
-
-    public void setPreDefRange(double min, double max) {
-        renderer.setPreDefRange(min, max);
-        clearTileCache();
-        repaint();
-
-    }
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
@@ -266,7 +243,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (hic.testZoomChanged() || hic.testDisplayOptionChanged() || hic.testNormalizationTypeChanged()) {
                 //In case tender is called as a result of zoom change event, check if
                 //We need to update slider with map range:
-                renderer.updateColorSliderFromColorScale(superAdapter, zd, displayOption);
+                String cacheKey = HeatmapRenderer.getColorScaleCacheKey(zd, displayOption);
+                renderer.updateColorSliderFromColorScale(superAdapter, displayOption, cacheKey);
             }
 
 
@@ -1043,6 +1021,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
             valueString = formatter.format(value);
         }
         return valueString;
+    }
+
+    public void reset() {
+        renderer.reset();
+        clearTileCache();
+    }
+
+    public void setNewDisplayRange(MatrixType displayOption, double min, double max, String key) {
+        renderer.setNewDisplayRange(displayOption, min, max, key);
+        clearTileCache();
+        repaint();
     }
 
     private enum AdjustAnnotation {LEFT, RIGHT, NONE}

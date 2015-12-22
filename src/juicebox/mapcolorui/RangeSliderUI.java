@@ -468,11 +468,7 @@ class RangeSliderUI extends BasicSliderUI {
     }
 
     public void setDisplayToOE(boolean isOE) {
-
         this.colorIsOE = isOE;
-        OEColorScale.resetMax();
-        this.oeColorMax = OEColorScale.defaultMaxOEVal;
-
     }
 
     public void setDisplayToPreDef(boolean isPreDef) {

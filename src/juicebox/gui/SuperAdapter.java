@@ -186,7 +186,7 @@ public class SuperAdapter {
     }
 
     public void exportAnnotations() {
-        new SaveAnnotationsDialog(mainMenuBar.customAnnotations, getMapName());
+        new SaveAnnotationsDialog(MainMenuBar.customAnnotations, getMapName());
     }
 
     public void exitActionPerformed() {
@@ -383,8 +383,6 @@ public class SuperAdapter {
             return;
         }
 
-        mainViewPanel.getColorRangePanel().resetPreFileLoad();
-
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
         mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
@@ -499,7 +497,6 @@ public class SuperAdapter {
     }
 
     void safeRefreshButtonActionPerformed() {
-        mainViewPanel.getColorRangePanel().resetPreFileLoad();
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -641,7 +638,7 @@ public class SuperAdapter {
     }
 
     public String getMapName(){
-        return this.datasetTitle.split(" ")[0];
+        return datasetTitle.split(" ")[0];
     }
 
     public void launchGenericMessageDialog(String message, String error, int errorMessage) {
@@ -685,6 +682,10 @@ public class SuperAdapter {
 
     public void executeLongRunningTask(Runnable runnable, String s) {
         mainWindow.executeLongRunningTask(runnable, s);
+    }
+
+    public void updateRatioColorSlider(int max, double val) {
+        mainViewPanel.updateRatioColorSlider(hic, max, val);
     }
 
     public void updateColorSlider(int min, double low, double high, double max) {

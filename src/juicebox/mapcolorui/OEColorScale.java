@@ -36,15 +36,15 @@ import java.awt.*;
 class OEColorScale implements ColorScale {
 
     public static final int defaultMaxOEVal = 5;
-    private static double max;
+    private double threshold;
 
     public OEColorScale() {
         super();
-        resetMax();
+        resetThreshold();
     }
 
-    public static void resetMax() {
-        max = Math.log(defaultMaxOEVal);
+    private void resetThreshold() {
+        threshold = Math.log(defaultMaxOEVal);
     }
 
     public Color getColor(float score) {
@@ -53,19 +53,19 @@ class OEColorScale implements ColorScale {
         int G = 0;
         int B = (int) (255 * Math.min(min * (1.0/score), 1));
   */
-        double value = Math.log(score);
+        double newValue = Math.log(score);
         int R, G, B;
-        if (value > 0) {
+        if (newValue > 0) {
             R = 255;
-            value = Math.min(value, max);
-            G = (int) (255 * (max - value) / max);
-            B = (int) (255 * (max - value) / max);
+            newValue = Math.min(newValue, threshold);
+            G = (int) (255 * (threshold - newValue) / threshold);
+            B = (int) (255 * (threshold - newValue) / threshold);
         } else {
-            value = -value;
-            value = Math.min(value, max);
+            newValue = -newValue;
+            newValue = Math.min(newValue, threshold);
             B = 255;
-            R = (int) (255 * (max - value) / max);
-            G = (int) (255 * (max - value) / max);
+            R = (int) (255 * (threshold - newValue) / threshold);
+            G = (int) (255 * (threshold - newValue) / threshold);
 
         }
 
@@ -89,8 +89,16 @@ class OEColorScale implements ColorScale {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void setMax(double max) {
-        OEColorScale.max = Math.log(max);
+    public double getMax() {
+        return 2 * Math.exp(threshold);
+    }
+
+    public float getThreshold() {
+        return (float) Math.exp(threshold);
+    }
+
+    public void setThreshold(double max) {
+        threshold = Math.log(max);
     }
 }
 

@@ -56,16 +56,14 @@ import java.util.Map;
  */
 class HeatmapRenderer {
 
-    private final ColorScale oeColorScale;
     private final ColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
+    private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<String, OEColorScale>();
     private final PreDefColorScale preDefColorScale;
-    private ContinuousColorScale observedColorScale;
     private Color curHiCColor = Color.white;
 
     public HeatmapRenderer() {
 
-        oeColorScale = new OEColorScale();
         pearsonColorScale = new HiCColorScale();
 
         preDefColorScale = new PreDefColorScale("Template",
@@ -121,6 +119,10 @@ class HeatmapRenderer {
                         100
                 }
         );
+    }
+
+    public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption) {
+        return zd.getKey() + displayOption;
     }
 
     public boolean render(int originX,
@@ -186,8 +188,8 @@ class HeatmapRenderer {
                 }
             }
 
-
-            ColorScale cs = getColorScale(zd, displayOption, isWholeGenome, blocks);
+            String key = zd.getKey() + displayOption;
+            ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
 
             double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
             double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
@@ -265,11 +267,11 @@ class HeatmapRenderer {
         return true;
     }
 
-    private ColorScale getColorScale(MatrixZoomData zd, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
-        ColorScale cs;
+    private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
+
         if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
                 displayOption == MatrixType.CONTROL) {
-            String key = zd.getKey() + displayOption;
+
 
             if (MainWindow.hicMapColor != curHiCColor) {
                 curHiCColor = MainWindow.hicMapColor;
@@ -277,10 +279,10 @@ class HeatmapRenderer {
             }
 
             if (MainViewPanel.preDefMapColor) {
-                cs = preDefColorScale;
+                return preDefColorScale;
             } else {
                 //todo: why is the key flicking between resolutions when rendering a switch from "whole genome" to chromosome view?
-                observedColorScale = observedColorScaleMap.get(key);
+                ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
                 if (observedColorScale == null) {
                     double percentile = wholeGenome ? 99 : 95;
                     float max = computePercentile(blocks, percentile);
@@ -289,23 +291,28 @@ class HeatmapRenderer {
                     observedColorScale = new ContinuousColorScale(0, max, Color.white, MainWindow.hicMapColor);
                     observedColorScaleMap.put(key, observedColorScale);
                     //mainWindow.updateColorSlider(0, 2 * max, max);
-
                 }
-                cs = observedColorScale;
+                return observedColorScale;
             }
 
+        } else if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE) {
+
+            OEColorScale oeColorScale = ratioColorScaleMap.get(key);
+            if (oeColorScale == null) {
+                oeColorScale = new OEColorScale();
+                ratioColorScaleMap.put(key, oeColorScale);
+            }
+            return oeColorScale;
         } else {
-            cs = oeColorScale;
+            return pearsonColorScale;
         }
-        return cs;
     }
 
-    public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixZoomData zd, MatrixType displayOption) {
-        if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
-                displayOption == MatrixType.CONTROL) {
-            String key = zd.getKey() + displayOption;
-            observedColorScale = observedColorScaleMap.get(key);
+    public void updateColorSliderFromColorScale(SuperAdapter superAdapter, MatrixType displayOption, String key) {
 
+        if (MatrixType.isSimpleType(displayOption)) {
+
+            ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
             if ((observedColorScale != null)) {
                 superAdapter.updateColorSlider(0, observedColorScale.getMinimum(), observedColorScale.getMaximum(), observedColorScale.getMaximum() * 2);
             }
@@ -313,6 +320,14 @@ class HeatmapRenderer {
                 updatePreDefColors();
                 superAdapter.updateColorSlider(0, PreDefColorScale.getMinimum(), PreDefColorScale.getMaximum(), PreDefColorScale.getMaximum() * 2);
             }
+        } else if (MatrixType.isComparisonType(displayOption)) {
+            OEColorScale oeColorScale = ratioColorScaleMap.get(key);
+
+            if (oeColorScale == null) {
+                oeColorScale = new OEColorScale();
+                ratioColorScaleMap.put(key, oeColorScale);
+            }
+            superAdapter.updateRatioColorSlider((int) oeColorScale.getMax(), oeColorScale.getThreshold());
         }
     }
 
@@ -379,24 +394,9 @@ class HeatmapRenderer {
         }
     }
 
-    public void setObservedRange(double min, double max) {
-        if (observedColorScale == null) {
-            observedColorScale = new ContinuousColorScale(min, max, Color.white, Color.red);
-        }
-        observedColorScale.setNegEnd(min);
-        observedColorScale.setPosEnd(max);
-    }
-
-    public void setPreDefRange(double min, double max) {
-        preDefColorScale.setPreDefRange(min, max);
-    }
-
-    public void setOEMax(double max) {
-        ((OEColorScale) oeColorScale).setMax(max);
-    }
-
     public void reset() {
         observedColorScaleMap.clear();
+        ratioColorScaleMap.clear();
     }
 
     private void updatePreDefColors() {
@@ -411,5 +411,32 @@ class HeatmapRenderer {
         }
 
         preDefColorScale.updateColors(MainViewPanel.preDefMapColorGradient.toArray(new Color[arrSize]), arrScores);
+    }
+
+    public void setNewDisplayRange(MatrixType displayOption, double min, double max, String key) {
+
+        if (MatrixType.isComparisonType(displayOption)) {
+
+            OEColorScale oeColorScale = ratioColorScaleMap.get(key);
+            if (oeColorScale == null) {
+                oeColorScale = new OEColorScale();
+                ratioColorScaleMap.put(key, oeColorScale);
+            }
+            oeColorScale.setThreshold(max);
+
+        } else if (MainViewPanel.preDefMapColor) {
+
+            preDefColorScale.setPreDefRange(min, max);
+
+        } else if (MatrixType.isSimpleType(displayOption)) {
+
+            ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
+            if (observedColorScale == null) {
+                observedColorScale = new ContinuousColorScale(min, max, Color.white, MainWindow.hicMapColor);
+                observedColorScaleMap.put(key, observedColorScale);
+            }
+            observedColorScale.setNegEnd(min);
+            observedColorScale.setPosEnd(max);
+        }
     }
 }

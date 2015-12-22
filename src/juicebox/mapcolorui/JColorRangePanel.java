@@ -27,7 +27,6 @@ package juicebox.mapcolorui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
@@ -55,7 +54,6 @@ public class JColorRangePanel extends JPanel {
     private static JLabel colorRangeLabel;
     private static JButton plusButton, minusButton;
     private double colorRangeScaleFactor = 1;
-    private int[] colorValuesToRestore = null;
 
     public JColorRangePanel(final SuperAdapter superAdapter, final HeatmapPanel heatmapPanel, boolean activatePreDef) {
         super();
@@ -141,7 +139,6 @@ public class JColorRangePanel extends JPanel {
         colorRangeSlider.setMaximumSize(new Dimension(32767, 52));
         colorRangeSlider.setPreferredSize(new Dimension(200, 52));
         colorRangeSlider.setMinimumSize(new Dimension(36, 52));
-        resetRegularColorRangeSlider(activatePreDef);
 
         colorRangeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
@@ -149,14 +146,14 @@ public class JColorRangePanel extends JPanel {
                 double max = colorRangeSlider.getUpperValue() / colorRangeScaleFactor;
 
                 HiC hic = superAdapter.getHiC();
-                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
-                    //System.out.println(colorRangeSlider.getUpperValue());
-                    heatmapPanel.setOEMax(colorRangeSlider.getUpperValue());
-                } else if (MainViewPanel.preDefMapColor) {
-                    heatmapPanel.setPreDefRange(min, max);
-                } else {
-                    heatmapPanel.setObservedRange(min, max);
+
+                String key = "";
+                try {
+                    key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption());
+                } catch (Exception e2) {
                 }
+
+                heatmapPanel.setNewDisplayRange(hic.getDisplayOption(), min, max, key);
                 colorRangeSliderUpdateToolTip(hic);
             }
         });
@@ -271,51 +268,48 @@ public class JColorRangePanel extends JPanel {
 
         colorRangeSlider.setLabelTable(labelTable);
         colorRangeSliderUpdateToolTip(hic);
-
     }
 
-    // todo remove
-    private void resetRegularColorRangeSlider(boolean preDefMapColor) {
-        if (colorValuesToRestore != null) {
-            //refreshChromosomes();
-            //setInitialZoom();
-            colorRangeSlider.setDisplayToBlank(false);
-            if (preDefMapColor) {
-                colorRangeSlider.setDisplayToPreDef(true);
-                colorRangeSlider.setDisplayToOE(false);
-            } else {
-                colorRangeSlider.setDisplayToPreDef(false);
-                colorRangeSlider.setDisplayToOE(false);
-            }
-            colorRangeSlider.setMinimum(colorValuesToRestore[0]);
-            colorRangeSlider.setMaximum(colorValuesToRestore[1]);
-            colorRangeSlider.setLowerValue(colorValuesToRestore[2]);
-            colorRangeSlider.setUpperValue(colorValuesToRestore[3]);
-            colorRangeScaleFactor = colorValuesToRestore[4];
+    public void updateRatioColorSlider(HiC hic, double max, double val) {
+        // We need to scale min and max to integers for the slider to work.  Scale such that there are
+        // 100 divisions between max and 0
 
-            //refresh();
-            colorValuesToRestore = null;
-        }
-    }
+        colorRangeScaleFactor = 100.0 / (2 * max);
 
-    // todo remove
-    private void resetOEColorRangeSlider() {
+        colorRangeSlider.setPaintTicks(true);
+        colorRangeSlider.setPaintLabels(true);
 
-        colorRangeSlider.setDisplayToBlank(false);
-        if (colorValuesToRestore == null) {
-            colorValuesToRestore = new int[5];
-            colorValuesToRestore[0] = colorRangeSlider.getMinimum();
-            colorValuesToRestore[1] = colorRangeSlider.getMaximum();
-            colorValuesToRestore[2] = colorRangeSlider.getLowerValue();
-            colorValuesToRestore[3] = colorRangeSlider.getUpperValue();
-            colorValuesToRestore[4] = (int) colorRangeScaleFactor;
-        }
+        int iMin = (int) (colorRangeScaleFactor * -max);
+        int iMax = (int) (colorRangeScaleFactor * max);
+        int lValue = (int) (colorRangeScaleFactor * -val);
+        int uValue = (int) (colorRangeScaleFactor * val);
 
-        colorRangeSlider.setMinimum(-20);
-        colorRangeSlider.setMaximum(20);
-        colorRangeSlider.setLowerValue(-5);
-        colorRangeSlider.setUpperValue(5);
+        colorRangeSlider.setMinimum(iMin);
+        colorRangeSlider.setLowerValue(lValue);
+        colorRangeSlider.setUpperValue(uValue);
+        colorRangeSlider.setMaximum(iMax);
 
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+
+        Font f = FontManager.getFont(8);
+
+        final JLabel minTickLabel = new JLabel(String.valueOf((int) -max));
+        minTickLabel.setFont(f);
+        final JLabel maxTickLabel = new JLabel(String.valueOf((int) max));
+        maxTickLabel.setFont(f);
+        final JLabel LoTickLabel = new JLabel(String.valueOf((int) -val));
+        LoTickLabel.setFont(f);
+        final JLabel UpTickLabel = new JLabel(String.valueOf((int) val));
+        UpTickLabel.setFont(f);
+
+        labelTable.put(iMin, minTickLabel);
+        labelTable.put(iMax, maxTickLabel);
+        labelTable.put(lValue, LoTickLabel);
+        labelTable.put(uValue, UpTickLabel);
+
+
+        colorRangeSlider.setLabelTable(labelTable);
+        colorRangeSliderUpdateToolTip(hic);
     }
 
     public String getColorRangeValues() {
@@ -395,17 +389,7 @@ public class JColorRangePanel extends JPanel {
         colorRangeSlider.setDisplayToOE(activateOE);
         colorRangeSlider.setDisplayToPreDef(activatePreDef);
 
-        if (activateOE) {
-            resetOEColorRangeSlider();
-        } else {
-            resetRegularColorRangeSlider(activatePreDef);
-        }
-
         plusButton.setEnabled(activateOE || isObservedOrControl);
         minusButton.setEnabled(activateOE || isObservedOrControl);
-    }
-
-    public void resetPreFileLoad() {
-        colorValuesToRestore = null;
     }
 }

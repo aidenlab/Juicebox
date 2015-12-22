@@ -50,8 +50,17 @@ public enum MatrixType {
         return null;
     }
 
+    public static boolean isSimpleType(MatrixType displayOption) {
+        return displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED || displayOption == MatrixType.CONTROL;
+    }
+
+    public static boolean isComparisonType(MatrixType displayOption) {
+        return displayOption == MatrixType.OE || displayOption == MatrixType.RATIO;
+    }
+
     public String toString() {
         return value;
     }
+
 
 }

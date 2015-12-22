@@ -63,7 +63,7 @@ public class HiCGlobals {
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
     public static final boolean showSparsePlottingOptions = false;
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.2;
+    private static final double versionNum = 1.5;
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
