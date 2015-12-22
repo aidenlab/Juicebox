@@ -1126,6 +1126,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (adjustAnnotation != AdjustAnnotation.NONE) {
                 dragMode = DragMode.RESIZE;
                 Feature2D loop = mostRecentRectFeaturePair.getSecond();
+                // Resizing upper left corner, keep end points stationary
+                if (adjustAnnotation == AdjustAnnotation.LEFT){
+                    MainMenuBar.customAnnotationHandler.setStationaryEnd(loop.getEnd1(), loop.getEnd2());
+                // Resizing lower right corner, keep start points stationary
+                } else {
+                    MainMenuBar.customAnnotationHandler.setStationaryStart(loop.getStart1(), loop.getStart2());
+                }
+
 
                 try {
                     HiCGridAxis xAxis = hic.getZd().getXGridAxis();
@@ -1181,26 +1189,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (MainMenuBar.customAnnotations.hasLoop(idx1, idx2, loop) && changedSize == true) {
                     MainMenuBar.customAnnotations.removeFromList(idx1, idx2, loop);
 
-                    // Snap to nearest neighbor, if close enough
-                    MatrixZoomData zd = null;
-                    try {
-                        zd = hic.getZd();
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
-                    }
-                    List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), e.getX(), e.getY(), NUM_NEIGHBORS);
-                    // Look for left neighbors
-                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
-                        for (Pair<Rectangle, Feature2D> neighbor : neighbors){
-                            double neighborEdge = neighbor.getFirst().getX() + neighbor.getFirst().getWidth();
-
-                        }
-                    // Look for right neighbors
-                    } else {
-
-                    }
-
-
+//                    // Snap to nearest neighbor, if close enough
+//                    MatrixZoomData zd = null;
+//                    try {
+//                        zd = hic.getZd();
+//                    } catch (Exception exception) {
+//                        exception.printStackTrace();
+//                    }
+//                    List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), e.getX(), e.getY(), NUM_NEIGHBORS);
+//                    // Look for left neighbors
+//                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
+//                        for (Pair<Rectangle, Feature2D> neighbor : neighbors){
+//                            double neighborEdge = neighbor.getFirst().getX() + neighbor.getFirst().getWidth();
+//
+//                        }
+//                    // Look for right neighbors
+//                    } else {
+//
+//                    }
                     MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
                     MainMenuBar.customAnnotationHandler.setLastItem(idx1, idx2, loop);
                 }
@@ -1320,12 +1326,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
                     damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
+                    MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     damageRect.x--;
                     damageRect.y--;
                     damageRect.width += 2;
                     damageRect.height += 2;
                     paintImmediately(damageRect);
-                    MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
                     break;
                 case RESIZE:
                     if (deltaX_d == 0 || deltaY_d == 0) {
@@ -1488,7 +1494,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             if (hic.getXContext() != null) {
                 adjustAnnotation = AdjustAnnotation.NONE;
-                setCursor(Cursor.getDefaultCursor());
 
                 // Update tool tip text
                 if (!featureOptionMenuEnabled) {
@@ -1510,7 +1515,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
                         adjustAnnotation = AdjustAnnotation.RIGHT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+                    } else {
+                        setCursor(Cursor.getDefaultCursor());
                     }
+                } else {
+                    setCursor(Cursor.getDefaultCursor());
                 }
 
                 if (straightEdgeEnabled || e.isShiftDown()) {

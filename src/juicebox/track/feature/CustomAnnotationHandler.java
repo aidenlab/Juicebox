@@ -31,6 +31,7 @@ import juicebox.track.HiCGridAxis;
 
 import java.awt.*;
 import java.util.HashMap;
+import org.broad.igv.util.Pair;
 
 /**
  * Created by Marie on 6/4/15.
@@ -47,6 +48,8 @@ public class CustomAnnotationHandler {
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
+    private Pair<Integer, Integer> lastStarts = null;
+    private Pair<Integer, Integer> lastEnds = null;
 
     public CustomAnnotationHandler() {
         featureType = Feature2D.FeatureType.NONE;
@@ -79,6 +82,16 @@ public class CustomAnnotationHandler {
         featureType = Feature2D.FeatureType.DOMAIN;
     }
 
+    public void setStationaryStart(int start1, int start2){
+        lastStarts = new Pair<Integer, Integer>(start1, start2);
+        lastEnds = null;
+    }
+
+    public void setStationaryEnd(int end1, int end2){
+        lastEnds = new Pair<Integer, Integer>(end1, end2);
+        lastStarts = null;
+    }
+
     // Update selection region from new rectangle
     public void updateSelectionRegion(Rectangle newRegion) {
         doDomain();
@@ -97,35 +110,36 @@ public class CustomAnnotationHandler {
         lastResizeLoop = null;
     }
 
-    // Update selection region from new coordinates
-    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
-
-        int x2, y2;
-        doDomain();
-        Rectangle lastRegion, damageRect;
-
-        lastRegion = selectionRegion;
-
-        if (deltaX == 0 || deltaY == 0) {
-            return null;
-        }
-
-        x2 = deltaX > 0 ? x : x + deltaX;
-        y2 = deltaY > 0 ? y : y + deltaY;
-        selectionRegion = new Rectangle(x2, y2, Math.abs(deltaX), Math.abs(deltaY));
-
-        damageRect = lastRegion == null ? selectionRegion : selectionRegion.union(lastRegion);
-        damageRect.x--;
-        damageRect.y--;
-        damageRect.width += 2;
-        damageRect.height += 2;
-        return damageRect;
-    }
+//    // Update selection region from new coordinates
+//    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
+//
+//        int x2, y2;
+//        doDomain();
+//        Rectangle lastRegion, damageRect;
+//
+//        lastRegion = selectionRegion;
+//
+//        if (deltaX == 0 || deltaY == 0) {
+//            return null;
+//        }
+//
+//        x2 = deltaX > 0 ? x : x + deltaX;
+//        y2 = deltaY > 0 ? y : y + deltaY;
+//        selectionRegion = new Rectangle(x2, y2, Math.abs(deltaX), Math.abs(deltaY));
+//
+//        damageRect = lastRegion == null ? selectionRegion : selectionRegion.union(lastRegion);
+//        damageRect.x--;
+//        damageRect.y--;
+//        damageRect.width += 2;
+//        damageRect.height += 2;
+//        return damageRect;
+//    }
 
     public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
     }
 
+    // Adds to lower lefthand side, for consistency.
     public void addFeature(HiC hic, CustomAnnotation customAnnotations) {
 
         int start1, start2, end1, end2;
@@ -143,11 +157,11 @@ public class CustomAnnotationHandler {
         int leftBound = 0;
         int x = selectionRegion.x;
         int y = selectionRegion.y;
-        int width = selectionRegion.width - 1;
-        int height = selectionRegion.height - 1;
+        int width = selectionRegion.width;
+        int height = selectionRegion.height;
 
         start1 = geneXPos(hic, x, 0);
-        end1 = geneXPos(hic, x + width, 0) - 1;
+        end1 = geneXPos(hic, x + width, 0);
 
         // Snap if close to diagonal
         if (chr1Idx == chr2Idx && nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)) {
@@ -157,14 +171,14 @@ public class CustomAnnotationHandler {
                 end2 = end1;
             } else {
                 start2 = geneYPos(hic, y, 0);
-                end2 = geneYPos(hic, y + height, 0) - 1;
+                end2 = geneYPos(hic, y + height, 0);
                 start1 = start2;
                 end1 = end2;
             }
             // Otherwise record as drawn
         } else {
             start2 = geneYPos(hic, y, 0);
-            end2 = geneYPos(hic, y + height, 0) - 1;
+            end2 = geneYPos(hic, y + height, 0);
         }
 
         // Make sure bounds aren't unreasonable (out of HiC map)
@@ -175,11 +189,25 @@ public class CustomAnnotationHandler {
         end1 = Math.max(Math.min(end1, rightBound), leftBound);
         end2 = Math.max(Math.min(end2, bottomBound), leftBound);
 
+        // Check for anchored corners
+        if (lastStarts != null){
+            if (lastStarts.getFirst() < end1 && lastStarts.getSecond() < end2) {
+                start1 = lastStarts.getFirst();
+                start2 = lastStarts.getSecond();
+            }
+        } else if (lastEnds != null){
+            if (start1 < lastEnds.getFirst() && start2 < lastEnds.getSecond()) {
+                end1 = lastEnds.getFirst();
+                end2 = lastEnds.getSecond();
+            }
+        }
+
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 Color.GREEN, attributes);
         customAnnotations.add(chr1Idx, chr2Idx, newFeature);
-
+        lastStarts = null;
+        lastEnds = null;
     }
 
     public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
