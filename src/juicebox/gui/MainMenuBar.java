@@ -34,7 +34,6 @@ import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.windowui.RecentMenu;
-import juicebox.windowui.SaveAnnotationsDialog;
 import org.apache.log4j.Logger;
 
 import javax.swing.*;
@@ -43,7 +42,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -249,7 +247,7 @@ public class MainMenuBar {
         loadEncodeMI.setAction(encodeAction);
         annotationsMenu.add(loadEncodeMI);
 
-        // TODO - this is never added to a menu...
+        // TODO - this is never added to a menu... (possibly doesn't work)
         JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {
 
@@ -315,41 +313,7 @@ public class MainMenuBar {
         featureRenderingOptions.add(renderLLFeatureItem);
         featureRenderingOptions.add(renderURFeatureItem);
 
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
-        toggleSparse2DFeaturePlotting.setSelected(false);
-        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
 
-        final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
-        numSparse.setEnabled(true);
-        numSparse.isEditable();
-        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
-
-
-        final JButton updateSparseOptions = new JButton("Update");
-        updateSparseOptions.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (numSparse.getText().length() > 0) {
-                    Feature2DHandler.numberOfLoopsToFind = Integer.parseInt(numSparse.getText());
-                }
-            }
-        });
-        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
-
-        JPanel sparseOptions = new JPanel();
-        sparseOptions.setLayout(new GridLayout(0, 2));
-        sparseOptions.add(numSparse);
-        sparseOptions.add(updateSparseOptions);
-        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
-        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
 
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
@@ -404,15 +368,67 @@ public class MainMenuBar {
         feature2DPlottingOptions.add(featureRenderingOptions);
         feature2DPlottingOptions.add(editVisibleMI);
 
-        // use hidden hotkey instead of plot sparse button
-        if (HiCGlobals.showSparsePlottingOptions) {
-            feature2DPlottingOptions.addSeparator();
-            feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
-            feature2DPlottingOptions.add(sparseOptions);
-        }
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
+
+        /*  Sparse (/subset) plotting for 2d annotations  */
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
+        toggleSparse2DFeaturePlotting.setSelected(false);
+        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
+        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
+
+        final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
+        numSparse.setEnabled(true);
+        numSparse.isEditable();
+        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+
+        final JButton updateSparseOptions = new JButton("Update");
+        updateSparseOptions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (numSparse.getText().length() > 0) {
+                    Feature2DHandler.numberOfLoopsToFind = Integer.parseInt(numSparse.getText());
+                }
+            }
+        });
+        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+        final JPanel sparseOptions = new JPanel();
+        sparseOptions.setLayout(new GridLayout(0, 2));
+        sparseOptions.add(numSparse);
+        sparseOptions.add(updateSparseOptions);
+        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
+        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+
+        // use hidden hotkey instead of plot sparse button
+
+        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK), "actionMapKeySparse");
+        superAdapter.getMainWindow().getRootPane().getActionMap().put("actionMapKeySparse", new AbstractAction() {
+
+            private static final long serialVersionUID = 3238444323064L;
+            boolean sparseOptionsAdded = false;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!sparseOptionsAdded) {
+                    sparseOptionsAdded = true;
+                    feature2DPlottingOptions.addSeparator();
+                    feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
+                    feature2DPlottingOptions.add(sparseOptions);
+                }
+            }
+        });
 
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");

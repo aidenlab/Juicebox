@@ -61,7 +61,6 @@ public class HiCGlobals {
             "10 KB", "5 KB"};
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
-    public static final boolean showSparsePlottingOptions = false;
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.5;
     // Juicebox title
@@ -73,7 +72,6 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-    public static enum menuType {MAP, LOCATION, STATE}
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
@@ -111,5 +109,7 @@ public class HiCGlobals {
         colors.add(new Color(0, 0, 0));
         return colors;
     }
+
+    public enum menuType {MAP, LOCATION, STATE}
 
 }
