@@ -505,14 +505,14 @@ public class SuperAdapter {
     }
 
     public boolean safeDisplayOptionComboBoxActionPerformed() {
-        boolean retVal;
+        final boolean[] retVal = new boolean[1];
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeDisplayOptionComboBoxActionPerformed();
+                retVal[0] = unsafeDisplayOptionComboBoxActionPerformed();
             }
         };
         mainWindow.executeLongRunningTask(runnable, "DisplayOptionsComboBox");
-        return true;
+        return retVal[0];
     }
 
 
@@ -525,7 +525,7 @@ public class SuperAdapter {
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
     }
 
-    private boolean unsafeDisplayOptionComboBoxActionPerformed(){//boolean testBeforeSet) {
+    private boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
         if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
@@ -556,11 +556,6 @@ public class SuperAdapter {
                 }
             }
         }
-
-//        if (testBeforeSet)
-//        {
-//            return true;
-//        }
 
         hic.setDisplayOption(option);
         refresh(); // necessary to invalidate minimap when changing view

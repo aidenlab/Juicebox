@@ -731,11 +731,10 @@ public class Dataset {
 
         bpZoomResolutions = Ints.asList(bpBinSizes);
 
-        this.bpZooms = new ArrayList<HiCZoom>(bpBinSizes.length);
+        bpZooms = new ArrayList<HiCZoom>(bpBinSizes.length);
         for (int bpBinSize : bpZoomResolutions) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
-
     }
 
     public List<HiCZoom> getFragZooms() {

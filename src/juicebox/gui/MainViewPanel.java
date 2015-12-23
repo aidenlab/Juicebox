@@ -209,6 +209,7 @@ public class MainViewPanel {
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeDisplayOptionComboBoxActionPerformed();
+                normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -532,29 +533,33 @@ public class MainViewPanel {
 
     }
 
-    public void setNormalizationDisplayState(HiC hic) {
-
+    private boolean isIntraChromosomal() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+        return chr1.getIndex() != chr2.getIndex();
+    }
 
-//        Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
-        Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
+    private boolean isWholeGenome() {
+        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
+        return chr1.getName().equals("All") || chr2.getName().equals("All");
+    }
+
+    public void setNormalizationDisplayState(HiC hic) {
 
         // Test for new dataset ("All"),  or change in chromosome
-        final boolean wholeGenome = chrY.getName().equals("All");
-        final boolean intraChr = chr1.getIndex() != chr2.getIndex();
-        if (wholeGenome) { // for now only allow observed
+        if (isWholeGenome()) { // for now only allow observed
             hic.setDisplayOption(MatrixType.OBSERVED);
             displayOptionComboBox.setSelectedIndex(0);
             normalizationComboBox.setSelectedIndex(0);
-        } else if (intraChr) {
+        } else if (isIntraChromosomal()) {
             if (hic.getDisplayOption() == MatrixType.PEARSON) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
             }
         }
 
-        normalizationComboBox.setEnabled(!wholeGenome);
+        normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
         displayOptionComboBox.setEnabled(true);
     }
 
@@ -602,12 +607,8 @@ public class MainViewPanel {
 
     public boolean setResolutionSliderVisible(boolean state, SuperAdapter superAdapter) {
 
-        Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
-        Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-
         // Test for new dataset ("All"),  or change in chromosome
-        final boolean wholeGenome = chr1.getName().equals("All") || chr2.getName().equals("All");
-        boolean makeResVisible = state && !wholeGenome;
+        boolean makeResVisible = state && !isWholeGenome();
 
         resolutionSlider.setEnabled(makeResVisible);
         if (makeResVisible) {
@@ -660,7 +661,8 @@ public class MainViewPanel {
     }
 
     public void setNormalizationEnabledForReload(){
-        normalizationComboBox.setEnabled(true);
+        //normalizationComboBox.setEnabled(true);
+        normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
     }
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
@@ -675,7 +677,11 @@ public class MainViewPanel {
         chrBox2.setEnabled(status);
         refreshButton.setEnabled(status);
         colorRangePanel.setElementsVisible(status, superAdapter);
-        setResolutionSliderVisible(status, superAdapter);
+        if (setResolutionSliderVisible(status, superAdapter)) {
+            // TODO succeeded
+        } else {
+            // TODO failed
+        }
         goPanel.setEnabled(status);
     }
 
@@ -705,7 +711,7 @@ public class MainViewPanel {
         } else {
             normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
             normalizationComboBox.setSelectedIndex(0);
-            normalizationComboBox.setEnabled(status);
+            normalizationComboBox.setEnabled(status && !isWholeGenome() && !isPearsonDisplayed());
         }
     }
 
@@ -766,5 +772,9 @@ public class MainViewPanel {
 
     public HiCRulerPanel getRulerPanelX() {
         return rulerPanelX;
+    }
+
+    public boolean isPearsonDisplayed() {
+        return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;
     }
 }

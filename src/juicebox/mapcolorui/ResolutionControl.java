@@ -30,7 +30,9 @@ import juicebox.HiCGlobals;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -44,6 +46,7 @@ import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,6 +64,7 @@ public class ResolutionControl extends JPanel {
     private boolean resolutionLocked = false;
     private JSlider resolutionSlider;
     private int lastValue = 0;
+    private HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
 
     {
         bpLabelMap = new Hashtable<Integer, String>();
@@ -214,6 +218,13 @@ public class ResolutionControl extends JPanel {
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
 
+                if (zoom.getBinSize() < 500000 && hic.getDisplayOption() == MatrixType.PEARSON) {
+                    MessageUtils.showMessage("Pearson's matrix is not available at this resolution,\n" +
+                            "please use a resolution lower than 500 KB.");
+                    setZoom(pearsonZoom);
+                    return;
+                }
+
                 if (hic.getXContext() != null) {
 
                     double scaledXWidth = heatmapPanel.getWidth() / hic.getScaleFactor();
@@ -276,8 +287,9 @@ public class ResolutionControl extends JPanel {
 
         int currentIdx = resolutionSlider.getValue();
 
-        java.util.List<HiCZoom> binSizes =
-                unit == HiC.Unit.BP ? hic.getDataset().getBpZooms() : hic.getDataset().getFragZooms();
+        List<HiCZoom> binSizes = unit == HiC.Unit.BP ?
+                hic.getDataset().getBpZooms() : hic.getDataset().getFragZooms();
+
         idxZoomMap.clear();
         for (int i = 0; i < binSizes.size(); i++) {
             HiCZoom zoom = binSizes.get(i);

@@ -121,7 +121,11 @@ public class JColorRangePanel extends JPanel {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
                         colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption() == MatrixType.OBSERVED);
                 setColorRangeSliderVisible(false, superAdapter);
-                superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter);
+                if (superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
+                    // TODO succeeded
+                } else {
+                    // TODO failed
+                }
                 rangeDialog.setVisible(true);
             }
         });
