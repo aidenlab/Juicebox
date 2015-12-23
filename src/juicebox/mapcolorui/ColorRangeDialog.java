@@ -274,7 +274,11 @@ class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
-                superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+                if (superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {
+                    // TODO succeeded
+                } else {
+                    // TODO failed
+                }
                 setVisible(false);
             }
         });
@@ -319,7 +323,11 @@ class ColorRangeDialog extends JDialog {
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
         colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
-        superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+        if (superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {
+            // TODO succeeded
+        } else {
+            // TODO failed
+        }
         setVisible(false);
     }
 
