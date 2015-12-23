@@ -58,7 +58,7 @@ public class LoadStateFromXMLFile {
     private static void loadSavedStatePreliminaryStep(String[] infoForReload, SuperAdapter superAdapter, HiC hic) throws IOException {
         String result = "OK";
         String[] initialInfo = new String[6]; //hicURL,, controlURL,xChr,yChr,unitSize
-        double[] doubleInfo = new double[7]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal
+        double[] doubleInfo = new double[8]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal, colorScaleFactor
         String[] trackURLsAndNamesAndConfigInfo = new String[3];
         //System.out.println("Executing: " + Arrays.toString(infoForReload)); //TODO for reload
         if (infoForReload.length > 0) {
@@ -82,9 +82,11 @@ public class LoadStateFromXMLFile {
                     doubleInfo[4] = Double.parseDouble(infoForReload[14]); //lowerColorVal
                     doubleInfo[5] = Double.parseDouble(infoForReload[15]); //upperColorVal
                     doubleInfo[6] = Double.parseDouble(infoForReload[16]); //maxColorVal
-                    trackURLsAndNamesAndConfigInfo[0] = (infoForReload[17]); //trackURLs
-                    trackURLsAndNamesAndConfigInfo[1] = (infoForReload[18]); //trackNames
-                    trackURLsAndNamesAndConfigInfo[2] = (infoForReload[19]); //trackConfigInfo
+                    doubleInfo[7] = Double.parseDouble(infoForReload[17]); //colorScaleFactor
+                    trackURLsAndNamesAndConfigInfo[0] = (infoForReload[18]); //trackURLs
+                    trackURLsAndNamesAndConfigInfo[1] = (infoForReload[19]); //trackNames
+                    trackURLsAndNamesAndConfigInfo[2] = (infoForReload[20]); //trackConfigInfo
+                    //Increase XMLFileParser::infoForReload when adding more elements.
 
                     safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
@@ -134,8 +136,9 @@ public class LoadStateFromXMLFile {
         double lowColor = doubleInfo[4];
         double upColor = doubleInfo[5];
         double maxColor = doubleInfo[6];
+        double colorScaleFactor = doubleInfo[7];
 
-        // TODO only do this if not identical to current file
+                // TODO only do this if not identical to current file
         String[] temp = mapNames.split("\\(control=");
         String mainMapNames = temp[0];
 
@@ -148,14 +151,13 @@ public class LoadStateFromXMLFile {
             superAdapter.unsafeLoadWithTitleFix(ctrlURLs, true, ctrlMapNames, true);
         }
 
+        hic.unsafeSetLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT, true);
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
-        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
+        //todo: Check that color scale value is not 0!
+        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor/colorScaleFactor, lowColor/colorScaleFactor, upColor/colorScaleFactor, maxColor/colorScaleFactor);
         superAdapter.setEnableForAllElements(true);
-
-        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scalefactor, HiC.ZoomCallType.DIRECT,
-                "Load State", true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
         LoadAction loadAction = superAdapter.getTrackLoadAction();

@@ -227,11 +227,16 @@ public class JColorRangePanel extends JPanel {
         return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
+    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max){
+        double scaleFactor = 100.0 / max;
+        updateColorSlider(hic,min,lower,upper,max,scaleFactor);
+    }
+
+    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
 
-        colorRangeScaleFactor = 100.0 / max;
+        colorRangeScaleFactor = scaleFactor;
 
         colorRangeSlider.setPaintTicks(true);
         //colorRangeSlider.setSnapToTicks(true);
@@ -318,9 +323,14 @@ public class JColorRangePanel extends JPanel {
         int lowValue = colorRangeSlider.getLowerValue();
         int upValue = colorRangeSlider.getUpperValue();
         int iMax = colorRangeSlider.getMaximum();
+        //double dScaleFactor = colorRangeScaleFactor;
 
-        return iMin + "$$" + lowValue + "$$" + upValue + "$$" + iMax;
+        return iMin + "$$" + lowValue + "$$" + upValue + "$$" + iMax;// + "$$" + dScaleFactor;
 
+    }
+
+    public double getColorRangeScaleFactor(){
+        return colorRangeScaleFactor;
     }
 
     private void colorRangeSliderUpdateToolTip(HiC hic) {

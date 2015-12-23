@@ -544,6 +544,17 @@ public class HiC {
                 true, zoomCallType, message, allowLocationBroadcast);
     }
 
+    public void unsafeSetLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin,
+                            double yOrigin, double scaleFactor, ZoomCallType zoomCallType,boolean allowLocationBroadcast) {
+
+        HiCZoom newZoom = currentZoom;
+        if (currentZoom.getBinSize() != binSize) {
+            newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+        }
+        unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+                true, zoomCallType, allowLocationBroadcast);
+    }
+
     public boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
                                                   boolean resetZoom, ZoomCallType zoomCallType, String message,
                                                   boolean allowLocationBroadcast) {

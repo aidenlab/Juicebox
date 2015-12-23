@@ -683,12 +683,20 @@ public class MainViewPanel {
         return colorRangePanel.getColorRangeValues();
     }
 
+    public double getColorRangeScaleFactor(){
+        return colorRangePanel.getColorRangeScaleFactor();
+    }
+
     public void updateRatioColorSlider(HiC hic, double maxColor, double upColor) {
         colorRangePanel.updateRatioColorSlider(hic, maxColor, upColor);
     }
 
     public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor) {
         colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);
+    }
+
+    public void updateColorSlider(HiC hic, double minColor, double lowColor, double upColor, double maxColor, double scalefactor) {
+        colorRangePanel.updateColorSlider(hic, minColor, lowColor, upColor, maxColor);//scalefactor);
     }
 
     public void setEnabledForNormalization(String[] normalizationOptions, boolean status) {

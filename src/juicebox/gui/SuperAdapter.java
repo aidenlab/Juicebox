@@ -243,8 +243,8 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    public String getStateDescription() {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved location:",
+    public String getDescription(String item) {
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved "+ item +":",
                 hic.getDefaultLocationDescription());
     }
 
@@ -368,20 +368,18 @@ public class SuperAdapter {
             allFilesAreHiC &= file.endsWith(".hic");
         }
 
-        if (!restore) {
-            if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+            if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
-                return;
-            } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
-                JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
-                return;
             }
-        }
-        else
-        {
-            //In restore mode, no dialog required.
+            return;
+        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+            if (!restore) {
+                JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
+            }
             return;
         }
+
 
         //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
         //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());

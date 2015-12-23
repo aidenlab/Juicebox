@@ -103,7 +103,7 @@ public class XMLFileWriter {
                 } else{
                     n = xmlDoc.createTextNode("null");
                 }
-            } else if (i < 18 || elements.length > 17) { // elements.length checked in case no annotations
+            } else if (i < 19 || elements.length > 18) { // elements.length checked in case no annotations
                 n = xmlDoc.createTextNode(elements[i - 2]);
                 //System.out.println(elements[i-2]);
             }

@@ -58,7 +58,6 @@ public class SaveFileDialog extends JFileChooser {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                MessageUtils.showMessage("File has been exported:\n" + file.getName());
             }
         }
     }

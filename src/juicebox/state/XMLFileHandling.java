@@ -51,6 +51,7 @@ public class XMLFileHandling {
         String xChr = xContext.getChromosome().getName();
         String yChr = yContext.getChromosome().getName();
         String colorVals = superAdapter.getMainViewPanel().getColorRangeValues();
+        double colorRangeScaleFactor = superAdapter.getMainViewPanel().getColorRangeScaleFactor();
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
         String currentTrack = "";
         String currentTrackName = "";
@@ -66,7 +67,7 @@ public class XMLFileHandling {
         String textToWrite = stateID + "--currentState:$$" + mapNameAndURLs + "$$" + xChr + "$$" + yChr + "$$" + zoom.getUnit().toString() + "$$" +
                 zoom.getBinSize() + "$$" + xContext.getBinOrigin() + "$$" + yContext.getBinOrigin() + "$$" +
                 hic.getScaleFactor() + "$$" + hic.getDisplayOption().name() + "$$" + hic.getNormalizationType().name()
-                + "$$" + colorVals;
+                + "$$" + colorVals + "$$" + colorRangeScaleFactor;
 
         if (currentTracks != null && !currentTracks.isEmpty()) {
             for (HiCTrack track : currentTracks) {
