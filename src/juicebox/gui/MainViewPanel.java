@@ -209,7 +209,7 @@ public class MainViewPanel {
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeDisplayOptionComboBoxActionPerformed();
-                normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
+                normalizationComboBox.setEnabled(!isWholeGenome());
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
@@ -559,7 +559,7 @@ public class MainViewPanel {
             }
         }
 
-        normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
+        normalizationComboBox.setEnabled(!isWholeGenome());
         displayOptionComboBox.setEnabled(true);
     }
 
@@ -662,7 +662,7 @@ public class MainViewPanel {
 
     public void setNormalizationEnabledForReload(){
         //normalizationComboBox.setEnabled(true);
-        normalizationComboBox.setEnabled(!isWholeGenome() && !isPearsonDisplayed());
+        normalizationComboBox.setEnabled(!isWholeGenome());
     }
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
@@ -711,7 +711,7 @@ public class MainViewPanel {
         } else {
             normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
             normalizationComboBox.setSelectedIndex(0);
-            normalizationComboBox.setEnabled(status && !isWholeGenome() && !isPearsonDisplayed());
+            normalizationComboBox.setEnabled(status && !isWholeGenome());
         }
     }
 
@@ -774,7 +774,7 @@ public class MainViewPanel {
         return rulerPanelX;
     }
 
-    public boolean isPearsonDisplayed() {
+    /*public boolean isPearsonDisplayed() {
         return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;
-    }
+    }*/
 }
