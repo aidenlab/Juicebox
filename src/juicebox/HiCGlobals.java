@@ -62,7 +62,7 @@ public class HiCGlobals {
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.5;
+    private static final double versionNum = 1.4;
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
