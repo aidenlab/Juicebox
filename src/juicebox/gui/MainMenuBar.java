@@ -25,6 +25,7 @@
 package juicebox.gui;
 
 import juicebox.HiCGlobals;
+import juicebox.ProcessHelper;
 import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
@@ -42,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -114,6 +116,21 @@ public class MainMenuBar {
         //======== fileMenu ========
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
+
+        JMenuItem newWindow = new JMenuItem("New Window");
+        newWindow.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                ProcessHelper p = new ProcessHelper();
+                try {
+                    p.startNewJavaProcess();
+                }
+                catch (IOException error) {
+                    superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        fileMenu.add(newWindow);
 
         //---- openMenuItem ----
 
