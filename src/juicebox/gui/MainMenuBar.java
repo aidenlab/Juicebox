@@ -517,7 +517,7 @@ public class MainMenuBar {
                 String stateDescription = superAdapter.getDescription("location");
                 if (null != stateDescription && stateDescription.length() > 0) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
-                    recentLocationMenu.setEnabled(true);
+                        recentLocationMenu.setEnabled(true);
                 }
             }
         });
@@ -648,6 +648,10 @@ public class MainMenuBar {
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
+    }
+
+    public RecentMenu getRecentLocationMenu(){
+        return recentLocationMenu;
     }
 
     public void setShow2DAnnotations(boolean show){

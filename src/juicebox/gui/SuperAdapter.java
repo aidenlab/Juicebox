@@ -435,6 +435,7 @@ public class SuperAdapter {
 
                 hic.resetContexts();
                 updateTrackPanel();
+                mainMenuBar.getRecentLocationMenu().setEnabled(true);
                 mainWindow.getContentPane().invalidate();
                 mainWindow.repaint();
                 mainViewPanel.resetResolutionSlider();
