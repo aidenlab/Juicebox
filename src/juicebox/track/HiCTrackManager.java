@@ -107,7 +107,7 @@ public class HiCTrackManager {
                 System.out.println("Removing " + locator.getName());
                 hic.removeTrack(locator);
 
-                if (locator.getType() != null && locator.getType().equals("loop")) {
+                if (locator.getType() != null && ((locator.getType().equals("loop")) || locator.getType().equals("domain"))) {
                     try {
                         System.out.println("Loading invis " + locator.getPath());
                         hic.setLoopsInvisible(locator.getPath());
