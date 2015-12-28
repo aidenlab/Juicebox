@@ -104,7 +104,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
+
     /**
+     * Initialize heatmap panel
+     * @param superAdapter
      */
     public HeatmapPanel(SuperAdapter superAdapter) {
         this.mainWindow = superAdapter.getMainWindow();
@@ -116,7 +119,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseMotionListener(mouseHandler);
         this.firstAnnotation = true;
     }
-
 
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
@@ -1114,9 +1116,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.RESIZE;
                 Feature2D loop = mostRecentRectFeaturePair.getSecond();
                 // Resizing upper left corner, keep end points stationary
-                if (adjustAnnotation == AdjustAnnotation.LEFT){
+                if (adjustAnnotation == AdjustAnnotation.LEFT) {
                     MainMenuBar.customAnnotationHandler.setStationaryEnd(loop.getEnd1(), loop.getEnd2());
-                // Resizing lower right corner, keep start points stationary
+                    // Resizing lower right corner, keep start points stationary
                 } else {
                     MainMenuBar.customAnnotationHandler.setStationaryStart(loop.getStart1(), loop.getStart2());
                 }
@@ -1270,7 +1272,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             int deltaX = e.getX() - lastMousePoint.x;
             int deltaY = e.getY() - lastMousePoint.y;
-            double deltaX_d =  e.getX() - lastMousePoint.x;
+            double deltaX_d = e.getX() - lastMousePoint.x;
             double deltaY_d = e.getY() - lastMousePoint.y;
 
             switch (dragMode) {
@@ -1333,7 +1335,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (adjustAnnotation == AdjustAnnotation.LEFT) {
                         rectX = annotateRectangle.getX() + annotateRectangle.getWidth();
                         rectY = annotateRectangle.getY() + annotateRectangle.getHeight();
-                    // Resizing lower right corner
+                        // Resizing lower right corner
                     } else {
                         rectX = annotateRectangle.getX();
                         rectY = annotateRectangle.getY();

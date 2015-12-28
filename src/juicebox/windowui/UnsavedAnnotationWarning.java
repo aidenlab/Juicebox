@@ -35,12 +35,12 @@ public class UnsavedAnnotationWarning {
 
     public SuperAdapter superAdapter;
 
-    public UnsavedAnnotationWarning(SuperAdapter adapter){
+    public UnsavedAnnotationWarning(SuperAdapter adapter) {
         this.superAdapter = adapter;
         deleteAndContinue();
     }
 
-    private boolean deleteAndContinue(){
+    private boolean deleteAndContinue() {
         if (superAdapter.unsavedEditsExist()) {
             return initPopup();
         }
@@ -69,10 +69,10 @@ public class UnsavedAnnotationWarning {
             System.out.println("Deleting annotations");
             superAdapter.clearAllAnnotations();
             return true;
-        } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION){
+        } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
             System.out.println("meh i don't wanna commit");
             return false;
-        }else if (response == JOptionPane.YES_OPTION) {
+        } else if (response == JOptionPane.YES_OPTION) {
             System.out.println("Saving annotations");
             // Save the annotations
             superAdapter.exportAnnotations();

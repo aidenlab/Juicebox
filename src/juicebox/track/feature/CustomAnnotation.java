@@ -129,7 +129,7 @@ public class CustomAnnotation {
         if (tempWriter != null) {
             tempWriter.close();
         }
-        if (tempFile == null){
+        if (tempFile == null) {
             String prefix = "unsaved-hiC-annotations" + id;
             tempFile = HiCFileTools.openTempFile(prefix);
         }

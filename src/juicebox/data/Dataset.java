@@ -101,8 +101,7 @@ public class Dataset {
 
         String path = reader.getPath();
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -125,8 +124,7 @@ public class Dataset {
 
         String path = reader.getPath();
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -150,8 +148,7 @@ public class Dataset {
         String path = reader.getPath();
 
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -182,8 +179,7 @@ public class Dataset {
         String path = reader.getPath();
 
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -912,7 +908,7 @@ public class Dataset {
             if (sites == 63013) return "HindIII";
         } else if (genomeId.equals("Pf3D7")) {
             if (sites == 13) return "DpnII/MboI";
-        }  else if (genomeId.equals("sCerS288c")) {
+        } else if (genomeId.equals("sCerS288c")) {
             // chrI
             if (sites == 65) return "HindIII";
         } else if (genomeId.equals("susScr3")) {

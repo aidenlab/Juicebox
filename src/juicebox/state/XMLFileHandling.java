@@ -57,7 +57,7 @@ public class XMLFileHandling {
         String currentTrackName = "";
         String configTrackInfo = "none";
         String controlFiles = SuperAdapter.currentlyLoadedControlFiles;
-        if(controlFiles.length() < 1 || controlFiles.isEmpty()){
+        if (controlFiles.length() < 1 || controlFiles.isEmpty()) {
             controlFiles = "null";
         }
 

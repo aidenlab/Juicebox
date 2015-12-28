@@ -26,7 +26,6 @@ package juicebox.state;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

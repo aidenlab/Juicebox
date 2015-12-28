@@ -131,7 +131,7 @@ public class SuperAdapter {
         mainMenuBar.setEnableForAllElements(status);
     }
 
-    public void resetControlMap(){
+    public void resetControlMap() {
         hic.setControlDataset(null);
         MatrixType[] options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
         mainViewPanel.setSelectedDisplayOption(options, false);
@@ -244,7 +244,7 @@ public class SuperAdapter {
     }
 
     public String getDescription(String item) {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved "+ item +":",
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
                 hic.getDefaultLocationDescription());
     }
 
@@ -361,7 +361,7 @@ public class SuperAdapter {
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
         for (String file : files) {
-            if(newFilesToBeLoaded.length() > 1){
+            if (newFilesToBeLoaded.length() > 1) {
                 newFilesToBeLoaded += "##";
             }
             newFilesToBeLoaded += file;
@@ -639,7 +639,7 @@ public class SuperAdapter {
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    public String getMapName(){
+    public String getMapName() {
         return datasetTitle.split(" ")[0];
     }
 

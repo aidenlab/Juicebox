@@ -86,6 +86,22 @@ public class GenomeWideList<T extends Feature> {
      */
 
     /**
+     * Initialize a genome wide list using an existing list (creates deep copy)
+     *
+     * @param gwList
+     */
+    public GenomeWideList(final GenomeWideList<T> gwList) {
+        processLists(new FeatureFunction<T>() {
+            @Override
+            public void process(String chr, List<T> featureList) {
+                if (gwList.containsKey(chr)) {
+                    addAll(gwList.getFeatures(chr));
+                }
+            }
+        });
+    }
+
+    /**
      * @param key
      * @return
      */
@@ -121,11 +137,12 @@ public class GenomeWideList<T extends Feature> {
     }
 
     /**
-     * @param features to be added to this list
+     * @param features to be added to this list (deep copy)
      */
+    @SuppressWarnings("unchecked")
     private void addAll(List<T> features) {
         for (T feature : features) {
-            featureLists.get(feature.getKey()).add(feature);
+            featureLists.get(feature.getKey()).add((T) feature.deepClone());
         }
     }
 
@@ -140,6 +157,8 @@ public class GenomeWideList<T extends Feature> {
         }
     }
 
+    /** methods to create copies **/
+
     /**
      * pass interface implementing a process for all anchors
      *
@@ -150,8 +169,6 @@ public class GenomeWideList<T extends Feature> {
             function.process(key, featureLists.get(key));
         }
     }
-
-    /** methods to create copies **/
 
     /**
      * @return deep copy of the anchor list
@@ -177,10 +194,19 @@ public class GenomeWideList<T extends Feature> {
         return clonedFeatures;
     }
 
+    /**
+     * @return set of keys for genome-wide regions (i.e. category/location keys)
+     */
     public Set<String> keySet() {
         return featureLists.keySet();
     }
 
+    /**
+     * Add feature to genome-wide list with specified key
+     *
+     * @param key
+     * @param feature
+     */
     public void addFeature(String key, T feature) {
         if (featureLists.containsKey(key)) {
             featureLists.get(key).add(feature);

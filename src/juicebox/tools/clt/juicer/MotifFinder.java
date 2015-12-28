@@ -54,6 +54,7 @@ public class MotifFinder extends JuicerCLT {
     private List<String> tierOneFiles = new ArrayList<String>();
     private List<String> tierTwoFiles = new ArrayList<String>();
     private List<String> tierThreeFiles = new ArrayList<String>();
+    private GenomeWideList<MotifAnchor> genomeWideAnchorsList = new GenomeWideList<MotifAnchor>();
 
     public MotifFinder() {
         super("motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]");
@@ -235,14 +236,20 @@ public class MotifFinder extends JuicerCLT {
         MotifAnchorTools.updateOriginalFeatures(globalAnchors, true, 0);
     }
 
+
     private GenomeWideList<MotifAnchor> loadMotifs(List<Chromosome> chromosomes) {
-        GenomeWideList<MotifAnchor> anchors;
-        if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
-            anchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+        if (genomeWideAnchorsList.size() < 10) {
+            GenomeWideList<MotifAnchor> anchors;
+            if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
+                anchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+            } else {
+                anchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+            }
+            genomeWideAnchorsList = new GenomeWideList<MotifAnchor>(anchors);
+            return anchors;
         } else {
-            anchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+            return new GenomeWideList<MotifAnchor>(genomeWideAnchorsList);
         }
-        return anchors;
     }
 
 

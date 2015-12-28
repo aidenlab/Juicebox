@@ -231,9 +231,9 @@ public class JColorRangePanel extends JPanel {
         return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max){
+    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
         double scaleFactor = 100.0 / max;
-        updateColorSlider(hic,min,lower,upper,max,scaleFactor);
+        updateColorSlider(hic, min, lower, upper, max, scaleFactor);
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
@@ -333,7 +333,7 @@ public class JColorRangePanel extends JPanel {
 
     }
 
-    public double getColorRangeScaleFactor(){
+    public double getColorRangeScaleFactor() {
         return colorRangeScaleFactor;
     }
 

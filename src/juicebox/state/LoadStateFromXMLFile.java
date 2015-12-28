@@ -138,15 +138,15 @@ public class LoadStateFromXMLFile {
         double maxColor = doubleInfo[6];
         double colorScaleFactor = doubleInfo[7];
 
-                // TODO only do this if not identical to current file
+        // TODO only do this if not identical to current file
         String[] temp = mapNames.split("\\(control=");
         String mainMapNames = temp[0];
 
         List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));
         superAdapter.unsafeLoadWithTitleFix(urls, false, mainMapNames, true);
 
-        if(!controlURLs.contains("null") && temp.length >1){
-            String ctrlMapNames = temp[1].substring(0,temp[1].length()-1);
+        if (!controlURLs.contains("null") && temp.length > 1) {
+            String ctrlMapNames = temp[1].substring(0, temp[1].length() - 1);
             List<String> ctrlURLs = Arrays.asList(controlURLs.split("\\#\\#"));
             superAdapter.unsafeLoadWithTitleFix(ctrlURLs, true, ctrlMapNames, true);
         }
@@ -156,7 +156,7 @@ public class LoadStateFromXMLFile {
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
         //todo: Check that color scale value is not 0!
-        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor/colorScaleFactor, lowColor/colorScaleFactor, upColor/colorScaleFactor, maxColor/colorScaleFactor);
+        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor / colorScaleFactor, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
         superAdapter.setEnableForAllElements(true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();

@@ -123,8 +123,7 @@ public class MainMenuBar {
                 ProcessHelper p = new ProcessHelper();
                 try {
                     p.startNewJavaProcess();
-                }
-                catch (IOException error) {
+                } catch (IOException error) {
                     superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -331,8 +330,6 @@ public class MainMenuBar {
         featureRenderingOptions.add(renderURFeatureItem);
 
 
-
-
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
         enlarge2DFeatures.setSelected(false);
         enlarge2DFeatures.addActionListener(new ActionListener() {
@@ -534,7 +531,7 @@ public class MainMenuBar {
                 String stateDescription = superAdapter.getDescription("location");
                 if (null != stateDescription && stateDescription.length() > 0) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
-                        recentLocationMenu.setEnabled(true);
+                    recentLocationMenu.setEnabled(true);
                 }
             }
         });
@@ -547,16 +544,16 @@ public class MainMenuBar {
 
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
-                try{
-                String stateDescription = superAdapter.getDescription("state");
-                if (stateDescription != null && stateDescription.length() > 0) {
-                    stateDescription = previousStates.checkForDuplicateNames(stateDescription);
-                    if (stateDescription == null || stateDescription.length() < 0) {
-                        return;
+                try {
+                    String stateDescription = superAdapter.getDescription("state");
+                    if (stateDescription != null && stateDescription.length() > 0) {
+                        stateDescription = previousStates.checkForDuplicateNames(stateDescription);
+                        if (stateDescription == null || stateDescription.length() < 0) {
+                            return;
+                        }
+                        previousStates.addEntry(stateDescription, true);
+                        superAdapter.addNewStateToXML(stateDescription);
                     }
-                    previousStates.addEntry(stateDescription, true);
-                    superAdapter.addNewStateToXML(stateDescription);
-                }
                     previousStates.setEnabled(true);
                 } catch (Exception e1) {
                     e1.printStackTrace();
@@ -667,15 +664,15 @@ public class MainMenuBar {
         return menuBar;
     }
 
-    public RecentMenu getRecentLocationMenu(){
+    public RecentMenu getRecentLocationMenu() {
         return recentLocationMenu;
     }
 
-    public void setShow2DAnnotations(boolean show){
+    public void setShow2DAnnotations(boolean show) {
         showLoopsItem.setSelected(show);
     }
 
-    public void clearAllAnnotations(){
+    public void clearAllAnnotations() {
         customAnnotations.clearAnnotations();
     }
 

@@ -545,7 +545,7 @@ public class HiC {
     }
 
     public void unsafeSetLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin,
-                            double yOrigin, double scaleFactor, ZoomCallType zoomCallType,boolean allowLocationBroadcast) {
+                                  double yOrigin, double scaleFactor, ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
 
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {

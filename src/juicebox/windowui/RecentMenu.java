@@ -128,7 +128,7 @@ public abstract class RecentMenu extends JMenu {
      * Add new recent entry, update file and menu
      *
      * @param savedEntryOriginal Name and Value of entry.
-     * @param updateFile also save to file, Constructor call with false - no need to re-write.
+     * @param updateFile         also save to file, Constructor call with false - no need to re-write.
      */
     public void addEntry(String savedEntryOriginal, boolean updateFile) {
         //clear the existing items
@@ -258,12 +258,12 @@ public abstract class RecentMenu extends JMenu {
 
     }
 
-    public String checkForDuplicateNames(String savedNameOriginal){
+    public String checkForDuplicateNames(String savedNameOriginal) {
         //check for saved states
         String savedName = savedNameOriginal;
 
         boolean suitableNameNotFound = true;
-        while(suitableNameNotFound) {
+        while (suitableNameNotFound) {
             suitableNameNotFound = false;
             boolean repFound = false;
             for (String item : m_items) {
@@ -281,7 +281,7 @@ public abstract class RecentMenu extends JMenu {
                 } else if (option == JOptionPane.NO_OPTION) {
                     savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
                     return savedName;
-                } else if (option == JOptionPane.CLOSED_OPTION){
+                } else if (option == JOptionPane.CLOSED_OPTION) {
                     savedName = "";
                     return savedName;
                 }

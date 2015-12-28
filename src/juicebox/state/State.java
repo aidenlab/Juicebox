@@ -52,6 +52,6 @@ class State {
 
     /* TODO implement switch case on enum
     enum StateVar {}*/
-    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL,CONTROLURL, XCHR, YCHR, UNIT, BINSIZE,
+    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL, CONTROLURL, XCHR, YCHR, UNIT, BINSIZE,
             XORIGIN, YORIGIN, SCALE, DISPLAY, NORM, MINCOLOR, LOWCOLOR, UPPERCOLOR, MAXCOLOR, COLORSCALE, TRACKURLS, TRACKNAMES, CONFIGTRACKINFO};
 }

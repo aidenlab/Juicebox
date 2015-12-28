@@ -24,18 +24,17 @@
 
 package juicebox.data.anchor;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.HiCTools;
-import juicebox.tools.motifs.GlobalMotifs;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,36 +53,56 @@ public class MotifAnchorParser {
 
         InputStream is = null;
         Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
+        BufferedReader reader = null;
+        String path = "https://hicfiles.s3.amazonaws.com/internal/motifs/" + idOrFile + ".motifs.txt";
 
         try {
-            // Note: to get this to work, had to edit Intellij settings
-            // so that "?*.sizes" are considered sources to be copied to class path
-            is = GlobalMotifs.class.getResourceAsStream(idOrFile + ".motifs");
 
-            if (is == null) {
-                File file = new File(idOrFile);
+            // first assume local, then server
+            File file = new File(idOrFile);
+            if (file.exists()) {
+                is = new FileInputStream(file);
+                reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
+            } else {
                 try {
-                    if (file.exists()) {
-                        is = new FileInputStream(file);
+
+                    String tempLocalPath = downloadFromUrl(new URL(path), "motifs");
+                    File file2 = new File(tempLocalPath);
+                    if (file2.exists()) {
+                        is = new FileInputStream(file2);
+                        reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
                     } else {
-                        System.err.println("Could not find motifs file for: " + idOrFile);
-                        System.exit(-3);
+                        System.err.println("Unable to find motif url");
+                        System.exit(-4);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+                } catch (Exception e2) {
+                    System.err.println("Unable to find motif file");
+                    System.exit(-4);
                 }
             }
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-            anchors.addAll(parseGlobalMotifFile(reader, chromosomes));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Unable to read local motif file");
+            System.exit(-4);
         } finally {
+
+            try {
+                if (reader != null) {
+                    anchors.addAll(parseGlobalMotifFile(reader, chromosomes));
+                }
+            } catch (Exception e3) {
+                //e3.printStackTrace();
+                System.err.println("Unable to parse motif file");
+                System.exit(-5);
+            }
+
             if (is != null) {
                 try {
                     is.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception e4) {
+                    System.err.println("Error closing file stream for motif file");
+                    //e4.printStackTrace();
                 }
             }
         }
@@ -251,5 +270,46 @@ public class MotifAnchorParser {
         }
         br.close();
         return new ArrayList<MotifAnchor>(anchors);
+    }
+
+    /**
+     * http://kamwo.me/java-download-file-from-url-to-temp-directory/
+     *
+     * @param url
+     * @param localFilename
+     * @return
+     * @throws IOException
+     */
+    public static String downloadFromUrl(URL url, String localFilename) throws IOException {
+        InputStream is = null;
+        FileOutputStream fos = null;
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String outputPath = tempDir + "/" + localFilename;
+
+        try {
+            URLConnection urlConn = url.openConnection();
+            is = urlConn.getInputStream();
+            fos = new FileOutputStream(outputPath);
+
+            byte[] buffer = new byte[HiCGlobals.bufferSize];
+            int length;
+
+            // read from source and write into local file
+            while ((length = is.read(buffer)) > 0) {
+                fos.write(buffer, 0, length);
+            }
+            return outputPath;
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } finally {
+                if (fos != null) {
+                    fos.close();
+                }
+            }
+        }
     }
 }

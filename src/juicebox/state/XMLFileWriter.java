@@ -96,11 +96,11 @@ public class XMLFileWriter {
             } else if (i == 2) {//mapurl
                 n = xmlDoc.createTextNode(mapName[1]);
                 //System.out.println(mapName[1]);
-            } else if(i == 3){//controlURL
-                if(mapName.length > 2 && !mapName[2].contains("null") && mapName[2].length() > 1){
+            } else if (i == 3) {//controlURL
+                if (mapName.length > 2 && !mapName[2].contains("null") && mapName[2].length() > 1) {
                     n = xmlDoc.createTextNode(mapName[2]);
                     //System.out.println(mapName[2]);
-                } else{
+                } else {
                     n = xmlDoc.createTextNode("null");
                 }
             } else if (i < 19 || elements.length > 18) { // elements.length checked in case no annotations

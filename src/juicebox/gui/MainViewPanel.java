@@ -660,10 +660,11 @@ public class MainViewPanel {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
-    public void setNormalizationEnabledForReload(){
+    public void setNormalizationEnabledForReload() {
         //normalizationComboBox.setEnabled(true);
         normalizationComboBox.setEnabled(!isWholeGenome());
     }
+
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
     }
@@ -689,7 +690,7 @@ public class MainViewPanel {
         return colorRangePanel.getColorRangeValues();
     }
 
-    public double getColorRangeScaleFactor(){
+    public double getColorRangeScaleFactor() {
         return colorRangePanel.getColorRangeScaleFactor();
     }
 

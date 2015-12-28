@@ -28,10 +28,10 @@ import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
 import juicebox.track.HiCGridAxis;
+import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.util.HashMap;
-import org.broad.igv.util.Pair;
 
 /**
  * Created by Marie on 6/4/15.
@@ -82,12 +82,12 @@ public class CustomAnnotationHandler {
         featureType = Feature2D.FeatureType.DOMAIN;
     }
 
-    public void setStationaryStart(int start1, int start2){
+    public void setStationaryStart(int start1, int start2) {
         lastStarts = new Pair<Integer, Integer>(start1, start2);
         lastEnds = null;
     }
 
-    public void setStationaryEnd(int end1, int end2){
+    public void setStationaryEnd(int end1, int end2) {
         lastEnds = new Pair<Integer, Integer>(end1, end2);
         lastStarts = null;
     }
@@ -190,12 +190,12 @@ public class CustomAnnotationHandler {
         end2 = Math.max(Math.min(end2, bottomBound), leftBound);
 
         // Check for anchored corners
-        if (lastStarts != null){
+        if (lastStarts != null) {
             if (lastStarts.getFirst() < end1 && lastStarts.getSecond() < end2) {
                 start1 = lastStarts.getFirst();
                 start2 = lastStarts.getSecond();
             }
-        } else if (lastEnds != null){
+        } else if (lastEnds != null) {
             if (start1 < lastEnds.getFirst() && start2 < lastEnds.getSecond()) {
                 end1 = lastEnds.getFirst();
                 end2 = lastEnds.getSecond();
