@@ -36,8 +36,8 @@ The former turns on all warnings, the latter gives some flexibility since some p
 * You'll create two of these, one for the GUI (call it Juicebox GUI or whatever you want, really) and one for the CLT.
 * Set the main class by clicking the little `...` button next to the text box for main class
 
-                MainWindow.java is the main method class for the visualization/GUI portion of the software.
-                HiCTools.java is the main method class for the analysis/CLT portion.
+        MainWindow.java is the main method class for the visualization/GUI portion of the software.
+        HiCTools.java is the main method class for the analysis/CLT portion.
 
 * For the GUI under VM Options:
 
