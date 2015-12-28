@@ -34,8 +34,11 @@ The former turns on all warnings, the latter gives some flexibility since some p
 * Then go to `Run` -> `Edit Configurations`.
 * With the `+` sign, add `Application`.
 * You'll create two of these, one for the GUI (call it Juicebox GUI or whatever you want, really) and one for the CLT.
-* The GUI's main class is `MainWindow.java` - click the little `...` button next to the text box for main class, and type `MainWindow.java`.
-* The CLT's main class is `HiCTools.java`.
+* Set the main class by clicking the little `...` button next to the text box for main class
+
+                MainWindow.java is the main method class for the visualization/GUI portion of the software.
+                HiCTools.java is the main method class for the analysis/CLT portion.
+
 * For the GUI under VM Options:
 
         -Xmx2000m
@@ -51,9 +54,6 @@ Some tools will break if there's not enough memory and the file is too large,
 but don't worry about that for development; 2GB should be fine.
 * One last note: be sure to `Commit and Push` when you commit files, it's hidden in the dropdown menu button in the
 commit window.
-
-`MainWindow.java` is the main method class for the visualization portion of the software.
-`HiCTools.java` is the main method class for the analysis portion.
 
 -------
 Example
