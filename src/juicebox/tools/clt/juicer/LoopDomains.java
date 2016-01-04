@@ -120,7 +120,7 @@ public class LoopDomains extends JuicerCLT {
         loopList.clearAllAttributes();
         domainList.clearAllAttributes();
         // only motifs are preserved due to usage of feature2DWithMotif class (the last boolean
-        // parameter iin feature load line)
+        // parameter in feature load line)
 
         // not necessary as size of feature makes it pretty obvious...
         loopList.addAttributeFieldToAll("Type", "Loop");
@@ -137,7 +137,6 @@ public class LoopDomains extends JuicerCLT {
                 if (loopList.containsKey(chr)) {
                     loops.addAll(loopList.get(chr));
                 }
-
 
                 Collections.sort(domains);
                 Collections.sort(loops);

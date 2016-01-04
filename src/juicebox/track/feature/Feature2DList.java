@@ -162,7 +162,6 @@ public class Feature2DList {
     }
 
 
-
     /**
      * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
      *

@@ -107,6 +107,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     /**
      * Initialize heatmap panel
+     *
      * @param superAdapter
      */
     public HeatmapPanel(SuperAdapter superAdapter) {
