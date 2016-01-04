@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,18 @@ muhammads-mbp:original muhammadsaadshamim$ ls
 geo.txt		java_motifs.txt
          */
 
+
+        String[] ajkhsd = {"loop_domains",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test/test_ld/loops.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_ld/domains.txt",
+                "/Users/muhammadsaadshamim/Desktop/test/test_ld/ld.txt"};
+
+        //HiCGlobals.printVerboseComments = true;
+        HiCTools.main(ajkhsd);
+
+
+                /*
         String[] ll51231123 = {"motifs",
                 "hg19",
                 "/Users/muhammadsaadshamim/Desktop/test/test_motifs/gm12878",
@@ -82,5 +94,6 @@ geo.txt		java_motifs.txt
                 "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt"};
 
         HiCTools.main(ll512123431123);
+        */
     }
 }

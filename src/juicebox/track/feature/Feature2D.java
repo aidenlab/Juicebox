@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -128,6 +128,14 @@ public class Feature2D implements Comparable<Feature2D> {
         this.end2 = end2;
         if (reflection != null)
             reflection.end1 = end2;
+    }
+
+    public int getWidth1() {
+        return end1 - start1;
+    }
+
+    public int getWidth2() {
+        return end2 - start2;
     }
 
     public int getMidPt1() {
@@ -433,6 +441,11 @@ public class Feature2D implements Comparable<Feature2D> {
     public boolean getTest() {
         return test;
     }
+
+    public void clearAttributes() {
+        attributes.clear();
+    }
+
 
     public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.track.feature;
 import juicebox.tools.clt.juicer.CompareLists;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
+import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -244,5 +245,24 @@ public class Feature2DTools {
         });
         result.removeDuplicates();
         return result;
+    }
+
+    public static boolean loopIsUpstreamOfDomain(Feature2D loop, Feature2D domain, int threshold) {
+        return loop.getEnd1() < domain.getStart1() - threshold &&
+                loop.getEnd2() < domain.getStart2() - threshold;
+    }
+
+    public static boolean loopIsDownstreamOfDomain(Feature2D loop, Feature2D domain, int threshold) {
+        return loop.getStart1() > domain.getEnd1() + threshold &&
+                loop.getStart2() > domain.getEnd2() + threshold;
+    }
+
+    public static boolean domainContainsLoopWithinExpandedTolerance(Feature2D loop, Feature2D domain, int threshold) {
+
+        Rectangle bounds = new Rectangle(domain.getStart1() - threshold, domain.getStart2() - threshold,
+                domain.getWidth1() + 2 * threshold, domain.getWidth2() + 2 * threshold);
+        Point point = new Point(loop.getMidPt1(), loop.getMidPt2());
+
+        return bounds.contains(point);
     }
 }

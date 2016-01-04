@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,6 +95,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
+        } else if (cmd.equals("loop_domains")) {
+            return new LoopDomains();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,7 +90,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("afa") || cmd.equals("compare");
+                || cmd.equals("cluster") || cmd.equals("afa") || cmd.equals("compare") || cmd.equals("loop_domains");
     }
 
     /**

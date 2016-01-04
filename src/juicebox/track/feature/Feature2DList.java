@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -147,6 +147,23 @@ public class Feature2DList {
     }
 
     /**
+     * Returns list of features on this chromosome pair
+     * Warning, this should be used carefully, assumes proper key nomenclature is used
+     * should only be used when comparing equivalent lists
+     *
+     * @return List of 2D features for given key
+     */
+    public List<Feature2D> get(String key) {
+        if (!featureList.containsKey(key)) {
+            List<Feature2D> features = new ArrayList<Feature2D>();
+            featureList.put(key, features);
+        }
+        return featureList.get(key);
+    }
+
+
+
+    /**
      * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
      *
      * @param chr1Idx First chromosome index
@@ -160,7 +177,13 @@ public class Feature2DList {
 
     }
 
-    void addByKey(String key, Feature2D feature) {
+    /**
+     * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
+     *
+     * @param key     chromosomal pair key
+     * @param feature feature to add
+     */
+    public void addByKey(String key, Feature2D feature) {
         if (featureList.containsKey(key)) {
             featureList.get(key).add(feature);
         } else {
@@ -488,7 +511,7 @@ public class Feature2DList {
     /**
      * @return true if features available for this region (key = "chr1_chr2")
      */
-    boolean containsKey(String key) {
+    public boolean containsKey(String key) {
         return featureList.containsKey(key);
     }
 
@@ -521,5 +544,17 @@ public class Feature2DList {
             }
         });
         return feature[0];
+    }
+
+
+    public void clearAllAttributes() {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    feature.clearAttributes();
+                }
+            }
+        });
     }
 }
