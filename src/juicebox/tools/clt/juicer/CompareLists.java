@@ -191,7 +191,7 @@ public class CompareLists extends JuicerCLT {
         finalResults.add(uniqueToA);
         finalResults.add(uniqueToB);
 
-        finalResults.exportFeatureList(outputPath, false, "NA");
+        finalResults.exportFeatureList(outputPath, false, Feature2DList.ListFormat.NA);
 
         int percentMatch = (int) Math.round(100 * ((double) (sizeB - numUniqueToB)) / ((double) sizeB));
         if (percentMatch > 95) {
@@ -200,6 +200,4 @@ public class CompareLists extends JuicerCLT {
             System.out.println("Test failed - " + percentMatch + "% match with reference list");
         }
     }
-
-
 }

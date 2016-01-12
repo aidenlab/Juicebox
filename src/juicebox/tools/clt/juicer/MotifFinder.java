@@ -104,7 +104,7 @@ public class MotifFinder extends JuicerCLT {
 
         findInferredMotifs(chromosomes, features);
 
-        features.exportFeatureList(outputPath, false, "NA");
+        features.exportFeatureList(outputPath, false, Feature2DList.ListFormat.NA);
         System.out.println("Motif Finder complete");
     }
 

@@ -163,14 +163,12 @@ public class HiCCUPS extends JuicerCLT {
     private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
+    private static String MERGED = "merged_loops";
+    private static String FDR_THRESHOLDS = "fdr_thresholds";
+    private static String ENRICHED_PIXELS = "enriched_pixels";
     private boolean configurationsSetByUser = false;
     private boolean chrSpecified = false;
     private Set<String> chromosomesSpecified = new HashSet<String>();
-    private String inputHiCFileName;
-    private String outputFDRFileName;
-    private String outputEnrichedFileName;
-    private String outputFinalLoopListFileName;
-    private HiCCUPSConfiguration[] configurations;
 
 
     /*
@@ -190,15 +188,14 @@ public class HiCCUPS extends JuicerCLT {
      * same with published IMR90 looplist
      * published CH12 looplist only generated with 10kb
      */
+    private String inputHiCFileName;
+    private String outputDirectory;
+    private HiCCUPSConfiguration[] configurations;
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
-                "<hicFile(s)> <outputLoopsList>" +
-                "\n" +
-                "\n" +
-                "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
-                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
+                "<hicFile(s)> <outputDirectory>");
         Feature2D.allowHiCCUPSOrdering = true;
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
     }
@@ -208,18 +205,14 @@ public class HiCCUPS extends JuicerCLT {
 
         CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
 
-        if (args.length == 4) {
-            dataShouldBePostProcessed = false;
-        } else if (args.length != 3) {
+        if (args.length != 3) {
             printUsage();
         }
 
         inputHiCFileName = args[1];
-        if (dataShouldBePostProcessed) {
-            outputFinalLoopListFileName = args[2];
-        } else {
-            outputFDRFileName = args[2];
-            outputEnrichedFileName = args[3];
+        outputDirectory = args[2];
+        if (!outputDirectory.endsWith("/")) {
+            outputDirectory += "/";
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -230,7 +223,6 @@ public class HiCCUPS extends JuicerCLT {
         determineValidChromosomes(juicerParser);
         determineValidConfigurations(juicerParser);
     }
-
 
     @Override
     public void run() {
@@ -267,10 +259,7 @@ public class HiCCUPS extends JuicerCLT {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
-        PrintWriter outputFile = null;
-        if (dataShouldBePostProcessed) {
-            outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
-        }
+        PrintWriter outputMergedFile = HiCFileTools.openWriter(outputDirectory + MERGED);
 
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
@@ -283,9 +272,9 @@ public class HiCCUPS extends JuicerCLT {
 
         if (dataShouldBePostProcessed) {
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
-                    filteredConfigurations, norm);
-            finalList.exportFeatureList(outputFile, true, "hiccupsFinal");
-            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputFinalLoopListFileName);
+                    filteredConfigurations, norm, outputDirectory);
+            finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
+            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputDirectory + MERGED);
         }
         System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
@@ -309,9 +298,8 @@ public class HiCCUPS extends JuicerCLT {
             return null;
         }
 
-        PrintWriter outputFDR = null;
-        if (outputFDRFileName != null)
-            outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + conf.getResolution());
+        // open the print writer early so the file I/O capability is verified before running hiccups
+        PrintWriter outputFDR = HiCFileTools.openWriter(outputDirectory + FDR_THRESHOLDS + "_" + conf.getResolution());
 
         int[][] histBL = new int[w1][w2];
         int[][] histDonut = new int[w1][w2];
@@ -464,18 +452,12 @@ public class HiCCUPS extends JuicerCLT {
 
         }
 
-        if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, "hiccupsEnriched");
-            if (outputFDR != null) {
-                for (int i = 0; i < w1; i++) {
-                    outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
-                }
-            }
+        globalList.exportFeatureList(outputDirectory + ENRICHED_PIXELS + "_" + conf.getResolution(), true, Feature2DList.ListFormat.ENRICHED);
+        for (int i = 0; i < w1; i++) {
+            outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
         }
+        outputFDR.close();
 
-        if (outputFDR != null) {
-            outputFDR.close();
-        }
 
         if (HiCGlobals.printVerboseComments) {
             long final_time = System.currentTimeMillis();

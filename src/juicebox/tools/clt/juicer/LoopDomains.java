@@ -173,7 +173,7 @@ public class LoopDomains extends JuicerCLT {
             }
         });
 
-        loopDomainList.exportFeatureList(outputPath, false, "NA");
+        loopDomainList.exportFeatureList(outputPath, false, Feature2DList.ListFormat.NA);
     }
 
 }

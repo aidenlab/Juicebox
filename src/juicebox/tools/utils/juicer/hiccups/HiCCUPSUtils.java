@@ -74,6 +74,7 @@ public class HiCCUPSUtils {
     private static final String CENTROID1 = "centroid1";
     private static final String CENTROID2 = "centroid2";
     private static final String NUMCOLLAPSED = "numCollapsed";
+    private static String POST_PROCESSED = "postprocessed_pixels";
 
     /**
      * @return a Feature2D peak for a possible peak location from hiccups
@@ -162,7 +163,6 @@ public class HiCCUPSUtils {
         });
     }
 
-
     public static void filterOutFeaturesByFDR(Feature2DList list) {
         list.filterLists(new FeatureFilter() {
             @Override
@@ -180,7 +180,6 @@ public class HiCCUPSUtils {
         }
         return filtered;
     }
-
 
     private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list, NormalizationType norm) throws IOException {
 
@@ -393,7 +392,6 @@ public class HiCCUPSUtils {
         return mergedList;
     }
 
-
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
         Feature2DList centroidsTwentyFiveKB = Feature2DTools.extractReproducibleCentroids(mergedList, twentyFiveKBList, 2 * 25000);
@@ -487,13 +485,14 @@ public class HiCCUPSUtils {
 
     public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                             List<Chromosome> commonChromosomes, List<HiCCUPSConfiguration> configurations,
-                                            NormalizationType norm) {
+                                            NormalizationType norm, String outputDirectory) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
             removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
+            looplists.get(res).exportFeatureList(outputDirectory + POST_PROCESSED + "_" + res, true, Feature2DList.ListFormat.FINAL);
         }
 
         return mergeAllResolutions(looplists);

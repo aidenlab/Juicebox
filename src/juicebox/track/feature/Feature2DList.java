@@ -215,7 +215,7 @@ public class Feature2DList {
      *
      * @param outputFilePath
      */
-    public int exportFeatureList(String outputFilePath, boolean formattedOutput, String listFormat) {
+    public int exportFeatureList(String outputFilePath, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
             return exportFeatureList(outputFile, formattedOutput, listFormat);
@@ -228,7 +228,7 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean formattedOutput, final String listFormat) {
+    public int exportFeatureList(final PrintWriter outputFile, final boolean formattedOutput, final ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
@@ -236,13 +236,13 @@ public class Feature2DList {
                 if (formattedOutput) {
                     String header = Feature2D.genericHeader;
                     final ArrayList<String> outputKeys = new ArrayList<String>();
-                    if (listFormat.matches("hiccupsEnriched")) {
+                    if (listFormat == ListFormat.ENRICHED) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
-                    } else if (listFormat.matches("hiccupsFinal")) {
+                    } else if (listFormat == ListFormat.FINAL) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
-                    } else if (listFormat.matches("arrowhead")) {
+                    } else if (listFormat == ListFormat.ARROWHEAD) {
                         outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                     }
                     for (String key : outputKeys) {
@@ -545,7 +545,6 @@ public class Feature2DList {
         return feature[0];
     }
 
-
     public void clearAllAttributes() {
         processLists(new FeatureFunction() {
             @Override
@@ -556,4 +555,7 @@ public class Feature2DList {
             }
         });
     }
+
+
+    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 }
