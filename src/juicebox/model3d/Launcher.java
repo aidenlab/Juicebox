@@ -35,7 +35,7 @@ import java.awt.event.WindowEvent;
 /**
  * Created by muhammadsaadshamim on 7/24/15.
  */
-class Launcher extends Frame implements GLEventListener {
+public class Launcher extends Frame implements GLEventListener {
 
 
     private static final long serialVersionUID = -4436096213094040007L;

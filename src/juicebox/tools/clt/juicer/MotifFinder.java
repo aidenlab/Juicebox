@@ -139,7 +139,7 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
 
-        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+        GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         GenomeWideList<MotifAnchor> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, upStreamAnchors, false, true);
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
@@ -147,7 +147,7 @@ public class MotifFinder extends JuicerCLT {
 
         // reset
         inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
-        globalAnchors = loadMotifs(chromosomes);
+        globalAnchors = retrieveFreshMotifs();
 
         GenomeWideList<MotifAnchor> downStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, false);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, downStreamAnchors, false, true);
@@ -229,7 +229,7 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
         GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(chromosomes, featureAnchors);
 
-        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+        GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         //MotifAnchorTools.intersectLists(threeTierFilteredProteins,globalAnchors, true);
 
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, threeTierFilteredProteins);
@@ -237,13 +237,19 @@ public class MotifFinder extends JuicerCLT {
     }
 
 
-    private GenomeWideList<MotifAnchor> loadMotifs(List<Chromosome> chromosomes) {
+    private GenomeWideList<MotifAnchor> retrieveFreshMotifs() {
         if (genomeWideAnchorsList.size() < 10) {
             GenomeWideList<MotifAnchor> anchors;
             if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
-                anchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+                anchors = MotifAnchorParser.loadMotifsFromGenomeID(genomeID, null);
             } else {
-                anchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+                if (globalMotifListPath.contains("http")) {
+                    // url
+                    anchors = MotifAnchorParser.loadMotifsFromURL(globalMotifListPath, genomeID, null);
+                } else {
+                    // local file
+                    anchors = MotifAnchorParser.loadMotifsFromLocalFile(globalMotifListPath, genomeID, null);
+                }
             }
             genomeWideAnchorsList = new GenomeWideList<MotifAnchor>(anchors);
             return anchors;

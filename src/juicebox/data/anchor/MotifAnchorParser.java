@@ -49,43 +49,36 @@ import java.util.Set;
  */
 public class MotifAnchorParser {
 
-    public static GenomeWideList<MotifAnchor> loadGlobalMotifs(String idOrFile, List<Chromosome> chromosomes) {
+    public static GenomeWideList<MotifAnchor> loadMotifsFromGenomeID(String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
+        return loadGlobalMotifs("", genomeID, anchorFilter, MotifLocation.VIA_ID);
+    }
 
+    public static GenomeWideList<MotifAnchor> loadMotifsFromLocalFile(String path, String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
+        return loadGlobalMotifs(path, genomeID, anchorFilter, MotifLocation.LOCAL);
+    }
+
+    public static GenomeWideList<MotifAnchor> loadMotifsFromURL(String path, String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
+        return loadGlobalMotifs(path, genomeID, anchorFilter, MotifLocation.URL);
+    }
+
+    private static GenomeWideList<MotifAnchor> loadGlobalMotifs(String path, String genomeID,
+                                                                FeatureFilter<MotifAnchor> anchorFilter,
+                                                                MotifLocation motifLocation) {
         InputStream is = null;
-        Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
         BufferedReader reader = null;
-        String path = "https://hicfiles.s3.amazonaws.com/internal/motifs/" + idOrFile + ".motifs.txt";
+        GenomeWideList<MotifAnchor> newAnchorList;
 
         try {
-
-            // first assume local, then server
-            File file = new File(idOrFile);
-            if (file.exists()) {
-                is = new FileInputStream(file);
-                reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-            } else {
-                try {
-
-                    String tempLocalPath = downloadFromUrl(new URL(path), "motifs");
-                    File file2 = new File(tempLocalPath);
-                    if (file2.exists()) {
-                        is = new FileInputStream(file2);
-                        reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-                    } else {
-                        System.err.println("Unable to find motif url");
-                        System.exit(-4);
-                    }
-
-                } catch (Exception e2) {
-                    System.err.println("Unable to find motif file");
-                    System.exit(-4);
-                }
-            }
-
+            // locate file from appropriate source and creat input stream
+            is = ParsingUtils.openInputStream(extractProperFilePath(genomeID, path, motifLocation));
+            reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         } catch (Exception e) {
-            System.err.println("Unable to read local motif file");
+            System.err.println("Unable to create input stream for global motifs " + motifLocation);
             System.exit(-4);
         } finally {
+            List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
+
+            Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
 
             try {
                 if (reader != null) {
@@ -105,20 +98,36 @@ public class MotifAnchorParser {
                     //e4.printStackTrace();
                 }
             }
+            newAnchorList = new GenomeWideList<MotifAnchor>(chromosomes, new ArrayList<MotifAnchor>(anchors));
         }
 
-        return new GenomeWideList<MotifAnchor>(chromosomes, new ArrayList<MotifAnchor>(anchors));
+        if (anchorFilter != null)
+            newAnchorList.filterLists(anchorFilter);
+
+        return newAnchorList;
     }
 
-    public static GenomeWideList<MotifAnchor> loadMotifsByGenome(String path, String genomeID, FeatureFilter<MotifAnchor> anchorFilter) {
-        return loadMotifs(path, HiCFileTools.loadChromosomes(genomeID), anchorFilter);
+    private static String extractProperFilePath(String genomeID, String path, MotifLocation motifLocation) {
+        String filePath = path;
+        try {
+            switch (motifLocation) {
+                case VIA_ID:
+                    String newURL = "https://hicfiles.s3.amazonaws.com/internal/motifs/" + genomeID + ".motifs.txt";
+                    filePath = downloadFromUrl(new URL(newURL), "motifs");
+                    break;
+                case URL:
+                    filePath = downloadFromUrl(new URL(path), "motifs");
+                    break;
+                case LOCAL:
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to find proper file via " + motifLocation);
+            System.exit(-4);
+        }
+        return filePath;
     }
-
-    public static GenomeWideList<MotifAnchor> loadMotifs(String path, List<Chromosome> chromosomes, FeatureFilter<MotifAnchor> anchorFilter) {
-        GenomeWideList<MotifAnchor> newList = parseMotifFile(path, chromosomes, anchorFilter);
-        return newList;
-    }
-
 
     private static GenomeWideList<MotifAnchor> parseMotifFile(String path, List<Chromosome> chromosomes,
                                                               FeatureFilter<MotifAnchor> anchorFilter) {
@@ -139,12 +148,21 @@ public class MotifAnchorParser {
         return newAnchorList;
     }
 
-    private static List<MotifAnchor> parseGlobalMotifFile(BufferedReader br, List<Chromosome> chromosomes) throws IOException {
+    /**
+     * Parses a motif file (assumes FIMO output format)
+     *
+     * @param bufferedReader
+     * @param chromosomes
+     * @return list of motifs and their attributes (score, sequence, etc)
+     * @throws IOException
+     */
+    private static List<MotifAnchor> parseGlobalMotifFile(BufferedReader bufferedReader, List<Chromosome> chromosomes) throws IOException {
         Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
         String nextLine;
 
         // header
-        nextLine = br.readLine();
+        nextLine = bufferedReader.readLine();
+
         //String[] headers = Globals.tabPattern.split(nextLine);
 
         //pattern_name	sequence_name	start	    stop	    strand	score	p-value	    q-value	    matched sequence
@@ -154,7 +172,7 @@ public class MotifAnchorParser {
         //CTCF_M1_FLIPPED	chr10:100420000-100425000	4400	4413	-	18.2569	4.1e-07	0.00811	TCCAGTAGATGGCG
 
         int errorCount = 0;
-        while ((nextLine = br.readLine()) != null) {
+        while ((nextLine = bufferedReader.readLine()) != null) {
             String[] tokens = Globals.tabPattern.split(nextLine);
             if (tokens.length != 9) {
                 String text = "Improperly formatted FIMO output file: \npattern_name\tsequence_name\t" +
@@ -214,11 +232,15 @@ public class MotifAnchorParser {
                 System.exit(-5);
             }
         }
-        br.close();
+        bufferedReader.close();
         return new ArrayList<MotifAnchor>(anchors);
     }
 
-
+    /**
+     * @param chromosomes
+     * @param bedFilePath
+     * @return List of motif anchors from the provided bed file
+     */
     public static GenomeWideList<MotifAnchor> loadFromBEDFile(List<Chromosome> chromosomes, String bedFilePath) {
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
 
@@ -233,12 +255,25 @@ public class MotifAnchorParser {
         return new GenomeWideList<MotifAnchor>(chromosomes, anchors);
     }
 
-    private static List<MotifAnchor> parseBEDFile(BufferedReader br, List<Chromosome> chromosomes) throws IOException {
+    /**
+     * Methods for handling BED Files
+     */
+
+    /**
+     * Helper function for actually parsing BED file
+     * Ignores any attributes beyond the third column (i.e. just chr and positions are read)
+     *
+     * @param bufferedReader
+     * @param chromosomes
+     * @return list of motifs
+     * @throws IOException
+     */
+    private static List<MotifAnchor> parseBEDFile(BufferedReader bufferedReader, List<Chromosome> chromosomes) throws IOException {
         Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
         String nextLine;
 
         int errorCount = 0;
-        while ((nextLine = br.readLine()) != null) {
+        while ((nextLine = bufferedReader.readLine()) != null) {
             String[] tokens = Globals.tabPattern.split(nextLine);
 
             String chr1Name;
@@ -268,7 +303,7 @@ public class MotifAnchorParser {
                 continue; // header line/description; all BED files start with chr
             }
         }
-        br.close();
+        bufferedReader.close();
         return new ArrayList<MotifAnchor>(anchors);
     }
 
@@ -312,4 +347,6 @@ public class MotifAnchorParser {
             }
         }
     }
+
+    public enum MotifLocation {VIA_ID, URL, LOCAL}
 }
