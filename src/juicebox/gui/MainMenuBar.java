@@ -452,7 +452,7 @@ public class MainMenuBar {
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
-        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
+        //final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
         loadLastMI = new JMenuItem("Load Last Session");
         undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
@@ -465,12 +465,12 @@ public class MainMenuBar {
             }
         });
 
-        exportOverlapMI.addActionListener(new ActionListener() {
+        /*exportOverlapMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.exportOverlapMIAction(customAnnotations);
             }
-        });
+        });*/
 
         loadLastMI.addActionListener(new ActionListener() {
             @Override
