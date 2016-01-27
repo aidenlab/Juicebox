@@ -162,9 +162,25 @@ public class CustomAnnotationHandler {
 
         start1 = geneXPos(hic, x, 0);
         end1 = geneXPos(hic, x + width, 0);
+        start2 = geneYPos(hic, y, 0);
+        end2 = geneYPos(hic, y + height, 0);
 
         // Snap if close to diagonal
-        if (chr1Idx == chr2Idx && nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)) {
+        if (chr1Idx == chr2Idx && (pointsShouldSnapToDiagonal(hic, x, y, width, height)
+                || regionsOverlapSignificantly(start1, end1, start2, end2, .6))) {
+
+            if (start1 < start2) {
+                // snap to the right i.e. use y values
+                start1 = start2;
+                end1 = end2;
+            } else {
+                // snap down i.e. use x values
+                start2 = start1;
+                end2 = end1;
+            }
+
+            /*
+            TODO meh - I don't think this is doing what we think it is?
             // Snap to min of horizontal stretch and vertical stretch
             if (width <= y) {
                 start2 = start1;
@@ -175,10 +191,9 @@ public class CustomAnnotationHandler {
                 start1 = start2;
                 end1 = end2;
             }
+            */
+
             // Otherwise record as drawn
-        } else {
-            start2 = geneYPos(hic, y, 0);
-            end2 = geneYPos(hic, y + height, 0);
         }
 
         // Make sure bounds aren't unreasonable (out of HiC map)
@@ -208,6 +223,51 @@ public class CustomAnnotationHandler {
         customAnnotations.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
+    }
+
+    private boolean regionsOverlapSignificantly(int start1, int end1, int start2, int end2, double tolerance) {
+
+        // must cross diagonal for overlap
+        if ((start1 < end2 && end1 > start2) || (start1 > end2 && end1 < start2)) {
+            double areaFeatureScaled = (end1 - start1) / 100.0 * (end2 - start2) / 100.0;
+            double areaOverlapScaled = Math.pow((Math.min(end1, end2) - Math.max(start1, start2)) / 100.0, 2);
+
+            return areaOverlapScaled / areaFeatureScaled > tolerance;
+        }
+
+        return false;
+    }
+
+    private boolean pointsShouldSnapToDiagonal(HiC hic, int x, int y, int width, int height) {
+        return nearDiagonal(hic, x, y) && nearDiagonal(hic, x + width, y + height)
+                && !allPointsAreOnSameSideOfDiagonal(hic, x, y, width, height);
+    }
+
+    /**
+     * assumes that points are on same chromosome
+     *
+     * @param hic
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @return
+     */
+    private boolean allPointsAreOnSameSideOfDiagonal(HiC hic, int x, int y, int width, int height) {
+
+        int x1 = getXBin(hic, x);
+        int y1 = getYBin(hic, y);
+        int x2 = getXBin(hic, x + width);
+        int y2 = getYBin(hic, y + height);
+
+        // if this has been called, we can assume that x1,y1 and x2,y2 are near the diagonal
+        // now we need to check if x1,y2 and x2,y1 are on the same side of the diagonal or not
+        // if they are on same side of diagonal, don't snap to grid
+
+        // i.e. x<y for all points or x >y for all points
+        // if x1,y2 and x2,y1 are on the same side, then x1,y1 and x2,y2 will be on that side as well (rectangle)
+
+        return (x1 < y2 && x2 < y1) || (x1 > y2 && x2 > y1);
     }
 
     public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
@@ -249,6 +309,18 @@ public class CustomAnnotationHandler {
 
         return Math.abs(start1 - start2) < threshold;
     }
+
+    /*
+    TODO - consider scaling threshold with resolution?
+    private int getThreshold(HiC hic) {
+        try{
+            return (int)Math.ceil(threshold*Math.log(hic.getZd().getBinSize()));
+        }
+        catch (Exception e){
+            return threshold;
+        }
+    }
+    */
 
     //helper for getannotatemenu
     private int geneXPos(HiC hic, int x, int displacement) {
