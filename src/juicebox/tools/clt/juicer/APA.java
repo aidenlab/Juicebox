@@ -173,7 +173,7 @@ public class APA extends JuicerCLT {
         }
 
         List<String> possibleChromosomes = juicerParser.getChromosomeOption();
-        if (possibleResolutions != null && possibleChromosomes.size() > 0) {
+        if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
             givenChromosomes = new HashSet<String>(possibleChromosomes);
         }
     }
