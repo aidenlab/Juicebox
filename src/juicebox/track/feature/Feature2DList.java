@@ -130,6 +130,17 @@ public class Feature2DList {
         return commonFeatures;
     }
 
+    // Iterate through new features and see if there is any overlap
+    // TODO: implement this more efficiently, maybe rtree
+    private static void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
+        for (Feature2D inputFeature : inputFeatures) {
+            // Compare input with existing points
+            if (!Feature2DTools.doesOverlap(inputFeature, existingFeatures)) {
+                existingFeatures.add(inputFeature);
+            }
+        }
+    }
+
     /**
      * Returns list of features on this chromosome pair
      *
@@ -161,7 +172,6 @@ public class Feature2DList {
         return featureList.get(key);
     }
 
-
     /**
      * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
      *
@@ -180,7 +190,7 @@ public class Feature2DList {
      * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
      *
      * @param key     chromosomal pair key
-     * @param feature feature to add
+     * @param feature to add
      */
     public void addByKey(String key, Feature2D feature) {
         if (featureList.containsKey(key)) {
@@ -188,6 +198,21 @@ public class Feature2DList {
         } else {
             List<Feature2D> loops = new ArrayList<Feature2D>();
             loops.add(feature);
+            featureList.put(key, loops);
+        }
+    }
+
+    /**
+     * Adds features to appropriate chromosome pair list; key stored so that first chromosome always less than second
+     *
+     * @param key      chromosomal pair key
+     * @param features to add
+     */
+    public void addByKey(String key, List<Feature2D> features) {
+        if (featureList.containsKey(key)) {
+            featureList.get(key).addAll(features);
+        } else {
+            List<Feature2D> loops = new ArrayList<Feature2D>(features);
             featureList.put(key, loops);
         }
     }
@@ -395,35 +420,13 @@ public class Feature2DList {
 
             if (featureList.containsKey(inputKey)) {
                 for (Feature2D myFeature : featureList.get(inputKey)) {
-                    if (doesOverlap(myFeature, inputFeatures)) {
+                    if (Feature2DTools.doesOverlap(myFeature, inputFeatures)) {
                         output.addByKey(inputKey, myFeature);
                     }
                 }
             }
         }
         return output;
-    }
-
-    // Compares a feature against all other features in list
-    private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures) {
-        boolean repeat = false;
-        for (Feature2D existingFeature : existingFeatures) {
-            if (existingFeature.overlapsWith(feature)) {
-                repeat = true;
-            }
-        }
-        return repeat;
-    }
-
-    // Iterate through new features and see if there is any overlap
-    // TODO: implement this more efficiently, maybe rtree
-    private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
-        for (Feature2D inputFeature : inputFeatures) {
-            // Compare input with existing points
-            if (!doesOverlap(inputFeature, existingFeatures)) {
-                existingFeatures.add(inputFeature);
-            }
-        }
     }
 
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {

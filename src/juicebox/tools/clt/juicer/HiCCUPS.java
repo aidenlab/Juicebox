@@ -26,7 +26,6 @@ package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
@@ -167,9 +166,6 @@ public class HiCCUPS extends JuicerCLT {
     private static String FDR_THRESHOLDS = "fdr_thresholds";
     private static String ENRICHED_PIXELS = "enriched_pixels";
     private boolean configurationsSetByUser = false;
-    private boolean chrSpecified = false;
-    private Set<String> chromosomesSpecified = new HashSet<String>();
-
 
     /*
      * Reasonable Commands
@@ -201,10 +197,7 @@ public class HiCCUPS extends JuicerCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3) {
             printUsage();
         }
@@ -220,7 +213,6 @@ public class HiCCUPS extends JuicerCLT {
             norm = preferredNorm;
 
         determineValidMatrixSize(juicerParser);
-        determineValidChromosomes(juicerParser);
         determineValidConfigurations(juicerParser);
     }
 
@@ -253,8 +245,8 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         List<Chromosome> commonChromosomes = ds.getChromosomes();
-        if (chrSpecified)
-            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
+        if (givenChromosomes != null && givenChromosomes.size() > 0)
+            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
                     commonChromosomes));
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
@@ -505,14 +497,6 @@ public class HiCCUPS extends JuicerCLT {
             }
         } catch (Exception e) {
             // do nothing - use default postprocessing thresholds
-        }
-    }
-
-    private void determineValidChromosomes(CommandLineParserForJuicer juicerParser) {
-        List<String> specifiedChromosomes = juicerParser.getChromosomeOption();
-        if (specifiedChromosomes != null) {
-            chromosomesSpecified = new HashSet<String>(specifiedChromosomes);
-            chrSpecified = true;
         }
     }
 

@@ -27,7 +27,6 @@ package juicebox.tools.clt.juicer;
 import be.ac.ulg.montefiore.run.jahmm.Hmm;
 import be.ac.ulg.montefiore.run.jahmm.ObservationVector;
 import be.ac.ulg.montefiore.run.jahmm.OpdfMultiGaussianFactory;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -55,11 +54,8 @@ public class Clustering extends JuicerCLT {
         HiCGlobals.useCache = false;
     }
 
-
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        //setUsage("juicebox arrowhead hicFile resolution");
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3) {
             printUsage();
         }
@@ -77,10 +73,7 @@ public class Clustering extends JuicerCLT {
                 System.err.println("Only one resolution can be specified for Clustering\nUsing " + possibleResolutions.get(0));
             resolution = Integer.parseInt(possibleResolutions.get(0));
         }
-
-
     }
-
 
     @Override
     public void run() {

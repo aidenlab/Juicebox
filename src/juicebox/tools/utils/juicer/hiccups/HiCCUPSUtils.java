@@ -351,35 +351,52 @@ public class HiCCUPSUtils {
         Feature2DList mergedList = new Feature2DList();
         boolean listHasBeenAltered = false;
 
-        if (hiccupsLooplists.containsKey(5000) && hiccupsLooplists.containsKey(10000)) {
-            //System.out.println("Merge 5k and 10k res loops");
-            mergedList.add(handleFiveAndTenKBMerger(hiccupsLooplists.get(5000), hiccupsLooplists.get(10000)));
+        if (hiccupsLooplists.containsKey(5000) || hiccupsLooplists.containsKey(10000)) {
+            if (hiccupsLooplists.containsKey(5000) && hiccupsLooplists.containsKey(10000)) {
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Merge 5k and 10k res loops");
+                }
+                mergedList.add(handleFiveAndTenKBMerger(hiccupsLooplists.get(5000), hiccupsLooplists.get(10000)));
+
+            } else if (hiccupsLooplists.containsKey(5000)) {
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Retrieve 5k res loops");
+                }
+                mergedList.add(hiccupsLooplists.get(5000));
+
+            } else { // i.e. (hiccupsLooplists.containsKey(10000))
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Retrieve 10k res loops");
+                }
+                mergedList.add(hiccupsLooplists.get(10000));
+
+            }
             listHasBeenAltered = true;
-        } else if (hiccupsLooplists.containsKey(5000)) {
-            //System.out.println("Only 5k");
-            mergedList.add(hiccupsLooplists.get(5000));
-            listHasBeenAltered = true;
-        } else if (hiccupsLooplists.containsKey(10000)) {
-            //System.out.println("Only 10k");
-            mergedList.add(hiccupsLooplists.get(10000));
-            listHasBeenAltered = true;
+            mergedList.removeDuplicates();
         }
-        if (HiCGlobals.printVerboseComments) {
-            System.out.println("Removing duplicates");
-        }
-        mergedList.removeDuplicates();
 
         if (hiccupsLooplists.containsKey(25000)) {
             if (listHasBeenAltered) {
-                System.out.println("Merge with 25k");
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Merge with 25k res loops");
+                }
                 handleExistingMergerWithTwentyFiveKB(mergedList, hiccupsLooplists.get(25000));
+
             } else {
-                System.out.println("Only 25k");
+
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("Retrieve 25k res loops");
+                }
                 mergedList.add(hiccupsLooplists.get(25000));
-                listHasBeenAltered = true;
+
             }
+            mergedList.removeDuplicates();
+            listHasBeenAltered = true;
         }
-        mergedList.removeDuplicates();
 
         // neither 25kB, 10kB, or 5kB list processed
         if (!listHasBeenAltered) {
@@ -387,6 +404,7 @@ public class HiCCUPSUtils {
             for (Feature2DList list : hiccupsLooplists.values()) {
                 mergedList.add(list);
             }
+            mergedList.removeDuplicates();
         }
 
         return mergedList;
@@ -395,34 +413,26 @@ public class HiCCUPSUtils {
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
         Feature2DList centroidsTwentyFiveKB = Feature2DTools.extractReproducibleCentroids(mergedList, twentyFiveKBList, 2 * 25000);
-        //centroidsTwentyFiveKB.setAttributeFieldForAll(FilterStage, "58");
-        Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB);
-        //distant25.setAttributeFieldForAll(FilterStage, "66");
+        Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB, "25->centroids");
         mergedList.add(distant25);
     }
 
     private static Feature2DList handleFiveAndTenKBMerger(Feature2DList fiveKBList, Feature2DList tenKBList) {
         // add peaks commonly found between 5 and 10 kB
         Feature2DList centroidsFiveKB = Feature2DTools.extractReproducibleCentroids(tenKBList, fiveKBList, 2 * 10000);
-        //centroidsFiveKB.setAttributeFieldForAll(FilterStage, "11");
-        Feature2DList mergedList = Feature2DTools.extractPeaksNearCentroids(fiveKBList, centroidsFiveKB);
-        //mergedList.setAttributeFieldForAll(FilterStage, "22");
+        Feature2DList mergedList = Feature2DTools.extractPeaksNearCentroids(fiveKBList, centroidsFiveKB, "5->centroids");
 
         // add peaks unique to 10 kB
         Feature2DList centroidsTenKB = Feature2DTools.extractReproducibleCentroids(fiveKBList, tenKBList, 2 * 10000);
-        //centroidsTenKB.setAttributeFieldForAll(FilterStage, "27");
-        Feature2DList distant10 = Feature2DTools.extractPeaksNotNearCentroids(tenKBList, centroidsTenKB);
-        //distant10.setAttributeFieldForAll(FilterStage, "33");
+        Feature2DList distant10 = Feature2DTools.extractPeaksNotNearCentroids(tenKBList, centroidsTenKB, "10->centroids");
         mergedList.add(distant10);
 
-        // add peaks close to diagonal
+        // add peaks close to diagonal in 5kB
         Feature2DList nearDiag = Feature2DTools.getPeaksNearDiagonal(fiveKBList, 110000);
-        //nearDiag.setAttributeFieldForAll(FilterStage, "44");
         mergedList.add(nearDiag);
 
-        // add particularly strong peaks
+        // add particularly strong peaks from 5kB
         Feature2DList strong = Feature2DTools.getStrongPeaks(fiveKBList, 100);
-        //strong.setAttributeFieldForAll(FilterStage, "55");
         mergedList.add(strong);
 
         // TODO expand filter duplicates?

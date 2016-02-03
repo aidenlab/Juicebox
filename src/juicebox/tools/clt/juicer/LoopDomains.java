@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -33,7 +32,8 @@ import juicebox.track.feature.*;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -64,7 +64,6 @@ public class LoopDomains extends JuicerCLT {
 
     private int threshold = 25000;
     private String genomeID, loopListPath, domainListPath, outputPath = "loop_domains_list";
-    private Set<String> givenChromosomes = null;
 
     /*
      * Assumes that the loop list provided already has associated motifs
@@ -77,8 +76,7 @@ public class LoopDomains extends JuicerCLT {
 
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
 
         if (args.length != 4 && args.length != 5) {
             printUsage();
@@ -94,11 +92,6 @@ public class LoopDomains extends JuicerCLT {
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 0) {
             threshold = specifiedMatrixSize;
-        }
-
-        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null) {
-            givenChromosomes = new HashSet<String>(potentialChromosomes);
         }
     }
 

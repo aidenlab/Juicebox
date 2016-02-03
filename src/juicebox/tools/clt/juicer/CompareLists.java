@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchorTools;
@@ -35,9 +34,7 @@ import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
@@ -55,19 +52,14 @@ public class CompareLists extends JuicerCLT {
     public static Color BBB = new Color(255, 102, 0);
     private int threshold = 10000, compareTypeID = 0;
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
-    private Set<String> givenChromosomes = null;
-
 
     public CompareLists() {
         super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]");
         HiCGlobals.useCache = false;
     }
 
-
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        //setUsage("juicebox arrowhead hicFile resolution");
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 5 && args.length != 6) {
             printUsage();
         }
@@ -89,11 +81,6 @@ public class CompareLists extends JuicerCLT {
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize >= 0) {
             threshold = specifiedMatrixSize;
-        }
-
-        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null) {
-            givenChromosomes = new HashSet<String>(potentialChromosomes);
         }
     }
 

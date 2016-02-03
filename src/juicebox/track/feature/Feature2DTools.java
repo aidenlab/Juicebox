@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.CompareLists;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
@@ -38,31 +39,30 @@ import java.util.Set;
 public class Feature2DTools {
 
 
-    public static Feature2DList extractPeaksNearCentroids(final Feature2DList featureList, final Feature2DList centroids) {
+    public static Feature2DList extractPeaksNearCentroids(final Feature2DList featureList, final Feature2DList centroids,
+                                                          final String errorMessage) {
         final Feature2DList peaks = new Feature2DList();
 
-        featureList.processLists(new FeatureFunction() {
+        centroids.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
 
-                if (centroids.containsKey(chr)) {
+                if (featureList.containsKey(chr)) {
 
                     final Set<String> keys = new HashSet<String>();
-                    for (Feature2D f : centroids.getFeatureList(chr)) {
+                    for (Feature2D f : feature2DList) {
                         keys.add(f.getLocationKey());
                     }
 
 
-                    for (Feature2D f : feature2DList) {
+                    for (Feature2D f : featureList.getFeatureList(chr)) {
                         if (keys.contains(f.getLocationKey())) {
-                            //f.setAttribute(HiCCUPSUtils.nearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }
-                } else {
-                    System.err.println(chr + " key not found for centroids. NC. Possible error?");
-                    System.err.println("Centroid: " + centroids.getKeySet());
-                    System.err.println("Actual: " + featureList.getKeySet());
+                } else if (HiCGlobals.printVerboseComments) {
+                    System.err.println(chr + " key not found for centroids. Tag:NearCentroid-" + errorMessage +
+                            "Invalid set of centroids must have been calculated");
                 }
             }
         });
@@ -70,28 +70,31 @@ public class Feature2DTools {
         return peaks;
     }
 
-    public static Feature2DList extractPeaksNotNearCentroids(final Feature2DList featureList, final Feature2DList centroids) {
+    public static Feature2DList extractPeaksNotNearCentroids(final Feature2DList featureList, final Feature2DList centroids,
+                                                             final String errorMessage) {
         final Feature2DList peaks = new Feature2DList();
 
         featureList.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 if (centroids.containsKey(chr)) {
+                    // there are centroids for this chr i.e. need to check if loops should be added
+
+                    // get upper left corner location value
                     final Set<String> keys = new HashSet<String>();
                     for (Feature2D f : centroids.getFeatureList(chr)) {
                         keys.add(f.getLocationKey());
                     }
 
+                    // add pixels not already the centroid
                     for (Feature2D f : feature2DList) {
                         if (!keys.contains(f.getLocationKey())) {
-                            //f.setAttribute(HiCCUPSUtils.notNearCentroidAttr, "1");
                             peaks.addByKey(chr, f);
                         }
                     }
                 } else {
-                    System.err.println(chr + " key not found for centroids. NN. Possible error?");
-                    System.err.println("Centroid: " + centroids.getKeySet());
-                    System.err.println("Actual: " + featureList.getKeySet());
+                    // no centroids for chr i.e. all of these loops should be added
+                    peaks.addByKey(chr, feature2DList);
                 }
             }
         });
@@ -264,5 +267,22 @@ public class Feature2DTools {
         Point point = new Point(loop.getMidPt1(), loop.getMidPt2());
 
         return bounds.contains(point);
+    }
+
+    /**
+     * Compares a feature against all other features in list
+     *
+     * @param feature
+     * @param existingFeatures
+     * @return
+     */
+    public static boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures) {
+        boolean repeat = false;
+        for (Feature2D existingFeature : existingFeatures) {
+            if (existingFeature.overlapsWith(feature)) {
+                repeat = true;
+            }
+        }
+        return repeat;
     }
 }

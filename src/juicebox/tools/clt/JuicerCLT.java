@@ -24,13 +24,16 @@
 
 package juicebox.tools.clt;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 9/21/15.
@@ -38,6 +41,7 @@ import java.util.List;
 public abstract class JuicerCLT extends JuiceboxCLT {
 
     protected NormalizationType norm = NormalizationType.KR;
+    protected Set<String> givenChromosomes = null;
 
     protected JuicerCLT(String usage) {
         super(usage);
@@ -52,5 +56,21 @@ public abstract class JuicerCLT extends JuiceboxCLT {
             maxProgressStatus++;
         }
         return maxProgressStatus;
+    }
+
+    @Override
+    public void readArguments(String[] args, CmdLineParser parser) {
+        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+        assessIfChromosomesHaveBeenSpecified(juicerParser);
+        readJuicerArguments(args, juicerParser);
+    }
+
+    protected abstract void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser);
+
+    protected void assessIfChromosomesHaveBeenSpecified(CommandLineParserForJuicer juicerParser) {
+        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
+        if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
+            givenChromosomes = new HashSet<String>(possibleChromosomes);
+        }
     }
 }

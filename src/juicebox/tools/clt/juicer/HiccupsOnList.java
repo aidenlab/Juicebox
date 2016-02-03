@@ -24,7 +24,7 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 
 /**
@@ -43,7 +43,7 @@ public class HiccupsOnList extends JuicerCLT {
 ///data/eleanor/suhas/peakcalling/scripts/peakcallingGPU_listgivD.py    input_file_name    output_file_name1    output_file_name2    fdr     input_list    p    w
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
 
     }
 

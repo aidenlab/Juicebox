@@ -24,12 +24,12 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
@@ -62,8 +62,7 @@ public class MotifFinder extends JuicerCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4 && args.length != 5) {
             this.printUsage();
         }
@@ -92,6 +91,7 @@ public class MotifFinder extends JuicerCLT {
             System.exit(-4);
         }
 
+        // TODO add specific chromosome option (i.e. use givenChromosomes)
     }
 
     @Override

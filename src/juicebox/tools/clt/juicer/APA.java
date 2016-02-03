@@ -25,7 +25,6 @@
 package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Ints;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
@@ -34,6 +33,7 @@ import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
@@ -122,7 +122,6 @@ public class APA extends JuicerCLT {
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
-    private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
 
     /**
@@ -135,10 +134,7 @@ public class APA extends JuicerCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
             printUsage();
         }
@@ -170,11 +166,6 @@ public class APA extends JuicerCLT {
                 intResolutions.add(Integer.parseInt(res));
             }
             resolutions = Ints.toArray(intResolutions);
-        }
-
-        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
-        if (possibleChromosomes != null && possibleChromosomes.size() > 0) {
-            givenChromosomes = new HashSet<String>(possibleChromosomes);
         }
     }
 
@@ -261,8 +252,8 @@ public class APA extends JuicerCLT {
 
                     for (Feature2D loop : loops) {
                         try {
-                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                                    norm));
+                            apaDataStack.addData(MatrixTools.cleanUpNaNs(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
+                                    norm)));
                         } catch (IOException e) {
                             System.err.println("Unable to find data for loop: " + loop);
                         }

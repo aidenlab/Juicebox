@@ -25,10 +25,38 @@
 package juicebox.tools.clt;
 
 
+import juicebox.HiCGlobals;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by muhammadsaadshamim on 7/22/15.
  */
 class UnitTests {
+
+    private static void testingMergerOfHiCCUPSPostprocessing() {
+        HiCGlobals.printVerboseComments = true;
+
+        // example with hard-coded links
+        String folder = "/Users/muhammadsaadshamim/Desktop/T0_48/0/exp1/";
+        String baseLink = folder + "postprocessed_pixels_";
+        String link1 = baseLink + "5000";
+        String link2 = baseLink + "10000";
+        String link3 = baseLink + "25000";
+        String outputPath = folder + "new_merged_loops";
+
+        Map<Integer, Feature2DList> map = new HashMap<Integer, Feature2DList>();
+        map.put(5000, Feature2DParser.loadFeatures(link1, "hg19", true, null, false));
+        map.put(10000, Feature2DParser.loadFeatures(link2, "hg19", true, null, false));
+        map.put(25000, Feature2DParser.loadFeatures(link3, "hg19", true, null, false));
+
+        Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
+        newMerger.exportFeatureList(outputPath, false, Feature2DList.ListFormat.FINAL);
+    }
 
     public void runUnitTests() {
 

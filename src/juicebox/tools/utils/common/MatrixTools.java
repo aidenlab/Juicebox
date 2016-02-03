@@ -523,4 +523,13 @@ public class MatrixTools {
 
         return newMatrix;
     }
+
+    public static RealMatrix cleanUpNaNs(RealMatrix matrix) {
+        for (int r = 0; r < matrix.getRowDimension(); r++)
+            for (int c = 0; c < matrix.getColumnDimension(); c++)
+                if (Double.isNaN(matrix.getEntry(r, c))) {
+                    matrix.setEntry(c, r, 0);
+                }
+        return matrix;
+    }
 }

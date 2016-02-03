@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
@@ -43,7 +42,9 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Arrowhead
@@ -106,7 +107,6 @@ public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
     private boolean configurationsSetByUser = false;
-    private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
 
@@ -121,9 +121,7 @@ public class Arrowhead extends JuicerCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3 && args.length != 5) {
             // 3 - standard, 5 - when list/control provided
             printUsage();
@@ -149,17 +147,11 @@ public class Arrowhead extends JuicerCLT {
             controlList = args[4];
         }
 
-        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null) {
-            givenChromosomes = new HashSet<String>(potentialChromosomes);
-        }
-
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 1) {
             matrixSize = specifiedMatrixSize;
         }
     }
-
 
     @Override
     public void run() {

@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
@@ -61,7 +60,6 @@ public class AFA extends JuicerCLT {
 
     //defaults
     private int window = 30;
-    private Set<String> givenChromosomes = null;
     private int[] resolutions = new int[]{25000, 10000};
     private NormalizationType norm;
     private LocationType relativeLocation = LocationType.TL;
@@ -77,10 +75,7 @@ public class AFA extends JuicerCLT {
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (!(args.length > 4 && args.length < 7)) {
             printUsage();
         }
@@ -130,9 +125,6 @@ public class AFA extends JuicerCLT {
                 i++;
             }
         }
-        List<String> chrs = juicerParser.getChromosomeOption();
-        if (chrs != null)
-            givenChromosomes = new HashSet<String>(chrs);
     }
 
     @Override
