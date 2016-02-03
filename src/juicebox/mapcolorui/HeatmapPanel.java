@@ -700,7 +700,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
-                new EditFeatureAttributesDialog(mostRecentRectFeaturePair.getSecond(),
+                new EditFeatureAttributesDialog(mainWindow, mostRecentRectFeaturePair.getSecond(),
                         MainMenuBar.customAnnotations);
             }
         });

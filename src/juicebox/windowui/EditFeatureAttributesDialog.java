@@ -28,6 +28,7 @@ package juicebox.windowui;
  * Created by Marie on 6/25/15.
  */
 
+import juicebox.MainWindow;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.Feature2D;
 
@@ -58,8 +59,8 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     /**
      * Creates the reusable dialog.
      */
-    public EditFeatureAttributesDialog(Feature2D feature, CustomAnnotation customAnnotations) {
-        super();
+    public EditFeatureAttributesDialog(MainWindow mainWindow, Feature2D feature, CustomAnnotation customAnnotations) {
+        super(mainWindow);
 
         this.customAnnotations = customAnnotations;
         this.feature = feature;
