@@ -113,7 +113,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                 options[0]);
 
         //Make this dialog display it.
-        setContentPane(optionPane);
+        setContentPane(new JScrollPane(optionPane));
 
         //Handle window closing correctly.
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
