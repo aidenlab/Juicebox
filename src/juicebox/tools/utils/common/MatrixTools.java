@@ -528,7 +528,7 @@ public class MatrixTools {
         for (int r = 0; r < matrix.getRowDimension(); r++)
             for (int c = 0; c < matrix.getColumnDimension(); c++)
                 if (Double.isNaN(matrix.getEntry(r, c))) {
-                    matrix.setEntry(c, r, 0);
+                    matrix.setEntry(r, c, 0);
                 }
         return matrix;
     }

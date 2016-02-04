@@ -33,7 +33,6 @@ import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.common.MatrixTools;
 import juicebox.tools.utils.juicer.apa.APADataStack;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
@@ -252,8 +251,7 @@ public class APA extends JuicerCLT {
 
                     for (Feature2D loop : loops) {
                         try {
-                            apaDataStack.addData(MatrixTools.cleanUpNaNs(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                                    norm)));
+                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
                         } catch (IOException e) {
                             System.err.println("Unable to find data for loop: " + loop);
                         }

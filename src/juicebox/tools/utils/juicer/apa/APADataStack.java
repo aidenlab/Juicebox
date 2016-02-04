@@ -169,11 +169,12 @@ public class APADataStack {
     }
 
     public void addData(RealMatrix newData) {
-        psea = psea.add(newData);
-        normedPsea = normedPsea.add(APAUtils.standardNormalization(newData));
-        centerNormedPsea = centerNormedPsea.add(APAUtils.centerNormalization(newData));
-        rankPsea = rankPsea.add(APAUtils.rankPercentile(newData));
-        enhancement.add(APAUtils.peakEnhancement(newData));
+        RealMatrix nanFilteredData = MatrixTools.cleanUpNaNs(newData);
+        psea = psea.add(nanFilteredData);
+        normedPsea = normedPsea.add(APAUtils.standardNormalization(nanFilteredData));
+        centerNormedPsea = centerNormedPsea.add(APAUtils.centerNormalization(nanFilteredData));
+        rankPsea = rankPsea.add(APAUtils.rankPercentile(nanFilteredData));
+        enhancement.add(APAUtils.peakEnhancement(nanFilteredData));
     }
 
     public void updateGenomeWideData() {
