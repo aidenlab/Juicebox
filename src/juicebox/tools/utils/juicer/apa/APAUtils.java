@@ -46,11 +46,11 @@ public class APAUtils {
      * @param filename
      * @param matrix
      */
-    public static void saveMeasures(String filename, RealMatrix matrix) {
+    public static void saveMeasures(String filename, RealMatrix matrix, int currentRegionWidth) {
 
         Writer writer = null;
 
-        APARegionStatistics apaStats = new APARegionStatistics(matrix);
+        APARegionStatistics apaStats = new APARegionStatistics(matrix, currentRegionWidth);
 
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));

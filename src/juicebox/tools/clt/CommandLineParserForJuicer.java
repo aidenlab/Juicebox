@@ -46,6 +46,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option apaWindowOption = null;
     private static Option apaMinValOption = null;
     private static Option apaMaxValOption = null;
+    private static Option multipleCornerRegionDimensionsOption = null;
 
     // for HiCCUPS
     private static Option fdrOption = null;
@@ -60,10 +61,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptk
+        // wmnxcrplafdptkq
 
         // available flags
-        // hjoqyzbesguv
+        // hjoyzbesguv
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix window width");
@@ -75,6 +76,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         apaWindowOption = addIntegerOption('w', "window");
         apaMinValOption = addDoubleOption('n', "minimum value");
         apaMaxValOption = addDoubleOption('x', "maximum value");
+        multipleCornerRegionDimensionsOption = addStringOption('q', "corner width(s) for each resolution separated by ','");
 
         // HICCUPS
         fdrOption = addStringOption('f', "fdr threshold values");
@@ -160,6 +162,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public List<String> getMultipleResolutionOptions() {
         return optionToStringList(multipleResolutionsOption);
+    }
+
+    public List<String> getAPACornerRegionDimensionOptions() {
+        return optionToStringList(multipleCornerRegionDimensionsOption);
     }
 
     public List<String> getAttributeOption() {

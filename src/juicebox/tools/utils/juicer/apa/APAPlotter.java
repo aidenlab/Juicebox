@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.juicer.apa;
 
-import juicebox.tools.clt.juicer.APA;
 import org.apache.commons.math.linear.RealMatrix;
 import org.tc33.jheatchart.HeatChart;
 
@@ -75,19 +74,27 @@ class APAPlotter {
     public static void plot(RealMatrix data,
                             int[] axesRange,
                             File outputFile,
-                            String title) {
+                            String title, int currentRegionWidth) {
 
-        APARegionStatistics apaStats = new APARegionStatistics(data);
+        APARegionStatistics apaStats = new APARegionStatistics(data, currentRegionWidth);
         DecimalFormat df = new DecimalFormat("0.000");
         title += ", P2LL = " + df.format(apaStats.getPeak2LL());
 
         // initialize heat map
         HeatChart map = new HeatChart(data.getData());
-        map.setLowValueColour(Color.WHITE);
-        map.setHighValueColour(Color.RED);
         map.setXValues(axesRange[0], axesRange[1]);
         map.setYValues(axesRange[2], axesRange[3]);
         map.setTitle(title);
+
+        // As noted in the Cell supplement:
+        // "The color scale in all APA plots is set as follows.
+        // The minimum of the color range is 0. The maximum is 5 x UR, where
+        // UR is the mean value of the bins in the upper-right corner of the matrix.
+        // The upper-right corner of the 10 kb resolution APA
+        // plots is a 6 x 6 window (or 3 x 3 for 5 kb resolution APA plots)."
+        // TODO
+        map.setLowValueColour(Color.WHITE);
+        map.setHighValueColour(Color.RED);
 
         try {
             // calculate dimensions for plot wrapper
@@ -109,7 +116,7 @@ class APAPlotter {
 
             // top left, top right, bottom left, bottom right values (from apa)
 
-            drawCornerRegions(g2, map, new Dimension(APA.regionWidth, APA.regionWidth),
+            drawCornerRegions(g2, map, new Dimension(currentRegionWidth, currentRegionWidth),
                     apaStats.getRegionCornerValues());
 
             // save data

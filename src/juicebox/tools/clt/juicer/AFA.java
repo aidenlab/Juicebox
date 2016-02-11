@@ -54,7 +54,7 @@ import java.util.*;
  */
 public class AFA extends JuicerCLT {
 
-    public static final int regionWidth = 6; //size of boxes
+    private static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;
     private String[] files;
 
@@ -222,10 +222,11 @@ public class AFA extends JuicerCLT {
                         apaDataStack.thresholdPlots(5000);
                     apaDataStack.updateGenomeWideData();
                     if (saveAllData)
-                        apaDataStack.exportDataSet(chr.getName(), peakNumbers);
+                        apaDataStack.exportDataSet(chr.getName(), peakNumbers, regionWidth);
 
                 }
-                APADataStack.exportGenomeWideData(gwPeakNumbers);
+                // TODO update. actually, AFA should extend APA or vice versa; or be eliminated completely
+                APADataStack.exportGenomeWideData(gwPeakNumbers, regionWidth);
                 APADataStack.clearAllData();
 
             }
