@@ -24,6 +24,17 @@
 
 package juicebox.tools.dev;
 
+import juicebox.data.HiCFileTools;
+import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.clt.juicer.MotifFinder;
+import org.broad.igv.feature.Chromosome;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by muhammadsaadshamim on 1/19/16.
  * <p/>
@@ -48,21 +59,45 @@ public class APAvsDistance {
 
     public static void main() {
 
-        // GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
+        GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
+
+        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes("hg19");
 
         // read in all smc3, rad21, ctcf tracks and intersect them
+        List<String> bedFiles = new ArrayList<String>();
 
-        // preservative intersection of these with motif list
+        File folder = new File("/users/name" + "directoryPath");
+        File[] listOfFiles = folder.listFiles();
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                String path = file.getAbsolutePath();
+                if (path.endsWith(".bed")) {
+                    bedFiles.add(path);
+                }
+            }
+        }
+
+        GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(chromosomes, bedFiles);
+
+        // preservative intersection of these protein list with motif list
+
 
         // extract positive anchors and negative anchors
 
-        // create loops from all possible intersections
+        // create loops from all possible valid intersections
+
+        // Feature2DList
 
         // bin loops by distance between loci
 
-        // calculate APA score for each bin
+
+        // calculate APA score for each bin_list
+
+
 
         // plot APA score vs binned distance
+
     }
 
 }

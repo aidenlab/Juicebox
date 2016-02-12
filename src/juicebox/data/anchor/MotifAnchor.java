@@ -303,6 +303,9 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         }
     }
 
+    /**
+     * @return true if positive strand, false if negative strand
+     */
     public boolean getStrand() {
         return strand;
     }
