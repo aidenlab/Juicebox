@@ -29,6 +29,7 @@ import com.google.common.primitives.Floats;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.ArrayTools;
@@ -165,7 +166,10 @@ public class HiCCUPS extends JuicerCLT {
     private static String MERGED = "merged_loops";
     private static String FDR_THRESHOLDS = "fdr_thresholds";
     private static String ENRICHED_PIXELS = "enriched_pixels";
+    private static String REQUESTED_LIST = "requested_list";
     private boolean configurationsSetByUser = false;
+    private String featureList;
+    private boolean listGiven = false;
 
     /*
      * Reasonable Commands
@@ -198,7 +202,7 @@ public class HiCCUPS extends JuicerCLT {
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
-        if (args.length != 3) {
+        if (args.length != 3 && args.length != 4) {
             printUsage();
         }
 
@@ -207,6 +211,11 @@ public class HiCCUPS extends JuicerCLT {
         if (!outputDirectory.endsWith("/")) {
             outputDirectory += "/";
         }
+        if (args.length == 4) {
+            listGiven = true;
+            featureList = args[3];
+        }
+        
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
@@ -253,10 +262,16 @@ public class HiCCUPS extends JuicerCLT {
 
         PrintWriter outputMergedFile = HiCFileTools.openWriter(outputDirectory + MERGED);
 
+
+        Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
+        if (listGiven) {
+            inputListFeature2DHandler.loadLoopList(featureList, commonChromosomes);
+        }
+
         List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
         for (HiCCUPSConfiguration conf : filteredConfigurations) {
             System.out.println("Running HiCCUPS for resolution " + conf.getResolution());
-            Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes);
+            Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes, inputListFeature2DHandler);
             if (enrichedPixels != null) {
                 loopLists.put(conf.getResolution(), enrichedPixels);
             }
@@ -280,7 +295,7 @@ public class HiCCUPS extends JuicerCLT {
      * @param commonChromosomes list of chromosomes to run hiccups on
      * @return list of enriched pixels
      */
-    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes) {
+    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes, Feature2DHandler inputListFeature2DHandler) {
 
         long begin_time = System.currentTimeMillis();
 
@@ -319,7 +334,8 @@ public class HiCCUPS extends JuicerCLT {
 
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
-
+        Feature2DList requestedList = new Feature2DList();
+        
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run
@@ -395,6 +411,22 @@ public class HiCCUPS extends JuicerCLT {
                                                     w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
                                             Feature2DTools.calculateFDR(peaksList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
                                             globalList.add(peaksList);
+
+                                            if (listGiven) {
+                                                float rowBound1GenomeCoords = ((float) rowBounds[4]) * conf.getResolution();
+                                                float columnBound1GenomeCoords = ((float) columnBounds[4]) * conf.getResolution();
+                                                float rowBound2GenomeCoords = ((float) rowBounds[5] - 1) * conf.getResolution();
+                                                float columnBound2GenomeCoords = ((float) columnBounds[5] - 1) * conf.getResolution();
+                                                // System.out.println(chromosome.getIndex() + "\t" + rowBound1GenomeCoords + "\t" + rowBound2GenomeCoords + "\t" + columnBound1GenomeCoords + "\t" + columnBound2GenomeCoords);
+                                                net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowBound1GenomeCoords,
+                                                        columnBound1GenomeCoords, rowBound2GenomeCoords, columnBound2GenomeCoords);
+                                                List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.findContainedFeatures(zd, chromosome.getIndex(), chromosome.getIndex(),
+                                                        currentWindow);
+                                                Feature2DList peaksRequestedList = gpuOutputs.extractPeaksListGiven(chromosome.getIndex(), chromosome.getName(),
+                                                        w1, w2, rowBounds[4], columnBounds[4], conf.getResolution(), inputListFoundFeatures);
+                                                Feature2DTools.calculateFDR(peaksRequestedList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                                requestedList.add(peaksRequestedList);
+                                            }
                                         }
                                     } catch (IOException e) {
                                         System.err.println("No data in map region");
@@ -445,6 +477,9 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         globalList.exportFeatureList(outputDirectory + ENRICHED_PIXELS + "_" + conf.getResolution(), true, Feature2DList.ListFormat.ENRICHED);
+        if (listGiven) {
+            requestedList.exportFeatureList(outputDirectory + REQUESTED_LIST + "_" + conf.getResolution(), true, Feature2DList.ListFormat.ENRICHED);
+        }
         for (int i = 0; i < w1; i++) {
             outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
         }

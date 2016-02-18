@@ -81,7 +81,7 @@ public class HiCCUPSUtils {
      */
     public static Feature2D generatePeak(String chrName, float observed, float peak, int rowPos, int colPos,
                                          float expectedBL, float expectedDonut, float expectedH, float expectedV,
-                                         float binBL, float binDonut, float binH, float binV) {
+                                         float binBL, float binDonut, float binH, float binV, int resolution) {
 
         Map<String, String> attributes = new HashMap<String, String>();
 
@@ -101,7 +101,7 @@ public class HiCCUPSUtils {
         int pos1 = Math.min(rowPos, colPos);
         int pos2 = Math.max(rowPos, colPos);
 
-        return new Feature2D(Feature2D.FeatureType.PEAK, chrName, pos1, pos1 + 1, chrName, pos2, pos2 + 1, Color.black, attributes);
+        return new Feature2D(Feature2D.FeatureType.PEAK, chrName, pos1, pos1 + resolution, chrName, pos2, pos2 + resolution, Color.black, attributes);
     }
 
     /**
@@ -524,7 +524,7 @@ public class HiCCUPSUtils {
                 }
             }
 
-            for (int j = (int) threshold[index]; j < width; j++) {
+            for (int j = 0; j < width; j++) {
                 float sum1 = rcsExpected[j];
                 float sum2 = rcsHist[index][j];
                 if (sum2 > 0) {

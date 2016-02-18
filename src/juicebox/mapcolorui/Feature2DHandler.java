@@ -282,6 +282,31 @@ public class Feature2DHandler {
         return featurePairs;
     }
 
+    public List<Feature2D> findContainedFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
+        final List<Feature2D> foundFeatures = new ArrayList<Feature2D>();
+        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+
+        if (featureRtrees.containsKey(key)) {
+
+            featureRtrees.get(key).contains(
+                    currentWindow,      // the window in which we want to find all rectangles
+                    new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                        public boolean execute(int i) {
+                            Feature2D feature = allFeaturesAcrossGenome.get(key).get(i);
+                            //System.out.println(feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getStart2());
+                            foundFeatures.add(feature);
+                            return true;              // return true here to continue receiving results
+                        }
+                    }
+            );
+
+        } else {
+            foundFeatures.addAll(allFeaturesAcrossGenome.get(key));
+        }
+
+        return foundFeatures;
+    }
+
     private net.sf.jsi.Point getGenomicPointFromXYCoordinate(double x, double y, HiCGridAxis xAxis, HiCGridAxis yAxis,
                                                              double binOriginX, double binOriginY, double scale) {
         float x2 = (float) (((x / scale) + binOriginX) * xAxis.getBinSize());

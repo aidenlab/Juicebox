@@ -25,7 +25,10 @@
 package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.tools.utils.common.ArrayTools;
+import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
+
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 5/12/15.
@@ -195,11 +198,52 @@ public class GPUOutputContainer {
 
                         peaks.add(chrIndex, chrIndex, HiCCUPSUtils.generatePeak(chrName, observedVal, peakVal,
                                 rowPos, colPos, expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
-                                binBLVal, binDonutVal, binHVal, binVVal));
+                                binBLVal, binDonutVal, binHVal, binVVal, resolution));
                     }
                 }
             }
         }
+
+        return peaks;
+    }
+
+    public Feature2DList extractPeaksListGiven(int chrIndex, String chrName, int w1, int w2,
+                                               int rowOffset, int columnOffset, int resolution, List<Feature2D> inputListFoundFeatures) {
+
+        Feature2DList peaks = new Feature2DList();
+
+        for (Feature2D f : inputListFoundFeatures) {
+
+            int i = (f.getStart1() / resolution) - rowOffset;
+            int j = (f.getStart2() / resolution) - columnOffset;
+            float peakVal = peak[i][j];
+
+
+            float observedVal = observed[i][j];
+            float expectedBLVal = expectedBL[i][j];
+            float expectedDonutVal = expectedDonut[i][j];
+            float expectedHVal = expectedH[i][j];
+            float expectedVVal = expectedV[i][j];
+            float binBLVal = binBL[i][j];
+            float binDonutVal = binDonut[i][j];
+            float binHVal = binH[i][j];
+            float binVVal = binV[i][j];
+
+            int rowPos = (i + rowOffset) * resolution;
+            int colPos = (j + columnOffset) * resolution;
+
+            if (!(Float.isNaN(observedVal) ||
+                    Float.isNaN(expectedBLVal) || Float.isNaN(expectedDonutVal) || Float.isNaN(expectedHVal) || Float.isNaN(expectedVVal) ||
+                    Float.isNaN(binBLVal) || Float.isNaN(binDonutVal) || Float.isNaN(binHVal) || Float.isNaN(binVVal))) {
+                if (observedVal < w2 && binBLVal < w1 && binDonutVal < w1 && binHVal < w1 && binVVal < w1) {
+
+                    peaks.add(chrIndex, chrIndex, HiCCUPSUtils.generatePeak(chrName, observedVal, peakVal,
+                            rowPos, colPos, expectedBLVal, expectedDonutVal, expectedHVal, expectedVVal,
+                            binBLVal, binDonutVal, binHVal, binVVal, resolution));
+                }
+            }
+        }
+
 
         return peaks;
     }
