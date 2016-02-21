@@ -184,30 +184,29 @@ arguments.  The optional arguments should go before the required ones.
 
 The required arguments are:
 
-<infile>: Text file with paired contacts. The text file may be gzipped, and
-  should be in the following 11 column format:
-  <readname> <str1> <chr1> <pos1> <frag1> <str2> <chr2> <pos2> <frag2> <mapq1> <mapq2>
-    str = strand (0 for forward, anything else for reverse)
-    chr = chromosome (must be a chromosome in the genome)
-    pos = position
-    frag = restriction site fragment
-    mapq = mapping quality score
-  If not using the restriction site file option, frag will be ignored.  If not
-  using mapping quality filter, mapq will be ignored.
-<outfile>: Name of outfile, should end with .hic.  This is the file you will
+&lt;infile>: Text file with paired contacts. The text file may be gzipped, and
+  should be in the following 11 column format:<br><br>
+                &lt;readname> &lt;str1> &lt;chr1> &lt;pos1> &lt;frag1> &lt;str2> &lt;chr2> &lt;pos2> &lt;frag2> &lt;mapq1> &lt;mapq2><br>
+                str = strand (0 for forward, anything else for reverse)<br>
+                chr = chromosome (must be a chromosome in the genome)<>br
+                pos = position<br>
+                frag = restriction site fragment<br>
+                mapq = mapping quality score<br><br>
+  If not using the restriction site file option, frag will be ignored.  If not using mapping quality filter, mapq will be ignored.<br><br>
+&lt;outfile>: Name of outfile, should end with .hic.  This is the file you will
   load into Juicebox.
-<genomeID>: Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3,
+&lt;genomeID>: Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3,
   canFam3, equCab2, galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10
 
-The optional arguments are:
-  -d Only calculate intra chromosome (diagonal) [false]
+The optional arguments are:<br>
+  -d Only calculate intra chromosome (diagonal) [false]<br>
   -f <restriction site file> Calculate fragment map.  Requires restriction site
     file; each line should start with the chromosome name followed by the position
     of each restriction site on that chromosome, in numeric order, and ending with
-    the size of the chromosome
-  -m <int> Only write cells with count above threshold m [0]
-  -q <int> Filter by MAPQ score greater than or equal to q [not set]
-  -c <chromosome ID> Only calculate map on specific chromosome
+    the size of the chromosome<br>
+  -m <int> Only write cells with count above threshold m [0]<br>
+  -q <int> Filter by MAPQ score greater than or equal to q [not set]<br>
+  -c <chromosome ID> Only calculate map on specific chromosome<br>
 
 ------------
 Pre Examples
