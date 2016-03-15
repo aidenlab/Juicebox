@@ -170,6 +170,7 @@ public class HiCCUPS extends JuicerCLT {
     private boolean configurationsSetByUser = false;
     private String featureList;
     private boolean listGiven = false;
+    private boolean checkMapDensityThreshold = true;
 
     /*
      * Reasonable Commands
@@ -223,6 +224,10 @@ public class HiCCUPS extends JuicerCLT {
 
         determineValidMatrixSize(juicerParser);
         determineValidConfigurations(juicerParser);
+
+        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
+            checkMapDensityThreshold = false;
+        }
     }
 
     @Override
@@ -235,9 +240,12 @@ public class HiCCUPS extends JuicerCLT {
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        if (firstExpected < 100000) {
-            System.err.println("HiC contact map is too sparse to run HiCCUPs, exiting.");
-            System.exit(0);
+        if (firstExpected < 100000 && checkMapDensityThreshold) {
+            System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
+            if (checkMapDensityThreshold) {
+                System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                System.exit(0);
+            }
         }
 
         // high quality (IMR90, GM12878) maps have different settings

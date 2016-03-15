@@ -41,6 +41,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option multipleChromosomesOption = null;
     private static Option multipleResolutionsOption = null;
     private static Option normalizationTypeOption = null;
+    private static Option bypassMinimumMapCountCheckOption = null;
 
     // APA
     private static Option apaWindowOption = null;
@@ -61,39 +62,47 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkq
+        // wmnxcrplafdptkqb
 
         // available flags
-        // hjoyzbesguv
+        // hjoyzesguv
 
         // General
-        matrixSizeOption = addIntegerOption('m', "matrix window width");
+        matrixSizeOption = addIntegerOption('m', "matrix_window_width");
         multipleChromosomesOption = addStringOption('c', "chromosomes");
-        multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
-        normalizationTypeOption = addStringOption('k', "normalization type (NONE/VC/VC_SQRT/KR)");
+        multipleResolutionsOption = addStringOption('r', "resolutions");
+        normalizationTypeOption = addStringOption('k', "normalization");
+        bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
 
         // APA
         apaWindowOption = addIntegerOption('w', "window");
-        apaMinValOption = addDoubleOption('n', "minimum value");
-        apaMaxValOption = addDoubleOption('x', "maximum value");
-        multipleCornerRegionDimensionsOption = addStringOption('q', "corner width(s) for each resolution separated by ','");
+        apaMinValOption = addDoubleOption('n', "min_dist");
+        apaMaxValOption = addDoubleOption('x', "max_dist");
+        multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
 
         // HICCUPS
-        fdrOption = addStringOption('f', "fdr threshold values");
-        windowOption = addStringOption('i', "window width values");
-        peakOption = addStringOption('p', "peak width values");
-        clusterRadiusOption = addStringOption('d', "centroid radii");
-        thresholdOption = addStringOption('t', "postprocessing threshold values");
+        fdrOption = addStringOption('f', "fdr_thresholds");
+        windowOption = addStringOption('i', "window_width");
+        peakOption = addStringOption('p', "peak_width");
+        clusterRadiusOption = addStringOption('d', "centroid_radii");
+        thresholdOption = addStringOption('t', "postprocessing_thresholds");
 
         // AFA
-        relativeLocationOption = addStringOption('l', "Location Type");
-        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
+        relativeLocationOption = addStringOption('l', "location_type");
+        multipleAttributesOption = addStringOption('a', "attributes");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("afa") || cmd.equals("compare") || cmd.equals("loop_domains");
     }
+
+    public boolean getBypassMinimumMapCountCheckOption() {
+        Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
+    }
+
+
 
     /**
      * String flags

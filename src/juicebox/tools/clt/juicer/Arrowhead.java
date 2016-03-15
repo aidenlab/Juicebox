@@ -113,6 +113,7 @@ public class Arrowhead extends JuicerCLT {
     // must be passed via command line
     private int resolution = 10000;
     private String file, outputPath;
+    private boolean checkMapDensityThreshold = true;
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
@@ -151,6 +152,10 @@ public class Arrowhead extends JuicerCLT {
         if (specifiedMatrixSize > 1) {
             matrixSize = specifiedMatrixSize;
         }
+
+        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
+            checkMapDensityThreshold = false;
+        }
     }
 
     @Override
@@ -164,8 +169,11 @@ public class Arrowhead extends JuicerCLT {
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
         if (firstExpected < 100000) {
-            System.err.println("HiC contact map is too sparse to run Arrowhead, exiting.");
-            System.exit(0);
+            System.err.println("Warning Hi-C map is too sparse to find many domains via Arrowhead.");
+            if (checkMapDensityThreshold) {
+                System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                System.exit(0);
+            }
         }
 
         // high quality (IMR90, GM12878) maps have different settings
