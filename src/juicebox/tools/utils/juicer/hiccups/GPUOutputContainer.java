@@ -214,8 +214,8 @@ public class GPUOutputContainer {
 
         for (Feature2D f : inputListFoundFeatures) {
 
-            int i = (f.getStart1() / resolution) - rowOffset;
-            int j = (f.getStart2() / resolution) - columnOffset;
+            int i = ((f.getStart1() + f.getEnd1()) / (2 * resolution)) - rowOffset;
+            int j = ((f.getStart2() + f.getEnd2()) / (2 * resolution)) - columnOffset;
             float peakVal = peak[i][j];
 
 
