@@ -49,7 +49,7 @@ import java.util.List;
 /**
  * Arrowhead
  * <p/>
- * Developed by Neva Durand
+ * Developed by Miriam Huntley and Neva Durand
  * Implemented by Muhammad Shamim
  * <p/>
  * -------
@@ -168,6 +168,7 @@ public class Arrowhead extends JuicerCLT {
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        System.err.println(firstExpected);
         if (firstExpected < 100000) {
             System.err.println("Warning Hi-C map is too sparse to find many domains via Arrowhead.");
             if (checkMapDensityThreshold) {
