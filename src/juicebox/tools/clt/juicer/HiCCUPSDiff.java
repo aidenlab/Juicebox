@@ -29,22 +29,25 @@ import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2D;
 
 /**
- * Developed by Suhas Rao, ported by Neva Durand
+ * Developed by Suhas Rao, ported by Suhas Rao + Neva Durand
  */
-public class HiccupsOnList extends JuicerCLT {
+public class HiCCUPSDiff extends JuicerCLT {
 
-    public HiccupsOnList() {
+    public HiCCUPSDiff() {
         super("hiccupsdiff [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
-                "<hicFile(s)> <outputDirectory> <otherLoopList>");
+                "<firstHicFile(s)> <secondHicFile(s)> <firstLoopList> <secondLoopList> <outputDirectory>");
 
     }
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
-        if (args.length != 4) {
+        if (args.length != 5) {
             printUsage();
         }
+
+        HiCCUPS hiccups1 = new HiCCUPS();
+        //hiccups1.readJuicerArguments();
 
     }
 

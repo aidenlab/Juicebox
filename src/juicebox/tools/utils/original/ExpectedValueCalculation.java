@@ -105,6 +105,7 @@ public class ExpectedValueCalculation {
             if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
                 chromosomes.put(chr.getIndex(), chr);
                 assert fragmentCountMap != null;
+                // ERRORS often happen here, perhaps we could catch and give explanation.
                 maxLen = isFrag ?
                         Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
                         Math.max(maxLen, chr.getLength());
