@@ -106,7 +106,7 @@ public class DirectoryManager {
             }
 
 
-            // The IGV directory either doesn't exist or isn't writeable.  This situation can arise with Windows Vista
+            // The HIC directory either doesn't exist or isn't writeable.  This situation can arise with Windows Vista
             // and Windows 7 due to a Java bug (http://bugs.sun.com/view_bug.do?bug_id=4787931)
             if (HIC_DIRECTORY == null || !HIC_DIRECTORY.exists() || !canWrite(HIC_DIRECTORY)) {
                 if (Globals.isHeadless() || Globals.isSuppressMessages()) {
@@ -114,10 +114,10 @@ public class DirectoryManager {
                     HIC_DIRECTORY = (new File(".")).getParentFile();
                 } else {
                     int option = JOptionPane.showConfirmDialog(null,
-                            "<html>The default IGV directory (" + HIC_DIRECTORY + ") " +
+                            "<html>The default Hi-C directory (" + HIC_DIRECTORY + ") " +
                                     "cannot be accessed.  Click Yes to choose a new folder or No to exit.<br>" +
                                     "This folder will be used to create the 'hic' directory",
-                            "IGV Directory Error", JOptionPane.YES_NO_OPTION);
+                            "Hi-C Directory Error", JOptionPane.YES_NO_OPTION);
 
                     if (option == JOptionPane.YES_OPTION) {
                         File parentDirectory = FileDialogUtils.chooseDirectory("Select a location for the hic directory", null);
@@ -138,7 +138,7 @@ public class DirectoryManager {
                 throw new DataLoadException("Cannot write to user directory", HIC_DIRECTORY.getAbsolutePath());
             }
 
-            log.debug("IGV Directory: " + HIC_DIRECTORY.getAbsolutePath());
+            log.debug("HiC Directory: " + HIC_DIRECTORY.getAbsolutePath());
         }
         return HIC_DIRECTORY;
     }
