@@ -104,11 +104,25 @@ public class ExpectedValueCalculation {
         for (Chromosome chr : chromosomeList) {
             if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
                 chromosomes.put(chr.getIndex(), chr);
-                assert fragmentCountMap != null;
-                // ERRORS often happen here, perhaps we could catch and give explanation.
-                maxLen = isFrag ?
-                        Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
-                        Math.max(maxLen, chr.getLength());
+                try {
+                    maxLen = isFrag ?
+                            Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
+                            Math.max(maxLen, chr.getLength());
+                }
+                catch (NullPointerException error) {
+                    System.err.println("Problem with creating fragment-delimited maps, NullPointerException.\n" +
+                            "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
+                            "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
+                            "Exiting.");
+                    System.exit(1);
+                }
+                catch (ArrayIndexOutOfBoundsException error) {
+                    System.err.println("Problem with creating fragment-delimited maps, ArrayIndexOutOfBoundsException.\n" +
+                            "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
+                            "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
+                            "Exiting.");
+                    System.exit(1);
+                }
             }
         }
 
