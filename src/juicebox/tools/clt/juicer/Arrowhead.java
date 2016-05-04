@@ -117,7 +117,7 @@ public class Arrowhead extends JuicerCLT {
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "<HiC file(s)> <output_file> [feature_list] [control_list]");
+                "[--ignore_sparsity flag] <HiC file(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
@@ -170,7 +170,7 @@ public class Arrowhead extends JuicerCLT {
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
         System.err.println(firstExpected);
         if (firstExpected < 100000) {
-            System.err.println("Warning Hi-C map is too sparse to find many domains via Arrowhead.");
+            System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
             if (checkMapDensityThreshold) {
                 System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
                 System.exit(0);

@@ -195,7 +195,7 @@ public class HiCCUPS extends JuicerCLT {
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
-                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
                 "<hicFile(s)> <outputDirectory>");
         Feature2D.allowHiCCUPSOrdering = true;
         // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
@@ -240,7 +240,7 @@ public class HiCCUPS extends JuicerCLT {
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        if (firstExpected < 100000 && checkMapDensityThreshold) {
+        if (firstExpected < 100000) {
             System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
             if (checkMapDensityThreshold) {
                 System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
