@@ -264,6 +264,17 @@ public class HiC {
 
     }
 
+    public int[] getCurrentRegionWindowGenomicPositions() {
+        return new int[]{
+                xContext.getGenomicPositionOrigin(),
+                xContext.getGenomicPositionOrigin() +
+                        (int) (getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor()),
+                yContext.getGenomicPositionOrigin(),
+                yContext.getGenomicPositionOrigin() +
+                        (int) (getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor())
+        };
+    }
+
     public String getXPosition() {
         return xPosition;
     }

@@ -32,7 +32,9 @@ public enum MatrixType {
     PEARSON("Pearson"),
     EXPECTED("Expected"),
     RATIO("Observed/Control"),
-    CONTROL("Control");
+    CONTROL("Control"),
+    NORM("Norm"),
+    EIGENVECTOR("Eigenvector");
     private final String value;
 
     MatrixType(String value) {
@@ -45,6 +47,9 @@ public enum MatrixType {
                 if (text.equalsIgnoreCase(matrix.value)) {
                     return matrix;
                 }
+            }
+            if (text.equalsIgnoreCase("oe")) {
+                return OE;
             }
         }
         return null;

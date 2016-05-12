@@ -52,6 +52,10 @@ public class Context {
         this.binOrigin = binOrigin;
     }
 
+    public int getGenomicPositionOrigin() {
+        return (int) (binOrigin * zoom.getBinSize());
+    }
+
     public HiCZoom getZoom() {
         return zoom;
     }

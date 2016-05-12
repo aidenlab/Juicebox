@@ -35,7 +35,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Changes Data Output Mode
-    public static final boolean isRestricted = true;
+    public static final boolean isRestricted = false;
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
     // MainWindow variables

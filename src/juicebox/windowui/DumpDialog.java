@@ -62,37 +62,18 @@ public class DumpDialog extends JFileChooser {
 
             try {
                 if (box.getSelectedItem().equals("Matrix")) {
-                    if (hic.getDisplayOption() == MatrixType.OBSERVED) {
-                        double[] nv1 = null;
-                        double[] nv2 = null;
-                        if (!(hic.getNormalizationType() == NormalizationType.NONE)) {
-                            NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
-                            nv1 = nv.getData();
-                            if (zd.getChr1Idx() != zd.getChr2Idx()) {
-                                nv = hic.getNormalizationVector(zd.getChr2Idx());
-                                nv2 = nv.getData();
-                            } else {
-                                nv2 = nv1;
-                            }
-                        }
-                        zd.dump(new PrintWriter(getSelectedFile()), nv1, nv2);
-
-                    } else if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.PEARSON) {
-                        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(zd.getZoom(),
-                                hic.getNormalizationType());
+                    ExpectedValueFunction df = null;
+                    MatrixType matrixType = hic.getDisplayOption();
+                    if (matrixType == MatrixType.OE || matrixType == MatrixType.PEARSON) {
+                        df = hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType());
                         if (df == null) {
                             JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             return;
                         }
-                        if (hic.getDisplayOption() == MatrixType.OE) {
-                            zd.dumpOE(df, "oe",
-                                    hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                        } else {
-                            zd.dumpOE(df, "pearson",
-                                    hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                        }
                     }
+                    zd.dump(new PrintWriter(getSelectedFile()), null, hic.getNormalizationType(), matrixType,
+                            true, hic.getCurrentRegionWindowGenomicPositions(), df);
 
                 } else if (box.getSelectedItem().equals("Norm vector")) {
 

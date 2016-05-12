@@ -263,5 +263,47 @@ class UnitTests {
 
         */
 
+
+        /**
+         *
+         * testing dump
+         *
+         *  HiCGlobals.printVerboseComments = true;
+         String[] ajkhsd = {"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
+
+         //HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
+
+         HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:0:59128983","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr"};
+
+         HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr_v2"};
+
+         HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19:0:59128983", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr"};
+
+         HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr_v2"};
+
+         HiCTools.main(ajkhsd);
+
+         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub3_kr"};
+
+         HiCTools.main(ajkhsd);
+         *
+         */
     }
 }

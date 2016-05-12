@@ -29,11 +29,11 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
-import juicebox.matrix.InMemoryMatrix;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.HiCZoom;
+import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
@@ -48,8 +48,6 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-//import juicebox.state.Slideshow;
-//import juicebox.gui.SuperAdapter;
 
 
 /**
@@ -603,175 +601,137 @@ public class MatrixZoomData {
     }
 
     /**
-     * Dump observed matrix to text
-     *
-     * @param printWriter Text output stream
-     * @param nv1         Normalization vector for X axis
-     * @param nv2         Normalization vector for Y axis
-     * @throws IOException If fail to write
+     * For a specified region, select the block numbers corresponding to it
+     * @param regionIndices
+     * @return
      */
-    public void dump(PrintWriter printWriter, double[] nv1, double[] nv2) throws IOException {
-        // Get the block index keys, and sort
-        List<Integer> blockNumbers = reader.getBlockNumbers(this);
-        if (blockNumbers != null) {
-            Collections.sort(blockNumbers);
+    private List<Integer> getBlockNumbersForRegion(int[] regionIndices) {
+        int resolution = zoom.getBinSize();
+        int col1 = (regionIndices[0] / resolution) / blockBinCount;
+        int col2 = ((regionIndices[1] / resolution) + 1) / blockBinCount;
+        int row1 = (regionIndices[2] / resolution) / blockBinCount;
+        int row2 = ((regionIndices[3] / resolution) + 1) / blockBinCount;
 
-            for (int blockNumber : blockNumbers) {
-                Block b = reader.readBlock(blockNumber, this);
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-                        float counts = rec.getCounts();
-                        int x = rec.getBinX();
-                        int y = rec.getBinY();
-                        if (nv1 != null && nv2 != null) {
-                            if (nv1[x] != 0 && nv2[y] != 0 && !Double.isNaN(nv1[x]) && !Double.isNaN(nv2[y])) {
-                                counts = (float) (counts / (nv1[x] * nv2[y]));
-                            } else {
-                                counts = Float.NaN;
-                            }
-                        }
-                        printWriter.println(x * zoom.getBinSize() + "\t" + y * zoom.getBinSize() + "\t" + counts);
-                    }
+        // first check the upper triangular matrix
+        Set<Integer> blocksSet = new HashSet<Integer>();
+        for (int r = row1; r <= row2; r++) {
+            for (int c = col1; c <= col2; c++) {
+                int blockNumber = r * getBlockColumnCount() + c;
+                blocksSet.add(blockNumber);
+            }
+        }
+        // check region part that overlaps with lower left triangle
+        // but only if intrachromosomal
+        if (chr1.getIndex() == chr2.getIndex()) {
+            for (int r = col1; r <= col2; r++) {
+                for (int c = row1; c <= row2; c++) {
+                    int blockNumber = r * getBlockColumnCount() + c;
+                    blocksSet.add(blockNumber);
                 }
             }
         }
-        printWriter.close();
+
+        List<Integer> blocksToIterateOver = new ArrayList<Integer>(blocksSet);
+        Collections.sort(blocksToIterateOver);
+        return blocksToIterateOver;
     }
 
-    /**
-     * Dump observed matrix to binary.
-     *
-     * @param les Binary output stream
-     * @param nv1 Normalization vector for X axis
-     * @param nv2 Normalization vector for Y axis
-     * @throws IOException If fail to write
-     */
-    public void dump(LittleEndianOutputStream les, double[] nv1, double[] nv2) throws IOException {
+
+    public void dump(PrintWriter printWriter, LittleEndianOutputStream les, NormalizationType norm, MatrixType matrixType,
+                     boolean useRegionIndices, int[] regionIndices, ExpectedValueFunction df) throws IOException {
+
+        // determine which output will be used
+        if (printWriter == null && les == null) {
+            printWriter = new PrintWriter(System.out);
+        }
+        boolean usePrintWriter = printWriter != null && les == null;
+        boolean isIntraChromosomal = chr1.getIndex() == chr2.getIndex();
+
+        if (matrixType == MatrixType.PEARSON) {
+            dumpPearsons(printWriter, les, df);
+            return;
+        }
 
         // Get the block index keys, and sort
-        List<Integer> blockNumbers = reader.getBlockNumbers(this);
-        if (blockNumbers != null) {
-            Collections.sort(blockNumbers);
+        List<Integer> blocksToIterateOver;
+        if (useRegionIndices) {
+            blocksToIterateOver = getBlockNumbersForRegion(regionIndices);
+        } else {
+            blocksToIterateOver = reader.getBlockNumbers(this);
+            Collections.sort(blocksToIterateOver);
+        }
 
-            for (int blockNumber : blockNumbers) {
-                Block b = reader.readBlock(blockNumber, this);
-                if (b != null) {
-                    for (ContactRecord rec : b.getContactRecords()) {
-                        float counts = rec.getCounts();
-                        int x = rec.getBinX();
-                        int y = rec.getBinY();
-                        if (nv1 != null && nv2 != null) {
-                            if (nv1[x] != 0 && nv2[y] != 0 && !Double.isNaN(nv1[x]) && !Double.isNaN(nv2[y])) {
-                                counts = (float) (counts / (nv1[x] * nv2[y]));
-                            } else {
-                                counts = Float.NaN;
+        for (Integer blockNumber : blocksToIterateOver) {
+            Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+            if (b != null) {
+                for (ContactRecord rec : b.getContactRecords()) {
+                    float counts = rec.getCounts();
+                    int x = rec.getBinX();
+                    int y = rec.getBinY();
+                    int xActual = x * zoom.getBinSize();
+                    int yActual = y * zoom.getBinSize();
+                    float oeVal = 0f;
+                    if (matrixType == MatrixType.OE) {
+                        int dist = Math.abs(x - y);
+                        double expected = 0;
+                        try {
+                            expected = df.getExpectedValue(chr1.getIndex(), dist);
+                        } catch (Exception e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
+                        double observed = rec.getCounts(); // Observed is already normalized
+                        oeVal = (float) (observed / expected);
+                    }
+                    if (!useRegionIndices || // i.e. use full matrix
+                            // or check regions that overlap with upper left
+                            (xActual >= regionIndices[0] && xActual <= regionIndices[1] &&
+                                    yActual >= regionIndices[2] && yActual <= regionIndices[3]) ||
+                            // or check regions that overlap with lower left
+                            (isIntraChromosomal && yActual >= regionIndices[0] && yActual <= regionIndices[1] &&
+                                    xActual >= regionIndices[2] && xActual <= regionIndices[3])) {
+                        // but leave in upper right triangle coordinates
+                        if (usePrintWriter) {
+                            if (matrixType == MatrixType.OBSERVED) {
+                                printWriter.println(xActual + "\t" + yActual + "\t" + counts);
+                            } else if (matrixType == MatrixType.OE) {
+                                printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
+                            }
+                        } else {
+                            if (matrixType == MatrixType.OBSERVED) {
+                                les.writeInt(x);
+                                les.writeInt(y);
+                                les.writeFloat(counts);
+                            } else if (matrixType == MatrixType.OE) {
+                                les.writeInt(x);
+                                les.writeInt(y);
+                                les.writeFloat(oeVal);
                             }
                         }
-                        les.writeInt(x);
-                        les.writeInt(y);
-                        les.writeFloat(counts);
                     }
-
                 }
             }
+        }
+
+        if (usePrintWriter) {
+            printWriter.close();
         }
     }
 
-    /**
-     * Dump the O/E or Pearsons matrix to standard out in ascii format.
-     *
-     * @param df   Density function (expected values)
-     * @param type will be "oe", "pearsons", or "expected"
-     * @param les  output stream
-     * @param pw   Text output stream
-     * @throws java.io.IOException If fails to write
-     */
-    public void dumpOE(ExpectedValueFunction df, String type, NormalizationType no, LittleEndianOutputStream les, PrintWriter pw) throws IOException {
-        if (les == null && pw == null) {
-            pw = new PrintWriter(System.out);
-        }
-
-        if (type.equals("oe")) {
-            int nBins;
-
-            if (zoom.getUnit() == HiC.Unit.BP) {
-                nBins = chr1.getLength() / zoom.getBinSize() + 1;
-            } else {
-                nBins = ((DatasetReaderV2) reader).getFragCount(chr1) / zoom.getBinSize() + 1;
-            }
-
-            BasicMatrix matrix = new InMemoryMatrix(nBins);
-            BitSet bitSet = new BitSet(nBins);
-
-            List<Integer> blockNumbers = reader.getBlockNumbers(this);
-
-            for (int blockNumber : blockNumbers) {
-                Block b = null;
-                try {
-                    b = reader.readNormalizedBlock(blockNumber, this, df.getNormalizationType());
-                    if (b != null) {
-                        for (ContactRecord rec : b.getContactRecords()) {
-                            int x = rec.getBinX();
-                            int y = rec.getBinY();
-
-                            int dist = Math.abs(x - y);
-                            double expected = 0;
-                            try {
-                                expected = df.getExpectedValue(chr1.getIndex(), dist);
-                            } catch (Exception e) {
-                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                            }
-                            double observed = rec.getCounts(); // Observed is already normalized
-                            double normCounts = observed / expected;
-                            // The apache library doesn't seem to play nice with NaNs
-                            if (!Double.isNaN(normCounts)) {
-                                matrix.setEntry(x, y, (float) normCounts);
-                                if (x != y) {
-                                    matrix.setEntry(y, x, (float) normCounts);
-                                }
-                                bitSet.set(x);
-                                bitSet.set(y);
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-            }
-
-            if (les != null) les.writeInt(nBins);
-
-            for (int i = 0; i < nBins; i++) {
-                for (int j = 0; j < nBins; j++) {
-                    float output;
-                    if (!bitSet.get(i) && !bitSet.get(j)) {
-                        output = Float.NaN;
-                    } else output = matrix.getEntry(i, j);
+    public void dumpPearsons(PrintWriter pw, LittleEndianOutputStream les, ExpectedValueFunction df) throws IOException {
+        BasicMatrix pearsons = getPearsons(df);
+        if (pearsons != null) {
+            int dim = pearsons.getRowDimension();
+            for (int i = 0; i < dim; i++) {
+                for (int j = 0; j < dim; j++) {
+                    float output = pearsons.getEntry(i, j);
                     if (les != null) les.writeFloat(output);
                     else pw.print(output + " ");
                 }
                 if (les == null) pw.println();
             }
-            if (les == null) {
-                pw.println();
-                pw.flush();
-            }
+            pw.flush();
         } else {
-            BasicMatrix pearsons = getPearsons(df);
-            if (pearsons != null) {
-                int dim = pearsons.getRowDimension();
-                for (int i = 0; i < dim; i++) {
-                    for (int j = 0; j < dim; j++) {
-                        float output = pearsons.getEntry(i, j);
-                        if (les != null) les.writeFloat(output);
-                        else pw.print(output + " ");
-                    }
-                    if (les == null) pw.println();
-                }
-                pw.flush();
-            } else {
-                log.error("Pearson's not available at zoom " + zoom);
-            }
+            log.error("Pearson's not available at zoom " + zoom);
         }
     }
 
