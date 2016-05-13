@@ -46,6 +46,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -205,13 +206,25 @@ public class HiCCUPS extends JuicerCLT {
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3 && args.length != 4) {
             printUsage();
+            System.exit(1);
         }
 
         inputHiCFileName = args[1];
         outputDirectory = args[2];
-        if (!outputDirectory.endsWith("/")) {
-            outputDirectory += "/";
+
+        if (!outputDirectory.endsWith(File.separator)) {
+            outputDirectory += File.separator;
         }
+
+        File dir = new File(outputDirectory);
+
+        if (!dir.exists()) {
+            if (!dir.mkdir()) {
+                System.err.println("Couldn't create output directory " + outputDirectory);
+                System.exit(1);
+            }
+        }
+
         if (args.length == 4) {
             listGiven = true;
             featureList = args[3];

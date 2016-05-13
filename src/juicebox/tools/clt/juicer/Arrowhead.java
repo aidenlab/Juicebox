@@ -126,7 +126,7 @@ public class Arrowhead extends JuicerCLT {
         if (args.length != 3 && args.length != 5) {
             // 3 - standard, 5 - when list/control provided
             printUsage();
-            System.exit(0);
+            System.exit(1);
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
