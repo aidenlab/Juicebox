@@ -32,6 +32,7 @@ public enum MatrixType {
     PEARSON("Pearson"),
     EXPECTED("Expected"),
     RATIO("Observed/Control"),
+    VS("VS"),
     CONTROL("Control"),
     NORM("Norm"),
     EIGENVECTOR("Eigenvector");
@@ -56,7 +57,10 @@ public enum MatrixType {
     }
 
     public static boolean isSimpleType(MatrixType displayOption) {
-        return displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED || displayOption == MatrixType.CONTROL;
+        return displayOption == MatrixType.OBSERVED ||
+                displayOption == MatrixType.EXPECTED
+                || displayOption == MatrixType.CONTROL
+                || displayOption == MatrixType.VS;
     }
 
     public static boolean isComparisonType(MatrixType displayOption) {

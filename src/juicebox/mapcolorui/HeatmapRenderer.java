@@ -179,7 +179,8 @@ class HeatmapRenderer {
                 return false;
             }
 
-            boolean hasControl = controlZD != null && (displayOption == MatrixType.CONTROL || displayOption == MatrixType.RATIO);
+            boolean hasControl = controlZD != null && (displayOption == MatrixType.CONTROL ||
+                    displayOption == MatrixType.RATIO || displayOption == MatrixType.VS);
             Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
             if (hasControl) {
                 List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
@@ -210,6 +211,7 @@ class HeatmapRenderer {
 
                     for (ContactRecord rec : recs) {
                         double score = Double.NaN;
+                        double vsScore = Double.NaN;
                         if (displayOption == MatrixType.OE || displayOption == MatrixType.EXPECTED) {
                             double expected = 0;
                             if (chr1 == chr2) {
@@ -240,6 +242,12 @@ class HeatmapRenderer {
                             }
                         } else {
                             score = rec.getCounts();
+
+                            // both score and vsScore need to be set for VS mode
+                            if (displayOption == MatrixType.VS && hasControl) {
+                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                                if (ctrlRecord != null) vsScore = ctrlRecord.getCounts();
+                            }
                         }
                         if (Double.isNaN(score)) continue;
 
@@ -256,6 +264,10 @@ class HeatmapRenderer {
                         if (sameChr && (rec.getBinX() != rec.getBinY())) {
                             px = (rec.getBinY() - originX);
                             py = (rec.getBinX() - originY);
+                            if (displayOption == MatrixType.VS) {
+                                Color vsColor = cs.getColor((float) vsScore);
+                                g.setColor(vsColor);
+                            }
                             if (px > -1 && py > -1 && px <= width && py <= height) {
                                 g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                             }
@@ -269,8 +281,10 @@ class HeatmapRenderer {
 
     private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
 
-        if (displayOption == MatrixType.OBSERVED || displayOption == MatrixType.EXPECTED ||
-                displayOption == MatrixType.CONTROL) {
+        if (displayOption == MatrixType.OBSERVED ||
+                displayOption == MatrixType.EXPECTED ||
+                displayOption == MatrixType.CONTROL ||
+                displayOption == MatrixType.VS) {
 
 
             if (MainWindow.hicMapColor != curHiCColor) {
