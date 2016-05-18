@@ -148,7 +148,7 @@ public class APA extends JuicerCLT {
 
         minPeakDist = juicerParser.getAPAMinVal();
         if (minPeakDist <= 0)
-            minPeakDist = 30;
+            minPeakDist = 0;
 
         maxPeakDist = juicerParser.getAPAMaxVal();
         if (maxPeakDist <= 0)
