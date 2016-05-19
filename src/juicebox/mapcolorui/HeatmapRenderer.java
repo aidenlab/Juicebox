@@ -194,6 +194,7 @@ class HeatmapRenderer {
 
             double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
             double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
+            double averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
             for (Block b : blocks) {
 
                 Collection<ContactRecord> recs = b.getContactRecords();
@@ -240,14 +241,16 @@ class HeatmapRenderer {
                                 double den = ctrlRecord.getCounts() / ctrlAverageCount;
                                 score = num / den;
                             }
+                        } else if (displayOption == MatrixType.VS && hasControl) {
+                            ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                            if (ctrlRecord != null) {
+                                double num = rec.getCounts() / averageCount;
+                                double den = ctrlRecord.getCounts() / ctrlAverageCount;
+                                score = num * averageAcrossMapAndControl;
+                                vsScore = den * averageAcrossMapAndControl;
+                            }
                         } else {
                             score = rec.getCounts();
-
-                            // both score and vsScore need to be set for VS mode
-                            if (displayOption == MatrixType.VS && hasControl) {
-                                ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
-                                if (ctrlRecord != null) vsScore = ctrlRecord.getCounts();
-                            }
                         }
                         if (Double.isNaN(score)) continue;
 
