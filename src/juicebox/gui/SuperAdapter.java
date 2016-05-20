@@ -401,7 +401,7 @@ public class SuperAdapter {
             if (control) {
                 hic.setControlDataset(dataset);
                 options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL, MatrixType.VS};
             } else {
 
                 hic.reset();
@@ -427,7 +427,7 @@ public class SuperAdapter {
 
                 if (hic.isControlLoaded()) {
                     options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL, MatrixType.VS};
                 } else {
                     options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
                 }
@@ -529,7 +529,8 @@ public class SuperAdapter {
     private boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
-        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
+        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL
+                && option != MatrixType.RATIO && option != MatrixType.VS) {
             JOptionPane.showMessageDialog(mainWindow, option + " matrix is not available for whole-genome view.");
             mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
             return false;
