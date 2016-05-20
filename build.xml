@@ -290,7 +290,7 @@
     <jar destfile="${temp.jar.path.Juicebox.jar}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF">
       <zipfileset file="${basedir}/src/resources/manifests/juicebox_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
       <zipfileset dir="${juicebox.output.dir}"/>
-      <zipfileset src="${basedir}/lib/general/jsi1.1.jar"/>
+      <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jogl-all.jar"/>
@@ -329,7 +329,7 @@
     <jar destfile="${temp.jar.path.Juicebox.jar2}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF">
       <zipfileset file="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
       <zipfileset dir="${juicebox.output.dir}"/>
-      <zipfileset src="${basedir}/lib/general/jsi1.1.jar"/>
+      <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jogl-all.jar"/>
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt.jar"/>

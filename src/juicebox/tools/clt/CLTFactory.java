@@ -103,6 +103,8 @@ public class CLTFactory {
             return new PairsToBin();
         } else if (cmd.equals("db")) {
             return new SQLDatabase();
+        } else if (cmd.equals("hiccupsdiff")) {
+            return new HiCCUPSDiff();
         }
 
 

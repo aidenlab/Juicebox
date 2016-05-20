@@ -163,6 +163,24 @@ public class HiCCUPSUtils {
         });
     }
 
+    public static void filterOutFeaturesByEnrichment(Feature2DList list, final float maxEnrich) {
+        list.filterLists(new FeatureFilter() {
+            @Override
+            public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
+                return enrichmentThreshold(feature2DList, maxEnrich);
+            }
+        });
+    }
+
+    private static List<Feature2D> enrichmentThreshold(List<Feature2D> feature2DList, final float maxEnrich) {
+        List<Feature2D> filtered = new ArrayList<Feature2D>();
+        for (Feature2D feature : feature2DList) {
+            if (enrichmentThresholdSatisfied(feature, maxEnrich))
+                filtered.add(feature);
+        }
+        return filtered;
+    }
+
     public static void filterOutFeaturesByFDR(Feature2DList list) {
         list.filterLists(new FeatureFilter() {
             @Override
@@ -322,6 +340,23 @@ public class HiCCUPSUtils {
                 && (observed > (t3 * expectedBL) || observed > (t3 * expectedDonut))
                 && (numCollapsed > 1 || (fdrBL + fdrDonut + fdrH + fdrV) <= f);
     }
+    private static boolean enrichmentThresholdSatisfied(Feature2D pixel, final float maxEnrich) {
+
+
+        float observed = pixel.getFloatAttribute(OBSERVED);
+
+        float expectedBL = pixel.getFloatAttribute(EXPECTEDBL);
+        float expectedDonut = pixel.getFloatAttribute(EXPECTEDDONUT);
+        float expectedH = pixel.getFloatAttribute(EXPECTEDH);
+        float expectedV = pixel.getFloatAttribute(EXPECTEDV);
+
+        return (observed < maxEnrich * expectedBL &&
+                observed < maxEnrich * expectedDonut &&
+                observed < maxEnrich * expectedH &&
+                observed < maxEnrich * expectedV);
+    }
+
+
 
     private static int mean(List<Feature2D> pixelList, int i) {
         int n = pixelList.size();

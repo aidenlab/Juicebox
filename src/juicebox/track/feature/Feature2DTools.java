@@ -150,6 +150,40 @@ public class Feature2DTools {
         return centroids;
     }
 
+    public static Feature2DList extractReproducibleCentroids(final Feature2DList firstFeatureList, Feature2DList secondFeatureList, final int radius, final double fraction) {
+
+        final Feature2DList centroids = new Feature2DList();
+
+        secondFeatureList.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> secondFeature2DList) {
+                if (firstFeatureList.containsKey(chr)) {
+                    List<Feature2D> base1FeatureList = firstFeatureList.getFeatureList(chr);
+                    for (Feature2D f2 : secondFeature2DList) {
+                        double lowestDistance = -1;
+                        Feature2D overlap = null;
+                        for (Feature2D f1 : base1FeatureList) {
+                            int dx = f1.getStart1() - f2.getStart1();
+                            int dy = f1.getStart2() - f2.getStart2();
+                            double d = HiCCUPSUtils.hypotenuse(dx, dy);
+                            if (d < lowestDistance || lowestDistance == -1) {
+                                overlap = f1;
+                                lowestDistance = d;
+                            }
+                        }
+                        if (lowestDistance != -1) {
+                            double f = lowestDistance / (f2.getStart2() - f2.getStart1());
+                            if (lowestDistance <= radius && f <= fraction) {
+                                centroids.addByKey(chr, f2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return centroids;
+    }
+
     /**
      * @return peaks within radius of diagonal
      */
@@ -195,7 +229,7 @@ public class Feature2DTools {
      * @param listB
      * @return feature list where duplicates/common features are removed and results are color coded
      */
-    public static Feature2DList compareLists(final Feature2DList listA, final Feature2DList listB) {
+    public static Feature2DList compareLists(final Feature2DList listA, final Feature2DList listB, boolean colorCode) {
         Feature2DList featuresUniqueToA = new Feature2DList(listA);
         Feature2DList featuresUniqueToB = new Feature2DList(listB);
 
@@ -219,14 +253,15 @@ public class Feature2DTools {
             }
         });
 
-        // color code results
-        featuresUniqueToA.setColor(CompareLists.AAA);
-        featuresUniqueToB.setColor(CompareLists.BBB);
+        if (colorCode) {
+            // color code results
+            featuresUniqueToA.setColor(CompareLists.AAA);
+            featuresUniqueToB.setColor(CompareLists.BBB);
 
-        // also add an attribute in addition to color coding
-        featuresUniqueToA.addAttributeFieldToAll("parent_list", "A");
-        featuresUniqueToB.addAttributeFieldToAll("parent_list", "B");
-
+            // also add an attribute in addition to color coding
+            featuresUniqueToA.addAttributeFieldToAll("parent_list", "A");
+            featuresUniqueToB.addAttributeFieldToAll("parent_list", "B");
+        }
         // combine into one list
         Feature2DList results = new Feature2DList(featuresUniqueToA);
         results.add(featuresUniqueToB);
@@ -249,6 +284,7 @@ public class Feature2DTools {
         result.removeDuplicates();
         return result;
     }
+
 
     public static boolean loopIsUpstreamOfDomain(Feature2D loop, Feature2D domain, int threshold) {
         return loop.getEnd1() < domain.getStart1() - threshold &&
@@ -284,5 +320,24 @@ public class Feature2DTools {
             }
         }
         return repeat;
+    }
+
+    public static boolean isResolutionPresent(final Feature2DList feature2DList, final int resolution) {
+
+        final boolean[] returnValue = new boolean[1];
+        returnValue[0] = false;
+        feature2DList.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    if (feature.getWidth1() == resolution) {
+                        returnValue[0] = true;
+                        return;
+                    }
+                }
+            }
+        });
+        return returnValue[0];
+
     }
 }

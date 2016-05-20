@@ -24,10 +24,19 @@
 
 package juicebox.tools.clt.juicer;
 
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import java.io.File;
-import juicebox.track.feature.Feature2D;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
+
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
+import juicebox.track.feature.*;
+import org.broad.igv.Globals;
+import org.broad.igv.feature.Chromosome;
 
 /**
  * HiCCUPS Diff
@@ -36,7 +45,8 @@ import juicebox.track.feature.Feature2D;
  * <p/>
  * -------
  * Takes as input two Hi-C maps and their associated loop calls <br>
- * Outputs the differential loop list      <br>
+ * Outputs two differential loop lists: loops that are in the first but not in the second
+ * and loops that are in the second but not in the first<br>
  * Other parameters are used for the two HiCCUPS calls on the alternate loop lists
  * @see juicebox.tools.clt.juicer.HiCCUPS
  * hiccupsdiff [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)]
@@ -47,11 +57,19 @@ import juicebox.track.feature.Feature2D;
  */
 public class HiCCUPSDiff extends JuicerCLT {
 
-    private HiCCUPS hiccups1;
-    private HiCCUPS hiccups2;
+    private HiCCUPS hiccups1 = null;
+    private HiCCUPS hiccups2 = null;
+    private Feature2DList looplist1;
+    private Feature2DList looplist2;
+    private String resolutions=null;
+    private float maxEnrich=1.3f;
+    private String outputDirectory;
+    private List<Chromosome> chromosomes;
 
     public HiCCUPSDiff() {
-        super("hiccupsdiff [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
+        // what variables should they be able to send in?
+        // need to add maxEnrich
+        super("hiccupsdiff [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
                 "<firstHicFile> <secondHicFile> <firstLoopList> <secondLoopList> <outputDirectory>");
 
@@ -64,7 +82,7 @@ public class HiCCUPSDiff extends JuicerCLT {
             System.exit(1);
         }
 
-        String outputDirectory = args[5];
+        outputDirectory = args[5];
 
         File dir = new File(outputDirectory);
 
@@ -75,49 +93,115 @@ public class HiCCUPSDiff extends JuicerCLT {
             }
         }
 
-        String[] args1 = new String[4];
-        args1[0] = "hiccups";
-        args1[1] = args[1];
-        args1[2] = outputDirectory + File.separator + "file1";
-        args1[3] = args[4];
-        hiccups1 = new HiCCUPS();
-        hiccups1.readJuicerArguments(args1, juicerParser);
+        Dataset ds1 = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        Dataset ds2 = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), true);
 
-        String[] args2 = new String[4];
-        args2[0] = "hiccups";
-        args2[1] = args[2];
-        args2[2] = outputDirectory + File.separator + "file2";
-        args2[3] = args[3];
-        hiccups2 = new HiCCUPS();
-        hiccups2.readJuicerArguments(args2, juicerParser);
+        if (!(ds1.getGenomeId().equals(ds2.getGenomeId()))) {
+            System.err.println("Hi-C maps must be from the same genome");
+            System.exit(1);
+        }
+        chromosomes = ds1.getChromosomes();
+        looplist1 = Feature2DParser.loadFeatures(args[3], chromosomes, true, null, false);
+        looplist2 = Feature2DParser.loadFeatures(args[4], chromosomes, true, null, false);
 
+        if (Feature2DTools.isResolutionPresent(looplist1, 5000) && Feature2DTools.isResolutionPresent(looplist2, 5000)) {
+            resolutions="5000";
+        }
+        if (Feature2DTools.isResolutionPresent(looplist1, 10000) && Feature2DTools.isResolutionPresent(looplist2, 10000)) {
+            if (resolutions==null) {
+                resolutions="10000";
+            }
+            else resolutions+=",10000";
+        }
+        if (Feature2DTools.isResolutionPresent(looplist1, 25000) && Feature2DTools.isResolutionPresent(looplist2, 25000)) {
+            if (resolutions==null) {
+                resolutions="25000";
+            }
+            else resolutions+=",25000";
+        }
+        if (resolutions==null) {
+            System.err.println("The loop lists have no resolutions in common.");
+            System.exit(1);
+        }
+
+        System.out.println("Running differential HiCCUPs with resolutions " + resolutions);
+
+        String[] res = resolutions.split(",");
+        boolean processed = true;
+        for (String str:res) {
+            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + str;
+            if (!new File(fname).exists()) processed = false;
+            fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + str;
+            if (!new File(fname).exists()) processed = false;
+        }
+
+        if (processed) {
+            System.out.println("Using already created differential lists in " + outputDirectory + File.separator +
+                    "file1 and " + outputDirectory + File.separator + "file2");
+        }
+        else {
+
+            String hiccups1Cmd = "hiccups -m 1000 -r " + resolutions + " -f 0.1,0.1,0.1 -p 4,2,1 -i 7,5,3 -d 20000,20000,50000 "
+                    + args[1] + " " + outputDirectory + File.separator + "file1 " + args[4];
+            String hiccups2Cmd = "hiccups -m 1000 -r " + resolutions + " -f 0.1,0.1,0.1 -p 4,2,1 -i 7,5,3 -d 20000,20000,50000 "
+                    + args[2] + " " + outputDirectory + File.separator + "file2 " + args[3];
+
+
+            hiccups1 = new HiCCUPS();
+            hiccups1.readJuicerArguments(hiccups1Cmd.split("\\s+"), juicerParser);
+
+            hiccups2 = new HiCCUPS();
+            hiccups2.readJuicerArguments(hiccups2Cmd.split("\\s+"), juicerParser);
+
+            System.out.println("Running HiCCUPS with alternate loop lists");
+        }
     }
 
     @Override
     public void run() {
-        hiccups1.run();
-        hiccups2.run();
-                       /*
 
+        if (hiccups1 != null && hiccups2 != null) {
+            hiccups1.run();
+            hiccups2.run();
+        }
 
-# identify conserved loops, parameters from RH2014
-/aidenlab/work/suhas/scripts/loop_analysis/centroid_reproducibility_matrix2.py $looplist1 $looplist2 50000 0.2 > $output_dir"/conserved_loops_list2.txt"
-/aidenlab/work/suhas/scripts/loop_analysis/centroid_reproducibility_matrix2.py $looplist2 $looplist1 50000 0.2 > $output_dir"/conserved_loops_list1.txt"
+        // for every feature in second loop list, see if there's a reasonably close one in first list
+        Feature2DList conservedLoopList2 = Feature2DTools.extractReproducibleCentroids(looplist1, looplist2, 50000, 0.2);
+        // for every feature in first loop list, see if there's a reasonably close one in second list
+        Feature2DList conservedLoopList1 = Feature2DTools.extractReproducibleCentroids(looplist2, looplist1, 50000, 0.2);
 
-# identify differential loops
+        // get the differences - loops that appear only in looplist1
+        Feature2DList diff1 = Feature2DTools.compareLists(conservedLoopList1, looplist1, false);
+        // get the differences - loops that appear only in looplist2
+        Feature2DList diff2 = Feature2DTools.compareLists(conservedLoopList2, looplist2, false);
 
-maxenrich=1.3 #this can be made an input parameter
+        String[] res=resolutions.split(",");
 
-# print candidate diff loops
-awk -v cllist=$output_dir"/conserved_loops_list1.txt" 'BEGIN{while(getline<cllist>0){peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}}{if (NR==1) {print $0} else if (peak[$1 " " $2 " " $3 " "$4 " " $5 " " $6]=="") {print $0}}' $looplist1 > $output_dir"/tmp1"
-awk -v cllist=$output_dir"/conserved_loops_list2.txt" 'BEGIN{while(getline<cllist>0){peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}}{if (NR==1) {print $0} else if (peak[$1 " " $2 " " $3 " "$4 " " $5 " " $6]=="") {print $0}}' $looplist2 > $output_dir"/tmp2"
+        // load all the loops resulting from running HiCCUPs on the first HiC file with the second loop list
+        // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
+        Feature2DList results1 = new Feature2DList();
+        for (String str:res) {
+            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + str;
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, chromosomes, true, null, false);
+            HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
+            results1.add(requestedList);
+        }
 
-# print diff loops under max enrich parameter for all filters
-awk -v list5kb=$output_dir"/file1/requested_list_5000" -v list10kb=$output_dir"/file1/requested_list_10000" -v list25kb=$output_dir"/file1/requested_list_25000" -v me=$maxenrich 'BEGIN{while(getline<list5kb>0) {if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}} while(getline<list10kb>0){if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}} while(getline<list25kb>0){if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}}}{if (NR==1) {print $0} else if {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]>0) {print $0}}' $output_dir"/tmp2" > $output_dir"/differential_loops_list2.txt"
-awk -v list5kb=$output_dir"/file2/requested_list_5000" -v list10kb=$output_dir"/file2/requested_list_10000" -v list25kb=$output_dir"/file2/requested_list_25000" -v me=$maxenrich 'BEGIN{while(getline<list5kb>0) {if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}} while(getline<list10kb>0){if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}} while(getline<list25kb>0){if ($8<me*$9&&$8<me*$10&&$8<me*$11&&$8<me*$12) {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]++}}}{if (NR==1) {print $0} else if {peak[$1 " " $2 " " $3 " " $4 " " $5 " " $6]>0) {print $0}}' $output_dir"/tmp1" > $output_dir"/differential_loops_list1.txt"
-rm $output_dir"/tmp1"
-rm $output_dir"/tmp2"
+        // load all the loops resulting from running HiCCUPs on the second HiC file with the first loop list
+        // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
+        Feature2DList results2 = new Feature2DList();
+        for (String str:res) {
+            String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + str;
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, chromosomes, true, null, false);
+            HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
+            results2.add(requestedList);
+        }
+        // differential loop list 1 is loops that appeared in list1 that are not enriched in Hi-C file 2
+        Feature2DList differentialList1 = Feature2DList.getIntersection(diff1, results2);
+        // differential loop list 2 is loops that appeared in list2 that are not enriched in Hi-C file 1
+        Feature2DList differentialList2 = Feature2DList.getIntersection(diff2, results1);
 
-                        */
+        differentialList1.exportFeatureList(outputDirectory + File.separator + "differential_loops1.txt", true, Feature2DList.ListFormat.FINAL);
+        differentialList2.exportFeatureList(outputDirectory + File.separator + "differential_loops2.txt", true, Feature2DList.ListFormat.FINAL);
     }
 }
