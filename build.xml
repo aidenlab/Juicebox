@@ -386,4 +386,27 @@
   </target>
   
   <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+
+  <taskdef name="jarbundler"
+           classname="com.oracle.appbundler.AppBundlerTask"
+           classpath="lib/appbundler-1.0.jar" />
+
+  <target name="bundle" depends="init.artifacts">
+    <jarbundler outputdirectory="${artifact.output.juicebox:jar}"
+                name="Juicebox"
+                displayname="Juicebox"
+                identifier="juicebox.MainWindow"
+                icon="JuiceboxIcon.icns"
+                mainclassname="juicebox.MainWindow">
+      <classpath file="${artifact.output.juicebox:jar}/Juicebox.jar" />
+      <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
+      <option value="-Xmx8000m"/>
+      <option value="-d64"/>
+      <option value="-Djnlp.loadMenu=http://adam.bcma.bcm.edu/hicInternalMenu.properties"/>
+    </jarbundler>
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+
+
+
 </project>
