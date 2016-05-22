@@ -338,11 +338,8 @@ public class JColorRangePanel extends JPanel {
     }
 
     private void colorRangeSliderUpdateToolTip(HiC hic) {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED ||
-                hic.getDisplayOption() == MatrixType.CONTROL ||
-                hic.getDisplayOption() == MatrixType.OE ||
-                hic.getDisplayOption() == MatrixType.RATIO ||
-                hic.getDisplayOption() == MatrixType.VS) {
+
+        if (MatrixType.isColorScaleType(hic.getDisplayOption())) {
 
             int iMin = colorRangeSlider.getMinimum();
             int lValue = colorRangeSlider.getLowerValue();
@@ -397,16 +394,11 @@ public class JColorRangePanel extends JPanel {
     }
 
     public void handleNewFileLoading(MatrixType option, boolean activatePreDef) {
-        // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
-        boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.VS;
-
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL ||
-                option == MatrixType.VS || activateOE || activatePreDef);
-        colorRangeSlider.setDisplayToOE(activateOE);
+        boolean isColorScaleType = MatrixType.isColorScaleType(option);
+        colorRangeSlider.setEnabled(isColorScaleType || activatePreDef);
+        colorRangeSlider.setDisplayToOE(MatrixType.isComparisonType(option));
         colorRangeSlider.setDisplayToPreDef(activatePreDef);
-
-        plusButton.setEnabled(activateOE || isObservedOrControl);
-        minusButton.setEnabled(activateOE || isObservedOrControl);
+        plusButton.setEnabled(isColorScaleType);
+        minusButton.setEnabled(isColorScaleType);
     }
 }

@@ -24,6 +24,8 @@
 
 package juicebox;
 
+import juicebox.windowui.MatrixType;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +74,12 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
+
+    public static MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON};
+    // Add MatrixType.DIFF below if you'd like to enable DIFF mode
+    public static MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

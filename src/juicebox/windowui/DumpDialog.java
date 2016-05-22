@@ -64,7 +64,7 @@ public class DumpDialog extends JFileChooser {
                 if (box.getSelectedItem().equals("Matrix")) {
                     ExpectedValueFunction df = null;
                     MatrixType matrixType = hic.getDisplayOption();
-                    if (matrixType == MatrixType.OE || matrixType == MatrixType.PEARSON) {
+                    if (MatrixType.isExpectedValueType(matrixType)) {
                         df = hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType());
                         if (df == null) {
                             JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",

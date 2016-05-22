@@ -271,10 +271,10 @@ public class Dump extends JuiceboxCLT {
             }
         }
 
-        if (matrixType == MatrixType.OE || matrixType == MatrixType.PEARSON) {
+        if (MatrixType.isOnlyIntrachromosomalType(matrixType) || matrixType == MatrixType.OE) {
             if (!chr1.equals(chr2)) {
                 System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
-                System.err.println("Currently only intrachromosomal O/E and Pearson's are supported.");
+                System.err.println("Currently only intrachromosomal O/E, Pearson's, and VS are supported.");
                 System.exit(-1);
             }
         }
@@ -307,7 +307,7 @@ public class Dump extends JuiceboxCLT {
 
         try {
             ExpectedValueFunction df = null;
-            if (matrixType == MatrixType.OE || matrixType == MatrixType.PEARSON) {
+            if (MatrixType.isExpectedValueType(matrixType)) {
                 df = dataset.getExpectedValues(zd.getZoom(), norm);
                 if (df == null) {
                     System.err.println(matrixType + " not available at " + chr1 + " " + zoom + " " + norm);
@@ -477,17 +477,18 @@ public class Dump extends JuiceboxCLT {
         HiCZoom zoom = new HiCZoom(unit, binSize);
 
         //*****************************************************
-        if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM) &&
-                chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
+        if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM)
+                && chr1.equals(Globals.CHR_ALL)
+                && chr2.equals(Globals.CHR_ALL)) {
             dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize);
-        } else if (matrixType == MatrixType.OE || matrixType == MatrixType.PEARSON || matrixType == MatrixType.OBSERVED) {
+        } else if (MatrixType.isDumpMatrixType(matrixType)) {
             try {
                 dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, matrixType, ofile);
             } catch (Exception e) {
                 System.err.println("Unable to dump matrix");
                 e.printStackTrace();
             }
-        } else if (matrixType == MatrixType.NORM || matrixType == MatrixType.EXPECTED || matrixType == MatrixType.EIGENVECTOR) {
+        } else if (MatrixType.isDumpVectorType(matrixType)) {
             try {
                 dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, matrixType, ofile, binSize, unit);
             } catch (Exception e) {

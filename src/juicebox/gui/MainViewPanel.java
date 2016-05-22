@@ -533,7 +533,7 @@ public class MainViewPanel {
 
     }
 
-    private boolean isIntraChromosomal() {
+    private boolean isInterChromosomal() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
         return chr1.getIndex() != chr2.getIndex();
@@ -552,8 +552,8 @@ public class MainViewPanel {
             hic.setDisplayOption(MatrixType.OBSERVED);
             displayOptionComboBox.setSelectedIndex(0);
             normalizationComboBox.setSelectedIndex(0);
-        } else if (isIntraChromosomal()) {
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+        } else if (isInterChromosomal()) {
+            if (MatrixType.isOnlyIntrachromosomalType(hic.getDisplayOption())) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
             }
