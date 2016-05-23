@@ -344,7 +344,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0));
+        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
 
         final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
         toggle2DFeatureOpacity.setSelected(false);
@@ -355,7 +355,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0));
+        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 
         final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
 
@@ -402,7 +402,7 @@ public class MainMenuBar {
             }
         });
         toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
+        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
@@ -431,7 +431,7 @@ public class MainMenuBar {
 
         // use hidden hotkey instead of plot sparse button
 
-        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F7,
                 java.awt.event.InputEvent.CTRL_DOWN_MASK), "actionMapKeySparse");
         superAdapter.getMainWindow().getRootPane().getActionMap().put("actionMapKeySparse", new AbstractAction() {
 
@@ -504,7 +504,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 
         //Add annotate menu items
         customAnnotationMenu.add(showCustomLoopsItem);

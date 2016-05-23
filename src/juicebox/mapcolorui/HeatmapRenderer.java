@@ -179,8 +179,7 @@ class HeatmapRenderer {
                 return false;
             }
 
-            boolean hasControl = controlZD != null && (displayOption == MatrixType.CONTROL ||
-                    displayOption == MatrixType.RATIO || displayOption == MatrixType.VS);
+            boolean hasControl = controlZD != null && MatrixType.isControlType(displayOption);
             Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
             if (hasControl) {
                 List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
@@ -241,6 +240,13 @@ class HeatmapRenderer {
                                 double den = ctrlRecord.getCounts() / ctrlAverageCount;
                                 score = num / den;
                             }
+                        } else if (displayOption == MatrixType.DIFF && hasControl) {
+                            ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
+                            if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
+                                double num = rec.getCounts() / averageCount;
+                                double den = ctrlRecord.getCounts() / ctrlAverageCount;
+                                score = averageAcrossMapAndControl * Math.abs(num - den);
+                            }
                         } else if (displayOption == MatrixType.VS && hasControl) {
                             ContactRecord ctrlRecord = controlRecords.get(rec.getKey());
                             if (ctrlRecord != null) {
@@ -284,12 +290,7 @@ class HeatmapRenderer {
 
     private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
 
-        if (displayOption == MatrixType.OBSERVED ||
-                displayOption == MatrixType.EXPECTED ||
-                displayOption == MatrixType.CONTROL ||
-                displayOption == MatrixType.VS) {
-
-
+        if (MatrixType.isSimpleType(displayOption)) {
             if (MainWindow.hicMapColor != curHiCColor) {
                 curHiCColor = MainWindow.hicMapColor;
                 observedColorScaleMap.clear();

@@ -400,8 +400,7 @@ public class SuperAdapter {
             MatrixType[] options;
             if (control) {
                 hic.setControlDataset(dataset);
-                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL, MatrixType.VS};
+                options = HiCGlobals.enabledMatrixTypesWithControl;
             } else {
 
                 hic.reset();
@@ -426,10 +425,9 @@ public class SuperAdapter {
                         hic.getDataset().getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL, MatrixType.VS};
+                    options = HiCGlobals.enabledMatrixTypesWithControl;
                 } else {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+                    options = HiCGlobals.enabledMatrixTypesNoControl;
                 }
 
 
@@ -529,14 +527,21 @@ public class SuperAdapter {
     private boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
-        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL
-                && option != MatrixType.RATIO && option != MatrixType.VS) {
+        if (hic.isWholeGenome() && !MatrixType.isValidGenomeWideOption(option)) {
             JOptionPane.showMessageDialog(mainWindow, option + " matrix is not available for whole-genome view.");
             mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
             return false;
         }
 
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
+
+        if (option == MatrixType.VS) {
+            if (!hic.getMatrix().isIntra()) {
+                JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
+                mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                return false;
+            }
+        }
 
         if (option == MatrixType.PEARSON) {
             if (!hic.getMatrix().isIntra()) {
