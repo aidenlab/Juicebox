@@ -25,6 +25,7 @@
 package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
+import juicebox.DirectoryManager;
 import juicebox.MainWindow;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
@@ -35,6 +36,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -53,6 +55,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JButton urlButton;
     private JTextField fTextField;
     private boolean control;
+    private File openHiCPath = DirectoryManager.getUserDirectory();
 
     public LoadDialog(MainWindow mainWindow, Properties properties, SuperAdapter superAdapter) {
         super(mainWindow, "Select file(s) to open");
@@ -315,7 +318,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 } else if (e.getSource() == openButton30) {
                     loadFiles(tree.getSelectionPaths(), "30");
                 } else if (e.getSource() == localButton) {
-                    HiCFileLoader.loadMenuItemActionPerformed(superAdapter, control);
+                    openHiCPath = HiCFileLoader.loadMenuItemActionPerformed(superAdapter, control, openHiCPath);
                     setVisible(false);
                 } else if (e.getSource() == urlButton) {
                     HiCFileLoader.loadFromURLActionPerformed(superAdapter, control);

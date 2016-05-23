@@ -24,7 +24,6 @@
 
 package juicebox.data;
 
-import juicebox.DirectoryManager;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
 import org.apache.log4j.Logger;
@@ -51,25 +50,28 @@ public class HiCFileLoader {
     private static Properties properties;
     private static LoadDialog loadDialog = null;
 
-    public static void loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control) {
+    public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.toLowerCase().endsWith(".hic");
             }
         };
 
-        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", DirectoryManager.getUserDirectory(),
-                hicFilter);
+        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", openHiCPath, hicFilter);
         if (files != null && files.length > 0) {
             List<String> fileNames = new ArrayList<String>();
             String str = "";
+            String path = "";
             for (File f : files) {
                 fileNames.add(f.getAbsolutePath());
                 str += f.getName() + " ";
+                path = f.getAbsolutePath();
             }
+            openHiCPath = new File(path);
             superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
             superAdapter.safeLoad(fileNames, control, str);
         }
+        return openHiCPath;
     }
 
     public static void loadFromRecentActionPerformed(SuperAdapter superAdapter, String url, String title,
