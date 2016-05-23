@@ -37,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -73,6 +74,26 @@ public class TrackPanel extends JPanel {
         superAdapter.revalidate();
         //this.revalidate();
         superAdapter.repaint();
+    }
+
+    public void moveTrackUp(HiCTrack track) {
+        // Move up the track in the array by 1.
+        hic.moveTrack(track, true);
+        superAdapter.revalidate();
+        superAdapter.repaint();
+    }
+
+    public void moveTrackDown(HiCTrack track) {
+        // Move down the track in the array by 1.
+        hic.moveTrack(track, false);
+        superAdapter.revalidate();
+        superAdapter.repaint();
+
+    }
+
+    public List<HiCTrack> getTrackList() {
+        return hic.getLoadedTrackList();
+
     }
 
     private void addMouseAdapter(final SuperAdapter superAdapter) {

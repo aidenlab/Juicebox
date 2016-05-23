@@ -199,6 +199,21 @@ public class HiC {
         trackManager.removeTrack(locator);
     }
 
+    public void moveTrack(HiCTrack track, boolean thisShouldBeMovedUp) {
+        if (thisShouldBeMovedUp) {
+            //move the track up
+            trackManager.moveTrackUp(track);
+        } else {
+            //move the track down
+            trackManager.moveTrackDown(track);
+        }
+    }
+
+    public List<HiCTrack> getLoadedTrackList() {
+        return trackManager.getLoadedTracks();
+
+    }
+
     public Dataset getDataset() {
         return dataset;
     }

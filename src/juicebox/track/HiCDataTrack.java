@@ -285,45 +285,8 @@ public class HiCDataTrack extends HiCTrack {
             }
         });
         menu.add(menuItem);
-//
-//        JMenuItem menuItem = new JMenuItem("Set Y axis range...");
-//        menuItem.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                DataRange dataRange = dataSource.getDataRange();
-//                //String newValue = JOptionPane.showInputDialog(trackPanel, "Y scale maximum: " + dataRange.getMaximum());
-//                try {
-//                    DataRangeDialog dlg = new DataRangeDialog(MainWindow.getInstance(), dataRange);
-//                    dlg.setVisible(true);
-//                    if (!dlg.isCanceled()) {
-//                        float min = Math.min(dlg.getMin(), dlg.getMax());
-//                        float max = Math.max(dlg.getMin(), dlg.getMax());
-//                        float mid = dlg.getBase();
-//                        if (mid < min) mid = min;
-//                        else if (mid > max) mid = max;
-//                        dataRange = new DataRange(min, mid, max);
-//                        dataRange.setType(dlg.getDataRangeType());
-//                        dataSource.setDataRange(dataRange);
-//                        MainWindow.getInstance().repaint();
-//                    }
-//
-//                } catch (NumberFormatException nfe) {
-//                    JOptionPane.showMessageDialog(trackPanel, "Must enter a number.");
-//                }
-//            }
-//        });
-//        menu.add(menuItem);
-
         return menu;
     }
-
-    /*
-     useless at present
-    @Override
-    public void mouseClicked(int x, int y, Context context, TrackPanel.Orientation orientation) {
-
-    }
-    */
 
     public DataRange getDataRange() {
         return dataSource.getDataRange();  //To change body of created methods use File | Settings | File Templates.

@@ -40,10 +40,7 @@ import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Jim Robinson
@@ -240,6 +237,22 @@ public class HiCTrackManager {
         removeTrack(track);
     }
 
+
+    public void moveTrackUp(HiCTrack track) {
+        int currentIdx = loadedTracks.indexOf(track);
+        if (currentIdx != 0) {
+            Collections.swap(loadedTracks, currentIdx, currentIdx - 1);
+            superAdapter.updateTrackPanel();
+        }
+    }
+
+    public void moveTrackDown(HiCTrack track) {
+        int currentIdx = loadedTracks.indexOf(track);
+        if (currentIdx != loadedTracks.size() - 1) {
+            Collections.swap(loadedTracks, currentIdx, currentIdx + 1);
+            superAdapter.updateTrackPanel();
+        }
+    }
 
     public List<HiCTrack> getLoadedTracks() {
         return loadedTracks;
