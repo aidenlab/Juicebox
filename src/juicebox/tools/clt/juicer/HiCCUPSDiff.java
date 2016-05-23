@@ -24,11 +24,13 @@
 
 package juicebox.tools.clt.juicer;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
@@ -148,11 +150,25 @@ public class HiCCUPSDiff extends JuicerCLT {
 
 
             hiccups1 = new HiCCUPS();
-            hiccups1.readJuicerArguments(hiccups1Cmd.split("\\s+"), juicerParser);
-
             hiccups2 = new HiCCUPS();
-            hiccups2.readJuicerArguments(hiccups2Cmd.split("\\s+"), juicerParser);
+            try {
+                juicerParser.parse(hiccups1Cmd.split("\\s+"));
+                String[] args1 = juicerParser.getRemainingArgs();
 
+
+                hiccups1.readJuicerArguments(args1, juicerParser);
+
+
+                juicerParser.parse(hiccups2Cmd.split("\\s+"));
+                String[] args2 = juicerParser.getRemainingArgs();
+                hiccups2.readJuicerArguments(args2, juicerParser);
+            }
+            catch (CmdLineParser.UnknownOptionException error) {
+                // we construct the command so this shouldn't happen
+            }
+            catch (CmdLineParser.IllegalOptionValueException error) {
+                // we construct the command so this shouldn't happen
+            }
             System.out.println("Running HiCCUPS with alternate loop lists");
         }
     }
