@@ -2,6 +2,8 @@
 Creating Executables 
 --------------------
 
+0. Compile Jars from Source Files as described in Juicebox README.
+
 * EXE Build (Windows)
 
 1. Download the launch4j tarball 
@@ -9,6 +11,7 @@ Creating Executables
 2. Run 
 
 > ./launch4j/launch4j config.xml
+
 3. Modify the config.xml file to set the properties file and other parameters.
 
 * .app Build (Mac)
