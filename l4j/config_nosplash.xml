@@ -1,0 +1,14 @@
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <jar>../out/artifacts/Juicebox_jar/Juicebox.jar</jar>
+  <outfile>../out/artifacts/Juicebox_jar/Juicebox.exe</outfile>
+  <errTitle>Juicebox</errTitle>
+  <chdir>.</chdir>
+  <icon>Juicebox.ico</icon>
+  <restartOnCrash>true</restartOnCrash>
+  <jre>
+    <minVersion>1.6.0</minVersion>
+    <runtimeBits>64</runtimeBits>
+    <maxHeapSize>2000</maxHeapSize>
+  </jre>
+</launch4jConfig>

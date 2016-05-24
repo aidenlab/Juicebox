@@ -1,0 +1,23 @@
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <jar>../out/artifacts/Juicebox_jar/Juicebox.jar</jar>
+  <outfile>../Juicebox.exe</outfile>
+  <errTitle>Juicebox</errTitle>
+  <chdir>.</chdir>
+  <icon>Juicebox.ico</icon>
+  <restartOnCrash>true</restartOnCrash>
+  <jre>
+    <minVersion>1.6.0</minVersion>
+    <runtimeBits>64</runtimeBits>
+    <maxHeapSize>8000</maxHeapSize>
+    <opt>-Dswing.aatext=true</opt>
+    <opt>-Dswing.plaf.metal.controlFont=Tahoma</opt>
+    <opt>-Dswing.plaf.metal.userFont=Tahoma</opt>
+  </jre>
+  <splash>
+    <file>juicebox.bmp</file>
+    <waitForWindow>true</waitForWindow>
+    <timeout>60</timeout>
+    <timeoutErr>true</timeoutErr>
+  </splash>
+</launch4jConfig>
