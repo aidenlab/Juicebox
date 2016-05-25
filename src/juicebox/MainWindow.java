@@ -188,8 +188,13 @@ public class MainWindow extends JFrame {
                 try {
                     runnable.run();
                     return "done";
-                } finally {
-                    MainWindow.this.hideDisabledGlassPane();
+                }
+                catch (Exception error) {
+                    error.printStackTrace();
+                    return "error";
+                }
+                finally {
+                    MainWindow.this.hideDisabledGlassPane(caller);
                 }
             }
         };
@@ -199,13 +204,19 @@ public class MainWindow extends JFrame {
 
     private void showDisabledGlassPane(String caller) {
         disabledGlassPane.activate("Loading...");
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Loading " + caller);
+        }
     }
 
     private void initializeGlassPaneListening() {
         rootPane.setGlassPane(disabledGlassPane);
     }
 
-    private void hideDisabledGlassPane() {//getRootPane().getContentPane()
+    private void hideDisabledGlassPane(String caller) {//getRootPane().getContentPane()
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Done loading " + caller);
+        }
         disabledGlassPane.deactivate();
     }
 
