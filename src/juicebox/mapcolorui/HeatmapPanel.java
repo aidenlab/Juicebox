@@ -38,6 +38,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -498,7 +499,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    private JidePopupMenu getPopupMenu() {
+    private JidePopupMenu getPopupMenu(final int xMousePos, final int yMousePos) {
 
         JidePopupMenu menu = new JidePopupMenu();
 
@@ -675,11 +676,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-        final JCheckBoxMenuItem mi9 = new JCheckBoxMenuItem("Generate 1D Tracks");
-        mi9.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem mi9_h = new JCheckBoxMenuItem("Generate Horizontal 1D Track");
+        mi9_h.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                hic.generateTrackFromLocation(yMousePos, true);
+            }
+        });
 
+        final JCheckBoxMenuItem mi9_v = new JCheckBoxMenuItem("Generate Vertical 1D Track");
+        mi9_v.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.generateTrackFromLocation(xMousePos, false);
             }
         });
 
@@ -732,6 +741,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi6);
             menu.add(mi7);
             menu.add(mi8);
+            if (!hic.getXContext().getChromosome().getName().equals(Globals.CHR_ALL)
+                    && MatrixType.isObservedOrControl(hic.getDisplayOption())) {
+                menu.addSeparator();
+                menu.add(mi9_h);
+                menu.add(mi9_v);
+            }
 
             boolean menuSeparatorNotAdded = true;
 
@@ -1085,13 +1100,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             if (hic.isWholeGenome()) {
                 if (e.isPopupTrigger()) {
-                    getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+                    getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 }
                 return;
             }
             // Priority is right click
             if (e.isPopupTrigger()) {
-                getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
@@ -1152,7 +1167,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseReleased(final MouseEvent e) {
             if (e.isPopupTrigger()) {
-                getPopupMenu().show(HeatmapPanel.this, e.getX(), e.getY());
+                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 dragMode = DragMode.NONE;
                 lastMousePoint = null;
                 zoomRectangle = null;

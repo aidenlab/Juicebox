@@ -127,7 +127,7 @@ public class DumpDialog extends JFileChooser {
         panel1.add(label);
         panel1.add(box);
         dialog.add(panel1, BorderLayout.NORTH);
-        setCurrentDirectory(DirectoryManager.getUserDirectory());
+        setCurrentDirectory(DirectoryManager.getHiCDirectory());
         setDialogTitle("Choose location for dump of matrix or vector");
         setFileSelectionMode(JFileChooser.FILES_ONLY);
         return dialog;

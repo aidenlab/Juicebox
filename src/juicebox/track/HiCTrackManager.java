@@ -89,13 +89,13 @@ public class HiCTrackManager {
     public void safeTrackLoad(final List<ResourceLocator> locators) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeLoad(locators);
+                unsafeTrackLoad(locators);
             }
         };
         superAdapter.getMainWindow().executeLongRunningTask(runnable, "Safe Track Load");
     }
 
-    private void unsafeLoad(final List<ResourceLocator> locators) {
+    public void unsafeTrackLoad(final List<ResourceLocator> locators) {
         for (ResourceLocator locator : locators) {
             try {
                 loadTrack(locator);
@@ -143,7 +143,6 @@ public class HiCTrackManager {
             if (!str.equals(".txt")) {
                 locator.setType(str);
             }
-
         }
 
         if (pathLC.endsWith(".wig") ||

@@ -24,9 +24,9 @@
 
 package juicebox.gui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
@@ -74,7 +74,6 @@ public class MainMenuBar {
     private static JMenu annotationsMenu;
     private static LoadEncodeAction encodeAction;
     private static LoadAction trackLoadAction;
-    private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
@@ -90,7 +89,7 @@ public class MainMenuBar {
 
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
-        temp = HiCFileTools.openTempFile(tempPath);
+        temp = new File(DirectoryManager.getHiCDirectory(), tempPath + ".txt");
         unsavedEdits = temp.exists();
         return unsavedEdits;
     }
@@ -607,7 +606,7 @@ public class MainMenuBar {
         exportMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport);
+                new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
             }
         });
 
@@ -618,14 +617,13 @@ public class MainMenuBar {
         importMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.launchImportState(fileForExport);
+                superAdapter.launchImportState(HiCGlobals.xmlSavedStatesFile);
                 importMapAsFile.setSelected(true);
             }
         });
 
 
         //---Slideshow----
-        //ALL YOUR'S MARIE
         slideShow = new JMenuItem();
         slideShow.setText("View Slideshow");
         slideShow.addActionListener(new ActionListener() {

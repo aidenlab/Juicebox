@@ -79,8 +79,6 @@ public abstract class HiCTrack {
         });
         menu.add(menuItem);
 
-        menu.addSeparator();
-
         JMenuItem menuItem2 = new JMenuItem("Move up...");
         menuItem2.addActionListener(new ActionListener() {
             @Override
@@ -94,7 +92,6 @@ public abstract class HiCTrack {
             menu.add(menuItem2);
         }
 
-
         JMenuItem menuItem3 = new JMenuItem("Move down...");
         menuItem3.addActionListener(new ActionListener() {
             @Override
@@ -102,11 +99,11 @@ public abstract class HiCTrack {
                 trackPanel.moveTrackDown(HiCTrack.this);
             }
         });
+
         //if track is on the bottom don't add to the menu
         if (trackPanel.getTrackList().indexOf(HiCTrack.this) != trackPanel.getTrackList().size() - 1) {
             menu.add(menuItem3);
         }
-
 
         return menu;
     }

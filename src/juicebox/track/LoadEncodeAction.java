@@ -159,7 +159,7 @@ public class LoadEncodeAction extends AbstractAction {
 
                 }
                 if (locators != null) {
-                    hic.loadHostedTracks(locators);
+                    hic.unsafeLoadHostedTracks(locators);
                 }
             }
 

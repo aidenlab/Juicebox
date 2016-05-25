@@ -49,8 +49,6 @@ public class HiCFileTools {
      * @throws java.io.IOException if chromosome length file not found
      */
 
-    private static final String tempPath = System.getProperty("user.dir");
-
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
@@ -276,20 +274,6 @@ public class HiCFileTools {
         }
         return null;
     }
-
-    public static File openTempFile(String prefix) {
-        //try{
-        //create a temp file
-        String pathName = tempPath + "/" + prefix + ".txt";
-        //File temp = File.createTempFile(prefix, ".tmp");
-        return new File(pathName);
-//        } catch (IOException e) {
-//            System.out.println("I/O error opening file temp file for AutoSave. ");
-//            System.exit(0);
-//        }
-//        return null;
-    }
-
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
                                                        NormalizationType norm) throws IOException {
