@@ -83,6 +83,7 @@ public class HiCGlobals {
     // Add MatrixType.DIFF below if you'd like to enable DIFF mode
     public static MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
             MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
+    public static String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

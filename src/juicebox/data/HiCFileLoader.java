@@ -24,10 +24,12 @@
 
 package juicebox.data;
 
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.FileDialogUtils;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ParsingUtils;
 
 import javax.swing.*;
@@ -49,6 +51,7 @@ public class HiCFileLoader {
     private static final Logger log = Logger.getLogger(HiCFileLoader.class);
     private static Properties properties;
     private static LoadDialog loadDialog = null;
+    private static String propertiesFileURL = System.getProperty("jnlp.loadMenu");
 
     public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
@@ -117,18 +120,37 @@ public class HiCFileLoader {
 
     private static void initProperties() {
         try {
-            String url = System.getProperty("jnlp.loadMenu");
-            if (url == null) {
-                url = "http://hicfiles.tc4ga.com/juicebox.properties";
+            if (propertiesFileURL == null) {
+                propertiesFileURL = HiCGlobals.defaultPropertiesURL;
             }
-            InputStream is = ParsingUtils.openInputStream(url);
+            InputStream is = ParsingUtils.openInputStream(propertiesFileURL);
             properties = new Properties();
             if (is != null) {
                 properties.load(is);
             }
         } catch (Exception error) {
             log.error("Can't find properties file for loading list", error);
-            //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    public static void changeJuiceboxPropertiesFile(String newURL) {
+        boolean providedURLIsValid = true;
+        try {
+            InputStream is = ParsingUtils.openInputStream(newURL);
+            properties = new Properties();
+            if (is != null) {
+                properties.load(is);
+            }
+        } catch (Exception error) {
+            providedURLIsValid = false;
+            MessageUtils.showErrorMessage("Can't find/load specified properties file", error);
+        }
+
+        // if no exception has been thrown at this point, the url is a valid one
+        if (providedURLIsValid) {
+            propertiesFileURL = newURL;
+            loadDialog = null;
+        }
+    }
+
 }
