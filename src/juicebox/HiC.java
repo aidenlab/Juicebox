@@ -118,6 +118,7 @@ public class HiC {
         eigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
+        normalizationType = NormalizationType.NONE;
         clearFeatures();
     }
 

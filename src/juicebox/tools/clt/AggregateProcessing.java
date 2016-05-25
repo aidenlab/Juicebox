@@ -61,7 +61,7 @@ geo.txt		java_motifs.txt
 
         Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
 
-        newMerger.exportFeatureList("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/new_merged_loops", false, Feature2DList.ListFormat.FINAL);
+       // newMerger.exportFeatureList("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/new_merged_loops", false, Feature2DList.ListFormat.FINAL);
 
 
         /*

@@ -50,6 +50,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -380,15 +381,12 @@ public class SuperAdapter {
             return;
         }
 
-
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
-        if (!control) {
-            hic.setNormalizationType(NormalizationType.NONE);
-        }
-
         if (allFilesAreHiC) {
+            mainViewPanel.setIgnoreUpdateThumbnail(true);
+            //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+            //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+            mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
+
             DatasetReader reader = DatasetReaderFactory.getReader(files);
             if (reader == null) return;
             Dataset dataset = reader.read();
@@ -402,7 +400,6 @@ public class SuperAdapter {
                 hic.setControlDataset(dataset);
                 options = HiCGlobals.enabledMatrixTypesWithControl;
             } else {
-
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomes(dataset.getChromosomes());
@@ -430,7 +427,6 @@ public class SuperAdapter {
                     options = HiCGlobals.enabledMatrixTypesNoControl;
                 }
 
-
                 hic.resetContexts();
                 updateTrackPanel();
                 mainMenuBar.getRecentLocationMenu().setEnabled(true);
@@ -450,7 +446,7 @@ public class SuperAdapter {
             }
 
             mainMenuBar.setContolMapLoadableEnabled(true);
-            //refresh(); // an additional refresh seems to remove the upper left black corner
+            mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
@@ -472,10 +468,13 @@ public class SuperAdapter {
         if (control) resetTitle = controlTitle;
 
         try {
+            ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
+            mainViewPanel.getDisplayOptionComboBox().removeActionListener(l);
             unsafeLoad(files, control, restore);
-            mainViewPanel.updateThumbnail(hic);
+            //mainViewPanel.updateThumbnail(hic);
             refresh();
             updateTitle(control, title);
+            mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
         } catch (IOException e) {
             log.error("Error loading hic file", e);
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -504,6 +503,8 @@ public class SuperAdapter {
     }
 
     public boolean safeDisplayOptionComboBoxActionPerformed() {
+        System.err.println("in safedisplay");
+        new Exception().printStackTrace();
         final boolean[] retVal = new boolean[1];
         Runnable runnable = new Runnable() {
             public void run() {

@@ -228,7 +228,9 @@ public class JColorRangePanel extends JPanel {
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
-        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return true;
+        //why are we calling this?  why is this method a boolean method at all?
+        //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {

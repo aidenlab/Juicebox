@@ -74,6 +74,10 @@ public class MainViewPanel {
     private static GoToPanel goPanel;
     private static JPanel hiCPanel;
     private boolean tooltipAllowedToUpdated = true;
+    private boolean ignoreUpdateThumbnail = false;
+
+
+    public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
     public JComboBox<Chromosome> getChrBox2() {
         return chrBox2;
@@ -570,6 +574,9 @@ public class MainViewPanel {
 
 
     public void updateThumbnail(HiC hic) {
+        if (ignoreUpdateThumbnail) return;
+        //new Exception().printStackTrace();
+
         if (hic.getMatrix() != null) {
 
             //   MatrixZoomData zd0 = initialZoom == null ? hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit()) :
@@ -616,7 +623,9 @@ public class MainViewPanel {
         } else {
             resolutionSlider.setForeground(Color.BLACK);
         }
-        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return true;
+        // why are we calling this?  why is this a boolean method?
+        //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
 
