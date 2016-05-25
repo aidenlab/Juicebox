@@ -503,8 +503,6 @@ public class SuperAdapter {
     }
 
     public boolean safeDisplayOptionComboBoxActionPerformed() {
-        System.err.println("in safedisplay");
-        new Exception().printStackTrace();
         final boolean[] retVal = new boolean[1];
         Runnable runnable = new Runnable() {
             public void run() {
