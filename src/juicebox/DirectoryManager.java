@@ -72,7 +72,7 @@ public class DirectoryManager {
     }
 
 
-    private static File getHiCDirectory() {
+    public static File getHiCDirectory() {
 
         if (HIC_DIRECTORY == null) {
 

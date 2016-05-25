@@ -39,19 +39,18 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
 
 /**
  * Created by Zulkifl Gire on 7/15/2015.
  */
 public class XMLFileWriter {
-    private static final File currentStatesToXML = new File(HiCGlobals.xmlSavedStatesFileName);
+
     private static StreamResult streamResult;
     private static Document xmlDoc;
 
     public static void overwriteXMLFile() {
         try {
-            streamResult = new StreamResult(currentStatesToXML);
+            streamResult = new StreamResult(HiCGlobals.xmlSavedStatesFile);
             Element root = initXML();
 
             for (String stateString : HiCGlobals.savedStatesList) {

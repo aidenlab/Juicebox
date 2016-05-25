@@ -38,6 +38,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -530,14 +531,14 @@ public class HiCCUPSUtils {
 
     public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
                                             List<Chromosome> commonChromosomes, List<HiCCUPSConfiguration> configurations,
-                                            NormalizationType norm, String outputDirectory) {
+                                            NormalizationType norm, File outputDirectory) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
             removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
-            looplists.get(res).exportFeatureList(outputDirectory + POST_PROCESSED + "_" + res, true, Feature2DList.ListFormat.FINAL);
+            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res), true, Feature2DList.ListFormat.FINAL);
         }
 
         return mergeAllResolutions(looplists);

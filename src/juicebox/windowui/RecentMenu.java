@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.state.XMLFileWriter;
 import org.broad.igv.Globals;
@@ -55,8 +56,7 @@ public abstract class RecentMenu extends JMenu {
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-    private final File currentStates = new File(HiCGlobals.stateFileName);
-    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private final File JuiceboxStatesXML = new File(DirectoryManager.getHiCDirectory(), "JuiceboxStatesXML.txt");
     private List<String> m_items = new ArrayList<String>();
     private boolean checkForDuplicates = false;
     private HiCGlobals.menuType myType;
@@ -106,7 +106,7 @@ public abstract class RecentMenu extends JMenu {
                 //Clean state data:
                 if (myType == HiCGlobals.menuType.STATE) {
                     try {
-                        BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                        BufferedWriter bWriter = new BufferedWriter(new FileWriter(HiCGlobals.stateFile, false));
                         BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML, false));
 
                         HiCGlobals.savedStatesList.clear();

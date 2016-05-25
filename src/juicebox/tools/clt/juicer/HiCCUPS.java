@@ -191,7 +191,7 @@ public class HiCCUPS extends JuicerCLT {
      * published CH12 looplist only generated with 10kb
      */
     private String inputHiCFileName;
-    private String outputDirectory;
+    private File outputDirectory;
     private HiCCUPSConfiguration[] configurations;
 
     public HiCCUPS() {
@@ -210,20 +210,7 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         inputHiCFileName = args[1];
-        outputDirectory = args[2];
-
-        if (!outputDirectory.endsWith(File.separator)) {
-            outputDirectory += File.separator;
-        }
-
-        File dir = new File(outputDirectory);
-
-        if (!dir.exists()) {
-            if (!dir.mkdir()) {
-                System.err.println("Couldn't create output directory " + outputDirectory);
-                System.exit(1);
-            }
-        }
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         if (args.length == 4) {
             listGiven = true;
@@ -253,6 +240,9 @@ public class HiCCUPS extends JuicerCLT {
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        if (HiCGlobals.printVerboseComments) {
+            System.err.println("First expected is " + firstExpected);
+        }
         if (firstExpected < 100000) {
             System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
             if (checkMapDensityThreshold) {
@@ -281,8 +271,7 @@ public class HiCCUPS extends JuicerCLT {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
-        PrintWriter outputMergedFile = HiCFileTools.openWriter(outputDirectory + MERGED);
-
+        File outputMergedFile = new File(outputDirectory, MERGED);
 
         Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
         if (listGiven) {
@@ -302,7 +291,8 @@ public class HiCCUPS extends JuicerCLT {
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     filteredConfigurations, norm, outputDirectory);
             finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
-            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputDirectory + MERGED);
+            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
+                    outputMergedFile.getAbsolutePath());
         }
         System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
@@ -327,7 +317,8 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         // open the print writer early so the file I/O capability is verified before running hiccups
-        PrintWriter outputFDR = HiCFileTools.openWriter(outputDirectory + FDR_THRESHOLDS + "_" + conf.getResolution());
+        PrintWriter outputFDR = HiCFileTools.openWriter(
+                new File(outputDirectory, FDR_THRESHOLDS + "_" + conf.getResolution()));
 
         int[][] histBL = new int[w1][w2];
         int[][] histDonut = new int[w1][w2];
@@ -497,12 +488,15 @@ public class HiCCUPS extends JuicerCLT {
 
         }
 
-        globalList.exportFeatureList(outputDirectory + ENRICHED_PIXELS + "_" + conf.getResolution(), true, Feature2DList.ListFormat.ENRICHED);
+        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution()),
+                true, Feature2DList.ListFormat.ENRICHED);
         if (listGiven) {
-            requestedList.exportFeatureList(outputDirectory + REQUESTED_LIST + "_" + conf.getResolution(), true, Feature2DList.ListFormat.ENRICHED);
+            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution()),
+                    true, Feature2DList.ListFormat.ENRICHED);
         }
         for (int i = 0; i < w1; i++) {
-            outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
+            outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] +
+                    "\t" + thresholdV[i]);
         }
         outputFDR.close();
 

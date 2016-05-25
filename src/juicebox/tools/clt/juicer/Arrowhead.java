@@ -41,7 +41,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.PrintWriter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -106,13 +106,13 @@ import java.util.List;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
+    File outputDirectory;
     private boolean configurationsSetByUser = false;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
-
     // must be passed via command line
     private int resolution = 10000;
-    private String file, outputPath;
+    private String hicFile;
     private boolean checkMapDensityThreshold = true;
 
     public Arrowhead() {
@@ -133,8 +133,8 @@ public class Arrowhead extends JuicerCLT {
         if (preferredNorm != null)
             norm = preferredNorm;
 
-        file = args[1];
-        outputPath = args[2];
+        hicFile = args[1];
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
@@ -161,14 +161,17 @@ public class Arrowhead extends JuicerCLT {
     @Override
     public void run() {
 
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFile.split("\\+")), true);
 
         final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
         double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        System.err.println(firstExpected);
+        if (HiCGlobals.printVerboseComments) {
+            System.err.println("First expected is " + firstExpected);
+        }
+
         if (firstExpected < 100000) {
             System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
             if (checkMapDensityThreshold) {
@@ -202,12 +205,12 @@ public class Arrowhead extends JuicerCLT {
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null, false));
         }
 
-        PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
-        PrintWriter outputListFile = null;
-        PrintWriter outputControlFile = null;
+        File outputBlockFile = new File(outputDirectory, resolution + "_blocks");
+        File outputListFile = null;
+        File outputControlFile = null;
         if (controlAndListProvided) {
-            outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
-            outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+            outputListFile = new File(outputDirectory, resolution + "_list_scores");
+            outputControlFile = new File(outputDirectory, resolution + "_control_scores");
         }
 
         // chromosome filtering must be done after input/control created
@@ -246,7 +249,7 @@ public class Arrowhead extends JuicerCLT {
         // save the data on local machine
         contactDomainsGenomeWide.exportFeatureList(outputBlockFile, true, Feature2DList.ListFormat.ARROWHEAD);
         System.out.println(contactDomainsGenomeWide.getNumTotalFeatures() + " domains written to file: " +
-                outputPath + "_" + resolution + "_blocks");
+                outputBlockFile.getAbsolutePath());
         if (controlAndListProvided) {
             contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, Feature2DList.ListFormat.NA);
             contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, Feature2DList.ListFormat.NA);

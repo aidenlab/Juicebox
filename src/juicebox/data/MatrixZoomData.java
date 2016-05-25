@@ -605,12 +605,21 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    private List<Integer> getBlockNumbersForRegion(int[] regionIndices) {
+    private List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
-        int col1 = (regionIndices[0] / resolution) / blockBinCount;
-        int col2 = ((regionIndices[1] / resolution) + 1) / blockBinCount;
-        int row1 = (regionIndices[2] / resolution) / blockBinCount;
-        int row2 = ((regionIndices[3] / resolution) + 1) / blockBinCount;
+        int[] regionBinIndices = new int[4];
+        for (int i = 0; i < regionBinIndices.length; i++) {
+            regionBinIndices[i] = regionIndices[i] / resolution;
+        }
+        return getBlockNumbersForRegionFromBinPosition(regionBinIndices);
+    }
+
+    private List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
+
+        int col1 = regionIndices[0] / blockBinCount;
+        int col2 = (regionIndices[1] + 1) / blockBinCount;
+        int row1 = regionIndices[2] / blockBinCount;
+        int row2 = (regionIndices[3] + 1) / blockBinCount;
 
         // first check the upper triangular matrix
         Set<Integer> blocksSet = new HashSet<Integer>();
@@ -655,7 +664,7 @@ public class MatrixZoomData {
         // Get the block index keys, and sort
         List<Integer> blocksToIterateOver;
         if (useRegionIndices) {
-            blocksToIterateOver = getBlockNumbersForRegion(regionIndices);
+            blocksToIterateOver = getBlockNumbersForRegionFromGenomePosition(regionIndices);
         } else {
             blocksToIterateOver = reader.getBlockNumbers(this);
             Collections.sort(blocksToIterateOver);
@@ -714,6 +723,62 @@ public class MatrixZoomData {
 
         if (usePrintWriter) {
             printWriter.close();
+        }
+    }
+
+    public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, Chromosome chromosomeForPosition,
+                                              int binStartPosition, boolean isIntraChromosomal, int[] regionBinIndices,
+                                              NormalizationType norm, MatrixType matrixType,
+                                              ExpectedValueFunction expectedValues) throws IOException {
+
+        if (!MatrixType.isObservedOrControl(matrixType)) {
+            System.out.println("This feature is only available for Observed or Control views");
+            return;
+        }
+
+        int binCounter = 0;
+
+        // Get the block index keys, and sort
+        List<Integer> blocksToIterateOver = getBlockNumbersForRegionFromBinPosition(regionBinIndices);
+        Collections.sort(blocksToIterateOver);
+
+        for (Integer blockNumber : blocksToIterateOver) {
+            Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+            if (b != null) {
+                for (ContactRecord rec : b.getContactRecords()) {
+                    float counts = rec.getCounts();
+                    int x = rec.getBinX();
+                    int y = rec.getBinY();
+
+                    if (    //check regions that overlap with upper left
+                            (x >= regionBinIndices[0] && x <= regionBinIndices[1] &&
+                                    y >= regionBinIndices[2] && y <= regionBinIndices[3]) ||
+                                    // or check regions that overlap with lower left
+                                    (isIntraChromosomal && x >= regionBinIndices[2] && x <= regionBinIndices[3] &&
+                                            y >= regionBinIndices[0] && y <= regionBinIndices[1])) {
+                        // but leave in upper right triangle coordinates
+
+                        if (x == binStartPosition) {
+                            while (binCounter < y) {
+                                printWriter.println("0");
+                                binCounter++;
+                            }
+                        } else if (y == binStartPosition) {
+                            while (binCounter < x) {
+                                printWriter.println("0");
+                                binCounter++;
+                            }
+                        } else {
+                            System.err.println("Something went wrong while generating 1D track");
+                            System.err.println("Improper input was likely provided");
+                        }
+
+                        printWriter.println(counts);
+                        binCounter++;
+
+                    }
+                }
+            }
         }
     }
 

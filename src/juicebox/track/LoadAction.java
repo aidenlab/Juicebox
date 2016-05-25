@@ -200,7 +200,7 @@ public class LoadAction extends AbstractAction {
             public void run() {
                 List<ResourceLocator> locators = unsafeLoadNodes(xmlFile);
                 if (locators != null && !locators.isEmpty()) {
-                    hic.loadHostedTracks(locators);
+                    hic.unsafeLoadHostedTracks(locators);
                 }
             }
         };

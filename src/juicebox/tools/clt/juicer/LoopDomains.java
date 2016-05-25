@@ -32,6 +32,7 @@ import juicebox.track.feature.*;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +64,8 @@ public class LoopDomains extends JuicerCLT {
      **/
 
     private int threshold = 25000;
-    private String genomeID, loopListPath, domainListPath, outputPath = "loop_domains_list";
+    private String genomeID, loopListPath, domainListPath;
+    private File outputFile = new File("loop_domains_list");
 
     /*
      * Assumes that the loop list provided already has associated motifs
@@ -86,7 +88,16 @@ public class LoopDomains extends JuicerCLT {
         loopListPath = args[2];
         domainListPath = args[3];
         if (args.length == 5) {
-            outputPath = args[4];
+            String outputPath = args[4];
+            outputFile = new File(outputPath);
+            if (!outputFile.exists()) {
+                try {
+                    outputFile.createNewFile();
+                } catch (Exception e) {
+                    System.err.println("Couldn't create output file " + outputPath);
+                    System.exit(1);
+                }
+            }
         }
 
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
@@ -166,7 +177,7 @@ public class LoopDomains extends JuicerCLT {
             }
         });
 
-        loopDomainList.exportFeatureList(outputPath, false, Feature2DList.ListFormat.NA);
+        loopDomainList.exportFeatureList(outputFile, false, Feature2DList.ListFormat.NA);
     }
 
 }

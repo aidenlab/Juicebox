@@ -27,6 +27,7 @@ package juicebox;
 import juicebox.windowui.MatrixType;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,8 +48,10 @@ public class HiCGlobals {
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
-    public static final String stateFileName = "CurrentJuiceboxStates";
-    public static final String xmlSavedStatesFileName = "JuiceboxStatesForExport.xml";
+    // for state saving
+    public static final File stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
+    public static final File xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
+            "JuiceboxStatesForExport.xml");
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<String>();
@@ -80,6 +83,7 @@ public class HiCGlobals {
     // Add MatrixType.DIFF below if you'd like to enable DIFF mode
     public static MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
             MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
+    public static String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

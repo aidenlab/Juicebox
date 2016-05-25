@@ -46,14 +46,14 @@ class XMLFileParser {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            dom = db.parse(HiCGlobals.xmlSavedStatesFileName);
+            dom = db.parse(HiCGlobals.xmlSavedStatesFile.getAbsolutePath());
 
             //validate
             dbf.setValidating(false);
             dbf.setNamespaceAware(true);
             DocumentBuilder builder = dbf.newDocumentBuilder();
             builder.setErrorHandler(new SimpleErrorHandler());
-            builder.parse(new InputSource(HiCGlobals.xmlSavedStatesFileName));
+            builder.parse(new InputSource(HiCGlobals.xmlSavedStatesFile.getAbsolutePath()));
             dom.getDocumentElement();
 
 

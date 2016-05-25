@@ -38,12 +38,17 @@ import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.apache.log4j.Logger;
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +101,15 @@ public class HiC {
         initBinSizeDictionary();
     }
 
+    /**
+     * @param string
+     * @return string with replacements of 000000 with M and 000 with K
+     */
+    private static String cleanUpNumbersInName(String string) {
+        string = (new StringBuilder(string)).reverse().toString();
+        string = string.replaceAll("000000", "M").replaceAll("000", "K");
+        return (new StringBuilder(string)).reverse().toString();
+    }
 
     public void reset() {
         dataset = null;
@@ -175,8 +189,8 @@ public class HiC {
         return trackManager == null ? new ArrayList<HiCTrack>() : trackManager.getLoadedTracks();
     }
 
-    public void loadHostedTracks(List<ResourceLocator> locators) {
-        trackManager.safeTrackLoad(locators);
+    public void unsafeLoadHostedTracks(List<ResourceLocator> locators) {
+        trackManager.unsafeTrackLoad(locators);
     }
 
     public void loadTrack(String path) {
@@ -368,7 +382,6 @@ public class HiC {
         }
         return false;
     }
-
 
     public void centerFragment(int fragmentX, int fragmentY) {
         if (currentZoom != null) {
@@ -604,6 +617,74 @@ public class HiC {
         return returnVal[0];
     }
 
+    /*  TODO Undo Zoom implementation mss2 _UZI
+     private boolean canUndoZoomChange = false;
+     private boolean canRedoZoomChange = false;
+     private ZoomState previousZoomState, tempZoomState;
+
+     public boolean isCanUndoZoomChangeAvailable(){
+         return canUndoZoomChange;
+     }
+
+     public boolean isCanRedoZoomChangeAvailable(){
+         return canRedoZoomChange;
+     }
+
+     public void undoZoomChange(){
+         if(canUndoZoomChange){
+             System.err.println(previousZoomState);
+             System.err.println(previousZoomState.loadZoomState());
+             System.err.println(previousZoomState+"\n\n");
+             // override when undoing zoom
+             canUndoZoomChange = false;
+             canRedoZoomChange = true;
+         }
+
+     }
+
+     public void redoZoomChange(){
+         if(canRedoZoomChange){
+             System.err.println(previousZoomState);
+             System.err.println(previousZoomState.loadZoomState());
+             System.err.println(previousZoomState+"\n\n");
+             // override when redoing zoom
+             canRedoZoomChange = false;
+             canUndoZoomChange = true;
+         }
+     }
+
+        private class ZoomState {
+         String chr1Name, chr2Name;
+         HiCZoom zoom;
+         int genomeX, genomeY;
+         double scaleFactor;
+         boolean resetZoom;
+         ZoomCallType zoomCallType;
+
+         ZoomState(String chr1Name, String chr2Name,
+                   HiCZoom zoom, int genomeX, int genomeY, double scaleFactor,
+                   boolean resetZoom, ZoomCallType zoomCallType){
+             this.chr1Name = chr1Name;
+             this.chr2Name = chr2Name;
+             this.zoom = zoom;
+             this.genomeX = genomeX;
+             this.genomeY = genomeY;
+             this.scaleFactor = scaleFactor;
+             this.resetZoom = resetZoom;
+             this.zoomCallType = zoomCallType;
+         }
+
+         boolean loadZoomState(){
+             return actuallySetZoomAndLocation(chr1Name, chr2Name, zoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
+         }
+
+         @Override
+         public String toString(){
+             return ""+chr1Name+" "+chr2Name+" "+zoom;
+         }
+      }
+     */
+
     /**
      * *************************************************************
      * Official Method for setting the zoom and location for heatmap
@@ -722,74 +803,6 @@ public class HiC {
 
         return true;
     }
-
-    /*  TODO Undo Zoom implementation mss2 _UZI
-     private boolean canUndoZoomChange = false;
-     private boolean canRedoZoomChange = false;
-     private ZoomState previousZoomState, tempZoomState;
-
-     public boolean isCanUndoZoomChangeAvailable(){
-         return canUndoZoomChange;
-     }
-
-     public boolean isCanRedoZoomChangeAvailable(){
-         return canRedoZoomChange;
-     }
-
-     public void undoZoomChange(){
-         if(canUndoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when undoing zoom
-             canUndoZoomChange = false;
-             canRedoZoomChange = true;
-         }
-
-     }
-
-     public void redoZoomChange(){
-         if(canRedoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when redoing zoom
-             canRedoZoomChange = false;
-             canUndoZoomChange = true;
-         }
-     }
-
-        private class ZoomState {
-         String chr1Name, chr2Name;
-         HiCZoom zoom;
-         int genomeX, genomeY;
-         double scaleFactor;
-         boolean resetZoom;
-         ZoomCallType zoomCallType;
-
-         ZoomState(String chr1Name, String chr2Name,
-                   HiCZoom zoom, int genomeX, int genomeY, double scaleFactor,
-                   boolean resetZoom, ZoomCallType zoomCallType){
-             this.chr1Name = chr1Name;
-             this.chr2Name = chr2Name;
-             this.zoom = zoom;
-             this.genomeX = genomeX;
-             this.genomeY = genomeY;
-             this.scaleFactor = scaleFactor;
-             this.resetZoom = resetZoom;
-             this.zoomCallType = zoomCallType;
-         }
-
-         boolean loadZoomState(){
-             return actuallySetZoomAndLocation(chr1Name, chr2Name, zoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
-         }
-
-         @Override
-         public String toString(){
-             return ""+chr1Name+" "+chr2Name+" "+zoom;
-         }
-      }
-     */
 
     private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
@@ -950,6 +963,96 @@ public class HiC {
     public void removeLoadedAnnotation(String path) {
 
         feature2DHandler.removeFeaturePath(path);
+    }
+
+    public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
+
+        if (!MatrixType.isObservedOrControl(displayOption)) {
+            MessageUtils.showMessage("This feature is only available for Observed or Control views");
+            return;
+        }
+
+        // extract the starting position
+        int binStartPosition = (int) (getXContext().getBinOrigin() + mousePos / getScaleFactor());
+        if (isHorizontal) binStartPosition = (int) (getYContext().getBinOrigin() + mousePos / getScaleFactor());
+
+        // Initialize default file name
+        String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
+        filename += isHorizontal ? "_horz" : "_vert";
+        filename += "_bin" + binStartPosition + "_res" + currentZoom.getBinSize();
+        filename = cleanUpNumbersInName(filename);
+
+        // allow user to customize or change the name
+        filename = MessageUtils.showInputDialog("Enter a name for the resulting .wig file", filename);
+        if (filename == null || filename.equalsIgnoreCase("null"))
+            return;
+
+        File outputWigFile = new File(DirectoryManager.getHiCDirectory(), filename + ".wig");
+        MessageUtils.showMessage("Data will be saved to " + outputWigFile.getAbsolutePath());
+
+        Chromosome chromosomeForPosition = getXContext().getChromosome();
+        if (isHorizontal) chromosomeForPosition = getYContext().getChromosome();
+
+        safeSave1DTrackToWigFile(chromosomeForPosition, outputWigFile, binStartPosition);
+    }
+
+    private void safeSave1DTrackToWigFile(final Chromosome chromosomeForPosition, final File outputWigFile,
+                                          final int binStartPosition) {
+        superAdapter.getMainWindow().executeLongRunningTask(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    PrintWriter printWriter = new PrintWriter(outputWigFile);
+                    unsafeSave1DTrackToWigFile(chromosomeForPosition, printWriter, binStartPosition);
+                    printWriter.close();
+                    if (outputWigFile.exists() && outputWigFile.length() > 0) {
+                        // TODO this still doesn't add to the resource tree / load annotation dialog box
+                        //superAdapter.getTrackLoadAction();
+                        //getResourceTree().add1DCustomTrack(outputWigFile);
+                        HiC.this.loadTrack(outputWigFile.getAbsolutePath());
+                        LoadAction loadAction = superAdapter.getTrackLoadAction();
+                        loadAction.checkBoxesForReload(outputWigFile.getName());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Unable to generate and save 1D HiC track");
+                }
+            }
+        }, "Saving_1D_track_as_wig");
+
+    }
+
+
+    private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
+                                            int binStartPosition) throws IOException {
+        int resolution = getZoom().getBinSize();
+        for (Chromosome chromosome : chromosomes) {
+            if (chromosome.getName().equals(Globals.CHR_ALL)) continue;
+            Matrix matrix = null;
+            if (displayOption == MatrixType.OBSERVED) {
+                matrix = dataset.getMatrix(chromosomeForPosition, chromosome);
+            } else if (displayOption == MatrixType.CONTROL) {
+                matrix = controlDataset.getMatrix(chromosomeForPosition, chromosome);
+            }
+
+            if (matrix == null) continue;
+
+            MatrixZoomData zd = matrix.getZoomData(currentZoom);
+            printWriter.println("fixedStep chrom=chr" + chromosome.getName().replace("chr", "")
+                    + " start=1 step=" + resolution + " span=" + resolution);
+
+            int[] regionIndices;
+            if (chromosomeForPosition.getIndex() < chromosome.getIndex()) {
+                regionIndices = new int[]{binStartPosition, binStartPosition,
+                        0, chromosome.getLength()};
+            } else {
+                regionIndices = new int[]{0, chromosome.getLength(), binStartPosition,
+                        binStartPosition};
+            }
+
+            zd.dump1DTrackFromCrossHairAsWig(printWriter, chromosomeForPosition, binStartPosition,
+                    chromosomeForPosition.getIndex() == chromosome.getIndex(), regionIndices,
+                    normalizationType, displayOption, getExpectedValues());
+        }
     }
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}

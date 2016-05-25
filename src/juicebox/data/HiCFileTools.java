@@ -49,8 +49,6 @@ public class HiCFileTools {
      * @throws java.io.IOException if chromosome length file not found
      */
 
-    private static final String tempPath = System.getProperty("user.dir");
-
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
@@ -249,47 +247,17 @@ public class HiCFileTools {
         return token2.equals(chrName);
     }
 
-    /**
-     * @param fileName
-     * @return
-     */
-    public static PrintWriter openWriter(String fileName) {
+    public static PrintWriter openWriter(File file) {
         try {
-            File file = new File(fileName);
             file.createNewFile();
             file.setWritable(true);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file: " + fileName);
+            System.out.println("I/O error opening file.");
             System.exit(0);
         }
         return null;
     }
-
-    public static PrintWriter openWriter(File file) {
-        try {
-            file.createNewFile();
-            return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
-        } catch (IOException e) {
-            System.out.println("I/O error opening file temp file for AutoSave.");
-            System.exit(0);
-        }
-        return null;
-    }
-
-    public static File openTempFile(String prefix) {
-        //try{
-        //create a temp file
-        String pathName = tempPath + "/" + prefix + ".txt";
-        //File temp = File.createTempFile(prefix, ".tmp");
-        return new File(pathName);
-//        } catch (IOException e) {
-//            System.out.println("I/O error opening file temp file for AutoSave. ");
-//            System.exit(0);
-//        }
-//        return null;
-    }
-
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
                                                        NormalizationType norm) throws IOException {
@@ -405,4 +373,18 @@ public class HiCFileTools {
     }
 
 
+    /**
+     * @param directoryPath
+     * @return valid directory for unix/windows or exits with error code
+     */
+    public static File createValidDirectory(String directoryPath) {
+        File outputDirectory = new File(directoryPath);
+        if (!outputDirectory.exists() || !outputDirectory.isDirectory()) {
+            if (!outputDirectory.mkdir()) {
+                System.err.println("Couldn't create output directory " + directoryPath);
+                System.exit(1);
+            }
+        }
+        return outputDirectory;
+    }
 }

@@ -55,7 +55,6 @@ public class Slideshow extends JDialog {
     private final static JPanel labelPanel = new JPanel(new BorderLayout());
     private final static JButton nextButton = new JButton("\u25BA");
     private final static JButton prevButton = new JButton("\u25C4");
-    private static final String statesForSlideshow = HiCGlobals.xmlSavedStatesFileName;
     private static final long serialVersionUID = -1443095232042271867L;
     private static ArrayList<String> slideNames = new ArrayList<String>();
     private final JLabel slideLabel;
@@ -94,7 +93,7 @@ public class Slideshow extends JDialog {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
             db = dbf.newDocumentBuilder();
-            dom = db.parse(statesForSlideshow);
+            dom = db.parse(HiCGlobals.xmlSavedStatesFile.getAbsolutePath());
             NodeList nodeList = dom.getElementsByTagName("STATE");
             for (int i = 0; i < nodeList.getLength(); i++) {
                 savedStatePaths.add(nodeList.item(i).getAttributes().getNamedItem("SelectedPath").getNodeValue());

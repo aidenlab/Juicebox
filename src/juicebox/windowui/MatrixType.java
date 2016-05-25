@@ -61,9 +61,16 @@ public enum MatrixType {
      * @param option
      * @return true is the option is generally available all maps or resolutions
      */
+    public static boolean isObservedOrControl(MatrixType option) {
+        return option == OBSERVED || option == CONTROL;
+    }
+
+    /**
+     * @param option
+     * @return true is the option is generally available all maps or resolutions
+     */
     public static boolean isSimpleType(MatrixType option) {
-        return isSimpleObservedOrControlType(option)
-                || option == MatrixType.EXPECTED;
+        return isSimpleObservedOrControlType(option) || option == EXPECTED;
     }
 
     /**
@@ -71,8 +78,7 @@ public enum MatrixType {
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
-        return isComparisonType(option)
-                || isSimpleObservedOrControlType(option);
+        return isComparisonType(option) || isSimpleObservedOrControlType(option);
     }
 
     /**
@@ -80,8 +86,7 @@ public enum MatrixType {
      * @return true is the option is generally available for maps, but does not use expected vector
      */
     private static boolean isSimpleObservedOrControlType(MatrixType option) {
-        return option == MatrixType.OBSERVED
-                || isControlVSDiffType(option);
+        return option == OBSERVED || isControlVSDiffType(option);
     }
 
     /**
@@ -89,8 +94,7 @@ public enum MatrixType {
      * @return true if the option should allowed in genome-wide view
      */
     public static boolean isValidGenomeWideOption(MatrixType option) {
-        return option == MatrixType.OBSERVED
-                || isControlType(option);
+        return option == OBSERVED || isControlType(option);
     }
 
     /**
@@ -98,8 +102,7 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == MatrixType.OE
-                || option == MatrixType.RATIO;
+        return option == OE || option == RATIO;
     }
 
     /**
@@ -107,9 +110,7 @@ public enum MatrixType {
      * @return true if the option only works for intrachromosomal maps
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return option == MatrixType.PEARSON
-                //|| option == MatrixType.OE
-                || option == MatrixType.VS;
+        return option == PEARSON || option == VS; //|| option == OE
     }
 
     /**
@@ -117,8 +118,7 @@ public enum MatrixType {
      * @return true if the option requires control map
      */
     public static boolean isControlType(MatrixType option) {
-        return isControlVSDiffType(option)
-                || option == MatrixType.RATIO;
+        return isControlVSDiffType(option) || option == RATIO;
     }
 
     /**
@@ -126,9 +126,7 @@ public enum MatrixType {
      * @return true if the option is Control, VS, or DIFF
      */
     private static boolean isControlVSDiffType(MatrixType option) {
-        return option == MatrixType.CONTROL
-                || option == MatrixType.VS
-                || option == MatrixType.DIFF;
+        return option == MatrixType.CONTROL || option == VS || option == DIFF;
     }
 
     /**
@@ -136,8 +134,7 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == MatrixType.OE ||
-                option == MatrixType.PEARSON;
+        return option == OE || option == PEARSON;
     }
 
     /**
@@ -145,9 +142,7 @@ public enum MatrixType {
      * @return true if the option is dumped (clt) as a vector
      */
     public static boolean isDumpVectorType(MatrixType option) {
-        return option == MatrixType.NORM
-                || option == MatrixType.EXPECTED
-                || option == MatrixType.EIGENVECTOR;
+        return option == NORM || option == EXPECTED || option == EIGENVECTOR;
     }
 
     /**
@@ -155,9 +150,7 @@ public enum MatrixType {
      * @return true if the option is dumped (clt) as a matrix
      */
     public static boolean isDumpMatrixType(MatrixType option) {
-        return option == MatrixType.OE
-                || option == MatrixType.PEARSON
-                || option == MatrixType.OBSERVED;
+        return option == OE || option == PEARSON || option == OBSERVED;
     }
 
     public String toString() {

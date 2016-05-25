@@ -25,6 +25,7 @@
 package juicebox.tools.utils.juicer.apa;
 
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -62,10 +63,10 @@ public class APADataStack {
      * class for saving data from chromosme wide run of APA, keeps static class to store genomide data
      *
      * @param n                width of matrix
-     * @param outputFolderPath location for saving data
+     * @param outputFolder location for saving data
      * @param customPrefix     optional file/folder prefix
      */
-    public APADataStack(int n, String outputFolderPath, String customPrefix) {
+    public APADataStack(int n, File outputFolder, String customPrefix) {
         psea = MatrixTools.cleanArray2DMatrix(n, n);
         normedPsea = MatrixTools.cleanArray2DMatrix(n, n);
         centerNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
@@ -73,37 +74,24 @@ public class APADataStack {
         enhancement = new ArrayList<Double>();
 
         initializeGenomeWideVariables(n);
-        initializeDataSaveFolder(outputFolderPath, customPrefix);
+        initializeDataSaveFolder(outputFolder, customPrefix);
         axesRange = new int[]{-n / 2, 1, -n / 2, 1};
     }
 
     /**
      * Ensure that directory for saving exists
      *
-     * @param path   to directory
+     * @param outputFolderDirectory   to directory
      * @param prefix of files to be saved
      */
-    private static void initializeDataSaveFolder(String path, String prefix) {
-        File newDirectory = safeFolderCreation(path);
-        if (prefix.length() < 1) {// no preference specied
-            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" +
+    private static void initializeDataSaveFolder(File outputFolderDirectory, String prefix) {
+        if (prefix.length() < 1) {// no preference specified
+            dataDirectory = new File(outputFolderDirectory,
                     new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date()));
         } else {
-            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" + prefix);
+            dataDirectory = new File(outputFolderDirectory, prefix);
         }
-    }
-
-
-    private static File safeFolderCreation(String path) {
-        File newFolder = new File(path);
-        if (!newFolder.exists()) {
-            boolean result = newFolder.mkdir();
-            if (!result) {
-                System.err.println("Error creating directory (data not saved): " + newFolder);
-                return null;
-            }
-        }
-        return newFolder;
+        dataDirectory = HiCFileTools.createValidDirectory(dataDirectory.getAbsolutePath());
     }
 
     private static void initializeGenomeWideVariables(int n) {
@@ -136,11 +124,10 @@ public class APADataStack {
                                     List<Double> givenEnhancement,
                                     Integer[] peakNumbers, int currentRegionWidth) {
 
-        File subFolder = safeFolderCreation(dataDirectory.getAbsolutePath() + "/" + prefix);
+        File subFolder = HiCFileTools.createValidDirectory(new File(dataDirectory, prefix).getAbsolutePath());
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Saving chr " + prefix + " data to " + subFolder);
         }
-        String dataPath = subFolder + "/";
 
         for (int i = 0; i < apaMatrices.length; i++) {
 
@@ -148,13 +135,16 @@ public class APADataStack {
                     peakNumbers[2] + " (total)";
             APAPlotter.plot(apaMatrices[i],
                     axesRange,
-                    new File(dataPath + apaDataTitles[i] + ".png"),
+                    new File(subFolder, apaDataTitles[i] + ".png"),
                     title, currentRegionWidth);
-            MatrixTools.saveMatrixText(dataPath + apaDataTitles[i] + ".txt", apaMatrices[i]);
+            MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
+                    apaMatrices[i]);
         }
 
-        APAUtils.saveListText(dataPath + apaDataTitles[4] + ".txt", givenEnhancement);
-        APAUtils.saveMeasures(dataPath + apaDataTitles[5] + ".txt", apaMatrices[0], currentRegionWidth);
+        APAUtils.saveListText((new File(subFolder, apaDataTitles[4] + ".txt")).getAbsolutePath(),
+                givenEnhancement);
+        APAUtils.saveMeasures((new File(subFolder, apaDataTitles[5] + ".txt")).getAbsolutePath(),
+                apaMatrices[0], currentRegionWidth);
     }
 
     public static void clearAllData() {

@@ -24,6 +24,7 @@
 
 package juicebox.track.feature;
 
+import juicebox.DirectoryManager;
 import juicebox.data.HiCFileTools;
 import juicebox.gui.MainMenuBar;
 
@@ -113,7 +114,7 @@ public class CustomAnnotation {
     // Requires that lastItem is not null
     private void makeTempFile() {
         String prefix = "unsaved-hiC-annotations" + id;
-        tempFile = HiCFileTools.openTempFile(prefix);
+        tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
         tempWriter = HiCFileTools.openWriter(tempFile);
 
         Feature2D singleFeature = customAnnotationList.extractSingleFeature();
@@ -122,19 +123,19 @@ public class CustomAnnotation {
         } else {
             tempWriter.println(singleFeature.getOutputFileHeader());
         }
-        //System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
     public void deleteTempFile() {
-        //System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         if (tempWriter != null) {
             tempWriter.close();
         }
         if (tempFile == null) {
             String prefix = "unsaved-hiC-annotations" + id;
-            tempFile = HiCFileTools.openTempFile(prefix);
+            tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
         }
-        tempFile.delete();
+        if (tempFile.exists()) {
+            tempFile.delete();
+        }
     }
 
     // Set show loops
@@ -216,7 +217,7 @@ public class CustomAnnotation {
     // Export annotations
     public int exportAnnotations(String outputFilePath) {
         int ok;
-        ok = customAnnotationList.exportFeatureList(outputFilePath, false, Feature2DList.ListFormat.NA);
+        ok = customAnnotationList.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;
@@ -250,7 +251,8 @@ public class CustomAnnotation {
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
-        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false, Feature2DList.ListFormat.NA);
+        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(
+                new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;

@@ -72,7 +72,6 @@ public class TrackPanel extends JPanel {
     public void removeTrack(HiCTrack track) {
         hic.removeTrack(track);
         superAdapter.revalidate();
-        //this.revalidate();
         superAdapter.repaint();
     }
 
