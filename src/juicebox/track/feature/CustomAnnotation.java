@@ -217,7 +217,7 @@ public class CustomAnnotation {
     // Export annotations
     public int exportAnnotations(String outputFilePath) {
         int ok;
-        ok = customAnnotationList.exportFeatureList(outputFilePath, false, Feature2DList.ListFormat.NA);
+        ok = customAnnotationList.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;
@@ -251,7 +251,8 @@ public class CustomAnnotation {
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
-        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false, Feature2DList.ListFormat.NA);
+        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(
+                new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;

@@ -44,6 +44,7 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -112,7 +113,8 @@ import java.util.*;
 public class APA extends JuicerCLT {
 
     private final boolean saveAllData = true;
-    private String hicFilePaths, loopListPath, outputFolderPath;
+    private String hicFilePaths, loopListPath;
+    private File outputDirectory;
 
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
@@ -140,7 +142,7 @@ public class APA extends JuicerCLT {
 
         hicFilePaths = args[1];
         loopListPath = args[2];
-        outputFolderPath = args[3];
+        outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
@@ -240,8 +242,7 @@ public class APA extends JuicerCLT {
                 int currentProgressStatus = 0;
 
                 for (Chromosome chr : chromosomes) {
-                    APADataStack apaDataStack = new APADataStack(L, outputFolderPath,
-                            (hicFilePaths + "_" + resolution).replace("/", "_"));
+                    APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
 
                     if (chr.getName().equals(Globals.CHR_ALL)) continue;
 

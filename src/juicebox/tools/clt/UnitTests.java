@@ -30,6 +30,7 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ class UnitTests {
         map.put(25000, Feature2DParser.loadFeatures(link3, "hg19", true, null, false));
 
         Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
-        newMerger.exportFeatureList(outputPath, false, Feature2DList.ListFormat.FINAL);
+        newMerger.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.FINAL);
     }
 
     public void runUnitTests() {

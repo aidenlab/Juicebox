@@ -29,16 +29,15 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.List;
-
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.track.feature.*;
-import org.broad.igv.Globals;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
+import juicebox.track.feature.Feature2DTools;
 import org.broad.igv.feature.Chromosome;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * HiCCUPS Diff
@@ -65,7 +64,7 @@ public class HiCCUPSDiff extends JuicerCLT {
     private Feature2DList looplist2;
     private String resolutions=null;
     private float maxEnrich=1.3f;
-    private String outputDirectory;
+    private File outputDirectory;
     private List<Chromosome> chromosomes;
 
     public HiCCUPSDiff() {
@@ -84,16 +83,7 @@ public class HiCCUPSDiff extends JuicerCLT {
             System.exit(1);
         }
 
-        outputDirectory = args[5];
-
-        File dir = new File(outputDirectory);
-
-        if (!dir.exists()) {
-            if (!dir.mkdir()) {
-                System.err.println("Couldn't create output directory " + outputDirectory);
-                System.exit(1);
-            }
-        }
+        outputDirectory = HiCFileTools.createValidDirectory(args[5]);
 
         Dataset ds1 = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
         Dataset ds2 = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), true);
@@ -217,7 +207,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         // differential loop list 2 is loops that appeared in list2 that are not enriched in Hi-C file 1
         Feature2DList differentialList2 = Feature2DList.getIntersection(diff2, results1);
 
-        differentialList1.exportFeatureList(outputDirectory + File.separator + "differential_loops1.txt", true, Feature2DList.ListFormat.FINAL);
-        differentialList2.exportFeatureList(outputDirectory + File.separator + "differential_loops2.txt", true, Feature2DList.ListFormat.FINAL);
+        differentialList1.exportFeatureList(new File(outputDirectory, "differential_loops1.txt"), true, Feature2DList.ListFormat.FINAL);
+        differentialList2.exportFeatureList(new File(outputDirectory, "differential_loops2.txt"), true, Feature2DList.ListFormat.FINAL);
     }
 }

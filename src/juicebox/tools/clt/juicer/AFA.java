@@ -180,7 +180,8 @@ public class AFA extends JuicerCLT {
                         }, false);
 
                 for (Chromosome chr : chromosomes) {
-                    APADataStack apaDataStack = new APADataStack(L, files[2], (files[0] + "_" + resolution + "_" + attribute).replace("/", "_"));
+                    APADataStack apaDataStack = new APADataStack(L, HiCFileTools.createValidDirectory(files[2]),
+                            (files[0] + "_" + resolution + "_" + attribute).replace("/", "_"));
 
                     if (chr.getName().equals(Globals.CHR_ALL)) continue;
 

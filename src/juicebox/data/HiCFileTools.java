@@ -247,29 +247,13 @@ public class HiCFileTools {
         return token2.equals(chrName);
     }
 
-    /**
-     * @param fileName
-     * @return
-     */
-    public static PrintWriter openWriter(String fileName) {
+    public static PrintWriter openWriter(File file) {
         try {
-            File file = new File(fileName);
             file.createNewFile();
             file.setWritable(true);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file: " + fileName);
-            System.exit(0);
-        }
-        return null;
-    }
-
-    public static PrintWriter openWriter(File file) {
-        try {
-            file.createNewFile();
-            return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
-        } catch (IOException e) {
-            System.out.println("I/O error opening file temp file for AutoSave.");
+            System.out.println("I/O error opening file.");
             System.exit(0);
         }
         return null;
@@ -389,4 +373,18 @@ public class HiCFileTools {
     }
 
 
+    /**
+     * @param directoryPath
+     * @return valid directory for unix/windows or exits with error code
+     */
+    public static File createValidDirectory(String directoryPath) {
+        File outputDirectory = new File(directoryPath);
+        if (!outputDirectory.exists() || !outputDirectory.isDirectory()) {
+            if (!outputDirectory.mkdir()) {
+                System.err.println("Couldn't create output directory " + directoryPath);
+                System.exit(1);
+            }
+        }
+        return outputDirectory;
+    }
 }

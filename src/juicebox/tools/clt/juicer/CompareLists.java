@@ -33,6 +33,7 @@ import juicebox.track.feature.*;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -178,7 +179,7 @@ public class CompareLists extends JuicerCLT {
         finalResults.add(uniqueToA);
         finalResults.add(uniqueToB);
 
-        finalResults.exportFeatureList(outputPath, false, Feature2DList.ListFormat.NA);
+        finalResults.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.NA);
 
         int percentMatch = (int) Math.round(100 * ((double) (sizeB - numUniqueToB)) / ((double) sizeB));
         if (percentMatch > 95) {

@@ -28,6 +28,7 @@ import juicebox.data.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
@@ -238,12 +239,12 @@ public class Feature2DList {
     /**
      * Export feature list to given file path
      *
-     * @param outputFilePath
+     * @param outputFile
      */
-    public int exportFeatureList(String outputFilePath, boolean formattedOutput, ListFormat listFormat) {
+    public int exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
-            final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, formattedOutput, listFormat);
+            final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
+            return exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
         }
         return -1;
     }
@@ -251,9 +252,9 @@ public class Feature2DList {
     /**
      * Export feature list to given file path
      *
-     * @param outputFile
+     * @param outputFilePrintWriter
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean formattedOutput, final ListFormat listFormat) {
+    private int exportFeatureList(final PrintWriter outputFilePrintWriter, final boolean formattedOutput, final ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
@@ -273,7 +274,7 @@ public class Feature2DList {
                     for (String key : outputKeys) {
                         header += "\t" + key;
                     }
-                    outputFile.println(header);
+                    outputFilePrintWriter.println(header);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
@@ -282,24 +283,24 @@ public class Feature2DList {
                                 for (String key : outputKeys) {
                                     output += "\t" + feature.attributes.get(key);
                                 }
-                                outputFile.println(output);
+                                outputFilePrintWriter.println(output);
                             }
                         }
                     });
                 } else {
-                    outputFile.println(featureZero.getOutputFileHeader());
+                    outputFilePrintWriter.println(featureZero.getOutputFileHeader());
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             Collections.sort(feature2DList);
                             for (Feature2D feature : feature2DList) {
-                                outputFile.println(feature);
+                                outputFilePrintWriter.println(feature);
                             }
                         }
                     });
                 }
             }
-            outputFile.close();
+            outputFilePrintWriter.close();
 
             return 0;
         }
