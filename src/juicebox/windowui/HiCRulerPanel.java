@@ -163,6 +163,14 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
                 if (!isHorizontal()) strPosition = -strPosition;
 
+                if (hic.getDisplayOption() == MatrixType.VS) {
+                    if (isHorizontal()) {
+                        rangeString = rangeString + " (control)";
+                    } else {
+                        rangeString = rangeString + " (observed)";
+                    }
+                }
+
                 int vPos = h - 35;
                 g.drawString(rangeString, strPosition, vPos);
             }
