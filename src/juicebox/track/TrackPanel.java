@@ -276,7 +276,8 @@ public class TrackPanel extends JPanel {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (HiCGlobals.printVerboseComments)
+                e.printStackTrace();
         }
 
         graphics.setTransform(t);
