@@ -105,6 +105,8 @@ public class CLTFactory {
             return new SQLDatabase();
         } else if (cmd.equals("hiccupsdiff")) {
             return new HiCCUPSDiff();
+        } else if (cmd.equals("ab_compdiff")) {
+            return new ABCompartmentsDiff();
         }
 
 

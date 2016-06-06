@@ -53,13 +53,22 @@ public class EigenvectorTrack extends HiCTrack {
     private Color color = Color.blue.darker();
     private Color altColor = Color.red.darker();
     private int currentZoom = -1;
-    private String name = "eigenvector";
+    private String name;
+    private boolean isControl = false;
+    private int isCtrlInt = 0;
 
 
-    public EigenvectorTrack(String id, String name, HiC hic) {
+    public EigenvectorTrack(String id, String name, HiC hic, boolean isControl) {
         super(new ResourceLocator(id));
         this.hic = hic;
         this.name = name;
+        this.isControl = isControl;
+        if (isControl) {
+            isCtrlInt = 1000;
+            // there aren't any organisms I'm aware of with 1000 chromosomes, we should be safe with this offset
+            // could probably multiply by -1 as well, would not work for all by all (-0 = 0)
+            // but genomewide doesn't have an eigenvector todo consider if *(-1) is a better option
+        }
 
     }
 
@@ -83,12 +92,12 @@ public class EigenvectorTrack extends HiCTrack {
             }
             */
             double[] tmpArray = tmp.toArray();
-            medianCache.put(chrIdx, StatUtils.percentile(tmpArray, 50));
+            medianCache.put(chrIdx + isCtrlInt, StatUtils.percentile(tmpArray, 50));
             double max = 0;
             for (double aData : tmpArray) {
                 if (Math.abs(aData) > max) max = Math.abs(aData);
             }
-            dataMaxCache.put(chrIdx, max);
+            dataMaxCache.put(chrIdx + isCtrlInt, max);
         }
     }
 
@@ -146,7 +155,11 @@ public class EigenvectorTrack extends HiCTrack {
 
         MatrixZoomData zd;
         try {
-            zd = hic.getZd();
+            if (isControl) {
+                zd = hic.getControlZd();
+            } else {
+                zd = hic.getZd();
+            }
         } catch (Exception e) {
             return;
         }
@@ -157,9 +170,9 @@ public class EigenvectorTrack extends HiCTrack {
         }
 
         int chrIdx = orientation == TrackPanel.Orientation.X ? zd.getChr1Idx() : zd.getChr2Idx();
-        double[] eigen = dataCache.get(chrIdx);
+        double[] eigen = dataCache.get(chrIdx + isCtrlInt);
         if (eigen == null) {
-            eigen = hic.getEigenvector(chrIdx, 0);
+            eigen = hic.getEigenvector(chrIdx, 0, isControl);
             currentZoom = zoom;
             setData(chrIdx, eigen);
         }
@@ -179,8 +192,8 @@ public class EigenvectorTrack extends HiCTrack {
             return;
         }
 
-        double dataMax = dataMaxCache.get(chrIdx);
-        double median = medianCache.get(chrIdx);
+        double dataMax = dataMaxCache.get(chrIdx + isCtrlInt);
+        double median = medianCache.get(chrIdx + isCtrlInt);
 
 
         int h = height / 2;

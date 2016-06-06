@@ -69,6 +69,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
         color = properties.getColor();
         if (color == null) color = Color.blue.darker();
         altColor = properties.getAltColor();
+        if (altColor == null) altColor = Color.red.darker();
 
         float min = properties.getMinValue();
         float max = properties.getMaxValue();

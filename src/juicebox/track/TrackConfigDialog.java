@@ -132,6 +132,9 @@ class TrackConfigDialog extends JDialog {
                 float newMin = Float.parseFloat(minYField.getText());
                 float newMax = Float.parseFloat(maxYField.getText());
                 DataRange newDataRange = new DataRange(newMin, newMax);
+                if (newMin < 0 && newMax > 0) {
+                    newDataRange = new DataRange(newMin, 0f, newMax);
+                }
                 newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
                 ((HiCDataTrack) track).setDataRange(newDataRange);
                 track.setAltColor(altColorChooser.getSelectedColor());

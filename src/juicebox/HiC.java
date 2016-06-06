@@ -81,7 +81,7 @@ public class HiC {
     //private MatrixZoomData matrixForReloadState;
     private Context xContext;
     private Context yContext;
-    private EigenvectorTrack eigenvectorTrack;
+    private EigenvectorTrack eigenvectorTrack, controlEigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
     private Point cursorPoint;
@@ -90,6 +90,8 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
+    private String eigString = "Eigenvector";
+    private String ctrlEigString = "Ctrl_Eigenvector";
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -116,6 +118,7 @@ public class HiC {
         xContext = null;
         yContext = null;
         eigenvectorTrack = null;
+        controlEigenvectorTrack = null;
         resourceTree = null;
         encodeAction = null;
         normalizationType = NormalizationType.NONE;
@@ -126,8 +129,10 @@ public class HiC {
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
-            if (trackToRemove.getName().equals("eigenvector")) {
+            if (trackToRemove.getName().equals(eigString)) {
                 eigenvectorTrack = null;
+            } else if (trackToRemove.getName().equals(ctrlEigString)) {
+                controlEigenvectorTrack = null;
             } else {
                 trackManager.removeTrack(trackToRemove);
             }
@@ -155,14 +160,23 @@ public class HiC {
 
     public void loadEigenvectorTrack() {
         if (eigenvectorTrack == null) {
-            eigenvectorTrack = new EigenvectorTrack("Eigenvector", "Eigenvector", this);
+            eigenvectorTrack = new EigenvectorTrack(eigString, eigString, this, false);
+        }
+        if (controlEigenvectorTrack == null && isControlLoaded()) {
+            controlEigenvectorTrack = new EigenvectorTrack(ctrlEigString, ctrlEigString, this, true);
         }
         trackManager.add(eigenvectorTrack);
+        if (controlEigenvectorTrack != null && isControlLoaded()) {
+            trackManager.add(controlEigenvectorTrack);
+        }
     }
 
     public void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
             eigenvectorTrack.forceRefresh();
+        }
+        if (controlEigenvectorTrack != null) {
+            controlEigenvectorTrack.forceRefresh();
         }
     }
 
@@ -514,13 +528,19 @@ public class HiC {
         }
     }
 
-    public double[] getEigenvector(final int chrIdx, final int n) {
+    public double[] getEigenvector(final int chrIdx, final int n, boolean isControl) {
 
-        if (dataset == null) return null;
+        if (isControl) {
+            if (controlDataset == null) return null;
 
-        Chromosome chr = chromosomes.get(chrIdx);
-        return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
+            Chromosome chr = chromosomes.get(chrIdx);
+            return controlDataset.getEigenvector(chr, currentZoom, n, normalizationType);
+        } else {
+            if (dataset == null) return null;
 
+            Chromosome chr = chromosomes.get(chrIdx);
+            return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
+        }
     }
 
     public ExpectedValueFunction getExpectedValues() {
