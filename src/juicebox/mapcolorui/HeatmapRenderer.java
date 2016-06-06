@@ -221,8 +221,11 @@ class HeatmapRenderer {
                 } catch (Exception e) {
                     MessageUtils.showErrorMessage("Observed and Control Maps not loaded", e);
                 }
+                if(comboBlocks.isEmpty()){
+                    return false;
+                }
 
-                String key = zd.getKey() + controlZD.getKey() + displayOption;
+                String key = zd.getKey() + displayOption;
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
 
                 double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
