@@ -27,6 +27,7 @@ package juicebox.tools.utils.juicer.hiccups;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.utils.common.ArrayTools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,7 +87,9 @@ public class HiCCUPSConfiguration {
      */
 
     public static HiCCUPSConfiguration[] extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser) {
-        int[] resolutions = HiCCUPSUtils.extractIntegerValues(juicerParser.getMultipleResolutionOptions(), -1, -1);
+        List<String> resString = juicerParser.getMultipleResolutionOptions();
+        if (resString == null) return null;
+        int[] resolutions = ArrayTools.extractIntegers(resString);
         double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10
         int[] peaks = HiCCUPSUtils.extractIntegerValues(juicerParser.getPeakOptions(), resolutions.length, 2);
         int[] windows = HiCCUPSUtils.extractIntegerValues(juicerParser.getWindowOptions(), resolutions.length, 5);

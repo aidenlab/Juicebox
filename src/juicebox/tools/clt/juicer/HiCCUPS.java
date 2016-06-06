@@ -28,7 +28,12 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.*;
+import juicebox.data.Dataset;
+import juicebox.data.ExpectedValueFunction;
+import juicebox.data.HiCFileTools;
+import juicebox.data.Matrix;
+import juicebox.data.MatrixZoomData;
+import juicebox.data.NormalizationVector;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -45,11 +50,14 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -208,6 +216,19 @@ public class HiCCUPS extends JuicerCLT {
             printUsage();
             System.exit(1);
         }
+        // TODO: add code here to check for CUDA/GPU installation.  The below is not ideal.
+        /*
+        try {
+            jcuda.Pointer pointer = new jcuda.Pointer();
+            JCuda.cudaMalloc(pointer, 4);
+            JCuda.cudaFree(pointer);
+        }
+        catch (Exception e) {
+            System.err.println("GPU/CUDA Installation Not Detected");
+            System.err.println("Exiting HiCCUPS");
+            System.exit(1);
+        }
+        */
 
         inputHiCFileName = args[1];
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
@@ -340,7 +361,7 @@ public class HiCCUPS extends JuicerCLT {
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
-            System.exit(-9);
+            System.exit(1);
         }
 
 
@@ -527,14 +548,14 @@ public class HiCCUPS extends JuicerCLT {
      */
     private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
 
-        try {
-            configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
-            configurationsSetByUser = true;
-        } catch (Exception e) {
+        configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
+        if (configurations == null) {
             System.err.println("No configurations specified, using default settings");
             configurationsSetByUser = false;
         }
-
+        else {
+            configurationsSetByUser = true;
+        }
         try {
             List<String> t = juicerParser.getThresholdOptions();
             if (t.size() > 1) {
