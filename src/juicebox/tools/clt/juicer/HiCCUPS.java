@@ -90,7 +90,7 @@ import java.util.List;
  * <p/>
  * <fdrThresholds>: thresholds used in the HiCCUPS algorithm for the Bottom Left, Donut, Horizontal, and Vertical masks
  * <p/>
- * <enrichedPixelsList>: Final list of all enriched pixesl found by HiCCUPS. Can be visualized directly in Juicebox as
+ * <enrichedPixelsList>: Final list of all enriched pixels found by HiCCUPS. Can be visualized directly in Juicebox as
  * 2D annotations.
  * <p/>
  * <p/>
