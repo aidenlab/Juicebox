@@ -26,6 +26,7 @@ package juicebox.tools.utils.common;
 
 import org.apache.commons.math.distribution.PoissonDistributionImpl;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -207,5 +208,19 @@ public class ArrayTools {
             inverses[i] = 1. / array[i];
         }
         return inverses;
+    }
+
+    /**
+     * Print out a given vector in wig style format to the specified writer
+     * @param vector
+     * @param pw
+     * @param name
+     * @param res
+     */
+    public static void exportChr1DArrayToWigFormat(double[] vector, PrintWriter pw, String name, int res) {
+        pw.println("fixedStep chrom=chr" + name.replace("chr", "") + " start=1 step=" + res + " span=" + res);
+        for(double val : vector){
+            pw.println(val);
+        }
     }
 }
