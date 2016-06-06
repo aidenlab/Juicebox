@@ -50,7 +50,6 @@ public class ABCompartmentsDiff extends JuicerCLT {
 
     private List<Chromosome> chromosomes;
     private Dataset ds1, ds2;
-    private HiCZoom lowZoom = new HiCZoom(HiC.Unit.BP, 2500000);
     private HiCZoom highZoom = new HiCZoom(HiC.Unit.BP, 500000);
     private PrintWriter diffFileWriter, simFileWriter;
 
@@ -128,8 +127,9 @@ public class ABCompartmentsDiff extends JuicerCLT {
                 System.err.println("Using length " + n);
             }
 
-            // first get values at lower zoom to determine orientation (sign) of control
-            // relative to observed
+            // first determine orientation (sign) of control eigenvector relative to observed
+            // eigenvectors can be multiplied by any scalar and remain an eigenvector of the matrix
+            // default sign is arbitrary
             int scalarMultipleForControlEigenvector = 1;
             int numSimilarities = 0, numDifferences = 0;
             for (int i = 0; i < n; i++) {
@@ -152,6 +152,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
                 System.out.println("\nScalar " + scalarMultipleForControlEigenvector);
             }
 
+            // Now actually find the differences
             double[] differencesA2B = new double[n];
             double[] similaritiesA2B = new double[n];
             for (int i = 0; i < n; i++) {
