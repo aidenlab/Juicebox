@@ -29,12 +29,10 @@ import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.Feature2DTools;
-import oracle.jrockit.jfr.StringConstantPool;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
