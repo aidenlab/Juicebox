@@ -712,6 +712,10 @@ public class SuperAdapter {
         hic.setSelectedChromosomes(chrX, chrY);
         mainViewPanel.getRulerPanelX().setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
         mainViewPanel.getRulerPanelY().setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
+
+        mainViewPanel.getChromosomeFigPanelX().setContext(hic.getXContext(), HiCChromosomeFigPanel.Orientation.HORIZONTAL);
+        mainViewPanel.getChromosomeFigPanelY().setContext(hic.getYContext(), HiCChromosomeFigPanel.Orientation.VERTICAL);
+
         unsafeSetInitialZoom();
     }
 
@@ -733,5 +737,14 @@ public class SuperAdapter {
 
     public void toggleFeatureOpacity(boolean status) {
         hic.toggleFeatureOpacity(status);
+    }
+
+
+    public void toggleAxisLayOut(boolean status) {
+        mainViewPanel.switchToOnlyEndPtsLayOut(status);
+    }
+
+    public void showChromosomeFig(boolean status) {
+        mainViewPanel.showChromosomeFig(status);
     }
 }
