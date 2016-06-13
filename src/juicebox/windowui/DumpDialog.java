@@ -107,7 +107,7 @@ public class DumpDialog extends JFileChooser {
                     }
                 } else if (box.getSelectedItem().equals("Eigenvector")) {
                     int chrIdx = zd.getChr1Idx();
-                    double[] eigenvector = hic.getEigenvector(chrIdx, 0);
+                    double[] eigenvector = hic.getEigenvector(chrIdx, 0, false);
 
                     if (eigenvector != null) {
                         Dump.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);

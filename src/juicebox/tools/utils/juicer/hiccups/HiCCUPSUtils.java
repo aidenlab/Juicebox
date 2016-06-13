@@ -482,21 +482,16 @@ public class HiCCUPSUtils {
         if (valList == null) {
             return ArrayTools.preInitializeIntArray(defaultVal, n);
         } else {
-            // if < 0, just return whatever is extracted
-            // if > 0, then verify lengths match up (to ensure 1-to-1 correspondence of resolution with other params)
-            if (n < 0)
-                return ArrayTools.extractIntegers(valList);
-            else {
-                int[] result = ArrayTools.extractIntegers(valList);
-                if (result.length == n) {
-                    return result;
-                } else if (result.length == 1) {
-                    return ArrayTools.preInitializeIntArray(result[0], n);
-                } else {
-                    System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
-                    System.exit(-10);
-                }
+            int[] result = ArrayTools.extractIntegers(valList);
+            if (result.length == n) {
+                return result;
+            } else if (result.length == 1) {
+                return ArrayTools.preInitializeIntArray(result[0], n);
+            } else {
+                System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
+                System.exit(1);
             }
+
         }
         return new int[0];
     }

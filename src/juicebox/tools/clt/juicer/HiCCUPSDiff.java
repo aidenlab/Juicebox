@@ -36,6 +36,7 @@ import juicebox.track.feature.Feature2DTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -96,25 +97,74 @@ public class HiCCUPSDiff extends JuicerCLT {
         looplist1 = Feature2DParser.loadFeatures(args[3], chromosomes, true, null, false);
         looplist2 = Feature2DParser.loadFeatures(args[4], chromosomes, true, null, false);
 
-        if (Feature2DTools.isResolutionPresent(looplist1, 5000) && Feature2DTools.isResolutionPresent(looplist2, 5000)) {
-            resolutions="5000";
-        }
-        if (Feature2DTools.isResolutionPresent(looplist1, 10000) && Feature2DTools.isResolutionPresent(looplist2, 10000)) {
-            if (resolutions==null) {
-                resolutions="10000";
+        String hiccups1Cmd;
+        String hiccups2Cmd;
+        List<String> resOpts = juicerParser.getMultipleResolutionOptions();
+
+        if (resOpts == null) {
+            resOpts = new ArrayList<String>();
+            if (Feature2DTools.isResolutionPresent(looplist1, 5000) && Feature2DTools.isResolutionPresent(looplist2, 5000)) {
+                resOpts.add("5000");
             }
-            else resolutions+=",10000";
-        }
-        if (Feature2DTools.isResolutionPresent(looplist1, 25000) && Feature2DTools.isResolutionPresent(looplist2, 25000)) {
-            if (resolutions==null) {
-                resolutions="25000";
+            if (Feature2DTools.isResolutionPresent(looplist1, 10000) && Feature2DTools.isResolutionPresent(looplist2, 10000)) {
+                resOpts.add("10000");
             }
-            else resolutions+=",25000";
+            if (Feature2DTools.isResolutionPresent(looplist1, 25000) && Feature2DTools.isResolutionPresent(looplist2, 25000)) {
+                resOpts.add("25000");
+            }
+            if (resOpts.size() == 0) {
+                System.err.println("The loop lists have no resolutions in common.");
+                System.exit(1);
+            }
         }
-        if (resolutions==null) {
-            System.err.println("The loop lists have no resolutions in common.");
-            System.exit(1);
+        List<String> fdrOpts = juicerParser.getFDROptions();
+        List<String> pOpts = juicerParser.getPeakOptions();
+        List<String> iOpts = juicerParser.getWindowOptions();
+        List<String> dOpts = juicerParser.getClusterRadiusOptions();
+
+        if (fdrOpts == null) {
+            fdrOpts = new ArrayList<String>();
+            if (resOpts.contains("5000")) fdrOpts.add("0.1");
+            if (resOpts.contains("10000")) fdrOpts.add("0.1");
+            if (resOpts.contains("25000")) fdrOpts.add("0.1");
         }
+        if (pOpts == null) {
+            pOpts = new ArrayList<String>();
+            if (resOpts.contains("5000")) pOpts.add("4");
+            if (resOpts.contains("10000")) pOpts.add("2");
+            if (resOpts.contains("25000")) pOpts.add("1");
+        }
+        if (iOpts == null) {
+            iOpts = new ArrayList<String>();
+            if (resOpts.contains("5000")) iOpts.add("7");
+            if (resOpts.contains("10000")) iOpts.add("5");
+            if (resOpts.contains("25000")) iOpts.add("3");
+        }
+        if (dOpts == null) {
+            dOpts = new ArrayList<String>();
+            if (resOpts.contains("5000")) dOpts.add("20000");
+            if (resOpts.contains("10000")) dOpts.add("20000");
+            if (resOpts.contains("25000")) dOpts.add("50000");
+        }
+        resolutions = resOpts.toString().replace("[", "").replace("]", "")
+                    .replace(", ", ",");
+
+        hiccups1Cmd = "hiccups -m 1000 -r " + resOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -f " + fdrOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -p " + pOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -i " + iOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -d " + dOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",")
+                + " " + args[1] + " " + outputDirectory + File.separator + "file1 " + args[4];
+
+        hiccups2Cmd = "hiccups -m 1000 -r " + resOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -f " + fdrOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -p " + pOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -i " + iOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",") + " -d " + dOpts.toString().replace("[", "").replace("]", "")
+                .replace(", ", ",")
+                + " " + args[2] + " " + outputDirectory + File.separator + "file2 " + args[3];
+
 
         System.out.println("Running differential HiCCUPs with resolutions " + resolutions);
 
@@ -132,13 +182,7 @@ public class HiCCUPSDiff extends JuicerCLT {
                     "file1 and " + outputDirectory + File.separator + "file2");
         }
         else {
-
-            String hiccups1Cmd = "hiccups -m 1000 -r " + resolutions + " -f 0.1,0.1,0.1 -p 4,2,1 -i 7,5,3 -d 20000,20000,50000 "
-                    + args[1] + " " + outputDirectory + File.separator + "file1 " + args[4];
-            String hiccups2Cmd = "hiccups -m 1000 -r " + resolutions + " -f 0.1,0.1,0.1 -p 4,2,1 -i 7,5,3 -d 20000,20000,50000 "
-                    + args[2] + " " + outputDirectory + File.separator + "file2 " + args[3];
-
-
+            System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
             try {
@@ -159,7 +203,6 @@ public class HiCCUPSDiff extends JuicerCLT {
             catch (CmdLineParser.IllegalOptionValueException error) {
                 // we construct the command so this shouldn't happen
             }
-            System.out.println("Running HiCCUPS with alternate loop lists");
         }
     }
 

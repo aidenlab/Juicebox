@@ -61,7 +61,7 @@ public class MainMenuBar {
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
     private static JMenuItem loadLastMI;
-    private static RecentMenu recentMapMenu;
+    private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
     private static JMenuItem saveStateForReload;
@@ -96,6 +96,7 @@ public class MainMenuBar {
 
     public void addRecentMapMenuEntry(String title, boolean status) {
         recentMapMenu.addEntry(title, status);
+        recentControlMapMenu.addEntry(title, status);
     }
 
     public void addRecentStateMenuEntry(String title, boolean status) {
@@ -133,7 +134,7 @@ public class MainMenuBar {
         //---- openMenuItem ----
 
         // create control first because it is enabled by regular open
-        loadControlFromList.setText("Open Control...");
+        loadControlFromList.setText("Open as Control...");
         loadControlFromList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.loadFromListActionPerformed(true);
@@ -164,8 +165,23 @@ public class MainMenuBar {
         };
         recentMapMenu.setMnemonic('R');
 
-
         fileMenu.add(recentMapMenu);
+
+        recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP, false) {
+
+            private static final long serialVersionUID = 42012L;
+
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                //initProperties();         // don't know why we're doing this here
+                superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
+            }
+        };
+        //recentControlMapMenu.setMnemonic('r');
+        recentControlMapMenu.setEnabled(false);
+        fileMenu.add(recentControlMapMenu);
         fileMenu.addSeparator();
 
         JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
@@ -696,5 +712,6 @@ public class MainMenuBar {
 
     public void setContolMapLoadableEnabled(boolean status) {
         loadControlFromList.setEnabled(status);
+        recentControlMapMenu.setEnabled(status);
     }
 }

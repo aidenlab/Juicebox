@@ -50,7 +50,8 @@ public class CLTFactory {
             "pre", "pre <options> <infile> <outfile> <genomeID>",
             "apa", "apa <HiC file(s)> <PeaksFile> <SaveFolder>",
             "arrowhead", "arrowhead <HiC file(s)> <outfile>",
-            "hiccups", "hiccups <HiC file(s)> <fdrThresholds> <enrichedPixelsList>"
+            "hiccups", "hiccups <HiC file(s)> <finalLoopsList>",
+            "hiccupsdiff", "hiccupsdiff <HiC file1> <HiC file2> <peak list1> <peak list2> <output directory>"
     };
 
     public static void generalUsage() {
@@ -105,6 +106,8 @@ public class CLTFactory {
             return new SQLDatabase();
         } else if (cmd.equals("hiccupsdiff")) {
             return new HiCCUPSDiff();
+        } else if (cmd.equals("ab_compdiff")) {
+            return new ABCompartmentsDiff();
         }
 
 
