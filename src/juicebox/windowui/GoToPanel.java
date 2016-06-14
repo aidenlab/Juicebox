@@ -102,6 +102,26 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         setMaximumSize(new Dimension(200, 70));
     }
 
+    public JideButton getGoButton() {
+        return goButton;
+    }
+
+    public JTextField getPositionChrTop() {
+        return positionChrTop;
+    }
+
+    public void setPositionChrTop(String newPositionDate) {
+        positionChrTop.setText(newPositionDate);
+    }
+
+    public JTextField getPositionChrLeft() {
+        return positionChrLeft;
+    }
+
+    public void setPositionChrLeft(String newPositionDate) {
+        positionChrLeft.setText(newPositionDate);
+    }
+
     private JTextField initializeGoToTextField() {
         JTextField textField = new JTextField();
         textField.setFont(new Font("Arial", Font.ITALIC, 10));
@@ -128,14 +148,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             positionChrTop.setText(positionChrLeft.getText());
         }
         parsePositionText();
-    }
-
-    public void setPositionChrLeft(String newPositionDate) {
-        positionChrLeft.setText(newPositionDate);
-    }
-
-    public void setPositionChrTop(String newPositionDate) {
-        positionChrTop.setText(newPositionDate);
     }
 
     private void parsePositionText() {

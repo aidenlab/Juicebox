@@ -24,6 +24,7 @@
 
 package juicebox.gui;
 
+import juicebox.HiC;
 import juicebox.MainWindow;
 import org.broad.igv.feature.Chromosome;
 import org.fest.swing.core.BasicRobot;
@@ -34,11 +35,14 @@ import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static java.awt.Toolkit.getDefaultToolkit;
 import static org.junit.Assert.*;
 
 /**
@@ -55,7 +59,7 @@ public class MainViewPanelTest {
      * Open the application ready to be tested
      */
     @BeforeClass
-    public static synchronized void setUp() throws InterruptedException {
+    public static void setUp() throws InterruptedException {
         try {
             // start the GUI application
             MainWindow.main(new String[1]);
@@ -96,7 +100,7 @@ public class MainViewPanelTest {
     /**
      * Reset the view panel to All by All
      */
-    public synchronized void resetToAllByAll() throws InterruptedException {
+    public void setToChromosomesByIndex(int i1, int i2) throws InterruptedException {
         // test whether "All" and "All" are in the combo boxes
         MainViewPanel mvp = superAdapter.getMainViewPanel();
         assertNotNull(mvp);
@@ -106,8 +110,8 @@ public class MainViewPanelTest {
         assertNotNull(chr1Box);
         assertNotNull(chr2Box);
 
-        chr1Box.setSelectedIndex(0);
-        chr2Box.setSelectedIndex(0);
+        chr1Box.setSelectedIndex(i1);
+        chr2Box.setSelectedIndex(i2);
         superAdapter.safeRefreshButtonActionPerformed();
 
         while (!threadQueue.isEmpty()) {
@@ -120,9 +124,6 @@ public class MainViewPanelTest {
         assertNotNull(chr1.getName());
         assertNotNull(chr2.getName());
 
-
-        assertEquals("View is not All by All", "All", chr1.getName());
-        assertEquals("View is not All by All", "All", chr2.getName());
     }
 
     /**
@@ -131,7 +132,7 @@ public class MainViewPanelTest {
      * @throws AWTException
      */
     @Test
-    public synchronized void isWholeGenomeTest() throws AWTException, InterruptedException {
+    public void isWholeGenomeTest() throws AWTException, InterruptedException {
 
         Robot robot = BasicRobot.robotWithNewAwtHierarchy();
 
@@ -162,12 +163,12 @@ public class MainViewPanelTest {
     }
 
     @Test
-    public synchronized void normalizationFieldTest() {
+    public void normalizationFieldTest() throws InterruptedException {
         Robot robot = BasicRobot.robotWithNewAwtHierarchy();
 
         // first, let's check whether All by All disables normalization field correctly
         try {
-            resetToAllByAll();
+            setToChromosomesByIndex(0, 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -175,8 +176,62 @@ public class MainViewPanelTest {
         // must be NOT enabled
         assertFalse(superAdapter.getMainViewPanel().getNormalizationComboBox().isEnabled());
 
-        // now, let's change the view to chr1 by chr1
 
+        try {
+            setToChromosomesByIndex(1, 1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        MainViewPanel mvp = superAdapter.getMainViewPanel();
+        assertNotNull(mvp);
+
+        JComboBox<Chromosome> chr1Box = mvp.getChrBox1();
+        JComboBox<Chromosome> chr2Box = mvp.getChrBox2();
+        assertNotNull(chr1Box);
+        assertNotNull(chr2Box);
+
+        Chromosome chr1 = (Chromosome) chr1Box.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chr2Box.getSelectedItem();
+
+        assertNotNull(chr1.getName());
+        assertNotNull(chr2.getName());
+
+        assertEquals("View is not chr1 by chr1", "1", chr1.getName());
+        assertEquals("View is not chr1 by chr1", "1", chr2.getName());
+
+        // must be enabled
+        assertTrue(superAdapter.getMainViewPanel().getNormalizationComboBox().isEnabled());
+
+
+        /* Check issue #334: Goto */
+        try {
+            setToChromosomesByIndex(0, 0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        robot.moveMouse(mvp.getHeatmapPanel());
+        robot.rightClick(mvp.getHeatmapPanel());
+
+        // set the Goto x and y boxes
+        HiC hic = superAdapter.getHiC();
+        StringSelection stringSelection = new StringSelection(hic.getXPosition());
+        superAdapter.setPositionChrTop(hic.getXPosition().concat(":").concat(String.valueOf(hic.getXContext().getZoom().getBinSize())));
+        superAdapter.setPositionChrLeft(hic.getYPosition().concat(":").concat(String.valueOf(hic.getYContext().getZoom().getBinSize())));
+        Clipboard clpbrd = getDefaultToolkit().getSystemClipboard();
+        clpbrd.setContents(stringSelection, null);
+
+        assertTrue(mvp.getGoPanel().isEnabled());
+        
+        // click the go button
+        mvp.getGoPanel().getGoButton().doClick();
+        while (!threadQueue.isEmpty()) {
+            threadQueue.poll().join();
+        }
+
+        // check that the normalization field is enabled
+        assertTrue(mvp.getNormalizationComboBox().isEnabled());
 
         robot.cleanUpWithoutDisposingWindows();
     }

@@ -56,7 +56,6 @@ public class MainViewPanel {
     public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
     public static final List<Float> preDefMapColorFractions = new ArrayList<Float>();
     public static boolean preDefMapColor = false;
-    public static JMenuBar menuBar;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
     private static JideButton refreshButton;
@@ -74,8 +73,14 @@ public class MainViewPanel {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
     private static JPanel hiCPanel;
+    public JMenuBar menuBar;
+    public JPanel bigPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
+
+    public GoToPanel getGoPanel() {
+        return goPanel;
+    }
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -102,7 +107,7 @@ public class MainViewPanel {
         toolbarPanel.setLayout(new GridBagLayout());
         mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        JPanel bigPanel = new JPanel();
+        bigPanel = new JPanel();
         bigPanel.setLayout(new BorderLayout());
         bigPanel.setBackground(Color.white);
 
