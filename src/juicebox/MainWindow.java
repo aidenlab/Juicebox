@@ -202,6 +202,24 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
+    /**
+     * HiC getter for testing purposes
+     *
+     * @return HiC
+     */
+    public HiC getHiC() {
+        return this.hic;
+    }
+
+    /**
+     * SuperAdapter getter for testing purposes
+     *
+     * @return SuperAdapter
+     */
+    public SuperAdapter getSuperAdapter() {
+        return superAdapter;
+    }
+
     private void showDisabledGlassPane(String caller) {
         disabledGlassPane.activate("Loading...");
         if (HiCGlobals.printVerboseComments) {
