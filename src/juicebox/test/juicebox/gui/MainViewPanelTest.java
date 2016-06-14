@@ -212,7 +212,7 @@ public class MainViewPanelTest {
         }
 
         robot.moveMouse(mvp.getHeatmapPanel());
-        robot.rightClick(mvp.getHeatmapPanel());
+        robot.click(mvp.getHeatmapPanel());
 
         // set the Goto x and y boxes
         HiC hic = superAdapter.getHiC();
@@ -223,7 +223,7 @@ public class MainViewPanelTest {
         clpbrd.setContents(stringSelection, null);
 
         assertTrue(mvp.getGoPanel().isEnabled());
-        
+
         // click the go button
         mvp.getGoPanel().getGoButton().doClick();
         while (!threadQueue.isEmpty()) {

@@ -197,11 +197,37 @@ public class MainWindow extends JFrame {
             }
         };
 
-        Thread thread = new Thread(runnable);
+        Callable<Object> fakeWrapper = new Callable<Object>() {
+            public Object call() throws Exception {
+                MainWindow.this.showDisabledGlassPane(caller);
+                try {
+                    return "done";
+                } catch (Exception error) {
+                    error.printStackTrace();
+                    return "error";
+                }
+            }
+        };
+
+        Runnable runner = new Runnable() {
+            public void run() {
+                MainWindow.this.showDisabledGlassPane(caller);
+                try {
+                    runnable.run();
+                } catch (Exception error) {
+                    error.printStackTrace();
+                } finally {
+                    MainWindow.this.hideDisabledGlassPane(caller);
+                }
+            }
+        };
+
+        Thread thread = new Thread(runner);
         thread.start();
         // testing purposes, comment out when not testing--NOT SECURE!
         threadQueue.add(thread);
-        return threadExecutor.submit(wrapper);
+        return threadExecutor.submit(fakeWrapper);
+//        return threadExecutor.submit(wrapper);
     }
 
     /**
