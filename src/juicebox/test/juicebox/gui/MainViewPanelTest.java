@@ -162,6 +162,11 @@ public class MainViewPanelTest {
         robot.cleanUpWithoutDisposingWindows();
     }
 
+    /**
+     * Test if the normalization field is being enabled and disabled correctly
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void normalizationFieldTest() throws InterruptedException {
         Robot robot = BasicRobot.robotWithNewAwtHierarchy();
@@ -212,7 +217,8 @@ public class MainViewPanelTest {
         }
 
         robot.moveMouse(mvp.getHeatmapPanel());
-        robot.click(mvp.getHeatmapPanel());
+        robot.click(mvp.getHeatmapPanel(), new Point(100, 100));
+        Thread.sleep(2000);
 
         // set the Goto x and y boxes
         HiC hic = superAdapter.getHiC();
@@ -233,13 +239,22 @@ public class MainViewPanelTest {
         // check that the normalization field is enabled
         assertTrue(mvp.getNormalizationComboBox().isEnabled());
 
-        robot.cleanUpWithoutDisposingWindows();
-    }
+        /* Check issue #376: isWholeGenome checking just the names not the state */
+        // right now we're zoomed in
+        // choose All by All
+        chr1Box.setSelectedIndex(0);
+        chr2Box.setSelectedIndex(1);
+        while (!threadQueue.isEmpty()) {
+            threadQueue.poll().join();
+        }
+        // click on the go button
+        mvp.getGoPanel().getGoButton().doClick();
+        while (!threadQueue.isEmpty()) {
+            threadQueue.poll().join();
+        }
 
-
-    @Test
-    public void template() {
-        Robot robot = BasicRobot.robotWithNewAwtHierarchy();
+        // normalization field must be enabled
+        assertTrue(mvp.getNormalizationComboBox().isEnabled());
 
         robot.cleanUpWithoutDisposingWindows();
     }
