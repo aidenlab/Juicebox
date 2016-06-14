@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.juicer.apa;
 
+import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 import org.tc33.jheatchart.HeatChart;
 
@@ -74,7 +75,37 @@ class APAPlotter {
     public static void plot(RealMatrix data,
                             int[] axesRange,
                             File outputFile,
-                            String title, int currentRegionWidth) {
+                            String title, int currentRegionWidth,
+                            boolean userDefinedColorScale, double colorMin, double colorMax) {
+
+        // As noted in the Cell supplement:
+        // "The color scale in all APA plots is set as follows.
+        // The minimum of the color range is 0. The maximum is 5 x UR, where
+        // UR is the mean value of the bins in the upper-right corner of the matrix.
+        // The upper-right corner of the 10 kb resolution APA
+        // plots is a 6 x 6 window (or 3 x 3 for 5 kb resolution APA plots)."
+        // TODO
+
+        Color lowColor;
+        Color highColor;
+        if (userDefinedColorScale) {
+            double dataMin = MatrixTools.calculateMin(data);
+            double dataMax = MatrixTools.calculateMax(data);
+            if (dataMax > colorMax) {
+                dataMax = colorMax;
+            }
+            if (dataMin < colorMin) {
+                dataMin = colorMin;
+            }
+            MatrixTools.thresholdValuesDouble(data, colorMin, colorMax);
+            int lowColorGB = (int) (255 - dataMin / colorMax * 255);
+            int highColorGB = (int) (255 - dataMax / colorMax * 255);
+            lowColor = new Color(255, lowColorGB, lowColorGB);
+            highColor = new Color(255, highColorGB, highColorGB);
+        } else {
+            lowColor = Color.white;
+            highColor = Color.red;
+        }
 
         APARegionStatistics apaStats = new APARegionStatistics(data, currentRegionWidth);
         DecimalFormat df = new DecimalFormat("0.000");
@@ -86,15 +117,8 @@ class APAPlotter {
         map.setYValues(axesRange[2], axesRange[3]);
         map.setTitle(title);
 
-        // As noted in the Cell supplement:
-        // "The color scale in all APA plots is set as follows.
-        // The minimum of the color range is 0. The maximum is 5 x UR, where
-        // UR is the mean value of the bins in the upper-right corner of the matrix.
-        // The upper-right corner of the 10 kb resolution APA
-        // plots is a 6 x 6 window (or 3 x 3 for 5 kb resolution APA plots)."
-        // TODO
-        map.setLowValueColour(Color.WHITE);
-        map.setHighValueColour(Color.RED);
+        map.setLowValueColour(lowColor);
+        map.setHighValueColour(highColor);
 
         try {
             // calculate dimensions for plot wrapper
@@ -111,8 +135,12 @@ class APAPlotter {
             g2.drawImage(map.getChartImage(), 0, 0, heatmapWidth, fullHeight, null);
             drawHeatMapBorder(g2, map);
             plotColorScaleBar(g2);
-            plotColorScaleValues(g2, map);
 
+            if (userDefinedColorScale) {
+                plotSpecialColorScaleValues(g2, map, colorMin, colorMax);
+            } else {
+                plotColorScaleValues(g2, map);
+            }
 
             // top left, top right, bottom left, bottom right values (from apa)
 
@@ -210,13 +238,42 @@ class APAPlotter {
         g2.setFont(heatMap.getAxisValuesFont());
         DecimalFormat df = new DecimalFormat("0.#");
 
-
         // draw each tick mark and its value
         for (double i = heatMap.getLowValue();
              i <= heatMap.getHighValue();
              i += valIncrement, verticalDepth -= depthIncrement) {
 
             if (i > heatMap.getHighValue() - epsilon)
+                verticalDepth = colorScaleVerticalMargin;
+            g2.drawString(df.format(i), csBarRightEdgeX + 5, verticalDepth); // value
+            g2.drawLine(csBarRightEdgeX - 5, verticalDepth, csBarRightEdgeX, verticalDepth); // tick mark
+        }
+    }
+
+    /**
+     * Plot number value axis for color scale bar.
+     *
+     * @param g2      graphics2D object
+     * @param heatMap object
+     */
+    private static void plotSpecialColorScaleValues(Graphics2D g2, HeatChart heatMap, double minColor, double maxColor) {
+        // size, increment calculations
+        double valIncrement = Math.max((maxColor - minColor) / ((double) numDivisions), epsilon);
+        double depthIncrement = ((double) (fullHeight - 2 * colorScaleVerticalMargin)) / ((double) numDivisions);
+        int verticalDepth = fullHeight - colorScaleVerticalMargin;
+        int csBarRightEdgeX = fullWidth - colorScaleHorizontalMargin - extraWidthBuffer;
+
+        // formatting
+        g2.setFont(heatMap.getAxisValuesFont());
+        DecimalFormat df = new DecimalFormat("0.#");
+
+
+        // draw each tick mark and its value
+        for (double i = minColor;
+             i <= maxColor;
+             i += valIncrement, verticalDepth -= depthIncrement) {
+
+            if (i > maxColor - epsilon)
                 verticalDepth = colorScaleVerticalMargin;
             g2.drawString(df.format(i), csBarRightEdgeX + 5, verticalDepth); // value
             g2.drawLine(csBarRightEdgeX - 5, verticalDepth, csBarRightEdgeX, verticalDepth); // tick mark
