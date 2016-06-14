@@ -461,6 +461,7 @@ public class SuperAdapter {
             }
         };
         mainWindow.executeLongRunningTask(runnable, "MainWindow safe load");
+
     }
 
     public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title, boolean restore) {
