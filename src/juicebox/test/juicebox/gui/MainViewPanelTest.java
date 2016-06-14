@@ -25,16 +25,19 @@
 package juicebox.gui;
 
 import juicebox.MainWindow;
+import org.broad.igv.feature.Chromosome;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -51,16 +54,15 @@ public class MainViewPanelTest {
      * Open the application ready to be tested
      */
     @Before
-    public void setup() {
+    public void setup() throws InterruptedException {
         try {
             // start the GUI application
             MainWindow.main(new String[1]);
 
             mainWindow = (MainWindow) Window.getWindows()[0];
             superAdapter = mainWindow.getSuperAdapter();
-            // need to wait for the runnable to finish
             superAdapter.safeLoad(Arrays.asList(testURL), false, "test");
-
+            mainWindow.getThreadExecutor().awaitTermination(20, TimeUnit.SECONDS);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -68,7 +70,12 @@ public class MainViewPanelTest {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            mainWindow.getThreadExecutor().shutdown();
+            mainWindow.getThreadExecutor().awaitTermination(20, TimeUnit.SECONDS);
+            assertTrue(mainWindow.getThreadExecutor().isTerminated());
         }
+
     }
 
     /**
@@ -97,8 +104,23 @@ public class MainViewPanelTest {
         robot.focus(mainWindow);
         assertNotNull(mainWindow.getHiC());
 
-        assertEquals("All", superAdapter.getMainViewPanel().getChrBox1().getName());
-        assertEquals("All", superAdapter.getMainViewPanel().getChrBox2().getName());
+        // test whether "All" and "All" are in the combo boxes
+        MainViewPanel mvp = superAdapter.getMainViewPanel();
+        assertNotNull(mvp);
+
+        JComboBox<Chromosome> chr1Box = mvp.getChrBox1();
+        JComboBox<Chromosome> chr2Box = mvp.getChrBox2();
+        assertNotNull(chr1Box);
+        assertNotNull(chr2Box);
+
+        Chromosome chr1 = (Chromosome) chr1Box.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chr2Box.getSelectedItem();
+
+        assertNotNull(chr1.getName());
+        assertNotNull(chr2.getName());
+
+        assertEquals("Initial view is not All by All", "All", chr1.getName());
+        assertEquals("Initial view is not All by All", "All", chr2.getName());
 //        assertEquals("Initial view is not All by All", "All", tmp.getText());
         robot.cleanUpWithoutDisposingWindows();
     }

@@ -241,6 +241,10 @@ public class MainWindow extends JFrame {
     public void updateNamesFromImport(String path) {
         superAdapter.updatePrevStateNameFromImport(path);
     }
+
+    public ExecutorService getThreadExecutor() {
+        return threadExecutor;
+    }
 }
 
 
