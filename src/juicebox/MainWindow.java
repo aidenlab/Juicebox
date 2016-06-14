@@ -41,13 +41,11 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class MainWindow extends JFrame {
 
+    public static final ConcurrentLinkedQueue<Thread> threadQueue = new ConcurrentLinkedQueue();
     private static final long serialVersionUID = -3654174199024388185L;
     private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
@@ -199,6 +197,10 @@ public class MainWindow extends JFrame {
             }
         };
 
+        Thread thread = new Thread(runnable);
+        thread.start();
+        // testing purposes, comment out when not testing--NOT SECURE!
+        threadQueue.add(thread);
         return threadExecutor.submit(wrapper);
     }
 

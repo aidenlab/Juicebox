@@ -28,8 +28,8 @@ import juicebox.MainWindow;
 import org.broad.igv.feature.Chromosome;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -37,7 +37,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.junit.Assert.*;
 
@@ -47,22 +47,28 @@ import static org.junit.Assert.*;
 public class MainViewPanelTest {
 
     private final static String testURL = "https://hicfiles.s3.amazonaws.com/hiseq/hela/in-situ/combined.hic";
+    public static ConcurrentLinkedQueue<Thread> threadQueue;
     private static MainWindow mainWindow;
     private static SuperAdapter superAdapter;
 
     /**
      * Open the application ready to be tested
      */
-    @Before
-    public void setup() throws InterruptedException {
+    @BeforeClass
+    public static synchronized void setUp() throws InterruptedException {
         try {
             // start the GUI application
             MainWindow.main(new String[1]);
 
             mainWindow = (MainWindow) Window.getWindows()[0];
             superAdapter = mainWindow.getSuperAdapter();
+            threadQueue = MainWindow.threadQueue;
             superAdapter.safeLoad(Arrays.asList(testURL), false, "test");
-            mainWindow.getThreadExecutor().awaitTermination(20, TimeUnit.SECONDS);
+            // hopefully this allows all threads to be registered
+            while (!threadQueue.isEmpty()) {
+                Thread t = threadQueue.poll();
+                t.join();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,9 +77,7 @@ public class MainViewPanelTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            mainWindow.getThreadExecutor().shutdown();
-            mainWindow.getThreadExecutor().awaitTermination(20, TimeUnit.SECONDS);
-            assertTrue(mainWindow.getThreadExecutor().isTerminated());
+            assertTrue(threadQueue.isEmpty());
         }
 
     }
@@ -83,10 +87,42 @@ public class MainViewPanelTest {
      *
      * @throws AWTException
      */
-    @After
-    public void cleanup() throws AWTException {
+    @AfterClass
+    public static void tearDown() throws AWTException {
         Robot robot = BasicRobot.robotWithNewAwtHierarchy();
         robot.cleanUp();
+    }
+
+    /**
+     * Reset the view panel to All by All
+     */
+    public synchronized void resetToAllByAll() throws InterruptedException {
+        // test whether "All" and "All" are in the combo boxes
+        MainViewPanel mvp = superAdapter.getMainViewPanel();
+        assertNotNull(mvp);
+
+        JComboBox<Chromosome> chr1Box = mvp.getChrBox1();
+        JComboBox<Chromosome> chr2Box = mvp.getChrBox2();
+        assertNotNull(chr1Box);
+        assertNotNull(chr2Box);
+
+        chr1Box.setSelectedIndex(0);
+        chr2Box.setSelectedIndex(0);
+        superAdapter.safeRefreshButtonActionPerformed();
+
+        while (!threadQueue.isEmpty()) {
+            threadQueue.poll().join();
+        }
+
+        Chromosome chr1 = (Chromosome) chr1Box.getSelectedItem();
+        Chromosome chr2 = (Chromosome) chr2Box.getSelectedItem();
+
+        assertNotNull(chr1.getName());
+        assertNotNull(chr2.getName());
+
+
+        assertEquals("View is not All by All", "All", chr1.getName());
+        assertEquals("View is not All by All", "All", chr2.getName());
     }
 
     /**
@@ -95,7 +131,7 @@ public class MainViewPanelTest {
      * @throws AWTException
      */
     @Test
-    public void isWholeGenomeTest() throws AWTException, InterruptedException {
+    public synchronized void isWholeGenomeTest() throws AWTException, InterruptedException {
 
         Robot robot = BasicRobot.robotWithNewAwtHierarchy();
 
@@ -122,6 +158,34 @@ public class MainViewPanelTest {
         assertEquals("Initial view is not All by All", "All", chr1.getName());
         assertEquals("Initial view is not All by All", "All", chr2.getName());
 //        assertEquals("Initial view is not All by All", "All", tmp.getText());
+        robot.cleanUpWithoutDisposingWindows();
+    }
+
+    @Test
+    public synchronized void normalizationFieldTest() {
+        Robot robot = BasicRobot.robotWithNewAwtHierarchy();
+
+        // first, let's check whether All by All disables normalization field correctly
+        try {
+            resetToAllByAll();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // must be NOT enabled
+        assertFalse(superAdapter.getMainViewPanel().getNormalizationComboBox().isEnabled());
+
+        // now, let's change the view to chr1 by chr1
+
+
+        robot.cleanUpWithoutDisposingWindows();
+    }
+
+
+    @Test
+    public void template() {
+        Robot robot = BasicRobot.robotWithNewAwtHierarchy();
+
         robot.cleanUpWithoutDisposingWindows();
     }
 
