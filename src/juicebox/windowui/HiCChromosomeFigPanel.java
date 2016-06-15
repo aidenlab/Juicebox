@@ -217,9 +217,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (chromosome.getName().equals("All")) {
-
-            } else {
+            if (!chromosome.getName().equals("All")) {
                 //Draw Chromosome Name
                 String rangeString = chromosome.getName();
 

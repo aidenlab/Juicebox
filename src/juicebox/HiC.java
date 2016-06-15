@@ -373,16 +373,8 @@ public class HiC {
         return controlDataset != null;
     }
 
-    public boolean isContextNull() {
-        return xContext == null || yContext == null;
-    }
-
     public boolean isWholeGenome() {
         return xContext != null && xContext.getChromosome().getName().equals("All");
-    }
-
-    public boolean isInterChromosomal() {
-        return xContext != null && yContext != null && (xContext.getChromosome().getName() != yContext.getChromosome().getName());
     }
 
     public java.util.List<Chromosome> getChromosomes() {

@@ -172,9 +172,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (chromosome.getName().equals("All")) {
-
-            } else {
+            if (!chromosome.getName().equals("All")) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
