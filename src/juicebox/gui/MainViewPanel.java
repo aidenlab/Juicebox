@@ -554,6 +554,12 @@ public class MainViewPanel {
         return chr1.getName().equals("All") || chr2.getName().equals("All");
     }
 
+    private boolean isWholeGenome(HiC hic) {
+        Chromosome chr1 = hic.getXContext().getChromosome();
+        Chromosome chr2 = hic.getYContext().getChromosome();
+        return chr1.getName().equals("All") || chr2.getName().equals("All");
+    }
+
     public void setNormalizationDisplayState(HiC hic) {
 
         // Test for new dataset ("All"),  or change in chromosome
@@ -568,7 +574,7 @@ public class MainViewPanel {
             }
         }
 
-        normalizationComboBox.setEnabled(!isWholeGenome());
+        normalizationComboBox.setEnabled(!isWholeGenome(hic));
         displayOptionComboBox.setEnabled(true);
     }
 
