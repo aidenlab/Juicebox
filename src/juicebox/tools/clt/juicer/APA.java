@@ -123,14 +123,14 @@ public class APA extends JuicerCLT {
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
     private int[] resolutions = new int[]{10000, 5000};
-    private int[] regionWidths = null;
+    private int[] regionWidths = new int[]{6, 3};
 
     /**
      * Usage for APA
      */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
-                " [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder>");
+                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] <HiC file(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false;
     }
 

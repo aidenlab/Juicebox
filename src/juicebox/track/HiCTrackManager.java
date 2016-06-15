@@ -27,6 +27,7 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
@@ -132,16 +133,22 @@ public class HiCTrackManager {
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
-        if (!extension.equals(".gz")) {
-            locator.setType(extension);
-
-        } else {
+        if (extension.equals(".gz")) {
             // setting type to be the extension before the .gz
             int index2 = path.substring(0, index).lastIndexOf('.');
             String str = path.substring(0, index).substring(index2);
             // special exception for refGene.txt.gz
             if (!str.equals(".txt")) {
                 locator.setType(str);
+            }
+        } else {
+            if (extension.equals(".txt")) {
+                MessageUtils.showMessage(Level.INFO, ".txt files are not a currently supported 1D track. " +
+                        "If you are trying to use refGene, make sure it is in the .txt.gz format. " +
+                        "If you are trying to load 2D annotations (loops/domains), use \"Add 2D...\"");
+                return;
+            } else {
+                locator.setType(extension);
             }
         }
 
@@ -313,9 +320,7 @@ public class HiCTrackManager {
      * @param newTracks
      */
     private void loadTribbleFile(ResourceLocator locator, List<HiCTrack> newTracks, Genome genome) throws IOException, TribbleIndexNotFoundException {
-
         String typeString = locator.getTypeString();
-
 
         TribbleFeatureSource tribbleFeatureSource = TribbleFeatureSource.getFeatureSource(locator, genome);
         FeatureSource<?> src = GFFFeatureSource.isGFF(locator.getPath()) ?

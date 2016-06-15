@@ -737,6 +737,8 @@ public class HiC {
         //String chr2OriginalName = yContext.getChromosome().getName();
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
+            //We might end with All->All view, make sure normalization state is updates accordingly...
+            superAdapter.getMainViewPanel().setNormalizationDisplayState(superAdapter.getHiC());
         }
 
         if (newZoom == null) {

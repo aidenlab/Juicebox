@@ -236,8 +236,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, Math.max(topChrPositions[2], 0),
                 Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto", true);
 
-        //We might end with All->All view, make sure normalization state is updates accordingly...
-        superAdapter.setNormalizationDisplayState();
     }
 
     private int[] extractResolutionParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) {

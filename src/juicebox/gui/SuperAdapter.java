@@ -467,20 +467,24 @@ public class SuperAdapter {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
+        ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
-            ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
             mainViewPanel.getDisplayOptionComboBox().removeActionListener(l);
             unsafeLoad(files, control, restore);
             //mainViewPanel.updateThumbnail(hic);
             refresh();
             updateTitle(control, title);
-            mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
+
         } catch (IOException e) {
+            // TODO somehow still have trouble reloading the previous file
             log.error("Error loading hic file", e);
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
             if (!control) hic.reset();
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);
+        }
+        finally {
+            mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
         }
     }
 
