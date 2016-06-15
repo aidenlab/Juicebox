@@ -570,7 +570,7 @@ public class MainViewPanel {
             }
         }
 
-        normalizationComboBox.setEnabled(!isWholeGenome());
+        normalizationComboBox.setEnabled(!isWholeGenome(hic));
         displayOptionComboBox.setEnabled(true);
     }
 
