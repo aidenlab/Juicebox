@@ -507,9 +507,10 @@ public class MainViewPanel {
         Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
 
-        setNormalizationDisplayState(superAdapter.getHiC());
 
         superAdapter.unsafeUpdateHiCChromosomes(chrX, chrY);
+        setNormalizationDisplayState(superAdapter.getHiC());
+
 
         updateThumbnail(superAdapter.getHiC());
     }
