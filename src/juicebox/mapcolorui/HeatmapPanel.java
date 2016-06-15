@@ -49,10 +49,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
@@ -1078,6 +1075,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
         private Point lastMousePoint;
 
         @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            int scroll = e.getWheelRotation();
+            int dxBP;
+            int dyBP;
+            dxBP = scroll;
+            dyBP = scroll;
+            superAdapter.moveMapBy(dxBP, dyBP);
+        }
+
+        @Override
         public void mouseEntered(MouseEvent e) {
             if (straightEdgeEnabled) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -1539,5 +1546,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 repaint();
             }
         }
+
+
     }
 }

@@ -893,14 +893,8 @@ public class MainViewPanel {
     }
 
     public void switchToOnlyEndPtsLayOut(boolean status) {
-        if (status) {
-            rulerPanelX.showOnlyEndPts(true);
-            rulerPanelY.showOnlyEndPts(true);
-            //repaint
-        } else {
-            rulerPanelX.showOnlyEndPts(false);
-            rulerPanelY.showOnlyEndPts(false);
-        }
+        rulerPanelX.showOnlyEndPts(status);
+        rulerPanelY.showOnlyEndPts(status);
     }
 
 

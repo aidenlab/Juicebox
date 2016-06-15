@@ -48,7 +48,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
-    private static boolean toggleAxisLayOut = false;
+    private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = false;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
@@ -69,7 +69,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static String formatNumber(double position) {
 
-        if (toggleAxisLayOut) {
+        if (showOnlyEndPts) {
             //Export Version
             NumberFormat df = NumberFormat.getInstance();
             df.setMinimumFractionDigits(2);
@@ -115,7 +115,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     }
 
     public void showOnlyEndPts(boolean toggled) {
-        toggleAxisLayOut = toggled;
+        showOnlyEndPts = toggled;
     }
 
     public void showChromosomeFigure(boolean toggled) {
@@ -195,7 +195,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     g.drawString(rangeString, strPosition, vPos);
                 }
 
-                if (toggleAxisLayOut) {
+                if (showOnlyEndPts) {
                     MatrixZoomData zd;
                     try {
                         zd = hic.getZd();
@@ -308,7 +308,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         // Non export Version
 
         else {
-            if (!toggleAxisLayOut) {
+            if (!showOnlyEndPts) {
                 try {
                     HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
