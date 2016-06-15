@@ -73,6 +73,11 @@ public class MainViewPanel {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
     private static JPanel hiCPanel;
+    private static HiCChromosomeFigPanel chromosomePanelX;
+    private static HiCChromosomeFigPanel chromosomePanelY;
+    private static JPanel bottomChromosomeFigPanel;
+    private static JPanel chrSidePanel;
+    private static JPanel chrSidePanel3;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
 
@@ -283,27 +288,31 @@ public class MainViewPanel {
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.green);
+        topPanel.setBackground(Color.white);
         topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(superAdapter.getHiC());
         trackLabelPanel.setBackground(Color.white);
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
+        JPanel topCenterPanel = new JPanel();
+        topCenterPanel.setBackground(Color.BLUE);
+        topCenterPanel.setLayout(new BorderLayout());
+        topPanel.add(topCenterPanel, BorderLayout.CENTER);
+
         trackPanelX = new TrackPanel(superAdapter, superAdapter.getHiC(), TrackPanel.Orientation.X);
         trackPanelX.setMaximumSize(new Dimension(4000, 50));
         trackPanelX.setPreferredSize(new Dimension(1, 50));
         trackPanelX.setMinimumSize(new Dimension(1, 50));
         trackPanelX.setVisible(false);
-        topPanel.add(trackPanelX, BorderLayout.NORTH);
+        topCenterPanel.add(trackPanelX, BorderLayout.NORTH);
 
         rulerPanelX = new HiCRulerPanel(superAdapter.getHiC());
         rulerPanelX.setMaximumSize(new Dimension(4000, 50));
         rulerPanelX.setMinimumSize(new Dimension(1, 50));
         rulerPanelX.setPreferredSize(new Dimension(1, 50));
         rulerPanelX.setBorder(null);
-        topPanel.add(rulerPanelX, BorderLayout.SOUTH);
-
+        topCenterPanel.add(rulerPanelX, BorderLayout.SOUTH);
 
         //---- rulerPanel1 ----
         JPanel leftPanel = new JPanel();
@@ -325,6 +334,57 @@ public class MainViewPanel {
         rulerPanelY.setMinimumSize(new Dimension(50, 1));
         leftPanel.add(rulerPanelY, BorderLayout.EAST);
 
+
+        //==== Chromosome Context Toggled ====
+        //---- chromosomeSidePanel ----
+        chrSidePanel = new JPanel();
+        chrSidePanel.setBackground(Color.white);
+        chrSidePanel.setLayout(new BorderLayout());
+        chrSidePanel.setMaximumSize(new Dimension(4000, 50));
+        chrSidePanel.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel.setMinimumSize(new Dimension(50, 50));
+        chrSidePanel.setVisible(false);
+
+        JPanel chrSidePanel2 = new JPanel();
+        chrSidePanel2.setBackground(Color.white);
+        chrSidePanel2.setLayout(new BorderLayout());
+        chrSidePanel2.setMaximumSize(new Dimension(50, 50));
+        chrSidePanel2.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel2.setMinimumSize(new Dimension(50, 50));
+
+        chrSidePanel3 = new JPanel();
+        chrSidePanel3.setBackground(Color.white);
+        chrSidePanel3.setLayout(new BorderLayout());
+        chrSidePanel3.setMaximumSize(new Dimension(50, 4000));
+        chrSidePanel3.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel3.setMinimumSize(new Dimension(50, 50));
+        chrSidePanel3.setVisible(false);
+
+        //---- chromosomeFigPanel2 ----
+        bottomChromosomeFigPanel = new JPanel();
+        bottomChromosomeFigPanel.setBackground(Color.white);
+        bottomChromosomeFigPanel.setLayout(new BorderLayout());
+        //bottomChromosomeFigPanel.setVisible(true);
+
+        chromosomePanelX = new HiCChromosomeFigPanel(superAdapter.getHiC());
+        chromosomePanelX.setMaximumSize(new Dimension(4000, 50));
+        chromosomePanelX.setPreferredSize(new Dimension(1, 50));
+        chromosomePanelX.setMinimumSize(new Dimension(1, 50));
+        bottomChromosomeFigPanel.add(chromosomePanelX, BorderLayout.CENTER);
+        bottomChromosomeFigPanel.add(chrSidePanel2, BorderLayout.EAST);
+        bottomChromosomeFigPanel.setVisible(false);
+
+        leftPanel.add(chrSidePanel, BorderLayout.SOUTH);
+        topPanel.add(chrSidePanel3, BorderLayout.EAST);
+
+        //---- chromosomeFigPanel1 ----
+        chromosomePanelY = new HiCChromosomeFigPanel(superAdapter.getHiC());
+        chromosomePanelY.setMaximumSize(new Dimension(50, 4000));
+        chromosomePanelY.setPreferredSize(new Dimension(50, 1));
+        chromosomePanelY.setMinimumSize(new Dimension(50, 1));
+        chromosomePanelY.setVisible(false);
+
+
         //---- heatmapPanel ----
         //Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
         //int panelSize = screenDimension.height - 210;
@@ -338,7 +398,7 @@ public class MainViewPanel {
         wrapHeatmapPanel.setMaximumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setMinimumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setPreferredSize(new Dimension(panelDim));
-        wrapHeatmapPanel.setBackground(Color.BLUE);
+        wrapHeatmapPanel.setBackground(Color.white);
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(superAdapter);
@@ -348,6 +408,10 @@ public class MainViewPanel {
         heatmapPanel.setBackground(Color.white);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
+
+        //Chromosome Context Toggled
+        wrapHeatmapPanel.add(bottomChromosomeFigPanel, BorderLayout.SOUTH);
+        wrapHeatmapPanel.add(chromosomePanelY, BorderLayout.EAST);
 
         //hiCPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
         //hiCPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
@@ -514,6 +578,8 @@ public class MainViewPanel {
         chrBox2.setSelectedIndex(xChrom.getIndex());
         rulerPanelX.setContext(xContext, HiCRulerPanel.Orientation.HORIZONTAL);
         rulerPanelY.setContext(yContext, HiCRulerPanel.Orientation.VERTICAL);
+        chromosomePanelX.setContext(xContext, HiCChromosomeFigPanel.Orientation.HORIZONTAL);
+        chromosomePanelY.setContext(yContext, HiCChromosomeFigPanel.Orientation.VERTICAL);
         resolutionSlider.setEnabled(!xChrom.getName().equals(Globals.CHR_ALL));
     }
 
@@ -572,7 +638,6 @@ public class MainViewPanel {
         trackPanelY.repaint();
     }
 
-
     public void updateThumbnail(HiC hic) {
         if (ignoreUpdateThumbnail) return;
         //new Exception().printStackTrace();
@@ -628,7 +693,6 @@ public class MainViewPanel {
         //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
-
     public void updateTrackPanel(boolean hasTracks) {
 
         trackLabelPanel.updateLabels();
@@ -656,10 +720,46 @@ public class MainViewPanel {
         trackPanelY.invalidate();
     }
 
+    public void showChromosomeFig(boolean showfigure) {
+
+        if (showfigure) {
+            if (!bottomChromosomeFigPanel.isVisible()) {
+                bottomChromosomeFigPanel.setVisible(true);
+            }
+            if (!chromosomePanelY.isVisible()) {
+                chromosomePanelY.setVisible(true);
+            }
+            if (!chrSidePanel.isVisible()) {
+                chrSidePanel.setVisible(true);
+            }
+            if (!chrSidePanel3.isVisible()) {
+                chrSidePanel3.setVisible(true);
+            }
+        } else {
+            if (bottomChromosomeFigPanel.isVisible()) {
+                bottomChromosomeFigPanel.setVisible(false);
+            }
+            if (chromosomePanelY.isVisible()) {
+                chromosomePanelY.setVisible(false);
+            }
+            if (chrSidePanel.isVisible()) {
+                chrSidePanel.setVisible(false);
+            }
+            if (chrSidePanel3.isVisible()) {
+                chrSidePanel3.setVisible(false);
+            }
+        }
+        rulerPanelX.showChromosomeFigure(showfigure);
+        rulerPanelY.showChromosomeFigure(showfigure);
+        chromosomePanelY.invalidate();
+        bottomChromosomeFigPanel.invalidate();
+        chrSidePanel.invalidate();
+        chrSidePanel3.invalidate();
+    }
+
     public String getToolTip() {
         return mouseHoverTextPanel.getText();
     }
-
 
     public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
@@ -783,6 +883,26 @@ public class MainViewPanel {
     public HiCRulerPanel getRulerPanelX() {
         return rulerPanelX;
     }
+
+    public HiCChromosomeFigPanel getChromosomeFigPanelY() {
+        return chromosomePanelY;
+    }
+
+    public HiCChromosomeFigPanel getChromosomeFigPanelX() {
+        return chromosomePanelX;
+    }
+
+    public void switchToOnlyEndPtsLayOut(boolean status) {
+        if (status) {
+            rulerPanelX.showOnlyEndPts(true);
+            rulerPanelY.showOnlyEndPts(true);
+            //repaint
+        } else {
+            rulerPanelX.showOnlyEndPts(false);
+            rulerPanelY.showOnlyEndPts(false);
+        }
+    }
+
 
     /*public boolean isPearsonDisplayed() {
         return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;

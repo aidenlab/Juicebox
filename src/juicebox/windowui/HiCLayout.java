@@ -195,7 +195,6 @@ public class HiCLayout implements LayoutManager2,
             } else if (comp == northwest) {
                 northwest = null;
             }
-
         }
     }
 
