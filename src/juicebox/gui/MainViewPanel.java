@@ -362,7 +362,7 @@ public class MainViewPanel {
 
         //---- chromosomeFigPanel2 ----
         bottomChromosomeFigPanel = new JPanel();
-        bottomChromosomeFigPanel.setBackground(Color.BLUE);
+        bottomChromosomeFigPanel.setBackground(Color.white);
         bottomChromosomeFigPanel.setLayout(new BorderLayout());
         //bottomChromosomeFigPanel.setVisible(true);
 
@@ -398,7 +398,7 @@ public class MainViewPanel {
         wrapHeatmapPanel.setMaximumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setMinimumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setPreferredSize(new Dimension(panelDim));
-        wrapHeatmapPanel.setBackground(Color.BLUE);
+        wrapHeatmapPanel.setBackground(Color.white);
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(superAdapter);
