@@ -49,6 +49,7 @@ import java.io.Serializable;
 
 public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
+    private static final long serialVersionUID = 123798L;
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
     private HiC hic;
     private Orientation orientation;
@@ -256,7 +257,14 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         Color chrInside = new Color(222, 222, 222);
 
         int genomeLength = genomeLength();
-        int[] genomePositions = genomePositions();
+
+        int[] genomePositions;
+        try {
+            genomePositions = genomePositions();
+        } catch (Exception e) {
+            return;
+        }
+
         float chrFigLength = w - 2;
 
         if (isHorizontal()) {
