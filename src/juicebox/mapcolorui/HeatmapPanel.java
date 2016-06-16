@@ -116,6 +116,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
+        addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                int scroll = e.getWheelRotation();
+                int dxBP;
+                int dyBP;
+                dxBP = scroll;
+                dyBP = scroll;
+                hic.moveBy(dxBP, dyBP);
+            }
+        });
         this.firstAnnotation = true;
     }
 
@@ -1073,16 +1084,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         DragMode dragMode = DragMode.NONE;
         private Point lastMousePoint;
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            int scroll = e.getWheelRotation();
-            int dxBP;
-            int dyBP;
-            dxBP = scroll;
-            dyBP = scroll;
-            superAdapter.moveMapBy(dxBP, dyBP);
-        }
 
         @Override
         public void mouseEntered(MouseEvent e) {
