@@ -44,6 +44,7 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * Utility class for HiCCUPS
  * Created by muhammadsaadshamim on 6/2/15.
  */
 public class HiCCUPSUtils {
@@ -239,7 +240,7 @@ public class HiCCUPSUtils {
         // HashSet intermediate for removing duplicates; LinkedList used so that we can pop out highest obs values
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
-        double r = 0;
+
         while (!featureLL.isEmpty()) {
 
             // See Feature2D
@@ -279,7 +280,7 @@ public class HiCCUPSUtils {
                         distances.add(dist);
                     }
                     //System.out.println("Radii "+distances);
-                    r = Math.round(Collections.max(distances));
+                    double r = Math.round(Collections.max(distances));
 
                     pixelClusterRadius = originalClusterRadius + r;
                 }
@@ -477,10 +478,10 @@ public class HiCCUPSUtils {
         return mergedList;
     }
 
-    public static int[] extractIntegerValues(List<String> valList, int n, int defaultVal) {
+    public static int[] extractIntegerValues(List<String> valList, int n) {
 
         if (valList == null) {
-            return ArrayTools.preInitializeIntArray(defaultVal, n);
+            return null;
         } else {
             int[] result = ArrayTools.extractIntegers(valList);
             if (result.length == n) {

@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * Handles 2D features such as domains and peaks
  * Created by muhammadsaadshamim on 8/6/15.
  */
 public class Feature2DHandler {
@@ -80,10 +81,6 @@ public class Feature2DHandler {
         int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1)) + offsetDoubled;
         int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2)) + offsetDoubled;
 
-        if (feature.getTest()) {
-//            System.out.println("  Pixel data (1): " + x + ", " + (x + w));
-//            System.out.println("  Pixel data (2): " + y + ", " + (y + h));
-        }
 
         return new Rectangle(x, y, w, h);
     }
@@ -282,7 +279,7 @@ public class Feature2DHandler {
         return featurePairs;
     }
 
-    public List<Feature2D> findContainedFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
+    public List<Feature2D> findContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
         final List<Feature2D> foundFeatures = new ArrayList<Feature2D>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
@@ -301,7 +298,8 @@ public class Feature2DHandler {
             );
 
         } else {
-            foundFeatures.addAll(allFeaturesAcrossGenome.get(key));
+            List<Feature2D> features = allFeaturesAcrossGenome.get(key);
+            if (features != null) foundFeatures.addAll(features);
         }
 
         return foundFeatures;

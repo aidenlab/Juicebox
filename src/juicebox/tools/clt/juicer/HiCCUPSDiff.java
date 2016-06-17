@@ -117,6 +117,9 @@ public class HiCCUPSDiff extends JuicerCLT {
                 System.exit(1);
             }
         }
+        // TODO: right now this code is repeated (cut and pasted into HiCCUPSConfiguration; should instead either
+        // use HiCCUPSConfiguration directly or use the fact that we have the juicerParser already.
+        // the tricky part is that we might change the resolutions based on whether or not that resolution is present.
         List<String> fdrOpts = juicerParser.getFDROptions();
         List<String> pOpts = juicerParser.getPeakOptions();
         List<String> iOpts = juicerParser.getWindowOptions();
