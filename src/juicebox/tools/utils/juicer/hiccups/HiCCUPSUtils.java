@@ -254,7 +254,7 @@ public class HiCCUPSUtils {
 
             int pixelListX = pixel.getStart1();
             int pixelListY = pixel.getStart2();
-
+            double r = 0;
 
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
@@ -264,23 +264,17 @@ public class HiCCUPSUtils {
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
 
-                    /*r = 0;
-                    for (Feature2D px2 : pixelList) {
-                        int rPrime = (int)Math.round(hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2()));
-                        if (rPrime > r)
-                            r = rPrime;
-                    }*/
                     List<Double> distances = new ArrayList<Double>();
                     for (Feature2D px2 : pixelList) {
                         double dist = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
-                        if (Double.isNaN(dist)) {
+                        if (Double.isNaN(dist) || dist < 0) {
                             System.err.println("Invalid distance while merging centroid");
                             System.exit(-9);
                         }
                         distances.add(dist);
                     }
                     //System.out.println("Radii "+distances);
-                    double r = Math.round(Collections.max(distances));
+                    r = Math.round(Collections.max(distances));
 
                     pixelClusterRadius = originalClusterRadius + r;
                 }
@@ -288,7 +282,7 @@ public class HiCCUPSUtils {
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            pixel.addIntAttribute(RADIUS, (int) Math.round(pixelClusterRadius));
+            pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
@@ -296,7 +290,6 @@ public class HiCCUPSUtils {
             for (Feature2D px : pixelList) {
                 featureLL.remove(px);
             }
-
 
             setPixelColor(pixel);
             coalesced.add(pixel);
