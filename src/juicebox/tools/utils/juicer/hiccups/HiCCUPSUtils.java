@@ -466,10 +466,10 @@ public class HiCCUPSUtils {
         return mergedList;
     }
 
-    public static int[] extractIntegerValues(List<String> valList, int n) {
+    public static int[] extractIntegerValues(List<String> valList, int n, int defaultVal) {
 
         if (valList == null) {
-            return null;
+            return ArrayTools.preInitializeIntArray(defaultVal, n);
         } else {
             int[] result = ArrayTools.extractIntegers(valList);
             if (result.length == n) {

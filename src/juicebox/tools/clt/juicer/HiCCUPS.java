@@ -544,8 +544,7 @@ public class HiCCUPS extends JuicerCLT {
     }
 
     /**
-     * Determine valid configurations from command line, set defaults
-     * @param juicerParser  Command line parser handle
+     * @param juicerParser  Parser to determine configurations
      */
     private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
 
@@ -560,7 +559,6 @@ public class HiCCUPS extends JuicerCLT {
         try {
             List<String> t = juicerParser.getThresholdOptions();
             if (t.size() > 1) {
-                // TODO: bad programming style to create unnecessary exceptions, just look for null instead.
                 double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, -1f);
                 fdrsum = thresholds[0];
                 oeThreshold1 = thresholds[1];

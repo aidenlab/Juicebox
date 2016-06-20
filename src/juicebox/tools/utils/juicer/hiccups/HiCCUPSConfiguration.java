@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Helper class for creating default HiCCUPS configurations
  * Created by muhammadsaadshamim on 10/8/15.
  */
 public class HiCCUPSConfiguration {
@@ -88,46 +87,13 @@ public class HiCCUPSConfiguration {
      */
 
     public static HiCCUPSConfiguration[] extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser) {
-        List<String> resOpts = juicerParser.getMultipleResolutionOptions();
-        if (resOpts == null) return null;
-
-        List<String> fdrOpts = juicerParser.getFDROptions();
-        List<String> pOpts = juicerParser.getPeakOptions();
-        List<String> iOpts = juicerParser.getWindowOptions();
-        List<String> dOpts = juicerParser.getClusterRadiusOptions();
-
-        if (fdrOpts == null) {
-            fdrOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) fdrOpts.add("0.1");
-            if (resOpts.contains("10000")) fdrOpts.add("0.1");
-            if (resOpts.contains("25000")) fdrOpts.add("0.1");
-        }
-        if (pOpts == null) {
-            pOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) pOpts.add("4");
-            if (resOpts.contains("10000")) pOpts.add("2");
-            if (resOpts.contains("25000")) pOpts.add("1");
-        }
-        if (iOpts == null) {
-            iOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) iOpts.add("7");
-            if (resOpts.contains("10000")) iOpts.add("5");
-            if (resOpts.contains("25000")) iOpts.add("3");
-        }
-        if (dOpts == null) {
-            dOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) dOpts.add("20000");
-            if (resOpts.contains("10000")) dOpts.add("20000");
-            if (resOpts.contains("25000")) dOpts.add("50000");
-        }
-
-        int[] resolutions = ArrayTools.extractIntegers(resOpts);
-        double[] fdr = HiCCUPSUtils.extractFDRValues(fdrOpts, resolutions.length, 0.1f); // becomes default 10
-        // peaks, windows, and radii all have different default values depending on resolution
-        // if the user specifies values per resolution, they are stored here, otherwise null
-        int[] peaks = HiCCUPSUtils.extractIntegerValues(pOpts, resolutions.length);
-        int[] windows = HiCCUPSUtils.extractIntegerValues(iOpts, resolutions.length);
-        int[] radii = HiCCUPSUtils.extractIntegerValues(dOpts, resolutions.length);
+        List<String> resString = juicerParser.getMultipleResolutionOptions();
+        if (resString == null) return null;
+        int[] resolutions = ArrayTools.extractIntegers(resString);
+        double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10
+        int[] peaks = HiCCUPSUtils.extractIntegerValues(juicerParser.getPeakOptions(), resolutions.length, 2);
+        int[] windows = HiCCUPSUtils.extractIntegerValues(juicerParser.getWindowOptions(), resolutions.length, 5);
+        int[] radii = HiCCUPSUtils.extractIntegerValues(juicerParser.getClusterRadiusOptions(), resolutions.length, 20000);
 
         HiCCUPSConfiguration[] configurations = new HiCCUPSConfiguration[resolutions.length];
         for (int i = 0; i < resolutions.length; i++) {
