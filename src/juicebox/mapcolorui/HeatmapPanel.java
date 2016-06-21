@@ -114,15 +114,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer();
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
-        addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
-        addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int scroll = e.getWheelRotation();
-                hic.moveBy(scroll, scroll);
-            }
-        });
+        addMouseListener(mouseHandler);
+        addMouseWheelListener(mouseHandler);
         this.firstAnnotation = true;
     }
 
@@ -286,7 +280,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     Chromosome c = chromosomes.get(i);
                     xGenomeCoord += (c.getLength() / 1000);
                     int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
-                    x = (int) (xBin * scaleFactor);
+                    x = (int) ((xBin - binOriginX) * scaleFactor);
                     g.drawLine(x, 0, x, getTickHeight(zd));
                 }
 
@@ -296,7 +290,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     Chromosome c = chromosomes.get(i);
                     yGenomeCoord += (c.getLength() / 1000);
                     int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
-                    y = (int) (yBin * hic.getScaleFactor());
+                    y = (int) ((yBin - binOriginY) * hic.getScaleFactor());
                     g.drawLine(0, y, getTickWidth(zd), y);
                 }
 
@@ -1542,6 +1536,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 repaint();
             }
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            int scroll = e.getWheelRotation();
+            hic.moveBy(scroll, scroll);
+            superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
         }
 
 
