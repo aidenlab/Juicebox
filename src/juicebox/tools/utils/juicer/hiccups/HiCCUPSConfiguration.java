@@ -41,6 +41,27 @@ public class HiCCUPSConfiguration {
     final int windowWidth, peakWidth, clusterRadius;
     final double fdrThreshold;
     int resolution;
+    private HiCCUPSConfiguration defaultConfigFor5K = new HiCCUPSConfiguration(5000, 10, 4, 7, 20000);
+    private HiCCUPSConfiguration defaultConfigFor10K = new HiCCUPSConfiguration(10000, 10, 2, 5, 20000);
+
+    /*
+     * Reasonable Commands
+     *
+     * fdr = 0.10 for all resolutions
+     * peak width = 1 for 25kb, 2 for 10kb, 4 for 5kb
+     * window = 3 for 25kb, 5 for 10kb, 7 for 5kb
+     *
+     * cluster radius is 20kb for 5kb and 10kb res and 50kb for 25kb res
+     * fdrsumthreshold is 0.02 for all resolutions
+     * oeThreshold1 = 1.5 for all res
+     * oeThreshold2 = 1.75 for all res
+     * oeThreshold3 = 2 for all res
+     *
+     * published GM12878 looplist was only generated with 5kb and 10kb resolutions
+     * same with published IMR90 looplist
+     * published CH12 looplist only generated with 10kb
+     */
+    private HiCCUPSConfiguration defaultConfigFor25K = new HiCCUPSConfiguration(25000, 10, 1, 3, 50000);
 
     public HiCCUPSConfiguration(int resolution, double fdrThreshold, int peakWidth, int windowWidth, int clusterRadius) {
         this.resolution = resolution;
@@ -67,24 +88,6 @@ public class HiCCUPSConfiguration {
 
         return new ArrayList<HiCCUPSConfiguration>(configurationMap.values());
     }
-
-    /*
-     * Reasonable Commands
-     *
-     * fdr = 0.10 for all resolutions
-     * peak width = 1 for 25kb, 2 for 10kb, 4 for 5kb
-     * window = 3 for 25kb, 5 for 10kb, 7 for 5kb
-     *
-     * cluster radius is 20kb for 5kb and 10kb res and 50kb for 25kb res
-     * fdrsumthreshold is 0.02 for all resolutions
-     * oeThreshold1 = 1.5 for all res
-     * oeThreshold2 = 1.75 for all res
-     * oeThreshold3 = 2 for all res
-     *
-     * published GM12878 looplist was only generated with 5kb and 10kb resolutions
-     * same with published IMR90 looplist
-     * published CH12 looplist only generated with 10kb
-     */
 
     public static HiCCUPSConfiguration[] extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser) {
         List<String> resString = juicerParser.getMultipleResolutionOptions();
