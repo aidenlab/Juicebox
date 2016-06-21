@@ -196,14 +196,6 @@ public class MainMenuBar {
         fileMenu.add(showStats);
         fileMenu.addSeparator();
 
-        JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export Image...");
-        saveToImage.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchExportImage();
-            }
-        });
-        fileMenu.add(saveToImage);
 
         // TODO: make this an export of the data on screen instead of a GUI for CLT
         if (!HiCGlobals.isRestricted) {
@@ -675,9 +667,53 @@ public class MainMenuBar {
         toolsMenu.add(launch3DModel);
         */
 
+        //---Figure Menu-----
+        JMenu figureMenu = new JMenu("Figure");
+
+        //---Axis Layout mode-----
+        final JCheckBoxMenuItem toggleAxisLayOut = new JCheckBoxMenuItem("Toggle Axis Layout");
+        toggleAxisLayOut.setSelected(false);
+        toggleAxisLayOut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.toggleAxisLayOut(toggleAxisLayOut.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        figureMenu.add(toggleAxisLayOut);
+
+        //---ShowChromosomeFig mode-----
+        //drawLine, drawArc or draw polygon// draw round rect
+        // fill Rect according to the chormsome location.
+        final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Toggle Chromosome Context");
+        showChromosomeFig.setSelected(false);
+        showChromosomeFig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.showChromosomeFig(showChromosomeFig.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        figureMenu.add(showChromosomeFig);
+
+
+        figureMenu.addSeparator();
+
+        //---Export Image Menu-----
+        JMenuItem saveToImage = new JMenuItem();
+        saveToImage.setText("Export Image...");
+        saveToImage.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchExportImage();
+            }
+        });
+        figureMenu.add(saveToImage);
+
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
+        menuBar.add(figureMenu);
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;

@@ -453,7 +453,7 @@ public class HiCCUPS extends JuicerCLT {
                                                 // System.out.println(chromosome.getIndex() + "\t" + rowBound1GenomeCoords + "\t" + rowBound2GenomeCoords + "\t" + columnBound1GenomeCoords + "\t" + columnBound2GenomeCoords);
                                                 net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowBound1GenomeCoords,
                                                         columnBound1GenomeCoords, rowBound2GenomeCoords, columnBound2GenomeCoords);
-                                                List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.findContainedFeatures(zd, chromosome.getIndex(), chromosome.getIndex(),
+                                                List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.findContainedFeatures(chromosome.getIndex(), chromosome.getIndex(),
                                                         currentWindow);
                                                 Feature2DList peaksRequestedList = gpuOutputs.extractPeaksListGiven(chromosome.getIndex(), chromosome.getName(),
                                                         w1, w2, rowBounds[4], columnBounds[4], conf.getResolution(), inputListFoundFeatures);
@@ -544,7 +544,7 @@ public class HiCCUPS extends JuicerCLT {
     }
 
     /**
-     * @param juicerParser
+     * @param juicerParser  Parser to determine configurations
      */
     private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
 

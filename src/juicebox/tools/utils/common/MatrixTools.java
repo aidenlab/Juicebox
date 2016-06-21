@@ -434,6 +434,22 @@ public class MatrixTools {
     }
 
     /**
+     * @return min element in matrix
+     */
+    public static double calculateMin(RealMatrix matrix) {
+        double min = matrix.getEntry(0, 0);
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                double val = matrix.getEntry(i, j);
+                if (min > val) {
+                    min = val;
+                }
+            }
+        }
+        return min;
+    }
+
+    /**
      * print for matrix
      */
     public static void print(RealMatrix matrix) {
@@ -483,6 +499,19 @@ public class MatrixTools {
             for (int j = 0; j < matrix.getColumnDimension(); j++) {
                 if (matrix.getEntry(i, j) > val) {
                     matrix.setEntry(i, j, val);
+                }
+            }
+        }
+    }
+
+    public static void thresholdValuesDouble(RealMatrix matrix, double lowVal, double highVal) {
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (matrix.getEntry(i, j) > highVal) {
+                    matrix.setEntry(i, j, highVal);
+                }
+                if (matrix.getEntry(i, j) < lowVal) {
+                    matrix.setEntry(i, j, lowVal);
                 }
             }
         }

@@ -26,13 +26,17 @@ package juicebox.tools.clt;
 
 
 import juicebox.HiCGlobals;
+import juicebox.data.Dataset;
+import juicebox.data.HiCFileTools;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
+import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 7/22/15.
@@ -57,6 +61,34 @@ class UnitTests {
 
         Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
         newMerger.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.FINAL);
+    }
+
+    public static void testingHiCCUPSPostprocessing() {
+        // example with hard-coded links
+        String folder = "/Users/muhammadsaadshamim/Desktop/test_adam/";
+        File outputDirectory = new File(folder);
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(folder + "inter_30.hic"), true);
+        File outputMergedFile = new File(outputDirectory, "merged_loops");
+        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        NormalizationType norm = NormalizationType.KR;
+
+        List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<HiCCUPSConfiguration>();
+        filteredConfigurations.add(new HiCCUPSConfiguration(10000, 10, 2, 5, 20000));
+        filteredConfigurations.add(new HiCCUPSConfiguration(5000, 10, 4, 7, 20000));
+
+        String baseLink = folder + "enriched_pixels_";
+        String link1 = baseLink + "5000";
+        String link2 = baseLink + "10000";
+
+        Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
+        loopLists.put(5000, Feature2DParser.loadFeatures(link1, commonChromosomes, true, null, false));
+        loopLists.put(10000, Feature2DParser.loadFeatures(link2, commonChromosomes, true, null, false));
+
+        Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
+                filteredConfigurations, norm, outputDirectory);
+        finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
+        System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
+                outputMergedFile.getAbsolutePath());
     }
 
     public void runUnitTests() {

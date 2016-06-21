@@ -36,7 +36,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 
 /**
@@ -46,12 +48,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
+    private static boolean showOnlyEndPts = false;
+    private static boolean showChromosomeFigure = false;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
     private HiC hic;
     private Orientation orientation;
     private Context context;
-
 
     /**
      * Empty constructor for form builder
@@ -66,11 +69,18 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static String formatNumber(double position) {
 
-        //NumberFormatter f = new NumberFormatter();
-        DecimalFormat formatter = new DecimalFormat();
-        return formatter.format((int) position);
-        //return f.valueToString(position);
-
+        if (showOnlyEndPts) {
+            //Export Version
+            NumberFormat df = NumberFormat.getInstance();
+            df.setMinimumFractionDigits(2);
+            df.setMaximumFractionDigits(2);
+            df.setRoundingMode(RoundingMode.DOWN);
+            //return f.valueToString(position);
+            return df.format(position);
+        } else {
+            DecimalFormat formatter = new DecimalFormat();
+            return formatter.format((int) position);
+        }
     }
 
     private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
@@ -102,6 +112,14 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         } else {
             return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
         }
+    }
+
+    public void showOnlyEndPts(boolean toggled) {
+        showOnlyEndPts = toggled;
+    }
+
+    public void showChromosomeFigure(boolean toggled) {
+        showChromosomeFigure = toggled;
     }
 
     public void setContext(Context frame, Orientation orientation) {
@@ -138,14 +156,14 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         // Clear panel
         drawTicks(g2D);
-        drawChr(g2D);
+        drawChr(g2D, orientation);
 
         g2D.setTransform(t);
 
 
     }
 
-    private void drawChr(Graphics g) {
+    private void drawChr(Graphics g, Orientation orientation) {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
@@ -154,9 +172,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (chromosome.getName().equals("All")) {
-
-            } else {
+            if (!chromosome.getName().equals("All")) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
@@ -172,7 +188,58 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 }
 
                 int vPos = h - 35;
-                g.drawString(rangeString, strPosition, vPos);
+
+                if (!showChromosomeFigure) {
+                    g.drawString(rangeString, strPosition, vPos);
+                }
+
+                if (showOnlyEndPts) {
+                    MatrixZoomData zd;
+                    try {
+                        zd = hic.getZd();
+                    } catch (Exception e) {
+                        return;
+                    }
+
+                    HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+
+                    int binRange = (int) (w / hic.getScaleFactor());
+                    double binOrigin = context.getBinOrigin();
+
+                    int genomeOrigin = axis.getGenomicStart(binOrigin);
+
+                    int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+
+                    int range = genomeEnd - genomeOrigin;
+
+                    TickSpacing ts = findSpacing(range, false);
+
+                    // Hundredths decimal point
+                    int[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
+
+                    String genomeStartX = formatNumber((float) (genomePositions[0] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                    String genomeStartY = formatNumber((float) (genomePositions[2] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                    String genomeEndX = formatNumber((float) (genomePositions[1] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                    String genomeEndY = formatNumber((float) (genomePositions[3] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+
+                    if (isHorizontal()) {
+                        //Horizontal Start
+                        g.drawString(genomeStartX, 10, h - 15);
+                        g.drawLine(0, h - 10, 0, h - 2);
+                        //Horizontal End
+                        g.drawString(genomeEndX, w - g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
+                        g.drawLine(w - 5, h - 10, w - 5, h - 2);
+                    } else {
+                        //Vertical Start
+                        g.drawString(genomeStartY, -g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
+                        g.drawLine(0, h - 10, 0, h - 2);
+                        //Vertical End
+                        g.drawString(genomeEndY, -w + 10, h - 15);
+                        g.drawLine(-(w - 5), h - 10, -(w - 5), h - 2);
+
+                    }
+                }
+
             }
         }
     }
@@ -235,66 +302,73 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
                 x1 = x2;
             }
-        } else {
+        }
+        // Non export Version
 
-            try {
-                HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+        else {
+            if (!showOnlyEndPts) {
+                try {
+                    HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
-                int binRange = (int) (w / hic.getScaleFactor());
-                double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
+                    int binRange = (int) (w / hic.getScaleFactor());
+                    double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
 
-                int genomeOrigin = axis.getGenomicStart(binOrigin);
+                    int genomeOrigin = axis.getGenomicStart(binOrigin);
 
-                int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+                    int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
 
-                int range = genomeEnd - genomeOrigin;
+                    int range = genomeEnd - genomeOrigin;
 
 
-                TickSpacing ts = findSpacing(range, false);
-                double spacing = ts.getMajorTick();
+                    TickSpacing ts = findSpacing(range, false);
+                    double spacing = ts.getMajorTick();
 
-                // Find starting point closest to the current origin
-                int maxX = context.getChromosome().getLength();
-                int nTick = (int) (genomeOrigin / spacing) - 1;
-                int genomePosition = (int) (nTick * spacing);
+                    // Find starting point closest to the current origin
+                    int maxX = context.getChromosome().getLength();
+                    int nTick = (int) (genomeOrigin / spacing) - 1;
+                    int genomePosition = (int) (nTick * spacing);
 
-                //int x = frame.getScreenPosition(genomeTickNumber);
-                int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                    //int x = frame.getScreenPosition(genomeTickNumber);
+                    int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
 
-                int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                    int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
 
-                while (genomePosition < maxX && x < w) {
-                    Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
-                    g.setColor(tColor);
+                    while (genomePosition < maxX && x < w) {
+                        Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                        g.setColor(tColor);
 
-                    genomePosition = (int) (nTick * spacing);
+                        genomePosition = (int) (nTick * spacing);
 
-                    // x = frame.getScreenPosition(genomeTickNumber);
-                    binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                        // x = frame.getScreenPosition(genomeTickNumber);
+                        binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
 
-                    x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                        x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
 
-                    String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                    int strWidth = g.getFontMetrics().stringWidth(chrPosition);
-                    int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
-                    //if (strPosition > strEnd) {
+                        String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                        int strWidth = g.getFontMetrics().stringWidth(chrPosition);
+                        int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
+                        //if (strPosition > strEnd) {
 
-                    if (nTick % 2 == 0) {
-                        g.drawString(chrPosition, strPosition, h - 15);
+                        if (nTick % 2 == 0) {
+                            g.drawString(chrPosition, strPosition, h - 15);
+                        }
+                        //strEnd = strPosition + strWidth;
+                        //}
+
+                        int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
+
+                        g.drawLine(xpos, h - 10, xpos, h - 2);
+                        nTick++;
                     }
-                    //strEnd = strPosition + strWidth;
-                    //}
+                } catch (Exception e) {
+                    return;
 
-                    int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
-
-                    g.drawLine(xpos, h - 10, xpos, h - 2);
-                    nTick++;
                 }
-            } catch (Exception e) {
-                return;
             }
         }
+
     }
+
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 

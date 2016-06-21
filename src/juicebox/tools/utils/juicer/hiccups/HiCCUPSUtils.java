@@ -44,6 +44,7 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * Utility class for HiCCUPS
  * Created by muhammadsaadshamim on 6/2/15.
  */
 public class HiCCUPSUtils {
@@ -144,7 +145,7 @@ public class HiCCUPSUtils {
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
                 try {
                     return removeLowMapQ(resolution, chrNameToIndex.get(chr), ds, feature2DList, norm);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.err.println("Unable to remove low mapQ entries for " + chr);
                     //e.printStackTrace();
                 }
@@ -233,13 +234,10 @@ public class HiCCUPSUtils {
      */
     private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList,
                                                             int originalClusterRadius) {
-        // TODO - note that changes are not saved for other chromosomes - is that necessary to do?
-        double pixelClusterRadius = originalClusterRadius;
-
         // HashSet intermediate for removing duplicates; LinkedList used so that we can pop out highest obs values
         LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
         List<Feature2D> coalesced = new ArrayList<Feature2D>();
-        double r = 0;
+
         while (!featureLL.isEmpty()) {
 
             // See Feature2D
@@ -253,7 +251,8 @@ public class HiCCUPSUtils {
 
             int pixelListX = pixel.getStart1();
             int pixelListY = pixel.getStart2();
-
+            double r = 0;
+            double pixelClusterRadius = originalClusterRadius;
 
             for (Feature2D px : featureLL) {
                 // TODO should likely reduce radius or at least start with default?
@@ -263,16 +262,10 @@ public class HiCCUPSUtils {
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
 
-                    /*r = 0;
-                    for (Feature2D px2 : pixelList) {
-                        int rPrime = (int)Math.round(hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2()));
-                        if (rPrime > r)
-                            r = rPrime;
-                    }*/
                     List<Double> distances = new ArrayList<Double>();
                     for (Feature2D px2 : pixelList) {
                         double dist = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
-                        if (Double.isNaN(dist)) {
+                        if (Double.isNaN(dist) || dist < 0) {
                             System.err.println("Invalid distance while merging centroid");
                             System.exit(-9);
                         }
@@ -287,18 +280,14 @@ public class HiCCUPSUtils {
 
             pixel.setEnd1(pixel.getStart1() + resolution);
             pixel.setEnd2(pixel.getStart2() + resolution);
-            pixel.addIntAttribute(RADIUS, (int) Math.round(pixelClusterRadius));
+            pixel.addIntAttribute(RADIUS, (int) Math.round(r));
             pixel.addIntAttribute(CENTROID1, (pixelListX + resolution / 2));
             pixel.addIntAttribute(CENTROID2, (pixelListY + resolution / 2));
             pixel.addIntAttribute(NUMCOLLAPSED, (pixelList.size()));
-
-            for (Feature2D px : pixelList) {
-                featureLL.remove(px);
-            }
-
-
             setPixelColor(pixel);
             coalesced.add(pixel);
+
+            featureLL.removeAll(pixelList);
         }
 
         return coalesced;
