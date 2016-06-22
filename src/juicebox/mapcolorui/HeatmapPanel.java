@@ -38,6 +38,7 @@ import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
@@ -102,6 +103,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
+    private int genomeLengthIndex0 = 0;
 
     /**
      * Initialize heatmap panel
@@ -114,21 +116,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer();
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
-        addMouseListener(mouseHandler);
         addMouseMotionListener(mouseHandler);
-        addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                int scroll = e.getWheelRotation();
-                hic.moveBy(scroll, scroll);
-            }
-        });
+        addMouseListener(mouseHandler);
+        addMouseWheelListener(mouseHandler);
         this.firstAnnotation = true;
     }
 
-
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
+        for (int bound : chromosomeBoundaries) {
+            genomeLengthIndex0 += bound;
+        }
     }
 
     public int getMinimumDimension() {
@@ -185,7 +183,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 ImageTile tile;
                 try {
-                    tile = getImageTile(zd, tileRow, tileColumn, displayOption);
+                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, hic.getNormalizationType());
                 } catch (Exception e) {
                     return;
                 }
@@ -278,25 +276,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Color color = g.getColor();
                 g.setColor(Color.LIGHT_GRAY);
 
-                List<Chromosome> chromosomes = hic.getChromosomes();
-                // Index 0 is whole genome
-                int xGenomeCoord = 0;
-                int x = 0;
-                for (int i = 1; i < chromosomes.size(); i++) {
-                    Chromosome c = chromosomes.get(i);
-                    xGenomeCoord += (c.getLength() / 1000);
-                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(xGenomeCoord);
-                    x = (int) (xBin * scaleFactor);
+                for (int bound : chromosomeBoundaries) {
+                    // vertical lines
+                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(bound);
+                    int x = (int) ((xBin - binOriginX) * scaleFactor);
                     g.drawLine(x, 0, x, getTickHeight(zd));
-                }
 
-                int yGenomeCoord = 0;
-                int y = 0;
-                for (int i = 1; i < chromosomes.size(); i++) {
-                    Chromosome c = chromosomes.get(i);
-                    yGenomeCoord += (c.getLength() / 1000);
-                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(yGenomeCoord);
-                    y = (int) (yBin * hic.getScaleFactor());
+                    // horizontal lines
+                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
+                    int y = (int) ((yBin - binOriginY) * hic.getScaleFactor());
                     g.drawLine(0, y, getTickWidth(zd), y);
                 }
 
@@ -370,16 +358,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        List<Chromosome> chromosomes = hic.getChromosomes();
-        // Index 0 is whole genome
-        int genomeCoord = 0;
-        for (int i = 1; i < chromosomes.size(); i++) {
-
-            Chromosome c = chromosomes.get(i);
-            genomeCoord += (c.getLength() / 1000);
-        }
-
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
         return (int) (xBin * hic.getScaleFactor());
     }
 
@@ -392,23 +371,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        List<Chromosome> chromosomes = hic.getChromosomes();
-        // Index 0 is whole genome
-        int genomeCoord = 0;
-        for (int i = 1; i < chromosomes.size(); i++) {
-
-            Chromosome c = chromosomes.get(i);
-            genomeCoord += (c.getLength() / 1000);
-        }
-
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
         return (int) (xBin * hic.getScaleFactor());
     }
 
-    public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption) {
+    public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
+                                   NormalizationType normalizationType) {
 
-        if (hic.getDisplayOption() == MatrixType.PEARSON &&
-                zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType())) == null) {
+        if (displayOption == MatrixType.PEARSON &&
+                zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType)) == null) {
             JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
             return null;
 
@@ -427,8 +398,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 zd0,
                 ctrl0,
                 displayOption,
-                hic.getNormalizationType(),
-                hic.getDataset().getExpectedValues(zd0.getZoom(), hic.getNormalizationType()),
+                normalizationType,
+                hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType),
                 g);
 
         if (!success) return null;
@@ -445,7 +416,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * @param tileColumn column index of tile
      * @return image tile
      */
-    private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MatrixType displayOption) {
+    private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MatrixType displayOption,
+                                   NormalizationType normalizationType) {
 
         String key = zd.getKey() + "_" + tileRow + "_" + tileColumn + "_ " + displayOption;
         ImageTile tile = tileCache.get(key);
@@ -475,8 +447,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     zd,
                     hic.getControlZd(),
                     displayOption,
-                    hic.getNormalizationType(),
-                    hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType()),
+                    normalizationType,
+                    hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
                     g2D)) {
                 return null;
             }
@@ -817,43 +789,45 @@ public class HeatmapPanel extends JComponent implements Serializable {
             for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
                     xChrom = hic.getChromosomes().get(i + 1);
+                    break;
                 }
+            }
+            for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
                     yChrom = hic.getChromosomes().get(i + 1);
+                    break;
                 }
-                if (xChrom != null && yChrom != null) {
+            }
+            if (xChrom != null && yChrom != null) {
 
-                    int leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
-                    int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
+                int leftBoundaryX = xChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[xChrom.getIndex() - 2];
+                int leftBoundaryY = yChrom.getIndex() == 1 ? 0 : chromosomeBoundaries[yChrom.getIndex() - 2];
 
+                int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
+                int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
 
-                    int xChromPos = (xGenomeStart - leftBoundaryX) * 1000;
-                    int yChromPos = (yGenomeStart - leftBoundaryY) * 1000;
+                String txt = "";
+                txt += "<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
+                txt += xChrom.getName();
+                txt += ":";
+                txt += String.valueOf(xChromPos);
+                txt += "</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
+                txt += yChrom.getName();
+                txt += ":";
+                txt += String.valueOf(yChromPos);
+                txt += "</span></html>";
 
-                    String txt = "";
-                    txt += "<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
-                    txt += xChrom.getName();
-                    txt += ":";
-                    txt += String.valueOf(xChromPos);
-                    txt += "</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt;'>";
-                    txt += yChrom.getName();
-                    txt += ":";
-                    txt += String.valueOf(yChromPos);
-                    txt += "</span></html>";
-
-                    if (xChrom.getName().toLowerCase().contains("chr")) {
-                        hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
-                    } else {
-                        hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
-                    }
-                    if (yChrom.getName().toLowerCase().contains("chr")) {
-                        hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
-                    } else {
-                        hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
-                    }
-                    return txt;
-
+                if (xChrom.getName().toLowerCase().contains("chr")) {
+                    hic.setXPosition(xChrom.getName() + ":" + String.valueOf(xChromPos));
+                } else {
+                    hic.setXPosition("chr" + xChrom.getName() + ":" + String.valueOf(xChromPos));
                 }
+                if (yChrom.getName().toLowerCase().contains("chr")) {
+                    hic.setYPosition(yChrom.getName() + ":" + String.valueOf(yChromPos));
+                } else {
+                    hic.setYPosition("chr" + yChrom.getName() + ":" + String.valueOf(yChromPos));
+                }
+                return txt;
             }
 
         } else {
@@ -1495,9 +1469,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            MatrixZoomData zd;
             try {
-                zd = hic.getZd();
+                hic.getZd();
             } catch (Exception ex) {
                 return;
             }
@@ -1542,6 +1515,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 repaint();
             }
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            int scroll = e.getWheelRotation();
+            hic.moveBy(scroll, scroll);
+            superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
         }
 
 
