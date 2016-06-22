@@ -33,9 +33,7 @@ import org.broad.igv.ui.FontManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.RoundRectangle2D;
+import java.awt.geom.*;
 import java.io.Serializable;
 
 
@@ -327,6 +325,61 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
     }
 
     public enum Orientation {HORIZONTAL, VERTICAL}
+
+    private static class Realchromosome implements Shape {
+        //Two round rectangle sticked together
+        // a * (w-2) width & (1-a) * (w-2) width round rect
+        // 0 as a default (no centromere)
+
+        private final Area area;
+
+        public Realchromosome(Rectangle outerRectangle, Rectangle innerRectangle) {
+            this.area = new Area(outerRectangle);
+            area.subtract(new Area(innerRectangle));
+        }
+
+        public Rectangle getBounds() {
+            return area.getBounds();
+        }
+
+        public Rectangle2D getBounds2D() {
+            return area.getBounds2D();
+        }
+
+        public boolean contains(double v, double v1) {
+            return area.contains(v, v1);
+        }
+
+        public boolean contains(Point2D point2D) {
+            return area.contains(point2D);
+        }
+
+        public boolean intersects(double v, double v1, double v2, double v3) {
+            return area.intersects(v, v1, v2, v3);
+        }
+
+        public boolean intersects(Rectangle2D rectangle2D) {
+            return area.intersects(rectangle2D);
+        }
+
+        public boolean contains(double v, double v1, double v2, double v3) {
+            return area.contains(v, v1, v2, v3);
+        }
+
+        public boolean contains(Rectangle2D rectangle2D) {
+            return area.contains(rectangle2D);
+        }
+
+        public PathIterator getPathIterator(AffineTransform affineTransform) {
+            return area.getPathIterator(affineTransform);
+        }
+
+        public PathIterator getPathIterator(AffineTransform affineTransform, double v) {
+            return area.getPathIterator(affineTransform, v);
+        }
+
+
+    }
 }
 
 
