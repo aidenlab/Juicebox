@@ -191,7 +191,7 @@ public class APA extends JuicerCLT {
             gwPeakNumbers[i] = 0;
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
-        for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+        for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;

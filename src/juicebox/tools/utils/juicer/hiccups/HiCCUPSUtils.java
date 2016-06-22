@@ -466,11 +466,8 @@ public class HiCCUPSUtils {
         return mergedList;
     }
 
-    public static int[] extractIntegerValues(List<String> valList, int n, int defaultVal) {
-
-        if (valList == null) {
-            return ArrayTools.preInitializeIntArray(defaultVal, n);
-        } else {
+    public static int[] extractIntegerValues(List<String> valList, int n) {
+        if (valList != null && !valList.isEmpty()) {
             int[] result = ArrayTools.extractIntegers(valList);
             if (result.length == n) {
                 return result;
@@ -479,15 +476,18 @@ public class HiCCUPSUtils {
             } else {
                 System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
                 System.exit(1);
+                return new int[0];
             }
-
         }
-        return new int[0];
+        return null;
     }
 
-    public static double[] extractFDRValues(List<String> stringIntList, int n, float defaultVal) {
-        double[] fdrValues = extractDoubleValues(stringIntList, n, defaultVal);
-        return ArrayTools.inverseArrayValues(fdrValues);
+    public static double[] extractFDRValues(List<String> fdrStrings, int n, float defaultVal) {
+        if (fdrStrings != null && !fdrStrings.isEmpty()) {
+            double[] fdrValues = extractDoubleValues(fdrStrings, n, defaultVal);
+            return ArrayTools.inverseArrayValues(fdrValues);
+        }
+        return null;
     }
 
     public static double[] extractDoubleValues(List<String> valList, int n, double defaultVal) {

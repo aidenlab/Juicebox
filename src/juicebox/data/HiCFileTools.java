@@ -237,14 +237,14 @@ public class HiCFileTools {
     /**
      * Given an array of possible resolutions, returns the actual resolutions available in the dataset
      *
-     * @param ds
+     * @param availableZooms
      * @param resolutions
      * @return finalResolutions Set
      */
-    public static List<Integer> filterResolutions(Dataset ds, int[] resolutions) {
+    public static List<Integer> filterResolutions(List<HiCZoom> availableZooms, int[] resolutions) {
 
         TreeSet<Integer> resSet = new TreeSet<Integer>();
-        for (HiCZoom zoom : ds.getBpZooms()) {
+        for (HiCZoom zoom : availableZooms) {
             resSet.add(zoom.getBinSize());
         }
 

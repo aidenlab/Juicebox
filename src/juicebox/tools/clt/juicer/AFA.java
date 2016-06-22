@@ -139,7 +139,7 @@ public class AFA extends JuicerCLT {
             gwPeakNumbers[i] = 0;
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
-        for (int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+        for (int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             System.out.println("res " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);

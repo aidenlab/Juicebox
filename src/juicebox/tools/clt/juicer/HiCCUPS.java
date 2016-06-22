@@ -28,12 +28,7 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.HiCFileTools;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
-import juicebox.data.NormalizationVector;
+import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
@@ -50,14 +45,11 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -200,7 +192,8 @@ public class HiCCUPS extends JuicerCLT {
      */
     private String inputHiCFileName;
     private File outputDirectory;
-    private HiCCUPSConfiguration[] configurations;
+    private List<HiCCUPSConfiguration> configurations;
+    private Dataset ds;
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
@@ -231,20 +224,20 @@ public class HiCCUPS extends JuicerCLT {
         */
 
         inputHiCFileName = args[1];
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         if (args.length == 4) {
             listGiven = true;
             featureList = args[3];
         }
-        
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
             norm = preferredNorm;
 
         determineValidMatrixSize(juicerParser);
-        determineValidConfigurations(juicerParser);
+        determineValidConfigurations(juicerParser, ds.getBpZooms());
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
@@ -253,8 +246,6 @@ public class HiCCUPS extends JuicerCLT {
 
     @Override
     public void run() {
-
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
 
         final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
         double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
@@ -274,14 +265,14 @@ public class HiCCUPS extends JuicerCLT {
 
         // high quality (IMR90, GM12878) maps have different settings
         if (!configurationsSetByUser) {
+            configurations = new ArrayList<HiCCUPSConfiguration>();
+            configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
             if (firstExpected > 250000) {
-                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000),
-                        new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
                 System.out.println("Default settings for 5kb and 10kb being used");
             } else {
-                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};
-                System.out.println("Default settings for 10kb being used");
                 // TODO - check that ch12, hela, etc use this setting
+                System.out.println("Default settings for 10kb being used");
             }
         }
 
@@ -299,8 +290,7 @@ public class HiCCUPS extends JuicerCLT {
             inputListFeature2DHandler.loadLoopList(featureList, commonChromosomes);
         }
 
-        List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
-        for (HiCCUPSConfiguration conf : filteredConfigurations) {
+        for (HiCCUPSConfiguration conf : configurations) {
             System.out.println("Running HiCCUPS for resolution " + conf.getResolution());
             Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes, inputListFeature2DHandler);
             if (enrichedPixels != null) {
@@ -310,7 +300,7 @@ public class HiCCUPS extends JuicerCLT {
 
         if (dataShouldBePostProcessed) {
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
-                    filteredConfigurations, norm, outputDirectory);
+                    configurations, norm, outputDirectory);
             finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
             System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
                     outputMergedFile.getAbsolutePath());
@@ -545,12 +535,13 @@ public class HiCCUPS extends JuicerCLT {
 
     /**
      * @param juicerParser  Parser to determine configurations
+     * @param availableZooms
      */
-    private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
+    private void determineValidConfigurations(CommandLineParserForJuicer juicerParser, List<HiCZoom> availableZooms) {
 
-        configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
+        configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
         if (configurations == null) {
-            System.err.println("No configurations specified, using default settings");
+            System.out.println("No configurations specified, using default settings");
             configurationsSetByUser = false;
         }
         else {
@@ -564,7 +555,6 @@ public class HiCCUPS extends JuicerCLT {
                 oeThreshold1 = thresholds[1];
                 oeThreshold2 = thresholds[2];
                 oeThreshold3 = thresholds[3];
-
             }
         } catch (Exception e) {
             // do nothing - use default postprocessing thresholds
