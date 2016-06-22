@@ -78,8 +78,6 @@ public class CLTFactory {
             return new AddNorm();
         } else if (cmd.equals("apa")) {
             return new APA();
-        } else if (cmd.equals("afa")) {
-            return new AFA();
         } else if (cmd.equals("compare")) {
             return new CompareLists();
         } else if (cmd.equals("arrowhead")) {

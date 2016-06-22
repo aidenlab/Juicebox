@@ -50,6 +50,35 @@ public class AFAUtils {
         return filteredFeatures;
     }
 
+    /*
+     * loading filtered looplists categorized by attributes
+    {
+        Feature2DList featureList = Feature2DParser.loadFeatures(files[1], chromosomes, true,
+                new FeatureFilter() {
+                    // Remove duplicates and filters by size
+                    // also save internal metrics for these measures
+                    @Override
+                    public List<Feature2D> filter(String chr, List<Feature2D> features) {
+
+                        List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+
+                        List<Feature2D> filteredUniqueFeatures;
+                        if (attribute.length() > 0) {
+                            filteredUniqueFeatures = AFAUtils.filterFeaturesByAttribute(uniqueFeatures, attribute);
+                        } else {
+                            System.out.println("No filtering by attribute");
+                            filteredUniqueFeatures = uniqueFeatures;
+                        }
+
+                        filterMetrics.put(chr,
+                                new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
+
+                        return filteredUniqueFeatures;
+                    }
+                }, false);
+    }
+    */
+
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D feature, int L, int resolution, int window,
                                                   NormalizationType norm, LocationType relativeLocation) throws IOException {
 
