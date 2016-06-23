@@ -137,7 +137,7 @@ public class APA extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
 
         hicFilePaths = args[1];
@@ -293,7 +293,7 @@ public class APA extends JuicerCLT {
                 APADataStack.clearAllData();
             } else {
                 System.err.println("Loop list is empty or incorrect path provided.");
-                System.exit(-8);
+                System.exit(3);
             }
         }
         System.out.println("APA complete");

@@ -129,7 +129,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
             return NormalizationType.valueOf(norm);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
+            System.exit(7);
         }
         return null;
     }

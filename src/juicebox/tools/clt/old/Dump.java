@@ -69,7 +69,7 @@ public class Dump extends JuiceboxCLT {
                                            MatrixType matrixType, int binSize) {
         if (zoom.getUnit() == HiC.Unit.FRAG) {
             System.err.println("All versus All currently not supported on fragment resolution");
-            System.exit(-1);
+            System.exit(8);
         }
 
         // Build a "whole-genome" matrix
@@ -155,7 +155,7 @@ public class Dump extends JuiceboxCLT {
             NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
             if (nv == null) {
                 System.err.println("Norm not available at " + chr + " " + binSize + " " + unit + " " + norm);
-                System.exit(-1);
+                System.exit(9);
             }
 
             dumpVector(pw, nv.getData(), false);
@@ -164,7 +164,7 @@ public class Dump extends JuiceboxCLT {
             final ExpectedValueFunction df = dataset.getExpectedValues(zoom, norm);
             if (df == null) {
                 System.err.println("Expected not available at " + chr + " " + binSize + " " + unit + " " + norm);
-                System.exit(-1);
+                System.exit(10);
             }
             int length = df.getLength();
 
@@ -275,14 +275,14 @@ public class Dump extends JuiceboxCLT {
             if (!chr1.equals(chr2)) {
                 System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
                 System.err.println("Currently only intrachromosomal O/E, Pearson's, and VS are supported.");
-                System.exit(-1);
+                System.exit(11);
             }
         }
 
         Matrix matrix = dataset.getMatrix(chr1, chr2);
         if (matrix == null) {
             System.err.println("No reads in " + chr1 + " " + chr2);
-            System.exit(-1);
+            System.exit(12);
         }
 
         if (chr2.getIndex() < chr1.getIndex()) {
@@ -302,7 +302,7 @@ public class Dump extends JuiceboxCLT {
             for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.FRAG); zoomIdx++) {
                 System.err.print(dataset.getZoom(HiC.Unit.FRAG, zoomIdx).getBinSize() + " ");
             }
-            System.exit(-1);
+            System.exit(13);
         }
 
         try {
@@ -311,7 +311,7 @@ public class Dump extends JuiceboxCLT {
                 df = dataset.getExpectedValues(zd.getZoom(), norm);
                 if (df == null) {
                     System.err.println(matrixType + " not available at " + chr1 + " " + zoom + " " + norm);
-                    System.exit(-1);
+                    System.exit(14);
                 }
             }
             zd.dump(txtWriter, les, norm, matrixType, useRegionIndices, regionIndices, df);
@@ -325,8 +325,7 @@ public class Dump extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
 
         if (args.length < 7) {
-            printUsage();
-            System.exit(0);
+            printUsageAndExit();
         }
 
         String mType = args[1].toLowerCase();
@@ -335,7 +334,7 @@ public class Dump extends JuiceboxCLT {
         if (matrixType == null) {
             System.err.println("Matrix or vector must be one of \"observed\", \"oe\", \"pearson\", \"norm\", " +
                     "\"expected\", or \"eigenvector\".");
-            System.exit(-1);
+            System.exit(15);
         }
 
         try {
@@ -343,12 +342,12 @@ public class Dump extends JuiceboxCLT {
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\"," +
                     " \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
+            System.exit(16);
         }
 
         if (!args[3].endsWith("hic")) {
             System.err.println("Only 'hic' files are supported");
-            System.exit(-1);
+            System.exit(17);
         }
 
         int idx = 3;
@@ -361,7 +360,7 @@ public class Dump extends JuiceboxCLT {
         // idx is now the next argument.  following arguments should be chr1, chr2, unit, binsize, [outfile]
         if (args.length != idx + 4 && args.length != idx + 5) {
             System.err.println("Incorrect number of arguments to \"dump\"");
-            printUsage();
+            printUsageAndExit();
         }
 
         // initialize chromosome map
@@ -379,11 +378,11 @@ public class Dump extends JuiceboxCLT {
 
         if (!chromosomeMap.containsKey(chr1)) {
             System.err.println("Unknown chromosome: " + chr1);
-            System.exit(-1);
+            System.exit(18);
         }
         if (!chromosomeMap.containsKey(chr2)) {
             System.err.println("Unknown chromosome: " + chr2);
-            System.exit(-1);
+            System.exit(19);
         }
 
 
@@ -391,7 +390,7 @@ public class Dump extends JuiceboxCLT {
             unit = HiC.Unit.valueOf(args[idx + 2]);
         } catch (IllegalArgumentException error) {
             System.err.println("Unit must be in BP or FRAG.");
-            System.exit(1);
+            System.exit(20);
         }
 
         String binSizeSt = args[idx + 3];
@@ -400,7 +399,7 @@ public class Dump extends JuiceboxCLT {
             binSize = Integer.parseInt(binSizeSt);
         } catch (NumberFormatException e) {
             System.err.println("Integer expected for bin size.  Found: " + binSizeSt + ".");
-            System.exit(1);
+            System.exit(21);
         }
 
 
@@ -426,8 +425,7 @@ public class Dump extends JuiceboxCLT {
             if (regionComponents.length != 3) {
                 System.err.println("Invalid number of indices for chr1: " + regionComponents.length +
                         ", should be 3 --> chromosome_name:start_index:end_index");
-                printUsage();
-                System.exit(0);
+                printUsageAndExit();
             } else {
                 try {
                     chr1 = regionComponents[0];
@@ -436,8 +434,7 @@ public class Dump extends JuiceboxCLT {
                     useRegionIndices = true;
                 } catch (Exception e) {
                     System.err.println("Invalid indices for chr1: " + chr1);
-                    printUsage();
-                    System.exit(-2);
+                    printUsageAndExit();
                 }
             }
         } else {
@@ -451,8 +448,7 @@ public class Dump extends JuiceboxCLT {
             if (regionComponents.length != 3) {
                 System.err.println("Invalid number of indices for chr2 : " + regionComponents.length +
                         ", should be 3 --> chromosome_name:start_index:end_index");
-                printUsage();
-                System.exit(0);
+                printUsageAndExit();
             } else {
                 try {
                     chr2 = regionComponents[0];
@@ -461,8 +457,7 @@ public class Dump extends JuiceboxCLT {
                     useRegionIndices = true;
                 } catch (Exception e) {
                     System.err.println("Invalid indices for chr2:  " + chr2);
-                    printUsage();
-                    System.exit(-2);
+                    printUsageAndExit();
                 }
             }
         } else {

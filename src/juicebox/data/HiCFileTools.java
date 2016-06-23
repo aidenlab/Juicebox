@@ -53,7 +53,7 @@ public class HiCFileTools {
                     reader = new DatasetReaderV2(files.get(0));
                 } else {
                     System.err.println("This version of HIC is no longer supported");
-                    System.exit(-1);
+                    System.exit(32);
                 }
                 dataset = reader.read();
 
@@ -63,7 +63,7 @@ public class HiCFileTools {
                 reader = DatasetReaderFactory.getReader(files);
                 if (reader == null) {
                     System.err.println("Error while reading files");
-                    System.exit(-1);
+                    System.exit(33);
                 } else {
                     dataset = reader.read();
                 }
@@ -71,7 +71,7 @@ public class HiCFileTools {
             HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         } catch (Exception e) {
             System.err.println("Could not read hic file: " + e.getMessage());
-            System.exit(-6);
+            System.exit(34);
             //e.printStackTrace();
         }
         return dataset;
@@ -101,7 +101,7 @@ public class HiCFileTools {
                         is = new FileInputStream(file);
                     } else {
                         System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(-3);
+                        System.exit(35);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -174,7 +174,7 @@ public class HiCFileTools {
                         is = new FileInputStream(file);
                     } else {
                         System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(-3);
+                        System.exit(36);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -333,7 +333,7 @@ public class HiCFileTools {
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
             System.out.println("I/O error opening file.");
-            System.exit(0);
+            System.exit(37);
         }
         return null;
     }
@@ -369,7 +369,7 @@ public class HiCFileTools {
                 System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
                 System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
                 e.printStackTrace();
-                System.exit(-6);
+                System.exit(38);
             }
         }
 
@@ -419,7 +419,7 @@ public class HiCFileTools {
         }
 
         System.out.println("Could not find normalizations");
-        System.exit(-5);
+        System.exit(39);
         return null;
     }
     */
@@ -461,7 +461,7 @@ public class HiCFileTools {
         if (!outputDirectory.exists() || !outputDirectory.isDirectory()) {
             if (!outputDirectory.mkdir()) {
                 System.err.println("Couldn't create output directory " + directoryPath);
-                System.exit(1);
+                System.exit(40);
             }
         }
         return outputDirectory;

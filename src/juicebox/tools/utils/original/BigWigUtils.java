@@ -143,7 +143,7 @@ public class BigWigUtils {
 
         if (args.length < 2) {
             System.err.println("Chromosome and window size are required");
-            System.exit(0);
+            System.exit(5);
         }
 
         String path = args[0];

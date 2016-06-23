@@ -96,7 +96,7 @@ public class NormalizationCalculations {
             int nTokens = tokens.length;
             if (nTokens != 3) {
                 System.err.println("Number of columns incorrect at line" + lineCount + ": " + nextLine);
-                System.exit(-1);
+                System.exit(62);
             }
             int binX = Integer.parseInt(tokens[0]);
             int binY = Integer.parseInt(tokens[1]);

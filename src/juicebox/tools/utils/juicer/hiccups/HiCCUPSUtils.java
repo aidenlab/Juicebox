@@ -267,7 +267,7 @@ public class HiCCUPSUtils {
                         double dist = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
                         if (Double.isNaN(dist) || dist < 0) {
                             System.err.println("Invalid distance while merging centroid");
-                            System.exit(-9);
+                            System.exit(29);
                         }
                         distances.add(dist);
                     }
@@ -475,7 +475,7 @@ public class HiCCUPSUtils {
                 return ArrayTools.preInitializeIntArray(result[0], n);
             } else {
                 System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
-                System.exit(1);
+                System.exit(30);
                 return new int[0];
             }
         }
@@ -506,7 +506,7 @@ public class HiCCUPSUtils {
                     return ArrayTools.preInitializeDoubleArray(result[0], n);
                 } else {
                     System.err.println("Must pass " + n + " parameters in place of " + Arrays.toString(result));
-                    System.exit(-10);
+                    System.exit(31);
                 }
             }
         }

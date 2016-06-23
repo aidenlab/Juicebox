@@ -125,7 +125,7 @@ public class Preprocessor {
 
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
-            System.exit(1);
+            System.exit(57);
         }
 
         try {
@@ -365,7 +365,7 @@ public class Preprocessor {
                     if (writtenMatrices.contains(currentMatrixKey)) {
                         System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
                         if (outputFile != null) outputFile.deleteOnExit();
-                        System.exit(1);
+                        System.exit(58);
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2);
                 }
@@ -778,7 +778,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             if (!tmpDir.exists()) {
                 System.err.println("Tmp directory does not exist: " + tmpDirName);
                 if (outputFile != null) outputFile.deleteOnExit();
-                System.exit(1);
+                System.exit(59);
             }
         }
     }

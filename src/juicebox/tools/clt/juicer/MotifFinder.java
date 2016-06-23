@@ -73,7 +73,7 @@ public class MotifFinder extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4 && args.length != 5) {
-            this.printUsage();
+            this.printUsageAndExit();
         }
 
         int i = 1;
@@ -97,7 +97,7 @@ public class MotifFinder extends JuicerCLT {
             System.err.println("All BED files should include the '.bed' extension");
             System.err.println("BED files for locating unique motifs should be located in given_bed_file_dir/unique");
             System.err.println("BED files for locating inferred motifs should be located in given_bed_file_dir/inferred");
-            System.exit(-4);
+            System.exit(54);
         }
 
         // TODO add specific chromosome option (i.e. use givenChromosomes)
@@ -204,7 +204,7 @@ public class MotifFinder extends JuicerCLT {
         } else {
             // no files
             System.err.println("No CTCF files provided");
-            System.exit(-5);
+            System.exit(55);
             return null;
         }
     }

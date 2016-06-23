@@ -80,8 +80,7 @@ public class HiCCUPSDiff extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 6) {
-            printUsage();
-            System.exit(1);
+            printUsageAndExit();
         }
 
         outputDirectory = HiCFileTools.createValidDirectory(args[5]);
@@ -91,7 +90,7 @@ public class HiCCUPSDiff extends JuicerCLT {
 
         if (!(ds1.getGenomeId().equals(ds2.getGenomeId()))) {
             System.err.println("Hi-C maps must be from the same genome");
-            System.exit(1);
+            System.exit(27);
         }
         chromosomes = ds1.getChromosomes();
         looplist1 = Feature2DParser.loadFeatures(args[3], chromosomes, true, null, false);
@@ -114,7 +113,7 @@ public class HiCCUPSDiff extends JuicerCLT {
             }
             if (resOpts.size() == 0) {
                 System.err.println("The loop lists have no resolutions in common.");
-                System.exit(1);
+                System.exit(28);
             }
         }
         List<String> fdrOpts = juicerParser.getFDROptions();

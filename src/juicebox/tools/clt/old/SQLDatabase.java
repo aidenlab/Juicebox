@@ -54,7 +54,7 @@ public class SQLDatabase extends JuiceboxCLT {
         } catch (SQLException e) {
             System.err.println("Sql exception: " + e.getMessage());
             e.printStackTrace();
-            System.exit(1);
+            System.exit(61);
         } catch (IOException e) {
             e.printStackTrace();
         }

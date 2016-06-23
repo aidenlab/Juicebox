@@ -206,8 +206,7 @@ public class HiCCUPS extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3 && args.length != 4) {
-            printUsage();
-            System.exit(1);
+            printUsageAndExit();
         }
         // TODO: add code here to check for CUDA/GPU installation.  The below is not ideal.
         /*
@@ -219,7 +218,7 @@ public class HiCCUPS extends JuicerCLT {
         catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
-            System.exit(1);
+            System.exit(24);
         }
         */
 
@@ -259,7 +258,7 @@ public class HiCCUPS extends JuicerCLT {
             System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
             if (checkMapDensityThreshold) {
                 System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                System.exit(0);
+                System.exit(25);
             }
         }
 
@@ -351,7 +350,7 @@ public class HiCCUPS extends JuicerCLT {
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
-            System.exit(1);
+            System.exit(26);
         }
 
 

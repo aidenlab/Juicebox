@@ -48,7 +48,7 @@ public class HiCTools {
 
         if (argv.length == 0) {
             CLTFactory.generalUsage();
-            System.exit(0);
+            System.exit(42);
         }
         String cmdName = argv[0].toLowerCase();
 
@@ -71,8 +71,7 @@ public class HiCTools {
         }
         if (instanceOfCLT != null) {
             if (args.length == 1) {
-                instanceOfCLT.printUsage();
-                System.exit(0);
+                instanceOfCLT.printUsageAndExit();
             }
             instanceOfCLT.readArguments(args, parser);
             instanceOfCLT.run();
