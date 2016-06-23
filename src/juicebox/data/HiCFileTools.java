@@ -275,13 +275,26 @@ public class HiCFileTools {
      * Set intersection
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
      *
-     * @param set1
-     * @param set2
+     * @param collection1
+     * @param collection2
      * @return intersection of set1 and set2
      */
-    public static Set<Chromosome> getSetIntersection(Set<Chromosome> set1, Set<Chromosome> set2) {
+    public static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
+        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
+        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+
         boolean set1IsLarger = set1.size() > set2.size();
         Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
+    public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
+        Set<HiCZoom> set1 = new HashSet<HiCZoom>(collection1);
+        Set<HiCZoom> set2 = new HashSet<HiCZoom>(collection2);
+
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<HiCZoom> cloneSet = new HashSet<HiCZoom>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }

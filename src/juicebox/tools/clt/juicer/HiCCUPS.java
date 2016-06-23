@@ -169,7 +169,7 @@ public class HiCCUPS extends JuicerCLT {
     private static String ENRICHED_PIXELS = "enriched_pixels";
     private static String REQUESTED_LIST = "requested_list";
     private boolean configurationsSetByUser = false;
-    private String featureList;
+    private String featureListPath;
     private boolean listGiven = false;
     private boolean checkMapDensityThreshold = true;
 
@@ -190,7 +190,6 @@ public class HiCCUPS extends JuicerCLT {
      * same with published IMR90 looplist
      * published CH12 looplist only generated with 10kb
      */
-    private String inputHiCFileName;
     private File outputDirectory;
     private List<HiCCUPSConfiguration> configurations;
     private Dataset ds;
@@ -222,13 +221,12 @@ public class HiCCUPS extends JuicerCLT {
         }
         */
 
-        inputHiCFileName = args[1];
-        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         if (args.length == 4) {
             listGiven = true;
-            featureList = args[3];
+            featureListPath = args[3];
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -241,6 +239,33 @@ public class HiCCUPS extends JuicerCLT {
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
         }
+    }
+
+    public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath,
+                                   String featureListPath, NormalizationType preferredNorm, int matrixSize,
+                                   List<HiCCUPSConfiguration> configurations) {
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+        outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
+
+        if (featureListPath != null) {
+            listGiven = true;
+            this.featureListPath = featureListPath;
+        }
+
+        if (preferredNorm != null)
+            norm = preferredNorm;
+
+        // will just confirm matrix size is large enough
+        determineValidMatrixSize(matrixSize);
+
+        // configurations should have been passed in
+        if (configurations != null && configurations.size() > 0) {
+            configurationsSetByUser = true;
+            this.configurations = configurations;
+        }
+
+        // force hiccups to run
+        checkMapDensityThreshold = false;
     }
 
     @Override
@@ -286,7 +311,7 @@ public class HiCCUPS extends JuicerCLT {
 
         Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
         if (listGiven) {
-            inputListFeature2DHandler.loadLoopList(featureList, commonChromosomes);
+            inputListFeature2DHandler.loadLoopList(featureListPath, commonChromosomes);
         }
 
         for (HiCCUPSConfiguration conf : configurations) {
@@ -561,7 +586,10 @@ public class HiCCUPS extends JuicerCLT {
     }
 
     private void determineValidMatrixSize(CommandLineParserForJuicer juicerParser) {
-        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+        determineValidMatrixSize(juicerParser.getMatrixSizeOption());
+    }
+
+    private void determineValidMatrixSize(int specifiedMatrixSize) {
         if (specifiedMatrixSize > 2 * regionMargin) {
             matrixSize = specifiedMatrixSize;
             regionWidth = specifiedMatrixSize - totalMargin;
