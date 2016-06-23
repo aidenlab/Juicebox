@@ -41,14 +41,6 @@ import java.util.regex.Pattern;
  */
 public class HiCFileTools {
 
-    /**
-     * Load chromosomes from given ID or file name.
-     *
-     * @param idOrFile Genome ID or file name where chromosome lengths written
-     * @return Chromosome lengths
-     * @throws java.io.IOException if chromosome length file not found
-     */
-
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
@@ -257,8 +249,20 @@ public class HiCFileTools {
     }
 
     private static int closestValue(int val, TreeSet<Integer> valSet) {
-        int floorVal = valSet.floor(val);
-        int ceilVal = valSet.ceiling(val);
+        int floorVal;
+        try {
+            // sometimes no lower value is available and throws NPE
+            floorVal = valSet.floor(val);
+        } catch (Exception e) {
+            return valSet.ceiling(val);
+        }
+        int ceilVal;
+        try {
+            // sometimes no higher value is available and throws NPE
+            ceilVal = valSet.ceiling(val);
+        } catch (Exception e) {
+            return floorVal;
+        }
 
         if (Math.abs(ceilVal - val) < Math.abs(val - floorVal))
             return ceilVal;

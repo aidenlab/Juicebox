@@ -541,7 +541,7 @@ public class HiCCUPS extends JuicerCLT {
 
         configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
         if (configurations == null) {
-            System.out.println("No configurations specified, using default settings");
+            System.out.println("No valid configurations specified, using default settings");
             configurationsSetByUser = false;
         }
         else {
