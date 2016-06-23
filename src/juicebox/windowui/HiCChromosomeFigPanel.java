@@ -27,6 +27,8 @@ package juicebox.windowui;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.MatrixZoomData;
+import juicebox.track.HiCGridAxis;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.FontManager;
 
@@ -271,14 +273,26 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             int chrFigRegion = chrFigEnd - chrFigStart;
             g.setColor(chrContour);
             g.drawRoundRect(1, h / 4, w - 2, h / 2, h / 2, h / 2);
+
             // Lines
             g.drawLine(chrFigStart, h / 2, chrFigStart, h / 4 - 3);
             g.drawLine(0, 0, 0, 3);
             g.drawLine(chrFigStart, h / 4 - 3, 0, 3);
 
+            MatrixZoomData zd;
+            try {
+                zd = hic.getZd();
+            } catch (Exception e) {
+                return;
+            }
+            HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+            int maxX = context.getChromosome().getLength();
+            int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
+            int endbinNumber = (genomePositions[1] > maxX) ? x : w;
+
             g.drawLine(chrFigEnd, h / 2, chrFigEnd, h / 4 - 3);
-            g.drawLine(w - 1, 0, w - 1, 3);
-            g.drawLine(chrFigEnd, h / 4 - 3, w - 1, 3);
+            g.drawLine(endbinNumber - 1, 0, endbinNumber - 1, 3);
+            g.drawLine(chrFigEnd, h / 4 - 3, endbinNumber - 1, 3);
 
             // Later implement shape to create a chromosome shape
             RoundRectangle2D chrFig = new RoundRectangle2D.Double(1, h / 4, w - 2, h / 2, h / 2, h / 2);
