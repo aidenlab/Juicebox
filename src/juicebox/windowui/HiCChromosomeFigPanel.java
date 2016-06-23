@@ -380,6 +380,12 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
 
     }
+
+
+    //Load chromosome gap method
+    //Calculate width method (calculate centromere location)
+    //
+
 }
 
 
