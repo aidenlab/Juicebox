@@ -238,11 +238,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 Color tColor = isHorizontal() ? topTick : leftTick;
                 g.setColor(tColor);
 
+
+                double binOrigin = context.getBinOrigin();
                 Chromosome c = chromosomes.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
                 int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
-                int x2 = (int) (xBin * hic.getScaleFactor());
+                int x2 = (int) ((xBin - binOrigin) * hic.getScaleFactor());
 
                 int x = (x1 + x2) / 2;
                 int strWidth = g.getFontMetrics().stringWidth(c.getName());
@@ -256,7 +258,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 x1 = x2;
             }
         }
-        // Non export Version
 
         else {
             if (showOnlyEndPts) {
