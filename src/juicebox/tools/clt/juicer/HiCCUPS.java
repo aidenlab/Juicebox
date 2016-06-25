@@ -172,6 +172,7 @@ public class HiCCUPS extends JuicerCLT {
     private String featureListPath;
     private boolean listGiven = false;
     private boolean checkMapDensityThreshold = true;
+    private List<Chromosome> directlyInitializedCommonChromosomes = null;
 
     /*
      * Reasonable Commands
@@ -241,9 +242,22 @@ public class HiCCUPS extends JuicerCLT {
         }
     }
 
+    /**
+     * Used by hiccups diff to set the properties of hiccups directly without resorting to command line usage
+     *
+     * @param inputHiCFileName
+     * @param outputDirectoryPath
+     * @param featureListPath
+     * @param preferredNorm
+     * @param matrixSize
+     * @param providedCommonChromosomes
+     * @param configurations
+     * @param thresholds
+     */
     public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath,
                                    String featureListPath, NormalizationType preferredNorm, int matrixSize,
-                                   List<HiCCUPSConfiguration> configurations) {
+                                   List<Chromosome> providedCommonChromosomes,
+                                   List<HiCCUPSConfiguration> configurations, double[] thresholds) {
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
@@ -252,8 +266,9 @@ public class HiCCUPS extends JuicerCLT {
             this.featureListPath = featureListPath;
         }
 
-        if (preferredNorm != null)
-            norm = preferredNorm;
+        directlyInitializedCommonChromosomes = providedCommonChromosomes;
+
+        if (preferredNorm != null) norm = preferredNorm;
 
         // will just confirm matrix size is large enough
         determineValidMatrixSize(matrixSize);
@@ -263,6 +278,9 @@ public class HiCCUPS extends JuicerCLT {
             configurationsSetByUser = true;
             this.configurations = configurations;
         }
+
+        // fdr & oe thresholds directly sent in
+        if (thresholds != null) setHiCCUPSFDROEThresholds(thresholds);
 
         // force hiccups to run
         checkMapDensityThreshold = false;
@@ -301,9 +319,12 @@ public class HiCCUPS extends JuicerCLT {
         }
 
         List<Chromosome> commonChromosomes = ds.getChromosomes();
-        if (givenChromosomes != null && givenChromosomes.size() > 0)
+        if (directlyInitializedCommonChromosomes != null && directlyInitializedCommonChromosomes.size() > 0) {
+            commonChromosomes = directlyInitializedCommonChromosomes;
+        } else if (givenChromosomes != null && givenChromosomes.size() > 0) {
             commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
                     commonChromosomes));
+        }
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
@@ -571,14 +592,12 @@ public class HiCCUPS extends JuicerCLT {
         else {
             configurationsSetByUser = true;
         }
+
         try {
             List<String> t = juicerParser.getThresholdOptions();
-            if (t.size() > 1) {
-                double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, -1f);
-                fdrsum = thresholds[0];
-                oeThreshold1 = thresholds[1];
-                oeThreshold2 = thresholds[2];
-                oeThreshold3 = thresholds[3];
+            if (t != null && t.size() == 4) {
+                double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, Double.NaN);
+                setHiCCUPSFDROEThresholds(thresholds);
             }
         } catch (Exception e) {
             // do nothing - use default postprocessing thresholds
@@ -596,6 +615,15 @@ public class HiCCUPS extends JuicerCLT {
         }
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Using Matrix Size " + matrixSize);
+        }
+    }
+
+    public void setHiCCUPSFDROEThresholds(double[] thresholds) {
+        if (thresholds != null && thresholds.length == 4) {
+            if (!Double.isNaN(thresholds[0]) && thresholds[0] > 0) fdrsum = thresholds[0];
+            if (!Double.isNaN(thresholds[1]) && thresholds[1] > 0) oeThreshold1 = thresholds[1];
+            if (!Double.isNaN(thresholds[2]) && thresholds[2] > 0) oeThreshold2 = thresholds[2];
+            if (!Double.isNaN(thresholds[3]) && thresholds[3] > 0) oeThreshold3 = thresholds[3];
         }
     }
 }
