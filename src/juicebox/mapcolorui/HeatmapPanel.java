@@ -358,7 +358,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
+        List<Chromosome> chromosomes = hic.getChromosomes();
+        // Index 0 is whole genome
+        int genomeCoord = 0;
+        for (int i = 1; i < chromosomes.size(); i++) {
+            Chromosome c = chromosomes.get(i);
+            genomeCoord += (c.getLength() / 1000);
+        }
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+
+        //int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
         return (int) (xBin * hic.getScaleFactor());
     }
 
@@ -371,7 +380,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
+        List<Chromosome> chromosomes = hic.getChromosomes();
+        // Index 0 is whole genome
+        int genomeCoord = 0;
+        for (int i = 1; i < chromosomes.size(); i++) {
+            Chromosome c = chromosomes.get(i);
+            genomeCoord += (c.getLength() / 1000);
+        }
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+
+        //int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
         return (int) (xBin * hic.getScaleFactor());
     }
 
