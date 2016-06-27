@@ -294,6 +294,7 @@ public class HiCCUPS extends JuicerCLT {
         // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
         // then the map had more than 300M contacts.
         // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+        // todo 300M reads or contacts
         if (HiCGlobals.printVerboseComments) {
             System.err.println("First expected is " + firstExpected);
         }
@@ -308,13 +309,13 @@ public class HiCCUPS extends JuicerCLT {
         // high quality (IMR90, GM12878) maps have different settings
         if (!configurationsSetByUser) {
             configurations = new ArrayList<HiCCUPSConfiguration>();
+            configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
             configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-            if (firstExpected > 250000) {
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
-                System.out.println("Default settings for 5kb and 10kb being used");
+            if (firstExpected < 250000) {
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+                System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
             } else {
-                // TODO - check that ch12, hela, etc use this setting
-                System.out.println("Default settings for 10kb being used");
+                System.out.println("Default settings for 5kb and 10kb being used");
             }
         }
 
