@@ -306,12 +306,12 @@ public class HiCCUPS extends JuicerCLT {
             }
         }
 
-        // high quality (IMR90, GM12878) maps have different settings
+        // high quality (e.g. GM12878) maps have different settings
         if (!configurationsSetByUser) {
             configurations = new ArrayList<HiCCUPSConfiguration>();
             configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
             configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-            if (firstExpected < 250000) {
+            if (firstExpected < 300000) {
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
                 System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
             } else {
