@@ -86,7 +86,7 @@ public class FragmentToBed extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox fragmentToBed <fragmentFile>");
         if (args.length != 2) {
-            printUsage();
+            printUsageAndExit();
         }
         filename = args[1];
     }

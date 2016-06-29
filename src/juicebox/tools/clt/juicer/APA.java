@@ -137,7 +137,7 @@ public class APA extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
 
         hicFilePaths = args[1];
@@ -191,7 +191,7 @@ public class APA extends JuicerCLT {
             gwPeakNumbers[i] = 0;
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
-        for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+        for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
 
             // determine the region width corresponding to the resolution
             int currentRegionWidth = resolution == 5000 ? 3 : 6;
@@ -293,7 +293,7 @@ public class APA extends JuicerCLT {
                 APADataStack.clearAllData();
             } else {
                 System.err.println("Loop list is empty or incorrect path provided.");
-                System.exit(-8);
+                System.exit(3);
             }
         }
         System.out.println("APA complete");

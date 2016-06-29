@@ -41,14 +41,6 @@ import java.util.regex.Pattern;
  */
 public class HiCFileTools {
 
-    /**
-     * Load chromosomes from given ID or file name.
-     *
-     * @param idOrFile Genome ID or file name where chromosome lengths written
-     * @return Chromosome lengths
-     * @throws java.io.IOException if chromosome length file not found
-     */
-
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
@@ -61,7 +53,7 @@ public class HiCFileTools {
                     reader = new DatasetReaderV2(files.get(0));
                 } else {
                     System.err.println("This version of HIC is no longer supported");
-                    System.exit(-1);
+                    System.exit(32);
                 }
                 dataset = reader.read();
 
@@ -71,7 +63,7 @@ public class HiCFileTools {
                 reader = DatasetReaderFactory.getReader(files);
                 if (reader == null) {
                     System.err.println("Error while reading files");
-                    System.exit(-1);
+                    System.exit(33);
                 } else {
                     dataset = reader.read();
                 }
@@ -79,7 +71,7 @@ public class HiCFileTools {
             HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         } catch (Exception e) {
             System.err.println("Could not read hic file: " + e.getMessage());
-            System.exit(-6);
+            System.exit(34);
             //e.printStackTrace();
         }
         return dataset;
@@ -109,7 +101,7 @@ public class HiCFileTools {
                         is = new FileInputStream(file);
                     } else {
                         System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(-3);
+                        System.exit(35);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -182,7 +174,7 @@ public class HiCFileTools {
                         is = new FileInputStream(file);
                     } else {
                         System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(-3);
+                        System.exit(36);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -237,14 +229,14 @@ public class HiCFileTools {
     /**
      * Given an array of possible resolutions, returns the actual resolutions available in the dataset
      *
-     * @param ds
+     * @param availableZooms
      * @param resolutions
      * @return finalResolutions Set
      */
-    public static List<Integer> filterResolutions(Dataset ds, int[] resolutions) {
+    public static List<Integer> filterResolutions(List<HiCZoom> availableZooms, int[] resolutions) {
 
         TreeSet<Integer> resSet = new TreeSet<Integer>();
-        for (HiCZoom zoom : ds.getBpZooms()) {
+        for (HiCZoom zoom : availableZooms) {
             resSet.add(zoom.getBinSize());
         }
 
@@ -257,8 +249,20 @@ public class HiCFileTools {
     }
 
     private static int closestValue(int val, TreeSet<Integer> valSet) {
-        int floorVal = valSet.floor(val);
-        int ceilVal = valSet.ceiling(val);
+        int floorVal;
+        try {
+            // sometimes no lower value is available and throws NPE
+            floorVal = valSet.floor(val);
+        } catch (Exception e) {
+            return valSet.ceiling(val);
+        }
+        int ceilVal;
+        try {
+            // sometimes no higher value is available and throws NPE
+            ceilVal = valSet.ceiling(val);
+        } catch (Exception e) {
+            return floorVal;
+        }
 
         if (Math.abs(ceilVal - val) < Math.abs(val - floorVal))
             return ceilVal;
@@ -271,13 +275,26 @@ public class HiCFileTools {
      * Set intersection
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
      *
-     * @param set1
-     * @param set2
+     * @param collection1
+     * @param collection2
      * @return intersection of set1 and set2
      */
-    public static Set<Chromosome> getSetIntersection(Set<Chromosome> set1, Set<Chromosome> set2) {
+    public static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
+        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
+        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+
         boolean set1IsLarger = set1.size() > set2.size();
         Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
+    public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
+        Set<HiCZoom> set1 = new HashSet<HiCZoom>(collection1);
+        Set<HiCZoom> set2 = new HashSet<HiCZoom>(collection2);
+
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<HiCZoom> cloneSet = new HashSet<HiCZoom>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }
@@ -329,7 +346,7 @@ public class HiCFileTools {
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
             System.out.println("I/O error opening file.");
-            System.exit(0);
+            System.exit(37);
         }
         return null;
     }
@@ -365,7 +382,7 @@ public class HiCFileTools {
                 System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
                 System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
                 e.printStackTrace();
-                System.exit(-6);
+                System.exit(38);
             }
         }
 
@@ -415,7 +432,7 @@ public class HiCFileTools {
         }
 
         System.out.println("Could not find normalizations");
-        System.exit(-5);
+        System.exit(39);
         return null;
     }
     */
@@ -457,7 +474,7 @@ public class HiCFileTools {
         if (!outputDirectory.exists() || !outputDirectory.isDirectory()) {
             if (!outputDirectory.mkdir()) {
                 System.err.println("Couldn't create output directory " + directoryPath);
-                System.exit(1);
+                System.exit(40);
             }
         }
         return outputDirectory;

@@ -56,7 +56,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option clusterRadiusOption = null;
     private static Option thresholdOption = null;
 
-    // for AFA
+    // previously for AFA
     private static Option relativeLocationOption = null;
     private static Option multipleAttributesOption = null;
 
@@ -87,14 +87,14 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         clusterRadiusOption = addStringOption('d', "centroid_radii");
         thresholdOption = addStringOption('t', "postprocessing_thresholds");
 
-        // AFA
+        // previously for AFA
         relativeLocationOption = addStringOption('l', "location_type");
         multipleAttributesOption = addStringOption('a', "attributes");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("cluster") || cmd.equals("afa") || cmd.equals("compare") || cmd.equals("loop_domains") ||
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
                 cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff");
     }
 
@@ -129,7 +129,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
             return NormalizationType.valueOf(norm);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
+            System.exit(7);
         }
         return null;
     }

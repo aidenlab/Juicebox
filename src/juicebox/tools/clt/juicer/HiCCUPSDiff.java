@@ -24,20 +24,23 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.Feature2DTools;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -66,7 +69,7 @@ public class HiCCUPSDiff extends JuicerCLT {
     private String resolutions=null;
     private float maxEnrich=1.3f;
     private File outputDirectory;
-    private List<Chromosome> chromosomes;
+    private List<Chromosome> commonChromosomes;
 
     public HiCCUPSDiff() {
         // what variables should they be able to send in?
@@ -74,14 +77,12 @@ public class HiCCUPSDiff extends JuicerCLT {
         super("hiccupsdiff [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
                 "<firstHicFile> <secondHicFile> <firstLoopList> <secondLoopList> <outputDirectory>");
-
     }
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 6) {
-            printUsage();
-            System.exit(1);
+            printUsageAndExit();
         }
 
         outputDirectory = HiCFileTools.createValidDirectory(args[5]);
@@ -91,80 +92,40 @@ public class HiCCUPSDiff extends JuicerCLT {
 
         if (!(ds1.getGenomeId().equals(ds2.getGenomeId()))) {
             System.err.println("Hi-C maps must be from the same genome");
-            System.exit(1);
+            System.exit(27);
         }
-        chromosomes = ds1.getChromosomes();
-        looplist1 = Feature2DParser.loadFeatures(args[3], chromosomes, true, null, false);
-        looplist2 = Feature2DParser.loadFeatures(args[4], chromosomes, true, null, false);
+        // intersecting for the edge case where one of the hic files may not be using all chromosomes
+        // e.g. the mbr_19 files for testing
+        commonChromosomes = (List<Chromosome>) HiCFileTools.getSetIntersection(
+                new HashSet<Chromosome>(ds1.getChromosomes()), new HashSet<Chromosome>(ds2.getChromosomes()));
+        if (givenChromosomes != null && givenChromosomes.size() > 0)
+            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
+                    commonChromosomes));
 
-        String hiccups1Cmd;
-        String hiccups2Cmd;
-        List<String> resOpts = juicerParser.getMultipleResolutionOptions();
+        List<HiCZoom> availableZooms = (List<HiCZoom>) HiCFileTools.getZoomSetIntersection(ds1.getBpZooms(), ds1.getBpZooms());
 
-        if (resOpts == null) {
-            resOpts = new ArrayList<String>();
+        looplist1 = Feature2DParser.loadFeatures(args[3], commonChromosomes, true, null, false);
+        looplist2 = Feature2DParser.loadFeatures(args[4], commonChromosomes, true, null, false);
+
+        List<HiCCUPSConfiguration> configs =
+                HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
+
+        if (configs == null) {
+            configs = new ArrayList<HiCCUPSConfiguration>();
             if (Feature2DTools.isResolutionPresent(looplist1, 5000) && Feature2DTools.isResolutionPresent(looplist2, 5000)) {
-                resOpts.add("5000");
+                configs.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
             }
             if (Feature2DTools.isResolutionPresent(looplist1, 10000) && Feature2DTools.isResolutionPresent(looplist2, 10000)) {
-                resOpts.add("10000");
+                configs.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
             }
             if (Feature2DTools.isResolutionPresent(looplist1, 25000) && Feature2DTools.isResolutionPresent(looplist2, 25000)) {
-                resOpts.add("25000");
+                configs.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
             }
-            if (resOpts.size() == 0) {
+            if (configs.size() == 0) {
                 System.err.println("The loop lists have no resolutions in common.");
-                System.exit(1);
+                System.exit(28);
             }
         }
-        List<String> fdrOpts = juicerParser.getFDROptions();
-        List<String> pOpts = juicerParser.getPeakOptions();
-        List<String> iOpts = juicerParser.getWindowOptions();
-        List<String> dOpts = juicerParser.getClusterRadiusOptions();
-
-        if (fdrOpts == null) {
-            fdrOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) fdrOpts.add("0.1");
-            if (resOpts.contains("10000")) fdrOpts.add("0.1");
-            if (resOpts.contains("25000")) fdrOpts.add("0.1");
-        }
-        if (pOpts == null) {
-            pOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) pOpts.add("4");
-            if (resOpts.contains("10000")) pOpts.add("2");
-            if (resOpts.contains("25000")) pOpts.add("1");
-        }
-        if (iOpts == null) {
-            iOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) iOpts.add("7");
-            if (resOpts.contains("10000")) iOpts.add("5");
-            if (resOpts.contains("25000")) iOpts.add("3");
-        }
-        if (dOpts == null) {
-            dOpts = new ArrayList<String>();
-            if (resOpts.contains("5000")) dOpts.add("20000");
-            if (resOpts.contains("10000")) dOpts.add("20000");
-            if (resOpts.contains("25000")) dOpts.add("50000");
-        }
-        resolutions = resOpts.toString().replace("[", "").replace("]", "")
-                    .replace(", ", ",");
-
-        hiccups1Cmd = "hiccups -m 1000 -r " + resOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -f " + fdrOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -p " + pOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -i " + iOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -d " + dOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",")
-                + " " + args[1] + " " + outputDirectory + File.separator + "file1 " + args[4];
-
-        hiccups2Cmd = "hiccups -m 1000 -r " + resOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -f " + fdrOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -p " + pOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -i " + iOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",") + " -d " + dOpts.toString().replace("[", "").replace("]", "")
-                .replace(", ", ",")
-                + " " + args[2] + " " + outputDirectory + File.separator + "file2 " + args[3];
-
 
         System.out.println("Running differential HiCCUPs with resolutions " + resolutions);
 
@@ -182,27 +143,25 @@ public class HiCCUPSDiff extends JuicerCLT {
                     "file1 and " + outputDirectory + File.separator + "file2");
         }
         else {
+
+            NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+            if (preferredNorm != null)
+                norm = preferredNorm;
+
+            int matrixSize = juicerParser.getMatrixSizeOption();
+            if (matrixSize == 0) matrixSize = 1024;
+
+            double[] thresholds = null;
+            List<String> t = juicerParser.getThresholdOptions();
+            if (t != null && t.size() == 4) {
+                thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, Double.NaN);
+            }
+
             System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
-            try {
-                juicerParser.parse(hiccups1Cmd.split("\\s+"));
-                String[] args1 = juicerParser.getRemainingArgs();
-
-
-                hiccups1.readJuicerArguments(args1, juicerParser);
-
-
-                juicerParser.parse(hiccups2Cmd.split("\\s+"));
-                String[] args2 = juicerParser.getRemainingArgs();
-                hiccups2.readJuicerArguments(args2, juicerParser);
-            }
-            catch (CmdLineParser.UnknownOptionException error) {
-                // we construct the command so this shouldn't happen
-            }
-            catch (CmdLineParser.IllegalOptionValueException error) {
-                // we construct the command so this shouldn't happen
-            }
+            hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4], norm, matrixSize, commonChromosomes, configs, thresholds);
+            hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3], norm, matrixSize, commonChromosomes, configs, thresholds);
         }
     }
 
@@ -231,7 +190,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         Feature2DList results1 = new Feature2DList();
         for (String str:res) {
             String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + str;
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, chromosomes, true, null, false);
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomes, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results1.add(requestedList);
         }
@@ -241,7 +200,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         Feature2DList results2 = new Feature2DList();
         for (String str:res) {
             String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + str;
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, chromosomes, true, null, false);
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomes, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results2.add(requestedList);
         }

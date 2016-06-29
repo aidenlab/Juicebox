@@ -82,7 +82,7 @@ public class BPToFragment extends JuiceboxCLT {
             File dir = new File(outputDir);
             if (!dir.exists() || !dir.isDirectory()) {
                 System.out.println("Output directory does not exist, or is not directory");
-                System.exit(1);
+                System.exit(6);
             }
             reader = new BufferedReader(new FileReader(inputFile), HiCGlobals.bufferSize);
             String nextLine;
@@ -171,7 +171,7 @@ public class BPToFragment extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
 
         fragFile = args[1];

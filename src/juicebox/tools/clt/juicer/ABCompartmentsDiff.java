@@ -61,8 +61,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
-            printUsage();
-            System.exit(1);
+            printUsageAndExit();
         }
 
         File outputDirectory = HiCFileTools.createValidDirectory(args[3]);
@@ -74,7 +73,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
             simFileWriter = new PrintWriter(simFile);
         } catch (IOException e) {
             System.err.println("Unable to create files in output directory");
-            System.exit(6);
+            System.exit(1);
         }
 
         ds1 = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
@@ -82,7 +81,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
 
         if (!(ds1.getGenomeId().equals(ds2.getGenomeId()))) {
             System.err.println("Hi-C maps must be from the same genome");
-            System.exit(1);
+            System.exit(2);
         }
         chromosomes = ds1.getChromosomes();
 

@@ -41,7 +41,7 @@ public class CalcKR extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox calcKR <infile>");
         if (!(args.length == 2)) {
-            printUsage();
+            printUsageAndExit();
         }
         infile = args[1];
     }

@@ -82,7 +82,7 @@ public class Feature2DParser {
             nextLine = br.readLine();
             if (nextLine == null || nextLine.length() < 1) {
                 System.err.println("Empty list provided");
-                System.exit(-5);
+                System.exit(23);
             }
 
             String[] headers = getHeaders(nextLine);

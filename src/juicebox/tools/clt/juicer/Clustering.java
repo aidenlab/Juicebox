@@ -57,7 +57,7 @@ public class Clustering extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3) {
-            printUsage();
+            printUsageAndExit();
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();

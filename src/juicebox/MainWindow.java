@@ -168,7 +168,7 @@ public class MainWindow extends JFrame {
         setVisible(false);
         dispose();
         System.out.println("Exiting Main Window");
-        System.exit(0);
+        System.exit(44);
     }
 
     /**

@@ -42,14 +42,14 @@ public class AddGWNorm extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox addGWNorm hicFile <max genome-wide resolution>");
         if (args.length != 3) {
-            printUsage();
+            printUsageAndExit();
         }
         file = args[1];
 
         try {
             genomeWideResolution = Integer.valueOf(args[2]);
         } catch (NumberFormatException error) {
-            printUsage();
+            printUsageAndExit();
         }
     }
 

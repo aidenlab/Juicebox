@@ -177,7 +177,7 @@ class ScratchPad {
             StringTokenizer tokenizer = new StringTokenizer(line);
             if (tokenizer.countTokens() != 3) {
                 System.err.println("Corrupt line in file " + file.getName() + ": " + line);
-                System.exit(1);
+                System.exit(60);
             }
             int x = Integer.valueOf(tokenizer.nextToken());
             int y = Integer.valueOf(tokenizer.nextToken());

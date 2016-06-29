@@ -24,49 +24,21 @@
 
 package juicebox.tools.utils.juicer.hiccups;
 
-import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.utils.common.ArrayTools;
+import juicebox.windowui.HiCZoom;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 10/8/15.
  */
 public class HiCCUPSConfiguration {
-    final int windowWidth, peakWidth, clusterRadius;
-    final double fdrThreshold;
-    int resolution;
-
-    public HiCCUPSConfiguration(int resolution, double fdrThreshold, int peakWidth, int windowWidth, int clusterRadius) {
-        this.resolution = resolution;
-        this.fdrThreshold = fdrThreshold;
-        this.windowWidth = windowWidth;
-        this.peakWidth = peakWidth;
-        this.clusterRadius = clusterRadius;
-    }
-
-    public static List<HiCCUPSConfiguration> filterConfigurations(HiCCUPSConfiguration[] configurations, Dataset ds) {
-
-        int[] resolutions = new int[configurations.length];
-        for (int i = 0; i < configurations.length; i++) {
-            resolutions[i] = configurations[i].resolution;
-        }
-        List<Integer> filteredResolutions = HiCFileTools.filterResolutions(ds, resolutions);
-
-        // using map because duplicate resolutions will be removed while preserving order of respective configurations
-        Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<Integer, HiCCUPSConfiguration>();
-        for (int i = 0; i < configurations.length; i++) {
-            configurations[i].resolution = filteredResolutions.get(i);
-            configurationMap.put(filteredResolutions.get(i), configurations[i]);
-        }
-
-        return new ArrayList<HiCCUPSConfiguration>(configurationMap.values());
-    }
+    private int windowWidth, peakWidth, clusterRadius;
+    private double fdrThreshold;
+    private int resolution;
 
     /*
      * Reasonable Commands
@@ -85,21 +57,102 @@ public class HiCCUPSConfiguration {
      * same with published IMR90 looplist
      * published CH12 looplist only generated with 10kb
      */
+    public HiCCUPSConfiguration(int resolution, double fdrThreshold, int peakWidth, int windowWidth, int clusterRadius) {
+        this.resolution = resolution;
+        this.fdrThreshold = fdrThreshold;
+        this.windowWidth = windowWidth;
+        this.peakWidth = peakWidth;
+        this.clusterRadius = clusterRadius;
+    }
 
-    public static HiCCUPSConfiguration[] extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser) {
+    public static List<HiCCUPSConfiguration> extractConfigurationsFromCommandLine(CommandLineParserForJuicer juicerParser,
+                                                                                  List<HiCZoom> availableZooms) {
         List<String> resString = juicerParser.getMultipleResolutionOptions();
         if (resString == null) return null;
         int[] resolutions = ArrayTools.extractIntegers(resString);
-        double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10
-        int[] peaks = HiCCUPSUtils.extractIntegerValues(juicerParser.getPeakOptions(), resolutions.length, 2);
-        int[] windows = HiCCUPSUtils.extractIntegerValues(juicerParser.getWindowOptions(), resolutions.length, 5);
-        int[] radii = HiCCUPSUtils.extractIntegerValues(juicerParser.getClusterRadiusOptions(), resolutions.length, 20000);
 
-        HiCCUPSConfiguration[] configurations = new HiCCUPSConfiguration[resolutions.length];
-        for (int i = 0; i < resolutions.length; i++) {
-            configurations[i] = new HiCCUPSConfiguration(resolutions[i], fdr[i], peaks[i], windows[i], radii[i]);
+        Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<Integer, HiCCUPSConfiguration>();
+        for (int res : resolutions) {
+            if (res == 5000) {
+                configurationMap.put(res, getDefaultConfigFor5K());
+            } else if (res == 10000) {
+                configurationMap.put(res, getDefaultConfigFor10K());
+            } else if (res == 25000) {
+                configurationMap.put(res, getDefaultConfigFor25K());
+            } else {
+                configurationMap.put(res, getDefaultBlankConfig(res));
+            }
         }
-        return configurations;
+
+        double[] fdr = HiCCUPSUtils.extractFDRValues(juicerParser.getFDROptions(), resolutions.length, 0.1f); // becomes default 10
+        int[] peaks = HiCCUPSUtils.extractIntegerValues(juicerParser.getPeakOptions(), resolutions.length);
+        int[] windows = HiCCUPSUtils.extractIntegerValues(juicerParser.getWindowOptions(), resolutions.length);
+        int[] radii = HiCCUPSUtils.extractIntegerValues(juicerParser.getClusterRadiusOptions(), resolutions.length);
+
+        for (int i = 0; i < resolutions.length; i++) {
+            if (fdr != null) configurationMap.get(resolutions[i]).fdrThreshold = fdr[i];
+            if (peaks != null) configurationMap.get(resolutions[i]).peakWidth = peaks[i];
+            if (windows != null) configurationMap.get(resolutions[i]).windowWidth = windows[i];
+            if (radii != null) configurationMap.get(resolutions[i]).clusterRadius = radii[i];
+        }
+
+        Set<Integer> filteredResolutions = new HashSet<Integer>(HiCFileTools.filterResolutions(availableZooms, resolutions));
+        for (int res : resolutions) {
+            if (!filteredResolutions.contains(res)) {
+                System.err.println("Resolution " + res + " not available.");
+            }
+        }
+
+        List<HiCCUPSConfiguration> validConfigs = new ArrayList<HiCCUPSConfiguration>();
+        for (int res : filteredResolutions) {
+            if (configurationMap.containsKey(res)) {
+                HiCCUPSConfiguration config = configurationMap.get(res);
+                if (config.isValid()) {
+                    validConfigs.add(config);
+                } else {
+                    System.out.println("Discarding invalid configuration: " + config);
+                }
+            }
+        }
+
+        if (validConfigs.size() > 0) {
+            System.out.println("Using the following configurations for HiCCUPS:");
+            for (HiCCUPSConfiguration config : validConfigs) {
+                System.out.println(config);
+            }
+        } else {
+            return null;
+        }
+
+        return validConfigs;
+    }
+
+    public static HiCCUPSConfiguration getDefaultConfigFor5K() {
+        return new HiCCUPSConfiguration(5000, 10, 4, 7, 20000);
+    }
+
+    public static HiCCUPSConfiguration getDefaultConfigFor10K() {
+        return new HiCCUPSConfiguration(10000, 10, 2, 5, 20000);
+    }
+
+    public static HiCCUPSConfiguration getDefaultConfigFor25K() {
+        return new HiCCUPSConfiguration(25000, 10, 1, 3, 50000);
+    }
+
+    public static HiCCUPSConfiguration getDefaultBlankConfig(int res) {
+        return new HiCCUPSConfiguration(res, 10, -1, -1, -1);
+    }
+
+    private boolean isValid() {
+        if (resolution <= 0)
+            return false;
+        if (windowWidth <= 0)
+            return false;
+        if (peakWidth <= 0)
+            return false;
+        if (clusterRadius <= 0)
+            return false;
+        return windowWidth > peakWidth;
     }
 
     public int divisor() {
@@ -124,5 +177,15 @@ public class HiCCUPSConfiguration {
 
     public double getFDRThreshold() {
         return fdrThreshold;
+    }
+
+    public String toString() {
+        return "Config res: " + resolution + " peak: " + peakWidth + " window: " + windowWidth +
+                " fdr: " + getFDRPercent() + " radius: " + clusterRadius;
+    }
+
+    public String getFDRPercent() {
+        DecimalFormat format = new DecimalFormat("#.##");
+        return format.format(100. * (1. / fdrThreshold)) + "%";
     }
 }

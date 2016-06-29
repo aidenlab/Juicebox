@@ -74,7 +74,7 @@ public class MotifAnchorParser {
             reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         } catch (Exception e) {
             System.err.println("Unable to create input stream for global motifs " + motifLocation);
-            System.exit(-4);
+            System.exit(49);
         } finally {
             List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
@@ -87,7 +87,7 @@ public class MotifAnchorParser {
             } catch (Exception e3) {
                 //e3.printStackTrace();
                 System.err.println("Unable to parse motif file");
-                System.exit(-5);
+                System.exit(50);
             }
 
             if (is != null) {
@@ -124,7 +124,7 @@ public class MotifAnchorParser {
             }
         } catch (Exception e) {
             System.err.println("Unable to find proper file via " + motifLocation);
-            System.exit(-4);
+            System.exit(51);
         }
         return filePath;
     }
@@ -178,7 +178,7 @@ public class MotifAnchorParser {
                 String text = "Improperly formatted FIMO output file: \npattern_name\tsequence_name\t" +
                         "start\tstop\tstrand\tscore\tp-value\tq-value\tmatched_sequence";
                 System.err.println(text);
-                System.exit(-5);
+                System.exit(52);
             }
 
             boolean strand;
@@ -229,7 +229,7 @@ public class MotifAnchorParser {
                 String text = "Improperly formatted FIMO output file: \npattern_name\tsequence_name\t" +
                         "start\tstop\tstrand\tscore\tp-value\tq-value\tmatched_sequence";
                 System.err.println(text);
-                System.exit(-5);
+                System.exit(53);
             }
         }
         bufferedReader.close();
