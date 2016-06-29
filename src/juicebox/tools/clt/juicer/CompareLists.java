@@ -62,7 +62,7 @@ public class CompareLists extends JuicerCLT {
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 5 && args.length != 6) {
-            printUsage();
+            printUsageAndExit();
         }
 
         compareTypeID = Integer.parseInt(args[1]);

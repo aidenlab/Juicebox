@@ -45,14 +45,14 @@ public class AddNorm extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
         if (args.length < 2 || args.length > 3) {
-            printUsage();
+            printUsageAndExit();
         }
         file = args[1];
         if (args.length > 2) {
             try {
                 genomeWideResolution = Integer.valueOf(args[2]);
             } catch (NumberFormatException error) {
-                printUsage();
+                printUsageAndExit();
             }
             useGenomeWideResolution = true;
         }

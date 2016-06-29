@@ -81,7 +81,7 @@ public class LoopDomains extends JuicerCLT {
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
 
         if (args.length != 4 && args.length != 5) {
-            printUsage();
+            printUsageAndExit();
         }
 
         genomeID = args[1];
@@ -95,7 +95,7 @@ public class LoopDomains extends JuicerCLT {
                     outputFile.createNewFile();
                 } catch (Exception e) {
                     System.err.println("Couldn't create output file " + outputPath);
-                    System.exit(1);
+                    System.exit(43);
                 }
             }
         }

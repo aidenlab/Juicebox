@@ -114,14 +114,14 @@ public class ExpectedValueCalculation {
                             "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
                             "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
                             "Exiting.");
-                    System.exit(1);
+                    System.exit(63);
                 }
                 catch (ArrayIndexOutOfBoundsException error) {
                     System.err.println("Problem with creating fragment-delimited maps, ArrayIndexOutOfBoundsException.\n" +
                             "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
                             "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
                             "Exiting.");
-                    System.exit(1);
+                    System.exit(22);
                 }
             }
         }

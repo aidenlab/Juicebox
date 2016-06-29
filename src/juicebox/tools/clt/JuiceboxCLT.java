@@ -45,9 +45,10 @@ public abstract class JuiceboxCLT {
         usage = newUsage;
     }
 
-    public void printUsage() {
+    // TODO can request int exitcode as parameter here if desired?
+    public void printUsageAndExit() {
         System.err.println("Usage:   juicebox " + usage);
-        System.exit(-2);
+        System.exit(41);
     }
 }
 

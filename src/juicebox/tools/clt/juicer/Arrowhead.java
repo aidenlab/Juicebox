@@ -125,8 +125,7 @@ public class Arrowhead extends JuicerCLT {
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3 && args.length != 5) {
             // 3 - standard, 5 - when list/control provided
-            printUsage();
-            System.exit(1);
+            printUsageAndExit();  // this will exit
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -176,7 +175,7 @@ public class Arrowhead extends JuicerCLT {
             System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
             if (checkMapDensityThreshold) {
                 System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                System.exit(0);
+                System.exit(4);
             }
         }
 

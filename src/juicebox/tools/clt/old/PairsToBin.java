@@ -43,7 +43,7 @@ public class PairsToBin extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
         ifile = args[1];
         ofile = args[2];

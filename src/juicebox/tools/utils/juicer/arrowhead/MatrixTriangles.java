@@ -143,7 +143,7 @@ class MatrixTriangles {
     public void generateBlockScoreCalculations() {
         if (initialMatricesNotGenerated) {
             System.out.println("Initial matrices have not been generated");
-            System.exit(-4);
+            System.exit(45);
         }
 
         upVar = upSquared.subtract(MatrixTools.elementBasedMultiplication(up, up));
@@ -165,7 +165,7 @@ class MatrixTriangles {
     public void thresholdScoreValues(double varThreshold, double signThreshold) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
-            System.exit(-5);
+            System.exit(46);
         }
 
         signThresholdInternalValues(blockScore, upSign, loSign, signThreshold);
@@ -220,7 +220,7 @@ class MatrixTriangles {
     public ArrowheadScoreList updateScoresUsingList(ArrowheadScoreList scoreList, int limStart, int limEnd) {
         if (blockScoresNotCalculated) {
             System.out.println("Block scores not calculated");
-            System.exit(-5);
+            System.exit(47);
         }
 
         return scoreList.updateActiveIndexScores(blockScore, limStart, limEnd);
@@ -229,7 +229,7 @@ class MatrixTriangles {
     public List<Set<Point>> extractConnectedComponents() {
         if (blockScoresNotThresholded) {
             System.out.println("Scores not fixed for threshold");
-            System.exit(-6);
+            System.exit(48);
         }
 
         //System.out.println("Norm "+blockScore.getNorm());

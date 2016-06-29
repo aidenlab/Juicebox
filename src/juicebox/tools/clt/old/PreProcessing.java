@@ -61,7 +61,7 @@ public class PreProcessing extends JuiceboxCLT {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("No genome ID given");
-            printUsage();
+            printUsageAndExit();
         }
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
@@ -95,7 +95,7 @@ public class PreProcessing extends JuiceboxCLT {
             NormalizationVectorUpdater.updateHicFile(outputFile);
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(1);
+            System.exit(56);
         }
     }
 }
