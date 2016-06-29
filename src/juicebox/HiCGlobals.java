@@ -56,7 +56,7 @@ public class HiCGlobals {
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<String>();
     // min hic file version supported
-    public static final int minVersion = 6;
+    public static final int minVersion = 7;
     //public static final int bufferSize = 1048576;
     //public static final int bufferSize = 4194304;
     public static final int bufferSize = 2097152;
@@ -88,7 +88,7 @@ public class HiCGlobals {
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
             throw new RuntimeException("This file is version " + version +
-                    ". Only versions 5 and greater are supported at this time.");
+                    ". Only versions 7 and greater are supported at this time.");
         }
     }
 
