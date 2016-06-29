@@ -29,3 +29,12 @@ You must have things appropriately installed in your keychain.  Follow the instr
 Size depends on what the size of your .app file is, make it big enough so this command doesn't fail.  You can also do Disk Utility -> New Image From Folder and choose Juicebox.app.
 
 4. Modify the code under the bundle taskdef in the build.xml file to change properties and other parameters.
+
+--------------------
+Steps for creating Public Friendly Version
+--------------------
+
+1. Create a new branch
+2. Delete anything under development (e.g. clustering)
+3. Replace sensitive chrom.sizes
+4. Remove any mention of assembly/sensitive projects
