@@ -50,7 +50,6 @@ import java.util.*;
 
 /**
  * Aggregate Peak Analysis developed by mhuntley
- * (AKA PSEA - peak set enrichment analysis)
  * <p/>
  * Implemented in Juicer by mshamim
  * <p/>
@@ -148,17 +147,17 @@ public class APA extends JuicerCLT {
         if (preferredNorm != null)
             norm = preferredNorm;
 
-        minPeakDist = juicerParser.getAPAMinVal();
-        if (minPeakDist <= 0)
-            minPeakDist = 0;
+        double potentialMinPeakDist = juicerParser.getAPAMinVal();
+        if (potentialMinPeakDist >= 0)
+            minPeakDist = potentialMinPeakDist;
 
-        maxPeakDist = juicerParser.getAPAMaxVal();
-        if (maxPeakDist <= 0)
-            maxPeakDist = Double.POSITIVE_INFINITY;
+        double potentialMaxPeakDist = juicerParser.getAPAMaxVal();
+        if (potentialMaxPeakDist > 0)
+            maxPeakDist = potentialMaxPeakDist;
 
-        window = juicerParser.getAPAWindowSizeOption();
-        if (window <= 0)
-            window = 10;
+        int potentialWindow = juicerParser.getAPAWindowSizeOption();
+        if (potentialWindow > 0)
+            window = potentialWindow;
 
         List<String> possibleRegionWidths = juicerParser.getAPACornerRegionDimensionOptions();
         if (possibleRegionWidths != null) {

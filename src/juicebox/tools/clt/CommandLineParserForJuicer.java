@@ -139,7 +139,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
      */
     private int optionToInt(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? 0 : ((Number) opt).intValue();
+        return opt == null ? -1 : ((Number) opt).intValue();
     }
 
     public int getAPAWindowSizeOption() {
@@ -150,12 +150,20 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToInt(matrixSizeOption);
     }
 
+    /**
+     * double flags
+     */
+    private double optionToDouble(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? -1 : ((Number) opt).doubleValue();
+    }
+
     public double getAPAMinVal() {
-        return optionToInt(apaMinValOption);
+        return optionToDouble(apaMinValOption);
     }
 
     public double getAPAMaxVal() {
-        return optionToInt(apaMaxValOption);
+        return optionToDouble(apaMaxValOption);
     }
 
     /**

@@ -149,7 +149,7 @@ public class HiCCUPSDiff extends JuicerCLT {
                 norm = preferredNorm;
 
             int matrixSize = juicerParser.getMatrixSizeOption();
-            if (matrixSize == 0) matrixSize = 1024;
+            if (matrixSize <= 0) matrixSize = 1024;
 
             double[] thresholds = null;
             List<String> t = juicerParser.getThresholdOptions();
