@@ -132,9 +132,14 @@ public class Preprocessor {
             String stats = null;
             String graphs = null;
             if (fragmentFileName != null) {
-                fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                try {
+                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                } catch (Exception e) {
+                    System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
+                    fragmentCalculation = null;
+                }
             } else {
-                System.out.println("WARNING: Not including fragment map");
+                System.out.println("Not including fragment map");
             }
             if (statsFileName != null) {
                 FileInputStream is = null;
@@ -201,10 +206,14 @@ public class Preprocessor {
                 }
             }
 
+            try {
+                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
+            } catch (Exception e) {
+                System.err.println("Unable to write to " + outputFile);
+                System.exit(70);
+            }
 
             System.out.println("Start preprocess");
-
-            los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
 
             System.out.println("Writing header");
             writeHeader(stats, graphs);
