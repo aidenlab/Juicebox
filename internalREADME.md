@@ -38,3 +38,5 @@ Steps for creating Public Friendly Version
 2. Delete anything under development (e.g. clustering)
 3. Replace sensitive chrom.sizes
 4. Remove any mention of assembly/sensitive projects
+
+Note this is only in terms of jars/executables. For actaul code release / open-sourcing, we need to wipe other private files, .git histories, etc.
