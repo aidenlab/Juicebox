@@ -103,7 +103,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
-    private int genomeLengthIndex0 = 0;
 
     /**
      * Initialize heatmap panel
@@ -124,9 +123,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
         this.chromosomeBoundaries = chromosomeBoundaries;
-        for (int bound : chromosomeBoundaries) {
-            genomeLengthIndex0 += bound;
-        }
     }
 
     public int getMinimumDimension() {
@@ -358,7 +354,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(chromosomeBoundaries[chromosomeBoundaries.length - 1]);
         return (int) (xBin * hic.getScaleFactor());
     }
 
@@ -371,7 +367,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return 0;
         }
 
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeLengthIndex0);
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(chromosomeBoundaries[chromosomeBoundaries.length - 1]);
         return (int) (xBin * hic.getScaleFactor());
     }
 
