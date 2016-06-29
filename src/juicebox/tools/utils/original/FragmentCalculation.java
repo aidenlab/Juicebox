@@ -74,8 +74,7 @@ public class FragmentCalculation {
             is = new FileInputStream(file);
             return readFragments(is);
         } catch (Exception e) {
-            System.out.println("Warning: Fragment file is null. " +
-                    "Pre will continue without fragment file.");
+            System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
             return null;
         } finally {
             assert is != null;
