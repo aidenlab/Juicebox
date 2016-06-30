@@ -117,8 +117,12 @@ public class Arrowhead extends JuicerCLT {
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "[--ignore_sparsity flag] <HiC file(s)> <output_file> [feature_list] [control_list]");
+                "[--ignore_sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
+    }
+
+    public static String getBasicUsage() {
+        return "arrowhead <hicFile(s)> <output_file>";
     }
 
     @Override

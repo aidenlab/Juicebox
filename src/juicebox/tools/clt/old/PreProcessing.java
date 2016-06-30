@@ -43,7 +43,7 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
 
     public PreProcessing() {
-        super("pre <options> <infile> <outfile> <genomeID>\n"
+        super(getBasicUsage()+"\n"
                 + "           : -d only calculate intra chromosome (diagonal) [false]\n"
                 + "           : -f <restriction site file> calculate fragment map\n"
                 + "           : -m <int> only write cells with count above threshold m [0]\n"
@@ -51,6 +51,10 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -c <chromosome ID> only calculate map on specific chromosome\n"
                 + "           : -h print help"
         );
+    }
+
+    public static String getBasicUsage() {
+        return "pre [options] <infile> <outfile> <genomeID>";
     }
 
     @Override

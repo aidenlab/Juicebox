@@ -61,7 +61,11 @@ public class Dump extends JuiceboxCLT {
     private boolean includeIntra = false;
 
     public Dump() {
-        super("dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> <outfile>");
+        super(getUsage());
+    }
+
+    public static String getUsage(){
+        return "dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> <outfile>";
     }
 
     private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,

@@ -233,12 +233,12 @@ The "apa" command takes three required arguments and a number of optional
 arguments.
 
 apa [-n minval] [-x maxval] [-w window]  [-r resolution(s)] [-c chromosome(s)]
-   [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder>
+   [-k NONE/VC/VC_SQRT/KR] <hicFile(s)> <PeaksFile> <SaveFolder>
 
 The required arguments are:
 
-<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
-   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+<hicFile(s)>: Address of hic file(s) which should end with ".hic". This is the file you will
+   load into Juicebox. URLs or local addresses may be used. To sum multiple hic Files together,
    use the '+' symbol between the addresses (no whitespace between addresses)
 <PeaksFile>: List of peaks in standard 2D feature format (chr1 x1 x2 chr2 y1 y2 color ...)
 <SaveFolder>: Working directory where outputs will be saved
@@ -289,13 +289,12 @@ HiCCUPS
 -------
 
 hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-k normalization (NONE/VC/VC_SQRT/KR)] [-f fdr] [-p peak width] [-i window]
-   [-t thresholds] [-d centroid distances] <HiC file(s)> <outputLoopsList>
+   [-t thresholds] [-d centroid distances] <hicFile> <outputLoopsList>
 
 The required arguments are:
 
-<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
-   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
-   use the '+' symbol between the addresses (no whitespace between addresses)
+<hicFile>: Address of hic file which should end with ".hic". This is the file you will
+   load into Juicebox. URLs or local addresses may be used.
 
 <outputLoopsList>: Final list of all loops found by HiCCUPS. Can be visualized directly in Juicebox as a 2D annotation.
    By default, various values critical to the HICCUPS algorithm are saved as attributes for each loop found. These can be
@@ -380,12 +379,12 @@ Arrowhead
 -------
 
 arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "<HiC file(s)> <output_file> [feature_list] [control_list]
+                "<hicFile(s)> <output_file> [feature_list] [control_list]
 
 The required arguments are:
 
-<HiC file(s)>: Address of HiC file(s) which should end with ".hic". This is the file you will
-   load into Juicebox. URLs or local addresses may be used. To sum multiple HiC Files together,
+<hicFile(s)>: Address of hic file(s) which should end with ".hic". This is the file you will
+   load into Juicebox. URLs or local addresses may be used. To sum multiple hic Files together,
    use the '+' symbol between the addresses (no whitespace between addresses)
 
 <output_file>: Final list of all contact domains found by Arrowhead. Can be visualized directly in Juicebox
@@ -404,7 +403,7 @@ The optional arguments are:
 -m <int> Size of the sliding window along the diagonal in which contact domains will be found. Must be an even
   number as (m/2) is used as the increment for the sliding window. (Default 2000)
 -r <int> resolution for which Arrowhead will be run. Generally, 5kB (5000) or 10kB (10000)
-  resolution is used depending on the depth of sequencing in the HiC file(s).
+  resolution is used depending on the depth of sequencing in the hic file(s).
 -k <NONE/VC/VC_SQRT/KR> Normalizations (case sensitive) that can be selected. Generally, KR (Knight-Ruiz)
        balancing should be used when available.
 
@@ -427,7 +426,7 @@ Default settings of optional arguments:
 Arrowhead Examples
 ----------------
 
-NOTE: Arrowhead will choose appropriate defaults for HiC files if no specifications are given
+NOTE: Arrowhead will choose appropriate defaults for hic files if no specifications are given
 
 arrowhead https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_30.hic contact_domains_list
   This command will run Arrowhead on a mouse cell line HiC map (medium resolution) at resolution 10 kB and save all

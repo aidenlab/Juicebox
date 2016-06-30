@@ -129,8 +129,12 @@ public class APA extends JuicerCLT {
      */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
-                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] <HiC file(s)> <PeaksFile> <SaveFolder>");
+                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] <hicFile(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false;
+    }
+
+    public static String getBasicUsage() {
+        return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
     }
 
     @Override

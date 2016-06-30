@@ -79,6 +79,10 @@ public class HiCCUPSDiff extends JuicerCLT {
                 "<firstHicFile> <secondHicFile> <firstLoopList> <secondLoopList> <outputDirectory>");
     }
 
+    public static String getBasicUsage() {
+        return "hiccupsdiff <firstHicFile> <secondHicFile> <firstLoopList> <secondLoopList> <outputDirectory>";
+    }
+
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 6) {

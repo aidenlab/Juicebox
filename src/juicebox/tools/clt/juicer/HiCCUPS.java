@@ -26,6 +26,7 @@ package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
+import jcuda.runtime.JCuda;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
@@ -198,9 +199,12 @@ public class HiCCUPS extends JuicerCLT {
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
-                "<hicFile(s)> <outputDirectory>");
+                "<hicFile> <outputDirectory> [specified_loop_list]");
         Feature2D.allowHiCCUPSOrdering = true;
-        // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
+    }
+
+    public static String getBasicUsage() {
+        return "hiccups <hicFile> <outputDirectory>";
     }
 
     @Override
@@ -208,19 +212,7 @@ public class HiCCUPS extends JuicerCLT {
         if (args.length != 3 && args.length != 4) {
             printUsageAndExit();
         }
-        // TODO: add code here to check for CUDA/GPU installation.  The below is not ideal.
-        /*
-        try {
-            jcuda.Pointer pointer = new jcuda.Pointer();
-            JCuda.cudaMalloc(pointer, 4);
-            JCuda.cudaFree(pointer);
-        }
-        catch (Exception e) {
-            System.err.println("GPU/CUDA Installation Not Detected");
-            System.err.println("Exiting HiCCUPS");
-            System.exit(24);
-        }
-        */
+        // TODO: add code here to check for CUDA/GPU installation. The below is not ideal.
 
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
@@ -239,6 +231,22 @@ public class HiCCUPS extends JuicerCLT {
 
         if (juicerParser.getBypassMinimumMapCountCheckOption()) {
             checkMapDensityThreshold = false;
+        }
+    }
+
+    /**
+     * todo needs some more development/expansion
+     */
+    private void testGPUInstallation(){
+        try {
+            jcuda.Pointer pointer = new jcuda.Pointer();
+            JCuda.cudaMalloc(pointer, 4);
+            JCuda.cudaFree(pointer);
+        }
+        catch (Exception e) {
+            System.err.println("GPU/CUDA Installation Not Detected");
+            System.err.println("Exiting HiCCUPS");
+            System.exit(24);
         }
     }
 
