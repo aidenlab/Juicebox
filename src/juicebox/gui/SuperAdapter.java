@@ -134,9 +134,10 @@ public class SuperAdapter {
 
     public void resetControlMap() {
         hic.setControlDataset(null);
-        MatrixType[] options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+        MatrixType[] options = HiCGlobals.enabledMatrixTypesNoControl;
         mainViewPanel.setSelectedDisplayOption(options, false);
-        currentlyLoadedControlFiles = "";
+        currentlyLoadedControlFiles = null;
+        controlTitle = null;
         updateTitle();
     }
 
@@ -357,7 +358,7 @@ public class SuperAdapter {
         mainWindow.repaint();
     }
 
-    private void unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
+    private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
@@ -373,12 +374,13 @@ public class SuperAdapter {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
-            return;
-        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+            return false;
+        }
+        if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
-            return;
+            return false;
         }
 
         if (allFilesAreHiC) {
@@ -388,11 +390,18 @@ public class SuperAdapter {
             mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
 
             DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) return;
+            if (reader == null) return false;
             Dataset dataset = reader.read();
             if (reader.getVersion() < HiCGlobals.minVersion) {
                 JOptionPane.showMessageDialog(mainWindow, "This version of \"hic\" format is no longer supported");
-                return;
+                return false;
+            }
+            if (control && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
+                JOptionPane.showMessageDialog(mainWindow, "Cannot load maps with different genomes");
+                return false;
+            }
+            if (!control && hic.getDataset() != null && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
+                resetControlMap();
             }
 
             MatrixType[] options;
@@ -450,6 +459,7 @@ public class SuperAdapter {
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
+        return true;
     }
 
     public void safeLoad(final List<String> files, final boolean control, final String title) {
@@ -470,16 +480,15 @@ public class SuperAdapter {
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
             mainViewPanel.getDisplayOptionComboBox().removeActionListener(l);
-            unsafeLoad(files, control, restore);
-            //mainViewPanel.updateThumbnail(hic);
-            refresh();
-            updateTitle(control, title);
-
+            if (unsafeLoad(files, control, restore)) {
+                //mainViewPanel.updateThumbnail(hic);
+                refresh();
+                updateTitle(control, title);
+            }
         } catch (IOException e) {
             // TODO somehow still have trouble reloading the previous file
             log.error("Error loading hic file", e);
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-            if (!control) hic.reset();
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);
         }
@@ -637,14 +646,17 @@ public class SuperAdapter {
     }
 
     private void updateTitle(boolean control, String title) {
-        if (control) controlTitle = title;
-        else datasetTitle = title;
-        updateTitle();
+        if (title != null && title.length() > 0) {
+            if (control) controlTitle = title;
+            else datasetTitle = title;
+            updateTitle();
+        }
     }
 
     private void updateTitle() {
         String newTitle = datasetTitle;
-        if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
+        if (controlTitle != null && controlTitle.length() > 0)
+            newTitle += "  (control=" + controlTitle + ")";
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 

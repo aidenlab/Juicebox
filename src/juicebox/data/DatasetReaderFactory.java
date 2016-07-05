@@ -56,17 +56,17 @@ public class DatasetReaderFactory {
     private static DatasetReaderV2 getReaderForFile(String file) throws IOException {
         String magicString = DatasetReaderV2.getMagicString(file);
 
-        DatasetReaderV2 reader;
-        if (magicString.equals("HIC")) {
-            reader = new DatasetReaderV2(file);
-        } else {
-            System.err.println("This version is deprecated and is no longer supported.");
-            //reader = new DatasetReaderV1(file);
-            // file not actually read, usually canceled the read of password-protected file
-            //if (reader.getVersion() == -1)
-            return null;
+        if(magicString != null) {
+            if (magicString.equals("HIC")) {
+                return new DatasetReaderV2(file);
+            } else {
+                System.err.println("This version is deprecated and is no longer supported.");
+                //reader = new DatasetReaderV1(file);
+                // file not actually read, usually canceled the read of password-protected file
+                //if (reader.getVersion() == -1)
+            }
         }
-        return reader;
+        return null;
     }
 
 }

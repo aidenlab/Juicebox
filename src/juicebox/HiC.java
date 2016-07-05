@@ -115,8 +115,8 @@ public class HiC {
 
     public void reset() {
         dataset = null;
-        xContext = null;
-        yContext = null;
+        resetContexts();
+        chromosomes = null;
         eigenvectorTrack = null;
         controlEigenvectorTrack = null;
         resourceTree = null;

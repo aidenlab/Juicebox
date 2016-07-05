@@ -56,9 +56,7 @@ public class HiCGlobals {
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<String>();
     // min hic file version supported
-    public static final int minVersion = 7;
-    //public static final int bufferSize = 1048576;
-    //public static final int bufferSize = 4194304;
+    public static final int minVersion = 7; // todo redundant calls to this should be removed
     public static final int bufferSize = 2097152;
     // Base-pair resolutions
     public static final int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -67,13 +65,12 @@ public class HiCGlobals {
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.4;
+    private static final double versionNum = 1.5;
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
-    //public static final int bufferSize = 102400;
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;

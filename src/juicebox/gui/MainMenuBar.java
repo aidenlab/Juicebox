@@ -541,7 +541,7 @@ public class MainMenuBar {
                 //code to add a recent location to the menu
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getDescription("location");
-                if (null != stateDescription && stateDescription.length() > 0) {
+                if (stateDescription != null && stateDescription.length() > 0) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
                     recentLocationMenu.setEnabled(true);
                 }
@@ -565,8 +565,8 @@ public class MainMenuBar {
                         }
                         previousStates.addEntry(stateDescription, true);
                         superAdapter.addNewStateToXML(stateDescription);
+                        previousStates.setEnabled(true);
                     }
-                    previousStates.setEnabled(true);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }

@@ -35,6 +35,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
@@ -93,13 +94,22 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
             dis = new LittleEndianInputStream(new BufferedInputStream(stream));
         } catch (MalformedURLException e) {
-            dis = new LittleEndianInputStream(new FileInputStream(path));
+            try {
+                dis = new LittleEndianInputStream(new FileInputStream(path));
+            }
+            catch (Exception e2){
+                if(HiCGlobals.guiIsCurrentlyActive){
+                    MessageUtils.showErrorMessage("File could not be found\n("+path+")",e2);
+                }
+            }
         } finally {
             if (stream != null) stream.close();
 
         }
-        return dis.readString();
-
+        if(dis != null) {
+            return dis.readString();
+        }
+        return null;
     }
 
     private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
