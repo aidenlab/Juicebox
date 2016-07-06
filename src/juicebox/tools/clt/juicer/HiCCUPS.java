@@ -297,33 +297,44 @@ public class HiCCUPS extends JuicerCLT {
     @Override
     public void run() {
 
-        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
-        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
-        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
-        // then the map had more than 300M contacts.
-        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        // todo 300M reads or contacts
-        if (HiCGlobals.printVerboseComments) {
-            System.err.println("First expected is " + firstExpected);
-        }
-        if (firstExpected < 100000) {
-            System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
-            if (checkMapDensityThreshold) {
-                System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                System.exit(25);
+        try {
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+            // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+            // then the map had more than 300M contacts.
+            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+            // todo 300M reads or contacts
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("First expected is " + firstExpected);
             }
-        }
+            if (firstExpected < 100000) {
+                System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
+                if (checkMapDensityThreshold) {
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.exit(25);
+                }
+            }
 
-        // high quality (e.g. GM12878) maps have different settings
-        if (!configurationsSetByUser) {
-            configurations = new ArrayList<HiCCUPSConfiguration>();
-            configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
-            configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-            if (firstExpected < 300000) {
+            // high quality (e.g. GM12878) maps have different settings
+            if (!configurationsSetByUser) {
+                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
+                if (firstExpected < 300000) {
+                    configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+                    System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
+                } else {
+                    System.out.println("Default settings for 5kb and 10kb being used");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
+            if (!configurationsSetByUser) {
+                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
                 System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
-            } else {
-                System.out.println("Default settings for 5kb and 10kb being used");
             }
         }
 
