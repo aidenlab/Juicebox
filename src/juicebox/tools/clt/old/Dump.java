@@ -70,7 +70,16 @@ public class Dump extends JuiceboxCLT {
 
     private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,
                                            boolean includeIntra, HiCZoom zoom, NormalizationType norm,
-                                           MatrixType matrixType, int binSize) {
+                                           MatrixType matrixType, int binSize, String ofile) throws IOException {
+        PrintWriter pw;
+
+        if (ofile != null && ofile.length() > 0) {
+            pw = new PrintWriter(new FileOutputStream(ofile));
+        } else {
+            pw = new PrintWriter(System.out);
+        }
+
+
         if (zoom.getUnit() == HiC.Unit.FRAG) {
             System.err.println("All versus All currently not supported on fragment resolution");
             System.exit(8);
@@ -110,9 +119,15 @@ public class Dump extends JuiceboxCLT {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
                     final float counts = cr.getCounts();
-                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                        double value = counts / (vector[x + addY] * vector[y + addY]);
-                        evKR.addDistance(chrIdx, x, y, value);
+                    // vector should not be null; this shouldn't be called with "NONE" as normalization
+                    if (vector != null) {
+                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                            double value = counts / (vector[x + addY] * vector[y + addY]);
+                            evKR.addDistance(chrIdx, x, y, value);
+                        }
+                    }
+                    else {
+                        evKR.addDistance(chrIdx, x, y, counts);
                     }
                 }
 
@@ -120,13 +135,16 @@ public class Dump extends JuiceboxCLT {
             }
             evKR.computeDensity();
             double[] exp = evKR.getDensityAvg();
-            System.out.println(binSize + "\t" + vector.length + "\t" + exp.length);
-            for (double aVector : vector) {
-                System.out.println(aVector);
-            }
+            if (vector != null) {
+                // vector should not be null; this shouldn't be called with "NONE" as normalization
+                pw.println(binSize + "\t" + vector.length + "\t" + exp.length);
+                for (double aVector : vector) {
+                    pw.println(aVector);
+                }
 
-            for (double aVector : exp) {
-                System.out.println(aVector);
+                for (double aVector : exp) {
+                    pw.println(aVector);
+                }
             }
         } else {   // type == "observed"
 
@@ -141,7 +159,7 @@ public class Dump extends JuiceboxCLT {
                         value = Float.NaN;
                     }
                 }
-                System.out.println(x + "\t" + y + "\t" + value);
+                pw.println(x + "\t" + y + "\t" + value);
             }
         }
     }
@@ -411,7 +429,7 @@ public class Dump extends JuiceboxCLT {
 
 
         if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM) && chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
-
+            // I don't know what this is for but it prevents having the genome wide dump written to the file
             if (args.length == idx + 5) {
                 includeIntra = true;
             }
@@ -482,7 +500,13 @@ public class Dump extends JuiceboxCLT {
         if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM)
                 && chr1.equals(Globals.CHR_ALL)
                 && chr2.equals(Globals.CHR_ALL)) {
-            dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize);
+            try {
+                dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize, ofile);
+            }
+            catch (IOException error) {
+                System.err.println("Unable to dump genome-wide data");
+                error.printStackTrace();
+            }
         } else if (MatrixType.isDumpMatrixType(matrixType)) {
             try {
                 dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, matrixType, ofile);
