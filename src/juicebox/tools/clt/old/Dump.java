@@ -85,9 +85,12 @@ public class Dump extends JuiceboxCLT {
             totalSize += c1.getLength() / zoom.getBinSize() + 1;
         }
 
-        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-        double[] vector = calculations.getNorm(norm);
+        double[] vector = null;
 
+        if (norm != NormalizationType.NONE) {
+            NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
+            vector = calculations.getNorm(norm);
+        }
         if (matrixType == MatrixType.NORM) {
 
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeList, zoom.getBinSize(), null, NormalizationType.GW_KR);
@@ -131,13 +134,13 @@ public class Dump extends JuiceboxCLT {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float value = cr.getCounts();
-
-                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                    value = (float) (value / (vector[x] * vector[y]));
-                } else {
-                    value = Float.NaN;
+                if (vector != null) {
+                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                        value = (float) (value / (vector[x] * vector[y]));
+                    } else {
+                        value = Float.NaN;
+                    }
                 }
-
                 System.out.println(x + "\t" + y + "\t" + value);
             }
         }
