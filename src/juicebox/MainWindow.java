@@ -65,6 +65,9 @@ public class MainWindow extends JFrame {
         MainViewPanel mainViewPanel = new MainViewPanel();
         superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel);
 
+        //superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel, toolBar, toolTip, miniMap);
+        // View(menu item) --> hide/show toolBar/toolTip/miniMap
+
         initComponents();
         createCursors();
         pack();

@@ -310,11 +310,20 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
                     int binRange = (int) (w / hic.getScaleFactor());
+
+                    //fix this binRange part (maybe use genomeposition)
+
                     double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
+
+//                    int genomeOrigin = axis.getGenomicStart(binOrigin);
+//
+//                    int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
 
                     int genomeOrigin = axis.getGenomicStart(binOrigin);
 
                     int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+
+                    // why not use the length of chromosome?
 
                     int range = genomeEnd - genomeOrigin;
 
@@ -335,6 +344,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     while (genomePosition < maxX && x < w) {
                         Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
                         g.setColor(tColor);
+
 
                         genomePosition = (int) (nTick * spacing);
 
