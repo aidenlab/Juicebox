@@ -70,16 +70,7 @@ public class Dump extends JuiceboxCLT {
 
     private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,
                                            boolean includeIntra, HiCZoom zoom, NormalizationType norm,
-                                           MatrixType matrixType, int binSize, String ofile) throws IOException {
-        PrintWriter pw;
-
-        if (ofile != null && ofile.length() > 0) {
-            pw = new PrintWriter(new FileOutputStream(ofile));
-        } else {
-            pw = new PrintWriter(System.out);
-        }
-
-
+                                           MatrixType matrixType, int binSize) {
         if (zoom.getUnit() == HiC.Unit.FRAG) {
             System.err.println("All versus All currently not supported on fragment resolution");
             System.exit(8);
@@ -94,12 +85,9 @@ public class Dump extends JuiceboxCLT {
             totalSize += c1.getLength() / zoom.getBinSize() + 1;
         }
 
-        double[] vector = null;
+        NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
+        double[] vector = calculations.getNorm(norm);
 
-        if (norm != NormalizationType.NONE) {
-            NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
-            vector = calculations.getNorm(norm);
-        }
         if (matrixType == MatrixType.NORM) {
 
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeList, zoom.getBinSize(), null, NormalizationType.GW_KR);
@@ -119,15 +107,9 @@ public class Dump extends JuiceboxCLT {
                     int x = cr.getBinX();
                     int y = cr.getBinY();
                     final float counts = cr.getCounts();
-                    // vector should not be null; this shouldn't be called with "NONE" as normalization
-                    if (vector != null) {
-                        if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
-                            double value = counts / (vector[x + addY] * vector[y + addY]);
-                            evKR.addDistance(chrIdx, x, y, value);
-                        }
-                    }
-                    else {
-                        evKR.addDistance(chrIdx, x, y, counts);
+                    if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
+                        double value = counts / (vector[x + addY] * vector[y + addY]);
+                        evKR.addDistance(chrIdx, x, y, value);
                     }
                 }
 
@@ -135,16 +117,13 @@ public class Dump extends JuiceboxCLT {
             }
             evKR.computeDensity();
             double[] exp = evKR.getDensityAvg();
-            if (vector != null) {
-                // vector should not be null; this shouldn't be called with "NONE" as normalization
-                pw.println(binSize + "\t" + vector.length + "\t" + exp.length);
-                for (double aVector : vector) {
-                    pw.println(aVector);
-                }
+            System.out.println(binSize + "\t" + vector.length + "\t" + exp.length);
+            for (double aVector : vector) {
+                System.out.println(aVector);
+            }
 
-                for (double aVector : exp) {
-                    pw.println(aVector);
-                }
+            for (double aVector : exp) {
+                System.out.println(aVector);
             }
         } else {   // type == "observed"
 
@@ -152,14 +131,14 @@ public class Dump extends JuiceboxCLT {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
                 float value = cr.getCounts();
-                if (vector != null) {
-                    if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
-                        value = (float) (value / (vector[x] * vector[y]));
-                    } else {
-                        value = Float.NaN;
-                    }
+
+                if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
+                    value = (float) (value / (vector[x] * vector[y]));
+                } else {
+                    value = Float.NaN;
                 }
-                pw.println(x + "\t" + y + "\t" + value);
+
+                System.out.println(x + "\t" + y + "\t" + value);
             }
         }
     }
@@ -429,7 +408,7 @@ public class Dump extends JuiceboxCLT {
 
 
         if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM) && chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
-            // I don't know what this is for but it prevents having the genome wide dump written to the file
+
             if (args.length == idx + 5) {
                 includeIntra = true;
             }
@@ -500,13 +479,7 @@ public class Dump extends JuiceboxCLT {
         if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM)
                 && chr1.equals(Globals.CHR_ALL)
                 && chr2.equals(Globals.CHR_ALL)) {
-            try {
-                dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize, ofile);
-            }
-            catch (IOException error) {
-                System.err.println("Unable to dump genome-wide data");
-                error.printStackTrace();
-            }
+            dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize);
         } else if (MatrixType.isDumpMatrixType(matrixType)) {
             try {
                 dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, matrixType, ofile);
