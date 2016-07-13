@@ -668,7 +668,7 @@ public class MainMenuBar {
         */
 
         //---Figure Menu-----
-        JMenu figureMenu = new JMenu("View");
+        JMenu figureMenu = new JMenu("Figure");
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem toggleAxisLayOut = new JCheckBoxMenuItem("Toggle Axis Layout");

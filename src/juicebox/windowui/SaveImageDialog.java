@@ -24,23 +24,20 @@
 
 package juicebox.windowui;
 
+import com.itextpdf.awt.PdfGraphics2D;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfTemplate;
+import com.itextpdf.text.pdf.PdfWriter;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-
-
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -57,7 +54,8 @@ public class SaveImageDialog extends JFileChooser {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            setSelectedFile(new File(timeStamp + ".HiCImage.svg"));
+            //setSelectedFile(new File(timeStamp + ".HiCImage.png"));
+            setSelectedFile(new File(timeStamp + ".HiCImage.pdf"));
 
 
         }
@@ -104,31 +102,24 @@ public class SaveImageDialog extends JFileChooser {
         return myDialog;
     }
 
-    private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
-                           final int w, final int h) throws IOException {
+    private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel, final int w, final int h) throws IOException {
 
         // Create a empty document
+        Document document = new Document(new Rectangle(w, h));
 
         try {
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
+            document.open();
 
-            // Get a DOMImplementation.
-            DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
             Dimension size = MainWindow.getInstance().getSize();
 
-            // Create an instance of org.w3c.dom.Document.
-            String svgNS = "http://www.w3.org/2000/svg";
-            Document document = domImpl.createDocument(svgNS, "svg", null);
+            PdfContentByte canvas = writer.getDirectContent();
+            PdfTemplate template = canvas.createTemplate(w, h);
+            Graphics2D g = new PdfGraphics2D(template, w, h);
 
-
-            // Create an instance of the SVG Generator.
-            SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-            svgGenerator.setSVGCanvasSize(size);
-
-            // Ask the test to render into the SVG Graphics2D implementation.
-
-            // Print the panel on created SVG graphics.
+            // Print the panel on created PDF graphics.
             if (w == mainWindow.getWidth() && h == MainWindow.getInstance().getHeight()) {
-                hiCPanel.paintAll(svgGenerator);
+                hiCPanel.printAll(g);
             } else {
                 JDialog waitDialog = new JDialog();
                 JPanel panel1 = new JPanel();
@@ -175,7 +166,7 @@ public class SaveImageDialog extends JFileChooser {
                 };
 
                 thread.start();
-                hiCPanel.paintAll(svgGenerator);
+                hiCPanel.printAll(g);
                 mainWindow.setPreferredSize(prefSize);
                 mainWindow.setMinimumSize(minSize);
                 mainWindow.setSize(size);
@@ -183,25 +174,20 @@ public class SaveImageDialog extends JFileChooser {
                 waitDialog.dispose();
                 mainWindow.setVisible(true);
             }
-            svgGenerator.dispose();
 
-            // Finally, stream out SVG to the standard output using
-            // UTF-8 encoding.
-            FileOutputStream bos = new FileOutputStream(file);
-            BufferedOutputStream bufStream = new BufferedOutputStream(bos);
-            OutputStreamWriter osw = new OutputStreamWriter(bufStream, "UTF-8");
-            boolean useCSS = true; // we want to use CSS style attributes
-
-            svgGenerator.stream(osw, useCSS);
-            osw.flush();
-            bos.flush();
-            bos.close();
-
-
+            g.dispose();
+            // After g is printed, add page to a pdf file.
+            canvas.addTemplate(template, 0, 0);
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (document.isOpen()) {
+                document.close();
+            }
+
         }
+
     }
 
 
