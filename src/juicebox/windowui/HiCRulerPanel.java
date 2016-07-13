@@ -275,7 +275,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
 
                 TickSpacing ts = findSpacing(range, false);
-
                 int maxX = context.getChromosome().getLength();
 
                 // Hundredths decimal point
