@@ -273,37 +273,38 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
                 int range = genomeEnd - genomeOrigin;
 
+
                 TickSpacing ts = findSpacing(range, false);
+                int maxX = context.getChromosome().getLength();
 
                 // Hundredths decimal point
                 int[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
 
                 String genomeStartX = formatNumber((float) (genomePositions[0] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
                 String genomeStartY = formatNumber((float) (genomePositions[2] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                String genomeEndX = formatNumber((float) (genomePositions[1] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                String genomeEndY = formatNumber((float) (genomePositions[3] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                String genomeEndX = (genomePositions[1] > maxX) ? formatNumber((float) (maxX * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit() : formatNumber((float) (genomePositions[1] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                String genomeEndY = (genomePositions[3] > maxX) ? formatNumber((float) (maxX * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit() : formatNumber((float) (genomePositions[3] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+
+                int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
+
+                //Set the location of the end pt graphics
+                int endbinNumberX = (genomePositions[1] > maxX) ? x : w;
+                int endbinNumberY = (genomePositions[3] > maxX) ? x : w;
 
                 if (isHorizontal()) {
-                    int maxX = context.getChromosome().getLength();
-                    int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
-
-                    int endbinNumber = (genomePositions[1] > maxX) ? x : w;
-                    // hic.getScaleFactor
-
                     //Horizontal Start
                     g.drawString(genomeStartX, 10, h - 15);
                     g.drawLine(0, h - 10, 0, h - 2);
                     //Horizontal End
-                    g.drawString(genomeEndX, endbinNumber - g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
-                    g.drawLine(endbinNumber - 5, h - 10, endbinNumber - 5, h - 2);
+                    g.drawString(genomeEndX, endbinNumberX - g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
+                    g.drawLine(endbinNumberX - 5, h - 10, endbinNumberX - 5, h - 2);
                 } else {
                     //Vertical Start
                     g.drawString(genomeStartY, -g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
                     g.drawLine(0, h - 10, 0, h - 2);
                     //Vertical End
-                    g.drawString(genomeEndY, -w + 10, h - 15);
-                    g.drawLine(-(w - 5), h - 10, -(w - 5), h - 2);
-
+                    g.drawString(genomeEndY, -endbinNumberY + 10, h - 15);
+                    g.drawLine(-endbinNumberY + 5, h - 10, -endbinNumberY + 5, h - 2);
                 }
             } else {
                 try {
