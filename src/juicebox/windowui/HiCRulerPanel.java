@@ -48,8 +48,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
-    private static boolean showOnlyEndPts = false;
-    private static boolean showChromosomeFigure = false;
+    private static boolean showOnlyEndPts = true;
+    private static boolean showChromosomeFigure = true;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
     private HiC hic;
@@ -118,7 +118,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         showOnlyEndPts = toggled;
     }
 
-    public void showChromosomeFigure(boolean toggled) {
+    public void setShowChromosomeFigure(boolean toggled) {
         showChromosomeFigure = toggled;
     }
 

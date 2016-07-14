@@ -756,11 +756,11 @@ public class SuperAdapter {
     }
 
 
-    public void toggleAxisLayOut(boolean status) {
-        mainViewPanel.switchToOnlyEndPtsLayOut(status);
+    public void setAxisLayOut(boolean status) {
+        mainViewPanel.setShowOnlyEndPts(status);
     }
 
-    public void showChromosomeFig(boolean status) {
-        mainViewPanel.showChromosomeFig(status);
+    public void setShowChromosomeFig(boolean status) {
+        mainViewPanel.setShowChromosomeFig(status);
     }
 }

@@ -343,7 +343,7 @@ public class MainViewPanel {
         chrSidePanel.setMaximumSize(new Dimension(4000, 50));
         chrSidePanel.setPreferredSize(new Dimension(50, 50));
         chrSidePanel.setMinimumSize(new Dimension(50, 50));
-        chrSidePanel.setVisible(false);
+        chrSidePanel.setVisible(true);
 
         JPanel chrSidePanel2 = new JPanel();
         chrSidePanel2.setBackground(Color.white);
@@ -358,7 +358,7 @@ public class MainViewPanel {
         chrSidePanel3.setMaximumSize(new Dimension(50, 4000));
         chrSidePanel3.setPreferredSize(new Dimension(50, 50));
         chrSidePanel3.setMinimumSize(new Dimension(50, 50));
-        chrSidePanel3.setVisible(false);
+        chrSidePanel3.setVisible(true);
 
         //---- chromosomeFigPanel2 ----
         bottomChromosomeFigPanel = new JPanel();
@@ -372,7 +372,7 @@ public class MainViewPanel {
         chromosomePanelX.setMinimumSize(new Dimension(1, 50));
         bottomChromosomeFigPanel.add(chromosomePanelX, BorderLayout.CENTER);
         bottomChromosomeFigPanel.add(chrSidePanel2, BorderLayout.EAST);
-        bottomChromosomeFigPanel.setVisible(false);
+        bottomChromosomeFigPanel.setVisible(true);
 
         leftPanel.add(chrSidePanel, BorderLayout.SOUTH);
         topPanel.add(chrSidePanel3, BorderLayout.EAST);
@@ -382,7 +382,7 @@ public class MainViewPanel {
         chromosomePanelY.setMaximumSize(new Dimension(50, 4000));
         chromosomePanelY.setPreferredSize(new Dimension(50, 1));
         chromosomePanelY.setMinimumSize(new Dimension(50, 1));
-        chromosomePanelY.setVisible(false);
+        chromosomePanelY.setVisible(true);
 
 
         //---- heatmapPanel ----
@@ -722,7 +722,7 @@ public class MainViewPanel {
         trackPanelY.invalidate();
     }
 
-    public void showChromosomeFig(boolean showfigure) {
+    public void setShowChromosomeFig(boolean showfigure) {
 
         if (showfigure) {
             if (!bottomChromosomeFigPanel.isVisible()) {
@@ -751,8 +751,8 @@ public class MainViewPanel {
                 chrSidePanel3.setVisible(false);
             }
         }
-        rulerPanelX.showChromosomeFigure(showfigure);
-        rulerPanelY.showChromosomeFigure(showfigure);
+        rulerPanelX.setShowChromosomeFigure(showfigure);
+        rulerPanelY.setShowChromosomeFigure(showfigure);
         chromosomePanelY.invalidate();
         bottomChromosomeFigPanel.invalidate();
         chrSidePanel.invalidate();
@@ -894,7 +894,7 @@ public class MainViewPanel {
         return chromosomePanelX;
     }
 
-    public void switchToOnlyEndPtsLayOut(boolean status) {
+    public void setShowOnlyEndPts(boolean status) {
         rulerPanelX.showOnlyEndPts(status);
         rulerPanelY.showOnlyEndPts(status);
     }
