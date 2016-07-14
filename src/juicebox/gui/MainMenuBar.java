@@ -671,21 +671,21 @@ public class MainMenuBar {
         JMenu figureMenu = new JMenu("View");
 
         //---Axis Layout mode-----
-        final JCheckBoxMenuItem toggleAxisLayOut = new JCheckBoxMenuItem("Toggle Axis Layout");
-        toggleAxisLayOut.setSelected(true);
-        toggleAxisLayOut.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem axisLayOut = new JCheckBoxMenuItem("Axis Layout");
+        axisLayOut.setSelected(true);
+        axisLayOut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.setAxisLayOut(toggleAxisLayOut.isSelected());
+                superAdapter.setAxisLayOut(axisLayOut.isSelected());
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(toggleAxisLayOut);
+        figureMenu.add(axisLayOut);
 
         //---ShowChromosomeFig mode-----
         //drawLine, drawArc or draw polygon// draw round rect
         // fill Rect according to the chormsome location.
-        final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Toggle Chromosome Context");
+        final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Chromosome Context");
         showChromosomeFig.setSelected(true);
         showChromosomeFig.addActionListener(new ActionListener() {
             @Override
