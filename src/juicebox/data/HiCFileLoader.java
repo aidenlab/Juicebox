@@ -35,6 +35,7 @@ import org.broad.igv.util.ParsingUtils;
 import javax.swing.*;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -129,7 +130,25 @@ public class HiCFileLoader {
                 properties.load(is);
             }
         } catch (Exception error) {
-            log.error("Can't find properties file for loading list", error);
+            boolean fileFailedToLoad = true;
+            if (!propertiesFileURL.equals(HiCGlobals.defaultPropertiesURL)) {
+                try {
+                    loadPropertiesViaURL(HiCGlobals.defaultPropertiesURL);
+                    fileFailedToLoad = false;
+                } catch (Exception e) {
+                }
+            }
+            if (fileFailedToLoad) {
+                log.error("Can't find properties file for loading list - internet likely disconnected", error);
+            }
+        }
+    }
+
+    private static void loadPropertiesViaURL(String url) throws IOException {
+        InputStream is = ParsingUtils.openInputStream(url);
+        properties = new Properties();
+        if (is != null) {
+            properties.load(is);
         }
     }
 
