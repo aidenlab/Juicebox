@@ -24,17 +24,17 @@
 
 package juicebox.tools.clt.old;
 
+import jargs.gnu.CmdLineParser;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
-import juicebox.tools.clt.CommandLineParserForJuicer;
-import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.clt.JuiceboxCLT;
 
 import java.util.Arrays;
 
 /**
  * Created by muhammadsaadshamim on 6/2/16.
  */
-public class ValidateFile extends JuicerCLT {
+public class ValidateFile extends JuiceboxCLT {
 
     private String filePath;
 
@@ -47,7 +47,7 @@ public class ValidateFile extends JuicerCLT {
     }
 
     @Override
-    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
+    public void readArguments(String[] args, CmdLineParser parser) {
         if (args.length != 2) {
             printUsageAndExit();
         }
