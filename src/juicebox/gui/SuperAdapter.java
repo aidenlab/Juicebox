@@ -400,7 +400,8 @@ public class SuperAdapter {
                 JOptionPane.showMessageDialog(mainWindow, "Cannot load maps with different genomes");
                 return false;
             }
-            if (control && (dataset.getVersion() < 7 || hic.getDataset().getVersion() < 7)) {
+            if (control && dataset.getVersion() != hic.getDataset().getVersion() &&
+                    (dataset.getVersion() < 7 || hic.getDataset().getVersion() < 7)) {
                 JOptionPane.showMessageDialog(mainWindow, "Cannot load control with .hic files less than version 7");
                 return false;
             }
