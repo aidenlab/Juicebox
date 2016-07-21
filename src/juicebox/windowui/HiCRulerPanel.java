@@ -49,7 +49,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
-    private static boolean showOnlyEndPts = true;
+    private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
@@ -108,11 +108,19 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
     }
 
-    public void showOnlyEndPts(boolean toggled) {
+    public static boolean getShowOnlyEndPts() {
+        return showOnlyEndPts;
+    }
+
+    public static void setShowOnlyEndPts(boolean toggled) {
         showOnlyEndPts = toggled;
     }
 
-    public void setShowChromosomeFigure(boolean toggled) {
+    public static boolean getShowChromosomeFigure() {
+        return showChromosomeFigure;
+    }
+
+    public static void setShowChromosomeFigure(boolean toggled) {
         showChromosomeFigure = toggled;
     }
 
@@ -254,103 +262,72 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
 
         else {
+            HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+
+            int binRange = (int) (w / hic.getScaleFactor());
+            double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
+
+            int genomeOrigin = axis.getGenomicStart(binOrigin);
+            int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+            int range = genomeEnd - genomeOrigin;
+
+            TickSpacing ts = findSpacing(range, false);
+            int maxX = context.getChromosome().getLength();
+
             if (showOnlyEndPts) {
-
-                HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
-
-                int binRange = (int) (w / hic.getScaleFactor());
-                double binOrigin = context.getBinOrigin();
-
-                int genomeOrigin = axis.getGenomicStart(binOrigin);
-
-                int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
-
-                int range = genomeEnd - genomeOrigin;
-
-
-                TickSpacing ts = findSpacing(range, false);
-                int maxX = context.getChromosome().getLength();
 
                 // Hundredths decimal point
                 int[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
 
-                String genomeStartX = formatNumber((float) (genomePositions[0] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                String genomeStartY = formatNumber((float) (genomePositions[2] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                String genomeEndX = (genomePositions[1] > maxX) ? formatNumber((float) (maxX * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit() : formatNumber((float) (genomePositions[1] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                String genomeEndY = (genomePositions[3] > maxX) ? formatNumber((float) (maxX * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit() : formatNumber((float) (genomePositions[3] * 1.0) / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                double startPosition = isHorizontal() ? genomePositions[0] : genomePositions[2];
+                double endPosition = isHorizontal() ? genomePositions[1] : genomePositions[3];
+                int endPositionBin = (int) (axis.getBinNumberForGenomicPosition((int) endPosition) * hic.getScaleFactor());
 
-                int x = (int) (axis.getBinNumberForGenomicPosition(maxX) * hic.getScaleFactor());
+                // actual strings to print and their widths
+                String startPositionString = formatNumber(startPosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
 
-                //Set the location of the end pt graphics
-                int endbinNumberX = (genomePositions[1] > maxX) ? x : w;
-                int endbinNumberY = (genomePositions[3] > maxX) ? x : w;
+                String endPositionString = formatNumber(endPosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                int startPositionStringWidth = g.getFontMetrics().stringWidth(startPositionString);
+                int endPositionStringWidth = g.getFontMetrics().stringWidth(endPositionString);
 
-                if (isHorizontal()) {
-                    //Horizontal Start
-                    g.drawString(genomeStartX, 10, h - 15);
-                    g.drawLine(0, h - 10, 0, h - 2);
-                    //Horizontal End
-                    g.drawString(genomeEndX, endbinNumberX - g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
-                    g.drawLine(endbinNumberX - 5, h - 10, endbinNumberX - 5, h - 2);
-                } else {
-                    //Vertical Start
-                    g.drawString(genomeStartY, -g.getFontMetrics().stringWidth(genomeEndX) - 5, h - 15);
-                    g.drawLine(0, h - 10, 0, h - 2);
-                    //Vertical End
-                    g.drawString(genomeEndY, -endbinNumberY + 10, h - 15);
-                    g.drawLine(-endbinNumberY + 5, h - 10, -endbinNumberY + 5, h - 2);
-                }
+                //draw start
+                int drawPositionStartString = isHorizontal() ? 0 : -startPositionStringWidth;
+                g.drawString(startPositionString, drawPositionStartString, h - 15);
+                g.drawLine(0, h - 10, 0, h - 2);
+
+                //draw end
+                if (!isHorizontal()) endPositionBin = -endPositionBin;
+                int drawPositionEndString = isHorizontal() ? endPositionBin - endPositionStringWidth : endPositionBin;
+                g.drawString(endPositionString, drawPositionEndString, h - 15);
+                g.drawLine(endPositionBin, h - 10, endPositionBin, h - 2);
+
             } else {
                 try {
-                    HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
-                    int binRange = (int) (w / hic.getScaleFactor());
-                    double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
-
-                    int genomeOrigin = axis.getGenomicStart(binOrigin);
-
-                    int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
-
-                    int range = genomeEnd - genomeOrigin;
-
-
-                    TickSpacing ts = findSpacing(range, false);
                     double spacing = ts.getMajorTick();
 
                     // Find starting point closest to the current origin
-                    int maxX = context.getChromosome().getLength();
                     int nTick = (int) (genomeOrigin / spacing) - 1;
                     int genomePosition = (int) (nTick * spacing);
 
-                    //int x = frame.getScreenPosition(genomeTickNumber);
-                    int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
-
-                    int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                    int binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
+                    int x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
 
                     while (genomePosition < maxX && x < w) {
-                        Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
+                        Color tColor = isHorizontal() ? topTick : leftTick;
                         g.setColor(tColor);
 
                         genomePosition = (int) (nTick * spacing);
-
-                        // x = frame.getScreenPosition(genomeTickNumber);
-                        binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
-
-                        x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                        binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
+                        x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
 
                         String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
                         int strWidth = g.getFontMetrics().stringWidth(chrPosition);
                         int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
-                        //if (strPosition > strEnd) {
 
-                        if (nTick % 2 == 0) {
-                            g.drawString(chrPosition, strPosition, h - 15);
-                        }
-                        //strEnd = strPosition + strWidth;
-                        //}
+                        if (nTick % 2 == 0) g.drawString(chrPosition, strPosition, h - 15);
 
-                        int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
-
+                        int xpos = isHorizontal() ? x : -x;
                         g.drawLine(xpos, h - 10, xpos, h - 2);
                         nTick++;
                     }

@@ -758,11 +758,6 @@ public class SuperAdapter {
         hic.toggleFeatureOpacity(status);
     }
 
-
-    public void setAxisLayOut(boolean status) {
-        mainViewPanel.setShowOnlyEndPts(status);
-    }
-
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
     }

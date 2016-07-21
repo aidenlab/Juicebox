@@ -309,14 +309,21 @@ public class HiC {
     }
 
     public int[] getCurrentRegionWindowGenomicPositions() {
-        return new int[]{
-                xContext.getGenomicPositionOrigin(),
-                xContext.getGenomicPositionOrigin() +
-                        (int) (getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor()),
-                yContext.getGenomicPositionOrigin(),
-                yContext.getGenomicPositionOrigin() +
-                        (int) (getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor())
-        };
+
+        // address int overflow or exceeding bound issues
+        int xEndEdge = xContext.getGenomicPositionOrigin() +
+                (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getWidth() / getScaleFactor());
+        if (xEndEdge < 0 || xEndEdge > xContext.getChromosome().getLength()) {
+            xEndEdge = xContext.getChromosome().getLength();
+        }
+
+        int yEndEdge = yContext.getGenomicPositionOrigin() +
+                (int) ((double) getZoom().getBinSize() * superAdapter.getHeatmapPanel().getHeight() / getScaleFactor());
+        if (yEndEdge < 0 || yEndEdge > yContext.getChromosome().getLength()) {
+            yEndEdge = yContext.getChromosome().getLength();
+        }
+
+        return new int[]{xContext.getGenomicPositionOrigin(), xEndEdge, yContext.getGenomicPositionOrigin(), yEndEdge};
     }
 
     public String getXPosition() {
@@ -1065,11 +1072,9 @@ public class HiC {
 
             int[] regionIndices;
             if (chromosomeForPosition.getIndex() < chromosome.getIndex()) {
-                regionIndices = new int[]{binStartPosition, binStartPosition,
-                        0, chromosome.getLength()};
+                regionIndices = new int[]{binStartPosition, binStartPosition, 0, chromosome.getLength()};
             } else {
-                regionIndices = new int[]{0, chromosome.getLength(), binStartPosition,
-                        binStartPosition};
+                regionIndices = new int[]{0, chromosome.getLength(), binStartPosition, binStartPosition};
             }
 
             zd.dump1DTrackFromCrossHairAsWig(printWriter, chromosomeForPosition, binStartPosition,

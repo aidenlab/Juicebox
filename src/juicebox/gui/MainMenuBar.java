@@ -34,6 +34,7 @@ import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
 
@@ -671,22 +672,22 @@ public class MainMenuBar {
         JMenu figureMenu = new JMenu("View");
 
         //---Axis Layout mode-----
-        final JCheckBoxMenuItem axisLayOut = new JCheckBoxMenuItem("Axis Layout");
-        axisLayOut.setSelected(true);
-        axisLayOut.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
+        axisEndpoint.setSelected(HiCRulerPanel.getShowOnlyEndPts());
+        axisEndpoint.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.setAxisLayOut(axisLayOut.isSelected());
+                HiCRulerPanel.setShowOnlyEndPts(axisEndpoint.isSelected());
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(axisLayOut);
+        figureMenu.add(axisEndpoint);
 
         //---ShowChromosomeFig mode-----
         //drawLine, drawArc or draw polygon// draw round rect
         // fill Rect according to the chormsome location.
         final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Chromosome Context");
-        showChromosomeFig.setSelected(true);
+        showChromosomeFig.setSelected(HiCRulerPanel.getShowChromosomeFigure());
         showChromosomeFig.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

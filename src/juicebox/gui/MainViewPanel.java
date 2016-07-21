@@ -727,9 +727,9 @@ public class MainViewPanel {
         trackPanelY.invalidate();
     }
 
-    public void setShowChromosomeFig(boolean showfigure) {
+    public void setShowChromosomeFig(boolean showFigure) {
 
-        if (showfigure) {
+        if (showFigure) {
             if (!bottomChromosomeFigPanel.isVisible()) {
                 bottomChromosomeFigPanel.setVisible(true);
             }
@@ -756,8 +756,7 @@ public class MainViewPanel {
                 chrSidePanel3.setVisible(false);
             }
         }
-        rulerPanelX.setShowChromosomeFigure(showfigure);
-        rulerPanelY.setShowChromosomeFigure(showfigure);
+        HiCRulerPanel.setShowChromosomeFigure(showFigure);
         chromosomePanelY.invalidate();
         bottomChromosomeFigPanel.invalidate();
         chrSidePanel.invalidate();
@@ -897,11 +896,6 @@ public class MainViewPanel {
 
     public HiCChromosomeFigPanel getChromosomeFigPanelX() {
         return chromosomePanelX;
-    }
-
-    public void setShowOnlyEndPts(boolean status) {
-        rulerPanelX.showOnlyEndPts(status);
-        rulerPanelY.showOnlyEndPts(status);
     }
 
 
