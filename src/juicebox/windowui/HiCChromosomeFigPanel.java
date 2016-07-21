@@ -61,13 +61,6 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
     private int chrFigStart = 0;
     private int chrFigEnd = 0;
 
-
-    /**
-     * Empty constructor for form builder
-     */
-    private HiCChromosomeFigPanel() {
-    }
-
     public HiCChromosomeFigPanel(final HiC hic) {
         this.hic = hic;
         setBackground(Color.WHITE);
@@ -76,27 +69,20 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
                 if (mouseEvent.getClickCount() >= 1) {
-                    int dxBP;
-                    int dyBP;
-                    Point2D.Double scale = isHorizontal() ? getHiCScale(HiCChromosomeFigPanel.this.getWidth(), HiCChromosomeFigPanel.this.getHeight()) :
-                            getHiCScale(HiCChromosomeFigPanel.this.getHeight(), HiCChromosomeFigPanel.this.getWidth());
+
                     if (isHorizontal()) {
                         try {
-                            dxBP = (int) ((mouseEvent.getX() - (chrFigStart + chrFigEnd) / 2) * scale.getX());
-                            dyBP = 0;
-                            hic.moveBy(dxBP, dyBP);
+                            Point2D.Double scale = getHiCScale(HiCChromosomeFigPanel.this.getWidth(), HiCChromosomeFigPanel.this.getHeight());
+                            hic.moveBy((int) ((mouseEvent.getX() - (chrFigStart + chrFigEnd) / 2) * scale.getX()), 0);
                         } catch (Exception e) {
-                            System.out.println("Error when region clicked");
-                            e.printStackTrace();
+                            System.err.println("Error when horizontal region clicked");
                         }
                     } else {
                         try {
-                            dxBP = 0;
-                            dyBP = (int) ((mouseEvent.getY() + (chrFigStart + chrFigEnd) / 2) * scale.getX());
-                            hic.moveBy(dxBP, dyBP);
+                            Point2D.Double scale = getHiCScale(HiCChromosomeFigPanel.this.getHeight(), HiCChromosomeFigPanel.this.getWidth());
+                            hic.moveBy(0, (int) ((mouseEvent.getY() + (chrFigStart + chrFigEnd) / 2) * scale.getX()));
                         } catch (Exception e) {
-                            System.out.println("Error when region clicked");
-                            e.printStackTrace();
+                            System.err.println("Error when vertical region clicked");
                         }
                     }
                 }
@@ -128,18 +114,13 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (lastPoint != null) {
-                    int dxBP;
-                    int dyBP;
-                    Point2D.Double scale = isHorizontal() ? getHiCScale(HiCChromosomeFigPanel.this.getWidth(), HiCChromosomeFigPanel.this.getHeight()) :
-                            getHiCScale(HiCChromosomeFigPanel.this.getHeight(), HiCChromosomeFigPanel.this.getWidth());
                     if (isHorizontal()) {
-                        dxBP = ((int) ((e.getX() - lastPoint.x) * scale.getX()));
-                        dyBP = 0;
+                        Point2D.Double scale = getHiCScale(HiCChromosomeFigPanel.this.getWidth(), HiCChromosomeFigPanel.this.getHeight());
+                        hic.moveBy(((int) ((e.getX() - lastPoint.x) * scale.getX())), 0);
                     } else {
-                        dxBP = 0;
-                        dyBP = (int) ((e.getY() - lastPoint.y) * scale.getX());
+                        Point2D.Double scale = getHiCScale(HiCChromosomeFigPanel.this.getHeight(), HiCChromosomeFigPanel.this.getWidth());
+                        hic.moveBy(0, (int) ((e.getY() - lastPoint.y) * scale.getX()));
                     }
-                    hic.moveBy(dxBP, dyBP);
                     lastPoint = e.getPoint();
                 }
             }
@@ -149,20 +130,16 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
                 int scroll = e.getWheelRotation();
-                int dxBP;
-                int dyBP;
                 if (isHorizontal()) {
-                    dxBP = scroll;
-                    dyBP = 0;
+                    hic.moveBy(scroll, 0);
                 } else {
-                    dxBP = 0;
-                    dyBP = scroll;
+                    hic.moveBy(0, scroll);
                 }
-                hic.moveBy(dxBP, dyBP);
+
             }
         });
 
-        //Chromosome change pop-up menu
+        //todo Chromosome change pop-up menu
     }
 
     public Point2D.Double getHiCScale(int width, int height) {
@@ -212,44 +189,44 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
     }
 
     private void drawChr(Graphics2D g) {
-        int w = isHorizontal() ? getWidth() : getHeight();
-        int h = isHorizontal() ? getHeight() : getWidth();
-
-        g.setFont(spanFont);
-
         Chromosome chromosome = context.getChromosome();
 
-        if (chromosome != null) {
-            if (!HiCFileTools.isAllChromosome(chromosome)) {
-                //Draw Chromosome Name
-                String rangeString = chromosome.getName();
+        if (chromosome == null || HiCFileTools.isAllChromosome(chromosome)) return;
 
-                int strWidth = g.getFontMetrics().stringWidth(rangeString);
-                int strPosition = (w - strWidth) / 2;
-
-                if (!isHorizontal()) strPosition = -strPosition;
-                int vPos = h / 2 + 3;
-                //Draw Chromosome Figure
-                if (isHorizontal()) {
-                    drawRegion(g, w, h);
-                } else {
-                    drawRegion(g, w, h);
-                }
-
-                Rectangle r = new Rectangle(strPosition, h / 4, strWidth, h / 2);
-                g.setClip(r);
-                g.setColor(Color.BLACK);
-                g.drawString(rangeString, strPosition, vPos);
-            }
+        MatrixZoomData zd;
+        try {
+            zd = hic.getZd();
+        } catch (Exception e) {
+            return;
         }
+        if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
+
+        HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+        int endPositionBin = (int) ((axis.getBinNumberForGenomicPosition(chromosome.getLength())
+                - (int) context.getBinOrigin()) * hic.getScaleFactor());
+
+        int w = isHorizontal() ? getWidth() : getHeight();
+        w = Math.min(w, endPositionBin);
+        int h = isHorizontal() ? getHeight() : getWidth();
+        g.setFont(spanFont);
+
+        //Draw Chromosome Figure
+        drawRegion(g, w, h);
+
+        //Draw Chromosome Name
+        String rangeString = chromosome.getName();
+        int strWidth = g.getFontMetrics().stringWidth(rangeString);
+        int vPos = h / 2 + 3;
+        int strPosition = -(w + strWidth) / 2;
+        if (isHorizontal()) strPosition = (w - strWidth) / 2;
+        Rectangle r = new Rectangle(strPosition, h / 4, strWidth, h / 2);
+        g.setClip(r);
+        g.setColor(Color.BLACK);
+        g.drawString(rangeString, strPosition, vPos);
     }
 
     private int genomeLength() {
         return context.getChromosome().getLength();
-    }
-
-    private int[] genomePositions() {
-        return hic.getCurrentRegionWindowGenomicPositions();
     }
 
     private void drawRegion(Graphics2D g, int w, int h) {
@@ -261,7 +238,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
         int[] genomePositions;
         try {
-            genomePositions = genomePositions();
+            genomePositions = hic.getCurrentRegionWindowGenomicPositions();
         } catch (Exception e) {
             return;
         }

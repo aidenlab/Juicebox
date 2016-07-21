@@ -228,7 +228,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         } catch (Exception e) {
             return;
         }
-
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
         if (HiCFileTools.isAllChromosome(chromosome)) {
@@ -272,7 +271,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             int range = genomeEnd - genomeOrigin;
 
             TickSpacing ts = findSpacing(range, false);
-            int maxX = context.getChromosome().getLength();
 
             if (showOnlyEndPts) {
 
@@ -304,6 +302,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             } else {
                 try {
 
+                    int maxX = context.getChromosome().getLength();
                     double spacing = ts.getMajorTick();
 
                     // Find starting point closest to the current origin
