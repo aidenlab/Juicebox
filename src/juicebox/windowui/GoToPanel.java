@@ -269,8 +269,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (chrTokens.length > 2 && dashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                start = Integer.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
-                end = Integer.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+                start = Math.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+                end = Math.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
             } catch (Exception e) {
                 log.error("Cannot parse " + chrTokens[1] + " or " + chrTokens[2] + ". Expecting int");
                 positionChr.setBackground(Color.yellow);
