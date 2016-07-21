@@ -28,6 +28,7 @@ import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.gui.SuperAdapter;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -194,7 +195,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         //Read resolution:
         int outBinSize = 0;
-        String resolutionUnits = "BP";
+        String resolutionUnits = HiCFileTools.BP;
         int estimatedOutBinSize = Math.max(topChrPositions[3], leftChrPositions[3]);
 
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
@@ -202,7 +203,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = "FRAG";
+                    resolutionUnits = HiCFileTools.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -212,7 +213,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = "FRAG";
+                    resolutionUnits = HiCFileTools.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -401,7 +402,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setLocation(location1.chromosome, location2.chromosome, "BP", hic.getZoom().getBinSize(), location1.centerPosition,
+        hic.setLocation(location1.chromosome, location2.chromosome, HiCFileTools.BP, hic.getZoom().getBinSize(), location1.centerPosition,
                 location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();

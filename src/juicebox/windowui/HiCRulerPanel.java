@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
@@ -56,12 +57,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private Orientation orientation;
     private Context context;
 
-    /**
-     * Empty constructor for form builder
-     */
-    private HiCRulerPanel() {
-    }
-
     public HiCRulerPanel(HiC hic) {
         this.hic = hic;
         setBackground(Color.white);
@@ -86,23 +81,22 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
 
         if (maxValue < 10) {
-            return new TickSpacing(1, "bp", 1);
+            return new TickSpacing(1, HiCFileTools.BP, 1);
         }
 
-
-        // Now man zeroes?
+        // How many zeroes?
         int nZeroes = (int) Math.log10(maxValue);
-        String majorUnit = scaleInKB ? "kb" : "bp";
+        String majorUnit = scaleInKB ? "KB" : HiCFileTools.BP;
         int unitMultiplier = 1;
         if (nZeroes > 9) {
-            majorUnit = scaleInKB ? "tb" : "gb";
+            majorUnit = scaleInKB ? "TB" : "GB";
             unitMultiplier = 1000000000;
         }
         if (nZeroes > 6) {
-            majorUnit = scaleInKB ? "gb" : "mb";
+            majorUnit = scaleInKB ? "GB" : "MB";
             unitMultiplier = 1000000;
         } else if (nZeroes > 3) {
-            majorUnit = scaleInKB ? "mb" : "kb";
+            majorUnit = scaleInKB ? "MB" : "KB";
             unitMultiplier = 1000;
         }
 
@@ -172,7 +166,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (!chromosome.getName().equals("All")) {
+            if (!HiCFileTools.isAllChromosome(chromosome)) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
@@ -229,7 +223,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
-        if (chromosome.getName().equals("All")) {
+        if (HiCFileTools.isAllChromosome(chromosome)) {
             int x1 = 0;
             List<Chromosome> chromosomes = hic.getChromosomes();
             // Index 0 is whole genome
@@ -362,13 +356,10 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     }
                 } catch (Exception e) {
                     return;
-
                 }
             }
         }
-
     }
-
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 

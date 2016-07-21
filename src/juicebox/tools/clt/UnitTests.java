@@ -164,8 +164,8 @@ class UnitTests {
         /*
 
 
-        String[] l1 = {"dump","observed", "KR", "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
-                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/perseus/chr1.bin"};
+        String[] l1 = {"dump","observed", HiCFileTools.KR, "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic",
+                "1", "1", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/perseus/chr1.bin"};
 
         String[] l4 = {"apa",
                 "-r","50000",
@@ -230,7 +230,7 @@ class UnitTests {
                             "/Users/muhammadsaadshamim/Desktop/nagano/cell-" + i + "/inter.hic",
                             "chr" + chr,
                             "chr" + chr,
-                            "BP",
+                            HiCFileTools.BP,
                             kb+"000",
                             "/Users/muhammadsaadshamim/Desktop/nagano/apa_"+kb+"kb_" + i + "/counts/counts_" + chr + ".txt"};
                     HiCTools.main(line);
@@ -245,7 +245,7 @@ class UnitTests {
             for (String chr : chrs) {
                 String[] line = {"dump", "observed", "NONE",
                         "/Users/muhammadsaadshamim/Desktop/nagano/cell-" + i + "/inter.hic",
-                        "chr" + chr, "chr" + chr, "BP", "5000",
+                        "chr" + chr, "chr" + chr, HiCFileTools.BP, "5000",
                         "/Users/muhammadsaadshamim/Desktop/nagano/apa_5kb_" + i + "/counts/counts_" + chr + ".txt"};
                 HiCTools.main(line);
             }
@@ -280,7 +280,7 @@ class UnitTests {
                 "/Users/muhammadsaadshamim/Desktop/testing/mouse.hic",
                 "chr2",
                 "chr2",
-                "BP",
+                HiCFileTools.BP,
                 "1000000",
                 "/Users/muhammadsaadshamim/Desktop/testing/mousesc.txt"};
         String[] l6 = {"pairsToBin",
@@ -302,38 +302,38 @@ class UnitTests {
          * testing dump
          *
          *  HiCGlobals.printVerboseComments = true;
-         String[] ajkhsd = {"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
+         String[] ajkhsd = {"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
 
          //HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_full_kr"};
 
          HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19:0:59128983","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:0:59128983","19:10000000:20000000", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr"};
 
          HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr_v2"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19","19:10000000:20000000", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub1_kr_v2"};
 
          HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19:10000000:20000000","19:0:59128983", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19:0:59128983", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr"};
 
          HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19:10000000:20000000","19", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr_v2"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub2_kr_v2"};
 
          HiCTools.main(ajkhsd);
 
-         ajkhsd = new String[]{"dump", "observed", "KR", "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
-         "19:10000000:20000000","19:10000000:20000000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub3_kr"};
+         ajkhsd = new String[]{"dump", "observed", HiCFileTools.KR, "/Users/muhammadsaadshamim/Desktop/LocalFiles/rice_mbr19_30.hic",
+         "19:10000000:20000000","19:10000000:20000000", HiCFileTools.BP, "5000", "/Users/muhammadsaadshamim/Desktop/test_dump/dump_5k_19_sub3_kr"};
 
          HiCTools.main(ajkhsd);
          *

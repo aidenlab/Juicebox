@@ -41,6 +41,14 @@ import java.util.regex.Pattern;
  */
 public class HiCFileTools {
 
+    // coalescing some of the magic strings
+    public static final String ALL_CHROMOSOME = "All";
+    public static final String BP = "BP";
+    public static final String FRAG = "FRAG";
+    public static final String KR = "KR";
+    public static final String VC = "VC";
+    public static final String VC_SQRT = "VC_SQRT";
+
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
         try {
@@ -135,8 +143,7 @@ public class HiCFileTools {
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
-
+            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
 
             return chromosomes;
         } finally {
@@ -148,6 +155,14 @@ public class HiCFileTools {
                 }
             }
         }
+    }
+
+    public static boolean isAllChromosome(Chromosome chromosome) {
+        return isAllChromosome(chromosome.getName());
+    }
+
+    public static boolean isAllChromosome(String name) {
+        return name.equalsIgnoreCase(ALL_CHROMOSOME);
     }
 
     /**
@@ -208,7 +223,7 @@ public class HiCFileTools {
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
 
 
             return chromosomes;

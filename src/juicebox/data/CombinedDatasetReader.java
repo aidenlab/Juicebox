@@ -219,7 +219,7 @@ public class CombinedDatasetReader implements DatasetReader {
         Collection<String> keys = firstDataset.getExpectedValueFunctionMap().keySet();
         Set<String> zoomsToRemove = new HashSet<String>();
         for (String key : keys) {
-            if (!hasFrags && key.startsWith("FRAG")) continue;
+            if (!hasFrags && key.startsWith(HiCFileTools.FRAG)) continue;
             List<ExpectedValueFunction> evFunctions = new ArrayList<ExpectedValueFunction>();
             boolean haveAll = true;
             for (Dataset ds : datasetList) {

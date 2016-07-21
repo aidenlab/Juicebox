@@ -450,16 +450,16 @@ public class NormalizationVectorUpdater {
                     }
 
                     if (vcSum > 0) {
-                        sums.add(new NormalizedSum("VC", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.VC, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), vcSum));
                     }
                     if (vcSqrtSum > 0) {
-                        sums.add(new NormalizedSum("VC_SQRT", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.VC_SQRT, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), vcSqrtSum));
                     }
 
                     if (krSum > 0) {
-                        sums.add(new NormalizedSum("KR", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.KR, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), krSum));
 
                     }
@@ -615,7 +615,7 @@ public class NormalizationVectorUpdater {
             buffer.putNullTerminatedString(ev.getType().toString());
 
             int binSize = ev.getGridSize();
-            String unit = ev.isFrag ? "FRAG" : "BP";
+            String unit = ev.isFrag ? HiCFileTools.FRAG : HiCFileTools.BP;
 
             buffer.putNullTerminatedString(unit);
             buffer.putInt(binSize);

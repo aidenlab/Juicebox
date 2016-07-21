@@ -27,6 +27,7 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.HiCFileTools;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
@@ -103,7 +104,7 @@ public class HiCFeatureTrack extends HiCTrack {
         strGraphics.setColor(new Color(0, 150, 0));
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !chr.equals("All")) {
+                !HiCFileTools.isAllChromosome(chr)) {
             chr = "chr" + chr;
         }
 
@@ -222,7 +223,7 @@ public class HiCFeatureTrack extends HiCTrack {
         String chr = context.getChromosome().getName();
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !chr.equals("All")) {
+                !HiCFileTools.isAllChromosome(chr)) {
             chr = "chr" + chr;
         }
 

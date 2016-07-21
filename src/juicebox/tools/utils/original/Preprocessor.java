@@ -30,6 +30,7 @@ import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
+import juicebox.data.HiCFileTools;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
@@ -525,7 +526,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             ev.computeDensity();
 
             int binSize = ev.getGridSize();
-            String unit = ev.isFrag ? "FRAG" : "BP";
+            String unit = ev.isFrag ? HiCFileTools.FRAG : HiCFileTools.BP;
 
             buffer.putNullTerminatedString(unit);
             buffer.putInt(binSize);
@@ -589,7 +590,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     private void writeZoomHeader(MatrixZoomDataPP zd) throws IOException {
 
         int numberOfBlocks = zd.blockNumbers.size();
-        los.writeString(zd.getUnit());  // Unit, ether "BP" or "FRAG"
+        los.writeString(zd.getUnit());  // Unit, ether HiCFileTools.BP or HiCFileTools.FRAG
         los.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
         los.writeFloat((float) zd.getSum());      // sum
         los.writeFloat((float) zd.getOccupiedCellCount());
@@ -1215,7 +1216,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
 
         String getUnit() {
-            return isFrag ? "FRAG" : "BP";
+            return isFrag ? HiCFileTools.FRAG : HiCFileTools.BP;
         }
 
         double getSum() {

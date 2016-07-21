@@ -28,6 +28,7 @@ import com.jidesoft.swing.JideButton;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
@@ -157,7 +158,7 @@ public class MainViewPanel {
 
         //---- chrBox1 ----
         chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
+        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox1ActionPerformed(e);
@@ -168,7 +169,7 @@ public class MainViewPanel {
 
         //---- chrBox2 ----
         chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
+        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox2ActionPerformed(e);
@@ -608,16 +609,20 @@ public class MainViewPanel {
         return chr1.getIndex() != chr2.getIndex();
     }
 
+    /**
+     * Note that both versions of isWholeGenome are needed otherwise we get
+     * a bug when partial states have changed
+     */
     private boolean isWholeGenome() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-        return chr1.getName().equals("All") || chr2.getName().equals("All");
+        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
     }
 
     private boolean isWholeGenome(HiC hic) {
         Chromosome chr1 = hic.getXContext().getChromosome();
         Chromosome chr2 = hic.getYContext().getChromosome();
-        return chr1.getName().equals("All") || chr2.getName().equals("All");
+        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
     }
 
     public void setNormalizationDisplayState(HiC hic) {

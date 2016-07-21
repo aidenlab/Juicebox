@@ -52,8 +52,8 @@ class HiCFileUtils {
 
     public static void main(String[] args) throws IOException {
         HiCFileUtils utils = new HiCFileUtils(args[0]);
-        utils.dumpNormalizationVectors("KR", "1", "BP", 250000);
-        utils.dumpExpectedVectors("KR", "BP", 1000000);
+        utils.dumpNormalizationVectors(HiCFileTools.KR, "1", HiCFileTools.BP, 250000);
+        utils.dumpExpectedVectors(HiCFileTools.KR, HiCFileTools.BP, 1000000);
     }
 
     private void dumpNormalizationVectors(String type, String chrName, String unitName, int binSize) {

@@ -374,7 +374,7 @@ public class HiC {
     }
 
     public boolean isWholeGenome() {
-        return xContext != null && xContext.getChromosome().getName().equals("All");
+        return xContext != null && HiCFileTools.isAllChromosome(xContext.getChromosome());
     }
 
     public java.util.List<Chromosome> getChromosomes() {
@@ -750,7 +750,7 @@ public class HiC {
         final Matrix matrix = dataset.getMatrix(chr1, chr2);
 
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
-        if (chr1.getName().equals("All")) {
+        if (HiCFileTools.isAllChromosome(chr1)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
         }
 

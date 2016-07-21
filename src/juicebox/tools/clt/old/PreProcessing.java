@@ -74,7 +74,7 @@ public class PreProcessing extends JuiceboxCLT {
             if (c != null)
                 genomeLength += c.getLength();
         }
-        chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
+        chromosomes.set(0, new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, (int) (genomeLength / 1000)));
 
         inputFile = args[1];
         outputFile = args[2];

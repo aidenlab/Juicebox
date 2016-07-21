@@ -27,6 +27,7 @@ package juicebox.windowui;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.broad.igv.feature.Chromosome;
@@ -219,7 +220,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (!chromosome.getName().equals("All")) {
+            if (!HiCFileTools.isAllChromosome(chromosome)) {
                 //Draw Chromosome Name
                 String rangeString = chromosome.getName();
 

@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
@@ -262,8 +263,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //            }
 //            g2.dispose();
 
-            boolean isWholeGenome = (hic.getXContext().getChromosome().getName().equals("All") &&
-                    hic.getYContext().getChromosome().getName().equals("All"));
+            boolean isWholeGenome = HiCFileTools.isAllChromosome(hic.getXContext().getChromosome()) &&
+                    HiCFileTools.isAllChromosome(hic.getYContext().getChromosome());
 
             //if (mainWindow.isRefreshTest()) {
             // Draw grid
@@ -533,7 +534,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     HiC.Unit unit = HiC.Unit.FRAG;
                     int idx = 0;
                     if (tokens.length == 3) {
-                        if (tokens[idx++].toLowerCase().equals("bp")) {
+                        if (tokens[idx++].equalsIgnoreCase(HiCFileTools.BP)) {
                             unit = HiC.Unit.BP;
                         }
                     }

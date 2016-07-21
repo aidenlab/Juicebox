@@ -172,7 +172,7 @@ public class Dump extends JuiceboxCLT {
             }
             int length = df.getLength();
 
-            if (chr.equals("All")) { // removed cast to ExpectedValueFunctionImpl
+            if (HiCFileTools.isAllChromosome(chr)) { // removed cast to ExpectedValueFunctionImpl
                 dumpVector(pw, df.getExpectedValues(), false);
             } else {
                 for (int i = 0; i < length; i++) {

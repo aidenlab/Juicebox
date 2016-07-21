@@ -26,6 +26,7 @@
 package juicebox.tools.utils.original;
 
 import juicebox.data.ExpectedValueFunctionImpl;
+import juicebox.data.HiCFileTools;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
@@ -323,7 +324,7 @@ public class ExpectedValueCalculation {
 
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
-        return new ExpectedValueFunctionImpl(type, isFrag ? "FRAG" : "BP", gridSize, densityAvg, chrScaleFactors);
+        return new ExpectedValueFunctionImpl(type, isFrag ? HiCFileTools.FRAG : HiCFileTools.BP, gridSize, densityAvg, chrScaleFactors);
     }
 }
 
