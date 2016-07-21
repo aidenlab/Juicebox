@@ -67,7 +67,7 @@ public class MainMenuBar {
     private static JMenuItem saveLocationList;
     private static JMenuItem saveStateForReload;
     private static RecentMenu previousStates;
-    private static JMenuItem exportMapAsFile;
+    private static JMenuItem exportSavedStateMenuItem;
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static File temp;
@@ -594,6 +594,17 @@ public class MainMenuBar {
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
 
+        //---Export States----
+        exportSavedStateMenuItem = new JMenuItem();
+        exportSavedStateMenuItem.setText("Export Saved States");
+        exportSavedStateMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
+            }
+        });
+
+        // restore recent saved states
         previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE, true) {
 
             private static final long serialVersionUID = 4205L;
@@ -602,25 +613,16 @@ public class MainMenuBar {
                 superAdapter.launchLoadStateFromXML(mapPath);
             }
 
+            @Override
+            public void setEnabled(boolean b) {
+                super.setEnabled(b);
+                exportSavedStateMenuItem.setEnabled(b);
+            }
         };
 
         bookmarksMenu.add(previousStates);
 
-        //---Export Menu-----
-        JMenu shareMenu = new JMenu("Share States");
-
-        //---Export Maps----
-        exportMapAsFile = new JMenuItem();
-        exportMapAsFile.setText("Export Saved States");
-        exportMapAsFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
-            }
-        });
-
-
-        //---Import Maps----
+        //---Import States----
         importMapAsFile = new JMenuItem();
         importMapAsFile.setText("Import State From File");
         importMapAsFile.addActionListener(new ActionListener() {
@@ -644,13 +646,8 @@ public class MainMenuBar {
         });
         //bookmarksMenu.add(slideShow);
 
-
-        //Add menu items
-        //shareMenu.add(exportMapAsFile);
-        //shareMenu.add(importMapAsFile);
-
         bookmarksMenu.addSeparator();
-        bookmarksMenu.add(exportMapAsFile);
+        bookmarksMenu.add(exportSavedStateMenuItem);
         bookmarksMenu.add(importMapAsFile);
         /*
         //---3D Model Menu-----

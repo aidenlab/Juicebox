@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Zulkifl on 7/23/2015.
@@ -46,12 +48,18 @@ public class SaveFileDialog extends JFileChooser {
     public SaveFileDialog(File fileToSave) {
         super();
         setCurrentDirectory(new File(System.getProperty("user.dir")));
+        String timeStamp = new SimpleDateFormat("yyyy.MM.dd-HH.mm").format(new Date());
+        setSelectedFile(new File(timeStamp + ".xml"));
         FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml", "XML");
         setFileFilter(filter);
         if (HiCGlobals.guiIsCurrentlyActive) {
             int actionDialog = showSaveDialog(MainWindow.getInstance());
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
                 File file = getSelectedFile();
+                if (!file.getPath().endsWith(".xml") && !file.getPath().endsWith(".XML")) {
+                    file = new File(file + ".xml");
+                }
+                
                 try {
                     copyFile(fileToSave, file);
                 } catch (IOException e) {
