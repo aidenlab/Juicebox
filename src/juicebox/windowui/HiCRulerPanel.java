@@ -158,14 +158,14 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         // Clear panel
         drawTicks(g2D);
-        drawChr(g2D, orientation);
+        drawChr(g2D);
 
         g2D.setTransform(t);
 
 
     }
 
-    private void drawChr(Graphics g, Orientation orientation) {
+    private void drawChr(Graphics g) {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
