@@ -699,7 +699,7 @@ public class MainMenuBar {
 
         //---Export Image Menu-----
         JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export Image...");
+        saveToImage.setText("Export HiRes Figure...");
         saveToImage.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportImage();

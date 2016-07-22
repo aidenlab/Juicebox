@@ -181,7 +181,7 @@ public class SuperAdapter {
     }
 
     public void launchExportImage() {
-        new SaveImageDialog(null, hic, mainViewPanel.getHiCPanel());
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel());
     }
 
     public void exportAnnotations() {

@@ -56,9 +56,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.awt.Toolkit.getDefaultToolkit;
 
@@ -73,7 +71,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     // used for finding nearby features
     private static final int NUM_NEIGHBORS = 7;
-    private static Set<String> processedExportRegions = new HashSet<String>();
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -121,10 +118,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseListener(mouseHandler);
         addMouseWheelListener(mouseHandler);
         this.firstAnnotation = true;
-    }
-
-    public static void initiatingSVGExport() {
-        processedExportRegions.clear(); // clear regions exported
     }
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
@@ -242,21 +235,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     } catch (Exception e) {
 
-                        // handling an svg export; be sure not to draw over same region; slows down plotting
-                        String newKey = xDest0 + "_" + yDest0 + "_" + xDest1 + "_" + yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1;
-                        if (!processedExportRegions.contains(newKey)) {
-                            try {
-                                System.err.println("Let's try plotting that differently\n" + newKey);
-                                g.setColor(new Color((int) (Math.random() * 0x1000000)));
-                                g.fillRect(xDest0, yDest0, xDest1 - xDest0, yDest1 - yDest0);
-                                //bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn, displayOption, normalizationType,
-                                //        xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
-                                processedExportRegions.add(newKey);
-                            } catch (Exception e2) {
-
-                                System.err.println("Did not work :(");
-                                e2.printStackTrace();
-                            }
+                        // handling for svg export
+                        try {
+                            bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn,
+                                    displayOption, normalizationType,
+                                    xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
+                            //processedExportRegions.add(newKey);
+                        } catch (Exception e2) {
+                            System.err.println("SVG export did not work");
                         }
                     }
                     //}
@@ -394,20 +380,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final int bx0 = tileColumn * imageTileWidth;
         final int by0 = tileRow * imageTileWidth;
 
-        /* this needs to be fixed
-        renderer.render(xDest0, yDest0, xDest1-xDest0, yDest1-yDest0, zd, hic.getControlZd(),
-                displayOption, normalizationType,
+        // set new origins
+        g.translate(xDest0, yDest0);
+
+        // scale drawing appropriately
+        double widthDest = xDest1 - xDest0;
+        double heightDest = yDest1 - yDest0;
+        double widthSrc = xSrc1 - xSrc0;
+        double heightSrc = ySrc1 - ySrc0;
+        double horizontalScaling = widthDest / widthSrc;
+        double verticalScaling = heightDest / heightSrc;
+        g.scale(horizontalScaling, verticalScaling);
+
+        renderer.render(bx0,
+                by0,
+                imageWidth,
+                imageHeight,
+                zd,
+                hic.getControlZd(),
+                displayOption,
+                normalizationType,
                 hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
                 g);
 
-            /*renderer.renderDirectly(bx0, by0,
-                    imageWidth, imageHeight,
-                    zd, hic.getControlZd(),
-                    displayOption, normalizationType,
-                    hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
-                    g, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
-                    */
-
+        g.scale(1, 1);
+        g.translate(0, 0);
     }
 
     private int getTickWidth(MatrixZoomData zd) {

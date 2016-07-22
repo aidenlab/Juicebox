@@ -180,12 +180,16 @@ public class MainWindow extends JFrame {
      * @return thread
      */
     public Future<?> executeLongRunningTask(final Runnable runnable, final String caller) {
+        return executeLongRunningTask(runnable, caller, "Loading...");
+    }
+
+    public Future<?> executeLongRunningTask(final Runnable runnable, final String caller, final String message) {
         if (HiCGlobals.printVerboseComments) {
             System.out.println("long_execute " + caller);
         }
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                MainWindow.this.showDisabledGlassPane(caller);
+                MainWindow.this.showDisabledGlassPane(caller, message);
                 try {
                     runnable.run();
                     return "done";
@@ -203,8 +207,8 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    private void showDisabledGlassPane(String caller) {
-        disabledGlassPane.activate("Loading...");
+    private void showDisabledGlassPane(String caller, String displayMessage) {
+        disabledGlassPane.activate(displayMessage);
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Loading " + caller);
         }

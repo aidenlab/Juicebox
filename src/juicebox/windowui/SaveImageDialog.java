@@ -45,39 +45,50 @@ public class SaveImageDialog extends JFileChooser {
     private JTextField width;
     private JTextField height;
 
-    public SaveImageDialog(String saveImagePath, HiC hic, JPanel hiCPanel) {
+    public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel) {
         super();
         if (saveImagePath != null) {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            //setSelectedFile(new File(timeStamp + ".HiCImage.png"));
             setSelectedFile(new File(timeStamp + ".HiCImage.svg"));
 
 
         }
         if (HiCGlobals.guiIsCurrentlyActive) {
-            MainWindow mainWindow = MainWindow.getInstance();
             int actionDialog = showSaveDialog(mainWindow);
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
-                File file = getSelectedFile();
+                File selectedFile = getSelectedFile();
+                final File outputFile;
+                if (selectedFile.getPath().endsWith(".svg") || selectedFile.getPath().endsWith(".SVG")) {
+                    outputFile = selectedFile;
+                } else {
+                    outputFile = new File(selectedFile + ".xml");
+                }
                 //saveImagePath = file.getPath();
-                if (file.exists()) {
+                if (outputFile.exists()) {
                     actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                try {
-                    int w = Integer.valueOf(width.getText());
-                    int h = Integer.valueOf(height.getText());
-                    saveImage(file, mainWindow, hic, hiCPanel, w, h);
-                } catch (IOException error) {
-                    JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (NumberFormatException error) {
-                    JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+
+                mainWindow.executeLongRunningTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            int w = Integer.valueOf(width.getText());
+                            int h = Integer.valueOf(height.getText());
+                            saveImage(outputFile, mainWindow, hic, hiCPanel, w, h);
+
+                        } catch (IOException error) {
+                            JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        } catch (NumberFormatException error) {
+                            JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }, "Exporting Figure", "Exporting...");
             }
         }
     }
@@ -102,13 +113,11 @@ public class SaveImageDialog extends JFileChooser {
     private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
                            final int w, final int h) throws IOException {
 
-        // Create a empty document
-
         try {
 
             // Get a DOMImplementation.
             DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-            Dimension size = MainWindow.getInstance().getSize();
+            Dimension size = mainWindow.getSize();
 
             // Create an instance of org.w3c.dom.Document.
             String svgNS = "http://www.w3.org/2000/svg";
