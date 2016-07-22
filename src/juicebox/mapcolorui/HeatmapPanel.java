@@ -173,6 +173,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
         MatrixType displayOption = hic.getDisplayOption();
+        NormalizationType normalizationType = hic.getNormalizationType();
 
         boolean allTilesNull = true;
         for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
@@ -180,7 +181,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 ImageTile tile;
                 try {
-                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, hic.getNormalizationType());
+                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, normalizationType);
                 } catch (Exception e) {
                     return;
                 }
@@ -228,7 +229,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
                     //if (mainWindow.isRefreshTest()) {
-                    g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    try {
+                        g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    } catch (Exception e) {
+
+                        System.err.println("Let's try plotting that differently");
+                        try {
+                            g.setColor(new Color((int) (Math.random() * 0x1000000)));
+                            g.fillRect(xDest0, yDest0, xDest1 - xDest0, yDest1 - yDest0);
+                            //bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn, displayOption, normalizationType,
+                            //        xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
+                        } catch (Exception e2) {
+
+                            System.err.println("Did not work :(");
+                            e2.printStackTrace();
+                        }
+                    }
                     //}
 
 
@@ -344,6 +360,40 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             }
         }
+    }
+
+    private void bypassTileAndDirectlyDrawOnGraphics(Graphics2D g, MatrixZoomData zd, int tileRow, int tileColumn,
+                                                     MatrixType displayOption, NormalizationType normalizationType,
+                                                     int xDest0, int yDest0, int xDest1, int yDest1, int xSrc0,
+                                                     int ySrc0, int xSrc1, int ySrc1) {
+
+        // Image size can be smaller than tile width when zoomed out, or near the edges.
+
+        int maxBinCountX = zd.getXGridAxis().getBinCount();
+        int maxBinCountY = zd.getYGridAxis().getBinCount();
+
+        if (maxBinCountX < 0 || maxBinCountY < 0) return;
+
+        int imageWidth = maxBinCountX < imageTileWidth ? maxBinCountX : imageTileWidth;
+        int imageHeight = maxBinCountY < imageTileWidth ? maxBinCountY : imageTileWidth;
+
+        final int bx0 = tileColumn * imageTileWidth;
+        final int by0 = tileRow * imageTileWidth;
+
+        /* this needs to be fixed
+        renderer.render(xDest0, yDest0, xDest1-xDest0, yDest1-yDest0, zd, hic.getControlZd(),
+                displayOption, normalizationType,
+                hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                g);
+
+            /*renderer.renderDirectly(bx0, by0,
+                    imageWidth, imageHeight,
+                    zd, hic.getControlZd(),
+                    displayOption, normalizationType,
+                    hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                    g, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
+                    */
+
     }
 
     private int getTickWidth(MatrixZoomData zd) {

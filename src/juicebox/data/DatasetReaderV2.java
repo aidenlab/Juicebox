@@ -43,11 +43,8 @@ import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.SeekableByteChannel;
 import java.util.*;
 
-//import org.broad.igv.exceptions.HttpResponseException;
-//import org.broad.igv.util.FileUtils;
 
 /**
  * @author jrobinso
@@ -61,7 +58,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
     private final CompressionUtils compressionUtils;
-    private SeekableByteChannel stream2;
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
     private Map<String, Preprocessor.IndexEntry> normVectorIndex;
