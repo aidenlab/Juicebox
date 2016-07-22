@@ -53,8 +53,7 @@ public class SaveImageDialog extends JFileChooser {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            setSelectedFile(new File(timeStamp + ".HiCImage.svg"));
-
+            setSelectedFile(new File(timeStamp + ".HiCImage.pdf"));
 
         }
         if (HiCGlobals.guiIsCurrentlyActive) {
