@@ -304,7 +304,7 @@ public class SuperAdapter {
     private void unsafeSetInitialZoom() {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
-        if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
+        if (hic.isInPearsonsMode()) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
         } else if (HiCFileTools.isAllChromosome(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);

@@ -56,7 +56,9 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.awt.Toolkit.getDefaultToolkit;
 
@@ -71,6 +73,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     // used for finding nearby features
     private static final int NUM_NEIGHBORS = 7;
+    private static Set<String> processedExportRegions = new HashSet<String>();
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -94,12 +97,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
-
     /**
      * feature highlight related variables
      */
     private boolean showFeatureHighlight = true;
-
     private Feature2D highlightedFeature = null;
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
@@ -120,6 +121,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseListener(mouseHandler);
         addMouseWheelListener(mouseHandler);
         this.firstAnnotation = true;
+    }
+
+    public static void initiatingSVGExport() {
+        processedExportRegions.clear(); // clear regions exported
     }
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
@@ -148,7 +153,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (hic.getXContext() == null) return;
 
-        if (hic.getDisplayOption() == MatrixType.PEARSON) {
+        if (hic.isInPearsonsMode()) {
             // Possibly force asynchronous computation of pearsons
             if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution, use 500KB or lower resolution.");
@@ -230,19 +235,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     //if (mainWindow.isRefreshTest()) {
                     try {
-                        g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                        if (xDest0 < xDest1 && yDest0 < yDest1 && xSrc0 < xSrc1 && ySrc0 < ySrc1) {
+                            // basically ensure that we're not trying to plot empty space
+                            // also for some reason we have negative indices sometimes??
+                            g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                        }
                     } catch (Exception e) {
 
-                        System.err.println("Let's try plotting that differently");
-                        try {
-                            g.setColor(new Color((int) (Math.random() * 0x1000000)));
-                            g.fillRect(xDest0, yDest0, xDest1 - xDest0, yDest1 - yDest0);
-                            //bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn, displayOption, normalizationType,
-                            //        xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
-                        } catch (Exception e2) {
+                        // handling an svg export; be sure not to draw over same region; slows down plotting
+                        String newKey = xDest0 + "_" + yDest0 + "_" + xDest1 + "_" + yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1;
+                        if (!processedExportRegions.contains(newKey)) {
+                            try {
+                                System.err.println("Let's try plotting that differently\n" + newKey);
+                                g.setColor(new Color((int) (Math.random() * 0x1000000)));
+                                g.fillRect(xDest0, yDest0, xDest1 - xDest0, yDest1 - yDest0);
+                                //bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn, displayOption, normalizationType,
+                                //        xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
+                                processedExportRegions.add(newKey);
+                            } catch (Exception e2) {
 
-                            System.err.println("Did not work :(");
-                            e2.printStackTrace();
+                                System.err.println("Did not work :(");
+                                e2.printStackTrace();
+                            }
                         }
                     }
                     //}
@@ -944,7 +958,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             txt.append("</span><span style='font-family: arial; font-size: 12pt;'>");
 
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+            if (hic.isInPearsonsMode()) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
                 if (!Float.isNaN(value)) {
 
@@ -1478,8 +1492,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Double click,  zoom and center on click location
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
-                        final HiCZoom newZoom = superAdapter.isResolutionLocked() ? currentZoom :
-                                hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
+                        final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
+                        final HiCZoom newZoom =
+                                superAdapter.isResolutionLocked() || (hic.isInPearsonsMode() && // pearson can't zoom in
+                                        nextPotentialZoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM) ?
+                                        currentZoom : nextPotentialZoom;
 
                         // If newZoom == currentZoom adjust scale factor (no change in resolution)
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());

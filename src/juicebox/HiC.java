@@ -1083,6 +1083,10 @@ public class HiC {
         }
     }
 
+    public boolean isInPearsonsMode() {
+        return getDisplayOption() == MatrixType.PEARSON;
+    }
+
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
 
     public enum Unit {BP, FRAG}
