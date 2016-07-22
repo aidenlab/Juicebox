@@ -626,6 +626,7 @@ public class SuperAdapter {
         mainViewPanel.repaintTrackPanels();
     }
 
+    // only hic should call this
     public boolean isResolutionLocked() {
         return mainViewPanel.isResolutionLocked();
     }

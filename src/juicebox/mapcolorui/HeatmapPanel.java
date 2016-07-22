@@ -1493,10 +1493,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
                         final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
-                        final HiCZoom newZoom =
-                                superAdapter.isResolutionLocked() || (hic.isInPearsonsMode() && // pearson can't zoom in
-                                        nextPotentialZoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM) ?
-                                        currentZoom : nextPotentialZoom;
+                        final HiCZoom newZoom = hic.isResolutionLocked() ||
+                                hic.isPearsonEdgeCaseEncountered(nextPotentialZoom) ? currentZoom : nextPotentialZoom;
 
                         // If newZoom == currentZoom adjust scale factor (no change in resolution)
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());

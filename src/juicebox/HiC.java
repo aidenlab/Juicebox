@@ -580,13 +580,25 @@ public class HiC {
      * @param targetBinSize
      */
     public void zoomToDrawnBox(final int xBP0, final int yBP0, final double targetBinSize) {
+
         HiCZoom newZoom = currentZoom;
-        if (!superAdapter.isResolutionLocked()) {
+        if (!isResolutionLocked()) {
             List<HiCZoom> zoomList = currentZoom.getUnit() == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
             for (int i = zoomList.size() - 1; i >= 0; i--) {
-                if (zoomList.get(i).getBinSize() > targetBinSize) {
+                if (zoomList.get(i).getBinSize() >= targetBinSize) {
                     newZoom = zoomList.get(i);
                     break;
+                }
+            }
+
+            // this addresses draw box to zoom when down from low res pearsons
+            // it can't zoom all the way in, but can zoom in a little more up to 500K
+            if (isInPearsonsMode() && newZoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM) {
+                for (int i = zoomList.size() - 1; i >= 0; i--) {
+                    if (zoomList.get(i).getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) {
+                        newZoom = zoomList.get(i);
+                        break;
+                    }
                 }
             }
         }
@@ -1085,6 +1097,16 @@ public class HiC {
 
     public boolean isInPearsonsMode() {
         return getDisplayOption() == MatrixType.PEARSON;
+    }
+
+    public boolean isPearsonEdgeCaseEncountered(HiCZoom zoom) {
+        return isInPearsonsMode() && zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM;
+    }
+
+    public boolean isResolutionLocked() {
+        return superAdapter.isResolutionLocked() ||
+                // pearson can't zoom in
+                (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
