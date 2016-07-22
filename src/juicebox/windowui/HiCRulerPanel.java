@@ -53,7 +53,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
-    private HiC hic;
+    private final HiC hic;
     private Orientation orientation;
     private Context context;
 
@@ -331,7 +331,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         nTick++;
                     }
                 } catch (Exception e) {
-                    return;
                 }
             }
         }

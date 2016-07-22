@@ -35,14 +35,17 @@ import java.util.List;
  */
 public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
 
-    public static int posCount = 0, negCount = 0;
     public static boolean uniquenessShouldSupercedeConvergentRule = true;
-    public boolean strand;
+    private static int posCount = 0;
+    private static int negCount = 0;
     // critical components of a motif anchor
-    private int chrIndex, x1, x2;
+    private final int chrIndex;
     // references to original features if applicable
-    private List<Feature2DWithMotif> originalFeatures1 = new ArrayList<Feature2DWithMotif>();
-    private List<Feature2DWithMotif> originalFeatures2 = new ArrayList<Feature2DWithMotif>();
+    private final List<Feature2DWithMotif> originalFeatures1 = new ArrayList<Feature2DWithMotif>();
+    private final List<Feature2DWithMotif> originalFeatures2 = new ArrayList<Feature2DWithMotif>();
+    private boolean strand;
+    private int x1;
+    private int x2;
     // fimo output loaded as attributes
     private boolean fimoAttributesHaveBeenInitialized = false;
     private double score = 0, pValue, qValue;
@@ -167,10 +170,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      * @return true if given anchor overlaps at either edge with this anchor
      */
     public boolean hasOverlapWith(MotifAnchor anchor) {
-        if (chrIndex == anchor.chrIndex) {
-            return this.contains(anchor.x1) || this.contains(anchor.x2);
-        }
-        return false;
+        return chrIndex == anchor.chrIndex && (this.contains(anchor.x1) || this.contains(anchor.x2));
     }
 
     public void mergeWith(MotifAnchor anchor) {

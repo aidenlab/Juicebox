@@ -68,7 +68,7 @@ public class MotifAnchorTools {
     /**
      * Merge anchors which have overlap
      */
-    public static void mergeAnchors(GenomeWideList<MotifAnchor> anchorList) {
+    private static void mergeAnchors(GenomeWideList<MotifAnchor> anchorList) {
         anchorList.filterLists(new FeatureFilter<MotifAnchor>() {
             @Override
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
@@ -127,7 +127,7 @@ public class MotifAnchorTools {
     /**
      * Guarantees that all anchors have minimum width of gapThreshold
      */
-    public static void expandSmallAnchors(GenomeWideList<MotifAnchor> anchorList, final int gapThreshold) {
+    private static void expandSmallAnchors(GenomeWideList<MotifAnchor> anchorList, final int gapThreshold) {
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> anchorList) {
@@ -144,7 +144,7 @@ public class MotifAnchorTools {
      *
      * @param anchors
      */
-    public static void expandSmallAnchors(List<MotifAnchor> anchors, int gapThreshold) {
+    private static void expandSmallAnchors(List<MotifAnchor> anchors, int gapThreshold) {
         for (MotifAnchor anchor : anchors) {
             int width = anchor.getWidth();
             if (width < gapThreshold) {
@@ -413,7 +413,7 @@ public class MotifAnchorTools {
         });
     }
 
-    public static List<MotifAnchor> retainBestMotifsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList) {
+    private static List<MotifAnchor> retainBestMotifsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList) {
         Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<MotifAnchor, Set<MotifAnchor>>();
 
         for (MotifAnchor anchor : baseList) {

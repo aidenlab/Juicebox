@@ -64,6 +64,12 @@ public class HiCGlobals {
             "10 KB", "5 KB"};
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON};
+    // Add MatrixType.DIFF below if you'd like to enable DIFF mode
+    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
+    public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display purposes only)
     private static final double versionNum = 1.5;
     // Juicebox title
@@ -74,13 +80,6 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-
-    public static MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
-            MatrixType.OE, MatrixType.PEARSON};
-    // Add MatrixType.DIFF below if you'd like to enable DIFF mode
-    public static MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
-            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
-    public static String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

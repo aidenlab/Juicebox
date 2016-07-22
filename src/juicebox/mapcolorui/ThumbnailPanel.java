@@ -123,7 +123,6 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             try {
                 renderVisibleWindow((Graphics2D) g);
             } catch (Exception e) {
-                return;
             }
         }
     }

@@ -121,7 +121,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return retrieveNormalization(optionToString(normalizationTypeOption));
     }
 
-    protected NormalizationType retrieveNormalization(String norm) {
+    private NormalizationType retrieveNormalization(String norm) {
         if (norm == null || norm.length() < 1)
             return null;
 

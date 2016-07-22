@@ -471,7 +471,7 @@ public class Feature2DList {
      *
      * @return keySet
      */
-    Set<String> getKeySet() {
+    private Set<String> getKeySet() {
         return featureList.keySet();
     }
 

@@ -249,7 +249,7 @@ public class Preprocessor {
 
         // Placeholder for master index position, replaced with actual position after all contents are written
         masterIndexPositionPosition = los.getWrittenCount();
-        los.writeLong(0l);
+        los.writeLong(0L);
 
 
         // Genome ID
@@ -606,7 +606,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         // Placeholder for block index
         for (int i = 0; i < numberOfBlocks; i++) {
             los.writeInt(0);
-            los.writeLong(0l);
+            los.writeLong(0L);
             los.writeInt(0);
         }
 

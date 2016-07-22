@@ -290,8 +290,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         if (chr2.getIndex() < chr1.getIndex()) {
-            int[] newRegionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
-            regionIndices = newRegionIndices;
+            regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
         }
 
         MatrixZoomData zd = matrix.getZoomData(zoom);

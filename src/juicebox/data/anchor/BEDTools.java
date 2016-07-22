@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * Created by muhammadsaadshamim on 11/17/15.
  */
-public class BEDTools {
+class BEDTools {
     /**
      * BEDTools port of merge based on
      * http://bedtools.readthedocs.org/en/latest/content/tools/merge.html

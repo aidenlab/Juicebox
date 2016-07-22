@@ -782,7 +782,7 @@ public class MatrixZoomData {
         }
     }
 
-    public void dumpPearsons(PrintWriter pw, LittleEndianOutputStream les, ExpectedValueFunction df) throws IOException {
+    private void dumpPearsons(PrintWriter pw, LittleEndianOutputStream les, ExpectedValueFunction df) throws IOException {
         BasicMatrix pearsons = getPearsons(df);
         if (pearsons != null) {
             int dim = pearsons.getRowDimension();

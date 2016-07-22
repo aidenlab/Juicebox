@@ -158,17 +158,17 @@ public class HiCCUPS extends JuicerCLT {
     private static final int totalMargin = 2 * regionMargin;
     private static final int w1 = 40;      // TODO dimension should be variably set
     private static final int w2 = 10000;   // TODO dimension should be variably set
+    private static final boolean dataShouldBePostProcessed = true;
+    private static final String MERGED = "merged_loops";
+    private static final String FDR_THRESHOLDS = "fdr_thresholds";
+    private static final String ENRICHED_PIXELS = "enriched_pixels";
+    private static final String REQUESTED_LIST = "requested_list";
     public static double fdrsum = 0.02;
     public static double oeThreshold1 = 1.5;
     public static double oeThreshold2 = 1.75;
     public static double oeThreshold3 = 2;
-    private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
-    private static String MERGED = "merged_loops";
-    private static String FDR_THRESHOLDS = "fdr_thresholds";
-    private static String ENRICHED_PIXELS = "enriched_pixels";
-    private static String REQUESTED_LIST = "requested_list";
     private boolean configurationsSetByUser = false;
     private String featureListPath;
     private boolean listGiven = false;
@@ -382,7 +382,7 @@ public class HiCCUPS extends JuicerCLT {
      * @param commonChromosomes list of chromosomes to run hiccups on
      * @return list of enriched pixels
      */
-    public Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes, Feature2DHandler inputListFeature2DHandler) {
+    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes, Feature2DHandler inputListFeature2DHandler) {
 
         long begin_time = System.currentTimeMillis();
 
@@ -638,7 +638,7 @@ public class HiCCUPS extends JuicerCLT {
         }
     }
 
-    public void setHiCCUPSFDROEThresholds(double[] thresholds) {
+    private void setHiCCUPSFDROEThresholds(double[] thresholds) {
         if (thresholds != null && thresholds.length == 4) {
             if (!Double.isNaN(thresholds[0]) && thresholds[0] > 0) fdrsum = thresholds[0];
             if (!Double.isNaN(thresholds[1]) && thresholds[1] > 0) oeThreshold1 = thresholds[1];

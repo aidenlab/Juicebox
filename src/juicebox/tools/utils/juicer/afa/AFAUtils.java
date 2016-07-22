@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/9/15.
  */
-public class AFAUtils {
+class AFAUtils {
     public static List<Feature2D> filterFeaturesByAttribute(List<Feature2D> features, String attribute) {
         List<Feature2D> filteredFeatures = new ArrayList<Feature2D>();
 

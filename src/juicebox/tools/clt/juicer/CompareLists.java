@@ -43,14 +43,14 @@ import java.util.List;
 public class CompareLists extends JuicerCLT {
 
     public final static String PARENT_ATTRIBUTE = "parent_list";
+    public static final Color AAA = new Color(102, 0, 153);
+    public static final Color BBB = new Color(255, 102, 0);
     /**
      * Arbitrary colors for comparison list
      **/
-    public static Color AB = new Color(34, 139, 34);
-    public static Color AA = new Color(0, 255, 150);
-    public static Color BB = new Color(150, 255, 0);
-    public static Color AAA = new Color(102, 0, 153);
-    public static Color BBB = new Color(255, 102, 0);
+    private static final Color AB = new Color(34, 139, 34);
+    private static final Color AA = new Color(0, 255, 150);
+    private static final Color BB = new Color(150, 255, 0);
     private int threshold = 10000, compareTypeID = 0;
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
 

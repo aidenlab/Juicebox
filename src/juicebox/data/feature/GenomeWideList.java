@@ -38,7 +38,7 @@ public class GenomeWideList<T extends Feature> {
      * Genome-wide list of features, where each string is a key for an
      * inter or intra-chromosomal region
      */
-    private Map<String, List<T>> featureLists = new HashMap<String, List<T>>();
+    private final Map<String, List<T>> featureLists = new HashMap<String, List<T>>();
 
     /** Constructors**/
 
@@ -51,7 +51,7 @@ public class GenomeWideList<T extends Feature> {
     /**
      * @param chromosomes for genome
      */
-    public GenomeWideList(List<Chromosome> chromosomes) {
+    private GenomeWideList(List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
             featureLists.put("" + chr.getIndex(), new ArrayList<T>());
         }

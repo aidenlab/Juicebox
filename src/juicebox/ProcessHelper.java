@@ -45,8 +45,7 @@ public class ProcessHelper {
             throws IOException {
 
         ProcessBuilder processBuilder = createProcess();
-        Process process = processBuilder.start();
-        return process;
+        return processBuilder.start();
     }
 
 

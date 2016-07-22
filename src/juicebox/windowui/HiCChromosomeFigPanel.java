@@ -54,7 +54,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = 123798L;
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
-    private HiC hic;
+    private final HiC hic;
     private Orientation orientation;
     private Context context;
     private Point lastPoint = null;
@@ -142,7 +142,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
         //todo Chromosome change pop-up menu
     }
 
-    public Point2D.Double getHiCScale(int width, int height) {
+    private Point2D.Double getHiCScale(int width, int height) {
         try {
             return new Point2D.Double((double) hic.getZd().getXGridAxis().getBinCount() / width,
                     (double) hic.getZd().getYGridAxis().getBinCount() / height);

@@ -663,7 +663,7 @@ public class SuperAdapter {
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    public String getMapName() {
+    private String getMapName() {
         return datasetTitle.split(" ")[0];
     }
 
