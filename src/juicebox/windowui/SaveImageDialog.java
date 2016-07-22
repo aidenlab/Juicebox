@@ -63,7 +63,7 @@ public class SaveImageDialog extends JFileChooser {
                 if (selectedFile.getPath().endsWith(".svg") || selectedFile.getPath().endsWith(".SVG")) {
                     outputFile = selectedFile;
                 } else {
-                    outputFile = new File(selectedFile + ".xml");
+                    outputFile = new File(selectedFile + ".svg");
                 }
                 //saveImagePath = file.getPath();
                 if (outputFile.exists()) {
@@ -78,6 +78,7 @@ public class SaveImageDialog extends JFileChooser {
                         try {
                             int w = Integer.valueOf(width.getText());
                             int h = Integer.valueOf(height.getText());
+                            System.out.println("another figure");
                             saveImage(outputFile, mainWindow, hic, hiCPanel, w, h);
 
                         } catch (IOException error) {
