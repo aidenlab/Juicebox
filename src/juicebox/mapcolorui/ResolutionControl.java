@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
-import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -60,11 +59,11 @@ public class ResolutionControl extends JPanel {
     private final JLabel resolutionLabel;
     private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
+    private final HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
     private JSlider resolutionSlider;
     private int lastValue = 0;
-    private HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
 
     {
         bpLabelMap = new Hashtable<Integer, String>();
@@ -218,7 +217,7 @@ public class ResolutionControl extends JPanel {
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
 
-                if (zoom.getBinSize() < 500000 && hic.getDisplayOption() == MatrixType.PEARSON) {
+                if (zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM && hic.isInPearsonsMode()) {
                     MessageUtils.showMessage("Pearson's matrix is not available at this resolution,\n" +
                             "please use a resolution lower than 500 KB.");
                     setZoom(pearsonZoom);

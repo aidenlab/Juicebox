@@ -36,9 +36,9 @@ import java.util.*;
  * Created by muhammadsaadshamim on 10/8/15.
  */
 public class HiCCUPSConfiguration {
+    private final int resolution;
     private int windowWidth, peakWidth, clusterRadius;
     private double fdrThreshold;
-    private int resolution;
 
     /*
      * Reasonable Commands
@@ -139,20 +139,12 @@ public class HiCCUPSConfiguration {
         return new HiCCUPSConfiguration(25000, 10, 1, 3, 50000);
     }
 
-    public static HiCCUPSConfiguration getDefaultBlankConfig(int res) {
+    private static HiCCUPSConfiguration getDefaultBlankConfig(int res) {
         return new HiCCUPSConfiguration(res, 10, -1, -1, -1);
     }
 
     private boolean isValid() {
-        if (resolution <= 0)
-            return false;
-        if (windowWidth <= 0)
-            return false;
-        if (peakWidth <= 0)
-            return false;
-        if (clusterRadius <= 0)
-            return false;
-        return windowWidth > peakWidth;
+        return resolution > 0 && windowWidth > 0 && peakWidth > 0 && clusterRadius > 0 && windowWidth > peakWidth;
     }
 
     public int divisor() {
@@ -184,7 +176,7 @@ public class HiCCUPSConfiguration {
                 " fdr: " + getFDRPercent() + " radius: " + clusterRadius;
     }
 
-    public String getFDRPercent() {
+    private String getFDRPercent() {
         DecimalFormat format = new DecimalFormat("#.##");
         return format.format(100. * (1. / fdrThreshold)) + "%";
     }

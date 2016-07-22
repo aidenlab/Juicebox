@@ -41,7 +41,7 @@ import java.io.IOException;
  * @author Muhammad Shamim
  * @date 1/20/2015
  */
-public class HiCTools {
+class HiCTools {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);

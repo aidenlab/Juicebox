@@ -57,14 +57,12 @@ public abstract class RecentMenu extends JMenu {
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private final File JuiceboxStatesXML = new File(DirectoryManager.getHiCDirectory(), "JuiceboxStatesXML.txt");
+    private final HiCGlobals.menuType myType;
     private List<String> m_items = new ArrayList<String>();
-    private boolean checkForDuplicates = false;
-    private HiCGlobals.menuType myType;
 
-    public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type, boolean checkForDuplicates) {
+    public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type) {
         super(name);
 
-        this.checkForDuplicates = checkForDuplicates;
         this.m_maxItems = count;
         this.m_entry = prefEntry;
         this.myType = type;
@@ -133,10 +131,9 @@ public abstract class RecentMenu extends JMenu {
     public void addEntry(String savedEntryOriginal, boolean updateFile) {
         //clear the existing items
         this.removeAll();
-        String savedEntry = savedEntryOriginal;
 
-        m_items.remove(savedEntry);
-        m_items.add(0, savedEntry);
+        m_items.remove(savedEntryOriginal);
+        m_items.add(0, savedEntryOriginal);
 
         //Chop last item if list is over size:
         if (this.m_items.size() > this.m_maxItems) {

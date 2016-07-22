@@ -76,7 +76,7 @@ public class HiCCUPSUtils {
     private static final String CENTROID1 = "centroid1";
     private static final String CENTROID2 = "centroid2";
     private static final String NUMCOLLAPSED = "numCollapsed";
-    private static String POST_PROCESSED = "postprocessed_pixels";
+    private static final String POST_PROCESSED = "postprocessed_pixels";
 
     /**
      * @return a Feature2D peak for a possible peak location from hiccups
@@ -129,9 +129,9 @@ public class HiCCUPSUtils {
 
     }
 
-    public static void removeLowMapQFeatures(Feature2DList list, final int resolution,
-                                             final Dataset ds, final List<Chromosome> chromosomes,
-                                             final NormalizationType norm) {
+    private static void removeLowMapQFeatures(Feature2DList list, final int resolution,
+                                              final Dataset ds, final List<Chromosome> chromosomes,
+                                              final NormalizationType norm) {
 
         final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
         for (Chromosome chr : chromosomes) {
@@ -156,7 +156,7 @@ public class HiCCUPSUtils {
 
     }
 
-    public static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution, final int centroidRadius) {
+    private static void coalesceFeaturesToCentroid(Feature2DList list, final int resolution, final int centroidRadius) {
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
@@ -183,7 +183,7 @@ public class HiCCUPSUtils {
         return filtered;
     }
 
-    public static void filterOutFeaturesByFDR(Feature2DList list) {
+    private static void filterOutFeaturesByFDR(Feature2DList list) {
         list.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {

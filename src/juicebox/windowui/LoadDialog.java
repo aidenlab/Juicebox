@@ -60,7 +60,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     public LoadDialog(MainWindow mainWindow, Properties properties, SuperAdapter superAdapter) {
         super(mainWindow, "Select file(s) to open");
 
-        MainWindow mainWindow1 = mainWindow;
         this.superAdapter = superAdapter;
 
         //Create the nodes.

@@ -327,7 +327,6 @@ class HeatmapRenderer {
 
                         for (ContactRecord rec : recs) {
                             double score = Double.NaN;
-                            double vsScore = Double.NaN;
                             if (displayOption == MatrixType.OE || displayOption == MatrixType.EXPECTED) {
                                 double expected = 0;
                                 if (chr1 == chr2) {

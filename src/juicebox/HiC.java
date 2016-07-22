@@ -69,6 +69,8 @@ public class HiC {
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
     private final SuperAdapter superAdapter;
+    private final String eigString = "Eigenvector";
+    private final String ctrlEigString = "Ctrl_Eigenvector";
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -90,8 +92,6 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
-    private String eigString = "Eigenvector";
-    private String ctrlEigString = "Ctrl_Eigenvector";
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -171,7 +171,7 @@ public class HiC {
         }
     }
 
-    public void refreshEigenvectorTrackIfExists() {
+    private void refreshEigenvectorTrackIfExists() {
         if (eigenvectorTrack != null) {
             eigenvectorTrack.forceRefresh();
         }
@@ -580,13 +580,25 @@ public class HiC {
      * @param targetBinSize
      */
     public void zoomToDrawnBox(final int xBP0, final int yBP0, final double targetBinSize) {
+
         HiCZoom newZoom = currentZoom;
-        if (!superAdapter.isResolutionLocked()) {
+        if (!isResolutionLocked()) {
             List<HiCZoom> zoomList = currentZoom.getUnit() == HiC.Unit.BP ? dataset.getBpZooms() : dataset.getFragZooms();
             for (int i = zoomList.size() - 1; i >= 0; i--) {
-                if (zoomList.get(i).getBinSize() > targetBinSize) {
+                if (zoomList.get(i).getBinSize() >= targetBinSize) {
                     newZoom = zoomList.get(i);
                     break;
+                }
+            }
+
+            // this addresses draw box to zoom when down from low res pearsons
+            // it can't zoom all the way in, but can zoom in a little more up to 500K
+            if (isInPearsonsMode() && newZoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM) {
+                for (int i = zoomList.size() - 1; i >= 0; i--) {
+                    if (zoomList.get(i).getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) {
+                        newZoom = zoomList.get(i);
+                        break;
+                    }
                 }
             }
         }
@@ -622,18 +634,18 @@ public class HiC {
                 true, zoomCallType, allowLocationBroadcast);
     }
 
-    public boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
-                                                  boolean resetZoom, ZoomCallType zoomCallType, String message,
-                                                  boolean allowLocationBroadcast) {
+    private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
+                                                   boolean resetZoom, ZoomCallType zoomCallType, String message,
+                                                   boolean allowLocationBroadcast) {
         return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType,
                 message, allowLocationBroadcast);
     }
 
-    public boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
-                                                  final HiCZoom newZoom, final int genomeX, final int genomeY,
-                                                  final double scaleFactor, final boolean resetZoom,
-                                                  final ZoomCallType zoomCallType, String message,
-                                                  final boolean allowLocationBroadcast) {
+    private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
+                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
+                                                   final double scaleFactor, final boolean resetZoom,
+                                                   final ZoomCallType zoomCallType, String message,
+                                                   final boolean allowLocationBroadcast) {
         final boolean[] returnVal = new boolean[1];
         superAdapter.executeLongRunningTask(new Runnable() {
             @Override
@@ -1081,6 +1093,20 @@ public class HiC {
                     chromosomeForPosition.getIndex() == chromosome.getIndex(), regionIndices,
                     normalizationType, displayOption, getExpectedValues());
         }
+    }
+
+    public boolean isInPearsonsMode() {
+        return getDisplayOption() == MatrixType.PEARSON;
+    }
+
+    public boolean isPearsonEdgeCaseEncountered(HiCZoom zoom) {
+        return isInPearsonsMode() && zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM;
+    }
+
+    public boolean isResolutionLocked() {
+        return superAdapter.isResolutionLocked() ||
+                // pearson can't zoom in
+                (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}

@@ -33,7 +33,7 @@ import javax.swing.*;
  */
 public class UnsavedAnnotationWarning {
 
-    public SuperAdapter superAdapter;
+    private final SuperAdapter superAdapter;
 
     public UnsavedAnnotationWarning(SuperAdapter adapter) {
         this.superAdapter = adapter;
@@ -41,10 +41,7 @@ public class UnsavedAnnotationWarning {
     }
 
     private boolean deleteAndContinue() {
-        if (superAdapter.unsavedEditsExist()) {
-            return initPopup();
-        }
-        return false;
+        return superAdapter.unsavedEditsExist() && initPopup();
     }
 
 

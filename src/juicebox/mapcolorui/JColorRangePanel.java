@@ -238,7 +238,7 @@ public class JColorRangePanel extends JPanel {
         updateColorSlider(hic, min, lower, upper, max, scaleFactor);
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
+    private void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
 

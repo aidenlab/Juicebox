@@ -45,15 +45,15 @@ import java.util.List;
  */
 public class MotifFinder extends JuicerCLT {
 
+    private final List<String> tierOneFiles = new ArrayList<String>();
+    private final List<String> tierTwoFiles = new ArrayList<String>();
+    private final List<String> tierThreeFiles = new ArrayList<String>();
     private String outputPath;
     private String loopListPath;
     private String genomeID;
     private List<String> proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
     private String bedFileDirPath;
     private String globalMotifListPath;
-    private List<String> tierOneFiles = new ArrayList<String>();
-    private List<String> tierTwoFiles = new ArrayList<String>();
-    private List<String> tierThreeFiles = new ArrayList<String>();
     private GenomeWideList<MotifAnchor> genomeWideAnchorsList = new GenomeWideList<MotifAnchor>();
 
     public MotifFinder() {
@@ -179,8 +179,8 @@ public class MotifFinder extends JuicerCLT {
         }
     }
 
-    public GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
-                                                                        GenomeWideList<MotifAnchor> baseList) {
+    private GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
+                                                                         GenomeWideList<MotifAnchor> baseList) {
 
         if (tierOneFiles.size() > 0) {
             GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(chromosomes, tierOneFiles);

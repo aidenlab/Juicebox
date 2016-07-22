@@ -94,12 +94,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
-
     /**
      * feature highlight related variables
      */
     private boolean showFeatureHighlight = true;
-
     private Feature2D highlightedFeature = null;
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
@@ -148,7 +146,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (hic.getXContext() == null) return;
 
-        if (hic.getDisplayOption() == MatrixType.PEARSON) {
+        if (hic.isInPearsonsMode()) {
             // Possibly force asynchronous computation of pearsons
             if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
                 JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution, use 500KB or lower resolution.");
@@ -173,6 +171,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
 
         MatrixType displayOption = hic.getDisplayOption();
+        NormalizationType normalizationType = hic.getNormalizationType();
 
         boolean allTilesNull = true;
         for (int tileRow = tTop; tileRow <= tBottom; tileRow++) {
@@ -180,7 +179,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 ImageTile tile;
                 try {
-                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, hic.getNormalizationType());
+                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, normalizationType);
                 } catch (Exception e) {
                     return;
                 }
@@ -228,7 +227,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
                     //if (mainWindow.isRefreshTest()) {
-                    g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                    try {
+                        if (xDest0 < xDest1 && yDest0 < yDest1 && xSrc0 < xSrc1 && ySrc0 < ySrc1) {
+                            // basically ensure that we're not trying to plot empty space
+                            // also for some reason we have negative indices sometimes??
+                            g.drawImage(tile.image, xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1, null);
+                        }
+                    } catch (Exception e) {
+
+                        // handling for svg export
+                        try {
+                            System.out.println("svg plotting for\n" +
+                                    xDest0 + "_" + yDest0 + "_" + xDest1 + "_" + yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1);
+                            bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn,
+                                    displayOption, normalizationType,
+                                    xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);
+                            //processedExportRegions.add(newKey);
+                        } catch (Exception e2) {
+                            System.err.println("SVG export did not work");
+                        }
+                    }
                     //}
 
 
@@ -344,6 +362,54 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             }
         }
+    }
+
+    private void bypassTileAndDirectlyDrawOnGraphics(Graphics2D g, MatrixZoomData zd, int tileRow, int tileColumn,
+                                                     MatrixType displayOption, NormalizationType normalizationType,
+                                                     int xDest0, int yDest0, int xDest1, int yDest1, int xSrc0,
+                                                     int ySrc0, int xSrc1, int ySrc1) {
+
+        // Image size can be smaller than tile width when zoomed out, or near the edges.
+
+        int maxBinCountX = zd.getXGridAxis().getBinCount();
+        int maxBinCountY = zd.getYGridAxis().getBinCount();
+
+        if (maxBinCountX < 0 || maxBinCountY < 0) return;
+
+        int imageWidth = maxBinCountX < imageTileWidth ? maxBinCountX : imageTileWidth;
+        int imageHeight = maxBinCountY < imageTileWidth ? maxBinCountY : imageTileWidth;
+
+        final int bx0 = tileColumn * imageTileWidth;
+        final int by0 = tileRow * imageTileWidth;
+
+        // set new origins
+        g.translate(xDest0, yDest0);
+
+        // scale drawing appropriately
+        double widthDest = xDest1 - xDest0;
+        double heightDest = yDest1 - yDest0;
+        int widthSrc = xSrc1 - xSrc0;
+        int heightSrc = ySrc1 - ySrc0;
+        double horizontalScaling = widthDest / widthSrc;
+        double verticalScaling = heightDest / heightSrc;
+        g.scale(horizontalScaling, verticalScaling);
+
+        final int bx0Offset = bx0 + xSrc0;
+        final int by0Offset = by0 + ySrc0;
+
+        renderer.render(bx0Offset,
+                by0Offset,
+                widthSrc,
+                heightSrc,
+                zd,
+                hic.getControlZd(),
+                displayOption,
+                normalizationType,
+                hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                g);
+
+        g.scale(1, 1);
+        g.translate(0, 0);
     }
 
     private int getTickWidth(MatrixZoomData zd) {
@@ -894,7 +960,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             txt.append("</span><span style='font-family: arial; font-size: 12pt;'>");
 
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+            if (hic.isInPearsonsMode()) {
                 float value = zd.getPearsonValue(binX, binY, hic.getNormalizationType());
                 if (!Float.isNaN(value)) {
 
@@ -1428,8 +1494,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Double click,  zoom and center on click location
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
-                        final HiCZoom newZoom = superAdapter.isResolutionLocked() ? currentZoom :
-                                hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
+                        final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
+                        final HiCZoom newZoom = hic.isResolutionLocked() ||
+                                hic.isPearsonEdgeCaseEncountered(nextPotentialZoom) ? currentZoom : nextPotentialZoom;
 
                         // If newZoom == currentZoom adjust scale factor (no change in resolution)
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());

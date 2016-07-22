@@ -181,7 +181,7 @@ public class SuperAdapter {
     }
 
     public void launchExportImage() {
-        new SaveImageDialog(null, hic, mainViewPanel.getHiCPanel());
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel());
     }
 
     public void exportAnnotations() {
@@ -304,7 +304,7 @@ public class SuperAdapter {
     private void unsafeSetInitialZoom() {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
-        if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
+        if (hic.isInPearsonsMode()) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
         } else if (HiCFileTools.isAllChromosome(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
@@ -626,6 +626,7 @@ public class SuperAdapter {
         mainViewPanel.repaintTrackPanels();
     }
 
+    // only hic should call this
     public boolean isResolutionLocked() {
         return mainViewPanel.isResolutionLocked();
     }
@@ -663,7 +664,7 @@ public class SuperAdapter {
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    public String getMapName() {
+    private String getMapName() {
         return datasetTitle.split(" ")[0];
     }
 

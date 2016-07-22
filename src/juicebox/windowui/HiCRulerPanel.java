@@ -53,7 +53,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
-    private HiC hic;
+    private final HiC hic;
     private Orientation orientation;
     private Context context;
 
@@ -158,14 +158,14 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         // Clear panel
         drawTicks(g2D);
-        drawChr(g2D, orientation);
+        drawChr(g2D);
 
         g2D.setTransform(t);
 
 
     }
 
-    private void drawChr(Graphics g, Orientation orientation) {
+    private void drawChr(Graphics g) {
         int w = isHorizontal() ? getWidth() : getHeight();
         int h = isHorizontal() ? getHeight() : getWidth();
 
@@ -331,7 +331,6 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         nTick++;
                     }
                 } catch (Exception e) {
-                    return;
                 }
             }
         }

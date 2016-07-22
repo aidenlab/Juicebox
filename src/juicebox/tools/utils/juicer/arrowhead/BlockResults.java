@@ -40,8 +40,8 @@ import java.util.Set;
  */
 class BlockResults {
 
-    private ArrowheadScoreList internalList;
-    private ArrowheadScoreList internalControl;
+    private final ArrowheadScoreList internalList;
+    private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
     public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,

@@ -106,7 +106,7 @@ import java.util.List;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
-    File outputDirectory;
+    private File outputDirectory;
     private boolean configurationsSetByUser = false;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;

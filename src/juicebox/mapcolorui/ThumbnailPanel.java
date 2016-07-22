@@ -65,8 +65,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
                         int yBP = (int) (mouseEvent.getY() * scale.getY());
                         superAdapter.centerMap(xBP, yBP);
                     } catch (Exception e) {
-                        System.out.println("Error when thumbnail clicked");
-                        e.printStackTrace();
+                        System.err.println("Error when thumbnail clicked");
                     }
                 }
             }
@@ -123,7 +122,6 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             try {
                 renderVisibleWindow((Graphics2D) g);
             } catch (Exception e) {
-                return;
             }
         }
     }

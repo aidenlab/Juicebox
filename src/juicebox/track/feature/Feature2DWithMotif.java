@@ -38,10 +38,26 @@ import java.util.Map;
  */
 public class Feature2DWithMotif extends Feature2D {
 
-    public static int negReceived = 0, negWritten = 0, posNull = 0, posWritten = 0, negNull = 0;
     public static boolean useSimpleOutput = false;
     public static boolean uniquenessCheckEnabled = true;
     public static boolean lenientEqualityEnabled = false;
+    private static int negReceived = 0;
+    private static int negWritten = 0;
+    private static int posNull = 0;
+    private static int posWritten = 0;
+    private static int negNull = 0;
+    private final String MFS1 = "motif_start_1";
+    private final String MFE1 = "motif_end_1";
+    private final String MFSEQ1 = "sequence_1";
+    private final String MFO1 = "orientation_1";
+    private final String MFU1 = "uniqueness_1";
+    private final String MFS2 = "motif_start_2";
+    private final String MFE2 = "motif_end_2";
+    private final String MFSEQ2 = "sequence_2";
+    private final String MFO2 = "orientation_2";
+    private final String MFU2 = "uniqueness_2";
+    private final int chr1Index;
+    private final int chr2Index;
     // true = +, false = -, null = NA
     private boolean strand1, strand2;
     // true - unique, false = inferred, null = NA
@@ -49,17 +65,6 @@ public class Feature2DWithMotif extends Feature2D {
     private String sequence1, sequence2;
     private int motifStart1, motifEnd1, motifStart2, motifEnd2;
     private double score1, score2;
-    private String MFS1 = "motif_start_1";
-    private String MFE1 = "motif_end_1";
-    private String MFSEQ1 = "sequence_1";
-    private String MFO1 = "orientation_1";
-    private String MFU1 = "uniqueness_1";
-    private String MFS2 = "motif_start_2";
-    private String MFE2 = "motif_end_2";
-    private String MFSEQ2 = "sequence_2";
-    private String MFO2 = "orientation_2";
-    private String MFU2 = "uniqueness_2";
-    private int chr1Index, chr2Index;
 
     public Feature2DWithMotif(FeatureType featureName, String chr1, int chr1Index, int start1, int end1,
                               String chr2, int chr2Index, int start2, int end2, Color c, Map<String, String> attributes) {

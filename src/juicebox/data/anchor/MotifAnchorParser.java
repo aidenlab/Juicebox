@@ -299,8 +299,6 @@ public class MotifAnchorParser {
                 }
 
                 anchors.add(new MotifAnchor(chr.getIndex(), start1, end1));
-            } else {
-                continue; // header line/description; all BED files start with chr
             }
         }
         bufferedReader.close();
@@ -315,7 +313,7 @@ public class MotifAnchorParser {
      * @return
      * @throws IOException
      */
-    public static String downloadFromUrl(URL url, String localFilename) throws IOException {
+    private static String downloadFromUrl(URL url, String localFilename) throws IOException {
         InputStream is = null;
         FileOutputStream fos = null;
 

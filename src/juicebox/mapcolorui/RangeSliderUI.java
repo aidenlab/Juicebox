@@ -56,7 +56,7 @@ class RangeSliderUI extends BasicSliderUI {
 
     private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
-
+    private final int oeColorMax;
     private Color[] gradientColorsPreDef =
             {new Color(255, 242, 255),
                     new Color(255, 230, 242),
@@ -129,11 +129,9 @@ class RangeSliderUI extends BasicSliderUI {
                     0.925f,
                     0.95f,
                     1.0f};
-
     private boolean colorIsOE = false;
     private boolean colorIsBlank = false;
     private boolean colorIsPreDef = false;
-    private int oeColorMax;
     private int preDefColorMax;
 
     /**
@@ -761,7 +759,6 @@ class RangeSliderUI extends BasicSliderUI {
                     break;
 
                 default:
-                    return;
             }
         }
     }

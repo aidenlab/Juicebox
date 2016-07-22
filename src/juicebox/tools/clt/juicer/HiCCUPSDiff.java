@@ -62,12 +62,12 @@ import java.util.List;
  */
 public class HiCCUPSDiff extends JuicerCLT {
 
+    private final String resolutions = null;
+    private final float maxEnrich = 1.3f;
     private HiCCUPS hiccups1 = null;
     private HiCCUPS hiccups2 = null;
     private Feature2DList looplist1;
     private Feature2DList looplist2;
-    private String resolutions=null;
-    private float maxEnrich=1.3f;
     private File outputDirectory;
     private List<Chromosome> commonChromosomes;
 

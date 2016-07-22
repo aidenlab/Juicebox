@@ -152,7 +152,7 @@ public class MainMenuBar {
         fileMenu.add(openItem);
         fileMenu.add(loadControlFromList);
 
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP, false) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
             private static final long serialVersionUID = 4202L;
 
@@ -168,7 +168,7 @@ public class MainMenuBar {
 
         fileMenu.add(recentMapMenu);
 
-        recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP, false) {
+        recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
             private static final long serialVersionUID = 42012L;
 
@@ -577,7 +577,7 @@ public class MainMenuBar {
         saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION, true) {
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
             private static final long serialVersionUID = 4204L;
 
@@ -605,7 +605,7 @@ public class MainMenuBar {
         });
 
         // restore recent saved states
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE, true) {
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
 
             private static final long serialVersionUID = 4205L;
 
@@ -699,7 +699,7 @@ public class MainMenuBar {
 
         //---Export Image Menu-----
         JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export Image...");
+        saveToImage.setText("Export HiRes Figure...");
         saveToImage.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportImage();

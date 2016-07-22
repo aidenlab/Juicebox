@@ -48,9 +48,9 @@ import java.util.List;
  */
 public class ABCompartmentsDiff extends JuicerCLT {
 
+    private final HiCZoom highZoom = new HiCZoom(HiC.Unit.BP, 500000);
     private List<Chromosome> chromosomes;
     private Dataset ds1, ds2;
-    private HiCZoom highZoom = new HiCZoom(HiC.Unit.BP, 500000);
     private PrintWriter diffFileWriter, simFileWriter;
 
     public ABCompartmentsDiff() {

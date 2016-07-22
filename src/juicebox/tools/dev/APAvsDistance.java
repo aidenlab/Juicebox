@@ -55,7 +55,7 @@ import java.util.List;
  * and then do APA on the pairs in each bin. You should get a strong apa score at 300kb.
  * what about 3mb? 30mb?
  */
-public class APAvsDistance {
+class APAvsDistance {
 
     public static void main() {
 

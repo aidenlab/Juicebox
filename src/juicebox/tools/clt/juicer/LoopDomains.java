@@ -43,9 +43,9 @@ import java.util.List;
 public class LoopDomains extends JuicerCLT {
 
 
-    private static Color C_LOOP = new Color(34, 149, 34);
-    private static Color C_CONTACT = new Color(0, 105, 0);
-    private static Color C_LONE = new Color(102, 0, 153);
+    private static final Color C_LOOP = new Color(34, 149, 34);
+    private static final Color C_CONTACT = new Color(0, 105, 0);
+    private static final Color C_LONE = new Color(102, 0, 153);
 
     /**
      * For every domain boundary, find the overlapping loop anchors.
