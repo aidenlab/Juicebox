@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import de.erichseifert.vectorgraphics2d.PDFGraphics2D;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
@@ -34,6 +35,7 @@ import org.w3c.dom.DOMImplementation;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -44,13 +46,9 @@ public class SaveImageDialog extends JFileChooser {
     private static final long serialVersionUID = -611947177404923808L;
     private JTextField width;
     private JTextField height;
-    private int juiceboxWidth, juiceboxHeight;
 
     public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel) {
         super();
-        juiceboxHeight = mainWindow.getHeight();
-        juiceboxWidth = mainWindow.getWidth();
-
         if (saveImagePath != null) {
             setSelectedFile(new File(saveImagePath));
         } else {
@@ -64,14 +62,15 @@ public class SaveImageDialog extends JFileChooser {
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = getSelectedFile();
                 final File outputFile;
-                if (selectedFile.getPath().endsWith(".svg") || selectedFile.getPath().endsWith(".SVG")) {
+                if (selectedFile.getPath().endsWith(".svg") || selectedFile.getPath().endsWith(".SVG")
+                        || selectedFile.getPath().endsWith(".pdf") || selectedFile.getPath().endsWith(".PDF")) {
                     outputFile = selectedFile;
                 } else {
-                    outputFile = new File(selectedFile + ".svg");
+                    outputFile = new File(selectedFile + ".pdf");
                 }
                 //saveImagePath = file.getPath();
                 if (outputFile.exists()) {
-                    actionDialog = JOptionPane.showConfirmDialog(mainWindow, "Replace existing file?");
+                    actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
@@ -83,7 +82,11 @@ public class SaveImageDialog extends JFileChooser {
                             int w = Integer.valueOf(width.getText());
                             int h = Integer.valueOf(height.getText());
                             if (HiCGlobals.printVerboseComments) System.out.println("Exporting another figure");
-                            saveImage(outputFile, mainWindow, hic, hiCPanel, w, h);
+                            if (outputFile.getPath().endsWith(".svg") || outputFile.getPath().endsWith(".SVG")) {
+                                exportAsSVG(outputFile, mainWindow, hic, hiCPanel, w, h);
+                            } else {
+                                exportAsPDF(outputFile, mainWindow, hic, hiCPanel, w, h);
+                            }
 
                         } catch (IOException error) {
                             JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
@@ -98,13 +101,13 @@ public class SaveImageDialog extends JFileChooser {
         }
     }
 
-    public JDialog createDialog(Component parent) {
+    protected JDialog createDialog(Component parent) {
         JDialog myDialog = super.createDialog(parent);
         JLabel wLabel = new JLabel("Width");
         JLabel hLabel = new JLabel("Height");
-        width = new JTextField("" + juiceboxWidth);
+        width = new JTextField("" + MainWindow.getInstance().getWidth());
         width.setColumns(6);
-        height = new JTextField("" + juiceboxHeight);
+        height = new JTextField("" + MainWindow.getInstance().getHeight());
         height.setColumns(6);
         JPanel panel = new JPanel();
         panel.add(wLabel);
@@ -115,8 +118,8 @@ public class SaveImageDialog extends JFileChooser {
         return myDialog;
     }
 
-    private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
-                           final int w, final int h) throws IOException {
+    private void exportAsSVG(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
+                             final int w, final int h) throws IOException {
 
         try {
 
@@ -134,7 +137,7 @@ public class SaveImageDialog extends JFileChooser {
             // Ask the test to render into the SVG Graphics2D implementation.
 
             // Print the panel on created SVG graphics.
-            if (w == juiceboxWidth && h == juiceboxHeight) {
+            if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
                 hiCPanel.printAll(svgGenerator);
             } else {
                 JDialog waitDialog = new JDialog();
@@ -200,5 +203,93 @@ public class SaveImageDialog extends JFileChooser {
             e.printStackTrace();
         }
     }
-}
 
+    private void exportAsPDF(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
+                             final int w, final int h) throws IOException {
+
+        try {
+
+            //PDF pdf = new PDF(new BufferedOutputStream(new FileOutputStream(file)));
+
+
+            try {
+                PDFGraphics2D g = new PDFGraphics2D(0, 0, w, h);
+
+                // Print the panel on created graphics.
+                if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
+                    hiCPanel.printAll(g);
+                } else {
+                    JDialog waitDialog = new JDialog();
+                    JPanel panel1 = new JPanel();
+                    panel1.add(new JLabel("  Creating and saving " + w + " by " + h + " image  "));
+                    //panel1.setPreferredSize(new Dimension(250,50));
+                    waitDialog.add(panel1);
+                    waitDialog.setTitle("Please wait...");
+                    waitDialog.pack();
+                    waitDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+                    waitDialog.setLocation(100, 100);
+                    waitDialog.setVisible(true);
+                    mainWindow.setVisible(false);
+
+                    Dimension minSize = mainWindow.getMinimumSize();
+                    Dimension prefSize = mainWindow.getPreferredSize();
+
+                    hic.centerBP(0, 0);
+                    mainWindow.setMinimumSize(new Dimension(w, h));
+                    mainWindow.setPreferredSize(new Dimension(w, h));
+                    mainWindow.pack();
+
+                    mainWindow.setState(Frame.ICONIFIED);
+                    mainWindow.setState(Frame.NORMAL);
+                    mainWindow.setVisible(true);
+                    mainWindow.setVisible(false);
+
+                    final Runnable painter = new Runnable() {
+                        public void run() {
+                            hiCPanel.paintImmediately(0, 0, w, h);
+                        }
+                    };
+
+                    Thread thread = new Thread(painter) {
+                        public void run() {
+
+                            try {
+                                SwingUtilities.invokeAndWait(painter);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    };
+
+                    thread.start();
+                    hiCPanel.printAll(g);
+                    mainWindow.setPreferredSize(prefSize);
+                    mainWindow.setMinimumSize(minSize);
+                    mainWindow.setSize(new Dimension(w, h));
+                    waitDialog.setVisible(false);
+                    waitDialog.dispose();
+                    mainWindow.setVisible(true);
+                }
+
+
+                System.out.println(g.getFont());
+
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                try {
+                    fileOutputStream.write(g.getBytes());
+                } finally {
+                    fileOutputStream.close();
+                }
+
+            } catch (Exception io) {
+                System.err.println("PDF Export failed " + io);
+            }
+
+
+        } catch (Exception e) {
+            System.err.println("Export PDF failed " + e);
+        }
+    }
+}
