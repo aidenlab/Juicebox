@@ -78,7 +78,7 @@ public class SaveImageDialog extends JFileChooser {
                         try {
                             int w = Integer.valueOf(width.getText());
                             int h = Integer.valueOf(height.getText());
-                            System.out.println("another figure");
+                            if (HiCGlobals.printVerboseComments) System.out.println("Exporting another figure");
                             saveImage(outputFile, mainWindow, hic, hiCPanel, w, h);
 
                         } catch (IOException error) {

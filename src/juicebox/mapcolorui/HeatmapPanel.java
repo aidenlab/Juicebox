@@ -237,8 +237,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                         // handling for svg export
                         try {
-                            System.out.println("svg plotting for\n" +
-                                    xDest0 + "_" + yDest0 + "_" + xDest1 + "_" + yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1);
+                            if (HiCGlobals.printVerboseComments) {
+                                System.out.println("svg plotting for\n" + xDest0 + "_" + yDest0 + "_" + xDest1 + "_" +
+                                        yDest1 + "_" + xSrc0 + "_" + ySrc0 + "_" + xSrc1 + "_" + ySrc1);
+                            }
                             bypassTileAndDirectlyDrawOnGraphics((Graphics2D) g, zd, tileRow, tileColumn,
                                     displayOption, normalizationType,
                                     xDest0, yDest0, xDest1, yDest1, xSrc0, ySrc0, xSrc1, ySrc1);

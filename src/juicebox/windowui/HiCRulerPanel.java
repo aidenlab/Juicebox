@@ -279,8 +279,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
                 double startPosition = isHorizontal() ? genomePositions[0] : genomePositions[2];
                 double endPosition = isHorizontal() ? genomePositions[1] : genomePositions[3];
-                int endPositionBin = (int) (axis.getBinNumberForGenomicPosition((int) endPosition) * hic.getScaleFactor());
-
+                int endPositionBin = (int) (axis.getBinNumberForGenomicPosition((int) (endPosition - startPosition)) * hic.getScaleFactor());
+                
                 // actual strings to print and their widths
                 String startPositionString = formatNumber(startPosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
 
