@@ -142,7 +142,7 @@ public class HiCTrackManager {
                 locator.setType(str);
             }
         } else {
-            if (extension.equals(".txt")) {
+            if (extension.equals(".txt") || extension.equals(".zip")) {
                 MessageUtils.showMessage(Level.INFO, ".txt files are not a currently supported 1D track. " +
                         "If you are trying to use refGene, make sure it is in the .txt.gz format. " +
                         "If you are trying to load 2D annotations (loops/domains), use \"Add 2D...\"");
