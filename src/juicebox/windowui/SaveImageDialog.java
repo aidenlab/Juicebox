@@ -44,9 +44,13 @@ public class SaveImageDialog extends JFileChooser {
     private static final long serialVersionUID = -611947177404923808L;
     private JTextField width;
     private JTextField height;
+    private int juiceboxWidth, juiceboxHeight;
 
     public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel) {
         super();
+        juiceboxHeight = mainWindow.getHeight();
+        juiceboxWidth = mainWindow.getWidth();
+
         if (saveImagePath != null) {
             setSelectedFile(new File(saveImagePath));
         } else {
@@ -67,7 +71,7 @@ public class SaveImageDialog extends JFileChooser {
                 }
                 //saveImagePath = file.getPath();
                 if (outputFile.exists()) {
-                    actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
+                    actionDialog = JOptionPane.showConfirmDialog(mainWindow, "Replace existing file?");
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
@@ -94,13 +98,13 @@ public class SaveImageDialog extends JFileChooser {
         }
     }
 
-    protected JDialog createDialog(Component parent) {
+    public JDialog createDialog(Component parent) {
         JDialog myDialog = super.createDialog(parent);
         JLabel wLabel = new JLabel("Width");
         JLabel hLabel = new JLabel("Height");
-        width = new JTextField("" + MainWindow.getInstance().getWidth());
+        width = new JTextField("" + juiceboxWidth);
         width.setColumns(6);
-        height = new JTextField("" + MainWindow.getInstance().getHeight());
+        height = new JTextField("" + juiceboxHeight);
         height.setColumns(6);
         JPanel panel = new JPanel();
         panel.add(wLabel);
@@ -130,7 +134,7 @@ public class SaveImageDialog extends JFileChooser {
             // Ask the test to render into the SVG Graphics2D implementation.
 
             // Print the panel on created SVG graphics.
-            if (w == mainWindow.getWidth() && h == MainWindow.getInstance().getHeight()) {
+            if (w == juiceboxWidth && h == juiceboxHeight) {
                 hiCPanel.printAll(svgGenerator);
             } else {
                 JDialog waitDialog = new JDialog();
