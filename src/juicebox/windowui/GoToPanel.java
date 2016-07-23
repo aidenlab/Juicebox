@@ -29,7 +29,6 @@ import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.HiCFileTools;
 import juicebox.gui.SuperAdapter;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
@@ -198,7 +197,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         //Read resolution:
         int outBinSize = 0;
-        String resolutionUnits = HiCFileTools.BP;
+        HiC.Unit resolutionUnits = HiC.Unit.BP;
         int estimatedOutBinSize = Math.max(topChrPositions[3], leftChrPositions[3]);
 
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
@@ -206,7 +205,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = HiCFileTools.FRAG;
+                    resolutionUnits = HiC.Unit.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -216,7 +215,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = HiCFileTools.FRAG;
+                    resolutionUnits = HiC.Unit.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -226,7 +225,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         } else if (hic.getZoom().getBinSize() != 0) { //no resolution specified, not at whole genome view
             outBinSize = hic.validateBinSize(String.valueOf(hic.getZoom().getBinSize()));
             if (outBinSize != Integer.MIN_VALUE) {
-                resolutionUnits = hic.getZoom().getUnit().toString();
+                resolutionUnits = hic.getZoom().getUnit();
             }
         }
 
@@ -399,7 +398,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             geneZoomResolution = Collections.min(bpResolutions);
         }
 
-        hic.setLocation(location1.chromosome, location2.chromosome, HiCFileTools.BP, geneZoomResolution,
+        hic.setLocation(location1.chromosome, location2.chromosome, HiC.Unit.BP, geneZoomResolution,
                 location1.centerPosition, location2.centerPosition, hic.getScaleFactor(),
                 HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 

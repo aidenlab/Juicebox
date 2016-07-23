@@ -35,9 +35,6 @@ import org.broad.igv.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-//import java.util.List;
-
-
 class CommandExecutor {
 
     private static final Logger log = Logger.getLogger(CommandExecutor.class);
@@ -73,11 +70,12 @@ class CommandExecutor {
                         String chrXName = args.get(1);
                         String chrYName = args.get(2);
                         String unitName = args.get(3);
+                        HiC.Unit unit = HiC.Unit.valueOf(unitName);
                         int binSize = Integer.parseInt(args.get(4));
                         double xOrigin = Double.parseDouble(args.get(5));
                         double yOrigin = Double.parseDouble(args.get(6));
                         double scaleFactor = Double.parseDouble(args.get(7));
-                        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor,
+                        hic.setLocation(chrXName, chrYName, unit, binSize, xOrigin, yOrigin, scaleFactor,
                                 HiC.ZoomCallType.DIRECT, "Goto Sync", false);
                     } else {
                         result = "Not enough parameters";

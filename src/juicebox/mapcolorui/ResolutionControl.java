@@ -348,7 +348,10 @@ public class ResolutionControl extends JPanel {
     }
 
     public void setZoom(HiCZoom newZoom) {
-        unit = newZoom.getUnit();
+        if (unit != newZoom.getUnit()) {
+            unit = newZoom.getUnit();
+            reset();
+        }
         resolutionLabel.setText(getUnitLabel());
         resolutionLabel.setForeground(Color.BLUE);
         for (Map.Entry<Integer, HiCZoom> entry : idxZoomMap.entrySet()) {

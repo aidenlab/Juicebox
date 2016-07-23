@@ -611,13 +611,13 @@ public class HiC {
      * Triggered by syncs, goto, and load state.
      */
     //reloading the previous location
-    public void setLocation(String chrXName, String chrYName, String unitName, int binSize, double xOrigin,
+    public void setLocation(String chrXName, String chrYName, HiC.Unit unit, int binSize, double xOrigin,
                             double yOrigin, double scaleFactor, ZoomCallType zoomCallType, String message,
                             boolean allowLocationBroadcast) {
 
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {
-            newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+            newZoom = new HiCZoom(unit, binSize);
         }
         safeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
                 true, zoomCallType, message, allowLocationBroadcast);
