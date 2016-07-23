@@ -25,6 +25,8 @@
 package juicebox.windowui;
 
 import de.erichseifert.vectorgraphics2d.PDFGraphics2D;
+import de.erichseifert.vectorgraphics2d.ProcessingPipeline;
+import de.erichseifert.vectorgraphics2d.SVGGraphics2D;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
@@ -43,13 +45,14 @@ public class SaveImageDialog extends JFileChooser {
     private JTextField width;
     private JTextField height;
 
-    public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel) {
+    public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel,
+                           final String extension) {
         super();
         if (saveImagePath != null) {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            setSelectedFile(new File(timeStamp + ".HiCImage.pdf"));
+            setSelectedFile(new File(timeStamp + ".HiCImage" + extension));
 
         }
         if (HiCGlobals.guiIsCurrentlyActive) {
@@ -61,7 +64,7 @@ public class SaveImageDialog extends JFileChooser {
                         || selectedFile.getPath().endsWith(".pdf") || selectedFile.getPath().endsWith(".PDF")) {
                     outputFile = selectedFile;
                 } else {
-                    outputFile = new File(selectedFile + ".pdf");
+                    outputFile = new File(selectedFile + extension);
                 }
                 //saveImagePath = file.getPath();
                 if (outputFile.exists()) {
@@ -115,180 +118,91 @@ public class SaveImageDialog extends JFileChooser {
 
     private void exportAsPDF(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
                              final int w, final int h) throws IOException {
-
         try {
-
-            //PDF pdf = new PDF(new BufferedOutputStream(new FileOutputStream(file)));
-
-
-            try {
-                PDFGraphics2D g = new PDFGraphics2D(0, 0, w, h);
-
-                // Print the panel on created graphics.
-                if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
-                    hiCPanel.printAll(g);
-                } else {
-                    JDialog waitDialog = new JDialog();
-                    JPanel panel1 = new JPanel();
-                    panel1.add(new JLabel("  Creating and saving " + w + " by " + h + " image  "));
-                    //panel1.setPreferredSize(new Dimension(250,50));
-                    waitDialog.add(panel1);
-                    waitDialog.setTitle("Please wait...");
-                    waitDialog.pack();
-                    waitDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-                    waitDialog.setLocation(100, 100);
-                    waitDialog.setVisible(true);
-                    mainWindow.setVisible(false);
-
-                    Dimension minSize = mainWindow.getMinimumSize();
-                    Dimension prefSize = mainWindow.getPreferredSize();
-
-                    hic.centerBP(0, 0);
-                    mainWindow.setMinimumSize(new Dimension(w, h));
-                    mainWindow.setPreferredSize(new Dimension(w, h));
-                    mainWindow.pack();
-
-                    mainWindow.setState(Frame.ICONIFIED);
-                    mainWindow.setState(Frame.NORMAL);
-                    mainWindow.setVisible(true);
-                    mainWindow.setVisible(false);
-
-                    final Runnable painter = new Runnable() {
-                        public void run() {
-                            hiCPanel.paintImmediately(0, 0, w, h);
-                        }
-                    };
-
-                    Thread thread = new Thread(painter) {
-                        public void run() {
-
-                            try {
-                                SwingUtilities.invokeAndWait(painter);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    };
-
-                    thread.start();
-                    hiCPanel.printAll(g);
-                    mainWindow.setPreferredSize(prefSize);
-                    mainWindow.setMinimumSize(minSize);
-                    mainWindow.setSize(new Dimension(w, h));
-                    waitDialog.setVisible(false);
-                    waitDialog.dispose();
-                    mainWindow.setVisible(true);
-                }
-
-
-                System.out.println(g.getFont());
-
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                try {
-                    fileOutputStream.write(g.getBytes());
-                } finally {
-                    fileOutputStream.close();
-                }
-
-            } catch (Exception io) {
-                System.err.println("PDF Export failed " + io);
-            }
-
-
+            PDFGraphics2D g = new PDFGraphics2D(0, 0, w, h);
+            plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);
+            writeGraphicsToFile(g, file);
         } catch (Exception e) {
             System.err.println("Export PDF failed " + e);
         }
     }
 
-
     private void exportAsSVG(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
                              final int w, final int h) throws IOException {
-
         try {
-
-            //PDF pdf = new PDF(new BufferedOutputStream(new FileOutputStream(file)));
-
-
-            try {
-                de.erichseifert.vectorgraphics2d.SVGGraphics2D g = new de.erichseifert.vectorgraphics2d.SVGGraphics2D(0, 0, w, h);
-
-                // Print the panel on created graphics.
-                if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
-                    hiCPanel.printAll(g);
-                } else {
-                    JDialog waitDialog = new JDialog();
-                    JPanel panel1 = new JPanel();
-                    panel1.add(new JLabel("  Creating and saving " + w + " by " + h + " image  "));
-                    //panel1.setPreferredSize(new Dimension(250,50));
-                    waitDialog.add(panel1);
-                    waitDialog.setTitle("Please wait...");
-                    waitDialog.pack();
-                    waitDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-                    waitDialog.setLocation(100, 100);
-                    waitDialog.setVisible(true);
-                    mainWindow.setVisible(false);
-
-                    Dimension minSize = mainWindow.getMinimumSize();
-                    Dimension prefSize = mainWindow.getPreferredSize();
-
-                    hic.centerBP(0, 0);
-                    mainWindow.setMinimumSize(new Dimension(w, h));
-                    mainWindow.setPreferredSize(new Dimension(w, h));
-                    mainWindow.pack();
-
-                    mainWindow.setState(Frame.ICONIFIED);
-                    mainWindow.setState(Frame.NORMAL);
-                    mainWindow.setVisible(true);
-                    mainWindow.setVisible(false);
-
-                    final Runnable painter = new Runnable() {
-                        public void run() {
-                            hiCPanel.paintImmediately(0, 0, w, h);
-                        }
-                    };
-
-                    Thread thread = new Thread(painter) {
-                        public void run() {
-
-                            try {
-                                SwingUtilities.invokeAndWait(painter);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    };
-
-                    thread.start();
-                    hiCPanel.printAll(g);
-                    mainWindow.setPreferredSize(prefSize);
-                    mainWindow.setMinimumSize(minSize);
-                    mainWindow.setSize(new Dimension(w, h));
-                    waitDialog.setVisible(false);
-                    waitDialog.dispose();
-                    mainWindow.setVisible(true);
-                }
-
-
-                System.out.println(g.getFont());
-
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                try {
-                    fileOutputStream.write(g.getBytes());
-                } finally {
-                    fileOutputStream.close();
-                }
-
-            } catch (Exception io) {
-                System.err.println("SVG Export failed " + io);
-            }
-
-
+            SVGGraphics2D g = new SVGGraphics2D(0, 0, w, h);
+            plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);
+            writeGraphicsToFile(g, file);
         } catch (Exception e) {
             System.err.println("Export SVG failed " + e);
+        }
+    }
+
+    private void writeGraphicsToFile(ProcessingPipeline g, File file) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        try {
+            fileOutputStream.write(g.getBytes());
+        } finally {
+            fileOutputStream.close();
+        }
+    }
+
+    private void plotDataOnGraphics(Graphics g, final MainWindow mainWindow, final int w, final int h, final HiC hic,
+                                    final JPanel hiCPanel) {
+        // Print the panel on created graphics.
+        if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
+            hiCPanel.printAll(g);
+        } else {
+            JDialog waitDialog = new JDialog();
+            JPanel panel1 = new JPanel();
+            panel1.add(new JLabel("  Creating and saving " + w + " by " + h + " image  "));
+            //panel1.setPreferredSize(new Dimension(250,50));
+            waitDialog.add(panel1);
+            waitDialog.setTitle("Please wait...");
+            waitDialog.pack();
+            waitDialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+            waitDialog.setLocation(100, 100);
+            waitDialog.setVisible(true);
+            mainWindow.setVisible(false);
+
+            Dimension minSize = mainWindow.getMinimumSize();
+            Dimension prefSize = mainWindow.getPreferredSize();
+
+            hic.centerBP(0, 0);
+            mainWindow.setMinimumSize(new Dimension(w, h));
+            mainWindow.setPreferredSize(new Dimension(w, h));
+            mainWindow.pack();
+
+            mainWindow.setState(Frame.ICONIFIED);
+            mainWindow.setState(Frame.NORMAL);
+            mainWindow.setVisible(true);
+            mainWindow.setVisible(false);
+
+            final Runnable painter = new Runnable() {
+                public void run() {
+                    hiCPanel.paintImmediately(0, 0, w, h);
+                }
+            };
+
+            Thread thread = new Thread(painter) {
+                public void run() {
+                    try {
+                        SwingUtilities.invokeAndWait(painter);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            thread.start();
+            hiCPanel.printAll(g);
+            mainWindow.setPreferredSize(prefSize);
+            mainWindow.setMinimumSize(minSize);
+            mainWindow.setSize(new Dimension(w, h));
+            waitDialog.setVisible(false);
+            waitDialog.dispose();
+            mainWindow.setVisible(true);
         }
     }
 }

@@ -180,8 +180,12 @@ public class SuperAdapter {
         HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
     }
 
-    public void launchExportImage() {
-        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel());
+    public void launchExportPDF() {
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".pdf");
+    }
+
+    public void launchExportSVG() {
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".svg");
     }
 
     public void exportAnnotations() {
