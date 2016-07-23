@@ -114,7 +114,7 @@ public abstract class HiCTrack {
 
     public abstract Color getPosColor();
 
-    public abstract void render(Graphics2D g2d,
+    public abstract void render(Graphics g2d,
                                 Context context,
                                 Rectangle trackRectangle,
                                 TrackPanel.Orientation orientation,

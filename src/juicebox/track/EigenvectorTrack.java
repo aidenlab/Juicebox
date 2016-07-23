@@ -138,15 +138,15 @@ public class EigenvectorTrack extends HiCTrack {
      * Render the track in the supplied rectangle.  It is the responsibility of the track to draw within the
      * bounds of the rectangle.
      *
-     * @param g2d      the graphics context
+     * @param g      the graphics context
      * @param rect     the track bounds, relative to the enclosing DataPanel bounds.
      * @param gridAxis
      */
 
     @Override
-    public void render(Graphics2D g2d, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
+    public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
 
-        g2d.setColor(color);
+        g.setColor(color);
 
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
@@ -179,16 +179,16 @@ public class EigenvectorTrack extends HiCTrack {
 
 
         if (eigen == null || eigen.length == 0) {
-            Font original = g2d.getFont();
-            g2d.setFont(FontManager.getFont(12));
+            Font original = g.getFont();
+            g.setFont(FontManager.getFont(12));
 
             if (orientation == TrackPanel.Orientation.X) {
-                GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g2d);
+                GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g);
             } else {
-                drawRotatedString(g2d, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
+                drawRotatedString((Graphics2D) g, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
             }
 
-            g2d.setFont(original);
+            g.setFont(original);
             return;
         }
 
@@ -216,9 +216,9 @@ public class EigenvectorTrack extends HiCTrack {
 
             int myh = (int) ((x2 / max) * h);
             if (x2 > 0) {
-                g2d.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);
+                g.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);
             } else {
-                g2d.fillRect(xPixelLeft, y + h, (xPixelRight - xPixelLeft), -myh);
+                g.fillRect(xPixelLeft, y + h, (xPixelRight - xPixelLeft), -myh);
             }
         }
 
@@ -252,5 +252,7 @@ public class EigenvectorTrack extends HiCTrack {
         g2.translate(-x, 0);
         g2.drawString(string, x, y);
         g2.setTransform(orig);
+        //g2.translate(0,0);
+        //g2.scale(1,1);
     }
 }
