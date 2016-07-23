@@ -276,10 +276,8 @@ public class MainMenuBar {
         loadEncodeMI.setAction(encodeAction);
         annotationsMenu.add(loadEncodeMI);
 
-        // TODO - this is never added to a menu... (possibly doesn't work)
-        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
+        JMenuItem loadFromURLItem = new JMenuItem("Load 1D Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {
-
             private static final long serialVersionUID = 4203L;
 
             @Override
@@ -287,6 +285,7 @@ public class MainMenuBar {
                 superAdapter.loadFromURLActionPerformed();
             }
         });
+        annotationsMenu.add(loadFromURLItem);
 
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
         showLoopsItem = new JCheckBoxMenuItem("Show");
