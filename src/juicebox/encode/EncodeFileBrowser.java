@@ -92,7 +92,7 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-    public synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
+    private synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
         EncodeFileBrowser instance = instanceMap.get("hic");
         if (instance == null) {
             Pair<String[], List<EncodeFileRecord>> records = getEncodeFileRecords("hic");
@@ -106,7 +106,7 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-    public static boolean genomeSupported(String genomeId) {
+    private static boolean genomeSupported(String genomeId) {
         return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
     }
 
@@ -158,10 +158,6 @@ public class EncodeFileBrowser extends JDialog {
         } finally {
             if (is != null) is.close();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        getInstance("hg19").setVisible(true);
     }
 
     private void init(final EncodeTableModel model) {
