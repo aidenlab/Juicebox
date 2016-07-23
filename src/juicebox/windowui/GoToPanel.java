@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import com.google.common.primitives.Ints;
 import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
@@ -45,7 +46,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by nchernia on 4/2/15.
@@ -297,23 +300,11 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private int getEstimationOfAppropriateZoomLevel(int diff0) {
         // divide because the width from x1 to x2 in chromosome should be significantly bigger then the resolution
         int diff = diff0 / 1000;
-        if (diff >= 2500000) {
-            return 2500000;
-        } else if (diff >= 1000000) {
-            return 1000000;
-        } else if (diff >= 500000) {
-            return 500000;
-        } else if (diff >= 100000) {
-            return 100000;
-        } else if (diff >= 50000) {
-            return 50000;
-        } else if (diff >= 25000) {
-            return 25000;
-        } else if (diff >= 10000) {
-            return 10000;
-        } else {
-            return 5000;
+        for (int res : HiCGlobals.bpBinSizes) {
+            if (diff >= res)
+                return res;
         }
+        return 5000;
     }
 
     private int cleanUpNumber(String number) {
@@ -361,7 +352,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
 
             reader = new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
-            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take few minutes. ");
+            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take a minute or so. ");
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -376,8 +367,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             while ((nextLine = reader.readLine()) != null) {
                 String[] values = nextLine.split(" ");
                 GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
-                geneLocationHashMap.put(values[0].trim(), location);
-                geneLocationHashMap.put(values[1].trim(), location);
+                geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
+                geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
             }
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
@@ -390,8 +381,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void extractGeneLocation() {
-        GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
-        GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
+        GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim().toLowerCase());
+        GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim().toLowerCase());
         if (location1 == null) {
             positionChrTop.setBackground(Color.yellow);
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrTop.getText().trim());
@@ -402,8 +393,16 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setLocation(location1.chromosome, location2.chromosome, HiCFileTools.BP, hic.getZoom().getBinSize(), location1.centerPosition,
-                location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto", true);
+
+        List<Integer> bpResolutions = Ints.asList(HiCGlobals.bpBinSizes);
+        int geneZoomResolution = hic.getZoom().getBinSize();
+        if (!bpResolutions.contains(geneZoomResolution)) {
+            geneZoomResolution = Collections.min(bpResolutions);
+        }
+
+        hic.setLocation(location1.chromosome, location2.chromosome, HiCFileTools.BP, geneZoomResolution,
+                location1.centerPosition, location2.centerPosition, hic.getScaleFactor(),
+                HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();
     }
@@ -426,5 +425,4 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             this.centerPosition = centerPosition;
         }
     }
-
 }
