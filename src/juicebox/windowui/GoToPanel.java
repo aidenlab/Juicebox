@@ -317,8 +317,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private void parseGenePositionText() {
         String genomeID = hic.getDataset().getGenomeId();
         // Currently only human and mouse, not worrying about small differences in location between genomes
-        if (genomeID.equals("b37") || genomeID.equals("hg38") || genomeID.equals("hg18")) genomeID = "hg19";
-        if (genomeID.equals("mm10")) genomeID = "mm9";
+        if (genomeID.equals("b37")) genomeID = "hg19";
         if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
             initializeGeneHashMap(genomeID);
         } else {
