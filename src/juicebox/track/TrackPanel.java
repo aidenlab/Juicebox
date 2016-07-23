@@ -224,15 +224,15 @@ public class TrackPanel extends JPanel {
     protected void paintComponent(Graphics g) {
 
         super.paintComponent(g);
-        Graphics2D graphics = (Graphics2D) g;
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        AffineTransform t = graphics.getTransform();
+        AffineTransform originalTransform = g2d.getTransform();
         if (orientation == Orientation.Y) {
             AffineTransform rotateTransform = new AffineTransform();
             rotateTransform.quadrantRotate(1);
             rotateTransform.scale(1, -1);
-            graphics.transform(rotateTransform);
+            g2d.transform(rotateTransform);
         }
 
         trackRectangles.clear();
@@ -243,8 +243,8 @@ public class TrackPanel extends JPanel {
 
 
         Rectangle rect = getBounds();
-        graphics.setColor(getBackground());
-        graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
+        g.setColor(getBackground());
+        g.fillRect(rect.x, rect.y, rect.width, rect.height);
 
         //int rectBottom = orientation == Orientation.X ? rect.y + rect.height : rect.x + rect.width;
         int y = orientation == Orientation.X ? rect.y : rect.x;
@@ -266,7 +266,7 @@ public class TrackPanel extends JPanel {
 
                     if (getContext() != null) {
 
-                        hicTrack.render(graphics, getContext(), trackRectangle, orientation, gridAxis);
+                        hicTrack.render(g, getContext(), trackRectangle, orientation, gridAxis);
                         y += h;
 
                         trackRectangles.add(new Pair<Rectangle, HiCTrack>(trackRectangle, hicTrack));
@@ -280,14 +280,14 @@ public class TrackPanel extends JPanel {
                 e.printStackTrace();
         }
 
-        graphics.setTransform(t);
+        g2d.setTransform(originalTransform);
         Point cursorPoint = hic.getCursorPoint();
         if (cursorPoint != null) {
-            graphics.setColor(HiCGlobals.RULER_LINE_COLOR);
+            g.setColor(HiCGlobals.RULER_LINE_COLOR);
             if (orientation == Orientation.X) {
-                graphics.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
+                g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
             } else {
-                graphics.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
+                g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
             }
         }
 

@@ -698,14 +698,23 @@ public class MainMenuBar {
         figureMenu.addSeparator();
 
         //---Export Image Menu-----
-        JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export HiRes Figure...");
-        saveToImage.addActionListener(new ActionListener() {
+        JMenuItem saveToPDF = new JMenuItem();
+        saveToPDF.setText("Export PDF Figure...");
+        saveToPDF.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                superAdapter.launchExportImage();
+                superAdapter.launchExportPDF();
             }
         });
-        figureMenu.add(saveToImage);
+        figureMenu.add(saveToPDF);
+
+        JMenuItem saveToSVG = new JMenuItem();
+        saveToSVG.setText("Export SVG Figure...");
+        saveToSVG.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchExportSVG();
+            }
+        });
+        figureMenu.add(saveToSVG);
 
 
         menuBar.add(fileMenu);

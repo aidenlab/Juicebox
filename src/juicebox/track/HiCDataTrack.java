@@ -67,7 +67,7 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
-    public void render(Graphics2D g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
+    public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
 
 
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
@@ -76,11 +76,8 @@ public class HiCDataTrack extends HiCTrack {
         int y = orientation == TrackPanel.Orientation.X ? rect.y : rect.x;
         int x = orientation == TrackPanel.Orientation.X ? rect.x : rect.y;
 
-        Graphics2D g2d = (Graphics2D) g.create(x, y, width, height);
-        y = 0;
-        x = 0;
+        Graphics2D g2d = (Graphics2D) g;
 
-        String chr = context.getChromosome().getName();
         double startBin = context.getBinOrigin();
         double endBin = startBin + (width / hic.getScaleFactor());
         data = dataSource.getData(context.getChromosome(), (int) startBin, (int) endBin + 1,
@@ -153,16 +150,16 @@ public class HiCDataTrack extends HiCTrack {
                 }
 
                 Color color = (dataY >= baseValue) ? posColor : negColor;
-                g2d.setColor(color);
+                g.setColor(color);
 
                 if (dx <= 1) {
-                    g2d.drawLine(xPixelLeft, baseY, xPixelLeft, pY);
+                    g.drawLine(xPixelLeft, baseY, xPixelLeft, pY);
                 } else {
                     if (pY > baseY) {
-                        g2d.fillRect(xPixelLeft, baseY, dx, pY - baseY);
+                        g.fillRect(xPixelLeft, baseY, dx, pY - baseY);
 
                     } else {
-                        g2d.fillRect(xPixelLeft, pY, dx, baseY - pY);
+                        g.fillRect(xPixelLeft, pY, dx, baseY - pY);
                     }
                 }
 
@@ -171,9 +168,9 @@ public class HiCDataTrack extends HiCTrack {
 
         // If min is < 0 draw a line
         if (minValue < 0) {
-            g2d.setColor(dashColor);
+            g.setColor(dashColor);
             g2d.setStroke(dashedStroke);
-            g2d.drawLine(0, baseY, width, baseY);
+            g.drawLine(0, baseY, width, baseY);
         }
     }
 
