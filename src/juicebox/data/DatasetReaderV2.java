@@ -111,7 +111,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
                                               LittleEndianInputStream dis) throws IOException {
 
-        HiC.Unit unit = HiC.Unit.valueOf(dis.readString());
+        HiC.Unit unit = HiC.valueOfUnit(dis.readString());
         dis.readInt();                // Old "zoom" index -- not used
 
         // Stats.  Not used yet, but we need to read them anyway
@@ -410,9 +410,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         for (int i = 0; i < nExpectedValues; i++) {
 
             NormalizationType no = NormalizationType.NONE;
-            String unit = dis.readString();
+            String unitString = dis.readString();
+            HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
-            String key = unit + "_" + binSize + "_" + no;
+            String key = unitString + "_" + binSize + "_" + no;
 
             int nValues = dis.readInt();
             double[] values = new double[nValues];
@@ -453,9 +454,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             for (int i = 0; i < nExpectedValues; i++) {
 
                 String typeString = dis.readString();
-                String unit = dis.readString();
+                String unitString = dis.readString();
+                HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
-                String key = unit + "_" + binSize + "_" + typeString;
+                String key = unitString + "_" + binSize + "_" + typeString;
 
                 int nValues = dis.readInt();
                 double[] values = new double[nValues];

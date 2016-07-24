@@ -24,9 +24,8 @@
 
 package juicebox.data;
 
+import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
-
-//import java.util.Map;
 
 /**
  * @author jrobinso
@@ -41,7 +40,7 @@ public interface ExpectedValueFunction {
 
     NormalizationType getNormalizationType();
 
-    String getUnit();
+    HiC.Unit getUnit();
 
     int getBinSize();
 

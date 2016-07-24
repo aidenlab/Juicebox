@@ -849,7 +849,7 @@ public class Dataset {
         String key = zoom.getKey() + "_LOADED";
         ExpectedValueFunctionImpl function = (ExpectedValueFunctionImpl) getExpectedValues(zoom, NormalizationType.KR); // TODO is this supposed to be hardcoded to KR?
 
-        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, HiCFileTools.BP, resolution, exp, function.getNormFactors());
+        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, HiC.Unit.BP, resolution, exp, function.getNormFactors());
         expectedValueFunctionMap.put(key, df);
     }
 

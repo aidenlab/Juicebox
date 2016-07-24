@@ -70,7 +70,7 @@ class CommandExecutor {
                         String chrXName = args.get(1);
                         String chrYName = args.get(2);
                         String unitName = args.get(3);
-                        HiC.Unit unit = HiC.Unit.valueOf(unitName);
+                        HiC.Unit unit = HiC.valueOfUnit(unitName);
                         int binSize = Integer.parseInt(args.get(4));
                         double xOrigin = Double.parseDouble(args.get(5));
                         double yOrigin = Double.parseDouble(args.get(6));

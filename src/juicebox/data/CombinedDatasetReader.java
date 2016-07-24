@@ -219,7 +219,7 @@ public class CombinedDatasetReader implements DatasetReader {
         Collection<String> keys = firstDataset.getExpectedValueFunctionMap().keySet();
         Set<String> zoomsToRemove = new HashSet<String>();
         for (String key : keys) {
-            if (!hasFrags && key.startsWith(HiCFileTools.FRAG)) continue;
+            if (!hasFrags && key.startsWith(HiC.Unit.FRAG.toString())) continue;
             List<ExpectedValueFunction> evFunctions = new ArrayList<ExpectedValueFunction>();
             boolean haveAll = true;
             for (Dataset ds : datasetList) {
@@ -312,7 +312,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
             ExpectedValueFunction protoFunction = densityFunctions.get(0);
             int binSize = protoFunction.getBinSize();
-            String unit = protoFunction.getUnit();
+            HiC.Unit unit = protoFunction.getUnit();
             NormalizationType type = protoFunction.getNormalizationType();
             int len = protoFunction.getLength();
 

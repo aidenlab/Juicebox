@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
 
 import java.util.Map;
@@ -39,13 +40,13 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
 
     private final int binSize;
     private final NormalizationType type;
-    private final String unit;
+    private final HiC.Unit unit;
 
     private final Map<Integer, Double> normFactors;
 
     private final double[] expectedValues;
 
-    public ExpectedValueFunctionImpl(NormalizationType type, String unit, int binSize, double[] expectedValues, Map<Integer, Double> normFactors) {
+    public ExpectedValueFunctionImpl(NormalizationType type, HiC.Unit unit, int binSize, double[] expectedValues, Map<Integer, Double> normFactors) {
         this.type = type;
         this.unit = unit;
         this.binSize = binSize;
@@ -103,7 +104,7 @@ public class ExpectedValueFunctionImpl implements ExpectedValueFunction {
     }
 
     @Override
-    public String getUnit() {
+    public HiC.Unit getUnit() {
         return unit;
     }
 

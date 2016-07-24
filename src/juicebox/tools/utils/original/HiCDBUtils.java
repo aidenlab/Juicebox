@@ -24,8 +24,8 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.HiCFileTools;
 import org.broad.igv.Globals;
 import org.broad.igv.util.ParsingUtils;
 
@@ -51,7 +51,7 @@ public class HiCDBUtils {
     public static void main(String[] args) throws IOException, SQLException {
 
         String cmd = args[0];
-        if (cmd.equalsIgnoreCase(HiCFileTools.FRAG)) {
+        if (HiC.valueOfUnit(cmd) == HiC.Unit.FRAG) {
             String f = args[1];
             insertFragments(f);
 

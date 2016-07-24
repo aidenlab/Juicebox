@@ -390,7 +390,7 @@ public class Dump extends JuiceboxCLT {
 
 
         try {
-            unit = HiC.Unit.valueOf(args[idx + 2]);
+            unit = HiC.valueOfUnit(args[idx + 2]);
         } catch (IllegalArgumentException error) {
             System.err.println("Unit must be in BP or FRAG.");
             System.exit(20);

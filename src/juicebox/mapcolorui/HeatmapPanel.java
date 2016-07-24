@@ -831,13 +831,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private String toolTipText(int x, int y) {
         // Update popup text
         final MatrixZoomData zd;
+        HiCGridAxis xGridAxis, yGridAxis;
         try {
             zd = hic.getZd();
+            xGridAxis = zd.getXGridAxis();
+            yGridAxis = zd.getYGridAxis();
         } catch (Exception e) {
             return "";
         }
-        HiCGridAxis xGridAxis = zd.getXGridAxis();
-        HiCGridAxis yGridAxis = zd.getYGridAxis();
 
         int binX = (int) (hic.getXContext().getBinOrigin() + x / hic.getScaleFactor());
         int binY = (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());

@@ -615,9 +615,9 @@ public class NormalizationVectorUpdater {
             buffer.putNullTerminatedString(ev.getType().toString());
 
             int binSize = ev.getGridSize();
-            String unit = ev.isFrag ? HiCFileTools.FRAG : HiCFileTools.BP;
+            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
-            buffer.putNullTerminatedString(unit);
+            buffer.putNullTerminatedString(unit.toString());
             buffer.putInt(binSize);
 
             // The density values
@@ -643,7 +643,7 @@ public class NormalizationVectorUpdater {
 
         for (ExpectedValueFunction function : expectedValueFunctionMap.values()) {
             buffer.putNullTerminatedString(function.getNormalizationType().toString());
-            buffer.putNullTerminatedString(function.getUnit());
+            buffer.putNullTerminatedString(function.getUnit().toString());
             buffer.putInt(function.getBinSize());
             double[] expectedValues = function.getExpectedValues();
             buffer.putInt(expectedValues.length);

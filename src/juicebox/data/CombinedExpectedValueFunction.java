@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
     }
 
     @Override
-    public String getUnit() {
+    public HiC.Unit getUnit() {
         return densityFunctions.get(0).getUnit();
     }
 

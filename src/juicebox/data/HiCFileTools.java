@@ -43,8 +43,6 @@ public class HiCFileTools {
 
     // coalescing some of the magic strings
     public static final String ALL_CHROMOSOME = "All";
-    public static final String BP = "BP";
-    public static final String FRAG = "FRAG";
     public static final String KR = "KR";
     public static final String VC = "VC";
     public static final String VC_SQRT = "VC_SQRT";

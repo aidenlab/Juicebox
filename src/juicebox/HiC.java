@@ -113,6 +113,15 @@ public class HiC {
         return (new StringBuilder(string)).reverse().toString();
     }
 
+    public static HiC.Unit valueOfUnit(String unit) {
+        if (unit.equalsIgnoreCase(Unit.BP.toString())) {
+            return Unit.BP;
+        } else if (unit.equalsIgnoreCase(Unit.FRAG.toString())) {
+            return Unit.FRAG;
+        }
+        return null;
+    }
+
     public void reset() {
         dataset = null;
         resetContexts();
@@ -628,7 +637,7 @@ public class HiC {
 
         HiCZoom newZoom = currentZoom;
         if (currentZoom.getBinSize() != binSize) {
-            newZoom = new HiCZoom(Unit.valueOf(unitName), binSize);
+            newZoom = new HiCZoom(HiC.valueOfUnit(unitName), binSize);
         }
         unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
                 true, zoomCallType, allowLocationBroadcast);
@@ -639,22 +648,6 @@ public class HiC {
                                                    boolean allowLocationBroadcast) {
         return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType,
                 message, allowLocationBroadcast);
-    }
-
-    private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
-                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
-                                                   final double scaleFactor, final boolean resetZoom,
-                                                   final ZoomCallType zoomCallType, String message,
-                                                   final boolean allowLocationBroadcast) {
-        final boolean[] returnVal = new boolean[1];
-        superAdapter.executeLongRunningTask(new Runnable() {
-            @Override
-            public void run() {
-                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                        resetZoom, zoomCallType, allowLocationBroadcast);
-            }
-        }, message);
-        return returnVal[0];
     }
 
     /*  TODO Undo Zoom implementation mss2 _UZI
@@ -724,6 +717,22 @@ public class HiC {
          }
       }
      */
+
+    private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
+                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
+                                                   final double scaleFactor, final boolean resetZoom,
+                                                   final ZoomCallType zoomCallType, String message,
+                                                   final boolean allowLocationBroadcast) {
+        final boolean[] returnVal = new boolean[1];
+        superAdapter.executeLongRunningTask(new Runnable() {
+            @Override
+            public void run() {
+                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                        resetZoom, zoomCallType, allowLocationBroadcast);
+            }
+        }, message);
+        return returnVal[0];
+    }
 
     /**
      * *************************************************************
@@ -1062,7 +1071,6 @@ public class HiC {
         }, "Saving_1D_track_as_wig");
 
     }
-
 
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
                                             int binStartPosition) throws IOException {

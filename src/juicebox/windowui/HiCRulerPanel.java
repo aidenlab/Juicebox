@@ -81,12 +81,12 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
 
         if (maxValue < 10) {
-            return new TickSpacing(1, HiCFileTools.BP, 1);
+            return new TickSpacing(1, HiC.Unit.BP.toString(), 1);
         }
 
         // How many zeroes?
         int nZeroes = (int) Math.log10(maxValue);
-        String majorUnit = scaleInKB ? "KB" : HiCFileTools.BP;
+        String majorUnit = scaleInKB ? "KB" : HiC.Unit.BP.toString();
         int unitMultiplier = 1;
         if (nZeroes > 9) {
             majorUnit = scaleInKB ? "TB" : "GB";
