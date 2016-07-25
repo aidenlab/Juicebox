@@ -235,14 +235,14 @@ public class ResolutionControl extends JPanel {
 
                     // this to center zooming when there is lots of whitespace in the margins
                     try {
-                        if (heatmapPanel.getWidth() > hic.getZd().getXGridAxis().getBinCount() / hic.getScaleFactor()) {
+                        if (scaledXWidth > hic.getZd().getXGridAxis().getBinCount()) {
                             xGenome = hic.getXContext().getChrLength() / 2;
                         }
                     } catch (Exception ee) {
                     }
 
                     try {
-                        if (heatmapPanel.getHeight() > hic.getZd().getYGridAxis().getBinCount() / hic.getScaleFactor()) {
+                        if (scaledYHeight > hic.getZd().getYGridAxis().getBinCount()) {
                             yGenome = hic.getYContext().getChrLength() / 2;
                         }
                     } catch (Exception ee) {
