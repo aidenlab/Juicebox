@@ -53,6 +53,7 @@ import java.util.prefs.Preferences;
  */
 public abstract class RecentMenu extends JMenu {
     private static final long serialVersionUID = 4685393080959162312L;
+    private static final int maxLengthEntryName = 100;
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
@@ -147,7 +148,11 @@ public abstract class RecentMenu extends JMenu {
             temp = m_item.split(delimiter);
 
             if (!temp[0].equals("")) {
-                JMenuItem menuItem = new JMenuItem(temp[0]);
+                String truncatedName = temp[0];
+                if (truncatedName.length() > maxLengthEntryName) {
+                    truncatedName = truncatedName.substring(0, maxLengthEntryName - 1);
+                }
+                JMenuItem menuItem = new JMenuItem(truncatedName);
                 menuItem.setVisible(true);
                 menuItem.setToolTipText(temp[0]);
                 menuItem.setActionCommand(m_item);
