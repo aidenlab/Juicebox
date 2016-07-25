@@ -78,11 +78,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
     }
 
-    private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
+    private static TickSpacing findSpacing(long maxValue, int width, boolean scaleInKB) {
 
         if (maxValue < 10) {
             return new TickSpacing(1, HiC.Unit.BP.toString(), 1);
         }
+
+        int maxNumberOfTickMarks = (int) Math.ceil(width / 25);
 
         // How many zeroes?
         int nZeroes = (int) Math.log10(maxValue);
@@ -90,22 +92,39 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         int unitMultiplier = 1;
         if (nZeroes > 9) {
             majorUnit = scaleInKB ? "TB" : "GB";
-            unitMultiplier = 1000000000;
+            unitMultiplier = (int) 1e9;
         }
         if (nZeroes > 6) {
             majorUnit = scaleInKB ? "GB" : "MB";
-            unitMultiplier = 1000000;
+            unitMultiplier = (int) 1e6;
         } else if (nZeroes > 3) {
             majorUnit = scaleInKB ? "MB" : "KB";
             unitMultiplier = 1000;
         }
 
-        double nMajorTicks = maxValue / Math.pow(10, nZeroes - 1);
-        if (nMajorTicks < 25) {
-            return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
-        } else {
-            return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
+        int decrementIter = nZeroes - 1;
+        while (decrementIter > -1) {
+
+            int latestIncrement = (int) Math.pow(10, nZeroes - decrementIter);
+            int nMajorTicks = (int) Math.ceil(maxValue / latestIncrement);
+
+            if (nMajorTicks < maxNumberOfTickMarks) {
+                return new TickSpacing(latestIncrement, majorUnit, unitMultiplier);
+            }
+
+            latestIncrement = (int) Math.pow(10, nZeroes - decrementIter + 1) / 2;
+            nMajorTicks = (int) Math.ceil(maxValue / latestIncrement);
+
+            if (nMajorTicks < maxNumberOfTickMarks) {
+                return new TickSpacing(latestIncrement, majorUnit, unitMultiplier);
+            }
+
+            decrementIter--;
         }
+
+        int spacing = (int) (maxValue / maxNumberOfTickMarks) / 250 * 250;
+
+        return new TickSpacing(spacing, majorUnit, unitMultiplier);
     }
 
     public static boolean getShowOnlyEndPts() {
@@ -270,7 +289,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
             int range = genomeEnd - genomeOrigin;
 
-            TickSpacing ts = findSpacing(range, false);
+            TickSpacing ts = findSpacing(range, w, false);
 
             if (showOnlyEndPts) {
 
@@ -324,6 +343,20 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         int strWidth = g.getFontMetrics().stringWidth(chrPosition);
                         int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
 
+                        // prevent cut off near origin
+                        if (isHorizontal()) {
+                            if (binNumber == 0 && strPosition <= 0 && strPosition >= -strWidth / 2)
+                                strPosition = 0;
+                        } else {
+                            if (binNumber == 0 && strPosition >= -strWidth && strPosition <= -strWidth / 2)
+                                strPosition = -strWidth;
+                        }
+
+                        // todo bug or expected behavior?
+                        // see chr1 of k562 mapq30 at fragment resolution
+                        // axis is drawing overlapping positions onto each other
+                        // traces to getFragmentNumberForGenomicPosition method
+                        //System.out.println(genomePosition+"_"+chrPosition+"_"+strPosition);
                         if (nTick % 2 == 0) g.drawString(chrPosition, strPosition, h - 15);
 
                         int xpos = isHorizontal() ? x : -x;
