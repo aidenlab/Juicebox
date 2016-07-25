@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.encode.EncodeFileBrowser;
 import juicebox.encode.EncodeFileRecord;
@@ -63,25 +64,16 @@ public class LoadEncodeAction extends AbstractAction {
         colors.put("H3K9ME1", new Color(100, 0, 0));
     }
 
-    private final Component owner;
+    private final MainWindow mainWindow;
     private final HiC hic;
     private String genome;
     private HashSet<ResourceLocator> loadedLocators;
 
-    public LoadEncodeAction(String s, Component owner, HiC hic) {
+    public LoadEncodeAction(String s, MainWindow mainWindow, HiC hic) {
         super(s);
-        this.owner = owner;
+        this.mainWindow = mainWindow;
         this.hic = hic;
         this.genome = null;
-
-    }
-
-    //TODO-----Will this be used in the future--------
-    private LoadEncodeAction(String s, Component owner, HiC hic, String genome) {
-        super(s);
-        this.owner = owner;
-        this.hic = hic;
-        this.genome = genome;
 
     }
 
@@ -100,18 +92,13 @@ public class LoadEncodeAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(owner, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
+        if (hic.getDataset() == null || hic.getDataset().getGenomeId() == null) {
+            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (genome == null) {
-            genome = "hg19";   // initial guess
-            Dataset ds = hic.getDataset();
-            if (ds != null && ds.getGenomeId() != null) {
-                genome = ds.getGenomeId();
-            }
-        }
+        genome = hic.getDataset().getGenomeId();
+
         hic.setEncodeAction(this);
         String[] visibleAttributes = {"dataType", "cell", "antibody", "lab"};
         try {
@@ -125,51 +112,63 @@ public class LoadEncodeAction extends AbstractAction {
             browser.setVisible(true);
             if (browser.isCanceled()) return;
 
-            java.util.List<EncodeFileRecord> records = browser.getSelectedRecords();
+            List<EncodeFileRecord> records = browser.getSelectedRecords();
 
-            if (records.size() > 0) {
-                if (loadedLocators == null) {
-                    loadedLocators = new HashSet<ResourceLocator>();
-                }
-
-                List<ResourceLocator> locators = null;
-                for (EncodeFileRecord record : records) {
-                    ResourceLocator rl = new ResourceLocator(record.getPath());
-                    rl.setName(record.getTrackName());
-
-                    final String antibody = record.getAttributeValue("antibody");
-                    if (antibody != null) {
-                        rl.setColor(colors.get(antibody.toUpperCase()));
-                    }
-
-                    for (String name : visibleAttributes) {
-                        String value = record.getAttributeValue(name);
-                        if (value != null) {
-                            AttributeManager.getInstance().addAttribute(rl.getName(), name, value);
-                        }
-                    }
-                    if (!loadedLocators.contains(rl)) {
-                        if (locators == null) {
-                            locators = new ArrayList<ResourceLocator>();
-                        }
-
-                        locators.add(rl);
-                        loadedLocators.add(rl);
-                    }
-
-                }
-                if (locators != null) {
-                    hic.unsafeLoadHostedTracks(locators);
-                }
-            }
-
+            safeLoadENCODETracks(records, visibleAttributes);
 
         } catch (IOException exc) {
             log.error("Error opening Encode browser", exc);
         }
-
     }
 
+    private void safeLoadENCODETracks(final List<EncodeFileRecord> records, final String[] visibleAttributes) {
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                unsafeLoadENCODETracks(records, visibleAttributes);
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "safe load encode tracks");
+    }
+
+    private void unsafeLoadENCODETracks(List<EncodeFileRecord> records, String[] visibleAttributes) {
+        if (records.size() > 0) {
+            if (loadedLocators == null) {
+                loadedLocators = new HashSet<ResourceLocator>();
+            }
+
+            List<ResourceLocator> locators = null;
+            for (EncodeFileRecord record : records) {
+                ResourceLocator rl = new ResourceLocator(record.getPath());
+                rl.setName(record.getTrackName());
+
+                final String antibody = record.getAttributeValue("antibody");
+                if (antibody != null) {
+                    rl.setColor(colors.get(antibody.toUpperCase()));
+                }
+
+                for (String name : visibleAttributes) {
+                    String value = record.getAttributeValue(name);
+                    if (value != null) {
+                        AttributeManager.getInstance().addAttribute(rl.getName(), name, value);
+                    }
+                }
+                if (!loadedLocators.contains(rl)) {
+                    if (locators == null) {
+                        locators = new ArrayList<ResourceLocator>();
+                    }
+
+                    locators.add(rl);
+                    loadedLocators.add(rl);
+                }
+
+            }
+            if (locators != null) {
+                hic.unsafeLoadHostedTracks(locators);
+            }
+        }
+    }
 
     public void remove(ResourceLocator locator) {
         try {

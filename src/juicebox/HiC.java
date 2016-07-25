@@ -777,6 +777,12 @@ public class HiC {
         Chromosome chr2 = yContext.getChromosome();
         final Matrix matrix = dataset.getMatrix(chr1, chr2);
 
+        if (matrix == null) {
+            superAdapter.launchGenericMessageDialog("Sorry, this region is not available", "Matrix unavailable",
+                    JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
         if (HiCFileTools.isAllChromosome(chr1)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
