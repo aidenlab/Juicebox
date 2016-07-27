@@ -217,9 +217,13 @@ class HeatmapRenderer {
                 List<Block> comboBlocks = new ArrayList<Block>();
                 try {
                     comboBlocks.addAll(zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType));
+                } catch (Exception e) {
+                    MessageUtils.showErrorMessage("Error loading Observed in Observed vs Control Map", e);
+                }
+                try {
                     comboBlocks.addAll(controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType));
                 } catch (Exception e) {
-                    MessageUtils.showErrorMessage("Error loading Observed vs Control Map", e);
+                    MessageUtils.showErrorMessage("Error loading Control in Observed vs Control Map", e);
                 }
                 if(comboBlocks.isEmpty()){
                     return false;

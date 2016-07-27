@@ -215,6 +215,14 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
         //Draw Chromosome Name
         String rangeString = chromosome.getName();
+        if (hic.getDisplayOption() == MatrixType.VS) {
+            if (isHorizontal()) {
+                rangeString = rangeString + " (observed)";
+            } else {
+                rangeString = rangeString + " (control)";
+            }
+        }
+
         int strWidth = g.getFontMetrics().stringWidth(rangeString);
         int vPos = h / 2 + 3;
         int strPosition = -(w + strWidth) / 2;
