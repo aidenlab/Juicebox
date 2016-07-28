@@ -179,7 +179,7 @@ public class Arrowhead extends JuicerCLT {
                 System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
                 if (checkMapDensityThreshold) {
                     System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                    System.exit(4);
+                    System.exit(0);
                 }
             }
 

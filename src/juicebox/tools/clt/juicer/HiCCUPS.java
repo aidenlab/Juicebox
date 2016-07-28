@@ -311,7 +311,7 @@ public class HiCCUPS extends JuicerCLT {
                 System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
                 if (checkMapDensityThreshold) {
                     System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                    System.exit(25);
+                    System.exit(0);
                 }
             }
 
