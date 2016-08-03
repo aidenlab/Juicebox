@@ -52,6 +52,7 @@ public class CommandLineParser extends CmdLineParser {
 
     // sets of strings
     private static Option multipleChromosomesOption = null;
+    private static Option resolutionOption = null;
 
     public CommandLineParser() {
 
@@ -68,6 +69,7 @@ public class CommandLineParser extends CmdLineParser {
         mapqOption = addIntegerOption('q', "mapping quality threshold");
 
         multipleChromosomesOption = addStringOption('c', "chromosomes");
+        resolutionOption = addStringOption('r', "resolutions");
     }
 
     /**
@@ -141,4 +143,6 @@ public class CommandLineParser extends CmdLineParser {
     public Set<String> getChromosomeOption() {
         return optionToStringSet(multipleChromosomesOption);
     }
+
+    public Set<String> getResolutionOption() { return optionToStringSet(resolutionOption);}
 }

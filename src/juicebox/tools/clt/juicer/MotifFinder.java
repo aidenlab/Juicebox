@@ -205,8 +205,8 @@ public class MotifFinder extends JuicerCLT {
             // no files
             System.err.println("No CTCF files provided");
             System.exit(55);
-            return null;
         }
+        return null;
     }
 
     private void findUniqueMotifs(List<Chromosome> chromosomes, Feature2DList features) {

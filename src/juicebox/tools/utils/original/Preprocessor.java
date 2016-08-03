@@ -39,6 +39,7 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.zip.Deflater;
@@ -72,6 +73,14 @@ public class Preprocessor {
     private String graphFileName = null;
     private FragmentCalculation fragmentCalculation = null;
     private Set<String> includedChromosomes;
+
+    // Base-pair resolutions
+    private int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
+
+    // Fragment resolutions
+    private int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+
+
     /**
      * The position of the field containing the masterIndex position
      */
@@ -119,6 +128,58 @@ public class Preprocessor {
 
     public void setGraphFile(String graphFileName) {
         this.graphFileName = graphFileName;
+    }
+
+    public void setResolutions(Set<String> resolutions) {
+        if (resolutions != null) {
+            ArrayList<Integer> fragResolutions= new ArrayList<Integer>();
+            ArrayList<Integer> bpResolutions= new ArrayList<Integer>();
+
+            for (String str:resolutions) {
+                boolean fragment = false;
+                int index = str.indexOf("f");
+                if (index != -1) {
+                    str = str.substring(0, index);
+                    fragment = true;
+                }
+                Integer myInt = null;
+                try {
+                    myInt = Integer.valueOf(str);
+                } catch (NumberFormatException exception) {
+                    System.err.println("Resolution improperly formatted.  It must be in the form of a number, such as 1000000 for 1M bp,");
+                    System.err.println("or a number followed by 'f', such as 25f for 25 fragment");
+                    System.exit(1);
+                }
+                if (fragment) fragResolutions.add(myInt);
+                else          bpResolutions.add(myInt);
+            }
+
+            boolean resolutionsSet = false;
+            if (fragResolutions.size() > 0) {
+                resolutionsSet = true;
+                Collections.sort(fragResolutions);
+                Collections.reverse(fragResolutions);
+                int[] frags = new int[fragResolutions.size()];
+                for (int i=0; i<frags.length; i++){
+                    frags[i] = fragResolutions.get(i);
+                }
+                fragBinSizes = frags;
+            }
+            if (bpResolutions.size() > 0) {
+                resolutionsSet = true;
+                Collections.sort(bpResolutions);
+                Collections.reverse(bpResolutions);
+                int[] bps = new int[bpResolutions.size()];
+                for (int i = 0; i < bps.length; i++) {
+                    bps[i] = bpResolutions.get(i);
+                }
+                bpBinSizes = bps;
+            }
+            if (!resolutionsSet) {
+                System.err.println("No valid resolutions sent in");
+                System.exit(1);
+            }
+        }
     }
 
     public void preprocess(final String inputFile) throws IOException {
@@ -183,7 +244,7 @@ public class Preprocessor {
             }
 
             expectedValueCalculations = new LinkedHashMap<String, ExpectedValueCalculation>();
-            for (int bBinSize : HiCGlobals.bpBinSizes) {
+            for (int bBinSize : bpBinSizes) {
                 ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, bBinSize, null, NormalizationType.NONE);
                 String key = "BP_" + bBinSize;
                 expectedValueCalculations.put(key, calc);
@@ -200,7 +261,7 @@ public class Preprocessor {
                 }
 
 
-                for (int fBinSize : HiCGlobals.fragBinSizes) {
+                for (int fBinSize : fragBinSizes) {
                     ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, fBinSize, fragmentCountMap, NormalizationType.NONE);
                     String key = "FRAG_" + fBinSize;
                     expectedValueCalculations.put(key, calc);
@@ -281,17 +342,17 @@ public class Preprocessor {
         }
 
         //BP resolution levels
-        int nBpRes = HiCGlobals.bpBinSizes.length;
+        int nBpRes = bpBinSizes.length;
         los.writeInt(nBpRes);
-        for (int bpBinSize : HiCGlobals.bpBinSizes) {
+        for (int bpBinSize : bpBinSizes) {
             los.writeInt(bpBinSize);
         }
 
         //fragment resolutions
-        int nFragRes = fragmentCalculation == null ? 0 : HiCGlobals.fragBinSizes.length;
+        int nFragRes = fragmentCalculation == null ? 0 : fragBinSizes.length;
         los.writeInt(nFragRes);
         for (int i = 0; i < nFragRes; i++) {
-            los.writeInt(HiCGlobals.fragBinSizes[i]);
+            los.writeInt(fragBinSizes[i]);
         }
 
         // fragment sites
@@ -1068,16 +1129,16 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             this.chr1Idx = chr1Idx;
             this.chr2Idx = chr2Idx;
 
-            int nResolutions = HiCGlobals.bpBinSizes.length;
+            int nResolutions = bpBinSizes.length;
             if (fragmentCalculation != null) {
-                nResolutions += HiCGlobals.fragBinSizes.length;
+                nResolutions += fragBinSizes.length;
             }
 
             zoomData = new MatrixZoomDataPP[nResolutions];
 
             int zoom = 0; //
-            for (int idx = 0; idx < HiCGlobals.bpBinSizes.length; idx++) {
-                int binSize = HiCGlobals.bpBinSizes[zoom];
+            for (int idx = 0; idx < bpBinSizes.length; idx++) {
+                int binSize = bpBinSizes[zoom];
                 Chromosome chrom1 = chromosomes.get(chr1Idx);
                 Chromosome chrom2 = chromosomes.get(chr2Idx);
 
@@ -1097,8 +1158,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                         fragmentCalculation.getNumberFragments(chrom2.getName()));
 
                 zoom = 0;
-                for (int idx = HiCGlobals.bpBinSizes.length; idx < nResolutions; idx++) {
-                    int binSize = HiCGlobals.fragBinSizes[zoom];
+                for (int idx = bpBinSizes.length; idx < nResolutions; idx++) {
+                    int binSize = fragBinSizes[zoom];
                     int nBins = nFragBins1 / binSize + 1;
                     int nColumns = nBins / BLOCK_SIZE + 1;
                     zoomData[idx] = new MatrixZoomDataPP(chrom1, chrom2, binSize, nColumns, zoom, true);

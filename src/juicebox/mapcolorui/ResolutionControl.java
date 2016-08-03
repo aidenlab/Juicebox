@@ -67,12 +67,17 @@ public class ResolutionControl extends JPanel {
 
     {
         bpLabelMap = new Hashtable<Integer, String>();
-        for (int i = 0; i < HiCGlobals.bpBinSizes.length; i++) {
-            bpLabelMap.put(HiCGlobals.bpBinSizes[i], HiCGlobals.bpBinSizeNames[i]);
-        }
-
-        // 1kb not in global list
+        bpLabelMap.put(2500000, "2.5 MB");
+        bpLabelMap.put(1000000, "1 MB");
+        bpLabelMap.put(500000, "500 KB");
+        bpLabelMap.put(250000, "250 KB");
+        bpLabelMap.put(100000, "100 KB");
+        bpLabelMap.put(50000, "50 KB");
+        bpLabelMap.put(25000, "25 KB");
+        bpLabelMap.put(10000, "10 KB");
+        bpLabelMap.put(5000, "5 KB");
         bpLabelMap.put(1000, "1 KB");
+
     }
 
     public ResolutionControl(final SuperAdapter superAdapter) {

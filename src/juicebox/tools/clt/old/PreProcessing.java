@@ -60,6 +60,10 @@ public class PreProcessing extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
         CommandLineParser parser1 = (CommandLineParser) parser;
+        if (parser1.getHelpOption()) {
+            printUsageAndExit();
+        }
+
         String genomeId = "";
         try {
             genomeId = args[3];
@@ -67,6 +71,7 @@ public class PreProcessing extends JuiceboxCLT {
             System.err.println("No genome ID given");
             printUsageAndExit();
         }
+
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
 
@@ -89,6 +94,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setTmpdir(tmpDir);
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
+        preprocessor.setResolutions(parser1.getResolutionOption());
 
     }
 

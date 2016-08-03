@@ -1,7 +1,7 @@
 <launch4jConfig>
   <headerType>gui</headerType>
   <jar>../out/artifacts/Juicebox_jar/Juicebox.jar</jar>
-  <outfile>../out/artifacts/Juicebox_jar/Juicebox.exe</outfile>
+  <outfile>Juicebox.exe</outfile>
   <errTitle>Juicebox</errTitle>
   <chdir>.</chdir>
   <icon>Juicebox.ico</icon>
@@ -12,7 +12,7 @@
     <maxHeapSize>2000</maxHeapSize>
   </jre>
   <splash>
-    <file>juicebox2.bmp</file>
+    <file>juicebox.bmp</file>
     <waitForWindow>true</waitForWindow>
     <timeout>60</timeout>
     <timeoutErr>true</timeoutErr>

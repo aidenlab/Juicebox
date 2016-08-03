@@ -453,6 +453,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int maxBinCountY = zd0.getYGridAxis().getBinCount();
 
         int wh = Math.max(maxBinCountX, maxBinCountY);
+        if (wh > 1000) wh=1000; // this can happen with single resolution hic files
 
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();

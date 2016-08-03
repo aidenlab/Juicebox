@@ -45,6 +45,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -299,7 +300,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private int getEstimationOfAppropriateZoomLevel(int diff0) {
         // divide because the width from x1 to x2 in chromosome should be significantly bigger then the resolution
         int diff = diff0 / 1000;
-        for (int res : HiCGlobals.bpBinSizes) {
+
+        for (HiCZoom zoom : hic.getDataset().getBpZooms()) {
+            int res = zoom.getBinSize();
             if (diff >= res)
                 return res;
         }
@@ -391,8 +394,13 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
+        // Note that the global BP resolutions might not be what's stored in the file
+        List<HiCZoom> zooms = hic.getDataset().getBpZooms();
 
-        List<Integer> bpResolutions = Ints.asList(HiCGlobals.bpBinSizes);
+        List<Integer> bpResolutions = new ArrayList<Integer>();
+        for (HiCZoom zoom:zooms){
+            bpResolutions.add(zoom.getBinSize());
+        }
         int geneZoomResolution = hic.getZoom().getBinSize();
         if (!bpResolutions.contains(geneZoomResolution)) {
             geneZoomResolution = Collections.min(bpResolutions);

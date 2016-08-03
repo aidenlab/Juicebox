@@ -48,7 +48,7 @@ class HiCTools {
 
         if (argv.length == 0) {
             CLTFactory.generalUsage();
-            System.exit(42);
+            System.exit(0);
         }
         String cmdName = argv[0].toLowerCase();
 
