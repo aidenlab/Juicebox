@@ -39,7 +39,6 @@ import org.broad.igv.util.collections.DownsampledDoubleArrayList;
 
 import java.awt.*;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.List;
 import java.util.zip.Deflater;
