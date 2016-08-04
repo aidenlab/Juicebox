@@ -30,6 +30,7 @@ import juicebox.tools.utils.common.MatrixTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.linear.RealMatrix;
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
@@ -42,7 +43,6 @@ import java.util.regex.Pattern;
 public class HiCFileTools {
 
     // coalescing some of the magic strings
-    public static final String ALL_CHROMOSOME = "All";
     public static final String KR = "KR";
     public static final String VC = "VC";
     public static final String VC_SQRT = "VC_SQRT";
@@ -141,7 +141,7 @@ public class HiCFileTools {
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
             return chromosomes;
         } finally {
@@ -160,7 +160,7 @@ public class HiCFileTools {
     }
 
     public static boolean isAllChromosome(String name) {
-        return name.equalsIgnoreCase(ALL_CHROMOSOME);
+        return name.equalsIgnoreCase(Globals.CHR_ALL);
     }
 
     /**
@@ -221,7 +221,7 @@ public class HiCFileTools {
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
 
             return chromosomes;

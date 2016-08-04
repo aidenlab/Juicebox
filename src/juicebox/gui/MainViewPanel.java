@@ -158,7 +158,7 @@ public class MainViewPanel {
 
         //---- chrBox1 ----
         chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
+        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)}));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox1ActionPerformed(e);
@@ -169,7 +169,7 @@ public class MainViewPanel {
 
         //---- chrBox2 ----
         chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
+        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)}));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox2ActionPerformed(e);

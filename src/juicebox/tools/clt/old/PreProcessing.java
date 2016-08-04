@@ -30,6 +30,7 @@ import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -79,7 +80,7 @@ public class PreProcessing extends JuiceboxCLT {
             if (c != null)
                 genomeLength += c.getLength();
         }
-        chromosomes.set(0, new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, (int) (genomeLength / 1000)));
+        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
         inputFile = args[1];
         outputFile = args[2];
