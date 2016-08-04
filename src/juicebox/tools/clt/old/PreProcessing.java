@@ -25,6 +25,7 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
@@ -102,7 +103,11 @@ public class PreProcessing extends JuiceboxCLT {
     @Override
     public void run() {
         try {
+            long currentTime = System.currentTimeMillis();
             preprocessor.preprocess(inputFile);
+            if (HiCGlobals.printVerboseComments) {
+                System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+            }
             NormalizationVectorUpdater.updateHicFile(outputFile);
         } catch (Exception e) {
             e.printStackTrace();

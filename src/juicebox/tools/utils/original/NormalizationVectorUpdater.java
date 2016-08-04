@@ -150,7 +150,7 @@ public class NormalizationVectorUpdater {
                     System.err.println("Not enough memory, skipping " + chr);
                     continue;
                 }
-
+                long currentTime=System.currentTimeMillis();
                 double[] vc = nc.computeVC();
                 double[] vcSqrt = new double[vc.length];
                 for (int i = 0; i < vc.length; i++) vcSqrt[i] = Math.sqrt(vc[i]);
@@ -196,9 +196,13 @@ public class NormalizationVectorUpdater {
                         evVCSqrt.addDistance(chrIdx, x, y, valueSqrt);
                     }
                 }
-
+                if (HiCGlobals.printVerboseComments) {
+                    System.out.println("\nVC normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
+                }
+                currentTime = System.currentTimeMillis();
                 // KR normalization
                 if (!failureSet.contains(chr)) {
+
                     double[] kr = nc.computeKR();
                     if (kr == null) {
                         failureSet.add(chr);
@@ -227,6 +231,9 @@ public class NormalizationVectorUpdater {
                             evKR.addDistance(chrIdx, x, y, value);
                         }
 
+                    }
+                    if (HiCGlobals.printVerboseComments) {
+                        System.out.println("KR normalization of " + chr + " at " + zoom + " took " + (System.currentTimeMillis() - currentTime) + " milliseconds");
                     }
                 }
             }

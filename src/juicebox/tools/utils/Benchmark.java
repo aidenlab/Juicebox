@@ -22,28 +22,26 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools;
+package juicebox.tools.utils;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.CLTFactory;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.CommandLineParserForJuicer;
-import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
 
 import java.io.IOException;
 
-
 /**
- * Command line tool handling through factory model
- *
- * @author Muhammad Shamim
- * @date 1/20/2015
+ * Created by nchernia on 8/4/16.
  */
-public class HiCTools {
 
-    public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+public class Benchmark {
+
+    public static void main(String[] argv) throws IOException,  CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+
         Globals.setHeadless(true);
 
         if (argv.length == 0) {
@@ -55,34 +53,48 @@ public class HiCTools {
         CmdLineParser parser = new CommandLineParser();
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
-            HiCGlobals.useCache = false; //TODO until memory leak cleared
+            HiCGlobals.useCache = false;
         }
 
         parser.parse(argv);
-        if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
-            HiCGlobals.printVerboseComments = ((CommandLineParserForJuicer)parser).getVerboseOption();
-        }
-        else {
-            HiCGlobals.printVerboseComments = ((CommandLineParser)parser).getVerboseOption();
-        }
         String[] args = parser.getRemainingArgs();
 
-        JuiceboxCLT instanceOfCLT;
-        String cmd = "";
-        if (args.length == 0) {
-            instanceOfCLT = null;
-        } else {
-            cmd = args[0];
-            instanceOfCLT = CLTFactory.getCLTCommand(cmd);
+        Dump dump = new Dump();
+        dump.readArguments(args, parser);
+
+        // Choose chromosome and resolution to query based on initial arguments
+        String chr1 = dump.getChr1();
+        String chr2 = dump.getChr2();
+        int binSize = dump.getBinSize();
+
+        // Query 100 times at 256x256
+        int QUERY_SIZE=256;
+        long sum=0;
+        for (int i=0; i<100; i++) {
+            int start = 1000000 + (1000*i);
+            int end = binSize*QUERY_SIZE + start;
+
+            dump.setQuery(chr1+":"+start+":"+end, chr2+":"+start+":"+end);
+            long currentTime = System.currentTimeMillis();
+            dump.run();
+            long totalTime = System.currentTimeMillis() - currentTime;
+            sum+=totalTime;
         }
-        if (instanceOfCLT != null) {
-            if (args.length == 1) {
-                instanceOfCLT.printUsageAndExit();
-            }
-            instanceOfCLT.readArguments(args, parser);
-            instanceOfCLT.run();
-        } else {
-            throw new RuntimeException("Unknown command: " + cmd);
+        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/100 + " milliseconds");
+
+        QUERY_SIZE=2048;
+        sum=0;
+        for (int i=0; i<100; i++) {
+            int start = 1000000 + (1000*i);
+            int end = binSize*QUERY_SIZE + start;
+
+            dump.setQuery(chr1+":"+start+":"+end, chr2+":"+start+":"+end);
+            long currentTime = System.currentTimeMillis();
+            dump.run();
+            long totalTime = System.currentTimeMillis() - currentTime;
+            sum+=totalTime;
         }
+        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/100 + " milliseconds");
+
     }
 }

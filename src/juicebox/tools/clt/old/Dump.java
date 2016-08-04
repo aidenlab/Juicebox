@@ -420,6 +420,27 @@ public class Dump extends JuiceboxCLT {
     }
 
     /**
+     * Added for benchmark
+     */
+    public void setQuery(String chr1, String chr2) {
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        extractChromosomeRegionIndices();
+    }
+
+    public String getChr1() {
+        return this.chr1;
+    }
+
+    public String getChr2() {
+        return this.chr2;
+    }
+
+    public int getBinSize() {
+        return this.binSize;
+    }
+
+    /**
      * Added so that subregions could be dumped without dumping the full chromosome
      */
     private void extractChromosomeRegionIndices() {

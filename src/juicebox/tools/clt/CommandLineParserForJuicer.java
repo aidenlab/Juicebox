@@ -42,6 +42,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option multipleResolutionsOption = null;
     private static Option normalizationTypeOption = null;
     private static Option bypassMinimumMapCountCheckOption = null;
+    private static Option verboseOption = null;
 
     // APA
     private static Option apaWindowOption = null;
@@ -62,10 +63,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqb
+        // wmnxcrplafdptkqbv
 
         // available flags
-        // hjoyzesguv
+        // hjoyzesgu
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -73,6 +74,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         multipleResolutionsOption = addStringOption('r', "resolutions");
         normalizationTypeOption = addStringOption('k', "normalization");
         bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
+        verboseOption = addBooleanOption('v', "verbose");
 
         // APA
         apaWindowOption = addIntegerOption('w', "window");
@@ -100,6 +102,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getBypassMinimumMapCountCheckOption() {
         Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
+    }
+
+    public boolean getVerboseOption() {
+        Object opt = getOptionValue(verboseOption);
         return opt != null;
     }
 
