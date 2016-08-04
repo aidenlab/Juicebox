@@ -27,6 +27,7 @@ package juicebox.data.anchor;
 import juicebox.HiCGlobals;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DWithMotif;
@@ -44,7 +45,8 @@ public class MotifAnchorTools {
      * @return anchor list from features (i.e. split anchor1 and anchor2)
      */
     public static GenomeWideList<MotifAnchor> extractAnchorsFromFeatures(Feature2DList features,
-                                                                         final boolean onlyUninitializedFeatures) {
+                                                                         final boolean onlyUninitializedFeatures,
+                                                                         final ChromosomeHandler handler) {
 
         final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<MotifAnchor>();
         features.processLists(new FeatureFunction() {
@@ -52,7 +54,7 @@ public class MotifAnchorTools {
             public void process(String chr, List<Feature2D> feature2DList) {
                 List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
                 for (Feature2D f : feature2DList) {
-                    anchors.addAll(((Feature2DWithMotif) f).getAnchors(onlyUninitializedFeatures));
+                    anchors.addAll(f.getAnchors(onlyUninitializedFeatures, handler));
                 }
                 String newKey = chr.split("_")[0].replace("chr", "");
                 extractedAnchorList.setFeatures(newKey, anchors);

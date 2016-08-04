@@ -26,13 +26,17 @@ package juicebox.tools.dev;
 
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiCGlobals;
+import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.feature.GenomeWideList;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,7 +53,7 @@ public class GeneTools {
 
     public static Map<String, GeneLocation> getLocationMap(BufferedReader reader) throws IOException {
         Map<String, GeneLocation> geneLocationHashMap = new HashMap<String, GeneLocation>();
-        new HashMap<String, GeneLocation>();
+
         String nextLine;
         while ((nextLine = reader.readLine()) != null) {
             String[] values = nextLine.split(" ");
@@ -58,5 +62,28 @@ public class GeneTools {
             geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
         }
         return geneLocationHashMap;
+    }
+
+    public static GenomeWideList<MotifAnchor> parseGenome(String genomeID, ChromosomeHandler handler) throws Exception {
+        BufferedReader reader = getStreamToGeneFile(genomeID);
+        List<MotifAnchor> allGenes = extractAllGenes(reader, handler);
+        return new GenomeWideList<MotifAnchor>(handler, allGenes);
+    }
+
+    private static List<MotifAnchor> extractAllGenes(BufferedReader reader, ChromosomeHandler handler)
+            throws IOException {
+        List<MotifAnchor> genes = new ArrayList<MotifAnchor>();
+
+        String nextLine;
+        while ((nextLine = reader.readLine()) != null) {
+            String[] values = nextLine.split(" ");
+            int chrIndex = handler.getChr(values[2]).getIndex();
+            int position = Integer.valueOf(values[3].trim());
+            String name = values[1].trim();
+            MotifAnchor gene = new MotifAnchor(chrIndex, position - 1, position + 1, name);
+            genes.add(gene);
+        }
+
+        return genes;
     }
 }

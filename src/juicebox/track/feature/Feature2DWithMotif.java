@@ -26,6 +26,7 @@ package juicebox.track.feature;
 
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.tools.clt.juicer.CompareLists;
+import juicebox.tools.dev.ChromosomeHandler;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -233,8 +234,9 @@ public class Feature2DWithMotif extends Feature2D {
         return output;
     }
 
-    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures) {
-        List<Feature2DWithMotif> originalFeatures = new ArrayList<Feature2DWithMotif>();
+    @Override
+    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
+        List<Feature2D> originalFeatures = new ArrayList<Feature2D>();
         originalFeatures.add(this);
 
         List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
@@ -242,7 +244,7 @@ public class Feature2DWithMotif extends Feature2D {
             // loops should not be on diagonal
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
-            List<Feature2DWithMotif> emptyList = new ArrayList<Feature2DWithMotif>();
+            List<Feature2D> emptyList = new ArrayList<Feature2D>();
 
             // always should be only uninitialized?
             if (onlyUninitializedFeatures) {

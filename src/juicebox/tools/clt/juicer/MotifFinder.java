@@ -148,7 +148,7 @@ public class MotifFinder extends JuicerCLT {
          */
 
         GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(handler, proteinsForInferredMotifPaths);
-        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
+        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true, handler);
 
         GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         GenomeWideList<MotifAnchor> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
@@ -236,7 +236,7 @@ public class MotifFinder extends JuicerCLT {
          are getting filtered here, we may want to increase the p-val threshold parameter on FIMO).
          */
         setUpThreeTieredFiltration();
-        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
+        GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false, handler);
         GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(handler, featureAnchors);
 
         GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();

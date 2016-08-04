@@ -26,7 +26,9 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.data.anchor.MotifAnchor;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
@@ -35,6 +37,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 
@@ -444,6 +447,23 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void clearAttributes() {
         attributes.clear();
+    }
+
+    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
+        List<Feature2D> originalFeatures = new ArrayList<Feature2D>();
+        originalFeatures.add(this);
+
+        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        if (isOnDiagonal()) {
+            // loops should not be on diagonal
+            // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
+        } else {
+            List<Feature2D> emptyList = new ArrayList<Feature2D>();
+
+            anchors.add(new MotifAnchor(handler.getChr(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
+            anchors.add(new MotifAnchor(handler.getChr(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
+        }
+        return anchors;
     }
 
 
