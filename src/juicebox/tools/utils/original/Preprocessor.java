@@ -1052,7 +1052,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             Point p = new Point(col, row);
             ContactCount rec = contactRecordMap.get(p);
             if (rec == null) {
-                rec = new ContactCount(1);
+                rec = new ContactCount(score);
                 contactRecordMap.put(p, rec);
 
             } else {
