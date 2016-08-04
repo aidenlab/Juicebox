@@ -24,12 +24,12 @@
 
 package juicebox.windowui;
 
-import com.google.common.primitives.Ints;
 import com.jidesoft.swing.JideButton;
-import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.dev.GeneLocation;
+import juicebox.tools.dev.GeneTools;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
@@ -43,11 +43,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -62,7 +58,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private final HiC hic;
     private final SuperAdapter superAdapter;
     private String genomeID;
-    private HashMap<String, GeneLocation> geneLocationHashMap = null;
+    private Map<String, GeneLocation> geneLocationHashMap = null;
 
     public GoToPanel(SuperAdapter superAdapter) {
         super();
@@ -347,12 +343,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private void unsafeInitializeGeneHashMap(String genomeID) {
         // Custom format parsed from ref Gene file.
         // Name1 Name2 chromosome position (where position is midpoint of transcription start and end)
-        String path = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
         BufferedReader reader;
         try {
-            SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
-
-            reader = new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
+            reader = GeneTools.getStreamToGeneFile(genomeID);
             MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take a minute or so. ");
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
@@ -361,16 +354,11 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
 
-        geneLocationHashMap = new HashMap<String, GeneLocation>();
-        String nextLine;
+
 
         try {
-            while ((nextLine = reader.readLine()) != null) {
-                String[] values = nextLine.split(" ");
-                GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
-                geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
-                geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
-            }
+            geneLocationHashMap = GeneTools.getLocationMap(reader);
+
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -406,8 +394,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             geneZoomResolution = Collections.min(bpResolutions);
         }
 
-        hic.setLocation(location1.chromosome, location2.chromosome, HiC.Unit.BP, geneZoomResolution,
-                location1.centerPosition, location2.centerPosition, hic.getScaleFactor(),
+        hic.setLocation(location1.getChromosome(), location2.getChromosome(), HiC.Unit.BP, geneZoomResolution,
+                location1.getCenterPosition(), location2.getCenterPosition(), hic.getScaleFactor(),
                 HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();
@@ -420,15 +408,5 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
     public void focusLost(FocusEvent event) {
 
-    }
-
-    private class GeneLocation {
-        private final String chromosome;
-        private final int centerPosition;
-
-        private GeneLocation(String chromosome, int centerPosition) {
-            this.chromosome = chromosome;
-            this.centerPosition = centerPosition;
-        }
     }
 }
