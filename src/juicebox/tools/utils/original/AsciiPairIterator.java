@@ -97,7 +97,10 @@ public class AsciiPairIterator implements PairIterator {
                 if (format == null) {
                     if (nTokens == 8) {
                         format = Format.SHORT;
-                    } else if (nTokens == 16) {
+                    } else if (nTokens == 9) {
+                        format = Format.SHORT_WITH_SCORE;
+                    }
+                    else if (nTokens == 16) {
                         format = Format.LONG;
                     } else if (nTokens == 11) {
                         format = Format.MEDIUM;
@@ -140,6 +143,7 @@ public class AsciiPairIterator implements PairIterator {
                         int frag2 = Integer.parseInt(tokens.get(7));
                         int mapq1 = 1000;
                         int mapq2 = 1000;
+
                         if (format == Format.LONG) {
                             mapq1 = Integer.parseInt(tokens.get(8));
                             mapq2 = Integer.parseInt(tokens.get(11));
@@ -147,6 +151,9 @@ public class AsciiPairIterator implements PairIterator {
                         boolean strand1 = Integer.parseInt(tokens.get(0)) == 0;
                         boolean strand2 = Integer.parseInt(tokens.get(4)) == 0;
                         nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
+                        if (format == Format.SHORT_WITH_SCORE) {
+                            nextPair.setScore(Float.parseFloat(tokens.get(8)));
+                        }
                     } else {
                         nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
                     }
@@ -214,6 +221,6 @@ public class AsciiPairIterator implements PairIterator {
         }
     }
 
-    enum Format {SHORT, LONG, MEDIUM}
+    enum Format {SHORT, LONG, MEDIUM, SHORT_WITH_SCORE}
 
 }
