@@ -77,7 +77,7 @@ public class Feature2DParser {
         int attCol = 7;
         try {
 
-            BufferedReader br = ParsingUtils.openBufferedReader(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(ParsingUtils.openInputStream(path)), HiCGlobals.bufferSize);
             String nextLine;
 
             // header

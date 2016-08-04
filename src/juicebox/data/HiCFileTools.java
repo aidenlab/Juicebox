@@ -429,35 +429,6 @@ public class HiCFileTools {
         return data;
     }
 
-    /*
-    public static NormalizationType determinePreferredNormalization(Dataset ds) {
-        NormalizationType[] preferredNormalization = new NormalizationType[]{NormalizationType.KR, NormalizationType.VC};
-        List<NormalizationType> normalizationTypeList = ds.getNormalizationTypes();
-
-        //System.out.println("Norms: "+normalizationTypeList);
-
-        for (NormalizationType normalizationType : preferredNormalization) {
-            if (normalizationTypeList.contains(normalizationType)) {
-                System.out.println("Selected " + normalizationType + " Normalization");
-                return normalizationType;
-            }
-            System.out.println("Did not find Normalization: " + normalizationType);
-        }
-
-        System.out.println("Could not find normalizations");
-        System.exit(39);
-        return null;
-    }
-    */
-
-    public static Chromosome getChromosomeNamed(String chrName, List<Chromosome> chromosomes) {
-        for (Chromosome chr : chromosomes) {
-            if (equivalentChromosome(chrName, chr))
-                return chr;
-        }
-        return null;
-    }
-
     public static double[] extractChromosomeExpectedVector(Dataset ds, int index, HiCZoom zoom, NormalizationType normalization) {
         ExpectedValueFunction expectedValueFunction = ds.getExpectedValues(zoom, normalization);
         int n = expectedValueFunction.getLength();

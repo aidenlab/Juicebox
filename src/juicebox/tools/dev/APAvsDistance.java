@@ -62,6 +62,7 @@ class APAvsDistance {
         GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes("hg19");
+        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
 
         // read in all smc3, rad21, ctcf tracks and intersect them
         List<String> bedFiles = new ArrayList<String>();
@@ -78,7 +79,7 @@ class APAvsDistance {
             }
         }
 
-        GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(chromosomes, bedFiles);
+        GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(handler, bedFiles);
 
         // preservative intersection of these protein list with motif list
 

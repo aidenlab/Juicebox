@@ -75,15 +75,12 @@ class HiCFileUtils {
         for (double datum : data) {
             System.out.println(datum);
         }
-
     }
 
     private void dumpExpectedVectors(String type, HiC.Unit unit, int binSize) {
 
-
         Map<String, ExpectedValueFunction> expValFunMap = dataset.getExpectedValueFunctionMap();
         for (Map.Entry<String, ExpectedValueFunction> entry : expValFunMap.entrySet()) {
-
 
             ExpectedValueFunctionImpl ev = (ExpectedValueFunctionImpl) entry.getValue();
 

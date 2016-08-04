@@ -66,6 +66,7 @@ public class ResolutionControl extends JPanel {
     private int lastValue = 0;
 
     {
+        // todo @nchernia shouldn't this use hic.getDataset().getBpZooms() ?
         bpLabelMap = new Hashtable<Integer, String>();
         bpLabelMap.put(2500000, "2.5 MB");
         bpLabelMap.put(1000000, "1 MB");

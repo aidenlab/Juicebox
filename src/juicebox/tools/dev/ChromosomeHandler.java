@@ -26,6 +26,7 @@ package juicebox.tools.dev;
 
 import org.broad.igv.feature.Chromosome;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import java.util.Map;
  */
 public class ChromosomeHandler {
     Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
+    List<String> chrIndices = new ArrayList<String>();
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
         for (Chromosome c : chromosomes) {
@@ -43,9 +45,17 @@ public class ChromosomeHandler {
                 chromosomeMap.put("m", c); // special case for mitochondria
             }
         }
+
+        for (Chromosome chr : chromosomes) {
+            chrIndices.add("" + chr.getIndex());
+        }
     }
 
     public Chromosome getChr(String name) {
         return chromosomeMap.get(name.trim().toLowerCase().replaceAll("chr", ""));
+    }
+
+    public List<String> getChrIndices() {
+        return chrIndices;
     }
 }

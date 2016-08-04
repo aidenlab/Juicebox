@@ -54,7 +54,8 @@ public class GeneFinder extends JuicerCLT {
     public void run() {
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
 
-        //GenomeWideList<Locus> bedFilePositions = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+
+        //GenomeWideList<Locus> bedFilePositions = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFilePath);
         //GenomeWideList<GeneLocation> genes = GeneTools.parseGenome(genomeID, handler);
 
     }

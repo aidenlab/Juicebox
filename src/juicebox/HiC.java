@@ -30,6 +30,7 @@ import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -863,8 +864,9 @@ public class HiC {
 
     private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
-            Chromosome chrX = HiCFileTools.getChromosomeNamed(chrXName, chromosomes);
-            Chromosome chrY = HiCFileTools.getChromosomeNamed(chrYName, chromosomes);
+            ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+            Chromosome chrX = handler.getChr(chrXName);
+            Chromosome chrY = handler.getChr(chrYName);
 
             if (chrX == null || chrY == null) {
                 //log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
