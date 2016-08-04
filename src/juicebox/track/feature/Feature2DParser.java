@@ -27,6 +27,7 @@ package juicebox.track.feature;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;
@@ -55,20 +56,21 @@ public class Feature2DParser {
 
     public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes,
                                              FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
+        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
         Feature2DList newList;
         if (path.endsWith(".px")) {
-            newList = parseHiCCUPSLoopFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseHiCCUPSLoopFile(path, handler, loadAttributes, featureFilter);
         } else if (path.endsWith(".px2")) {
-            newList = parseDomainFile(path, chromosomes, loadAttributes, featureFilter);
+            newList = parseDomainFile(path, handler, loadAttributes, featureFilter);
         } else {
-            newList = parseLoopFile(path, chromosomes, loadAttributes, featureFilter, useFeature2DWithMotif);
+            newList = parseLoopFile(path, handler, loadAttributes, featureFilter, useFeature2DWithMotif);
         }
         newList.removeDuplicates();
         return newList;
     }
 
 
-    private static Feature2DList parseLoopFile(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+    private static Feature2DList parseLoopFile(String path, ChromosomeHandler handler, boolean loadAttributes,
                                                FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
 
         Feature2DList newList = new Feature2DList();
@@ -133,8 +135,8 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
-                Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
+                Chromosome chr1 = handler.getChr(chr1Name);
+                Chromosome chr2 = handler.getChr(chr2Name);
                 if (chr1 == null || chr2 == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {
@@ -208,7 +210,7 @@ public class Feature2DParser {
         return feature2DList;
     }
 
-    private static Feature2DList parseHiCCUPSLoopFile(String path, List<Chromosome> chromosomes,
+    private static Feature2DList parseHiCCUPSLoopFile(String path, ChromosomeHandler handler,
                                                       boolean loadAttributes, FeatureFilter featureFilter) {
         Feature2DList newList = new Feature2DList();
         int attCol = 4;
@@ -269,8 +271,8 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chr1 = HiCFileTools.getChromosomeNamed(chr1Name, chromosomes);
-                Chromosome chr2 = HiCFileTools.getChromosomeNamed(chr2Name, chromosomes);
+                Chromosome chr1 = handler.getChr(chr1Name);
+                Chromosome chr2 = handler.getChr(chr2Name);
                 if (chr1 == null || chr2 == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {
@@ -310,7 +312,7 @@ public class Feature2DParser {
         return newList;
     }
 
-    private static Feature2DList parseDomainFile(String path, List<Chromosome> chromosomes,
+    private static Feature2DList parseDomainFile(String path, ChromosomeHandler handler,
                                                  boolean loadAttributes, FeatureFilter featureFilter) {
         Feature2DList newList = new Feature2DList();
         int attCol = 3;
@@ -364,7 +366,7 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chrA = HiCFileTools.getChromosomeNamed(chrAName, chromosomes);
+                Chromosome chrA = handler.getChr(chrAName);
                 if (chrA == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {

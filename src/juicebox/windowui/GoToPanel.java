@@ -28,6 +28,7 @@ import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.dev.GeneLocation;
 import juicebox.tools.dev.GeneTools;
 import org.apache.log4j.Logger;
@@ -43,8 +44,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by nchernia on 4/2/15.
@@ -155,22 +158,16 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
 
-        //Read Chromosomes:
-        HashMap<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
-        for (Chromosome c : hic.getDataset().getChromosomes()) {
-            chromosomeMap.put(c.getName().toLowerCase(), c);
-            chromosomeMap.put("chr" + c.getName().toLowerCase(), c);
-            if (c.getName().equals("MT")) chromosomeMap.put("chrm", c);
-        }
+        ChromosomeHandler handler = new ChromosomeHandler(hic.getDataset().getChromosomes());
 
-        Chromosome topChr = chromosomeMap.get(topChrTokens[0].toLowerCase());
+        Chromosome topChr = handler.getChr(topChrTokens[0]);
         if (topChr == null) {
             positionChrTop.setBackground(Color.yellow);
             log.error("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
             return;
         }
 
-        Chromosome leftChr = chromosomeMap.get(leftChrTokens[0].toLowerCase());
+        Chromosome leftChr = handler.getChr(leftChrTokens[0]);
         if (leftChr == null) {
             positionChrLeft.setBackground(Color.yellow);
             log.error("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
@@ -354,16 +351,12 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
 
-
-
         try {
             geneLocationHashMap = GeneTools.getLocationMap(reader);
-
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
-
         }
         if (geneLocationHashMap != null) this.genomeID = genomeID;
         extractGeneLocation();
