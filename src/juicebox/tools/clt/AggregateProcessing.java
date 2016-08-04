@@ -26,13 +26,9 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
-import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
+import juicebox.tools.HiCTools;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created for testing multiple CLTs at once
@@ -43,92 +39,14 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        /*
-        /Users/muhammadsaadshamim/Desktop/test_motifs/original
-muhammads-mbp:original muhammadsaadshamim$ ls
-geo.txt		java_motifs.txt
-         */
+        // genes <genomeID> <bed_file> <looplist> [output]
+        String[] ajkhsd = {"genes",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/intersected2.bed",
+                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/combined_peaks_with_motifs.txt",
+                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/result2"};
 
         HiCGlobals.printVerboseComments = true;
-
-        Map<Integer, Feature2DList> map = new HashMap<Integer, Feature2DList>();
-        map.put(5000, Feature2DParser.loadFeatures("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/postprocessed_pixels_5000"
-                , "hg19", true, null, false));
-        map.put(10000, Feature2DParser.loadFeatures("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/postprocessed_pixels_10000"
-                , "hg19", true, null, false));
-        map.put(25000, Feature2DParser.loadFeatures("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/postprocessed_pixels_25000"
-                , "hg19", true, null, false));
-
-        Feature2DList newMerger = HiCCUPSUtils.mergeAllResolutions(map);
-
-       // newMerger.exportFeatureList("/Users/muhammadsaadshamim/Desktop/T0_48/48/exp1/new_merged_loops", false, Feature2DList.ListFormat.FINAL);
-
-
-        /*
-        GenomeWideList<MotifAnchor> l1 = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
-
-        GenomeWideList<MotifAnchor> l2 = MotifAnchorParser.loadMotifsFromLocalFile(
-                "/Users/muhammadsaadshamim/Desktop/GenomeWideMotifs/motif_list_hg19_M1/M1_fimo_full_out_1M_t1e3/hg19.motifs.txt", "hg19", null);
-
-        GenomeWideList<MotifAnchor> l3 = MotifAnchorParser.loadMotifsFromURL(
-                "http://hicfiles.s3.amazonaws.com/internal/motifs/hg19.motifs.txt", "hg19", null);
-
-        System.out.println(l1.size());
-        System.out.println(l2.size());
-        System.out.println(l3.size());
-        */
-
-
-/*
-        String[] ajkhsd = {"loop_domains",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_ld/loops.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_ld/domains.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_ld/ld.txt"};
-
-        //HiCGlobals.printVerboseComments = true;
-        //HiCTools.main(ajkhsd);
-
-
-                /*
-        String[] ll51231123 = {"motifs",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/gm12878",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean.txt",
-                "/Users/muhammadsaadshamim/Dropbox (Lab at Large)/GenomeWideMotifs/motif_list/REN_fimo_full_out_1M/fimo.txt"};
-
-        //HiCGlobals.printVerboseComments = true;
-        HiCTools.main(ll51231123);
-
-        String[] ll512123431123 = new String[]{"compare",
-                "0", "-m", "25000",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_aws_hiccups/geo.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_aws_hiccups/aws_loops_30.txt"};
-
-        ll512123431123 = new String[]{"compare",
-                "-m", "5000", "1",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt"};
-
-        HiCTools.main(ll512123431123);
-
-        ll512123431123 = new String[]{"compare",
-                "-m", "5000", "2",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt"};
-
-        HiCTools.main(ll512123431123);
-
-        ll512123431123 = new String[]{"compare",
-                "-m", "5000", "2",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/loops_clean_with_motifs.txt",
-                "/Users/muhammadsaadshamim/Desktop/test/test_motifs/original/new_suhas_list.txt"};
-
-        HiCTools.main(ll512123431123);
-        */
+        HiCTools.main(ajkhsd);
     }
 }

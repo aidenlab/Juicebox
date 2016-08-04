@@ -53,7 +53,7 @@ public class GeneFinder extends JuicerCLT {
     private String genomeID, bedFilePath, loopListPath;
     private File outFile;
 
-    protected GeneFinder() {
+    public GeneFinder() {
         super("genes <genomeID> <bed_file> <looplist> [output]");
     }
 
