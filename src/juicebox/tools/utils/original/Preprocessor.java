@@ -504,6 +504,15 @@ public class Preprocessor {
                     int mapq2 = pair.getMapq2();
 
                     int pos1, pos2;
+                    if (diagonalsOnly && chr1 != chr2) continue;
+                    if (includedChromosomes != null && chr1 != 0) {
+                        String c1Name = chromosomes.get(chr1).getName();
+                        String c2Name = chromosomes.get(chr2).getName();
+                        if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
+                            continue;
+                        }
+                    }
+
 
                     if (chr1 == chr2 && frag1 == frag2) {
                         intraFrag++;
