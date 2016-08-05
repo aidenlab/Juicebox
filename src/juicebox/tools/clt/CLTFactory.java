@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
+import juicebox.tools.utils.Benchmark;
 import juicebox.tools.dev.GeneFinder;
 
 /**
@@ -111,6 +112,8 @@ public class CLTFactory {
             return new ABCompartmentsDiff();
         } else if (cmd.equals("genes")) {
             return new GeneFinder();
+        } else if (cmd.equals("benchmark")) {
+            return new Benchmark();
         }
 
         return null;

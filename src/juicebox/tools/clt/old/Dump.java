@@ -286,7 +286,7 @@ public class Dump extends JuiceboxCLT {
         Matrix matrix = dataset.getMatrix(chr1, chr2);
         if (matrix == null) {
             System.err.println("No reads in " + chr1 + " " + chr2);
-            System.exit(12);
+            return;
         }
 
         if (chr2.getIndex() < chr1.getIndex()) {
@@ -422,22 +422,21 @@ public class Dump extends JuiceboxCLT {
     /**
      * Added for benchmark
      */
-    public void setQuery(String chr1, String chr2) {
+    public void setQuery(String chr1, String chr2, int binSize) {
         this.chr1 = chr1;
         this.chr2 = chr2;
+        this.binSize = binSize;
         extractChromosomeRegionIndices();
     }
 
-    public String getChr1() {
-        return this.chr1;
-    }
+    public Map<String, Chromosome> getChromosomeMap() { return this.chromosomeMap;}
 
-    public String getChr2() {
-        return this.chr2;
-    }
-
-    public int getBinSize() {
-        return this.binSize;
+    public int[] getBpBinSizes() {
+        int[] bpBinSizes = new int[dataset.getNumberZooms(HiC.Unit.BP)];
+        for (int zoomIdx = 0; zoomIdx < bpBinSizes.length; zoomIdx++) {
+            bpBinSizes[zoomIdx] = dataset.getZoom(HiC.Unit.BP, zoomIdx).getBinSize();
+        }
+        return bpBinSizes;
     }
 
     /**

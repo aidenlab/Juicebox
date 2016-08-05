@@ -25,76 +25,108 @@
 package juicebox.tools.utils;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.HiCGlobals;
-import juicebox.tools.clt.CLTFactory;
-import juicebox.tools.clt.CommandLineParser;
-import juicebox.tools.clt.CommandLineParserForJuicer;
+import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
+import org.broad.igv.feature.Chromosome;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.Random;
 
 /**
- * Created by nchernia on 8/4/16.
+ * Created by Neva Durand on 8/4/16 for benchmark testing for DCIC.
  */
 
-public class Benchmark {
+public class Benchmark extends JuiceboxCLT {
 
-    public static void main(String[] argv) throws IOException,  CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+    private Dump dump;
+    // Query 10,000 times at 256x256 and 2048x2048
+    int QUERY_SIZE=256;
+    int NUM_QUERIES=1000;
+    
+    public Benchmark() {
+        super(getUsage());
+    }
 
+    public static String getUsage(){
+        return "benchmark <hicFile> <norm>";
+    }
+
+    @Override
+    public void readArguments(String[] argv, CmdLineParser parser)   {
         Globals.setHeadless(true);
 
-        if (argv.length == 0) {
-            CLTFactory.generalUsage();
-            System.exit(0);
-        }
-        String cmdName = argv[0].toLowerCase();
 
-        CmdLineParser parser = new CommandLineParser();
-        if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
-            parser = new CommandLineParserForJuicer();
-            HiCGlobals.useCache = false;
+        if (argv.length != 3) {
+            printUsageAndExit();
         }
 
-        parser.parse(argv);
-        String[] args = parser.getRemainingArgs();
+        dump = new Dump();
 
-        Dump dump = new Dump();
+        // dump will read in the index of the .hic file and output the observed matrix with no normalization
+        // change "NONE" to "KR" or "VC" for different normalizations
+        // change outputfile if needed
+        // the other values are dummy and will be reset
+        String[] args = {"dump", "observed", argv[2], argv[1], "X", "X", "BP", "1000000", "/Users/nchernia/Downloads/output2.txt"};
         dump.readArguments(args, parser);
 
-        // Choose chromosome and resolution to query based on initial arguments
-        String chr1 = dump.getChr1();
-        String chr2 = dump.getChr2();
-        int binSize = dump.getBinSize();
+    }
 
-        // Query 100 times at 256x256
-        int QUERY_SIZE=256;
+
+    @Override
+    public void run() {
+
+        // will use to make sure we're not off the end of the chromosome
+        Map<String, Chromosome> map = dump.getChromosomeMap();
+
+        Random random = new Random();
+
+        // chromosomes in this dataset, so we query them
+        String[] chrs = new String[map.size()-1];
+        int ind=0;
+        for (String chr:map.keySet()) {
+            if (!chr.equals("All")) chrs[ind++]=chr;
+        }
+
+        // BP bin sizes in this dataset
+        int[] bpBinSizes = dump.getBpBinSizes();
+
+
         long sum=0;
-        for (int i=0; i<100; i++) {
-            int start = 1000000 + (1000*i);
-            int end = binSize*QUERY_SIZE + start;
+        for (int i=0; i<NUM_QUERIES; i++) {
+            // Randomly choose chromosome and resolution to query
+            String chr1 = chrs[random.nextInt(chrs.length)];
+            int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            dump.setQuery(chr1+":"+start+":"+end, chr2+":"+start+":"+end);
+            int end1 = random.nextInt(map.get(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+            if (start1 < 0) start1 = 0;
+
+            dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();
             long totalTime = System.currentTimeMillis() - currentTime;
-            sum+=totalTime;
+            sum += totalTime;
         }
-        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/100 + " milliseconds");
+        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/NUM_QUERIES + " milliseconds");
 
         QUERY_SIZE=2048;
         sum=0;
-        for (int i=0; i<100; i++) {
-            int start = 1000000 + (1000*i);
-            int end = binSize*QUERY_SIZE + start;
+        for (int i=0; i<NUM_QUERIES; i++) {
+            // Randomly choose chromosome and resolution to query
+            String chr1 = chrs[random.nextInt(chrs.length)];
+            int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            dump.setQuery(chr1+":"+start+":"+end, chr2+":"+start+":"+end);
+            int end1 = random.nextInt(map.get(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
+            if (start1 < 0) start1 = 0;
+
+            dump.setQuery(chr1 + ":" + start1 + ":" + end1, chr1 + ":" + start1 + ":" + end1, binSize);
             long currentTime = System.currentTimeMillis();
             dump.run();
             long totalTime = System.currentTimeMillis() - currentTime;
-            sum+=totalTime;
+            sum += totalTime;
         }
-        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/100 + " milliseconds");
-
+        System.err.println("Average time to query " + QUERY_SIZE + "x" + QUERY_SIZE +": " + sum/NUM_QUERIES + " milliseconds");
     }
 }
