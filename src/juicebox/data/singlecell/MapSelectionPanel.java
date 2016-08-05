@@ -41,7 +41,7 @@ import java.util.List;
  * Created by muhammadsaadshamim on 8/4/16.
  */
 public class MapSelectionPanel extends JPanel {
-    
+
     private static final long serialVersionUID = 81248921738L;
     private final List<ActionListener> actionListeners = new ArrayList<ActionListener>();
 
@@ -122,19 +122,21 @@ public class MapSelectionPanel extends JPanel {
      * @return
      */
     private JPanel createPane(String description, List<JCheckBox> checkBoxes, JButton showButton) {
+        
+        JLabel label = new JLabel(description);
 
         JPanel box = new JPanel();
-        JLabel label = new JLabel(description);
         box.setLayout(new BoxLayout(box, BoxLayout.PAGE_AXIS));
-        box.add(label);
-
         for (JCheckBox checkBox : checkBoxes) {
             box.add(checkBox);
         }
+        JScrollPane scrollPane = new JScrollPane(box);
 
         JPanel pane = new JPanel(new BorderLayout());
-        pane.add(box, BorderLayout.PAGE_START);
+        pane.add(label, BorderLayout.PAGE_START);
+        pane.add(scrollPane, BorderLayout.CENTER);
         pane.add(showButton, BorderLayout.PAGE_END);
+
         return pane;
     }
 }
