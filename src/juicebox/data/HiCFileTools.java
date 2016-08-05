@@ -463,4 +463,14 @@ public class HiCFileTools {
         }
         return outputDirectory;
     }
+
+    public static String getTruncatedText(String text, int maxLengthEntryName) {
+        String truncatedName = text;
+        if (truncatedName.length() > maxLengthEntryName) {
+            truncatedName = text.substring(0, maxLengthEntryName / 2 - 1);
+            truncatedName += "...";
+            truncatedName += text.substring(text.length() - maxLengthEntryName / 2, text.length());
+        }
+        return truncatedName;
+    }
 }

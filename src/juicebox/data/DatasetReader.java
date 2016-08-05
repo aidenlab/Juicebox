@@ -29,6 +29,8 @@ import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
+import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.List;
 
@@ -39,6 +41,9 @@ import java.util.List;
  */
 public interface DatasetReader {
 
+    boolean isActive();
+
+    void setActive(boolean status);
 
     int getVersion();
 
@@ -70,4 +75,5 @@ public interface DatasetReader {
 
     String readStats() throws IOException;
 
+    List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners);
 }

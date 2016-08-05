@@ -34,6 +34,8 @@ import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
 
+import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -922,5 +924,9 @@ public class Dataset {
             attributes = new HashMap<String, String>();
         }
         attributes.put(key, value);
+    }
+
+    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
+        return reader.getCheckBoxes(actionListeners);
     }
 }

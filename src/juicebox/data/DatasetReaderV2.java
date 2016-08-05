@@ -40,6 +40,9 @@ import org.broad.igv.util.CompressionUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -53,6 +56,7 @@ import java.util.*;
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
     private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
+    private static final int maxLengthEntryName = 100;
     /**
      * Cache of chromosome name -> array of restriction sites
      */
@@ -67,6 +71,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private Map<String, Map<Integer, Preprocessor.IndexEntry>> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
+    private boolean activeStatus = true;
 
     public DatasetReaderV2(String path) throws IOException {
 
@@ -106,47 +111,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             return dis.readString();
         }
         return null;
-    }
-
-    private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
-                                              LittleEndianInputStream dis) throws IOException {
-
-        HiC.Unit unit = HiC.valueOfUnit(dis.readString());
-        dis.readInt();                // Old "zoom" index -- not used
-
-        // Stats.  Not used yet, but we need to read them anyway
-        double sumCounts = (double) dis.readFloat();
-        float occupiedCellCount = dis.readFloat();
-        float stdDev = dis.readFloat();
-        float percent95 = dis.readFloat();
-
-        int binSize = dis.readInt();
-        HiCZoom zoom = new HiCZoom(unit, binSize);
-        // todo: Default binSize value for "ALL" is 6197...
-        // We need to make sure our maps hold a valid binSize value as default.
-
-        int blockBinCount = dis.readInt();
-        int blockColumnCount = dis.readInt();
-
-        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites, this);
-
-        int nBlocks = dis.readInt();
-        HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<Integer, Preprocessor.IndexEntry>(nBlocks);
-
-        for (int b = 0; b < nBlocks; b++) {
-            int blockNumber = dis.readInt();
-            long filePosition = dis.readLong();
-            int blockSizeInBytes = dis.readInt();
-            blockIndex.put(blockNumber, new Preprocessor.IndexEntry(filePosition, blockSizeInBytes));
-        }
-        blockIndexMap.put(zd.getKey(), blockIndex);
-
-        int nBins1 = chr1.getLength() / binSize;
-        int nBins2 = chr2.getLength() / binSize;
-        double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
-        zd.setAverageCount(avgCount);
-
-        return zd;
     }
 
     @Override
@@ -271,6 +235,49 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     }
 
+    private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
+                                              LittleEndianInputStream dis) throws IOException {
+
+        HiC.Unit unit = HiC.valueOfUnit(dis.readString());
+        dis.readInt();                // Old "zoom" index -- not used
+
+        // Stats.  Not used yet, but we need to read them anyway
+        double sumCounts = (double) dis.readFloat();
+        float occupiedCellCount = dis.readFloat();
+        float stdDev = dis.readFloat();
+        float percent95 = dis.readFloat();
+
+        int binSize = dis.readInt();
+        HiCZoom zoom = new HiCZoom(unit, binSize);
+        // todo: Default binSize value for "ALL" is 6197...
+        // We need to make sure our maps hold a valid binSize value as default.
+
+        int blockBinCount = dis.readInt();
+        int blockColumnCount = dis.readInt();
+
+        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites, this);
+
+        int nBlocks = dis.readInt();
+        HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<Integer, Preprocessor.IndexEntry>(nBlocks);
+
+        for (int b = 0; b < nBlocks; b++) {
+            int blockNumber = dis.readInt();
+            long filePosition = dis.readLong();
+            int blockSizeInBytes = dis.readInt();
+            blockIndex.put(blockNumber, new Preprocessor.IndexEntry(filePosition, blockSizeInBytes));
+        }
+        blockIndexMap.put(zd.getKey(), blockIndex);
+
+        int nBins1 = chr1.getLength() / binSize;
+        int nBins2 = chr2.getLength() / binSize;
+        double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
+        zd.setAverageCount(avgCount);
+
+        return zd;
+    }
+
+
+
 
     public String readStats() throws IOException {
         String statsFileName = path.substring(0, path.lastIndexOf('.')) + "_stats.html";
@@ -292,6 +299,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         }
 
         return stats;
+    }
+
+    @Override
+    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
+        String truncatedName = HiCFileTools.getTruncatedText(getPath(), maxLengthEntryName);
+        final JCheckBox checkBox = new JCheckBox(truncatedName);
+        checkBox.setSelected(isActive());
+        checkBox.setToolTipText(getPath());
+        actionListeners.add(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setActive(checkBox.isSelected());
+            }
+        });
+
+        List<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
+        checkBoxList.add(checkBox);
+        return checkBoxList;
     }
 
     private String readGraphs(String graphFileName) throws IOException {
@@ -373,6 +398,16 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     }
 
+
+    @Override
+    public boolean isActive() {
+        return activeStatus;
+    }
+
+    @Override
+    public void setActive(boolean status) {
+        activeStatus = status;
+    }
 
     @Override
     public int getVersion() {

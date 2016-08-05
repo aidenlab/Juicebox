@@ -27,6 +27,8 @@ package juicebox.windowui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileLoader;
+import juicebox.data.singlecell.MapSelectionPanel;
+import juicebox.gui.SuperAdapter;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
@@ -37,10 +39,12 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
 
     private final HiC hic;
     private final JComboBox<MatrixType> displayOptionComboBox;
+    private final SuperAdapter superAdapter;
 
-    public HiCKeyDispatcher(HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
+    public HiCKeyDispatcher(SuperAdapter superAdapter, HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
         super();
         this.hic = hic;
+        this.superAdapter = superAdapter;
         this.displayOptionComboBox = displayOptionComboBox;
     }
 
@@ -66,6 +70,9 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             if (newURL != null) {
                 HiCFileLoader.changeJuiceboxPropertiesFile(newURL);
             }
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F12) {
+            MapSelectionPanel.createAndShowGUI(superAdapter, hic);
             return true;
         } else {
             return false;

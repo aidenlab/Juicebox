@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.state.XMLFileWriter;
 import org.broad.igv.Globals;
 import org.w3c.dom.Document;
@@ -148,10 +149,7 @@ public abstract class RecentMenu extends JMenu {
             temp = m_item.split(delimiter);
 
             if (!temp[0].equals("")) {
-                String truncatedName = temp[0];
-                if (truncatedName.length() > maxLengthEntryName) {
-                    truncatedName = truncatedName.substring(0, maxLengthEntryName - 1);
-                }
+                String truncatedName = HiCFileTools.getTruncatedText(temp[0], maxLengthEntryName);
                 JMenuItem menuItem = new JMenuItem(truncatedName);
                 menuItem.setVisible(true);
                 menuItem.setToolTipText(temp[0]);

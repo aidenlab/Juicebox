@@ -1587,11 +1587,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
-            int scroll = e.getWheelRotation();
-            hic.moveBy(scroll, scroll);
-            superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
+            try {
+                int scroll = e.getWheelRotation();
+                hic.moveBy(scroll, scroll);
+                superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
+            } catch (Exception e2) {
+                //
+            }
         }
-
-
     }
 }

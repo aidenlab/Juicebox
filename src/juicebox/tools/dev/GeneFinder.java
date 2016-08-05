@@ -124,6 +124,7 @@ public class GeneFinder extends JuicerCLT {
             }
             writer.write(sb.toString());
             writer.flush();
+            writer.close();
 
         } catch (Exception e) {
             e.printStackTrace();

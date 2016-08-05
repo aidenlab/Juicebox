@@ -505,7 +505,7 @@ public class SuperAdapter {
     }
 
     public KeyEventDispatcher getNewHiCKeyDispatcher() {
-        return new HiCKeyDispatcher(hic, mainViewPanel.getDisplayOptionComboBox());
+        return new HiCKeyDispatcher(this, hic, mainViewPanel.getDisplayOptionComboBox());
     }
 
     public LoadDialog launchLoadFileDialog(Properties properties) {

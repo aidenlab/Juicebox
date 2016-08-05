@@ -164,10 +164,6 @@ public class HiC {
         this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 
-    public void setControlDataset(Dataset controlDataset) {
-        this.controlDataset = controlDataset;
-    }
-
     public void loadEigenvectorTrack() {
         if (eigenvectorTrack == null) {
             eigenvectorTrack = new EigenvectorTrack(eigString, eigString, this, false);
@@ -259,6 +255,14 @@ public class HiC {
 
     public void setDataset(Dataset dataset) {
         this.dataset = dataset;
+    }
+
+    public Dataset getControlDataset() {
+        return controlDataset;
+    }
+
+    public void setControlDataset(Dataset controlDataset) {
+        this.controlDataset = controlDataset;
     }
 
     public void setSelectedChromosomes(Chromosome chrX, Chromosome chrY) {

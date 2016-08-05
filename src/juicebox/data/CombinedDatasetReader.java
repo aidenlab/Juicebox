@@ -32,6 +32,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 
 import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -69,6 +70,23 @@ public class CombinedDatasetReader implements DatasetReader {
 
     }
 
+    @Override
+    public boolean isActive() {
+        /*
+        do nothing
+        boolean atLeastOneIsActive = false;
+        for(DatasetReaderV2 reader : readers){
+            atLeastOneIsActive = atLeastOneIsActive || reader.isActive();
+        }
+        return atLeastOneIsActive;
+        */
+        return true;
+    }
+
+    @Override
+    public void setActive(boolean status) {
+        // do nothing
+    }
 
     @Override
     public int getVersion() {
@@ -88,6 +106,15 @@ public class CombinedDatasetReader implements DatasetReader {
         return null;
     }
 
+    @Override
+    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
+        List<JCheckBox> allBoxes = new ArrayList<JCheckBox>();
+        for (DatasetReaderV2 reader : readers) {
+            allBoxes.addAll(reader.getCheckBoxes(actionListeners));
+        }
+        return allBoxes;
+    }
+
     /**
      * @param key -- string identifier for matrix, concatenation of chromosome names
      * @return Merged matrices read in
@@ -99,7 +126,9 @@ public class CombinedDatasetReader implements DatasetReader {
         //
         List<Matrix> tmpDatasets = new ArrayList<Matrix>();
         for (DatasetReader r : readers) {
-            tmpDatasets.add(r.readMatrix(key));
+            if (r.isActive()) {
+                tmpDatasets.add(r.readMatrix(key));
+            }
         }
 
         return mergeMatrices(tmpDatasets);
@@ -111,9 +140,11 @@ public class CombinedDatasetReader implements DatasetReader {
 
         List<Block> blockList = new ArrayList<Block>();
         for (DatasetReader r : readers) {
-            Block cb = r.readBlock(blockNumber, zd);
-            if (cb != null) {
-                blockList.add(cb);
+            if (r.isActive()) {
+                Block cb = r.readBlock(blockNumber, zd);
+                if (cb != null) {
+                    blockList.add(cb);
+                }
             }
         }
 
@@ -126,10 +157,12 @@ public class CombinedDatasetReader implements DatasetReader {
 
         List<Block> blockList = new ArrayList<Block>();
         for (DatasetReader r : readers) {
-            Block cb;
-            cb = r.readNormalizedBlock(blockNumber, zd, no);
-            if (cb != null) {
-                blockList.add(cb);
+            if (r.isActive()) {
+                Block cb;
+                cb = r.readNormalizedBlock(blockNumber, zd, no);
+                if (cb != null) {
+                    blockList.add(cb);
+                }
             }
         }
         return blockList.size() == 0 ? new Block(blockNumber) : mergeBlocks(blockList);
@@ -148,8 +181,9 @@ public class CombinedDatasetReader implements DatasetReader {
 
         Set<Integer> blockNumberSet = new HashSet<Integer>();
         for (DatasetReader r : readers) {
-            blockNumberSet.addAll(r.getBlockNumbers(matrixZoomData));
-
+            if (r.isActive()) {
+                blockNumberSet.addAll(r.getBlockNumbers(matrixZoomData));
+            }
         }
         List<Integer> blockNumbers = new ArrayList<Integer>(blockNumberSet);
         Collections.sort(blockNumbers);
