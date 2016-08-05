@@ -41,7 +41,9 @@ import java.util.List;
  * Created by muhammadsaadshamim on 8/4/16.
  */
 public class MapSelectionPanel extends JPanel {
+    
     private static final long serialVersionUID = 81248921738L;
+    private final List<ActionListener> actionListeners = new ArrayList<ActionListener>();
 
     /**
      * @param reader
@@ -52,6 +54,7 @@ public class MapSelectionPanel extends JPanel {
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
         JTabbedPane tabbedPane = new JTabbedPane();
+        actionListeners.clear();
 
         JPanel mainMaps = generateMapActivationPanel(superAdapter, reader, "Active Hi-C Maps:");
         if (mainMaps != null) {
@@ -93,7 +96,6 @@ public class MapSelectionPanel extends JPanel {
      */
     private JPanel generateMapActivationPanel(final SuperAdapter superAdapter, Dataset reader, String title) {
         final JButton showItButton = new JButton("Update View");
-        final List<ActionListener> actionListeners = new ArrayList<ActionListener>();
         if (reader != null) {
             List<JCheckBox> checkBoxes = reader.getCheckBoxes(actionListeners);
 
