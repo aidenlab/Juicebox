@@ -26,10 +26,7 @@ package juicebox.tools.dev;
 
 import org.broad.igv.feature.Chromosome;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 8/3/16.
@@ -51,11 +48,27 @@ public class ChromosomeHandler {
         }
     }
 
+    private String cleanedChrName(String name) {
+        return name.trim().toLowerCase().replaceAll("chr", "");
+    }
+
     public Chromosome getChr(String name) {
-        return chromosomeMap.get(name.trim().toLowerCase().replaceAll("chr", ""));
+        return chromosomeMap.get(cleanedChrName(name));
     }
 
     public List<String> getChrIndices() {
         return chrIndices;
+    }
+
+    public boolean containsChromosome(String name) {
+        return chromosomeMap.containsKey(cleanedChrName(name));
+    }
+
+    public int size() {
+        return chromosomeMap.size();
+    }
+
+    public Set<String> getChrNames() {
+        return chromosomeMap.keySet();
     }
 }

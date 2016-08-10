@@ -29,6 +29,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
@@ -41,7 +42,9 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Dump extends JuiceboxCLT {
 
@@ -54,7 +57,7 @@ public class Dump extends JuiceboxCLT {
     private String chr1, chr2;
     private Dataset dataset = null;
     private List<Chromosome> chromosomeList;
-    private Map<String, Chromosome> chromosomeMap;
+    private ChromosomeHandler chromosomeHandler;
     private int binSize = 0;
     private MatrixType matrixType = null;
     private String ofile = null;
@@ -368,22 +371,19 @@ public class Dump extends JuiceboxCLT {
 
         // initialize chromosome map
         dataset = HiCFileTools.extractDatasetForCLT(files, false);
-        chromosomeList = dataset.getChromosomes();
-        chromosomeMap = new HashMap<String, Chromosome>();
-        for (Chromosome c : chromosomeList) {
-            chromosomeMap.put(c.getName(), c);
-        }
+        chromosomeHandler = new ChromosomeHandler(dataset.getChromosomes());
 
         // retrieve input chromosomes / regions
         chr1 = args[idx];
         chr2 = args[idx + 1];
         extractChromosomeRegionIndices(); // at the end of this, chr1&2 will just be the chr key names
 
-        if (!chromosomeMap.containsKey(chr1)) {
+
+        if (!chromosomeHandler.containsChromosome(chr1)) {
             System.err.println("Unknown chromosome: " + chr1);
             System.exit(18);
         }
-        if (!chromosomeMap.containsKey(chr2)) {
+        if (!chromosomeHandler.containsChromosome(chr2)) {
             System.err.println("Unknown chromosome: " + chr2);
             System.exit(19);
         }
@@ -429,8 +429,6 @@ public class Dump extends JuiceboxCLT {
         extractChromosomeRegionIndices();
     }
 
-    public Map<String, Chromosome> getChromosomeMap() { return this.chromosomeMap;}
-
     public int[] getBpBinSizes() {
         int[] bpBinSizes = new int[dataset.getNumberZooms(HiC.Unit.BP)];
         for (int zoomIdx = 0; zoomIdx < bpBinSizes.length; zoomIdx++) {
@@ -461,7 +459,7 @@ public class Dump extends JuiceboxCLT {
                 }
             }
         } else {
-            Chromosome chromosome1 = chromosomeMap.get(chr1);
+            Chromosome chromosome1 = chromosomeHandler.getChr(chr1);
             regionIndices[0] = 0;
             regionIndices[1] = chromosome1.getLength();
         }
@@ -484,7 +482,7 @@ public class Dump extends JuiceboxCLT {
                 }
             }
         } else {
-            Chromosome chromosome2 = chromosomeMap.get(chr2);
+            Chromosome chromosome2 = chromosomeHandler.getChr(chr2);
             regionIndices[2] = 0;
             regionIndices[3] = chromosome2.getLength();
         }
@@ -501,19 +499,25 @@ public class Dump extends JuiceboxCLT {
             dumpGenomeWideData(dataset, chromosomeList, includeIntra, zoom, norm, matrixType, binSize);
         } else if (MatrixType.isDumpMatrixType(matrixType)) {
             try {
-                dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, matrixType, ofile);
+                dumpMatrix(dataset, chromosomeHandler.getChr(chr1), chromosomeHandler.getChr(chr2),
+                        norm, zoom, matrixType, ofile);
             } catch (Exception e) {
                 System.err.println("Unable to dump matrix");
                 e.printStackTrace();
             }
         } else if (MatrixType.isDumpVectorType(matrixType)) {
             try {
-                dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, matrixType, ofile, binSize, unit);
+                dumpGeneralVector(dataset, chr1, chromosomeHandler.getChr(chr1), norm, zoom,
+                        matrixType, ofile, binSize, unit);
             } catch (Exception e) {
                 System.err.println("Unable to dump vector");
                 e.printStackTrace();
             }
         }
 
+    }
+
+    public ChromosomeHandler getChromosomeHandler() {
+        return chromosomeHandler;
     }
 }

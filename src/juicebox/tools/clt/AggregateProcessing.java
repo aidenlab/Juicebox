@@ -40,11 +40,11 @@ class AggregateProcessing {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
         // genes <genomeID> <bed_file> <looplist> [output]
-        String[] ajkhsd = {"genes",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/intersected2.bed",
-                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/combined_peaks_with_motifs.txt",
-                "/Users/muhammadsaadshamim/Desktop/leviathan2/kyle_genes/result2"};
+        String[] ajkhsd = {"dump", "observed", "VC",
+                "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
+                "1", "1", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test/ignore/chr1_VCnorm_5kb.txt"
+
+        };
 
         HiCGlobals.printVerboseComments = true;
         HiCTools.main(ajkhsd);

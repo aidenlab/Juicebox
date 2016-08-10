@@ -27,10 +27,9 @@ package juicebox.tools.utils;
 import jargs.gnu.CmdLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
+import juicebox.tools.dev.ChromosomeHandler;
 import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -39,10 +38,10 @@ import java.util.Random;
 
 public class Benchmark extends JuiceboxCLT {
 
-    private Dump dump;
     // Query 10,000 times at 256x256 and 2048x2048
     int QUERY_SIZE=256;
     int NUM_QUERIES=1000;
+    private Dump dump;
     
     public Benchmark() {
         super(getUsage());
@@ -77,14 +76,15 @@ public class Benchmark extends JuiceboxCLT {
     public void run() {
 
         // will use to make sure we're not off the end of the chromosome
-        Map<String, Chromosome> map = dump.getChromosomeMap();
+        ChromosomeHandler handler = dump.getChromosomeHandler();
 
         Random random = new Random();
 
         // chromosomes in this dataset, so we query them
-        String[] chrs = new String[map.size()-1];
+        String[] chrs = new String[handler.size() - 1];
         int ind=0;
-        for (String chr:map.keySet()) {
+
+        for (String chr : handler.getChrNames()) {
             if (!chr.equals("All")) chrs[ind++]=chr;
         }
 
@@ -98,7 +98,7 @@ public class Benchmark extends JuiceboxCLT {
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            int end1 = random.nextInt(map.get(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int end1 = random.nextInt(handler.getChr(chr1).getLength()); // endpoint between 0 and end of chromosome
             int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
 
@@ -117,7 +117,7 @@ public class Benchmark extends JuiceboxCLT {
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            int end1 = random.nextInt(map.get(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int end1 = random.nextInt(handler.getChr(chr1).getLength()); // endpoint between 0 and end of chromosome
             int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
 
