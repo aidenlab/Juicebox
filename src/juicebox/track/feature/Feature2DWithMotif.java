@@ -24,9 +24,9 @@
 
 package juicebox.track.feature;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.tools.clt.juicer.CompareLists;
-import juicebox.tools.dev.ChromosomeHandler;
 
 import java.awt.*;
 import java.util.ArrayList;

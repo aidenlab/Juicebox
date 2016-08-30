@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt.juicer;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
@@ -31,7 +32,6 @@ import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
-import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import org.broad.igv.feature.Chromosome;

@@ -25,9 +25,9 @@
 package juicebox.tools.utils;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.data.ChromosomeHandler;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
-import juicebox.tools.dev.ChromosomeHandler;
 import org.broad.igv.Globals;
 
 import java.util.Random;

@@ -24,8 +24,6 @@
 
 package juicebox;
 
-//import juicebox.data.Chromosome;
-
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.feature.Chromosome;
 

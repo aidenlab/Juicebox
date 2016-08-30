@@ -25,9 +25,9 @@
 package juicebox.data.anchor;
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.feature.FeatureFilter;
 import juicebox.data.feature.GenomeWideList;
-import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DWithMotif;

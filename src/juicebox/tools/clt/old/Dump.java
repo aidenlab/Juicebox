@@ -29,7 +29,6 @@ import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.data.*;
 import juicebox.tools.clt.JuiceboxCLT;
-import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
 import juicebox.windowui.HiCZoom;
@@ -514,7 +513,6 @@ public class Dump extends JuiceboxCLT {
                 e.printStackTrace();
             }
         }
-
     }
 
     public ChromosomeHandler getChromosomeHandler() {
