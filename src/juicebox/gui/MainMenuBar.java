@@ -30,6 +30,7 @@ import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
+import juicebox.tools.dev.Private;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;
@@ -534,8 +535,7 @@ public class MainMenuBar {
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
-        saveLocationList = new JMenuItem();
-        saveLocationList.setText("Save current location");
+        saveLocationList = new JMenuItem("Save current location");
         saveLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
@@ -715,11 +715,31 @@ public class MainMenuBar {
         });
         figureMenu.add(saveToSVG);
 
+        JMenu devMenu = new JMenu("Dev");
+        JMenuItem mapSubset = new JMenuItem("Select map subset...");
+        mapSubset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Private.launchMapSubsetGUI(superAdapter);
+            }
+        });
+        devMenu.add(mapSubset);
+
+        JMenuItem chrSubset = new JMenuItem("Select genome subset...");
+        chrSubset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Private.launchMapSubsetGUI(superAdapter);
+            }
+        });
+        //devMenu.add(chrSubset);
+
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(figureMenu);
+        menuBar.add(devMenu);
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;

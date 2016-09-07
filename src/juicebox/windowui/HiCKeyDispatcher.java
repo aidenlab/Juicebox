@@ -27,8 +27,8 @@ package juicebox.windowui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileLoader;
-import juicebox.data.singlecell.MapSelectionPanel;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.dev.Private;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
@@ -72,7 +72,7 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             }
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F12) {
-            MapSelectionPanel.createAndShowGUI(superAdapter, hic);
+            Private.launchMapSubsetGUI(superAdapter);
             return true;
         } else {
             return false;

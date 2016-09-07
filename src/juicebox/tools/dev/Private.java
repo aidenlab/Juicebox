@@ -24,6 +24,8 @@
 
 package juicebox.tools.dev;
 
+import juicebox.gui.SuperAdapter;
+
 /**
  * Created by muhammadsaadshamim on 8/15/16.
  */
@@ -90,5 +92,9 @@ public class Private {
 
     public static boolean assessGenomeForRE4(String genomeId) {
         return genomeId.equalsIgnoreCase("susScr3");
+    }
+
+    public static void launchMapSubsetGUI(SuperAdapter superAdapter) {
+        MapSelectionPanel.launchMapSubsetGUI(superAdapter);
     }
 }

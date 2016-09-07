@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data.singlecell;
+package juicebox.tools.dev;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -73,9 +73,9 @@ public class MapSelectionPanel extends JPanel {
 
     /**
      * @param superAdapter
-     * @param hic
      */
-    public static void createAndShowGUI(SuperAdapter superAdapter, HiC hic) {
+    public static void launchMapSubsetGUI(SuperAdapter superAdapter) {
+        HiC hic = superAdapter.getHiC();
         Dataset reader = hic.getDataset();
         Dataset controlReader = hic.getControlDataset();
         if (reader != null) {
