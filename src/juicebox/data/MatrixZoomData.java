@@ -451,7 +451,11 @@ public class MatrixZoomData {
     public BasicMatrix getPearsons(ExpectedValueFunction df) {
 
         BasicMatrix pearsons = pearsonsMap.get(df.getNormalizationType());
-        if (pearsons == null && !missingPearsonFiles.contains(df.getNormalizationType())) {
+        if (pearsons != null) {
+            return pearsons;
+        }
+        /*
+        else if (!missingPearsonFiles.contains(df.getNormalizationType())) {
             /*
             // We used to put precomputed Pearson's files in the directory with the appropriate key, but don't do
             // that now.  If we ever decide to again, uncomment.
@@ -459,15 +463,16 @@ public class MatrixZoomData {
                 pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
             } catch (IOException e) {
                 log.error(e.getMessage());
-            }*/
+            }
             if (pearsons != null) {
                 pearsonsMap.put(df.getNormalizationType(), pearsons);
             } else {
                 missingPearsonFiles.add(df.getNormalizationType());  // To keep from trying repeatedly
             }
         }
-        if ((zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= 500000) ||
-                (zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() >= 500)) {
+        */
+        if ((zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) ||
+                (zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
             pearsons = computePearsons(df);
             pearsonsMap.put(df.getNormalizationType(), pearsons);
         }
