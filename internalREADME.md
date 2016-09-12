@@ -40,3 +40,25 @@ Steps for creating Public Friendly Version
 4. Remove any mention of assembly/sensitive projects
 
 Note this is only in terms of jars/executables. For actaul code release / open-sourcing, we need to wipe other private files, .git histories, etc.
+
+--------------------
+Building a new IGV jar for use in Juicebox
+-------------------
+Two problems with IGV jar: signatures and classpaths in the MANIFEST.  If it was just the first, it would be a one-liner.  Instead: 
+1 - Unzip IGV jar (be sure to get the "snapshot" build, currently at https://data.broadinstitute.org/igv/projects/snapshot/igv.jar )
+```
+mkdir tmp
+mv igv.jar tmp
+cd tmp
+unzip igv.jar
+```
+2 - Remove META-INF/*.SF META-INF/*.DSA META-INF/*.RSA
+```
+rm META-INF/*.SF META-INF/*.DSA META-INF/*.RSA
+```
+3 - Go into the MANIFEST file with your favorite editor and remove the Class-Path lines.
+4 - Rezip the jar
+```
+rm igv.jar
+jar cvf igv.jar ./*
+```
