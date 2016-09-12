@@ -56,7 +56,7 @@ unzip igv.jar
 ```
 rm META-INF/*.SF META-INF/*.DSA META-INF/*.RSA
 ```
-3 - Go into the MANIFEST file with your favorite editor and remove the Class-Path lines.
+3 - Go into the META-INF/MANIFEST file with your favorite editor and remove the Class-Path lines.
 4 - Rezip the jar
 ```
 rm igv.jar
