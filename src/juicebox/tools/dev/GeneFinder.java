@@ -24,6 +24,7 @@
 
 package juicebox.tools.dev;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
@@ -32,6 +33,7 @@ import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.utils.juicer.GeneTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
@@ -120,7 +122,7 @@ public class GeneFinder extends JuicerCLT {
             StringBuilder sb = new StringBuilder();
             for (String s : geneNames) {
                 sb.append(s);
-                sb.append(" ");
+                sb.append("\n");
             }
             writer.write(sb.toString());
             writer.flush();

@@ -30,7 +30,6 @@ import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;

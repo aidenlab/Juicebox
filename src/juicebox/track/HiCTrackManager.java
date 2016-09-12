@@ -26,6 +26,7 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
+import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -291,8 +292,8 @@ public class HiCTrackManager {
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                if (hic.getDataset().getGenomeId().equals("assembly")) {
-                    genomePath = "http://hicfiles.s3.amazonaws.com/internal/assembly.genome";
+                if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
+                    genomePath = Private.getGenome();
                 } else if (hic.getDataset().getGenomeId().equals("dMel")) {
                     genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
                 } else {

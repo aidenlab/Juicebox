@@ -26,8 +26,8 @@ package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
-import juicebox.tools.dev.ChromosomeHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScoreList;
 import juicebox.tools.utils.juicer.arrowhead.HighScore;
 import org.broad.igv.Globals;
