@@ -729,7 +729,7 @@ public class MainMenuBar {
         chrSubset.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Private.launchMapSubsetGUI(superAdapter);
+
             }
         });
         //devMenu.add(chrSubset);
