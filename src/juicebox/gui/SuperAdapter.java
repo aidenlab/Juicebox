@@ -169,15 +169,19 @@ public class SuperAdapter {
     }
 
     public void loadFromListActionPerformed(boolean control) {
-        new UnsavedAnnotationWarning(this);
-        mainMenuBar.setShow2DAnnotations(true);
-        HiCFileLoader.loadFromListActionPerformed(this, control);
+        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
+        if (unsaved.checkAndDelete()) {
+            mainMenuBar.setShow2DAnnotations(true);
+            HiCFileLoader.loadFromListActionPerformed(this, control);
+        }
     }
 
     public void loadFromRecentActionPerformed(String url, String title, boolean control) {
-        new UnsavedAnnotationWarning(this);
-        mainMenuBar.setShow2DAnnotations(true);
-        HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
+        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
+        if (unsaved.checkAndDelete()) {
+            mainMenuBar.setShow2DAnnotations(true);
+            HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
+        }
     }
 
     public void launchExportPDF() {
@@ -193,8 +197,10 @@ public class SuperAdapter {
     }
 
     public void exitActionPerformed() {
-        new UnsavedAnnotationWarning(this);
-        mainWindow.exitActionPerformed();
+        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
+        if (unsaved.checkAndDelete()) {
+            mainWindow.exitActionPerformed();
+        }
     }
 
     public LoadAction createNewTrackLoadAction() {

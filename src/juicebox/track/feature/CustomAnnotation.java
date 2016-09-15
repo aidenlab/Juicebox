@@ -136,6 +136,7 @@ public class CustomAnnotation {
         if (tempFile.exists()) {
             tempFile.delete();
         }
+        this.unsavedEdits = false;
     }
 
     // Set show loops
@@ -220,7 +221,7 @@ public class CustomAnnotation {
         ok = customAnnotationList.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
-        unsavedEdits = false;
+        this.deleteTempFile();
         return ok;
     }
 

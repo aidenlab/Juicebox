@@ -329,7 +329,7 @@ public class CustomAnnotationHandler {
             if (zd == null) return -1;
             HiCGridAxis xGridAxis = zd.getXGridAxis();
             int binX = getXBin(hic, x) + displacement;
-            return xGridAxis.getGenomicStart(binX) + 1;
+            return xGridAxis.getGenomicStart(binX);
         } catch (Exception e) {
             return -1;
         }
@@ -342,7 +342,7 @@ public class CustomAnnotationHandler {
             if (zd == null) return -1;
             HiCGridAxis yGridAxis = zd.getYGridAxis();
             int binY = getYBin(hic, y) + displacement;
-            return yGridAxis.getGenomicStart(binY) + 1;
+            return yGridAxis.getGenomicStart(binY);
         } catch (Exception e) {
             return -1;
         }
