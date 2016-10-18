@@ -547,7 +547,7 @@ class RangeSliderUI extends BasicSliderUI {
             }
 
             // Handle lower thumb pressed.
-            if (lowerPressed) {
+            if (lowerPressed && !colorIsOE) {
                 switch (slider.getOrientation()) {
                     case JSlider.VERTICAL:
                         offset = currentMouseY - thumbRect.y;
@@ -600,7 +600,7 @@ class RangeSliderUI extends BasicSliderUI {
             currentMouseX = e.getX();
             currentMouseY = e.getY();
 
-            if (lowerDragging) {
+            if (lowerDragging && !colorIsOE) {
                 slider.setValueIsAdjusting(true);
                 moveLowerThumb();
 

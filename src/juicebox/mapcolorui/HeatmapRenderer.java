@@ -361,7 +361,7 @@ class HeatmapRenderer {
                                 if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                     double num = rec.getCounts() / averageCount;
                                     double den = ctrlRecord.getCounts() / ctrlAverageCount;
-                                    score = averageAcrossMapAndControl * Math.abs(num - den);
+                                    score = num - den;
                                 }
                             } else {
                                 score = rec.getCounts();
@@ -417,11 +417,11 @@ class HeatmapRenderer {
                 return observedColorScale;
             }
 
-        } else if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE) {
+        } else if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE || displayOption == MatrixType.DIFF) {
 
             OEColorScale oeColorScale = ratioColorScaleMap.get(key);
             if (oeColorScale == null) {
-                oeColorScale = new OEColorScale();
+                oeColorScale = new OEColorScale(displayOption);
                 ratioColorScaleMap.put(key, oeColorScale);
             }
             return oeColorScale;
@@ -446,7 +446,7 @@ class HeatmapRenderer {
             OEColorScale oeColorScale = ratioColorScaleMap.get(key);
 
             if (oeColorScale == null) {
-                oeColorScale = new OEColorScale();
+                oeColorScale = new OEColorScale(displayOption);
                 ratioColorScaleMap.put(key, oeColorScale);
             }
             superAdapter.updateRatioColorSlider((int) oeColorScale.getMax(), oeColorScale.getThreshold());
@@ -541,7 +541,7 @@ class HeatmapRenderer {
 
             OEColorScale oeColorScale = ratioColorScaleMap.get(key);
             if (oeColorScale == null) {
-                oeColorScale = new OEColorScale();
+                oeColorScale = new OEColorScale(displayOption);
                 ratioColorScaleMap.put(key, oeColorScale);
             }
             oeColorScale.setThreshold(max);

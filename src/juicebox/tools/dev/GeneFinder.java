@@ -81,26 +81,34 @@ public class GeneFinder extends JuicerCLT {
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
         ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
 
+
         try {
-            GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+
             GenomeWideList<MotifAnchor> genes = GeneTools.parseGenome(genomeID, handler);
             final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, chromosomes, false, null, false);
             GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromFeatures(allLoops, false, handler);
             final Feature2DList filteredLoops = new Feature2DList();
 
-            MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
-            allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
-                @Override
-                public void process(String chr, List<MotifAnchor> anchors) {
-                    List<Feature2D> restoredLoops = new ArrayList<Feature2D>();
-                    for (MotifAnchor anchor : anchors) {
-                        restoredLoops.addAll(anchor.getOriginalFeatures1());
-                        restoredLoops.addAll(anchor.getOriginalFeatures2());
-                    }
+            if ((new File(bedFilePath)).exists()) {
+                GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+                MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
 
-                    filteredLoops.addByKey(chr + "_" + chr, restoredLoops);
-                }
-            });
+                allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
+                    @Override
+                    public void process(String chr, List<MotifAnchor> anchors) {
+                        List<Feature2D> restoredLoops = new ArrayList<Feature2D>();
+                        for (MotifAnchor anchor : anchors) {
+                            restoredLoops.addAll(anchor.getOriginalFeatures1());
+                            restoredLoops.addAll(anchor.getOriginalFeatures2());
+                        }
+
+                        filteredLoops.addByKey(chr + "_" + chr, restoredLoops);
+                    }
+                });
+            } else {
+                System.err.println("No bed file provided, all loops being assessed.");
+                filteredLoops.add(allLoops);
+            }
 
             // note, this is NOT identical to all anchors after preservative intersect
             // because this restores both of the loops anchors even if one was eliminated

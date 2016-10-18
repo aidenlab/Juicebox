@@ -85,7 +85,7 @@ public enum MatrixType {
      * @param option
      * @return true is the option is generally available for maps, but does not use expected vector
      */
-    private static boolean isSimpleObservedOrControlType(MatrixType option) {
+    public static boolean isSimpleObservedOrControlType(MatrixType option) {
         return option == OBSERVED || isControlVSDiffType(option);
     }
 
@@ -102,7 +102,7 @@ public enum MatrixType {
      * @return true if the option involves comparison/divis
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO;
+        return option == OE || option == RATIO || option == DIFF;
     }
 
     /**
@@ -110,7 +110,7 @@ public enum MatrixType {
      * @return true if the option only works for intrachromosomal maps
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return option == PEARSON || option == VS; //|| option == OE
+        return option == PEARSON || option == VS || option == DIFF; //|| option == OE
     }
 
     /**

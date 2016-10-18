@@ -277,7 +277,7 @@ public class Dump extends JuiceboxCLT {
             }
         }
 
-        if (MatrixType.isOnlyIntrachromosomalType(matrixType) || matrixType == MatrixType.OE) {
+        if (MatrixType.isOnlyIntrachromosomalType(matrixType) || matrixType == MatrixType.OE || matrixType == MatrixType.DIFF) {
             if (!chr1.equals(chr2)) {
                 System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
                 System.err.println("Currently only intrachromosomal O/E, Pearson's, and VS are supported.");

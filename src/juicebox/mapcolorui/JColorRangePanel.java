@@ -119,7 +119,8 @@ public class JColorRangePanel extends JPanel {
 
             private void processClick() {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
-                        colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption() == MatrixType.OBSERVED);
+                        colorRangeSlider, colorRangeScaleFactor,
+                        MatrixType.isSimpleObservedOrControlType(superAdapter.getHiC().getDisplayOption()));
                 setColorRangeSliderVisible(false, superAdapter);
                 if (superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
                     // TODO succeeded
@@ -174,7 +175,8 @@ public class JColorRangePanel extends JPanel {
                 colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
                 HiC hic = superAdapter.getHiC();
 
-                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
+                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO
+                        || hic.getDisplayOption() == MatrixType.DIFF) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                 }
@@ -192,7 +194,8 @@ public class JColorRangePanel extends JPanel {
                 int newMax = colorRangeSlider.getMaximum() / 2;
                 if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
-                    if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
+                    if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO
+                            || hic.getDisplayOption() == MatrixType.DIFF) {
                         colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }

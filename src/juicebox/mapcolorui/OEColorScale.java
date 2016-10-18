@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.windowui.MatrixType;
 import org.broad.igv.renderer.ColorScale;
 
 import java.awt.*;
@@ -37,14 +38,21 @@ class OEColorScale implements ColorScale {
 
     public static final int defaultMaxOEVal = 5;
     private double threshold;
+    private MatrixType type;
 
-    public OEColorScale() {
+    public OEColorScale(MatrixType type) {
         super();
+        this.type = type;
         resetThreshold();
     }
 
     private void resetThreshold() {
-        threshold = Math.log(defaultMaxOEVal);
+        if(type == MatrixType.DIFF) {
+            threshold = 5;
+        }
+        else {
+            threshold = Math.log(defaultMaxOEVal);
+        }
     }
 
     public Color getColor(float score) {
@@ -90,15 +98,30 @@ class OEColorScale implements ColorScale {
     }
 
     public double getMax() {
-        return 2 * Math.exp(threshold);
+        if(type == MatrixType.DIFF) {
+            return 2 * threshold;
+        }
+        else {
+            return 2 * Math.exp(threshold);
+        }
     }
 
     public float getThreshold() {
-        return (float) Math.exp(threshold);
+        if(type == MatrixType.DIFF){
+            return (float)threshold;
+        }
+        else {
+            return (float) Math.exp(threshold);
+        }
     }
 
     public void setThreshold(double max) {
-        threshold = Math.log(max);
+        if(type == MatrixType.DIFF){
+            threshold = max;
+        }
+        else {
+            threshold = Math.log(max);
+        }
     }
 }
 
