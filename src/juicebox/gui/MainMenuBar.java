@@ -398,65 +398,6 @@ public class MainMenuBar {
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
-
-        /*  Sparse (/subset) plotting for 2d annotations  */
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
-        toggleSparse2DFeaturePlotting.setSelected(false);
-        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
-
-        final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
-        numSparse.setEnabled(true);
-        numSparse.isEditable();
-        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
-
-
-        final JButton updateSparseOptions = new JButton("Update");
-        updateSparseOptions.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (numSparse.getText().length() > 0) {
-                    Feature2DHandler.numberOfLoopsToFind = Integer.parseInt(numSparse.getText());
-                }
-            }
-        });
-        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
-
-        final JPanel sparseOptions = new JPanel();
-        sparseOptions.setLayout(new GridLayout(0, 2));
-        sparseOptions.add(numSparse);
-        sparseOptions.add(updateSparseOptions);
-        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
-        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
-
-
-        // use hidden hotkey instead of plot sparse button
-
-        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F7,
-                java.awt.event.InputEvent.CTRL_DOWN_MASK), "actionMapKeySparse");
-        superAdapter.getMainWindow().getRootPane().getActionMap().put("actionMapKeySparse", new AbstractAction() {
-
-            private static final long serialVersionUID = 3238444323064L;
-            boolean sparseOptionsAdded = false;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!sparseOptionsAdded) {
-                    sparseOptionsAdded = true;
-                    feature2DPlottingOptions.addSeparator();
-                    feature2DPlottingOptions.add(toggleSparse2DFeaturePlotting);
-                    feature2DPlottingOptions.add(sparseOptions);
-                }
-            }
-        });
-
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
@@ -715,7 +656,7 @@ public class MainMenuBar {
         });
         figureMenu.add(saveToSVG);
 
-        JMenu devMenu = new JMenu("Dev");
+        final JMenu devMenu = new JMenu("Dev");
         JMenuItem mapSubset = new JMenuItem("Select map subset...");
         mapSubset.addActionListener(new ActionListener() {
             @Override
@@ -724,6 +665,47 @@ public class MainMenuBar {
             }
         });
         devMenu.add(mapSubset);
+
+        /*  Sparse (/subset) plotting for 2d annotations  */
+        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
+        toggleSparse2DFeaturePlotting.setSelected(false);
+        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
+        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
+
+        final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
+        numSparse.setEnabled(true);
+        numSparse.isEditable();
+        numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+
+        final JButton updateSparseOptions = new JButton("Update");
+        updateSparseOptions.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (numSparse.getText().length() > 0) {
+                    Feature2DHandler.numberOfLoopsToFind = Integer.parseInt(numSparse.getText());
+                }
+            }
+        });
+        updateSparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+        final JPanel sparseOptions = new JPanel();
+        sparseOptions.setLayout(new GridLayout(0, 2));
+        sparseOptions.add(numSparse);
+        sparseOptions.add(updateSparseOptions);
+        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
+        sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
+
+        devMenu.addSeparator();
+        devMenu.add(toggleSparse2DFeaturePlotting);
+        devMenu.add(sparseOptions);
 
         JMenuItem chrSubset = new JMenuItem("Select genome subset...");
         chrSubset.addActionListener(new ActionListener() {
