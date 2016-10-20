@@ -49,6 +49,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option apaMinValOption = null;
     private static Option apaMaxValOption = null;
     private static Option multipleCornerRegionDimensionsOption = null;
+    private static Option includeInterChromosomalOption = null;
 
     // for HiCCUPS
     private static Option fdrOption = null;
@@ -81,6 +82,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         apaMinValOption = addDoubleOption('n', "min_dist");
         apaMaxValOption = addDoubleOption('x', "max_dist");
         multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
+        includeInterChromosomalOption = addBooleanOption('e', "include_inter_chr");
 
         // HICCUPS
         fdrOption = addStringOption('f', "fdr_thresholds");
@@ -107,6 +109,11 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getVerboseOption() {
         Object opt = getOptionValue(verboseOption);
+        return opt != null;
+    }
+
+    public boolean getIncludeInterChromosomal() {
+        Object opt = getOptionValue(includeInterChromosomalOption);
         return opt != null;
     }
 
