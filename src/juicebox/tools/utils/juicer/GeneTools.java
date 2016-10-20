@@ -24,16 +24,16 @@
 
 package juicebox.tools.utils.juicer;
 
-import htsjdk.samtools.seekablestream.SeekableHTTPStream;
-import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.GenomeWideList;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -48,9 +48,24 @@ public class GeneTools {
 
 
     public static BufferedReader getStreamToGeneFile(String genomeID) throws MalformedURLException {
-        String path = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
-        SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
-        return new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
+        String path = extractProperGeneFilePath(genomeID);
+        try {
+            return new BufferedReader(new FileReader(path));
+        } catch (FileNotFoundException e) {
+            System.err.println("Unable to read from " + path);
+            System.exit(56);
+        }
+        return null;
+    }
+
+    public static String extractProperGeneFilePath(String genomeID) {
+        String newURL = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
+        try {
+            return MotifAnchorParser.downloadFromUrl(new URL(newURL), "genes");
+        } catch (IOException e) {
+            System.err.println("Unable to download file from online; attempting to use direct file path");
+        }
+        return genomeID;
     }
 
     public static Map<String, GeneLocation> getLocationMap(BufferedReader reader) throws IOException {

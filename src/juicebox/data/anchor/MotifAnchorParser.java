@@ -71,7 +71,7 @@ public class MotifAnchorParser {
 
         try {
             // locate file from appropriate source and creat input stream
-            is = ParsingUtils.openInputStream(extractProperFilePath(genomeID, path, motifLocation));
+            is = ParsingUtils.openInputStream(extractProperMotifFilePath(genomeID, path, motifLocation));
             reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         } catch (Exception e) {
             System.err.println("Unable to create input stream for global motifs " + motifLocation);
@@ -109,7 +109,7 @@ public class MotifAnchorParser {
         return newAnchorList;
     }
 
-    private static String extractProperFilePath(String genomeID, String path, MotifLocation motifLocation) {
+    private static String extractProperMotifFilePath(String genomeID, String path, MotifLocation motifLocation) {
         String filePath = path;
         try {
             switch (motifLocation) {
@@ -315,17 +315,17 @@ public class MotifAnchorParser {
      * @return
      * @throws IOException
      */
-    private static String downloadFromUrl(URL url, String localFilename) throws IOException {
+    public static String downloadFromUrl(URL url, String localFilename) throws IOException {
         InputStream is = null;
         FileOutputStream fos = null;
 
         String tempDir = System.getProperty("java.io.tmpdir");
-        String outputPath = tempDir + "/" + localFilename;
+        File outputFile = new File(tempDir, localFilename);
 
         try {
             URLConnection urlConn = url.openConnection();
             is = urlConn.getInputStream();
-            fos = new FileOutputStream(outputPath);
+            fos = new FileOutputStream(outputFile);
 
             byte[] buffer = new byte[HiCGlobals.bufferSize];
             int length;
@@ -334,7 +334,7 @@ public class MotifAnchorParser {
             while ((length = is.read(buffer)) > 0) {
                 fos.write(buffer, 0, length);
             }
-            return outputPath;
+            return outputFile.getAbsolutePath();
         } finally {
             try {
                 if (is != null) {
