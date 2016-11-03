@@ -336,7 +336,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                         0, 0, Feature2DHandler.numberOfLoopsToFind);
 
-                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getVisibleLoopList(zd.getChr1Idx(), zd.getChr2Idx());
+                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getNearbyFeatures(zd, zd.getChr1Idx(),
+                        zd.getChr2Idx(), 0, 0, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
                 for (Feature2D feature2D : cLoops) {
                     if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
@@ -346,13 +347,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 loops.addAll(cLoops);
                 loops.addAll(cLoopsReflected);
 
-                customFeaturePairs = Feature2DHandler.featurePairs(cLoops, zd, binOriginX, binOriginY, scaleFactor);
-                customFeaturePairs.addAll(Feature2DHandler.featurePairs(cLoopsReflected, zd, binOriginX, binOriginY, scaleFactor));
+                customFeaturePairs = hic.getFeature2DHandler().getFeaturePairs(cLoops, zd, binOriginX, binOriginY, scaleFactor);
+                customFeaturePairs.addAll(hic.getFeature2DHandler().getFeaturePairs(cLoopsReflected, zd, binOriginX, binOriginY, scaleFactor));
 
                 Graphics2D g2 = (Graphics2D) g.create();
                 //g2.fillOval((int)x, (int)y, 20, 20);
 
-                FeatureRenderer.render(g2, loops, zd, binOriginX, binOriginY, scaleFactor,
+                FeatureRenderer.render(g2, hic.getFeature2DHandler(), loops, zd, binOriginX, binOriginY, scaleFactor,
                         highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
 
                 if (zoomRectangle != null) {
@@ -764,7 +765,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Feature2D feature = mostRecentRectFeaturePair.getSecond();
                 int chr1Idx = hic.getXContext().getChromosome().getIndex();
                 int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                MainMenuBar.customAnnotations.removeFromList(chr1Idx, chr2Idx, feature);
+                try {
+                    MainMenuBar.customAnnotations.removeFromList(hic.getZd(), chr1Idx, chr2Idx, 0, 0,
+                            Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
+                            hic.getYContext().getBinOrigin(), hic.getScaleFactor(), feature);
+                } catch (Exception ee) {
+                    System.err.println("Could not remove custom annot.");
+                }
             }
         });
 
@@ -1192,7 +1199,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     double binOriginX = hic.getXContext().getBinOrigin();
                     double binOriginY = hic.getYContext().getBinOrigin();
                     loop.doTest();//TODO meh - please comment why test?
-                    annotateRectangle = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
+                    annotateRectangle = hic.getFeature2DHandler().getRectangleFromFeature(xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
                     preAdjustLoop = new Pair<Pair<Integer, Integer>, Feature2D>(new Pair<Integer, Integer>(chr1Idx, chr2Idx), loop);
@@ -1234,12 +1241,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // New annotation is added (not single click) and new feature from custom annotation
                 int idx1 = preAdjustLoop.getFirst().getFirst();
                 int idx2 = preAdjustLoop.getFirst().getSecond();
-                Feature2D loop = preAdjustLoop.getSecond();
+                Feature2D secondLoop = preAdjustLoop.getSecond();
                 // Add a new loop if it was resized (prevents deletion on single click)
-                if (MainMenuBar.customAnnotations.hasLoop(idx1, idx2, loop) && changedSize == true) {
-                    MainMenuBar.customAnnotations.removeFromList(idx1, idx2, loop);
 
-//                    // Snap to nearest neighbor, if close enough
+                try {
+                    if (MainMenuBar.customAnnotations.hasLoop(hic.getZd(), idx1, idx2, 0, 0,
+                            Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
+                            hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize == true) {
+                        MainMenuBar.customAnnotations.removeFromList(hic.getZd(), idx1, idx2, 0, 0,
+                                Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
+                                hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
+                        //                    // Snap to nearest neighbor, if close enough
 //                    MatrixZoomData zd = null;
 //                    try {
 //                        zd = hic.getZd();
@@ -1257,8 +1269,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                    } else {
 //
 //                    }
-                    MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
-                    MainMenuBar.customAnnotationHandler.setLastItem(idx1, idx2, loop);
+
+                        MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
+                        MainMenuBar.customAnnotationHandler.setLastItem(idx1, idx2, secondLoop);
+                    }
+                } catch (Exception ee) {
+                    System.err.println("Unable to remove pre-resized loop");
                 }
                 restoreDefaultVariables();
             } else {

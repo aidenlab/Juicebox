@@ -669,9 +669,20 @@ public class SuperAdapter {
 
     private void updateTitle() {
         String newTitle = datasetTitle;
-        if (controlTitle != null && controlTitle.length() > 0)
+        String fileVersions = "";
+        try {
+            fileVersions += hic.getDataset().getVersion() + "";
+        } catch (Exception e) {
+        }
+
+        if (controlTitle != null && controlTitle.length() > 0) {
             newTitle += "  (control=" + controlTitle + ")";
-        mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
+            try {
+                fileVersions += "/" + hic.getControlDataset().getVersion();
+            } catch (Exception e) {
+            }
+        }
+        mainWindow.setTitle(HiCGlobals.juiceboxTitle + "<" + fileVersions + ">: " + newTitle);
     }
 
     private String getMapName() {

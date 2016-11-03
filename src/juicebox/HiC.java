@@ -998,7 +998,7 @@ public class HiC {
         double binOriginY = getYContext().getBinOrigin();
         double scale = getScaleFactor();
 
-        return feature2DHandler.findNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+        return feature2DHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
 
     public List<Pair<Rectangle, Feature2D>> findNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x,
@@ -1007,7 +1007,7 @@ public class HiC {
         double binOriginY = getYContext().getBinOrigin();
         double scale = getScaleFactor();
 
-        return feature2DHandler.findNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
+        return feature2DHandler.getNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
 
     public void setSparseFeaturePlotting(boolean status) {
@@ -1108,9 +1108,9 @@ public class HiC {
                 regionIndices = new int[]{0, chromosome.getLength(), binStartPosition, binStartPosition};
             }
 
-            zd.dump1DTrackFromCrossHairAsWig(printWriter, chromosomeForPosition, binStartPosition,
+            zd.dump1DTrackFromCrossHairAsWig(printWriter, binStartPosition,
                     chromosomeForPosition.getIndex() == chromosome.getIndex(), regionIndices,
-                    normalizationType, displayOption, getExpectedValues());
+                    normalizationType, displayOption);
         }
     }
 
@@ -1126,6 +1126,10 @@ public class HiC {
         return superAdapter.isResolutionLocked() ||
                 // pearson can't zoom in
                 (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
+    }
+
+    public Feature2DHandler getFeature2DHandler() {
+        return feature2DHandler;
     }
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
