@@ -442,17 +442,6 @@ public class Feature2DList {
         });
     }
 
-    public void setAttributeFieldForAll(final String attributeName, final String attributeValue) {
-        processLists(new FeatureFunction() {
-            @Override
-            public void process(String chr, List<Feature2D> feature2DList) {
-                for (Feature2D feature : feature2DList) {
-                    feature.setAttribute(attributeName, attributeValue);
-                }
-            }
-        });
-    }
-
     /**
      * Simple removal of exact duplicates (memory address)
      * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
@@ -526,10 +515,19 @@ public class Feature2DList {
         return total;
     }
 
-    public void checkAndRemoveEmptyList(int idx1, int idx2) {
+    public boolean checkAndRemoveFeature(int idx1, int idx2, Feature2D feature) {
+        boolean somethingWasDeleted = false;
         String key = getKey(idx1, idx2);
+        try {
+            somethingWasDeleted = featureList.get(key).remove(feature);
+        } catch (Exception e) {
+            System.err.println("Error encountered removing feature");
+        }
+
         if (featureList.get(key).size() == 0)
             featureList.remove(key);
+
+        return somethingWasDeleted;
     }
 
     public Feature2D searchForFeature(final int c1, final int start1, final int end1,
@@ -542,6 +540,7 @@ public class Feature2DList {
                     if (f.getChr1().contains("" + c1) && f.getChr2().contains("" + c2) && f.start1 == start1 &&
                             f.start2 == start2 && f.end1 == end1 && f.end2 == end2) {
                         feature[0] = f;
+                        break;
                     }
                 }
             }

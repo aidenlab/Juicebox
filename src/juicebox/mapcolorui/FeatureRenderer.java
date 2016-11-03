@@ -39,7 +39,7 @@ public class FeatureRenderer {
 
     public static PlottingOption enablePlottingOption = PlottingOption.ONLY_LOWER_LEFT;
 
-    public static void render(Graphics2D g2, List<Feature2D> loops, MatrixZoomData zd,
+    public static void render(Graphics2D g2, Feature2DHandler feature2DHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
@@ -65,7 +65,7 @@ public class FeatureRenderer {
 
                 g2.setColor(feature.getColor());
 
-                Rectangle rect = Feature2DHandler.rectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scaleFactor);
+                Rectangle rect = feature2DHandler.getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scaleFactor);
                 int x = (int) rect.getX();
                 int y = (int) rect.getY();
                 int w = (int) rect.getWidth();

@@ -731,10 +731,9 @@ public class MatrixZoomData {
         }
     }
 
-    public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, Chromosome chromosomeForPosition,
-                                              int binStartPosition, boolean isIntraChromosomal, int[] regionBinIndices,
-                                              NormalizationType norm, MatrixType matrixType,
-                                              ExpectedValueFunction expectedValues) throws IOException {
+    public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, int binStartPosition,
+                                              boolean isIntraChromosomal, int[] regionBinIndices,
+                                              NormalizationType norm, MatrixType matrixType) throws IOException {
 
         if (!MatrixType.isObservedOrControl(matrixType)) {
             System.out.println("This feature is only available for Observed or Control views");
@@ -748,7 +747,12 @@ public class MatrixZoomData {
         Collections.sort(blocksToIterateOver);
 
         for (Integer blockNumber : blocksToIterateOver) {
-            Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+            Block b = null;
+            try {
+                b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+            } catch (Exception e) {
+                System.err.println("Skipping block " + blockNumber);
+            }
             if (b != null) {
                 for (ContactRecord rec : b.getContactRecords()) {
                     float counts = rec.getCounts();

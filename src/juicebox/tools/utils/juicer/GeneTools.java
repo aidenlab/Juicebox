@@ -73,10 +73,12 @@ public class GeneTools {
 
         String nextLine;
         while ((nextLine = reader.readLine()) != null) {
-            String[] values = nextLine.split(" ");
-            GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
-            geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
-            geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
+            String[] values = nextLine.split("\\s+");
+            if (values.length > 3) {
+                GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
+                geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
+                geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
+            }
         }
         return geneLocationHashMap;
     }
@@ -91,14 +93,21 @@ public class GeneTools {
             throws IOException {
         List<MotifAnchor> genes = new ArrayList<MotifAnchor>();
 
-        String nextLine;
-        while ((nextLine = reader.readLine()) != null) {
-            String[] values = nextLine.split(" ");
-            int chrIndex = handler.getChr(values[2]).getIndex();
-            int position = Integer.valueOf(values[3].trim());
-            String name = values[1].trim();
-            MotifAnchor gene = new MotifAnchor(chrIndex, position - 1, position + 1, name);
-            genes.add(gene);
+        try {
+            String nextLine;
+            while ((nextLine = reader.readLine()) != null) {
+                String[] values = nextLine.split("\\s+");
+                if (values.length > 3) {
+                    int chrIndex = handler.getChr(values[2]).getIndex();
+                    int position = Integer.valueOf(values[3].trim());
+                    String name = values[1].trim();
+                    MotifAnchor gene = new MotifAnchor(chrIndex, position - 1, position + 1, name);
+                    genes.add(gene);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Gene database not properly formatted");
+            System.exit(50);
         }
 
         return genes;
