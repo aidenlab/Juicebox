@@ -43,6 +43,7 @@ public class PreProcessing extends JuiceboxCLT {
     private String inputFile;
     private String outputFile;
     private Preprocessor preprocessor;
+    private boolean noNorm = false;
 
     public PreProcessing() {
         super(getBasicUsage()+"\n"
@@ -97,7 +98,7 @@ public class PreProcessing extends JuiceboxCLT {
         preprocessor.setStatisticsFile(parser1.getStatsOption());
         preprocessor.setGraphFile(parser1.getGraphOption());
         preprocessor.setResolutions(parser1.getResolutionOption());
-
+        noNorm = parser1.getNoNormOption();
     }
 
     @Override
@@ -108,7 +109,13 @@ public class PreProcessing extends JuiceboxCLT {
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nCalculating contact matrices took: " + (System.currentTimeMillis() - currentTime) + " milliseconds");
             }
-            NormalizationVectorUpdater.updateHicFile(outputFile);
+            if (!noNorm) {
+                NormalizationVectorUpdater.updateHicFile(outputFile);
+            }
+            else {
+                System.out.println("Done creating .hic file. Normalization not calculated due to -n flag.");
+                System.out.println("To run normalization, run: juicebox addNorm <hicfile>");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(56);

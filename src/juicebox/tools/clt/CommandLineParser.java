@@ -40,6 +40,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option helpOption = null;
     private static Option removeCacheMemoryOption = null;
     private static Option verboseOption = null;
+    private static Option noNormOption = null;
 
     // String
     private static Option fragmentOption = null;
@@ -61,6 +62,7 @@ public class CommandLineParser extends CmdLineParser {
         helpOption = addBooleanOption('h', "help");
         removeCacheMemoryOption = addBooleanOption('x', "remove memory cache");
         verboseOption = addBooleanOption('v', "verbose");
+        noNormOption = addBooleanOption('n', "no normalization");
 
         fragmentOption = addStringOption('f', "restriction fragment site file");
         tmpDirOption = addStringOption('t', "tmpDir");
@@ -97,6 +99,8 @@ public class CommandLineParser extends CmdLineParser {
     public boolean getVerboseOption() {
         return optionToBoolean(verboseOption);
     }
+
+    public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
 
     /**
      * String flags
