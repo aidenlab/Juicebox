@@ -59,8 +59,7 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
         for (Feature2DList featureList : loopLists.values()) {
             featureList.add(newAnnotations);
         }
-        // TODO can be optimized further i.e. no need to remake entire rtree, just add necessary nodes
-        remakeRTree();
+        remakeRTree(); // adding lots of annotations, safer to remake rtree
     }
 
     /**

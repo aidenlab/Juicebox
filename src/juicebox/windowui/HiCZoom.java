@@ -74,8 +74,6 @@ public class HiCZoom {
 
     @Override
     public int hashCode() {
-        int result = unit.hashCode();
-        result = 31 * result + binSize;
-        return result;
+        return 31 * unit.hashCode() + binSize;
     }
 }

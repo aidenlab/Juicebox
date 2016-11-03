@@ -110,9 +110,6 @@ public class Feature2DHandler {
 
     public void setShowLoops(boolean showLoops) {
         this.showLoops = showLoops;
-        for (Feature2DList lists : loopLists.values()) {
-            lists.setVisible(showLoops);
-        }
     }
 
     public void removeFeaturePath(String fileName) {
@@ -205,9 +202,7 @@ public class Feature2DHandler {
         List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
         if (showLoops) {
             for (Feature2DList list : loopLists.values()) {
-                if (list.isVisible()) {
-                    visibleLoopList.add(list);
-                }
+                visibleLoopList.add(list);
             }
         }
         return visibleLoopList;
@@ -217,12 +212,10 @@ public class Feature2DHandler {
         List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();
         if (showLoops) {
             for (Feature2DList list : loopLists.values()) {
-                if (list.isVisible()) {
-                    List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
-                    if (currList != null) {
-                        for (Feature2D feature2D : currList) {
-                            visibleLoopList.add(feature2D);
-                        }
+                List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
+                if (currList != null) {
+                    for (Feature2D feature2D : currList) {
+                        visibleLoopList.add(feature2D);
                     }
                 }
             }

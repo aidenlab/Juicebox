@@ -156,7 +156,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         // Same scale used for X & Y (square pixels)
         final double scaleFactor = hic.getScaleFactor();
-
         final int screenWidth = getBounds().width;
         final int screenHeight = getBounds().height;
         double binOriginX = hic.getXContext().getBinOrigin();
@@ -333,11 +332,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //double x = (screenWidth / scaleFactor)/2.0;//binOriginX;// +(screenWidth / scaleFactor)/2.0;
                 //double y = (screenHeight / scaleFactor)/2.0;//binOriginY;// +(screenHeight / scaleFactor)/2.0;
 
-                List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                        0, 0, Feature2DHandler.numberOfLoopsToFind);
+                int centerX = (int) (screenWidth / scaleFactor) / 2;
+                int centerY = (int) (screenHeight / scaleFactor) / 2;
 
-                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getNearbyFeatures(zd, zd.getChr1Idx(),
-                        zd.getChr2Idx(), 0, 0, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
+                List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
+
+                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                        centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
                 for (Feature2D feature2D : cLoops) {
                     if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
@@ -1245,10 +1247,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Add a new loop if it was resized (prevents deletion on single click)
 
                 try {
-                    if (MainMenuBar.customAnnotations.hasLoop(hic.getZd(), idx1, idx2, 0, 0,
+                    final double scaleFactor = hic.getScaleFactor();
+                    final int screenWidth = HeatmapPanel.this.getBounds().width;
+                    final int screenHeight = HeatmapPanel.this.getBounds().height;
+                    int centerX = (int) (screenWidth / scaleFactor) / 2;
+                    int centerY = (int) (screenHeight / scaleFactor) / 2;
+
+                    if (MainMenuBar.customAnnotations.hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                             hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize == true) {
-                        MainMenuBar.customAnnotations.removeFromList(hic.getZd(), idx1, idx2, 0, 0,
+                        MainMenuBar.customAnnotations.removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                                 hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
                         //                    // Snap to nearest neighbor, if close enough

@@ -239,10 +239,17 @@ public class CombinedDatasetReader implements DatasetReader {
             }
         }
 
-        // Assuming all datasets have same bp resolutions -- TODO check this
+        // only retain resolutions in common between all datasets
         dataset.bpZooms = firstDataset.getBpZooms();
+        for (Dataset ds : datasetList) {
+            dataset.bpZooms.retainAll(ds.getBpZooms());
+        }
+
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
+            for (Dataset ds : datasetList) {
+                dataset.fragZooms.retainAll(ds.getFragZooms());
+            }
             dataset.setFragmentCounts(firstDataset.getFragmentCounts());
         }
 
