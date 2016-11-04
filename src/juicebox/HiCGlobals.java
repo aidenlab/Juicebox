@@ -64,7 +64,7 @@ public class HiCGlobals {
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
             MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static final int MAX_PEARSON_ZOOM = 500000;
+    public static int MAX_PEARSON_ZOOM = 500000;
     // Juicebox version (for display purposes only)
     private static final String versionNum = "1.5.2";
     // Juicebox title

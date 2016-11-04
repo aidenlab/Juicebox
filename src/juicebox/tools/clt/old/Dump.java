@@ -27,6 +27,7 @@ package juicebox.tools.clt.old;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
@@ -67,7 +68,7 @@ public class Dump extends JuiceboxCLT {
     }
 
     public static String getUsage(){
-        return "dump <observed/oe/norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> <outfile>";
+        return "dump <observed/oe/norm/expected/pearson/eigenvector> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> <outfile>";
     }
 
     private static void dumpGenomeWideData(Dataset dataset, List<Chromosome> chromosomeList,
@@ -337,7 +338,7 @@ public class Dump extends JuiceboxCLT {
 
         matrixType = MatrixType.enumValueFromString(mType);
         if (matrixType == null) {
-            System.err.println("Matrix or vector must be one of \"observed\", \"oe\", \"pearson\", \"norm\", " +
+            System.err.println("Matrix or vector must be one of \"observed\", \"oe\", \"pearson\",  \"norm\", " +
                     "\"expected\", or \"eigenvector\".");
             System.exit(15);
         }
@@ -404,6 +405,13 @@ public class Dump extends JuiceboxCLT {
             System.exit(21);
         }
 
+        if ((matrixType.equals(MatrixType.EIGENVECTOR) || matrixType.equals(MatrixType.PEARSON)) &&
+                ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_PEARSON_ZOOM) ||
+                        (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM/1000))) {
+            System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
+            System.out.println("To override this limitation, send in the \"-p\" flag.");
+            System.exit(0);
+        }
 
         if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM) && chr1.equals(Globals.CHR_ALL) && chr2.equals(Globals.CHR_ALL)) {
 

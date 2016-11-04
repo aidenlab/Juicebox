@@ -41,6 +41,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option removeCacheMemoryOption = null;
     private static Option verboseOption = null;
     private static Option noNormOption = null;
+    private static Option allPearsonsOption = null;
 
     // String
     private static Option fragmentOption = null;
@@ -63,6 +64,7 @@ public class CommandLineParser extends CmdLineParser {
         removeCacheMemoryOption = addBooleanOption('x', "remove memory cache");
         verboseOption = addBooleanOption('v', "verbose");
         noNormOption = addBooleanOption('n', "no normalization");
+        allPearsonsOption = addBooleanOption('p', "Pearson's/eigenvector at all resolutions");
 
         fragmentOption = addStringOption('f', "restriction fragment site file");
         tmpDirOption = addStringOption('t', "tmpDir");
@@ -101,6 +103,8 @@ public class CommandLineParser extends CmdLineParser {
     }
 
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
+
+    public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
 
     /**
      * String flags

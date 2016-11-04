@@ -64,6 +64,9 @@ public class HiCTools {
         }
         else {
             HiCGlobals.printVerboseComments = ((CommandLineParser)parser).getVerboseOption();
+            if (((CommandLineParser)parser).getAllPearsonsOption()) {
+                HiCGlobals.MAX_PEARSON_ZOOM = 1;
+            }
         }
         String[] args = parser.getRemainingArgs();
 
