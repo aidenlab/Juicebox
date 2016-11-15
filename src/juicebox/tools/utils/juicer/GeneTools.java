@@ -29,6 +29,7 @@ import juicebox.data.GeneLocation;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.GenomeWideList;
+import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -93,21 +94,33 @@ public class GeneTools {
             throws IOException {
         List<MotifAnchor> genes = new ArrayList<MotifAnchor>();
 
+        String nextLine="";
         try {
-            String nextLine;
+
             while ((nextLine = reader.readLine()) != null) {
                 String[] values = nextLine.split("\\s+");
-                if (values.length > 3) {
-                    int chrIndex = handler.getChr(values[2]).getIndex();
-                    int position = Integer.valueOf(values[3].trim());
-                    String name = values[1].trim();
-                    MotifAnchor gene = new MotifAnchor(chrIndex, position - 1, position + 1, name);
-                    genes.add(gene);
+                if (values.length == 4 || values.length == 16) {  // 16 is refGene official format
+                    Chromosome chr = handler.getChr(values[2]);
+                    // refGene contains contigs as well, ignore these genes
+                    if (chr != null) {
+                        int chrIndex = chr.getIndex();
+                        // transcript start; for 4 column format, just position-1
+                        int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                        // transcript end; for 4 column format, just position+1
+                        int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
+                        String name = (values.length==4) ? values[1].trim() : values[12].trim();
+                        MotifAnchor gene = new MotifAnchor(chrIndex, txStart, txEnd, name);
+                        genes.add(gene);
+                    }
                 }
             }
         } catch (Exception e) {
             System.err.println("Gene database not properly formatted");
             System.exit(50);
+        }
+        if (genes.size() == 0) {
+            System.err.println("Gene database not properly formatted");
+            System.exit(51);
         }
 
         return genes;
