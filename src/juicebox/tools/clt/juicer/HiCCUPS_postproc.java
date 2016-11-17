@@ -40,6 +40,7 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
@@ -149,7 +150,7 @@ import java.util.List;
  * > The resulting loop list will be merged and saved as all_hiccups_loops
  * > Note that these are values used for generating the GM12878 loop list
  */
-public class HiCCUPS extends JuicerCLT {
+public class HiCCUPS_postproc extends JuicerCLT {
 
     public static final int regionMargin = 20;
     public static final int krNeighborhood = 5;
@@ -170,7 +171,8 @@ public class HiCCUPS extends JuicerCLT {
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
     private boolean configurationsSetByUser = false;
-    private String featureListPath;
+    private String featureListPath1;
+    private String featureListPath2;
     private boolean listGiven = false;
     private boolean checkMapDensityThreshold = true;
     private List<Chromosome> directlyInitializedCommonChromosomes = null;
@@ -196,7 +198,7 @@ public class HiCCUPS extends JuicerCLT {
     private List<HiCCUPSConfiguration> configurations;
     private Dataset ds;
 
-    public HiCCUPS() {
+    public HiCCUPS_postproc() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
                 "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
                 "<hicFile> <outputDirectory> [specified_loop_list]");
@@ -209,7 +211,7 @@ public class HiCCUPS extends JuicerCLT {
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
-        if (args.length != 3 && args.length != 4) {
+        if (args.length != 3 && args.length != 5) {
             printUsageAndExit();
         }
         // TODO: add code here to check for CUDA/GPU installation. The below is not ideal.
@@ -217,9 +219,10 @@ public class HiCCUPS extends JuicerCLT {
         ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
         outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
-        if (args.length == 4) {
+        if (args.length == 5) {
             listGiven = true;
-            featureListPath = args[3];
+            featureListPath1 = args[3];
+            featureListPath2 = args[4];
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -271,7 +274,7 @@ public class HiCCUPS extends JuicerCLT {
 
         if (featureListPath != null) {
             listGiven = true;
-            this.featureListPath = featureListPath;
+            this.featureListPath1 = featureListPath;
         }
 
         directlyInitializedCommonChromosomes = providedCommonChromosomes;
@@ -297,74 +300,14 @@ public class HiCCUPS extends JuicerCLT {
     @Override
     public void run() {
 
-        try {
-            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
-            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
-            // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
-            // then the map had more than 300M contacts.
-            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-            // todo 300M reads or contacts
-            if (HiCGlobals.printVerboseComments) {
-                System.err.println("First expected is " + firstExpected);
-            }
-            if (firstExpected < 100000) {
-                System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
-                if (checkMapDensityThreshold) {
-                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
-                    System.exit(0);
-                }
-            }
-
-            // high quality (e.g. GM12878) maps have different settings
-            if (!configurationsSetByUser) {
-                configurations = new ArrayList<HiCCUPSConfiguration>();
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-                // TODO: this should be changed to the sum of Hi-C contacts, which we can read from dataset
-                if (firstExpected < 300000) {
-                    configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
-                    System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
-                } else {
-                    System.out.println("Default settings for 5kb and 10kb being used");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
-            if (!configurationsSetByUser) {
-                configurations = new ArrayList<HiCCUPSConfiguration>();
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
-                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
-                System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
-            }
-        }
-
-        List<Chromosome> commonChromosomes = ds.getChromosomes();
-        if (directlyInitializedCommonChromosomes != null && directlyInitializedCommonChromosomes.size() > 0) {
-            commonChromosomes = directlyInitializedCommonChromosomes;
-        } else if (givenChromosomes != null && givenChromosomes.size() > 0) {
-            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    commonChromosomes));
-        }
-
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
-
+        List<Chromosome> commonChromosomes = ds.getChromosomes();
         File outputMergedFile = new File(outputDirectory, MERGED);
-
-        Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
-        if (listGiven) {
-            inputListFeature2DHandler.loadLoopList(featureListPath, commonChromosomes);
-        }
-
-        for (HiCCUPSConfiguration conf : configurations) {
-            System.out.println("Running HiCCUPS for resolution " + conf.getResolution());
-            Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes, inputListFeature2DHandler);
-            if (enrichedPixels != null) {
-                loopLists.put(conf.getResolution(), enrichedPixels);
-            }
-        }
-
         if (dataShouldBePostProcessed) {
+         //   loopLists.put(conf.getResolution(), enrichedPixels);
+            loopLists.put(5000, Feature2DParser.loadFeatures(featureListPath1, commonChromosomes, true, null, false));
+            loopLists.put(10000, Feature2DParser.loadFeatures(featureListPath2, commonChromosomes, true, null, false));
+
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
                     configurations, norm, outputDirectory);
             finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
