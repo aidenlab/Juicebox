@@ -42,7 +42,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
