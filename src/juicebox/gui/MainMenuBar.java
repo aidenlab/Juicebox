@@ -46,6 +46,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -59,9 +61,7 @@ public class MainMenuBar {
     private static final Logger log = Logger.getLogger(MainMenuBar.class);
     public static JMenuItem exportAnnotationsMI;
     public static JMenuItem undoMenuItem;
-    //meh - public static ArrayList<CustomAnnotation> customAnnotations;
-    public static CustomAnnotation customAnnotations;
-    public static CustomAnnotationHandler customAnnotationHandler;
+    public static List<CustomAnnotationHandler> customAnnotationHandlers;
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
@@ -106,9 +106,8 @@ public class MainMenuBar {
     }
 
     public void initializeCustomAnnotations() {
-        // meh - customAnnotations = new ArrayList<CustomAnnotation>();
-        customAnnotations = new CustomAnnotation("1");
-        customAnnotationHandler = new CustomAnnotationHandler();
+        customAnnotationHandlers = new ArrayList<CustomAnnotationHandler>();
+        customAnnotationHandlers.add(new CustomAnnotationHandler(new CustomAnnotation("1")));
     }
 
     public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
@@ -371,7 +370,7 @@ public class MainMenuBar {
         showCustomLoopsItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
+                customAnnotationHandlers.get(0).setShowCustom(showCustomLoopsItem.isSelected());
                 superAdapter.repaint();
             }
         });
@@ -381,7 +380,7 @@ public class MainMenuBar {
         editVisibleMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
+                superAdapter.addVisibleLoops(customAnnotationHandlers.get(0));
                 showLoopsItem.setSelected(false);
                 showCustomLoopsItem.setSelected(true);
                 superAdapter.setShowLoops(false);
@@ -424,7 +423,7 @@ public class MainMenuBar {
         loadLastMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.generateNewCustomAnnotation(temp, "1");
+                superAdapter.generateNewCustomAnnotation(temp, "1", customAnnotationHandlers.get(0));
                 temp.delete();
                 loadLastMI.setEnabled(false);
                 exportAnnotationsMI.setEnabled(true);
@@ -438,7 +437,7 @@ public class MainMenuBar {
 
                 if (n == JOptionPane.YES_OPTION) {
                     //TODO: do something with the saving... just update temp?
-                    customAnnotations.clearAnnotations();
+                    customAnnotationHandlers.get(0).clearAnnotations();
                     exportAnnotationsMI.setEnabled(false);
                     loadLastMI.setEnabled(false);
                     superAdapter.repaint();
@@ -449,7 +448,7 @@ public class MainMenuBar {
         undoMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotationHandler.undo(customAnnotations);
+                customAnnotationHandlers.get(0).undo();
                 superAdapter.repaint();
             }
         });
@@ -736,11 +735,11 @@ public class MainMenuBar {
     }
 
     public void clearAllAnnotations() {
-        customAnnotations.clearAnnotations();
+        customAnnotationHandlers.get(0).clearAnnotations();
     }
 
     public void deleteUnsavedEdits() {
-        customAnnotations.deleteTempFile();
+        customAnnotationHandlers.get(0).deleteTempFile();
     }
 
     public void setEnableForAllElements(boolean status) {

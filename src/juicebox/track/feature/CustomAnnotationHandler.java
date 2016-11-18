@@ -32,6 +32,7 @@ import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Marie on 6/4/15.
@@ -50,9 +51,11 @@ public class CustomAnnotationHandler {
     private int lastChr2Idx = -1;
     private Pair<Integer, Integer> lastStarts = null;
     private Pair<Integer, Integer> lastEnds = null;
+    private CustomAnnotation customAnnotation;
 
-    public CustomAnnotationHandler() {
+    public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
         featureType = Feature2D.FeatureType.NONE;
+        this.customAnnotation = customAnnotation;
         resetSelection();
     }
 
@@ -140,7 +143,7 @@ public class CustomAnnotationHandler {
     }
 
     // Adds to lower lefthand side, for consistency.
-    public void addFeature(HiC hic, CustomAnnotation customAnnotations) {
+    public void addFeature(HiC hic) {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
@@ -220,7 +223,7 @@ public class CustomAnnotationHandler {
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 Color.GREEN, attributes);
-        customAnnotations.add(chr1Idx, chr2Idx, newFeature);
+        customAnnotation.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
     }
@@ -270,34 +273,33 @@ public class CustomAnnotationHandler {
         return (x1 < y2 && x2 < y1) || (x1 > y2 && x2 > y1);
     }
 
-    public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
+    public void addVisibleLoops(HiC hic) {
         try {
             hic.getZd();
         } catch (Exception e) {
-            return customAnnotations;
+            return;
         }
 
         if (hic.getXContext() == null || hic.getYContext() == null)
-            return customAnnotations;
+            return;
 
         java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-        if (loops == null) return customAnnotations;
-        if (customAnnotations == null) {
-            System.out.println("Error! Custom annotations should not be null!");
-            return null;
+        if (loops == null) return;
+        if (customAnnotation == null) {
+            System.err.println("Error! Custom annotations should not be null!");
+            return;
         }
 
         // Add each loop list to the custom annotation list
         for (Feature2DList list : loops) {
-            customAnnotations.addVisibleToCustom(list);
+            customAnnotation.addVisibleToCustom(list);
         }
-        return customAnnotations;
     }
 
-    public void undo(CustomAnnotation customAnnotations) {
-        customAnnotations.undo();
+    public void undo() {
+        customAnnotation.undo();
         if (lastResizeLoop != null) {
-            customAnnotations.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
+            customAnnotation.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
             resetSelection();
         }
         MainMenuBar.undoMenuItem.setEnabled(false);
@@ -354,5 +356,44 @@ public class CustomAnnotationHandler {
 
     private int getYBin(HiC hic, int y) {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+    }
+
+    public void setShowCustom(boolean showCustom) {
+        customAnnotation.setShowCustom(showCustom);
+    }
+
+    public void clearAnnotations() {
+        customAnnotation.clearAnnotations();
+    }
+
+    public void deleteTempFile() {
+        customAnnotation.deleteTempFile();
+    }
+
+    public CustomAnnotation getCustomAnnotation() {
+        return customAnnotation;
+    }
+
+    public void setCustomAnnotation(CustomAnnotation customAnnotation) {
+        this.customAnnotation = customAnnotation;
+    }
+
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
+                                             int numberOfLoopsToFind, double binOriginX,
+                                             double binOriginY, double scaleFactor) {
+        return customAnnotation.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor);
+    }
+
+    public void removeFromList(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
+                               double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
+        customAnnotation.removeFromList(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, feature);
+    }
+
+    public boolean hasLoop(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
+                           double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
+        return customAnnotation.hasLoop(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, feature);
     }
 }

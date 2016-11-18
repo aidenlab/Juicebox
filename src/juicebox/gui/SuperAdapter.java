@@ -193,7 +193,7 @@ public class SuperAdapter {
     }
 
     public void exportAnnotations() {
-        new SaveAnnotationsDialog(MainMenuBar.customAnnotations, getMapName());
+        new SaveAnnotationsDialog(MainMenuBar.customAnnotationHandlers.get(0).getCustomAnnotation(), getMapName());
     }
 
     public void exitActionPerformed() {
@@ -219,9 +219,9 @@ public class SuperAdapter {
             new SaveAnnotationsDialog(customAnnotations, loops.get(0));
     }
 
-    public CustomAnnotation generateNewCustomAnnotation(File temp, String s) {
-        return new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
-                hic.getChromosomes(), true, null, false), s);
+    public void generateNewCustomAnnotation(File temp, String s, CustomAnnotationHandler customAnnotationHandler) {
+        customAnnotationHandler.setCustomAnnotation(new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
+                hic.getChromosomes(), true, null, false), s));
     }
 
     public int clearCustomAnnotationDialog() {
@@ -269,8 +269,8 @@ public class SuperAdapter {
         hic.setShowLoops(showLoops);
     }
 
-    public CustomAnnotation addVisibleLoops(CustomAnnotationHandler handler, CustomAnnotation customAnnotations) {
-        return handler.addVisibleLoops(hic, customAnnotations);
+    public void addVisibleLoops(CustomAnnotationHandler handler) {
+        handler.addVisibleLoops(hic);
     }
 
     public void centerMap(int xBP, int yBP) {

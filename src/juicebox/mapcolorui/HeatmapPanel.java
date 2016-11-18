@@ -338,7 +338,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                         centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
 
-                List<Feature2D> cLoops = MainMenuBar.customAnnotations.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                List<Feature2D> cLoops = MainMenuBar.customAnnotationHandlers.get(0).getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                         centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                 List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
                 for (Feature2D feature2D : cLoops) {
@@ -755,7 +755,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 new EditFeatureAttributesDialog(mainWindow, mostRecentRectFeaturePair.getSecond(),
-                        MainMenuBar.customAnnotations);
+                        MainMenuBar.customAnnotationHandlers.get(0).getCustomAnnotation());
             }
         });
 
@@ -768,7 +768,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int chr1Idx = hic.getXContext().getChromosome().getIndex();
                 int chr2Idx = hic.getYContext().getChromosome().getIndex();
                 try {
-                    MainMenuBar.customAnnotations.removeFromList(hic.getZd(), chr1Idx, chr2Idx, 0, 0,
+                    MainMenuBar.customAnnotationHandlers.get(0).removeFromList(hic.getZd(), chr1Idx, chr2Idx, 0, 0,
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                             hic.getYContext().getBinOrigin(), hic.getScaleFactor(), feature);
                 } catch (Exception ee) {
@@ -1177,8 +1177,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
                 dragMode = DragMode.ANNOTATE;
-                MainMenuBar.customAnnotationHandler.updateSelectionPoint(e.getX(), e.getY());
-                MainMenuBar.customAnnotationHandler.doPeak();
+                MainMenuBar.customAnnotationHandlers.get(0).updateSelectionPoint(e.getX(), e.getY());
+                MainMenuBar.customAnnotationHandlers.get(0).doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
@@ -1187,10 +1187,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Feature2D loop = mostRecentRectFeaturePair.getSecond();
                 // Resizing upper left corner, keep end points stationary
                 if (adjustAnnotation == AdjustAnnotation.LEFT) {
-                    MainMenuBar.customAnnotationHandler.setStationaryEnd(loop.getEnd1(), loop.getEnd2());
+                    MainMenuBar.customAnnotationHandlers.get(0).setStationaryEnd(loop.getEnd1(), loop.getEnd2());
                     // Resizing lower right corner, keep start points stationary
                 } else {
-                    MainMenuBar.customAnnotationHandler.setStationaryStart(loop.getStart1(), loop.getStart2());
+                    MainMenuBar.customAnnotationHandlers.get(0).setStationaryStart(loop.getStart1(), loop.getStart2());
                 }
 
 
@@ -1237,7 +1237,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
             } else if (dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
-                MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
+                MainMenuBar.customAnnotationHandlers.get(0).addFeature(hic);
                 restoreDefaultVariables();
             } else if (dragMode == DragMode.RESIZE) {
                 // New annotation is added (not single click) and new feature from custom annotation
@@ -1253,10 +1253,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     int centerX = (int) (screenWidth / scaleFactor) / 2;
                     int centerY = (int) (screenHeight / scaleFactor) / 2;
 
-                    if (MainMenuBar.customAnnotations.hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
+                    if (MainMenuBar.customAnnotationHandlers.get(0).hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                             hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize == true) {
-                        MainMenuBar.customAnnotations.removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
+                        MainMenuBar.customAnnotationHandlers.get(0).removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                                 hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
                         //                    // Snap to nearest neighbor, if close enough
@@ -1278,8 +1278,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //                    }
 
-                        MainMenuBar.customAnnotationHandler.addFeature(hic, MainMenuBar.customAnnotations);
-                        MainMenuBar.customAnnotationHandler.setLastItem(idx1, idx2, secondLoop);
+                        MainMenuBar.customAnnotationHandlers.get(0).addFeature(hic);
+                        MainMenuBar.customAnnotationHandlers.get(0).setLastItem(idx1, idx2, secondLoop);
                     }
                 } catch (Exception ee) {
                     System.err.println("Unable to remove pre-resized loop");
@@ -1400,7 +1400,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     annotateRectangle = new Rectangle(x, y, Math.abs(deltaX), Math.abs(deltaY));
 
                     damageRect = lastRectangle == null ? annotateRectangle : annotateRectangle.union(lastRectangle);
-                    MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    MainMenuBar.customAnnotationHandlers.get(0).updateSelectionRegion(damageRect);
                     damageRect.x--;
                     damageRect.y--;
                     damageRect.width += 2;
@@ -1436,7 +1436,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     damageRect.width += 1;
                     damageRect.height += 1;
                     paintImmediately(damageRect);
-                    MainMenuBar.customAnnotationHandler.updateSelectionRegion(damageRect);
+                    MainMenuBar.customAnnotationHandlers.get(0).updateSelectionRegion(damageRect);
                     changedSize = true;
                     break;
                 default:
@@ -1445,9 +1445,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     double deltaXBins = -deltaX / hic.getScaleFactor();
                     double deltaYBins = -deltaY / hic.getScaleFactor();
                     hic.moveBy(deltaXBins, deltaYBins);
-
             }
-
         }
 
         private void unsafeMouseClickSubActionA(final MouseEvent eF) {
