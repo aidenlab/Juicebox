@@ -147,7 +147,7 @@ public class MainWindow extends JFrame {
         MainWindow.superAdapter.initializeMainView(contentPane, bigPanelDim, panelDim);
 
         initializeGlassPaneListening();
-        ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox.png"));
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/juicebox256.png"));
         setIconImage(icon.getImage());
     }
 
