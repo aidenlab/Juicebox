@@ -27,6 +27,7 @@ package juicebox.tools.clt;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
 import juicebox.tools.utils.Benchmark;
+import juicebox.tools.dev.GeneFinder;
 
 /**
  * Factory for command line tools to call different functions
@@ -97,8 +98,8 @@ public class CLTFactory {
             return new FragmentToBed();
         } else if (cmd.equals("hiccups")) {
             return new HiCCUPS();
-        } else if (cmd.equals("hiccups_postproc")) {
-            return new HiCCUPS_postproc();
+        } else if (cmd.equals("loop_domains")) {
+            return new LoopDomains();
         } else if (cmd.equals("motifs")) {
             return new MotifFinder();
         } else if (cmd.equals("pairsToBin".toLowerCase())) {
@@ -107,8 +108,12 @@ public class CLTFactory {
             return new SQLDatabase();
         } else if (cmd.equals("hiccupsdiff")) {
             return new HiCCUPSDiff();
+        } else if (cmd.equals("hiccups_postproc")) {
+            return new HiCCUPS_postproc();
         } else if (cmd.equals("ab_compdiff")) {
             return new ABCompartmentsDiff();
+        } else if (cmd.equals("genes")) {
+            return new GeneFinder();
         } else if (cmd.equals("benchmark")) {
             return new Benchmark();
         }

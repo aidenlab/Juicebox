@@ -42,7 +42,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
@@ -215,16 +214,13 @@ class HeatmapRenderer {
             } else if (displayOption == MatrixType.VS) {
 
                 List<Block> comboBlocks = new ArrayList<Block>();
-                try {
-                    comboBlocks.addAll(zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType));
-                } catch (Exception e) {
-                    MessageUtils.showErrorMessage("Error loading Observed in Observed vs Control Map", e);
-                }
-                try {
-                    comboBlocks.addAll(controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType));
-                } catch (Exception e) {
-                    MessageUtils.showErrorMessage("Error loading Control in Observed vs Control Map", e);
-                }
+
+                List<Block> blocks =  zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
+                if (blocks != null) comboBlocks.addAll(blocks);
+
+                blocks =  controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
+                if (blocks != null)  comboBlocks.addAll(blocks);
+
                 if(comboBlocks.isEmpty()){
                     return false;
                 }
@@ -238,7 +234,7 @@ class HeatmapRenderer {
 
 
                 if (zd != null) {
-                    List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
+                    blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                     if (blocks != null) {
                         for (Block b : blocks) {
 
