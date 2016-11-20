@@ -26,6 +26,7 @@ package juicebox.tools.dev;
 
 import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.CustomAnnotationHandler;
 
 import javax.imageio.ImageIO;
@@ -163,16 +164,21 @@ public class LayersPanel extends JPanel {
             }
         });
 
-
-        JToggleButton toggleLLButton = createToggleIconButton("/images/layer/ll_clicked.png", false);
-        JToggleButton toggleURButton = createToggleIconButton("/images/layer/ur_clicked.png", false);
-
+        JButton togglePlottingStyle = createTogglePlottingStyleIconButton(handler, superAdapter);
 
         JButton writeButton = createIconButton("/images/layer/write.png");
         JButton addAnnotationsButton = createIconButton("/images/layer/add_icon.png");
         JButton upButton = createIconButton("/images/layer/up.png");
         JButton downButton = createIconButton("/images/layer/down.png");
         JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
+        exportLayerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.exportAnnotations();
+            }
+        });
+
+
         JButton copyButton = createIconButton("/images/layer/copy.png");
         JButton deleteButton = createIconButton("/images/layer/trash.png");
         JButton clearButton = createIconButton("/images/layer/erase.png");
@@ -183,8 +189,7 @@ public class LayersPanel extends JPanel {
         panel.add(toggleVisibleButton);
         panel.add(toggleTransparentButton);
         panel.add(toggleEnlargeButton);
-        panel.add(toggleLLButton);
-        panel.add(toggleURButton);
+        panel.add(togglePlottingStyle);
         panel.add(addAnnotationsButton);
         panel.add(undoButton);
         panel.add(clearButton);
@@ -195,6 +200,93 @@ public class LayersPanel extends JPanel {
         panel.add(deleteButton);
 
         return panel;
+    }
+
+    private JButton createTogglePlottingStyleIconButton(final CustomAnnotationHandler handler,
+                                                        final SuperAdapter superAdapter) throws IOException {
+
+        // triple state toggle button
+        String url1 = "/images/layer/full_clicked.png";
+        String url2 = "/images/layer/ll_clicked.png";
+        String url3 = "/images/layer/ur_clicked.png";
+
+        // full
+        BufferedImage imageActive1 = ImageIO.read(getClass().getResource(url1));
+        final ImageIcon iconActive1 = new ImageIcon(imageActive1);
+        final ImageIcon iconTransition1 = new ImageIcon(translucentImage(imageActive1, 0.6f));
+        final ImageIcon iconInactive1 = new ImageIcon(translucentImage(imageActive1, 0.2f));
+
+        // ll
+        BufferedImage imageActive2 = ImageIO.read(getClass().getResource(url2));
+        final ImageIcon iconActive2 = new ImageIcon(imageActive2);
+        final ImageIcon iconTransition2 = new ImageIcon(translucentImage(imageActive2, 0.6f));
+        final ImageIcon iconInactive2 = new ImageIcon(translucentImage(imageActive2, 0.2f));
+
+        // ur
+        BufferedImage imageActive3 = ImageIO.read(getClass().getResource(url3));
+        final ImageIcon iconActive3 = new ImageIcon(imageActive3);
+        final ImageIcon iconTransition3 = new ImageIcon(translucentImage(imageActive3, 0.6f));
+        final ImageIcon iconInactive3 = new ImageIcon(translucentImage(imageActive3, 0.2f));
+
+        final JButton triStateButton = new JButton();
+        triStateButton.setBorderPainted(false);
+        triStateButton.addActionListener(new ActionListener() {
+
+            private FeatureRenderer.PlottingOption currentState = handler.getPlottingStyle();
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentState = getNextState(currentState);
+                setStateIcons(triStateButton, currentState, iconActive1, iconTransition1, iconInactive1,
+                        iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3);
+                handler.setPlottingStyle(currentState);
+                superAdapter.repaint();
+            }
+
+        });
+
+        setStateIcons(triStateButton, handler.getPlottingStyle(), iconActive1, iconTransition1, iconInactive1,
+                iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3);
+
+        return triStateButton;
+    }
+
+    private FeatureRenderer.PlottingOption getNextState(FeatureRenderer.PlottingOption state) {
+        switch (state) {
+            case ONLY_LOWER_LEFT:
+                return FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
+            case ONLY_UPPER_RIGHT:
+                return FeatureRenderer.PlottingOption.EVERYTHING;
+            case EVERYTHING:
+                return FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
+        }
+        return FeatureRenderer.PlottingOption.EVERYTHING;
+    }
+
+    private void setStateIcons(JButton triStateButton, FeatureRenderer.PlottingOption state,
+                               ImageIcon iconActive1, ImageIcon iconTransition1, ImageIcon iconInactive1,
+                               ImageIcon iconActive2, ImageIcon iconTransition2, ImageIcon iconInactive2,
+                               ImageIcon iconActive3, ImageIcon iconTransition3, ImageIcon iconInactive3) {
+        switch (state) {
+            case ONLY_LOWER_LEFT:
+                triStateButton.setIcon(iconActive2);
+                triStateButton.setRolloverIcon(iconTransition3);
+                triStateButton.setPressedIcon(iconActive3);
+                triStateButton.setDisabledIcon(iconInactive2);
+                break;
+            case ONLY_UPPER_RIGHT:
+                triStateButton.setIcon(iconActive3);
+                triStateButton.setRolloverIcon(iconTransition1);
+                triStateButton.setPressedIcon(iconActive1);
+                triStateButton.setDisabledIcon(iconInactive3);
+                break;
+            case EVERYTHING:
+                triStateButton.setIcon(iconActive1);
+                triStateButton.setRolloverIcon(iconTransition2);
+                triStateButton.setPressedIcon(iconActive2);
+                triStateButton.setDisabledIcon(iconInactive1);
+                break;
+        }
     }
 
     private JButton createIconButton(String url) throws IOException {

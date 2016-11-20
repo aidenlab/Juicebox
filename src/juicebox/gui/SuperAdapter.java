@@ -171,7 +171,6 @@ public class SuperAdapter {
     public void loadFromListActionPerformed(boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
         if (unsaved.checkAndDelete()) {
-            mainMenuBar.setShow2DAnnotations(true);
             HiCFileLoader.loadFromListActionPerformed(this, control);
         }
     }
@@ -179,7 +178,6 @@ public class SuperAdapter {
     public void loadFromRecentActionPerformed(String url, String title, boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
         if (unsaved.checkAndDelete()) {
-            mainMenuBar.setShow2DAnnotations(true);
             HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
         }
     }
@@ -190,10 +188,6 @@ public class SuperAdapter {
 
     public void launchExportSVG() {
         new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".svg");
-    }
-
-    public void exportAnnotations() {
-        new SaveAnnotationsDialog(MainMenuBar.customAnnotationHandlers.get(0).getCustomAnnotation(), getMapName());
     }
 
     public void exitActionPerformed() {

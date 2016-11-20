@@ -28,7 +28,9 @@ import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
+import juicebox.windowui.SaveAnnotationsDialog;
 import org.broad.igv.util.Pair;
 
 import java.awt.*;
@@ -55,6 +57,7 @@ public class CustomAnnotationHandler {
     private Pair<Integer, Integer> lastEnds = null;
     private CustomAnnotation customAnnotation;
     private String layerName;
+    private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
 
     public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
         featureType = Feature2D.FeatureType.NONE;
@@ -151,7 +154,7 @@ public class CustomAnnotationHandler {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
-        MainMenuBar.exportAnnotationsMI.setEnabled(true);
+        //MainMenuBar.exportAnnotationsMI.setEnabled(true);
         MainMenuBar.undoMenuItem.setEnabled(true);
         clearLastItem();
         String chr1 = hic.getXContext().getChromosome().getName();
@@ -431,5 +434,17 @@ public class CustomAnnotationHandler {
 
     public void setIsEnlarged(boolean isEnlarged) {
         getFeatureHandler().setIsEnlarged(isEnlarged);
+    }
+
+    public FeatureRenderer.PlottingOption getPlottingStyle() {
+        return plottingStyle;
+    }
+
+    public void setPlottingStyle(FeatureRenderer.PlottingOption plottingStyle) {
+        this.plottingStyle = plottingStyle;
+    }
+
+    public void exportAnnotations() {
+        new SaveAnnotationsDialog(getCustomAnnotation(), getLayerName());
     }
 }

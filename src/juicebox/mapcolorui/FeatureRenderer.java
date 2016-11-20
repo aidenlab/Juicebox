@@ -38,14 +38,13 @@ import java.util.List;
  */
 public class FeatureRenderer {
 
-    public static PlottingOption enablePlottingOption = PlottingOption.ONLY_LOWER_LEFT;
-
     public static void render(Graphics2D g2, CustomAnnotationHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
 
         Feature2DHandler feature2DHandler = annotationHandler.getFeatureHandler();
+        PlottingOption enablePlottingOption = annotationHandler.getPlottingStyle();
 
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();

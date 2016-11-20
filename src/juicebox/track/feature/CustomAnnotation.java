@@ -27,7 +27,6 @@ package juicebox.track.feature;
 import juicebox.DirectoryManager;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
-import juicebox.gui.MainMenuBar;
 import juicebox.mapcolorui.Feature2DHandler;
 
 import java.io.File;
@@ -246,7 +245,7 @@ public class CustomAnnotation {
     // Note assumes that all attributes are already correctly formatted. Ok to assume
     // because loaded list must have consistent formatting.
     public void addVisibleToCustom(Feature2DList newAnnotations) {
-        MainMenuBar.exportAnnotationsMI.setEnabled(true);
+        //MainMenuBar.exportAnnotationsMI.setEnabled(true);
         Feature2D featureZero = newAnnotations.extractSingleFeature();
         // Add attributes to feature
         List<String> featureKeys = featureZero.getAttributeKeys();

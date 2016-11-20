@@ -75,7 +75,7 @@ public class UnsavedAnnotationWarning {
         } else if (response == JOptionPane.YES_OPTION) {
             System.out.println("Saving annotations");
             // Save the annotations
-            superAdapter.exportAnnotations();
+            //superAdapter.exportAnnotations();
             superAdapter.clearAllAnnotations();
             return true;
         }

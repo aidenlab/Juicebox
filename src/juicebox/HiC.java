@@ -972,6 +972,7 @@ public class HiC {
         binSizeDictionary.put("1f", 1);
     }
 
+    // TODO MSS REMOVE
     public void setShowLoops(boolean showLoops) {
         feature2DHandler.setLayerVisibility(showLoops);
     }
