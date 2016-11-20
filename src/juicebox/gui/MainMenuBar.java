@@ -672,6 +672,15 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
+        JMenuItem layersItem = new JMenuItem("Layers...");
+        layersItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Private.launchLayersGUI(superAdapter);
+            }
+        });
+        devMenu.add(layersItem);
+
         /*  Sparse (/subset) plotting for 2d annotations  */
         final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
         toggleSparse2DFeaturePlotting.setSelected(false);

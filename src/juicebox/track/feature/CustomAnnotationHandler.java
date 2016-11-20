@@ -39,6 +39,7 @@ import java.util.List;
  */
 public class CustomAnnotationHandler {
 
+    public static int totalNumLayerCounter = 0;
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
@@ -52,11 +53,13 @@ public class CustomAnnotationHandler {
     private Pair<Integer, Integer> lastStarts = null;
     private Pair<Integer, Integer> lastEnds = null;
     private CustomAnnotation customAnnotation;
+    private String layerName;
 
     public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
         featureType = Feature2D.FeatureType.NONE;
         this.customAnnotation = customAnnotation;
         resetSelection();
+        layerName = "Layer " + totalNumLayerCounter++;
     }
 
     private void resetSelection() {
@@ -395,5 +398,13 @@ public class CustomAnnotationHandler {
                            double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
         return customAnnotation.hasLoop(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
                 binOriginX, binOriginY, scaleFactor, feature);
+    }
+
+    public String getLayerName() {
+        return layerName;
+    }
+
+    public void setLayerName(String layerName) {
+        this.layerName = layerName;
     }
 }
