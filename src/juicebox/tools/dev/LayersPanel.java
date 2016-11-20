@@ -34,6 +34,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -77,14 +78,24 @@ public class LayersPanel extends JPanel {
      *
      */
     private JPanel generateLayerSelectionPanel(final SuperAdapter superAdapter) {
-        final JButton showItButton = new JButton("Update View");
+        JButton refreshButton = new JButton("Refresh View");
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.refresh();
+            }
+        });
+
+        JButton newLayerButton = new JButton("Add New Layer");
+
+        JButton mergeButton = new JButton("Merge Visible Layers");
 
         List<JPanel> layerPanel = new ArrayList<JPanel>();
 
         int i = 0;
         for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
             try {
-                JPanel panel = createLayerPanel(handler);
+                JPanel panel = createLayerPanel(handler, superAdapter);
                 layerPanel.add(panel);
             } catch (IOException e) {
                 System.err.println("Unable to generate layer panel " + (i - 1));
@@ -92,10 +103,16 @@ public class LayersPanel extends JPanel {
             }
         }
 
-        return createPane(layerPanel, showItButton);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 0));
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(newLayerButton);
+        buttonPanel.add(mergeButton);
+
+        return createPane(layerPanel, buttonPanel);
     }
 
-    private JPanel createLayerPanel(final CustomAnnotationHandler handler) throws IOException {
+    private JPanel createLayerPanel(final CustomAnnotationHandler handler, final SuperAdapter superAdapter) throws IOException {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 0));
 
@@ -118,18 +135,50 @@ public class LayersPanel extends JPanel {
             }
         });
 
-        JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png");
-        JToggleButton toggleTransparentButton = createToggleIconButton("/images/layer/trans_clicked.png");
-        JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked.png");
-        JToggleButton toggleLLButton = createToggleIconButton("/images/layer/ll_clicked.png");
-        JToggleButton toggleURButton = createToggleIconButton("/images/layer/ur_clicked.png");
+        final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png", handler.getLayerVisibility());
+        toggleVisibleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.setLayerVisibility(toggleVisibleButton.isSelected());
+                superAdapter.repaint();
+            }
+        });
 
+        final JToggleButton toggleTransparentButton = createToggleIconButton("/images/layer/trans_clicked.png", handler.getIsTransparent());
+        toggleTransparentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.setIsTransparent(toggleTransparentButton.isSelected());
+                superAdapter.repaint();
+            }
+        });
+
+
+        final JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked.png", handler.getIsEnlarged());
+        toggleEnlargeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.setIsEnlarged(toggleEnlargeButton.isSelected());
+                superAdapter.repaint();
+            }
+        });
+
+
+        JToggleButton toggleLLButton = createToggleIconButton("/images/layer/ll_clicked.png", false);
+        JToggleButton toggleURButton = createToggleIconButton("/images/layer/ur_clicked.png", false);
+
+
+        JButton writeButton = createIconButton("/images/layer/write.png");
         JButton addAnnotationsButton = createIconButton("/images/layer/add_icon.png");
         JButton upButton = createIconButton("/images/layer/up.png");
         JButton downButton = createIconButton("/images/layer/down.png");
         JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
+        JButton copyButton = createIconButton("/images/layer/copy.png");
         JButton deleteButton = createIconButton("/images/layer/trash.png");
+        JButton clearButton = createIconButton("/images/layer/erase.png");
+        JButton undoButton = createIconButton("/images/layer/undo.png");
 
+        panel.add(writeButton);
         panel.add(nameField);
         panel.add(toggleVisibleButton);
         panel.add(toggleTransparentButton);
@@ -137,9 +186,12 @@ public class LayersPanel extends JPanel {
         panel.add(toggleLLButton);
         panel.add(toggleURButton);
         panel.add(addAnnotationsButton);
+        panel.add(undoButton);
+        panel.add(clearButton);
         panel.add(upButton);
         panel.add(downButton);
         panel.add(exportLayerButton);
+        panel.add(copyButton);
         panel.add(deleteButton);
 
         return panel;
@@ -166,7 +218,7 @@ public class LayersPanel extends JPanel {
      * @return toggle button which changes icon transparency when clicked
      * @throws IOException
      */
-    private JToggleButton createToggleIconButton(String url) throws IOException {
+    private JToggleButton createToggleIconButton(String url, boolean activatedStatus) throws IOException {
 
         // image when button is active/selected (is the darkest shade/color)
         BufferedImage imageActive = ImageIO.read(getClass().getResource(url));
@@ -186,6 +238,7 @@ public class LayersPanel extends JPanel {
         toggleButton.setDisabledSelectedIcon(iconDisabled);
 
         toggleButton.setBorderPainted(false);
+        toggleButton.setSelected(activatedStatus);
 
         return toggleButton;
     }
@@ -211,7 +264,7 @@ public class LayersPanel extends JPanel {
     /**
      * @return
      */
-    private JPanel createPane(List<JPanel> panels, JButton showButton) {
+    private JPanel createPane(List<JPanel> panels, JPanel buttons) {
 
         JPanel box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.PAGE_AXIS));
@@ -222,7 +275,7 @@ public class LayersPanel extends JPanel {
 
         JPanel pane = new JPanel(new BorderLayout());
         pane.add(scrollPane, BorderLayout.CENTER);
-        pane.add(showButton, BorderLayout.PAGE_END);
+        pane.add(buttons, BorderLayout.PAGE_END);
 
         return pane;
     }

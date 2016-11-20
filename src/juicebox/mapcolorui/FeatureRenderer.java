@@ -27,6 +27,7 @@ package juicebox.mapcolorui;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.track.feature.Feature2D;
 
 import java.awt.*;
@@ -39,10 +40,12 @@ public class FeatureRenderer {
 
     public static PlottingOption enablePlottingOption = PlottingOption.ONLY_LOWER_LEFT;
 
-    public static void render(Graphics2D g2, Feature2DHandler feature2DHandler, List<Feature2D> loops, MatrixZoomData zd,
+    public static void render(Graphics2D g2, CustomAnnotationHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
+
+        Feature2DHandler feature2DHandler = annotationHandler.getFeatureHandler();
 
         // Note: we're assuming feature.chr1 == zd.chr1, and that chr1 is on x-axis
         HiCGridAxis xAxis = zd.getXGridAxis();
@@ -63,7 +66,11 @@ public class FeatureRenderer {
                     }
                 }
 
-                g2.setColor(feature.getColor());
+                if (feature2DHandler.getIsTransparent()) {
+                    g2.setColor(feature.getTranslucentColor());
+                } else {
+                    g2.setColor(feature.getColor());
+                }
 
                 Rectangle rect = feature2DHandler.getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scaleFactor);
                 int x = (int) rect.getX();
@@ -137,4 +144,6 @@ public class FeatureRenderer {
     }
 
     public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}
+
+
 }

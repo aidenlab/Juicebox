@@ -28,6 +28,7 @@ import juicebox.DirectoryManager;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
+import juicebox.mapcolorui.Feature2DHandler;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -137,9 +138,13 @@ public class CustomAnnotation {
         this.unsavedEdits = false;
     }
 
+    public boolean getLayerVisibility() {
+        return customAnnotationRTreeHandler.getLayerVisibility();
+    }
+
     // Set show loops
-    public void setShowCustom(boolean newStatus) {
-        customAnnotationRTreeHandler.setShowLoops(newStatus);
+    public void setLayerVisibility(boolean newStatus) {
+        customAnnotationRTreeHandler.setLayerVisibility(newStatus);
     }
 
     // Creates unique identifier for Feature2D based on start and end positions.
@@ -291,5 +296,9 @@ public class CustomAnnotation {
                                              double binOriginX, double binOriginY, double scale) {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
                 binOriginX, binOriginY, scale);
+    }
+
+    public Feature2DHandler getFeatureHandler() {
+        return customAnnotationRTreeHandler;
     }
 }

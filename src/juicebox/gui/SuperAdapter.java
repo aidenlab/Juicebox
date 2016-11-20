@@ -772,14 +772,6 @@ public class SuperAdapter {
         hic.setSparseFeaturePlotting(status);
     }
 
-    public void enlarge2DFeaturePlotting(boolean status) {
-        hic.enlarge2DFeaturePlotting(status);
-    }
-
-    public void toggleFeatureOpacity(boolean status) {
-        hic.toggleFeatureOpacity(status);
-    }
-
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
     }

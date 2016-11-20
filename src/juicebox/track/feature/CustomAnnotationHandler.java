@@ -27,6 +27,7 @@ package juicebox.track.feature;
 import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.MainMenuBar;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.HiCGridAxis;
 import org.broad.igv.util.Pair;
 
@@ -361,8 +362,12 @@ public class CustomAnnotationHandler {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
     }
 
-    public void setShowCustom(boolean showCustom) {
-        customAnnotation.setShowCustom(showCustom);
+    public boolean getLayerVisibility() {
+        return customAnnotation.getLayerVisibility();
+    }
+
+    public void setLayerVisibility(boolean showCustom) {
+        customAnnotation.setLayerVisibility(showCustom);
     }
 
     public void clearAnnotations() {
@@ -406,5 +411,25 @@ public class CustomAnnotationHandler {
 
     public void setLayerName(String layerName) {
         this.layerName = layerName;
+    }
+
+    public Feature2DHandler getFeatureHandler() {
+        return customAnnotation.getFeatureHandler();
+    }
+
+    public boolean getIsTransparent() {
+        return getFeatureHandler().getIsTransparent();
+    }
+
+    public void setIsTransparent(boolean isTransparent) {
+        getFeatureHandler().setIsTransparent(isTransparent);
+    }
+
+    public boolean getIsEnlarged() {
+        return getFeatureHandler().getIsEnlarged();
+    }
+
+    public void setIsEnlarged(boolean isEnlarged) {
+        getFeatureHandler().setIsEnlarged(isEnlarged);
     }
 }

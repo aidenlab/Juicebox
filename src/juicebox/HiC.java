@@ -973,7 +973,7 @@ public class HiC {
     }
 
     public void setShowLoops(boolean showLoops) {
-        feature2DHandler.setShowLoops(showLoops);
+        feature2DHandler.setLayerVisibility(showLoops);
     }
 
     public void setLoopsInvisible(String path) {
@@ -1012,14 +1012,6 @@ public class HiC {
 
     public void setSparseFeaturePlotting(boolean status) {
         feature2DHandler.setSparseFeaturePlotting(status);
-    }
-
-    public void enlarge2DFeaturePlotting(boolean status) {
-        feature2DHandler.enlarge2DFeaturePlotting(status);
-    }
-
-    public void toggleFeatureOpacity(boolean status) {
-        feature2DHandler.toggleFeatureOpacity(status);
     }
 
     public void removeLoadedAnnotation(String path) {

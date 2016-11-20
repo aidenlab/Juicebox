@@ -35,6 +35,7 @@ import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -83,7 +84,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
     private final HeatmapRenderer renderer;
     //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
-    private transient List<Pair<Rectangle, Feature2D>> customFeaturePairs;
+    private transient List<Pair<Rectangle, Feature2D>> customFeaturePairs = new ArrayList<Pair<Rectangle, Feature2D>>();
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -334,29 +335,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 int centerX = (int) (screenWidth / scaleFactor) / 2;
                 int centerY = (int) (screenHeight / scaleFactor) / 2;
-
-                List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
-
-                List<Feature2D> cLoops = MainMenuBar.customAnnotationHandlers.get(0).getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                        centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
-                List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
-                for (Feature2D feature2D : cLoops) {
-                    if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
-                        cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
-                    }
-                }
-                loops.addAll(cLoops);
-                loops.addAll(cLoopsReflected);
-
-                customFeaturePairs = hic.getFeature2DHandler().getFeaturePairs(cLoops, zd, binOriginX, binOriginY, scaleFactor);
-                customFeaturePairs.addAll(hic.getFeature2DHandler().getFeaturePairs(cLoopsReflected, zd, binOriginX, binOriginY, scaleFactor));
-
                 Graphics2D g2 = (Graphics2D) g.create();
-                //g2.fillOval((int)x, (int)y, 20, 20);
+                customFeaturePairs.clear();
 
-                FeatureRenderer.render(g2, hic.getFeature2DHandler(), loops, zd, binOriginX, binOriginY, scaleFactor,
-                        highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+                //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
+
+                for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
+
+                    List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
+                    List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
+                    for (Feature2D feature2D : loops) {
+                        if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
+                            cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                        }
+                    }
+                    customFeaturePairs.addAll(hic.getFeature2DHandler().convertFeaturesToFeaturePairs(loops, zd, binOriginX, binOriginY, scaleFactor));
+                    loops.addAll(cLoopsReflected);
+
+                    FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
+                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+                }
 
                 if (zoomRectangle != null) {
                     ((Graphics2D) g).draw(zoomRectangle);
@@ -1056,10 +1056,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //mouseIsOverFeature = false;
             mostRecentRectFeaturePair = null;
 
-            List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
-            neighbors.addAll(customFeaturePairs);
+            //List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
+            //neighbors.addAll(customFeaturePairs);
 
-            for (Pair<Rectangle, Feature2D> loop : neighbors) {
+            for (Pair<Rectangle, Feature2D> loop : customFeaturePairs) {
                 if (loop.getFirst().contains(x, y)) {
                     // TODO - why is this code duplicated in this file?
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");

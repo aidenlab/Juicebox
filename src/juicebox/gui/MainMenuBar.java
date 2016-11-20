@@ -348,58 +348,8 @@ public class MainMenuBar {
         featureRenderingOptions.add(renderLLFeatureItem);
         featureRenderingOptions.add(renderURFeatureItem);
 
-
-        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
-        enlarge2DFeatures.setSelected(false);
-        enlarge2DFeatures.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.enlarge2DFeaturePlotting(enlarge2DFeatures.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
-
-        final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
-        toggle2DFeatureOpacity.setSelected(false);
-        toggle2DFeatureOpacity.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.toggleFeatureOpacity(toggle2DFeatureOpacity.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
-
-        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
-
-        showCustomLoopsItem.setSelected(true);
-        showCustomLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotationHandlers.get(0).setShowCustom(showCustomLoopsItem.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-
-        final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
-        editVisibleMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.addVisibleLoops(customAnnotationHandlers.get(0));
-                showLoopsItem.setSelected(false);
-                showCustomLoopsItem.setSelected(true);
-                superAdapter.setShowLoops(false);
-                superAdapter.repaint();
-            }
-        });
-
         feature2DPlottingOptions.add(showLoopsItem);
-        feature2DPlottingOptions.add(enlarge2DFeatures);
-        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
         feature2DPlottingOptions.add(featureRenderingOptions);
-        feature2DPlottingOptions.add(editVisibleMI);
 
         annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
@@ -462,7 +412,6 @@ public class MainMenuBar {
         undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 
         //Add annotate menu items
-        customAnnotationMenu.add(showCustomLoopsItem);
         customAnnotationMenu.add(exportAnnotationsMI);
         //customAnnotationMenu.add(exportOverlapMI);
         customAnnotationMenu.add(undoMenuItem);
