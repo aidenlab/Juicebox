@@ -37,7 +37,6 @@ import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.CustomAnnotationHandler;
-import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -205,6 +204,7 @@ public class SuperAdapter {
         return new LoadEncodeAction("Load ENCODE Tracks...", mainWindow, hic);
     }
 
+    /*
     public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
         List<Feature2DList> loops = hic.getAllVisibleLoopLists();
         if (loops.size() != 1)
@@ -212,6 +212,7 @@ public class SuperAdapter {
         else
             new SaveAnnotationsDialog(customAnnotations, loops.get(0));
     }
+    */
 
     public void generateNewCustomAnnotation(File temp, String s, CustomAnnotationHandler customAnnotationHandler) {
         customAnnotationHandler.setCustomAnnotation(new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
@@ -259,6 +260,7 @@ public class SuperAdapter {
         mainViewPanel.setNormalizationDisplayState(hic);
     }
 
+    /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
     }
@@ -266,6 +268,7 @@ public class SuperAdapter {
     public void addVisibleLoops(CustomAnnotationHandler handler) {
         handler.addVisibleLoops(hic);
     }
+    */
 
     public void centerMap(int xBP, int yBP) {
         hic.center(xBP, yBP);
@@ -756,10 +759,6 @@ public class SuperAdapter {
 
     public void deleteUnsavedEdits() {
         mainMenuBar.deleteUnsavedEdits();
-    }
-
-    public void clearAllAnnotations() {
-        mainMenuBar.clearAllAnnotations();
     }
 
     public void setSparseFeaturePlotting(boolean status) {

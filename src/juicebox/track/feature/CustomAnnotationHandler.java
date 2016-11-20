@@ -30,6 +30,7 @@ import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.SaveAnnotationsDialog;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
@@ -58,8 +59,8 @@ public class CustomAnnotationHandler {
     private CustomAnnotation customAnnotation;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
-    private boolean canExport = false, canUndo = false;
-    private JButton exportButton, undoButton;
+    private boolean canExport = false, canUndo = false, importAnnotationsEnabled = false;
+    private JButton exportButton, undoButton, importAnnotationsButton;
 
     public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
         featureType = Feature2D.FeatureType.NONE;
@@ -312,6 +313,7 @@ public class CustomAnnotationHandler {
         return (x1 < y2 && x2 < y1) || (x1 > y2 && x2 > y1);
     }
 
+    /*
     public void addVisibleLoops(HiC hic) {
         try {
             hic.getZd();
@@ -337,6 +339,7 @@ public class CustomAnnotationHandler {
             }
         }
     }
+    */
 
     public void undo(JButton undoButton) {
         customAnnotation.undo();
@@ -482,4 +485,29 @@ public class CustomAnnotationHandler {
     public void exportAnnotations() {
         new SaveAnnotationsDialog(getCustomAnnotation(), getLayerName());
     }
+
+    public void setImportAnnotationButton(JButton importAnnotationsButton) {
+        this.importAnnotationsButton = importAnnotationsButton;
+    }
+
+    public boolean getImportAnnotationsEnabled() {
+        return importAnnotationsEnabled;
+    }
+
+    public void setImportAnnotationsEnabled(boolean importAnnotationsEnabled) {
+        this.importAnnotationsEnabled = importAnnotationsEnabled;
+        if (importAnnotationsButton != null) {
+            importAnnotationsButton.setEnabled(importAnnotationsEnabled);
+        }
+    }
+
+    public void loadLoopList(String path, List<Chromosome> chromosomes) {
+        getFeatureHandler().loadLoopList(path, chromosomes);
+    }
+
+    public List<Feature2DList> getAllVisibleLoopLists() {
+        return getFeatureHandler().getAllVisibleLoopLists();
+    }
+
+
 }

@@ -106,6 +106,7 @@ public class HiCTrackManager {
                 System.out.println("Removing " + locator.getName());
                 hic.removeTrack(locator);
 
+                /*
                 if (locator.getType() != null && ((locator.getType().equals("loop")) || locator.getType().equals("domain"))) {
                     try {
                         System.out.println("Loading invis " + locator.getPath());
@@ -115,6 +116,7 @@ public class HiCTrackManager {
                         MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
                     }
                 }
+                */
             }
         }
         superAdapter.updateTrackPanel();

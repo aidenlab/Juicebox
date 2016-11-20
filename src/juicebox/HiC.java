@@ -28,11 +28,10 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
+import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.*;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -41,7 +40,6 @@ import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
-import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -982,13 +980,15 @@ public class HiC {
     }
 
     public void loadLoopList(String path) {
-        feature2DHandler.loadLoopList(path, chromosomes);
+        MainMenuBar.customAnnotationHandlers.get(0).loadLoopList(path, chromosomes);
     }
 
+    /*
     public List<Feature2DList> getAllVisibleLoopLists() {
         return feature2DHandler.getAllVisibleLoopLists();
     }
 
+    /*
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
         return feature2DHandler.getVisibleFeatures(chrIdx1, chrIdx2);
     }
@@ -1002,6 +1002,7 @@ public class HiC {
         return feature2DHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
 
+
     public List<Pair<Rectangle, Feature2D>> findNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x,
                                                                    int y, int n) {
         double binOriginX = getXContext().getBinOrigin();
@@ -1010,6 +1011,7 @@ public class HiC {
 
         return feature2DHandler.getNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
+    */
 
     public void setSparseFeaturePlotting(boolean status) {
         feature2DHandler.setSparseFeaturePlotting(status);

@@ -28,12 +28,15 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
+import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
+import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -93,7 +96,11 @@ public class XMLFileHandling {
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
         }
 
-        List<Feature2DList> visibleLoops = hic.getAllVisibleLoopLists();
+        // TODO this needs some major restructuring
+        List<Feature2DList> visibleLoops = new ArrayList<Feature2DList>();
+        for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
+            visibleLoops.addAll(handler.getAllVisibleLoopLists());
+        }
         if (visibleLoops != null && !visibleLoops.isEmpty()) {
             textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
                     dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();

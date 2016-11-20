@@ -27,6 +27,7 @@ package juicebox.tools.dev;
 import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
+import juicebox.track.LoadAction;
 import juicebox.track.feature.CustomAnnotationHandler;
 
 import javax.imageio.ImageIO;
@@ -214,7 +215,18 @@ public class LayersPanel extends JPanel {
         });
         clearButton.setToolTipText("Clear all annotations in this layer");
 
-        JButton addAnnotationsButton = createIconButton("/images/layer/import_icon.png");
+        JButton importAnnotationsButton = createIconButton("/images/layer/import_icon.png");
+        importAnnotationsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LoadAction loadAction = new LoadAction("Import 2D Annotations...", handler, superAdapter);
+                loadAction.actionPerformed(e);
+            }
+        });
+        handler.setImportAnnotationButton(importAnnotationsButton);
+        importAnnotationsButton.setEnabled(handler.getImportAnnotationsEnabled());
+        importAnnotationsButton.setToolTipText("Import annotations into this layer");
+
         JButton writeButton = createIconButton("/images/layer/write.png");
         JButton upButton = createIconButton("/images/layer/up.png");
         JButton downButton = createIconButton("/images/layer/down.png");
@@ -228,14 +240,14 @@ public class LayersPanel extends JPanel {
         panel.add(toggleTransparentButton);
         panel.add(toggleEnlargeButton);
         panel.add(togglePlottingStyle);
-        panel.add(addAnnotationsButton);
         panel.add(undoButton);
         panel.add(clearButton);
-        panel.add(upButton);
-        panel.add(downButton);
+        panel.add(importAnnotationsButton);
         panel.add(exportLayerButton);
         panel.add(copyButton);
         panel.add(deleteButton);
+        panel.add(upButton);
+        panel.add(downButton);
 
         return panel;
     }

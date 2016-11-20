@@ -592,17 +592,15 @@ public class MainMenuBar {
         return recentLocationMenu;
     }
 
-
-    public void clearAllAnnotations() {
-        customAnnotationHandlers.get(0).clearAnnotations();
-    }
-
     public void deleteUnsavedEdits() {
         customAnnotationHandlers.get(0).deleteTempFile();
     }
 
     public void setEnableForAllElements(boolean status) {
         annotationsMenu.setEnabled(status);
+        for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
+            handler.setImportAnnotationsEnabled(status);
+        }
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);
