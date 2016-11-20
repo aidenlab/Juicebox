@@ -58,7 +58,6 @@ public class MainMenuBar {
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
     private static final Logger log = Logger.getLogger(MainMenuBar.class);
-    public static JMenuItem undoMenuItem;
     public static List<CustomAnnotationHandler> customAnnotationHandlers;
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
@@ -298,8 +297,6 @@ public class MainMenuBar {
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         //final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
         loadLastMI = new JMenuItem("Load Last Session");
-        undoMenuItem = new JMenuItem("Undo Annotation");
-        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
 
         /*exportOverlapMI.addActionListener(new ActionListener() {
             @Override
@@ -314,45 +311,17 @@ public class MainMenuBar {
                 superAdapter.generateNewCustomAnnotation(temp, "1", customAnnotationHandlers.get(0));
                 temp.delete();
                 loadLastMI.setEnabled(false);
+                MainMenuBar.customAnnotationHandlers.get(0).setExportAbility(true);
             }
         });
-
-        clearCurrentMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int n = superAdapter.clearCustomAnnotationDialog();
-
-                if (n == JOptionPane.YES_OPTION) {
-                    //TODO: do something with the saving... just update temp?
-                    customAnnotationHandlers.get(0).clearAnnotations();
-
-                    loadLastMI.setEnabled(false);
-                    superAdapter.repaint();
-                }
-            }
-        });
-
-        undoMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotationHandlers.get(0).undo();
-                superAdapter.repaint();
-            }
-        });
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 
         //Add annotate menu items
         //customAnnotationMenu.add(exportOverlapMI);
-        customAnnotationMenu.add(undoMenuItem);
-        customAnnotationMenu.add(clearCurrentMI);
         if (unsavedEditsExist()) {
             customAnnotationMenu.add(new JSeparator());
             customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
         }
-
-        undoMenuItem.setEnabled(false);
-
         annotationsMenu.add(customAnnotationMenu);
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 

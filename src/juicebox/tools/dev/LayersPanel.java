@@ -117,6 +117,7 @@ public class LayersPanel extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 0));
 
+        /* layer name */
         final JTextField nameField = new JTextField(handler.getLayerName());
         nameField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -126,16 +127,15 @@ public class LayersPanel extends JPanel {
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                //handler.setLayerName(nameField.getText());
-
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                //handler.setLayerName(nameField.getText());
             }
         });
+        nameField.setToolTipText("Change the name for this layer");
 
+        /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png", handler.getLayerVisibility());
         toggleVisibleButton.addActionListener(new ActionListener() {
             @Override
@@ -144,7 +144,9 @@ public class LayersPanel extends JPanel {
                 superAdapter.repaint();
             }
         });
+        toggleVisibleButton.setToolTipText("Toggle visibility of this layer");
 
+        /* toggle transparency for this layer */
         final JToggleButton toggleTransparentButton = createToggleIconButton("/images/layer/trans_clicked.png", handler.getIsTransparent());
         toggleTransparentButton.addActionListener(new ActionListener() {
             @Override
@@ -153,8 +155,9 @@ public class LayersPanel extends JPanel {
                 superAdapter.repaint();
             }
         });
+        toggleTransparentButton.setToolTipText("Toggle transparency of this layer");
 
-
+        /* toggle whether the features will be enlarged for this layer */
         final JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked.png", handler.getIsEnlarged());
         toggleEnlargeButton.addActionListener(new ActionListener() {
             @Override
@@ -163,26 +166,61 @@ public class LayersPanel extends JPanel {
                 superAdapter.repaint();
             }
         });
+        toggleEnlargeButton.setToolTipText("Enlarge features in this layer");
 
+        /* toggle plotting styles; setup and action done in helper function */
         JButton togglePlottingStyle = createTogglePlottingStyleIconButton(handler, superAdapter);
+        togglePlottingStyle.setToolTipText("Change partial plotting style in this layer");
 
-        JButton writeButton = createIconButton("/images/layer/write.png");
-        JButton addAnnotationsButton = createIconButton("/images/layer/add_icon.png");
-        JButton upButton = createIconButton("/images/layer/up.png");
-        JButton downButton = createIconButton("/images/layer/down.png");
-        JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
+        /* export annotations in layer to new file */
+        final JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
         exportLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 handler.exportAnnotations();
             }
         });
+        handler.setExportButton(exportLayerButton);
+        exportLayerButton.setEnabled(handler.getExportCapability());
+        exportLayerButton.setToolTipText("Export annotations from this layer");
 
+        /* undo last annotation in layer */
+        final JButton undoButton = createIconButton("/images/layer/undo.png");
+        undoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.undo(undoButton);
+                superAdapter.repaint();
+            }
+        });
+        handler.setUndoButton(undoButton);
+        undoButton.setEnabled(handler.getUndoCapability());
+        undoButton.setToolTipText("Undo last new feature in this layer");
+
+        /* clear annoations in this layer */
+        JButton clearButton = createIconButton("/images/layer/erase.png");
+        clearButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.clearCustomAnnotationDialog() == JOptionPane.YES_OPTION) {
+                    //TODO: do something with the saving... just update temp?
+                    handler.clearAnnotations();
+                    handler.setExportAbility(false);
+                    superAdapter.repaint();
+                    handler.setExportAbility(false);
+                    handler.setUndoAbility(false);
+                }
+            }
+        });
+        clearButton.setToolTipText("Clear all annotations in this layer");
+
+        JButton addAnnotationsButton = createIconButton("/images/layer/import_icon.png");
+        JButton writeButton = createIconButton("/images/layer/write.png");
+        JButton upButton = createIconButton("/images/layer/up.png");
+        JButton downButton = createIconButton("/images/layer/down.png");
 
         JButton copyButton = createIconButton("/images/layer/copy.png");
         JButton deleteButton = createIconButton("/images/layer/trash.png");
-        JButton clearButton = createIconButton("/images/layer/erase.png");
-        JButton undoButton = createIconButton("/images/layer/undo.png");
 
         panel.add(writeButton);
         panel.add(nameField);

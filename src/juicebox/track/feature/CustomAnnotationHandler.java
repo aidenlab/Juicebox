@@ -26,13 +26,13 @@ package juicebox.track.feature;
 
 import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
-import juicebox.gui.MainMenuBar;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.SaveAnnotationsDialog;
 import org.broad.igv.util.Pair;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +58,8 @@ public class CustomAnnotationHandler {
     private CustomAnnotation customAnnotation;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
+    private boolean canExport = false, canUndo = false;
+    private JButton exportButton, undoButton;
 
     public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
         featureType = Feature2D.FeatureType.NONE;
@@ -108,18 +110,6 @@ public class CustomAnnotationHandler {
         selectionRegion = newRegion;
     }
 
-    public void setLastItem(int idx1, int idx2, Feature2D lastLoop) {
-        lastChr1Idx = idx1;
-        lastChr2Idx = idx2;
-        lastResizeLoop = lastLoop;
-    }
-
-    private void clearLastItem() {
-        lastChr1Idx = -1;
-        lastChr2Idx = -1;
-        lastResizeLoop = null;
-    }
-
 //    // Update selection region from new coordinates
 //    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
 //
@@ -145,8 +135,50 @@ public class CustomAnnotationHandler {
 //        return damageRect;
 //    }
 
+    public void setLastItem(int idx1, int idx2, Feature2D lastLoop) {
+        lastChr1Idx = idx1;
+        lastChr2Idx = idx2;
+        lastResizeLoop = lastLoop;
+    }
+
+    private void clearLastItem() {
+        lastChr1Idx = -1;
+        lastChr2Idx = -1;
+        lastResizeLoop = null;
+    }
+
     public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
+    }
+
+    public void setExportAbility(boolean allowed) {
+        canExport = allowed;
+        if (exportButton != null) {
+            exportButton.setEnabled(true);
+        }
+    }
+
+    public void setExportButton(JButton exportButton) {
+        this.exportButton = exportButton;
+    }
+
+    public boolean getExportCapability() {
+        return canExport;
+    }
+
+    public void setUndoAbility(boolean allowed) {
+        canUndo = allowed;
+        if (undoButton != null) {
+            undoButton.setEnabled(true);
+        }
+    }
+
+    public void setUndoButton(JButton undoButton) {
+        this.undoButton = undoButton;
+    }
+
+    public boolean getUndoCapability() {
+        return canUndo;
     }
 
     // Adds to lower lefthand side, for consistency.
@@ -154,8 +186,8 @@ public class CustomAnnotationHandler {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
-        //MainMenuBar.exportAnnotationsMI.setEnabled(true);
-        MainMenuBar.undoMenuItem.setEnabled(true);
+        setExportAbility(true);
+        setUndoAbility(true);
         clearLastItem();
         String chr1 = hic.getXContext().getChromosome().getName();
         String chr2 = hic.getYContext().getChromosome().getName();
@@ -298,18 +330,21 @@ public class CustomAnnotationHandler {
         }
 
         // Add each loop list to the custom annotation list
-        for (Feature2DList list : loops) {
-            customAnnotation.addVisibleToCustom(list);
+        if (loops.size() > 0) {
+            setExportAbility(true);
+            for (Feature2DList list : loops) {
+                customAnnotation.addVisibleToCustom(list);
+            }
         }
     }
 
-    public void undo() {
+    public void undo(JButton undoButton) {
         customAnnotation.undo();
         if (lastResizeLoop != null) {
             customAnnotation.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
             resetSelection();
         }
-        MainMenuBar.undoMenuItem.setEnabled(false);
+        undoButton.setEnabled(false);
     }
 
     private boolean nearDiagonal(HiC hic, int x, int y) {

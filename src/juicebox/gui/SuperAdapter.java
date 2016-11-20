@@ -221,7 +221,7 @@ public class SuperAdapter {
     public int clearCustomAnnotationDialog() {
         return JOptionPane.showConfirmDialog(
                 mainWindow,
-                "Are you sure you want to clear all custom annotations?",
+                "Are you sure you want to clear this layer's annotations?",
                 "Confirm",
                 JOptionPane.YES_NO_OPTION);
     }
