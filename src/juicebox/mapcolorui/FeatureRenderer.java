@@ -139,7 +139,6 @@ public class FeatureRenderer {
                 g2.drawLine(0, y + w, maxWidth, y + w);
             }
         }
-        g2.dispose();
     }
 
     public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}

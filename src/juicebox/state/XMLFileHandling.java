@@ -28,7 +28,6 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
-import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
@@ -98,7 +97,7 @@ public class XMLFileHandling {
 
         // TODO this needs some major restructuring
         List<Feature2DList> visibleLoops = new ArrayList<Feature2DList>();
-        for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
+        for (CustomAnnotationHandler handler : superAdapter.getAllLayers()) {
             visibleLoops.addAll(handler.getAllVisibleLoopLists());
         }
         if (visibleLoops != null && !visibleLoops.isEmpty()) {

@@ -24,7 +24,6 @@
 
 package juicebox.windowui;
 
-import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
@@ -68,7 +67,7 @@ public class UnsavedAnnotationWarning {
 
         if (response == JOptionPane.NO_OPTION) {
             //System.out.println("Deleting annotations");
-            MainMenuBar.customAnnotationHandlers.get(0).clearAnnotations();
+            superAdapter.getActiveLayer().clearAnnotations();
             return true;
         } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
             //System.out.println("meh i don't wanna commit");
@@ -77,7 +76,7 @@ public class UnsavedAnnotationWarning {
             System.out.println("Saving annotations");
             // Save the annotations
             //superAdapter.exportAnnotations();
-            MainMenuBar.customAnnotationHandlers.get(0).clearAnnotations();
+            superAdapter.getActiveLayer().clearAnnotations();
             return true;
         }
         return false;

@@ -130,7 +130,7 @@ public class Feature2DHandler {
 
     public void setLoopsInvisible(String path) {
         if (loopLists.containsKey(path)) {
-            loopLists.get(path).setVisible(false);
+            //loopLists.get(path).setVisible(false);
             remakeRTree();
         }
     }
@@ -139,7 +139,7 @@ public class Feature2DHandler {
         allFeaturesAcrossGenome.clear();
         featureRtrees.clear();
         for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
+            //if (list.isVisible()) {
                 list.processLists(new FeatureFunction() {
                     @Override
                     public void process(String chr, List<Feature2D> feature2DList) {
@@ -164,7 +164,7 @@ public class Feature2DHandler {
                         }
                     }
                 });
-            }
+            //}
         }
 
         for (String key : allFeaturesAcrossGenome.keySet()) {
@@ -187,14 +187,14 @@ public class Feature2DHandler {
             Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
             loopLists.put(path, newList);
         }
-        loopLists.get(path).setVisible(true);
+        //loopLists.get(path).setVisible(true);
         remakeRTree();
     }
 
     public void loadLoopList(Feature2DList feature2DList) {
         String hashID = feature2DList.hashCode() + "";
         if (loopLists.get(hashID) != null) {
-            loopLists.get(hashID).setVisible(true);
+            //loopLists.get(hashID).setVisible(true);
             System.out.println("Making " + hashID + " visible");
         } else {
             loopLists.put(hashID, feature2DList);
@@ -341,5 +341,11 @@ public class Feature2DHandler {
 
     public void setIsEnlarged(boolean status) {
         isEnlargedPlottingEnabled = status;
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        for (Feature2DList list : loopLists.values()) {
+            list.setColor(color);
+        }
     }
 }

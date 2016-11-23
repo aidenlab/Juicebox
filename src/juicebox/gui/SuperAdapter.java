@@ -68,6 +68,8 @@ public class SuperAdapter {
     private MainMenuBar mainMenuBar;
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
+    private List<CustomAnnotationHandler> customAnnotationHandlers = new ArrayList<CustomAnnotationHandler>();
+    private CustomAnnotationHandler activeLayer;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -90,10 +92,6 @@ public class SuperAdapter {
 
     public void addRecentStateMenuEntry(String title, boolean status) {
         mainMenuBar.addRecentStateMenuEntry(title, status);
-    }
-
-    public void initializeCustomAnnotations() {
-        mainMenuBar.initializeCustomAnnotations();
     }
 
     public JMenuBar createMenuBar() {
@@ -126,6 +124,9 @@ public class SuperAdapter {
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
+        for (CustomAnnotationHandler handler : customAnnotationHandlers) {
+            handler.setImportAnnotationsEnabled(status);
+        }
     }
 
     public void resetControlMap() {
@@ -214,9 +215,9 @@ public class SuperAdapter {
     }
     */
 
-    public void generateNewCustomAnnotation(File temp, String s, CustomAnnotationHandler customAnnotationHandler) {
-        customAnnotationHandler.setCustomAnnotation(new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
-                hic.getChromosomes(), true, null, false), s));
+    public void generateNewCustomAnnotation(File temp) {
+        getActiveLayer().setCustomAnnotation(
+                new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
@@ -758,14 +759,46 @@ public class SuperAdapter {
     }
 
     public void deleteUnsavedEdits() {
-        mainMenuBar.deleteUnsavedEdits();
+        getActiveLayer().deleteTempFile();
     }
 
     public void setSparseFeaturePlotting(boolean status) {
-        hic.setSparseFeaturePlotting(status);
+        //hic.setSparseFeaturePlotting(status);
+        getActiveLayer().getFeatureHandler().setSparseFeaturePlotting(status);
     }
 
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
+    }
+
+
+    public CustomAnnotationHandler getActiveLayer() {
+        printNumFeatures();
+        return activeLayer;
+    }
+
+    public void setActiveLayer(CustomAnnotationHandler activeLayer) {
+        this.activeLayer = activeLayer;
+        for (CustomAnnotationHandler layer : customAnnotationHandlers) {
+            layer.setActiveLayerButtonStatus(false);
+        }
+        activeLayer.setActiveLayerButtonStatus(true);
+    }
+
+    public List<CustomAnnotationHandler> getAllLayers() {
+        return customAnnotationHandlers;
+    }
+
+    public CustomAnnotationHandler createNewLayer() {
+        activeLayer = new CustomAnnotationHandler();
+        customAnnotationHandlers.add(activeLayer);
+        setActiveLayer(activeLayer); // call this anyways because other layers need to fix button settings
+        return activeLayer;
+    }
+
+    public void printNumFeatures() {
+        for (CustomAnnotationHandler handler : customAnnotationHandlers) {
+            System.out.println(handler.getLayerName() + " " + handler.getNumberOfFeatures());
+        }
     }
 }

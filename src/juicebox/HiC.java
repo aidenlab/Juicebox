@@ -28,9 +28,7 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
-import juicebox.gui.MainMenuBar;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.*;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
@@ -63,7 +61,7 @@ public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     //private final MainWindow mainWindow;
-    private final Feature2DHandler feature2DHandler;
+    //private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
     private final SuperAdapter superAdapter;
@@ -94,7 +92,7 @@ public class HiC {
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
         trackManager = new HiCTrackManager(superAdapter, this);
-        feature2DHandler = new Feature2DHandler();
+        //feature2DHandler = new Feature2DHandler();
         m_zoomChanged = false;
         m_displayOptionChanged = false;
         m_normalizationTypeChanged = false;
@@ -150,7 +148,7 @@ public class HiC {
 
     private void clearFeatures() {
         trackManager.clearTracks();
-        feature2DHandler.clearLists();
+        // feature2DHandler.clearLists();
     }
 
     public double getScaleFactor() {
@@ -971,16 +969,17 @@ public class HiC {
     }
 
     // TODO MSS REMOVE
-    public void setShowLoops(boolean showLoops) {
+    /*public void setShowLoops(boolean showLoops) {
         feature2DHandler.setLayerVisibility(showLoops);
     }
 
     public void setLoopsInvisible(String path) {
         feature2DHandler.setLoopsInvisible(path);
     }
+    */
 
     public void loadLoopList(String path) {
-        MainMenuBar.customAnnotationHandlers.get(0).loadLoopList(path, chromosomes);
+        superAdapter.getActiveLayer().loadLoopList(path, chromosomes);
     }
 
     /*
@@ -1013,14 +1012,18 @@ public class HiC {
     }
     */
 
+    /*
     public void setSparseFeaturePlotting(boolean status) {
         feature2DHandler.setSparseFeaturePlotting(status);
     }
+    */
 
+    /*
     public void removeLoadedAnnotation(String path) {
 
         feature2DHandler.removeFeaturePath(path);
     }
+    */
 
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
 
@@ -1123,9 +1126,9 @@ public class HiC {
                 (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
-    public Feature2DHandler getFeature2DHandler() {
+    /*public Feature2DHandler getFeature2DHandler() {
         return feature2DHandler;
-    }
+    }*/
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
 

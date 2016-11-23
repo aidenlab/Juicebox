@@ -32,8 +32,6 @@ import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
@@ -45,8 +43,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 8/4/15.
@@ -58,7 +54,7 @@ public class MainMenuBar {
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
     private static final Logger log = Logger.getLogger(MainMenuBar.class);
-    public static List<CustomAnnotationHandler> customAnnotationHandlers;
+
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
@@ -102,10 +98,7 @@ public class MainMenuBar {
         recentLocationMenu.addEntry(title, status);
     }
 
-    public void initializeCustomAnnotations() {
-        customAnnotationHandlers = new ArrayList<CustomAnnotationHandler>();
-        customAnnotationHandlers.add(new CustomAnnotationHandler(new CustomAnnotation("1")));
-    }
+
 
     public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
 
@@ -308,10 +301,10 @@ public class MainMenuBar {
         loadLastMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.generateNewCustomAnnotation(temp, "1", customAnnotationHandlers.get(0));
+                superAdapter.generateNewCustomAnnotation(temp);
                 temp.delete();
                 loadLastMI.setEnabled(false);
-                MainMenuBar.customAnnotationHandlers.get(0).setExportAbility(true);
+                superAdapter.getActiveLayer().setExportAbility(true);
             }
         });
 
@@ -592,15 +585,8 @@ public class MainMenuBar {
         return recentLocationMenu;
     }
 
-    public void deleteUnsavedEdits() {
-        customAnnotationHandlers.get(0).deleteTempFile();
-    }
-
     public void setEnableForAllElements(boolean status) {
         annotationsMenu.setEnabled(status);
-        for (CustomAnnotationHandler handler : MainMenuBar.customAnnotationHandlers) {
-            handler.setImportAnnotationsEnabled(status);
-        }
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);

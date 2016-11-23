@@ -364,8 +364,9 @@ public class ResourceTree {
 
         ResourceLocator locator = ((CheckableResource) node.getUserObject()).getResourceLocator();
 
-        String path = locator.getPath();
-        hic.removeLoadedAnnotation(path); // actually removes the entry (at least 2d annotation) so that it can be reloaded
+        // no longer needed? MSS
+        //String path = locator.getPath();
+        //hic.removeLoadedAnnotation(path); // actually removes the entry (at least 2d annotation) so that it can be reloaded
 
         deselectedLocators.add(locator);
         loadedLocators.remove(locator);

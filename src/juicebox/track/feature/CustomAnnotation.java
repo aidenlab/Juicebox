@@ -29,6 +29,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.Feature2DHandler;
 
+import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -39,7 +40,8 @@ import java.util.List;
  */
 public class CustomAnnotation {
 
-    private final String id;
+    private static int i;
+    private final int id;
     private CustomAnnotationRTree2DHandler customAnnotationRTreeHandler;
     private boolean unsavedEdits;
     private boolean firstSave;
@@ -50,16 +52,14 @@ public class CustomAnnotation {
     private File tempFile;
     private ArrayList<String> attributeKeys;
 
-    public CustomAnnotation(String id) {
-        this.id = id;
+    public CustomAnnotation() {
+        id = i++;
         firstSave = true;
         reset();
     }
 
-    public CustomAnnotation(Feature2DList inputList, String id) {
-        this.id = id;
-        firstSave = true;
-        reset();
+    public CustomAnnotation(Feature2DList inputList) {
+        this();
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
     }
 
@@ -298,5 +298,17 @@ public class CustomAnnotation {
 
     public Feature2DHandler getFeatureHandler() {
         return customAnnotationRTreeHandler;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getNumberOfFeatures() {
+        return customAnnotationRTreeHandler.getNumberOfFeatures();
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        customAnnotationRTreeHandler.setColorOfAllAnnotations(color);
     }
 }

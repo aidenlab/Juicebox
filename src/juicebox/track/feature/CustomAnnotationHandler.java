@@ -26,6 +26,7 @@ package juicebox.track.feature;
 
 import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
+import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
@@ -43,7 +44,7 @@ import java.util.List;
  */
 public class CustomAnnotationHandler {
 
-    public static int totalNumLayerCounter = 0;
+    private static boolean importAnnotationsEnabled = false;
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
@@ -59,14 +60,16 @@ public class CustomAnnotationHandler {
     private CustomAnnotation customAnnotation;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
-    private boolean canExport = false, canUndo = false, importAnnotationsEnabled = false;
+    private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton;
+    private JToggleButton activeLayerButton;
+    private Color defaultColor = Color.GREEN;
 
-    public CustomAnnotationHandler(CustomAnnotation customAnnotation) {
+    public CustomAnnotationHandler() {
         featureType = Feature2D.FeatureType.NONE;
-        this.customAnnotation = customAnnotation;
+        this.customAnnotation = new CustomAnnotation();
         resetSelection();
-        layerName = "Layer " + totalNumLayerCounter++;
+        layerName = "Layer " + customAnnotation.getId();
     }
 
     private void resetSelection() {
@@ -262,7 +265,7 @@ public class CustomAnnotationHandler {
 
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                Color.GREEN, attributes);
+                defaultColor, attributes);
         customAnnotation.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
@@ -494,8 +497,8 @@ public class CustomAnnotationHandler {
         return importAnnotationsEnabled;
     }
 
-    public void setImportAnnotationsEnabled(boolean importAnnotationsEnabled) {
-        this.importAnnotationsEnabled = importAnnotationsEnabled;
+    public void setImportAnnotationsEnabled(boolean status) {
+        importAnnotationsEnabled = status;
         if (importAnnotationsButton != null) {
             importAnnotationsButton.setEnabled(importAnnotationsEnabled);
         }
@@ -510,4 +513,31 @@ public class CustomAnnotationHandler {
     }
 
 
+    public boolean isActiveLayer(SuperAdapter superAdapter) {
+        return customAnnotation.getId() == superAdapter.getActiveLayer().getCustomAnnotation().getId();
+    }
+
+    public void setActiveLayerButtonStatus(boolean status) {
+        if (activeLayerButton != null) {
+            activeLayerButton.setSelected(status);
+            activeLayerButton.revalidate();
+        }
+    }
+
+    public void setActiveLayerButton(JToggleButton activeLayerButton) {
+        this.activeLayerButton = activeLayerButton;
+    }
+
+    public int getNumberOfFeatures() {
+        return customAnnotation.getNumberOfFeatures();
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        defaultColor = color;
+        customAnnotation.setColorOfAllAnnotations(color);
+    }
+
+    public Color getDefaultColor() {
+        return defaultColor;
+    }
 }

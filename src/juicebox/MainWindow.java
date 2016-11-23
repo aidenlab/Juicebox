@@ -129,7 +129,8 @@ public class MainWindow extends JFrame {
             System.out.println("Initializing Components");
         }
 
-        MainWindow.superAdapter.initializeCustomAnnotations();
+        // first annotation layer must get created
+        MainWindow.superAdapter.createNewLayer();
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 

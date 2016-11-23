@@ -49,6 +49,14 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
         remakeRTree();
     }
 
+    public int getNumberOfFeatures() {
+        int total = 0;
+        for (Feature2DList featureList : loopLists.values()) {
+            total += featureList.getNumTotalFeatures();
+        }
+        return total;
+    }
+
     public void addAttributeFieldToAll(String key, String aNull) {
         for (Feature2DList featureList : loopLists.values()) {
             featureList.addAttributeFieldToAll(key, aNull);
