@@ -39,6 +39,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by muhammadsaadshamim on 8/4/16.
@@ -138,6 +141,43 @@ public class LayersPanel extends JPanel {
 
             }
         });
+
+        mergeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List<AnnotationLayerHandler> visibleLayers = new ArrayList<AnnotationLayerHandler>();
+                for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                    if (handler.getLayerVisibility()) {
+                        visibleLayers.add(handler);
+                    }
+                }
+
+                AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer();
+                mergedHandler.mergeDetailsFrom(visibleLayers);
+                try {
+                    JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI);
+
+                    layerBoxGUI.add(panel, 0);
+
+                    for (AnnotationLayerHandler handler : visibleLayers) {
+                        int index = superAdapter.removeLayer(handler);
+                        if (index > -1) {
+                            layerBoxGUI.remove(index);
+                        }
+                    }
+
+                    layerBoxGUI.revalidate();
+                    layerBoxGUI.repaint();
+                    superAdapter.setActiveLayer(mergedHandler);
+                    superAdapter.updateLayerDeleteStatus();
+                } catch (Exception ee) {
+                    System.err.println("Unable to add merged layer to GUI");
+                    ee.printStackTrace();
+                }
+
+            }
+        });
+
         superAdapter.updateLayerDeleteStatus();
 
         return pane;
@@ -156,7 +196,7 @@ public class LayersPanel extends JPanel {
         panel.setLayout(new GridLayout(1, 0));
 
         /* layer name */
-        final JTextField nameField = new JTextField(handler.getLayerName());
+        final JTextField nameField = new JTextField(handler.getLayerName(), 5);
         nameField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -171,7 +211,8 @@ public class LayersPanel extends JPanel {
             public void changedUpdate(DocumentEvent e) {
             }
         });
-        nameField.setToolTipText("Change the name for this layer");
+        nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+        nameField.setMaximumSize(new Dimension(5, 5));
 
         /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png", handler.getLayerVisibility());
@@ -305,6 +346,7 @@ public class LayersPanel extends JPanel {
                 superAdapter.setActiveLayer(handler);
             }
         });
+        writeButton.setToolTipText("Enable drawing of annotations to this layer");
 
         JButton deleteButton = createIconButton("/images/layer/trash.png");
         deleteButton.addActionListener(new ActionListener() {
@@ -320,6 +362,7 @@ public class LayersPanel extends JPanel {
             }
         });
         handler.setDeleteLayerButton(deleteButton);
+        deleteButton.setToolTipText("Delete this layer");
 
         JButton upButton = createIconButton("/images/layer/up.png");
         upButton.addActionListener(new ActionListener() {
@@ -333,6 +376,7 @@ public class LayersPanel extends JPanel {
                 superAdapter.repaint();
             }
         });
+        upButton.setToolTipText("Move this layer up (drawing order)");
 
         JButton downButton = createIconButton("/images/layer/down.png");
         downButton.addActionListener(new ActionListener() {
@@ -346,8 +390,27 @@ public class LayersPanel extends JPanel {
                 superAdapter.repaint();
             }
         });
+        downButton.setToolTipText("Move this layer down (drawing order)");
 
         JButton copyButton = createIconButton("/images/layer/copy.png");
+        copyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AnnotationLayerHandler handlerDup = superAdapter.createNewLayer();
+                handlerDup.duplicateDetailsFrom(handler);
+                try {
+                    JPanel panel = createLayerPanel(handlerDup, superAdapter, layerBoxGUI);
+                    layerBoxGUI.add(panel, 0);
+                    layerBoxGUI.revalidate();
+                    layerBoxGUI.repaint();
+                    superAdapter.setActiveLayer(handlerDup);
+                    superAdapter.updateLayerDeleteStatus();
+                } catch (Exception iee) {
+                    System.err.println("Unable to duplicate layer");
+                }
+            }
+        });
+        copyButton.setToolTipText("Duplicate this layer");
 
         panel.add(writeButton);
         panel.add(nameField);

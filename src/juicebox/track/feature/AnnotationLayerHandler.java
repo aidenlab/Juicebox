@@ -36,6 +36,7 @@ import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -156,36 +157,6 @@ public class AnnotationLayerHandler {
         selectionPoint = new Point(x, y);
     }
     */
-
-    public void setExportAbility(boolean allowed) {
-        canExport = allowed;
-        if (exportButton != null) {
-            exportButton.setEnabled(true);
-        }
-    }
-
-    public void setExportButton(JButton exportButton) {
-        this.exportButton = exportButton;
-    }
-
-    public boolean getExportCapability() {
-        return canExport;
-    }
-
-    public void setUndoAbility(boolean allowed) {
-        canUndo = allowed;
-        if (undoButton != null) {
-            undoButton.setEnabled(true);
-        }
-    }
-
-    public void setUndoButton(JButton undoButton) {
-        this.undoButton = undoButton;
-    }
-
-    public boolean getUndoCapability() {
-        return canUndo;
-    }
 
     // Adds to lower lefthand side, for consistency.
     public void addFeature(HiC hic) {
@@ -515,6 +486,36 @@ public class AnnotationLayerHandler {
     }
 
 
+    public void setExportAbility(boolean allowed) {
+        canExport = allowed;
+        if (exportButton != null) {
+            exportButton.setEnabled(true);
+        }
+    }
+
+    public void setExportButton(JButton exportButton) {
+        this.exportButton = exportButton;
+    }
+
+    public boolean getExportCapability() {
+        return canExport;
+    }
+
+    public void setUndoAbility(boolean allowed) {
+        canUndo = allowed;
+        if (undoButton != null) {
+            undoButton.setEnabled(true);
+        }
+    }
+
+    public void setUndoButton(JButton undoButton) {
+        this.undoButton = undoButton;
+    }
+
+    public boolean getUndoCapability() {
+        return canUndo;
+    }
+
     public boolean isActiveLayer(SuperAdapter superAdapter) {
         return annotationLayer.getId() == superAdapter.getActiveLayer().getAnnotationLayer().getId();
     }
@@ -560,5 +561,42 @@ public class AnnotationLayerHandler {
 
     public void setIsSparse(boolean isSparse) {
         annotationLayer.setIsSparse(isSparse);
+    }
+
+    public void duplicateDetailsFrom(AnnotationLayerHandler handlerOriginal) {
+        featureType = handlerOriginal.featureType;
+
+        setLayerName("Copy of " + handlerOriginal.getLayerName());
+        setLayerVisibility(handlerOriginal.getLayerVisibility());
+        setColorOfAllAnnotations(handlerOriginal.getDefaultColor());
+        setIsTransparent(handlerOriginal.getIsTransparent());
+        setIsEnlarged(handlerOriginal.getIsEnlarged());
+        setPlottingStyle(handlerOriginal.getPlottingStyle());
+
+        annotationLayer.createMergedLoopLists(handlerOriginal.getAnnotationLayer().getAllFeatureLists());
+        setImportAnnotationsEnabled(handlerOriginal.getImportAnnotationsEnabled());
+        setExportAbility(handlerOriginal.getExportCapability());
+        setIsSparse(handlerOriginal.getIsSparse());
+    }
+
+    public void mergeDetailsFrom(Collection<AnnotationLayerHandler> originalHandlers) {
+
+        String cleanedTitle = "";
+        for (AnnotationLayerHandler originalHandler : originalHandlers) {
+            featureType = originalHandler.featureType;
+
+            cleanedTitle += "-" + originalHandler.getLayerName().toLowerCase().replaceAll("layer", "").replaceAll("\\s", "");
+
+            setLayerVisibility(originalHandler.getLayerVisibility());
+            setColorOfAllAnnotations(originalHandler.getDefaultColor());
+
+            annotationLayer.createMergedLoopLists(originalHandler.getAnnotationLayer().getAllFeatureLists());
+            importAnnotationsEnabled |= originalHandler.getImportAnnotationsEnabled();
+
+            canExport |= originalHandler.getExportCapability();
+        }
+
+        setExportAbility(canExport);
+        setLayerName("Merger" + cleanedTitle);
     }
 }

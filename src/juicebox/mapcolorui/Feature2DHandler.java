@@ -190,7 +190,16 @@ public class Feature2DHandler {
         remakeRTree();
     }
 
-    public void loadLoopList(Feature2DList feature2DList) {
+    public void createNewMergedLoopLists(Collection<Feature2DList> feature2DLists) {
+        for (Feature2DList feature2DList : feature2DLists) {
+            if (feature2DList.getNumTotalFeatures() > 0) {
+                loadLoopList(feature2DList, false);
+            }
+        }
+        remakeRTree();
+    }
+
+    public void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
         String hashID = feature2DList.hashCode() + "";
         if (loopLists.get(hashID) != null) {
             //loopLists.get(hashID).setVisible(true);
@@ -198,7 +207,9 @@ public class Feature2DHandler {
         } else {
             loopLists.put(hashID, feature2DList);
         }
-        remakeRTree();
+        if (remakeTree) {
+            remakeRTree();
+        }
     }
 
     public List<Feature2DList> getAllVisibleLoopLists() {
@@ -350,5 +361,9 @@ public class Feature2DHandler {
         for (Feature2DList list : loopLists.values()) {
             list.setColor(color);
         }
+    }
+
+    public Collection<Feature2DList> getAllFeatureLists() {
+        return loopLists.values();
     }
 }

@@ -79,7 +79,7 @@ public class SaveAnnotationsDialog extends JFileChooser {
                         return;
                 }
                 if (otherList == null) {
-                    if (annotations.exportAnnotations(outputPath) < 0) {
+                    if (annotations.exportAnnotations(outputPath)) {
                         JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }

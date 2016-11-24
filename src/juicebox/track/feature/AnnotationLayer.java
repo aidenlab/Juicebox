@@ -33,6 +33,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -234,13 +235,12 @@ public class AnnotationLayer {
     }
 
     // Export annotations
-    public int exportAnnotations(String outputFilePath) {
-        int ok;
-        ok = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
-        if (ok < 0)
-            return ok;
-        this.deleteTempFile();
-        return ok;
+    public boolean exportAnnotations(String outputFilePath) {
+        boolean nothingExported = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
+        if (!nothingExported) {
+            deleteTempFile();
+        }
+        return nothingExported;
     }
 
     // Note assumes that all attributes are already correctly formatted. Ok to assume
@@ -320,4 +320,14 @@ public class AnnotationLayer {
     public void setIsSparse(boolean isSparse) {
         customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
     }
+
+    public void createMergedLoopLists(Collection<Feature2DList> lists) {
+        customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
+    }
+
+    public Collection<Feature2DList> getAllFeatureLists() {
+        return customAnnotationRTreeHandler.getAllFeatureLists();
+    }
+
+
 }

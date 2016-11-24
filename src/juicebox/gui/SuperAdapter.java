@@ -805,17 +805,19 @@ public class SuperAdapter {
         }
     }
 
-    public void removeLayer(AnnotationLayerHandler handler) {
+    public int removeLayer(AnnotationLayerHandler handler) {
+        int returnCode = -1;
         if (annotationLayerHandlers.size() > 1) {
             // must have at least 1 layer
+            returnCode = annotationLayerHandlers.size() - 1 - annotationLayerHandlers.indexOf(handler);
             annotationLayerHandlers.remove(handler);
             if (handler == activeLayer) {
                 // need to set a new active layer; let's use first one as default
                 setActiveLayer(annotationLayerHandlers.get(0));
             }
-            handler = null;
         }
         updateLayerDeleteStatus();
+        return returnCode;
     }
 
     public void updateLayerDeleteStatus() {
