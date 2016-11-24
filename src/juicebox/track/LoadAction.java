@@ -28,6 +28,8 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
+import juicebox.gui.SuperAdapter;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
@@ -57,12 +59,20 @@ public class LoadAction extends AbstractAction {
 
     private final MainWindow mainWindow;
     private final HiC hic;
+    private AnnotationLayerHandler handler;
+    private boolean show2DOnly = false;
 
 
     public LoadAction(String s, MainWindow mainWindow, HiC hic) {
         super(s);
         this.mainWindow = mainWindow;
         this.hic = hic;
+    }
+
+    public LoadAction(String s, AnnotationLayerHandler handler, SuperAdapter superAdapter) {
+        this(s, superAdapter.getMainWindow(), superAdapter.getHiC());
+        this.handler = handler;
+        show2DOnly = true;
     }
 
     private static Document createMasterDocument(String xmlUrl, MainWindow mainWindow) throws ParserConfigurationException {
@@ -200,6 +210,7 @@ public class LoadAction extends AbstractAction {
             public void run() {
                 List<ResourceLocator> locators = unsafeLoadNodes(xmlFile);
                 if (locators != null && !locators.isEmpty()) {
+                    // TODO MSS
                     hic.unsafeLoadHostedTracks(locators);
                 }
             }
@@ -208,11 +219,12 @@ public class LoadAction extends AbstractAction {
     }
 
     public void checkBoxesForReload(String track) {
+        // TODO MSS
         ResourceTree resourceTree = hic.getResourceTree();
         try {
             if (resourceTree == null) {
                 Document tempDoc = createMasterDocument(getXmlUrl(), mainWindow);
-                resourceTree = new ResourceTree(hic, tempDoc);
+                resourceTree = new ResourceTree(hic, tempDoc, show2DOnly);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,12 +234,13 @@ public class LoadAction extends AbstractAction {
 
     private List<ResourceLocator> unsafeLoadNodes(String xmlFile) {
 
+        // TODO MSS
         ResourceTree resourceTree = hic.getResourceTree();
 
         try {
             if (resourceTree == null) {
                 Document masterDocument = createMasterDocument(xmlFile, mainWindow);
-                resourceTree = new ResourceTree(hic, masterDocument);
+                resourceTree = new ResourceTree(hic, masterDocument, show2DOnly);
             }
         } catch (Exception e) {
             log.error("Could not load from server", e);
@@ -235,7 +248,7 @@ public class LoadAction extends AbstractAction {
             return null;
         }
 
-        resourceTree.showResourceTreeDialog(mainWindow);
+        resourceTree.showResourceTreeDialog(mainWindow, show2DOnly);
 
         LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
         LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
@@ -258,7 +271,7 @@ public class LoadAction extends AbstractAction {
                         hic.loadCoverageTrack(option);
                     } else if (locator.getType() != null && locator.getType().equals("loop")) {
                         try {
-                            hic.loadLoopList(locator.getPath());
+                            handler.loadLoopList(locator.getPath(), hic.getChromosomes());
                             repaint = true;
                         } catch (Exception e) {
                             log.error("Could not load selected loop locator", e);
@@ -285,21 +298,23 @@ public class LoadAction extends AbstractAction {
                 hic.removeTrack(locator);
                 resourceTree.remove(locator);
 
+                /*
                 if (locator.getType() != null && locator.getType().equals("loop")) {
                     try {
-                        hic.setLoopsInvisible(locator.getPath());
+                        handler.setLoopsInvisible(locator.getPath());
                         repaint = true;
                     } catch (Exception e) {
                         log.error("Error while making loops invisible ", e);
                         MessageUtils.showMessage("Error while removing loops: " + e.getMessage());
                     }
                 }
+                */
             }
         }
         if (repaint) {
             mainWindow.repaint();
         }
-        hic.setShowLoops(true);
+        //hic.setShowLoops(true);
         return newLoadList;
     }
 

@@ -97,4 +97,8 @@ public class Private {
     public static void launchMapSubsetGUI(SuperAdapter superAdapter) {
         MapSelectionPanel.launchMapSubsetGUI(superAdapter);
     }
+
+    public static void launchLayersGUI(SuperAdapter superAdapter) {
+        LayersPanel.launchLayersGUI(superAdapter);
+    }
 }

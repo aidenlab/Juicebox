@@ -68,7 +68,7 @@ public class ResourceTree {
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
     private File openAnnotationPath = null;
 
-    public ResourceTree(final HiC hic, Document document) {
+    public ResourceTree(final HiC hic, Document document, boolean show2DOnly) {
         dialog = null;
         loadedLocators = new HashSet<ResourceLocator>();
 
@@ -84,8 +84,8 @@ public class ResourceTree {
             ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(node);
         }
 
-        createTreeFromDataset(hic, this);
-        if (hic.getDataset().getGenomeId().equals("hg19")) {
+        createTreeFromDataset(hic, this, show2DOnly);
+        if (hic.getDataset().getGenomeId().equals("hg19") && show2DOnly) {
             addExternal();
         }
         expandTree();
@@ -149,7 +149,7 @@ public class ResourceTree {
      * @param parent Parent window
      * @return the resources selected by user.
      */
-    public void showResourceTreeDialog(JFrame parent) {
+    public void showResourceTreeDialog(JFrame parent, boolean show2DImportsOnly) {
         newLocators = new LinkedHashSet<ResourceLocator>();
         deselectedLocators = new LinkedHashSet<ResourceLocator>();
 
@@ -232,85 +232,91 @@ public class ResourceTree {
             }
         });
 
-        add2DButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+        if (show2DImportsOnly) {
+            add2DButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
 
-                if (twoDfiles != null && twoDfiles.length > 0) {
-                    for (File file : twoDfiles) {
+                    if (twoDfiles != null && twoDfiles.length > 0) {
+                        for (File file : twoDfiles) {
 
-                        String path = file.getAbsolutePath();
-                        openAnnotationPath = new File(path);
-                        ResourceLocator locator = new ResourceLocator(path);
-                        locator.setName(file.getName());
-                        locator.setType("loop");
-                        CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                        if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
+                            String path = file.getAbsolutePath();
+                            openAnnotationPath = new File(path);
+                            ResourceLocator locator = new ResourceLocator(path);
+                            locator.setName(file.getName());
+                            locator.setType("loop");
+                            CheckableResource resource = new CheckableResource(file.getName(), true, locator);
+                            if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
+                                leafResources.add(resource);
+
+                                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+                                twoDFeatureRoot.add(treeNode);
+                                if (addedNodes == null) {
+                                    addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                                }
+                                addedNodes.add(treeNode);
+                                ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
+                                treeNode.setUserObject(resource);
+
+                                expandTree();
+                                dialogTree.updateUI();
+                            } else {
+                                if (HiCGlobals.guiIsCurrentlyActive)
+                                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
+                                                    "like to reload it, right click and delete the currently loaded version first.",
+                                            "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+
+                        }
+                    }
+
+                }
+            });
+        } else {
+            add1DButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
+
+                    if (oneDfiles != null && oneDfiles.length > 0) {
+                        for (File file : oneDfiles) {
+
+                            String path = file.getAbsolutePath();
+                            openAnnotationPath = new File(path);
+                            ResourceLocator locator = new ResourceLocator(path);
+                            locator.setName(file.getName());
+                            locator.setType(file.getName());
+                            CheckableResource resource = new CheckableResource(file.getName(), true, locator);
                             leafResources.add(resource);
 
+
                             DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                            twoDFeatureRoot.add(treeNode);
+                            oneDFeatureRoot.add(treeNode);
                             if (addedNodes == null) {
                                 addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
                             }
                             addedNodes.add(treeNode);
-                            ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
+                            ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
                             treeNode.setUserObject(resource);
 
                             expandTree();
                             dialogTree.updateUI();
-                        } else {
-                            if (HiCGlobals.guiIsCurrentlyActive)
-                                JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
-                                                "like to reload it, right click and delete the currently loaded version first.",
-                                        "Error", JOptionPane.ERROR_MESSAGE);
+
                         }
 
                     }
                 }
-
-            }
-        });
-
-        add1DButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
-
-                if (oneDfiles != null && oneDfiles.length > 0) {
-                    for (File file : oneDfiles) {
-
-                        String path = file.getAbsolutePath();
-                        openAnnotationPath = new File(path);
-                        ResourceLocator locator = new ResourceLocator(path);
-                        locator.setName(file.getName());
-                        locator.setType(file.getName());
-                        CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                        leafResources.add(resource);
-
-
-                        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                        oneDFeatureRoot.add(treeNode);
-                        if (addedNodes == null) {
-                            addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
-                        }
-                        addedNodes.add(treeNode);
-                        ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
-                        treeNode.setUserObject(resource);
-
-                        expandTree();
-                        dialogTree.updateUI();
-
-                    }
-
-                }
-            }
-        });
+            });
+        }
 
         buttonPanel.add(okButton);
-        buttonPanel.add(add1DButton);
-        buttonPanel.add(add2DButton);
+
+        if (show2DImportsOnly) {
+            buttonPanel.add(add2DButton);
+        } else {
+            buttonPanel.add(add1DButton);
+        }
         buttonPanel.add(cancelButton);
 
         dialog.add(treePanel);
@@ -358,8 +364,9 @@ public class ResourceTree {
 
         ResourceLocator locator = ((CheckableResource) node.getUserObject()).getResourceLocator();
 
-        String path = locator.getPath();
-        hic.removeLoadedAnnotation(path); // actually removes the entry (at least 2d annotation) so that it can be reloaded
+        // no longer needed? MSS
+        //String path = locator.getPath();
+        //hic.removeLoadedAnnotation(path); // actually removes the entry (at least 2d annotation) so that it can be reloaded
 
         deselectedLocators.add(locator);
         loadedLocators.remove(locator);
@@ -372,7 +379,7 @@ public class ResourceTree {
 
     }
 
-    private void createTreeFromDataset(HiC hic, ResourceTree resourceTree) {
+    private void createTreeFromDataset(HiC hic, ResourceTree resourceTree, boolean show2DImportsOnly) {
         oneDFeatureRoot = new DefaultMutableTreeNode("Dataset-specific 1-D Features");
         ResourceLocator locator = new ResourceLocator("Dataset-specific 1-D Features");
         locator.setName("Dataset-specific 1-D Features");
@@ -492,9 +499,12 @@ public class ResourceTree {
             leafResources.add(resource);
         }
 
-        ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
-        ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
-        ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(ChromatinFeatureRoot);
+        if (show2DImportsOnly) {
+            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
+            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(ChromatinFeatureRoot);
+        } else {
+            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
+        }
     }
 
     private void addExternal() {

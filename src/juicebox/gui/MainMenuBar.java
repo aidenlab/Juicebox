@@ -28,13 +28,10 @@ import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.CustomAnnotationHandler;
 import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
@@ -43,7 +40,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -57,11 +53,7 @@ public class MainMenuBar {
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
     private static final Logger log = Logger.getLogger(MainMenuBar.class);
-    public static JMenuItem exportAnnotationsMI;
-    public static JMenuItem undoMenuItem;
-    //meh - public static ArrayList<CustomAnnotation> customAnnotations;
-    public static CustomAnnotation customAnnotations;
-    public static CustomAnnotationHandler customAnnotationHandler;
+
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
@@ -105,11 +97,7 @@ public class MainMenuBar {
         recentLocationMenu.addEntry(title, status);
     }
 
-    public void initializeCustomAnnotations() {
-        // meh - customAnnotations = new ArrayList<CustomAnnotation>();
-        customAnnotations = new CustomAnnotation("1");
-        customAnnotationHandler = new CustomAnnotationHandler();
-    }
+
 
     public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
 
@@ -295,131 +283,12 @@ public class MainMenuBar {
         });
         annotationsMenu.add(loadFromURLItem);
 
-        final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
-        showLoopsItem = new JCheckBoxMenuItem("Show");
-        showLoopsItem.setSelected(true);
-        showLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setShowLoops(showLoopsItem.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        showLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
-
-        final JMenu featureRenderingOptions = new JMenu("Partial Plotting");
-        final JCheckBoxMenuItem renderFullFeatureItem = new JCheckBoxMenuItem("Full Feature");
-        final JCheckBoxMenuItem renderLLFeatureItem = new JCheckBoxMenuItem("Lower Left");
-        final JCheckBoxMenuItem renderURFeatureItem = new JCheckBoxMenuItem("Upper Right");
-        renderFullFeatureItem.setSelected(true);
-        FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
-
-        renderFullFeatureItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.EVERYTHING;
-                renderFullFeatureItem.setSelected(true);
-                renderLLFeatureItem.setSelected(false);
-                renderURFeatureItem.setSelected(false);
-                superAdapter.repaint();
-            }
-        });
-        renderLLFeatureItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
-                renderFullFeatureItem.setSelected(false);
-                renderLLFeatureItem.setSelected(true);
-                renderURFeatureItem.setSelected(false);
-                superAdapter.repaint();
-            }
-        });
-        renderURFeatureItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                FeatureRenderer.enablePlottingOption = FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
-                renderFullFeatureItem.setSelected(false);
-                renderLLFeatureItem.setSelected(false);
-                renderURFeatureItem.setSelected(true);
-                superAdapter.repaint();
-            }
-        });
-
-        featureRenderingOptions.add(renderFullFeatureItem);
-        featureRenderingOptions.add(renderLLFeatureItem);
-        featureRenderingOptions.add(renderURFeatureItem);
-
-
-        final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
-        enlarge2DFeatures.setSelected(false);
-        enlarge2DFeatures.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.enlarge2DFeaturePlotting(enlarge2DFeatures.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
-
-        final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
-        toggle2DFeatureOpacity.setSelected(false);
-        toggle2DFeatureOpacity.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.toggleFeatureOpacity(toggle2DFeatureOpacity.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
-
-        final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
-
-        showCustomLoopsItem.setSelected(true);
-        showCustomLoopsItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations.setShowCustom(showCustomLoopsItem.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        showCustomLoopsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
-
-        final JMenuItem editVisibleMI = new JMenuItem("Copy to Hand Annotations");
-        editVisibleMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.addVisibleLoops(customAnnotationHandler, customAnnotations);
-                showLoopsItem.setSelected(false);
-                showCustomLoopsItem.setSelected(true);
-                superAdapter.setShowLoops(false);
-                superAdapter.repaint();
-            }
-        });
-
-        feature2DPlottingOptions.add(showLoopsItem);
-        feature2DPlottingOptions.add(enlarge2DFeatures);
-        feature2DPlottingOptions.add(toggle2DFeatureOpacity);
-        feature2DPlottingOptions.add(featureRenderingOptions);
-        feature2DPlottingOptions.add(editVisibleMI);
-
-        annotationsMenu.add(feature2DPlottingOptions);
         annotationsMenu.setEnabled(false);
 
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
-        exportAnnotationsMI = new JMenuItem("Export...");
         //final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
         loadLastMI = new JMenuItem("Load Last Session");
-        undoMenuItem = new JMenuItem("Undo Annotation");
-        final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
-
-        // Annotate Item Actions
-        exportAnnotationsMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.exportAnnotations();
-            }
-        });
 
         /*exportOverlapMI.addActionListener(new ActionListener() {
             @Override
@@ -431,52 +300,20 @@ public class MainMenuBar {
         loadLastMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                customAnnotations = superAdapter.generateNewCustomAnnotation(temp, "1");
+                superAdapter.generateNewCustomAnnotation(temp);
                 temp.delete();
                 loadLastMI.setEnabled(false);
-                exportAnnotationsMI.setEnabled(true);
+                superAdapter.getActiveLayer().setExportAbility(true);
             }
         });
-
-        clearCurrentMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int n = superAdapter.clearCustomAnnotationDialog();
-
-                if (n == JOptionPane.YES_OPTION) {
-                    //TODO: do something with the saving... just update temp?
-                    customAnnotations.clearAnnotations();
-                    exportAnnotationsMI.setEnabled(false);
-                    loadLastMI.setEnabled(false);
-                    superAdapter.repaint();
-                }
-            }
-        });
-
-        undoMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                customAnnotationHandler.undo(customAnnotations);
-                superAdapter.repaint();
-            }
-        });
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 
         //Add annotate menu items
-        customAnnotationMenu.add(showCustomLoopsItem);
-        customAnnotationMenu.add(exportAnnotationsMI);
         //customAnnotationMenu.add(exportOverlapMI);
-        customAnnotationMenu.add(undoMenuItem);
-        customAnnotationMenu.add(clearCurrentMI);
         if (unsavedEditsExist()) {
             customAnnotationMenu.add(new JSeparator());
             customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
         }
-
-        exportAnnotationsMI.setEnabled(false);
-        undoMenuItem.setEnabled(false);
-
         annotationsMenu.add(customAnnotationMenu);
         // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
 
@@ -673,24 +510,19 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
-        /*  Sparse (/subset) plotting for 2d annotations  */
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
-        toggleSparse2DFeaturePlotting.setSelected(false);
-        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
+        JMenuItem layersItem = new JMenuItem("Layers...");
+        layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
-                superAdapter.repaint();
+                Private.launchLayersGUI(superAdapter);
             }
         });
-        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
+        devMenu.add(layersItem);
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
         numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
-
 
         final JButton updateSparseOptions = new JButton("Update");
         updateSparseOptions.addActionListener(new ActionListener() {
@@ -707,11 +539,9 @@ public class MainMenuBar {
         sparseOptions.setLayout(new GridLayout(0, 2));
         sparseOptions.add(numSparse);
         sparseOptions.add(updateSparseOptions);
-        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
         sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
         devMenu.addSeparator();
-        devMenu.add(toggleSparse2DFeaturePlotting);
         devMenu.add(sparseOptions);
 
         JMenuItem chrSubset = new JMenuItem("Select genome subset...");
@@ -736,18 +566,6 @@ public class MainMenuBar {
 
     public RecentMenu getRecentLocationMenu() {
         return recentLocationMenu;
-    }
-
-    public void setShow2DAnnotations(boolean show) {
-        showLoopsItem.setSelected(show);
-    }
-
-    public void clearAllAnnotations() {
-        customAnnotations.clearAnnotations();
-    }
-
-    public void deleteUnsavedEdits() {
-        customAnnotations.deleteTempFile();
     }
 
     public void setEnableForAllElements(boolean status) {

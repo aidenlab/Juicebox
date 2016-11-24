@@ -27,19 +27,23 @@ package juicebox.track.feature;
 import juicebox.DirectoryManager;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
-import juicebox.gui.MainMenuBar;
+import juicebox.mapcolorui.Feature2DHandler;
 
+import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Created by Marie on 6/3/15.
+ * Modified by muhammadsaadshamim
  */
-public class CustomAnnotation {
+public class AnnotationLayer {
 
-    private final String id;
+    private static int i;
+    private final int id;
     private CustomAnnotationRTree2DHandler customAnnotationRTreeHandler;
     private boolean unsavedEdits;
     private boolean firstSave;
@@ -50,16 +54,14 @@ public class CustomAnnotation {
     private File tempFile;
     private ArrayList<String> attributeKeys;
 
-    public CustomAnnotation(String id) {
-        this.id = id;
+    public AnnotationLayer() {
+        id = i++;
         firstSave = true;
         reset();
     }
 
-    public CustomAnnotation(Feature2DList inputList, String id) {
-        this.id = id;
-        firstSave = true;
-        reset();
+    public AnnotationLayer(Feature2DList inputList) {
+        this();
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
     }
 
@@ -137,9 +139,13 @@ public class CustomAnnotation {
         this.unsavedEdits = false;
     }
 
+    public boolean getLayerVisibility() {
+        return customAnnotationRTreeHandler.getLayerVisibility();
+    }
+
     // Set show loops
-    public void setShowCustom(boolean newStatus) {
-        customAnnotationRTreeHandler.setShowLoops(newStatus);
+    public void setLayerVisibility(boolean newStatus) {
+        customAnnotationRTreeHandler.setLayerVisibility(newStatus);
     }
 
     // Creates unique identifier for Feature2D based on start and end positions.
@@ -229,19 +235,17 @@ public class CustomAnnotation {
     }
 
     // Export annotations
-    public int exportAnnotations(String outputFilePath) {
-        int ok;
-        ok = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
-        if (ok < 0)
-            return ok;
-        this.deleteTempFile();
-        return ok;
+    public boolean exportAnnotations(String outputFilePath) {
+        boolean nothingExported = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
+        if (!nothingExported) {
+            deleteTempFile();
+        }
+        return nothingExported;
     }
 
     // Note assumes that all attributes are already correctly formatted. Ok to assume
     // because loaded list must have consistent formatting.
     public void addVisibleToCustom(Feature2DList newAnnotations) {
-        MainMenuBar.exportAnnotationsMI.setEnabled(true);
         Feature2D featureZero = newAnnotations.extractSingleFeature();
         // Add attributes to feature
         List<String> featureKeys = featureZero.getAttributeKeys();
@@ -292,4 +296,38 @@ public class CustomAnnotation {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
                 binOriginX, binOriginY, scale);
     }
+
+    public Feature2DHandler getFeatureHandler() {
+        return customAnnotationRTreeHandler;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getNumberOfFeatures() {
+        return customAnnotationRTreeHandler.getNumberOfFeatures();
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        customAnnotationRTreeHandler.setColorOfAllAnnotations(color);
+    }
+
+    public boolean getIsSparse() {
+        return customAnnotationRTreeHandler.getIsSparsePlottingEnabled();
+    }
+
+    public void setIsSparse(boolean isSparse) {
+        customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
+    }
+
+    public void createMergedLoopLists(Collection<Feature2DList> lists) {
+        customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
+    }
+
+    public Collection<Feature2DList> getAllFeatureLists() {
+        return customAnnotationRTreeHandler.getAllFeatureLists();
+    }
+
+
 }

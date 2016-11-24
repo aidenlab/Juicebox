@@ -67,7 +67,7 @@ public class UnsavedAnnotationWarning {
 
         if (response == JOptionPane.NO_OPTION) {
             //System.out.println("Deleting annotations");
-            superAdapter.clearAllAnnotations();
+            superAdapter.getActiveLayer().clearAnnotations();
             return true;
         } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
             //System.out.println("meh i don't wanna commit");
@@ -75,8 +75,8 @@ public class UnsavedAnnotationWarning {
         } else if (response == JOptionPane.YES_OPTION) {
             System.out.println("Saving annotations");
             // Save the annotations
-            superAdapter.exportAnnotations();
-            superAdapter.clearAllAnnotations();
+            //superAdapter.exportAnnotations();
+            superAdapter.getActiveLayer().clearAnnotations();
             return true;
         }
         return false;

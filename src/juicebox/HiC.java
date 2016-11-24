@@ -29,10 +29,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.*;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -41,7 +38,6 @@ import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
-import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -65,7 +61,7 @@ public class HiC {
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     //private final MainWindow mainWindow;
-    private final Feature2DHandler feature2DHandler;
+    //private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
     private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
     private final SuperAdapter superAdapter;
@@ -96,7 +92,7 @@ public class HiC {
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
         trackManager = new HiCTrackManager(superAdapter, this);
-        feature2DHandler = new Feature2DHandler();
+        //feature2DHandler = new Feature2DHandler();
         m_zoomChanged = false;
         m_displayOptionChanged = false;
         m_normalizationTypeChanged = false;
@@ -152,7 +148,7 @@ public class HiC {
 
     private void clearFeatures() {
         trackManager.clearTracks();
-        feature2DHandler.clearLists();
+        // feature2DHandler.clearLists();
     }
 
     public double getScaleFactor() {
@@ -972,22 +968,26 @@ public class HiC {
         binSizeDictionary.put("1f", 1);
     }
 
-    public void setShowLoops(boolean showLoops) {
-        feature2DHandler.setShowLoops(showLoops);
+    // TODO MSS REMOVE
+    /*public void setShowLoops(boolean showLoops) {
+        feature2DHandler.setLayerVisibility(showLoops);
     }
 
     public void setLoopsInvisible(String path) {
         feature2DHandler.setLoopsInvisible(path);
     }
+    */
 
     public void loadLoopList(String path) {
-        feature2DHandler.loadLoopList(path, chromosomes);
+        superAdapter.getActiveLayer().loadLoopList(path, chromosomes);
     }
 
+    /*
     public List<Feature2DList> getAllVisibleLoopLists() {
         return feature2DHandler.getAllVisibleLoopLists();
     }
 
+    /*
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
         return feature2DHandler.getVisibleFeatures(chrIdx1, chrIdx2);
     }
@@ -1001,6 +1001,7 @@ public class HiC {
         return feature2DHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
 
+
     public List<Pair<Rectangle, Feature2D>> findNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x,
                                                                    int y, int n) {
         double binOriginX = getXContext().getBinOrigin();
@@ -1009,23 +1010,14 @@ public class HiC {
 
         return feature2DHandler.getNearbyFeaturePairs(zd, chrIdx1, chrIdx2, x, y, n, binOriginX, binOriginY, scale);
     }
+    */
 
-    public void setSparseFeaturePlotting(boolean status) {
-        feature2DHandler.setSparseFeaturePlotting(status);
-    }
-
-    public void enlarge2DFeaturePlotting(boolean status) {
-        feature2DHandler.enlarge2DFeaturePlotting(status);
-    }
-
-    public void toggleFeatureOpacity(boolean status) {
-        feature2DHandler.toggleFeatureOpacity(status);
-    }
-
+    /*
     public void removeLoadedAnnotation(String path) {
 
         feature2DHandler.removeFeaturePath(path);
     }
+    */
 
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
 
@@ -1128,9 +1120,9 @@ public class HiC {
                 (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
     }
 
-    public Feature2DHandler getFeature2DHandler() {
+    /*public Feature2DHandler getFeature2DHandler() {
         return feature2DHandler;
-    }
+    }*/
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
 

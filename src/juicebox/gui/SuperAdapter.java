@@ -35,9 +35,8 @@ import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.CustomAnnotationHandler;
-import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.AnnotationLayer;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -52,6 +51,7 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -69,6 +69,8 @@ public class SuperAdapter {
     private MainMenuBar mainMenuBar;
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
+    private List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<AnnotationLayerHandler>();
+    private AnnotationLayerHandler activeLayer;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -91,10 +93,6 @@ public class SuperAdapter {
 
     public void addRecentStateMenuEntry(String title, boolean status) {
         mainMenuBar.addRecentStateMenuEntry(title, status);
-    }
-
-    public void initializeCustomAnnotations() {
-        mainMenuBar.initializeCustomAnnotations();
     }
 
     public JMenuBar createMenuBar() {
@@ -127,6 +125,9 @@ public class SuperAdapter {
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
+            handler.setImportAnnotationsEnabled(status);
+        }
     }
 
     public void resetControlMap() {
@@ -171,7 +172,6 @@ public class SuperAdapter {
     public void loadFromListActionPerformed(boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
         if (unsaved.checkAndDelete()) {
-            mainMenuBar.setShow2DAnnotations(true);
             HiCFileLoader.loadFromListActionPerformed(this, control);
         }
     }
@@ -179,7 +179,6 @@ public class SuperAdapter {
     public void loadFromRecentActionPerformed(String url, String title, boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
         if (unsaved.checkAndDelete()) {
-            mainMenuBar.setShow2DAnnotations(true);
             HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
         }
     }
@@ -190,10 +189,6 @@ public class SuperAdapter {
 
     public void launchExportSVG() {
         new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".svg");
-    }
-
-    public void exportAnnotations() {
-        new SaveAnnotationsDialog(MainMenuBar.customAnnotations, getMapName());
     }
 
     public void exitActionPerformed() {
@@ -211,6 +206,7 @@ public class SuperAdapter {
         return new LoadEncodeAction("Load ENCODE Tracks...", mainWindow, hic);
     }
 
+    /*
     public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
         List<Feature2DList> loops = hic.getAllVisibleLoopLists();
         if (loops.size() != 1)
@@ -218,16 +214,25 @@ public class SuperAdapter {
         else
             new SaveAnnotationsDialog(customAnnotations, loops.get(0));
     }
+    */
 
-    public CustomAnnotation generateNewCustomAnnotation(File temp, String s) {
-        return new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(),
-                hic.getChromosomes(), true, null, false), s);
+    public void generateNewCustomAnnotation(File temp) {
+        getActiveLayer().setAnnotationLayer(
+                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
         return JOptionPane.showConfirmDialog(
                 mainWindow,
-                "Are you sure you want to clear all custom annotations?",
+                "Are you sure you want to clear this layer's annotations?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION);
+    }
+
+    public int deleteCustomAnnotationDialog(String layerName) {
+        return JOptionPane.showConfirmDialog(
+                mainWindow,
+                "Are you sure you want to delete this layer (" + layerName + ")?",
                 "Confirm",
                 JOptionPane.YES_NO_OPTION);
     }
@@ -265,13 +270,15 @@ public class SuperAdapter {
         mainViewPanel.setNormalizationDisplayState(hic);
     }
 
+    /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
     }
 
-    public CustomAnnotation addVisibleLoops(CustomAnnotationHandler handler, CustomAnnotation customAnnotations) {
-        return handler.addVisibleLoops(hic, customAnnotations);
+    public void addVisibleLoops(CustomAnnotationHandler handler) {
+        handler.addVisibleLoops(hic);
     }
+    */
 
     public void centerMap(int xBP, int yBP) {
         hic.center(xBP, yBP);
@@ -761,26 +768,82 @@ public class SuperAdapter {
     }
 
     public void deleteUnsavedEdits() {
-        mainMenuBar.deleteUnsavedEdits();
-    }
-
-    public void clearAllAnnotations() {
-        mainMenuBar.clearAllAnnotations();
-    }
-
-    public void setSparseFeaturePlotting(boolean status) {
-        hic.setSparseFeaturePlotting(status);
-    }
-
-    public void enlarge2DFeaturePlotting(boolean status) {
-        hic.enlarge2DFeaturePlotting(status);
-    }
-
-    public void toggleFeatureOpacity(boolean status) {
-        hic.toggleFeatureOpacity(status);
+        getActiveLayer().deleteTempFile();
     }
 
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
+    }
+
+
+    public AnnotationLayerHandler getActiveLayer() {
+        return activeLayer;
+    }
+
+    public void setActiveLayer(AnnotationLayerHandler activeLayer) {
+        this.activeLayer = activeLayer;
+        for (AnnotationLayerHandler layer : annotationLayerHandlers) {
+            layer.setActiveLayerButtonStatus(false);
+        }
+        activeLayer.setActiveLayerButtonStatus(true);
+    }
+
+    public List<AnnotationLayerHandler> getAllLayers() {
+        return annotationLayerHandlers;
+    }
+
+    public AnnotationLayerHandler createNewLayer() {
+        activeLayer = new AnnotationLayerHandler();
+        annotationLayerHandlers.add(activeLayer);
+        setActiveLayer(activeLayer); // call this anyways because other layers need to fix button settings
+        return activeLayer;
+    }
+
+    public void printNumFeatures() {
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
+            System.out.println(handler.getLayerName() + " " + handler.getNumberOfFeatures());
+        }
+    }
+
+    public int removeLayer(AnnotationLayerHandler handler) {
+        int returnCode = -1;
+        if (annotationLayerHandlers.size() > 1) {
+            // must have at least 1 layer
+            returnCode = annotationLayerHandlers.size() - 1 - annotationLayerHandlers.indexOf(handler);
+            annotationLayerHandlers.remove(handler);
+            if (handler == activeLayer) {
+                // need to set a new active layer; let's use first one as default
+                setActiveLayer(annotationLayerHandlers.get(0));
+            }
+        }
+        updateLayerDeleteStatus();
+        return returnCode;
+    }
+
+    public void updateLayerDeleteStatus() {
+        boolean isDeleteAllowed = annotationLayerHandlers.size() > 1;
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
+            handler.setDeleteLayerButtonStatus(isDeleteAllowed);
+        }
+    }
+
+    public int moveDownIndex(AnnotationLayerHandler handler) {
+        int currIndex = annotationLayerHandlers.indexOf(handler);
+        int n = annotationLayerHandlers.size();
+        if (currIndex > 0) {
+            Collections.swap(annotationLayerHandlers, currIndex, currIndex - 1);
+            return n - currIndex;
+        }
+        return n - 1 - currIndex;
+    }
+
+    public int moveUpIndex(AnnotationLayerHandler handler) {
+        int currIndex = annotationLayerHandlers.indexOf(handler);
+        int n = annotationLayerHandlers.size();
+        if (currIndex < n - 1) {
+            Collections.swap(annotationLayerHandlers, currIndex, currIndex + 1);
+            return n - 2 - currIndex;
+        }
+        return n - 1 - currIndex;
     }
 }

@@ -48,13 +48,13 @@ public class Feature2DHandler {
 
     //private static final float MAX_DIST_NEIGHBOR = 1000f;
     private static final int offsetPX = 4;
-    public static boolean isTranslucentPlottingEnabled = false;
     public static int numberOfLoopsToFind = 1000;
-    private static boolean sparseFeaturePlottingEnabled = false, enlargedFeaturePlottingEnabled = false;
     protected final Map<String, Feature2DList> loopLists;
     protected final Map<String, SpatialIndex> featureRtrees = new HashMap<String, SpatialIndex>();
     protected final Map<String, List<Feature2D>> allFeaturesAcrossGenome = new HashMap<String, List<Feature2D>>();
-    private boolean showLoops = true;
+    private boolean isTranslucentPlottingEnabled = false;
+    private boolean sparseFeaturePlottingEnabled = false, isEnlargedPlottingEnabled = false;
+    private boolean layerVisible = true;
 
     public Feature2DHandler() {
         loopLists = new HashMap<String, Feature2DList>();
@@ -71,7 +71,7 @@ public class Feature2DHandler {
 
         // option to draw larger rectangles for ease of viewing
         int offset = 0, offsetDoubled = 0;
-        if (enlargedFeaturePlottingEnabled) {
+        if (isEnlargedPlottingEnabled) {
             offset = offsetPX;
             offsetDoubled = offsetPX + offsetPX;
         }
@@ -85,8 +85,8 @@ public class Feature2DHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    public List<Pair<Rectangle, Feature2D>> getFeaturePairs(List<Feature2D> features, MatrixZoomData zd,
-                                                            double binOriginX, double binOriginY, double scale) {
+    public List<Pair<Rectangle, Feature2D>> convertFeaturesToFeaturePairs(List<Feature2D> features, MatrixZoomData zd,
+                                                                          double binOriginX, double binOriginY, double scale) {
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<Pair<Rectangle, Feature2D>>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();
@@ -102,14 +102,17 @@ public class Feature2DHandler {
 
     public void clearLists() {
         loopLists.clear();
-        showLoops = true;
-        sparseFeaturePlottingEnabled = false;
+        layerVisible = true;
         allFeaturesAcrossGenome.clear();
         featureRtrees.clear();
     }
 
-    public void setShowLoops(boolean showLoops) {
-        this.showLoops = showLoops;
+    public boolean getLayerVisibility() {
+        return layerVisible;
+    }
+
+    public void setLayerVisibility(boolean showLoops) {
+        this.layerVisible = showLoops;
     }
 
     public void removeFeaturePath(String fileName) {
@@ -126,7 +129,7 @@ public class Feature2DHandler {
 
     public void setLoopsInvisible(String path) {
         if (loopLists.containsKey(path)) {
-            loopLists.get(path).setVisible(false);
+            //loopLists.get(path).setVisible(false);
             remakeRTree();
         }
     }
@@ -135,7 +138,7 @@ public class Feature2DHandler {
         allFeaturesAcrossGenome.clear();
         featureRtrees.clear();
         for (Feature2DList list : loopLists.values()) {
-            if (list.isVisible()) {
+            //if (list.isVisible()) {
                 list.processLists(new FeatureFunction() {
                     @Override
                     public void process(String chr, List<Feature2D> feature2DList) {
@@ -160,7 +163,7 @@ public class Feature2DHandler {
                         }
                     }
                 });
-            }
+            //}
         }
 
         for (String key : allFeaturesAcrossGenome.keySet()) {
@@ -183,24 +186,35 @@ public class Feature2DHandler {
             Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
             loopLists.put(path, newList);
         }
-        loopLists.get(path).setVisible(true);
+        //loopLists.get(path).setVisible(true);
         remakeRTree();
     }
 
-    public void loadLoopList(Feature2DList feature2DList) {
-        String hashID = feature2DList.hashCode() + "";
-        if (loopLists.get(hashID) != null) {
-            loopLists.get(hashID).setVisible(true);
-            System.out.println("Making " + hashID + " visible");
-        } else {
-            loopLists.put(hashID, feature2DList);
+    public void createNewMergedLoopLists(Collection<Feature2DList> feature2DLists) {
+        for (Feature2DList feature2DList : feature2DLists) {
+            if (feature2DList.getNumTotalFeatures() > 0) {
+                loadLoopList(feature2DList, false);
+            }
         }
         remakeRTree();
     }
 
+    public void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
+        String hashID = feature2DList.hashCode() + "";
+        if (loopLists.get(hashID) != null) {
+            //loopLists.get(hashID).setVisible(true);
+            System.out.println("Making " + hashID + " visible");
+        } else {
+            loopLists.put(hashID, feature2DList);
+        }
+        if (remakeTree) {
+            remakeRTree();
+        }
+    }
+
     public List<Feature2DList> getAllVisibleLoopLists() {
         List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
-        if (showLoops) {
+        if (layerVisible) {
             for (Feature2DList list : loopLists.values()) {
                 visibleLoopList.add(list);
             }
@@ -210,7 +224,7 @@ public class Feature2DHandler {
 
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
         List<Feature2D> visibleLoopList = new ArrayList<Feature2D>();
-        if (showLoops) {
+        if (layerVisible) {
             for (Feature2DList list : loopLists.values()) {
                 List<Feature2D> currList = list.get(chrIdx1, chrIdx2);
                 if (currList != null) {
@@ -228,7 +242,7 @@ public class Feature2DHandler {
         final List<Feature2D> foundFeatures = new ArrayList<Feature2D>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        if (featureRtrees.containsKey(key) && showLoops) {
+        if (featureRtrees.containsKey(key) && layerVisible) {
             if (sparseFeaturePlottingEnabled) {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
@@ -259,7 +273,7 @@ public class Feature2DHandler {
 
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<Pair<Rectangle, Feature2D>>();
 
-        if (showLoops) {
+        if (layerVisible) {
             final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
             final HiCGridAxis xAxis = zd.getXGridAxis();
@@ -319,15 +333,37 @@ public class Feature2DHandler {
         return new net.sf.jsi.Point(x2, y2);
     }
 
-    public void setSparseFeaturePlotting(boolean status) {
+    public void setSparsePlottingEnabled(boolean status) {
         sparseFeaturePlottingEnabled = status;
     }
 
-    public void enlarge2DFeaturePlotting(boolean status) {
-        enlargedFeaturePlottingEnabled = status;
+    public boolean getIsSparsePlottingEnabled() {
+        return sparseFeaturePlottingEnabled;
     }
 
-    public void toggleFeatureOpacity(boolean status) {
+    public boolean getIsTransparent() {
+        return isTranslucentPlottingEnabled;
+    }
+
+    public void setIsTransparent(boolean status) {
         isTranslucentPlottingEnabled = status;
+    }
+
+    public boolean getIsEnlarged() {
+        return isEnlargedPlottingEnabled;
+    }
+
+    public void setIsEnlarged(boolean status) {
+        isEnlargedPlottingEnabled = status;
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        for (Feature2DList list : loopLists.values()) {
+            list.setColor(color);
+        }
+    }
+
+    public Collection<Feature2DList> getAllFeatureLists() {
+        return loopLists.values();
     }
 }

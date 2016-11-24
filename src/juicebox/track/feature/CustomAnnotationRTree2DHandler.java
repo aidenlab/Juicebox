@@ -38,7 +38,7 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public CustomAnnotationRTree2DHandler(Feature2DList inputList) {
         clearLists();
-        loadLoopList(inputList);
+        loadLoopList(inputList, true);
     }
 
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
@@ -47,6 +47,14 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
         }
         // TODO can be optimized further i.e. no need to remake entire rtree, just add necessary nodes
         remakeRTree();
+    }
+
+    public int getNumberOfFeatures() {
+        int total = 0;
+        for (Feature2DList featureList : loopLists.values()) {
+            total += featureList.getNumTotalFeatures();
+        }
+        return total;
     }
 
     public void addAttributeFieldToAll(String key, String aNull) {
@@ -120,12 +128,14 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
         return features;
     }
 
-    public int exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
+    public boolean exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
+        boolean nothingExported = false;
+        Feature2DList mergedList = new Feature2DList();
         for (Feature2DList featureList : loopLists.values()) {
-            if (featureList.exportFeatureList(file, b, na) == -1) {
-                return -1;
-            }
+            mergedList.add(featureList);
         }
-        return 0;
+
+        nothingExported |= mergedList.exportFeatureList(file, b, na) == -1;
+        return nothingExported;
     }
 }

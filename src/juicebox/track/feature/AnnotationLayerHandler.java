@@ -26,39 +26,56 @@ package juicebox.track.feature;
 
 import juicebox.HiC;
 import juicebox.data.MatrixZoomData;
-import juicebox.gui.MainMenuBar;
+import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
+import juicebox.windowui.SaveAnnotationsDialog;
+import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
+import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Marie on 6/4/15.
+ * Modified by muhammadsaadshamim
  */
-public class CustomAnnotationHandler {
+public class AnnotationLayerHandler {
 
+    private static boolean importAnnotationsEnabled = false;
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
     // threshold in terms of pixel pos
     private final int threshold = 15;
     private Rectangle selectionRegion;
-    private Point selectionPoint;
     private Feature2D.FeatureType featureType;
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
     private Pair<Integer, Integer> lastStarts = null;
     private Pair<Integer, Integer> lastEnds = null;
+    private AnnotationLayer annotationLayer;
+    private String layerName;
+    private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
+    private boolean canExport = false, canUndo = false;
+    private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
+    private JToggleButton activeLayerButton;
+    private Color defaultColor = Color.BLUE;
 
-    public CustomAnnotationHandler() {
+    public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
+        this.annotationLayer = new AnnotationLayer();
         resetSelection();
+        layerName = "Layer " + annotationLayer.getId();
     }
 
     private void resetSelection() {
         selectionRegion = null;
-        selectionPoint = null;
+        //selectionPoint = null;
         featureType = Feature2D.FeatureType.NONE;
     }
 
@@ -98,18 +115,6 @@ public class CustomAnnotationHandler {
         selectionRegion = newRegion;
     }
 
-    public void setLastItem(int idx1, int idx2, Feature2D lastLoop) {
-        lastChr1Idx = idx1;
-        lastChr2Idx = idx2;
-        lastResizeLoop = lastLoop;
-    }
-
-    private void clearLastItem() {
-        lastChr1Idx = -1;
-        lastChr2Idx = -1;
-        lastResizeLoop = null;
-    }
-
 //    // Update selection region from new coordinates
 //    public Rectangle updateSelectionRegion(int x, int y, int deltaX, int deltaY) {
 //
@@ -135,17 +140,31 @@ public class CustomAnnotationHandler {
 //        return damageRect;
 //    }
 
+    public void setLastItem(int idx1, int idx2, Feature2D lastLoop) {
+        lastChr1Idx = idx1;
+        lastChr2Idx = idx2;
+        lastResizeLoop = lastLoop;
+    }
+
+    private void clearLastItem() {
+        lastChr1Idx = -1;
+        lastChr2Idx = -1;
+        lastResizeLoop = null;
+    }
+
+    /*
     public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
     }
+    */
 
     // Adds to lower lefthand side, for consistency.
-    public void addFeature(HiC hic, CustomAnnotation customAnnotations) {
+    public void addFeature(HiC hic) {
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
-        MainMenuBar.exportAnnotationsMI.setEnabled(true);
-        MainMenuBar.undoMenuItem.setEnabled(true);
+        setExportAbility(true);
+        setUndoAbility(true);
         clearLastItem();
         String chr1 = hic.getXContext().getChromosome().getName();
         String chr2 = hic.getYContext().getChromosome().getName();
@@ -219,8 +238,8 @@ public class CustomAnnotationHandler {
 
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                Color.GREEN, attributes);
-        customAnnotations.add(chr1Idx, chr2Idx, newFeature);
+                defaultColor, attributes);
+        annotationLayer.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
     }
@@ -270,37 +289,41 @@ public class CustomAnnotationHandler {
         return (x1 < y2 && x2 < y1) || (x1 > y2 && x2 > y1);
     }
 
-    public CustomAnnotation addVisibleLoops(HiC hic, CustomAnnotation customAnnotations) {
+    /*
+    public void addVisibleLoops(HiC hic) {
         try {
             hic.getZd();
         } catch (Exception e) {
-            return customAnnotations;
+            return;
         }
 
         if (hic.getXContext() == null || hic.getYContext() == null)
-            return customAnnotations;
+            return;
 
         java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-        if (loops == null) return customAnnotations;
-        if (customAnnotations == null) {
-            System.out.println("Error! Custom annotations should not be null!");
-            return null;
+        if (loops == null) return;
+        if (customAnnotation == null) {
+            System.err.println("Error! Custom annotations should not be null!");
+            return;
         }
 
         // Add each loop list to the custom annotation list
-        for (Feature2DList list : loops) {
-            customAnnotations.addVisibleToCustom(list);
+        if (loops.size() > 0) {
+            setExportAbility(true);
+            for (Feature2DList list : loops) {
+                customAnnotation.addVisibleToCustom(list);
+            }
         }
-        return customAnnotations;
     }
+    */
 
-    public void undo(CustomAnnotation customAnnotations) {
-        customAnnotations.undo();
+    public void undo(JButton undoButton) {
+        annotationLayer.undo();
         if (lastResizeLoop != null) {
-            customAnnotations.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
+            annotationLayer.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
             resetSelection();
         }
-        MainMenuBar.undoMenuItem.setEnabled(false);
+        undoButton.setEnabled(false);
     }
 
     private boolean nearDiagonal(HiC hic, int x, int y) {
@@ -354,5 +377,226 @@ public class CustomAnnotationHandler {
 
     private int getYBin(HiC hic, int y) {
         return (int) (hic.getYContext().getBinOrigin() + y / hic.getScaleFactor());
+    }
+
+    public boolean getLayerVisibility() {
+        return annotationLayer.getLayerVisibility();
+    }
+
+    public void setLayerVisibility(boolean showCustom) {
+        annotationLayer.setLayerVisibility(showCustom);
+    }
+
+    public void clearAnnotations() {
+        annotationLayer.clearAnnotations();
+    }
+
+    public void deleteTempFile() {
+        annotationLayer.deleteTempFile();
+    }
+
+    public AnnotationLayer getAnnotationLayer() {
+        return annotationLayer;
+    }
+
+    public void setAnnotationLayer(AnnotationLayer annotationLayer) {
+        this.annotationLayer = annotationLayer;
+    }
+
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
+                                             int numberOfLoopsToFind, double binOriginX,
+                                             double binOriginY, double scaleFactor) {
+        return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor);
+    }
+
+    public void removeFromList(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
+                               double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
+        annotationLayer.removeFromList(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, feature);
+    }
+
+    public boolean hasLoop(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
+                           double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
+        return annotationLayer.hasLoop(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, feature);
+    }
+
+    public String getLayerName() {
+        return layerName;
+    }
+
+    public void setLayerName(String layerName) {
+        this.layerName = layerName;
+    }
+
+    public Feature2DHandler getFeatureHandler() {
+        return annotationLayer.getFeatureHandler();
+    }
+
+    public boolean getIsTransparent() {
+        return getFeatureHandler().getIsTransparent();
+    }
+
+    public void setIsTransparent(boolean isTransparent) {
+        getFeatureHandler().setIsTransparent(isTransparent);
+    }
+
+    public boolean getIsEnlarged() {
+        return getFeatureHandler().getIsEnlarged();
+    }
+
+    public void setIsEnlarged(boolean isEnlarged) {
+        getFeatureHandler().setIsEnlarged(isEnlarged);
+    }
+
+    public FeatureRenderer.PlottingOption getPlottingStyle() {
+        return plottingStyle;
+    }
+
+    public void setPlottingStyle(FeatureRenderer.PlottingOption plottingStyle) {
+        this.plottingStyle = plottingStyle;
+    }
+
+    public void exportAnnotations() {
+        new SaveAnnotationsDialog(getAnnotationLayer(), getLayerName());
+    }
+
+    public void setImportAnnotationButton(JButton importAnnotationsButton) {
+        this.importAnnotationsButton = importAnnotationsButton;
+    }
+
+    public boolean getImportAnnotationsEnabled() {
+        return importAnnotationsEnabled;
+    }
+
+    public void setImportAnnotationsEnabled(boolean status) {
+        importAnnotationsEnabled = status;
+        if (importAnnotationsButton != null) {
+            importAnnotationsButton.setEnabled(importAnnotationsEnabled);
+        }
+    }
+
+    public void loadLoopList(String path, List<Chromosome> chromosomes) {
+        getFeatureHandler().loadLoopList(path, chromosomes);
+    }
+
+    public List<Feature2DList> getAllVisibleLoopLists() {
+        return getFeatureHandler().getAllVisibleLoopLists();
+    }
+
+
+    public void setExportAbility(boolean allowed) {
+        canExport = allowed;
+        if (exportButton != null) {
+            exportButton.setEnabled(true);
+        }
+    }
+
+    public void setExportButton(JButton exportButton) {
+        this.exportButton = exportButton;
+    }
+
+    public boolean getExportCapability() {
+        return canExport;
+    }
+
+    public void setUndoAbility(boolean allowed) {
+        canUndo = allowed;
+        if (undoButton != null) {
+            undoButton.setEnabled(true);
+        }
+    }
+
+    public void setUndoButton(JButton undoButton) {
+        this.undoButton = undoButton;
+    }
+
+    public boolean getUndoCapability() {
+        return canUndo;
+    }
+
+    public boolean isActiveLayer(SuperAdapter superAdapter) {
+        return annotationLayer.getId() == superAdapter.getActiveLayer().getAnnotationLayer().getId();
+    }
+
+    public void setActiveLayerButtonStatus(boolean status) {
+        if (activeLayerButton != null) {
+            activeLayerButton.setSelected(status);
+            activeLayerButton.revalidate();
+        }
+    }
+
+    public void setActiveLayerButton(JToggleButton activeLayerButton) {
+        this.activeLayerButton = activeLayerButton;
+    }
+
+    public int getNumberOfFeatures() {
+        return annotationLayer.getNumberOfFeatures();
+    }
+
+    public void setColorOfAllAnnotations(Color color) {
+        defaultColor = color;
+        annotationLayer.setColorOfAllAnnotations(color);
+    }
+
+    public Color getDefaultColor() {
+        return defaultColor;
+    }
+
+    public void setDeleteLayerButtonStatus(boolean status) {
+        if (deleteLayerButton != null) {
+            deleteLayerButton.setEnabled(status);
+            deleteLayerButton.revalidate();
+        }
+    }
+
+    public void setDeleteLayerButton(JButton deleteLayerButton) {
+        this.deleteLayerButton = deleteLayerButton;
+    }
+
+    public boolean getIsSparse() {
+        return annotationLayer.getIsSparse();
+    }
+
+    public void setIsSparse(boolean isSparse) {
+        annotationLayer.setIsSparse(isSparse);
+    }
+
+    public void duplicateDetailsFrom(AnnotationLayerHandler handlerOriginal) {
+        featureType = handlerOriginal.featureType;
+
+        setLayerName("Copy of " + handlerOriginal.getLayerName());
+        setLayerVisibility(handlerOriginal.getLayerVisibility());
+        setColorOfAllAnnotations(handlerOriginal.getDefaultColor());
+        setIsTransparent(handlerOriginal.getIsTransparent());
+        setIsEnlarged(handlerOriginal.getIsEnlarged());
+        setPlottingStyle(handlerOriginal.getPlottingStyle());
+
+        annotationLayer.createMergedLoopLists(handlerOriginal.getAnnotationLayer().getAllFeatureLists());
+        setImportAnnotationsEnabled(handlerOriginal.getImportAnnotationsEnabled());
+        setExportAbility(handlerOriginal.getExportCapability());
+        setIsSparse(handlerOriginal.getIsSparse());
+    }
+
+    public void mergeDetailsFrom(Collection<AnnotationLayerHandler> originalHandlers) {
+
+        String cleanedTitle = "";
+        for (AnnotationLayerHandler originalHandler : originalHandlers) {
+            featureType = originalHandler.featureType;
+
+            cleanedTitle += "-" + originalHandler.getLayerName().toLowerCase().replaceAll("layer", "").replaceAll("\\s", "");
+
+            setLayerVisibility(originalHandler.getLayerVisibility());
+            setColorOfAllAnnotations(originalHandler.getDefaultColor());
+
+            annotationLayer.createMergedLoopLists(originalHandler.getAnnotationLayer().getAllFeatureLists());
+            importAnnotationsEnabled |= originalHandler.getImportAnnotationsEnabled();
+
+            canExport |= originalHandler.getExportCapability();
+        }
+
+        setExportAbility(canExport);
+        setLayerName("Merger" + cleanedTitle);
     }
 }

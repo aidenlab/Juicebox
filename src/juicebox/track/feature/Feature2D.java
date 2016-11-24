@@ -28,7 +28,6 @@ package juicebox.track.feature;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
-import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 
@@ -154,8 +153,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getColor() {
-        if (Feature2DHandler.isTranslucentPlottingEnabled)
-            return translucentColor;
         return color;
     }
 
@@ -164,6 +161,10 @@ public class Feature2D implements Comparable<Feature2D> {
         if (reflection != null)
             reflection.color = color;
         setTranslucentColor();
+    }
+
+    public Color getTranslucentColor() {
+        return translucentColor;
     }
 
     private void setTranslucentColor() {

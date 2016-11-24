@@ -51,19 +51,12 @@ public class Feature2DList {
     private final Map<String, List<Feature2D>> featureList = new HashMap<String, List<Feature2D>>();
 
     /**
-     * Visibility as set by user
-     */
-    private boolean isVisible;
-
-    /**
      * Initialized hashtable
      */
     public Feature2DList() {
-        isVisible = true;
     }
 
     public Feature2DList(Feature2DList list) {
-        super();
         add(list);
     }
 
@@ -216,24 +209,6 @@ public class Feature2DList {
             List<Feature2D> loops = new ArrayList<Feature2D>(features);
             featureList.put(key, loops);
         }
-    }
-
-    /**
-     * Returns visibility of list
-     *
-     * @return If list is visible
-     */
-    public boolean isVisible() {
-        return isVisible;
-    }
-
-    /**
-     * Set visibility of list
-     *
-     * @param flag Visibility
-     */
-    public void setVisible(boolean flag) {
-        isVisible = flag;
     }
 
     /**
