@@ -34,7 +34,7 @@ import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -340,18 +340,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                 //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
 
-                for (CustomAnnotationHandler handler : superAdapter.getAllLayers()) {
+                for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
 
 
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                             centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                     List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
-                    System.out.println("Getting " + loops.size() + " loops from " + handler.getLayerName());
                     for (Feature2D feature2D : loops) {
                         if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
                             cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
                         }
-                        System.out.print(feature2D.getColor() + " ");
                     }
 
                     customFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(loops, zd, binOriginX, binOriginY, scaleFactor));
@@ -759,7 +757,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 new EditFeatureAttributesDialog(mainWindow, mostRecentRectFeaturePair.getSecond(),
-                        superAdapter.getActiveLayer().getCustomAnnotation());
+                        superAdapter.getActiveLayer().getAnnotationLayer());
             }
         });
 
@@ -1181,7 +1179,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
                 dragMode = DragMode.ANNOTATE;
-                superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
+                //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
                 superAdapter.getActiveLayer().doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));

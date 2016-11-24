@@ -41,8 +41,9 @@ import java.util.List;
 
 /**
  * Created by Marie on 6/4/15.
+ * Modified by muhammadsaadshamim
  */
-public class CustomAnnotationHandler {
+public class AnnotationLayerHandler {
 
     private static boolean importAnnotationsEnabled = false;
     // displacement in terms of gene pos
@@ -50,31 +51,30 @@ public class CustomAnnotationHandler {
     // threshold in terms of pixel pos
     private final int threshold = 15;
     private Rectangle selectionRegion;
-    private Point selectionPoint;
     private Feature2D.FeatureType featureType;
     private Feature2D lastResizeLoop = null;
     private int lastChr1Idx = -1;
     private int lastChr2Idx = -1;
     private Pair<Integer, Integer> lastStarts = null;
     private Pair<Integer, Integer> lastEnds = null;
-    private CustomAnnotation customAnnotation;
+    private AnnotationLayer annotationLayer;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
     private boolean canExport = false, canUndo = false;
-    private JButton exportButton, undoButton, importAnnotationsButton;
+    private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
     private JToggleButton activeLayerButton;
-    private Color defaultColor = Color.GREEN;
+    private Color defaultColor = Color.BLUE;
 
-    public CustomAnnotationHandler() {
+    public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
-        this.customAnnotation = new CustomAnnotation();
+        this.annotationLayer = new AnnotationLayer();
         resetSelection();
-        layerName = "Layer " + customAnnotation.getId();
+        layerName = "Layer " + annotationLayer.getId();
     }
 
     private void resetSelection() {
         selectionRegion = null;
-        selectionPoint = null;
+        //selectionPoint = null;
         featureType = Feature2D.FeatureType.NONE;
     }
 
@@ -151,9 +151,11 @@ public class CustomAnnotationHandler {
         lastResizeLoop = null;
     }
 
+    /*
     public void updateSelectionPoint(int x, int y) {
         selectionPoint = new Point(x, y);
     }
+    */
 
     public void setExportAbility(boolean allowed) {
         canExport = allowed;
@@ -266,7 +268,7 @@ public class CustomAnnotationHandler {
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
-        customAnnotation.add(chr1Idx, chr2Idx, newFeature);
+        annotationLayer.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
     }
@@ -345,9 +347,9 @@ public class CustomAnnotationHandler {
     */
 
     public void undo(JButton undoButton) {
-        customAnnotation.undo();
+        annotationLayer.undo();
         if (lastResizeLoop != null) {
-            customAnnotation.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
+            annotationLayer.add(lastChr1Idx, lastChr2Idx, lastResizeLoop);
             resetSelection();
         }
         undoButton.setEnabled(false);
@@ -407,45 +409,45 @@ public class CustomAnnotationHandler {
     }
 
     public boolean getLayerVisibility() {
-        return customAnnotation.getLayerVisibility();
+        return annotationLayer.getLayerVisibility();
     }
 
     public void setLayerVisibility(boolean showCustom) {
-        customAnnotation.setLayerVisibility(showCustom);
+        annotationLayer.setLayerVisibility(showCustom);
     }
 
     public void clearAnnotations() {
-        customAnnotation.clearAnnotations();
+        annotationLayer.clearAnnotations();
     }
 
     public void deleteTempFile() {
-        customAnnotation.deleteTempFile();
+        annotationLayer.deleteTempFile();
     }
 
-    public CustomAnnotation getCustomAnnotation() {
-        return customAnnotation;
+    public AnnotationLayer getAnnotationLayer() {
+        return annotationLayer;
     }
 
-    public void setCustomAnnotation(CustomAnnotation customAnnotation) {
-        this.customAnnotation = customAnnotation;
+    public void setAnnotationLayer(AnnotationLayer annotationLayer) {
+        this.annotationLayer = annotationLayer;
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
                                              int numberOfLoopsToFind, double binOriginX,
                                              double binOriginY, double scaleFactor) {
-        return customAnnotation.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+        return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
                 binOriginX, binOriginY, scaleFactor);
     }
 
     public void removeFromList(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
                                double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
-        customAnnotation.removeFromList(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+        annotationLayer.removeFromList(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
                 binOriginX, binOriginY, scaleFactor, feature);
     }
 
     public boolean hasLoop(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
                            double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
-        return customAnnotation.hasLoop(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+        return annotationLayer.hasLoop(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
                 binOriginX, binOriginY, scaleFactor, feature);
     }
 
@@ -458,7 +460,7 @@ public class CustomAnnotationHandler {
     }
 
     public Feature2DHandler getFeatureHandler() {
-        return customAnnotation.getFeatureHandler();
+        return annotationLayer.getFeatureHandler();
     }
 
     public boolean getIsTransparent() {
@@ -486,7 +488,7 @@ public class CustomAnnotationHandler {
     }
 
     public void exportAnnotations() {
-        new SaveAnnotationsDialog(getCustomAnnotation(), getLayerName());
+        new SaveAnnotationsDialog(getAnnotationLayer(), getLayerName());
     }
 
     public void setImportAnnotationButton(JButton importAnnotationsButton) {
@@ -514,7 +516,7 @@ public class CustomAnnotationHandler {
 
 
     public boolean isActiveLayer(SuperAdapter superAdapter) {
-        return customAnnotation.getId() == superAdapter.getActiveLayer().getCustomAnnotation().getId();
+        return annotationLayer.getId() == superAdapter.getActiveLayer().getAnnotationLayer().getId();
     }
 
     public void setActiveLayerButtonStatus(boolean status) {
@@ -529,15 +531,26 @@ public class CustomAnnotationHandler {
     }
 
     public int getNumberOfFeatures() {
-        return customAnnotation.getNumberOfFeatures();
+        return annotationLayer.getNumberOfFeatures();
     }
 
     public void setColorOfAllAnnotations(Color color) {
         defaultColor = color;
-        customAnnotation.setColorOfAllAnnotations(color);
+        annotationLayer.setColorOfAllAnnotations(color);
     }
 
     public Color getDefaultColor() {
         return defaultColor;
+    }
+
+    public void setDeleteLayerButtonStatus(boolean status) {
+        if (deleteLayerButton != null) {
+            deleteLayerButton.setEnabled(status);
+            deleteLayerButton.revalidate();
+        }
+    }
+
+    public void setDeleteLayerButton(JButton deleteLayerButton) {
+        this.deleteLayerButton = deleteLayerButton;
     }
 }

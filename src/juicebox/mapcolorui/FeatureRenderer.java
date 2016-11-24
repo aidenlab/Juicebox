@@ -27,7 +27,7 @@ package juicebox.mapcolorui;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2D;
 
 import java.awt.*;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class FeatureRenderer {
 
-    public static void render(Graphics2D g2, CustomAnnotationHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
+    public static void render(Graphics2D g2, AnnotationLayerHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {

@@ -27,7 +27,7 @@ package juicebox.tools.dev;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.LoadAction;
-import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.track.feature.AnnotationLayerHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -79,14 +79,15 @@ public class LayersPanel extends JPanel {
      */
     private JPanel generateLayerSelectionPanel(final SuperAdapter superAdapter) {
         final JPanel layerBoxGUI = new JPanel();
-        layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
+        //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
+        layerBoxGUI.setLayout(new GridLayout(0, 1));
 
         int i = 0;
-        for (CustomAnnotationHandler handler : superAdapter.getAllLayers()) {
+        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             try {
-                JPanel panel = createLayerPanel(handler, superAdapter);
+                JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
                 //layerPanels.add(panel);
-                layerBoxGUI.add(panel);
+                layerBoxGUI.add(panel, 0);
             } catch (IOException e) {
                 System.err.println("Unable to generate layer panel " + (i - 1));
                 //e.printStackTrace();
@@ -123,25 +124,35 @@ public class LayersPanel extends JPanel {
         newLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomAnnotationHandler handler = superAdapter.createNewLayer();
+                AnnotationLayerHandler handler = superAdapter.createNewLayer();
                 try {
-                    JPanel panel = createLayerPanel(handler, superAdapter);
-                    layerBoxGUI.add(panel);
+                    JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
+                    layerBoxGUI.add(panel, 0);
                     layerBoxGUI.revalidate();
                     layerBoxGUI.repaint();
                     superAdapter.setActiveLayer(handler);
+                    superAdapter.updateLayerDeleteStatus();
                 } catch (Exception ee) {
                     System.err.println("Unable to add new layer to GUI");
                 }
 
             }
         });
+        superAdapter.updateLayerDeleteStatus();
 
         return pane;
     }
 
-    private JPanel createLayerPanel(final CustomAnnotationHandler handler, final SuperAdapter superAdapter) throws IOException {
-        JPanel panel = new JPanel();
+    /**
+     * @param handler
+     * @param superAdapter
+     * @param layerBoxGUI
+     * @return
+     * @throws IOException
+     */
+    private JPanel createLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter,
+                                    final JPanel layerBoxGUI) throws IOException {
+        final JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(1, 0));
 
         /* layer name */
@@ -225,11 +236,11 @@ public class LayersPanel extends JPanel {
         undoButton.setToolTipText("Undo last new feature in this layer");
 
         /* clear annotations in this layer */
-        final JButton colorButton = createIconButton("/images/layer/color.png");
+        //final JButton colorButton = createDynamicIconButton("/images/layer/color.png", handler);
+        final DynamicJButton colorButton = new DynamicJButton(handler);
         colorButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 JColorChooser colorChooser = new JColorChooser(handler.getDefaultColor());
                 JDialog dialog = JColorChooser.createDialog(new JPanel(null), "Layer Color Selection", true, colorChooser,
                         null, null);
@@ -238,6 +249,7 @@ public class LayersPanel extends JPanel {
                 if (c != null) {
                     handler.setColorOfAllAnnotations(c);
                     superAdapter.repaint();
+                    colorButton.updateColor(c);
                 }
             }
         });
@@ -282,32 +294,46 @@ public class LayersPanel extends JPanel {
             }
         });
 
+        JButton deleteButton = createIconButton("/images/layer/trash.png");
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.deleteCustomAnnotationDialog(handler.getLayerName()) == JOptionPane.YES_OPTION) {
+                    layerBoxGUI.remove(panel);
+                    superAdapter.removeLayer(handler);
+                    layerBoxGUI.revalidate();
+                    layerBoxGUI.repaint();
+                }
+            }
+        });
+        handler.setDeleteLayerButton(deleteButton);
+
         JButton upButton = createIconButton("/images/layer/up.png");
         JButton downButton = createIconButton("/images/layer/down.png");
 
         JButton copyButton = createIconButton("/images/layer/copy.png");
-        JButton deleteButton = createIconButton("/images/layer/trash.png");
+
 
         panel.add(writeButton);
         panel.add(nameField);
         panel.add(toggleVisibleButton);
+        panel.add(colorButton);
         panel.add(toggleTransparentButton);
         panel.add(toggleEnlargeButton);
         panel.add(togglePlottingStyle);
         panel.add(undoButton);
-        panel.add(colorButton);
         panel.add(clearButton);
         panel.add(importAnnotationsButton);
         panel.add(exportLayerButton);
         panel.add(copyButton);
-        panel.add(deleteButton);
         panel.add(upButton);
         panel.add(downButton);
+        panel.add(deleteButton);
 
         return panel;
     }
 
-    private JButton createTogglePlottingStyleIconButton(final CustomAnnotationHandler handler,
+    private JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
                                                         final SuperAdapter superAdapter) throws IOException {
 
         // triple state toggle button
@@ -394,8 +420,10 @@ public class LayersPanel extends JPanel {
         }
     }
 
-    private JButton createIconButton(String url) throws IOException {
+    // BufferedImage imageActive = new BufferedImage(25, 25, BufferedImage.TYPE_INT_ARGB);
+    // = ImageIO.read(getClass().getResource(url));
 
+    private JButton createIconButton(String url) throws IOException {
         BufferedImage imageActive = ImageIO.read(getClass().getResource(url));
         ImageIcon iconActive = new ImageIcon(imageActive);
 
@@ -456,5 +484,36 @@ public class LayersPanel extends JPanel {
         g.dispose();
 
         return newImage;
+    }
+
+    private class DynamicJButton extends JButton {
+
+        private final static long serialVersionUID = 182637L;
+        private ImageIcon iconActive, iconTransition, iconInactive;
+
+        public DynamicJButton(AnnotationLayerHandler handler) {
+            super();
+            updateColor(handler.getDefaultColor());
+            setBorderPainted(false);
+        }
+
+        private void updateColor(Color color) {
+            iconActive = updateIconColor(color, 1f);
+            iconTransition = updateIconColor(color, .6f);
+            iconInactive = updateIconColor(color, .2f);
+            setIcon(iconActive);
+            setRolloverIcon(iconTransition);
+            setPressedIcon(iconInactive);
+        }
+
+        private ImageIcon updateIconColor(Color color, float alpha) {
+            BufferedImage newImage = new BufferedImage(25, 25, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = newImage.createGraphics();
+            g.setColor(color);
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+            g.fillOval(0, 0, 25, 25);
+            g.dispose();
+            return new ImageIcon(newImage);
+        }
     }
 }

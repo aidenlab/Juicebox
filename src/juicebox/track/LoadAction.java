@@ -29,7 +29,7 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
@@ -59,7 +59,7 @@ public class LoadAction extends AbstractAction {
 
     private final MainWindow mainWindow;
     private final HiC hic;
-    private CustomAnnotationHandler handler;
+    private AnnotationLayerHandler handler;
     private boolean show2DOnly = false;
 
 
@@ -69,7 +69,7 @@ public class LoadAction extends AbstractAction {
         this.hic = hic;
     }
 
-    public LoadAction(String s, CustomAnnotationHandler handler, SuperAdapter superAdapter) {
+    public LoadAction(String s, AnnotationLayerHandler handler, SuperAdapter superAdapter) {
         this(s, superAdapter.getMainWindow(), superAdapter.getHiC());
         this.handler = handler;
         show2DOnly = true;

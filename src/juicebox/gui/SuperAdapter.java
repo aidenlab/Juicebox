@@ -35,8 +35,8 @@ import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.feature.CustomAnnotation;
-import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.track.feature.AnnotationLayer;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -68,8 +68,8 @@ public class SuperAdapter {
     private MainMenuBar mainMenuBar;
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
-    private List<CustomAnnotationHandler> customAnnotationHandlers = new ArrayList<CustomAnnotationHandler>();
-    private CustomAnnotationHandler activeLayer;
+    private List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<AnnotationLayerHandler>();
+    private AnnotationLayerHandler activeLayer;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -124,7 +124,7 @@ public class SuperAdapter {
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
-        for (CustomAnnotationHandler handler : customAnnotationHandlers) {
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
             handler.setImportAnnotationsEnabled(status);
         }
     }
@@ -216,14 +216,22 @@ public class SuperAdapter {
     */
 
     public void generateNewCustomAnnotation(File temp) {
-        getActiveLayer().setCustomAnnotation(
-                new CustomAnnotation(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
+        getActiveLayer().setAnnotationLayer(
+                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
         return JOptionPane.showConfirmDialog(
                 mainWindow,
                 "Are you sure you want to clear this layer's annotations?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION);
+    }
+
+    public int deleteCustomAnnotationDialog(String layerName) {
+        return JOptionPane.showConfirmDialog(
+                mainWindow,
+                "Are you sure you want to delete this layer (" + layerName + ")?",
                 "Confirm",
                 JOptionPane.YES_NO_OPTION);
     }
@@ -772,33 +780,52 @@ public class SuperAdapter {
     }
 
 
-    public CustomAnnotationHandler getActiveLayer() {
-        printNumFeatures();
+    public AnnotationLayerHandler getActiveLayer() {
         return activeLayer;
     }
 
-    public void setActiveLayer(CustomAnnotationHandler activeLayer) {
+    public void setActiveLayer(AnnotationLayerHandler activeLayer) {
         this.activeLayer = activeLayer;
-        for (CustomAnnotationHandler layer : customAnnotationHandlers) {
+        for (AnnotationLayerHandler layer : annotationLayerHandlers) {
             layer.setActiveLayerButtonStatus(false);
         }
         activeLayer.setActiveLayerButtonStatus(true);
     }
 
-    public List<CustomAnnotationHandler> getAllLayers() {
-        return customAnnotationHandlers;
+    public List<AnnotationLayerHandler> getAllLayers() {
+        return annotationLayerHandlers;
     }
 
-    public CustomAnnotationHandler createNewLayer() {
-        activeLayer = new CustomAnnotationHandler();
-        customAnnotationHandlers.add(activeLayer);
+    public AnnotationLayerHandler createNewLayer() {
+        activeLayer = new AnnotationLayerHandler();
+        annotationLayerHandlers.add(activeLayer);
         setActiveLayer(activeLayer); // call this anyways because other layers need to fix button settings
         return activeLayer;
     }
 
     public void printNumFeatures() {
-        for (CustomAnnotationHandler handler : customAnnotationHandlers) {
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
             System.out.println(handler.getLayerName() + " " + handler.getNumberOfFeatures());
+        }
+    }
+
+    public void removeLayer(AnnotationLayerHandler handler) {
+        if (annotationLayerHandlers.size() > 1) {
+            // must have at least 1 layer
+            annotationLayerHandlers.remove(handler);
+            if (handler == activeLayer) {
+                // need to set a new active layer; let's use first one as default
+                setActiveLayer(annotationLayerHandlers.get(0));
+            }
+            handler = null;
+        }
+        updateLayerDeleteStatus();
+    }
+
+    public void updateLayerDeleteStatus() {
+        boolean isDeleteAllowed = annotationLayerHandlers.size() > 1;
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
+            handler.setDeleteLayerButtonStatus(isDeleteAllowed);
         }
     }
 }

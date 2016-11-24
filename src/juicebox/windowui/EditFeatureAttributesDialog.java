@@ -29,7 +29,7 @@ package juicebox.windowui;
  */
 
 import juicebox.MainWindow;
-import juicebox.track.feature.CustomAnnotation;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Feature2D;
 
 import javax.swing.*;
@@ -49,7 +49,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     private final String defaultNewAttributeValue = "<Attribute Value>";
     private final HashMap<String, JTextField> textFields;
     private final Feature2D feature;
-    private final CustomAnnotation customAnnotations;
+    private final AnnotationLayer annotationsLayer;
     private final ArrayList<String> attributeKeys;
     private final JCheckBox echoOption;
     private final JOptionPane optionPane;
@@ -59,10 +59,10 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     /**
      * Creates the reusable dialog.
      */
-    public EditFeatureAttributesDialog(MainWindow mainWindow, Feature2D feature, CustomAnnotation customAnnotations) {
+    public EditFeatureAttributesDialog(MainWindow mainWindow, Feature2D feature, AnnotationLayer annotationsLayer) {
         super(mainWindow);
 
-        this.customAnnotations = customAnnotations;
+        this.annotationsLayer = annotationsLayer;
         this.feature = feature;
         setTitle("Attribute Editor");
 
@@ -184,9 +184,9 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                                 if (!newAttributeText.equals(defaultNewAttributeValue) &&
                                         newAttributeText != null) {
                                     if (echoOption.isSelected()) {
-                                        customAnnotations.addAllAttributeValues(typedText, newAttributeText);
+                                        annotationsLayer.addAllAttributeValues(typedText, newAttributeText);
                                     } else {
-                                        customAnnotations.addAllAttributeValues(typedText, "null");
+                                        annotationsLayer.addAllAttributeValues(typedText, "null");
                                         feature.setAttribute(typedText, newAttributeText);
                                     }
                                 }

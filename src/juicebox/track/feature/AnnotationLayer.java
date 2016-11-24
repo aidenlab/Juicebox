@@ -37,8 +37,9 @@ import java.util.List;
 
 /**
  * Created by Marie on 6/3/15.
+ * Modified by muhammadsaadshamim
  */
-public class CustomAnnotation {
+public class AnnotationLayer {
 
     private static int i;
     private final int id;
@@ -52,13 +53,13 @@ public class CustomAnnotation {
     private File tempFile;
     private ArrayList<String> attributeKeys;
 
-    public CustomAnnotation() {
+    public AnnotationLayer() {
         id = i++;
         firstSave = true;
         reset();
     }
 
-    public CustomAnnotation(Feature2DList inputList) {
+    public AnnotationLayer(Feature2DList inputList) {
         this();
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
     }

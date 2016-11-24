@@ -26,7 +26,7 @@ package juicebox.windowui;
 
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.track.feature.CustomAnnotation;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Feature2DList;
 
 import javax.swing.*;
@@ -41,20 +41,20 @@ import java.util.Date;
 public class SaveAnnotationsDialog extends JFileChooser {
 
     private static final long serialVersionUID = -6338086600062738308L;
-    private final CustomAnnotation annotations;
+    private final AnnotationLayer annotations;
     private Feature2DList otherList = null;
     private String mapName = "";
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, String mapName) {
+    public SaveAnnotationsDialog(AnnotationLayer annotationsLayer, String mapName) {
         super();
-        this.annotations = customAnnotations;
+        this.annotations = annotationsLayer;
         this.mapName = mapName;
         menuOptions();
     }
 
-    public SaveAnnotationsDialog(CustomAnnotation customAnnotations, Feature2DList otherList) {
+    public SaveAnnotationsDialog(AnnotationLayer annotationsLayer, Feature2DList otherList) {
         super();
-        this.annotations = customAnnotations;
+        this.annotations = annotationsLayer;
         this.otherList = otherList;
         menuOptions();
     }

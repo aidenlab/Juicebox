@@ -54,16 +54,25 @@ class AggregateProcessing {
                 "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
                 "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
                 "/Users/muhammadsaadshamim/Desktop/LocalFiles/general/rice_mbr19_30hic_fakediff"};
-/*
+
         ajkhsd = new String[]{"dump", "pearson", "KR",
                 "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined.hic",
                 "12", "12", "BP", "500000", "/Users/muhammadsaadshamim/Desktop/test/ignore/k562_chr12_pearson"
         };
 
-        ajkhsd = new String[]{"pre", "/Users/muhammadsaadshamim/Documents/Github/Hydra/JuiceboxDev/data/data2"
-                , "/Users/muhammadsaadshamim/Documents/Github/Hydra/JuiceboxDev/data/data2.hic", "hg19"
+        ajkhsd = new String[]{"genes", "hg19", "null",
+                "/Users/muhammadsaadshamim/Desktop/LocalFiles/regev/diff_loops_1_2/differential_loops1.txt",
+                "/Users/muhammadsaadshamim/Desktop/LocalFiles/regev/diff_loops_1_2/genes1.txt"
         };
-*/
+
+        //HiCGlobals.printVerboseComments = true;
+        //HiCTools.main(ajkhsd);
+
+        ajkhsd = new String[]{"genes", "hg19", "null",
+                "/Users/muhammadsaadshamim/Desktop/LocalFiles/hawk/inter_30_loops/merged_loops",
+                "/Users/muhammadsaadshamim/Desktop/LocalFiles/hawk/inter_30_loops/genes.txt"
+        };
+
         HiCGlobals.printVerboseComments = true;
         HiCTools.main(ajkhsd);
     }
