@@ -1013,12 +1013,6 @@ public class HiC {
     */
 
     /*
-    public void setSparseFeaturePlotting(boolean status) {
-        feature2DHandler.setSparseFeaturePlotting(status);
-    }
-    */
-
-    /*
     public void removeLoadedAnnotation(String path) {
 
         feature2DHandler.removeFeaturePath(path);

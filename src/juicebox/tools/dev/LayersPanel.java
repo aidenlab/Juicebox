@@ -195,6 +195,18 @@ public class LayersPanel extends JPanel {
         });
         toggleTransparentButton.setToolTipText("Toggle transparency of this layer");
 
+
+        /*  Sparse (/subset) plotting for 2d annotations  */
+        final JToggleButton toggleSparseButton = createToggleIconButton("/images/layer/sparse.png", handler.getIsSparse());
+        toggleSparseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.setIsSparse(toggleSparseButton.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        toggleSparseButton.setToolTipText("Plot a limited number of 2D annotations in this layer at a time\n(speed up plotting when there are many annotations).");
+
         /* toggle whether the features will be enlarged for this layer */
         final JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked.png", handler.getIsEnlarged());
         toggleEnlargeButton.addActionListener(new ActionListener() {
@@ -313,7 +325,6 @@ public class LayersPanel extends JPanel {
 
         JButton copyButton = createIconButton("/images/layer/copy.png");
 
-
         panel.add(writeButton);
         panel.add(nameField);
         panel.add(toggleVisibleButton);
@@ -321,6 +332,7 @@ public class LayersPanel extends JPanel {
         panel.add(toggleTransparentButton);
         panel.add(toggleEnlargeButton);
         panel.add(togglePlottingStyle);
+        panel.add(toggleSparseButton);
         panel.add(undoButton);
         panel.add(clearButton);
         panel.add(importAnnotationsButton);
@@ -509,9 +521,16 @@ public class LayersPanel extends JPanel {
         private ImageIcon updateIconColor(Color color, float alpha) {
             BufferedImage newImage = new BufferedImage(25, 25, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = newImage.createGraphics();
-            g.setColor(color);
+
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-            g.fillOval(0, 0, 25, 25);
+
+            g.setColor(color);
+            g.fillOval(1, 1, 23, 23);
+            g.setColor(color.brighter());
+            g.setStroke(new BasicStroke(2));
+            g.drawOval(2, 2, 21, 21);
+            g.setColor(color.darker());
+            g.drawOval(1, 1, 23, 23);
             g.dispose();
             return new ImageIcon(newImage);
         }

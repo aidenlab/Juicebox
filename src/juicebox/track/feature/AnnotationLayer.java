@@ -312,4 +312,12 @@ public class AnnotationLayer {
     public void setColorOfAllAnnotations(Color color) {
         customAnnotationRTreeHandler.setColorOfAllAnnotations(color);
     }
+
+    public boolean getIsSparse() {
+        return customAnnotationRTreeHandler.getIsSparsePlottingEnabled();
+    }
+
+    public void setIsSparse(boolean isSparse) {
+        customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
+    }
 }

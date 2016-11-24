@@ -770,11 +770,6 @@ public class SuperAdapter {
         getActiveLayer().deleteTempFile();
     }
 
-    public void setSparseFeaturePlotting(boolean status) {
-        //hic.setSparseFeaturePlotting(status);
-        getActiveLayer().getFeatureHandler().setSparseFeaturePlotting(status);
-    }
-
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
     }

@@ -103,7 +103,6 @@ public class Feature2DHandler {
     public void clearLists() {
         loopLists.clear();
         layerVisible = true;
-        sparseFeaturePlottingEnabled = false;
         allFeaturesAcrossGenome.clear();
         featureRtrees.clear();
     }
@@ -323,8 +322,12 @@ public class Feature2DHandler {
         return new net.sf.jsi.Point(x2, y2);
     }
 
-    public void setSparseFeaturePlotting(boolean status) {
+    public void setSparsePlottingEnabled(boolean status) {
         sparseFeaturePlottingEnabled = status;
+    }
+
+    public boolean getIsSparsePlottingEnabled() {
+        return sparseFeaturePlottingEnabled;
     }
 
     public boolean getIsTransparent() {

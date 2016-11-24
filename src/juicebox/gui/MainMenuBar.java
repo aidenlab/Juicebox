@@ -40,7 +40,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -520,24 +519,10 @@ public class MainMenuBar {
         });
         devMenu.add(layersItem);
 
-        /*  Sparse (/subset) plotting for 2d annotations  */
-        final JCheckBoxMenuItem toggleSparse2DFeaturePlotting = new JCheckBoxMenuItem("Plot Sparse:");
-        toggleSparse2DFeaturePlotting.setSelected(false);
-        toggleSparse2DFeaturePlotting.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setSparseFeaturePlotting(toggleSparse2DFeaturePlotting.isSelected());
-                superAdapter.repaint();
-            }
-        });
-        toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
-
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
         numSparse.setToolTipText("Set how many 2D annotations to plot at a time.");
-
 
         final JButton updateSparseOptions = new JButton("Update");
         updateSparseOptions.addActionListener(new ActionListener() {
@@ -554,11 +539,9 @@ public class MainMenuBar {
         sparseOptions.setLayout(new GridLayout(0, 2));
         sparseOptions.add(numSparse);
         sparseOptions.add(updateSparseOptions);
-        sparseOptions.setBackground(toggleSparse2DFeaturePlotting.getBackground());
         sparseOptions.setToolTipText("Set how many 2D annotations to plot at a time.");
 
         devMenu.addSeparator();
-        devMenu.add(toggleSparse2DFeaturePlotting);
         devMenu.add(sparseOptions);
 
         JMenuItem chrSubset = new JMenuItem("Select genome subset...");

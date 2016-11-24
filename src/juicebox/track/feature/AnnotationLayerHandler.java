@@ -553,4 +553,12 @@ public class AnnotationLayerHandler {
     public void setDeleteLayerButton(JButton deleteLayerButton) {
         this.deleteLayerButton = deleteLayerButton;
     }
+
+    public boolean getIsSparse() {
+        return annotationLayer.getIsSparse();
+    }
+
+    public void setIsSparse(boolean isSparse) {
+        annotationLayer.setIsSparse(isSparse);
+    }
 }
