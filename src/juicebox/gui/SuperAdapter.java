@@ -51,6 +51,7 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -822,5 +823,25 @@ public class SuperAdapter {
         for (AnnotationLayerHandler handler : annotationLayerHandlers) {
             handler.setDeleteLayerButtonStatus(isDeleteAllowed);
         }
+    }
+
+    public int moveDownIndex(AnnotationLayerHandler handler) {
+        int currIndex = annotationLayerHandlers.indexOf(handler);
+        int n = annotationLayerHandlers.size();
+        if (currIndex > 0) {
+            Collections.swap(annotationLayerHandlers, currIndex, currIndex - 1);
+            return n - currIndex;
+        }
+        return n - 1 - currIndex;
+    }
+
+    public int moveUpIndex(AnnotationLayerHandler handler) {
+        int currIndex = annotationLayerHandlers.indexOf(handler);
+        int n = annotationLayerHandlers.size();
+        if (currIndex < n - 1) {
+            Collections.swap(annotationLayerHandlers, currIndex, currIndex + 1);
+            return n - 2 - currIndex;
+        }
+        return n - 1 - currIndex;
     }
 }

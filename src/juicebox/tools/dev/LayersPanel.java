@@ -315,13 +315,37 @@ public class LayersPanel extends JPanel {
                     superAdapter.removeLayer(handler);
                     layerBoxGUI.revalidate();
                     layerBoxGUI.repaint();
+                    superAdapter.repaint();
                 }
             }
         });
         handler.setDeleteLayerButton(deleteButton);
 
         JButton upButton = createIconButton("/images/layer/up.png");
+        upButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                layerBoxGUI.remove(panel);
+                int index = superAdapter.moveUpIndex(handler);
+                layerBoxGUI.add(panel, index);
+                layerBoxGUI.revalidate();
+                layerBoxGUI.repaint();
+                superAdapter.repaint();
+            }
+        });
+
         JButton downButton = createIconButton("/images/layer/down.png");
+        downButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                layerBoxGUI.remove(panel);
+                int index = superAdapter.moveDownIndex(handler);
+                layerBoxGUI.add(panel, index);
+                layerBoxGUI.revalidate();
+                layerBoxGUI.repaint();
+                superAdapter.repaint();
+            }
+        });
 
         JButton copyButton = createIconButton("/images/layer/copy.png");
 
