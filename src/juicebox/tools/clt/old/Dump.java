@@ -29,6 +29,7 @@ import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
@@ -62,6 +63,7 @@ public class Dump extends JuiceboxCLT {
     private MatrixType matrixType = null;
     private String ofile = null;
     private boolean includeIntra = false;
+    private static boolean dense = false;
 
     public Dump() {
         super(getUsage());
@@ -281,7 +283,7 @@ public class Dump extends JuiceboxCLT {
         if (MatrixType.isOnlyIntrachromosomalType(matrixType) || matrixType == MatrixType.OE || matrixType == MatrixType.DIFF) {
             if (!chr1.equals(chr2)) {
                 System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
-                System.err.println("Currently only intrachromosomal O/E, Pearson's, and VS are supported.");
+                System.err.println("Currently only intrachromosomal O/E, Pearson's, VS, and DIFF are supported.");
                 System.exit(11);
             }
         }
@@ -320,7 +322,7 @@ public class Dump extends JuiceboxCLT {
                     System.exit(14);
                 }
             }
-            zd.dump(txtWriter, les, norm, matrixType, useRegionIndices, regionIndices, df);
+            zd.dump(txtWriter, les, norm, matrixType, useRegionIndices, regionIndices, df, dense);
         } finally {
             if (les != null) les.close();
             if (bos != null) bos.close();
@@ -329,6 +331,9 @@ public class Dump extends JuiceboxCLT {
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
+
+        // -d in pre means diagonal, in dump means dense
+        dense = ((CommandLineParser)parser).getDiagonalsOption();
 
         if (args.length < 7) {
             printUsageAndExit();

@@ -652,7 +652,7 @@ public class MatrixZoomData {
 
 
     public void dump(PrintWriter printWriter, LittleEndianOutputStream les, NormalizationType norm, MatrixType matrixType,
-                     boolean useRegionIndices, int[] regionIndices, ExpectedValueFunction df) throws IOException {
+                     boolean useRegionIndices, int[] regionIndices, ExpectedValueFunction df, boolean dense) throws IOException {
 
         // determine which output will be used
         if (printWriter == null && les == null) {
@@ -675,59 +675,159 @@ public class MatrixZoomData {
             Collections.sort(blocksToIterateOver);
         }
 
-        for (Integer blockNumber : blocksToIterateOver) {
-            Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
-            if (b != null) {
-                for (ContactRecord rec : b.getContactRecords()) {
-                    float counts = rec.getCounts();
-                    int x = rec.getBinX();
-                    int y = rec.getBinY();
-                    int xActual = x * zoom.getBinSize();
-                    int yActual = y * zoom.getBinSize();
-                    float oeVal = 0f;
-                    if (matrixType == MatrixType.OE) {
-                        int dist = Math.abs(x - y);
-                        double expected = 0;
-                        try {
-                            expected = df.getExpectedValue(chr1.getIndex(), dist);
-                        } catch (Exception e) {
-                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                        }
-                        double observed = rec.getCounts(); // Observed is already normalized
-                        oeVal = (float) (observed / expected);
-                    }
-                    if (!useRegionIndices || // i.e. use full matrix
-                            // or check regions that overlap with upper left
-                            (xActual >= regionIndices[0] && xActual <= regionIndices[1] &&
-                                    yActual >= regionIndices[2] && yActual <= regionIndices[3]) ||
-                            // or check regions that overlap with lower left
-                            (isIntraChromosomal && yActual >= regionIndices[0] && yActual <= regionIndices[1] &&
-                                    xActual >= regionIndices[2] && xActual <= regionIndices[3])) {
-                        // but leave in upper right triangle coordinates
-                        if (usePrintWriter) {
-                            if (matrixType == MatrixType.OBSERVED) {
-                                printWriter.println(xActual + "\t" + yActual + "\t" + counts);
-                            } else if (matrixType == MatrixType.OE) {
-                                printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
+        if (!dense) {
+            for (Integer blockNumber : blocksToIterateOver) {
+                Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+                if (b != null) {
+                    for (ContactRecord rec : b.getContactRecords()) {
+                        float counts = rec.getCounts();
+                        int x = rec.getBinX();
+                        int y = rec.getBinY();
+                        int xActual = x * zoom.getBinSize();
+                        int yActual = y * zoom.getBinSize();
+                        float oeVal = 0f;
+                        if (matrixType == MatrixType.OE) {
+                            int dist = Math.abs(x - y);
+                            double expected = 0;
+                            try {
+                                expected = df.getExpectedValue(chr1.getIndex(), dist);
+                            } catch (Exception e) {
+                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                             }
-                        } else {
-                            if (matrixType == MatrixType.OBSERVED) {
-                                les.writeInt(x);
-                                les.writeInt(y);
-                                les.writeFloat(counts);
-                            } else if (matrixType == MatrixType.OE) {
-                                les.writeInt(x);
-                                les.writeInt(y);
-                                les.writeFloat(oeVal);
+                            double observed = rec.getCounts(); // Observed is already normalized
+                            oeVal = (float) (observed / expected);
+                        }
+                        if (!useRegionIndices || // i.e. use full matrix
+                                // or check regions that overlap with upper left
+                                (xActual >= regionIndices[0] && xActual <= regionIndices[1] &&
+                                        yActual >= regionIndices[2] && yActual <= regionIndices[3]) ||
+                                // or check regions that overlap with lower left
+                                (isIntraChromosomal && yActual >= regionIndices[0] && yActual <= regionIndices[1] &&
+                                        xActual >= regionIndices[2] && xActual <= regionIndices[3])) {
+                            // but leave in upper right triangle coordinates
+                            if (usePrintWriter) {
+                                if (matrixType == MatrixType.OBSERVED) {
+                                    printWriter.println(xActual + "\t" + yActual + "\t" + counts);
+                                } else if (matrixType == MatrixType.OE) {
+                                    printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
+                                }
+                            } else {
+                                if (matrixType == MatrixType.OBSERVED) {
+                                    les.writeInt(x);
+                                    les.writeInt(y);
+                                    les.writeFloat(counts);
+                                } else if (matrixType == MatrixType.OE) {
+                                    les.writeInt(x);
+                                    les.writeInt(y);
+                                    les.writeFloat(oeVal);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        if (usePrintWriter) {
-            printWriter.close();
+            if (usePrintWriter) {
+                printWriter.close();
+            }
+        }
+        else {
+            int maxX = 0;
+            int maxY = 0;
+            for (Integer blockNumber : blocksToIterateOver) {
+                Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+                if (b != null) {
+                    for (ContactRecord rec : b.getContactRecords()) {
+                        int x = rec.getBinX();
+                        int y = rec.getBinY();
+                        if (maxX < x) maxX = x;
+                        if (maxY < y) maxY = y;
+                    }
+                }
+            }
+            if (isIntraChromosomal) {
+                if (maxX < maxY) {
+                    maxX = maxY;
+                } else {
+                    maxY = maxX;
+                }
+            }
+
+            maxX++;
+            maxY++;
+            float[][] matrix = new float[maxX][maxY];
+            for (int i = 0; i < maxX; i++) {
+                for (int j = 0; j < maxY; j++) {
+                    matrix[i][j] = Float.NaN;
+                }
+            }
+            for (Integer blockNumber : blocksToIterateOver) {
+                Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+                if (b != null) {
+                    for (ContactRecord rec : b.getContactRecords()) {
+                        float counts = rec.getCounts();
+                        int x = rec.getBinX();
+                        int y = rec.getBinY();
+
+                        int xActual = x * zoom.getBinSize();
+                        int yActual = y * zoom.getBinSize();
+                        float oeVal = 0f;
+                        if (matrixType == MatrixType.OE) {
+                            int dist = Math.abs(x - y);
+                            double expected = 0;
+                            try {
+                                expected = df.getExpectedValue(chr1.getIndex(), dist);
+                            } catch (Exception e) {
+                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                            }
+                            double observed = rec.getCounts(); // Observed is already normalized
+                            oeVal = (float) (observed / expected);
+                        }
+                        if (!useRegionIndices || // i.e. use full matrix
+                                // or check regions that overlap with upper left
+                                (xActual >= regionIndices[0] && xActual <= regionIndices[1] &&
+                                        yActual >= regionIndices[2] && yActual <= regionIndices[3]) ||
+                                // or check regions that overlap with lower left
+                                (isIntraChromosomal && yActual >= regionIndices[0] && yActual <= regionIndices[1] &&
+                                        xActual >= regionIndices[2] && xActual <= regionIndices[3])) {
+
+                            if (matrixType == MatrixType.OBSERVED) {
+                                matrix[x][y] = counts;
+                                if (isIntraChromosomal) {
+                                    matrix[y][x] = counts;
+                                }
+                                // printWriter.println(xActual + "\t" + yActual + "\t" + counts);
+                            } else if (matrixType == MatrixType.OE) {
+                                matrix[x][y] = oeVal;
+                                if (isIntraChromosomal) {
+                                    matrix[y][x] = oeVal;
+                                }
+                                // printWriter.println(xActual + "\t" + yActual + "\t" + oeVal);
+                            }
+                        }
+                    }
+                }
+            }
+            if (usePrintWriter) {
+                for (int i = 0; i < maxX; i++) {
+                    for (int j = 0; j < maxY; j++) {
+                        printWriter.print(matrix[i][j] + "\t");
+                    }
+                    printWriter.println();
+                }
+            } else {
+                for (int i = 0; i < maxX; i++) {
+                    for (int j = 0; j < maxY; j++) {
+                        les.writeFloat(matrix[i][j]);
+
+                    }
+
+                }
+            }
+
+            if (usePrintWriter) {
+                printWriter.close();
+            }
         }
     }
 

@@ -73,7 +73,7 @@ public class DumpDialog extends JFileChooser {
                         }
                     }
                     zd.dump(new PrintWriter(getSelectedFile()), null, hic.getNormalizationType(), matrixType,
-                            true, hic.getCurrentRegionWindowGenomicPositions(), df);
+                            true, hic.getCurrentRegionWindowGenomicPositions(), df, false);
 
                 } else if (box.getSelectedItem().equals("Norm vector")) {
 
