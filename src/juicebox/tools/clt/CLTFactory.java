@@ -116,7 +116,12 @@ public class CLTFactory {
             return new GeneFinder();
         } else if (cmd.equals("benchmark")) {
             return new Benchmark();
+        } else if (cmd.equals("pearson")) {
+            return new Pearson();
+        } else if (cmd.equals("eigenvector")) {
+            return new Eigenvector();
         }
+
 
         return null;
     }

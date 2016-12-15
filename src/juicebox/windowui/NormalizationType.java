@@ -46,7 +46,7 @@ public enum NormalizationType {
     public static NormalizationType enumValueFromString(String text) {
         if (text != null) {
             for (NormalizationType norm : NormalizationType.values()) {
-                if (text.equalsIgnoreCase(norm.label)) {
+                if (text.equalsIgnoreCase(norm.label) || text.equalsIgnoreCase(norm.name())) {
                     return norm;
                 }
             }

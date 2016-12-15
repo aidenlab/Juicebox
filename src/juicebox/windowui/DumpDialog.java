@@ -82,7 +82,12 @@ public class DumpDialog extends JFileChooser {
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
                         NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
-                        Dump.dumpVector(new PrintWriter(getSelectedFile()), nv.getData(), false);
+                        PrintWriter pw = new PrintWriter(getSelectedFile());
+                        // print out vector
+                        for (double element : nv.getData()) {
+                            pw.println(element);
+                        }
+                        pw.close();
                     }
                 } else if (box.getSelectedItem().toString().contains("Expected")) {
 
@@ -103,14 +108,12 @@ public class DumpDialog extends JFileChooser {
                         }
                         pw.flush();
                     } else {
-                        Dump.dumpVector(new PrintWriter(getSelectedFile()), df.getExpectedValues(), false);
-                    }
-                } else if (box.getSelectedItem().equals("Eigenvector")) {
-                    int chrIdx = zd.getChr1Idx();
-                    double[] eigenvector = hic.getEigenvector(chrIdx, 0, false);
-
-                    if (eigenvector != null) {
-                        Dump.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);
+                        PrintWriter pw = new PrintWriter(getSelectedFile());
+                        // print out vector
+                        for (double element : df.getExpectedValues()) {
+                            pw.println(element);
+                        }
+                        pw.close();
                     }
                 }
             } catch (IOException error) {
@@ -123,7 +126,7 @@ public class DumpDialog extends JFileChooser {
         JDialog dialog = super.createDialog(component);
         JPanel panel1 = new JPanel();
         JLabel label = new JLabel("Dump ");
-        box = new JComboBox<String>(new String[]{"Matrix", "Norm vector", "Expected vector", "Expected genome-wide vector", "Eigenvector"});
+        box = new JComboBox<String>(new String[]{"Matrix", "Norm vector", "Expected vector", "Expected genome-wide vector"});
         panel1.add(label);
         panel1.add(box);
         dialog.add(panel1, BorderLayout.NORTH);

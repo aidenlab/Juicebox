@@ -142,7 +142,7 @@ public enum MatrixType {
      * @return true if the option is dumped (clt) as a vector
      */
     public static boolean isDumpVectorType(MatrixType option) {
-        return option == NORM || option == EXPECTED || option == EIGENVECTOR;
+        return option == NORM || option == EXPECTED;
     }
 
     /**
@@ -150,7 +150,7 @@ public enum MatrixType {
      * @return true if the option is dumped (clt) as a matrix
      */
     public static boolean isDumpMatrixType(MatrixType option) {
-        return option == OE || option == PEARSON || option == OBSERVED;
+        return option == OE || option == OBSERVED;
     }
 
     public String toString() {

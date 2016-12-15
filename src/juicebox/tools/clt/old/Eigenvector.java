@@ -24,42 +24,38 @@
 
 package juicebox.tools.clt.old;
 
-import htsjdk.tribble.util.LittleEndianOutputStream;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
-import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * Created by nchernia on 11/30/16.
+ * Created by nchernia on 12/15/16.
  */
-public class Pearson extends JuiceboxCLT {
+public class Eigenvector extends JuiceboxCLT {
 
     private HiC.Unit unit = null;
     private NormalizationType norm = null;
     private Dataset dataset = null;
     private int binSize = 0;
     private Chromosome chromosome1;
-    private PrintWriter txtWriter;
-    private LittleEndianOutputStream les;
+    private PrintWriter pw;
 
-    public Pearson() {
+    public Eigenvector() {
         super(getUsage());
     }
 
     public static String getUsage(){
-        return "pearson <norm> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+        return "eigenvector <norm> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
     }
 
     @Override
@@ -102,32 +98,24 @@ public class Pearson extends JuiceboxCLT {
         }
 
         if ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_PEARSON_ZOOM) ||
-                        (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
+                (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
           /*  System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
             System.out.println("To override this limitation, send in the \"-p\" flag.");
             System.exit(0);    */
             System.out.println("WARNING: Pearson's and eigenvector calculation at high resolution can take a long time");
         }
 
-        les = null;
-        txtWriter = null;
+
         if (args.length == 7) {
             try {
-                if (args[6].endsWith(".bin")) {
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[6]));
-                    les = new LittleEndianOutputStream(bos);
-                } else {
-                    txtWriter = new PrintWriter(new FileOutputStream(args[6]));
-                }
+                pw = new PrintWriter(new FileOutputStream(args[6]));
             } catch (IOException error) {
                 System.err.println("Cannot write to " + args[6]);
                 error.printStackTrace();
                 System.exit(22);
             }
         }
-        else {
-            txtWriter = new PrintWriter(System.out);
-        }
+        else pw = new PrintWriter(System.out);
     }
 
     @Override
@@ -158,29 +146,26 @@ public class Pearson extends JuiceboxCLT {
             System.err.println("Pearson's not available at " + chromosome1 + " " + zoom + " " + norm);
             System.exit(14);
         }
+        double[] vector = dataset.getEigenvector(chromosome1, zoom, 0, norm);
 
+        // mean center and print
+        int count = 0;
+        double total = 0;
 
-        try {
-            BasicMatrix pearsons = zd.getPearsons(df);
-            if (pearsons != null) {
-                int dim = pearsons.getRowDimension();
-                for (int i = 0; i < dim; i++) {
-                    for (int j = 0; j < dim; j++) {
-                        float output = pearsons.getEntry(i, j);
-                        if (les != null) les.writeFloat(output);
-                        else txtWriter.print(output + " ");
-                    }
-                    if (les == null) txtWriter.println();
-                }
-                txtWriter.flush();
-            } else {
-                System.err.println("Pearson's not available at zoom " + zoom);
+        for (double element : vector) {
+            if (!Double.isNaN(element)) {
+                total += element;
+                count++;
             }
         }
-        catch (IOException error) {
-            System.err.println("Problem while writing Pearson's matrix");
-            error.printStackTrace();
-            System.exit(23);
+
+        double mean = total / count; // sum is now mean
+
+        // print out vector
+        for (double element : vector) {
+            pw.println(element - mean);
         }
+        pw.close();
+
     }
 }
