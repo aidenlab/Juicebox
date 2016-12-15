@@ -661,11 +661,6 @@ public class MatrixZoomData {
         boolean usePrintWriter = printWriter != null && les == null;
         boolean isIntraChromosomal = chr1.getIndex() == chr2.getIndex();
 
-        if (matrixType == MatrixType.PEARSON) {
-            dumpPearsons(printWriter, les, df);
-            return;
-        }
-
         // Get the block index keys, and sort
         List<Integer> blocksToIterateOver;
         if (useRegionIndices) {
@@ -891,23 +886,6 @@ public class MatrixZoomData {
         }
     }
 
-    private void dumpPearsons(PrintWriter pw, LittleEndianOutputStream les, ExpectedValueFunction df) throws IOException {
-        BasicMatrix pearsons = getPearsons(df);
-        if (pearsons != null) {
-            int dim = pearsons.getRowDimension();
-            for (int i = 0; i < dim; i++) {
-                for (int j = 0; j < dim; j++) {
-                    float output = pearsons.getEntry(i, j);
-                    if (les != null) les.writeFloat(output);
-                    else pw.print(output + " ");
-                }
-                if (les == null) pw.println();
-            }
-            pw.flush();
-        } else {
-            log.error("Pearson's not available at zoom " + zoom);
-        }
-    }
 
     /**
      * Returns the average count
