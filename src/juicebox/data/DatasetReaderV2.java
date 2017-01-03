@@ -138,7 +138,14 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             String genomeId = dis.readString();
             position += genomeId.length() + 1;
+            // need to get rid of front part too
+            int chromSizes1 = genomeId.lastIndexOf(File.separatorChar);
+            int chromSizes2 = genomeId.indexOf(".chrom.sizes");
 
+            if (chromSizes2 < 0) {
+                chromSizes2 = genomeId.length();
+            }
+            genomeId = genomeId.substring(chromSizes1+1,chromSizes2);
             dataset.setGenomeId(genomeId);
 
             Map<String, String> attributes = new HashMap<String, String>();
