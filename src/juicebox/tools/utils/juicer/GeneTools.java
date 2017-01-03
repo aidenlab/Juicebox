@@ -26,6 +26,7 @@ package juicebox.tools.utils.juicer;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
+import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.GenomeWideList;
@@ -69,16 +70,24 @@ public class GeneTools {
         return genomeID;
     }
 
-    public static Map<String, GeneLocation> getLocationMap(BufferedReader reader) throws IOException {
+    public static Map<String, GeneLocation> getLocationMap(BufferedReader reader, ChromosomeHandler handler) throws IOException {
         Map<String, GeneLocation> geneLocationHashMap = new HashMap<String, GeneLocation>();
 
         String nextLine;
         while ((nextLine = reader.readLine()) != null) {
             String[] values = nextLine.split("\\s+");
-            if (values.length > 3) {
-                GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
-                geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
-                geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
+            if (values.length == 4 || values.length == 16) {  // 16 is refGene official format
+
+                // transcript start; for 4 column format, just position-1
+                int txStart = (values.length==4) ? Integer.valueOf(values[3].trim())-1 : Integer.valueOf(values[4].trim());
+                // transcript end; for 4 column format, just position+1
+                //int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
+                String name = values[1].trim();
+                String name2 = (values.length==4) ? values[0].trim() : values[12].trim();
+                Chromosome chr = handler.getChr(values[2]);
+                GeneLocation location = new GeneLocation(chr, txStart);
+                geneLocationHashMap.put(name2.toLowerCase(), location);
+                geneLocationHashMap.put(name.trim().toLowerCase(), location);
             }
         }
         return geneLocationHashMap;

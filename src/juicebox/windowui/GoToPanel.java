@@ -343,7 +343,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         BufferedReader reader;
         try {
             reader = GeneTools.getStreamToGeneFile(genomeID);
-            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take a minute or so. ");
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -352,7 +351,10 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
 
         try {
-            geneLocationHashMap = GeneTools.getLocationMap(reader);
+            List<Chromosome> chromosomes = hic.getChromosomes();
+            ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+
+            geneLocationHashMap = GeneTools.getLocationMap(reader, handler);
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -387,7 +389,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             geneZoomResolution = Collections.min(bpResolutions);
         }
 
-        hic.setLocation(location1.getChromosome(), location2.getChromosome(), HiC.Unit.BP, geneZoomResolution,
+        hic.setLocation(location1.getChromosome().getName(), location2.getChromosome().getName(), HiC.Unit.BP, geneZoomResolution,
                 location1.getCenterPosition(), location2.getCenterPosition(), hic.getScaleFactor(),
                 HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 

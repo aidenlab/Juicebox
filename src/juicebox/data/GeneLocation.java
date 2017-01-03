@@ -23,13 +23,14 @@
  */
 
 package juicebox.data;
+import org.broad.igv.feature.Chromosome;
 
 public class GeneLocation {
 
-    private final String chromosome;
+    private final Chromosome chromosome;
     private final int centerPosition;
 
-    public GeneLocation(String chromosome, int centerPosition) {
+    public GeneLocation(Chromosome chromosome, int centerPosition) {
         this.chromosome = chromosome;
         this.centerPosition = centerPosition;
     }
@@ -38,7 +39,7 @@ public class GeneLocation {
         return centerPosition;
     }
 
-    public String getChromosome() {
+    public Chromosome getChromosome() {
         return chromosome;
     }
 }
