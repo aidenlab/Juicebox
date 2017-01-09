@@ -42,6 +42,7 @@ import org.apache.commons.math.linear.RealVector;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
+import juicebox.tools.clt.old.Pearsons;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -449,29 +450,30 @@ public class MatrixZoomData {
      * @return Pearson's matrix or null if not able to calculate or read
      */
     public BasicMatrix getPearsons(ExpectedValueFunction df) {
-
+        boolean readPearsons = false; // check if were able to read in
+        // try to get from local cache
         BasicMatrix pearsons = pearsonsMap.get(df.getNormalizationType());
         if (pearsons != null) {
             return pearsons;
         }
-        /*
         else if (!missingPearsonFiles.contains(df.getNormalizationType())) {
-            /*
-            // We used to put precomputed Pearson's files in the directory with the appropriate key, but don't do
-            // that now.  If we ever decide to again, uncomment.
+            // try to read
             try {
                 pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
             } catch (IOException e) {
+                pearsons = null;
                 log.error(e.getMessage());
             }
             if (pearsons != null) {
+                // put it back in the map.
                 pearsonsMap.put(df.getNormalizationType(), pearsons);
+                readPearsons = true;
             } else {
                 missingPearsonFiles.add(df.getNormalizationType());  // To keep from trying repeatedly
             }
         }
-        */
-        if ((zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) ||
+        // we weren't able to read in the Pearsons. check that the resolution is low enough to calculate
+        if (!readPearsons && (zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM) ||
                 (zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() >= HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
             pearsons = computePearsons(df);
             pearsonsMap.put(df.getNormalizationType(), pearsons);

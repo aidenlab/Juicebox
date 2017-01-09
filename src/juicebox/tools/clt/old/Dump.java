@@ -62,6 +62,7 @@ public class Dump extends JuiceboxCLT {
     private int binSize = 0;
     private MatrixType matrixType = null;
     private PrintWriter pw = null;
+    private LittleEndianOutputStream les = null;
     private HiCZoom zoom = null;
     private boolean includeIntra = false;
     private boolean dense = false;
@@ -237,15 +238,6 @@ public class Dump extends JuiceboxCLT {
         Chromosome chromosome1 = chromosomeHandler.getChr(chr1);
         Chromosome chromosome2 = chromosomeHandler.getChr(chr2);
 
-
-        if (matrixType == MatrixType.OE) {
-            if (!chromosome1.equals(chromosome2)) {
-                System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
-                System.err.println("Currently only intrachromosomal O/E is supported.");
-                System.exit(11);
-            }
-        }
-
         Matrix matrix = dataset.getMatrix(chromosome1, chromosome2);
         if (matrix == null) {
             System.err.println("No reads in " + chr1 + " " + chr2);
@@ -279,7 +271,7 @@ public class Dump extends JuiceboxCLT {
                 System.exit(14);
             }
         }
-        zd.dump(pw, null, norm, matrixType, useRegionIndices, regionIndices, df, dense);
+        zd.dump(pw, les, norm, matrixType, useRegionIndices, regionIndices, df, dense);
 
     }
 
@@ -327,7 +319,7 @@ public class Dump extends JuiceboxCLT {
         else {
             // -d in pre means diagonal, in dump means dense
             dense = ((CommandLineParser) parser).getDiagonalsOption();
-            // -n in pre means no norm, in dump means includeIntra for the
+            // -n in pre means no norm, in dump means includeIntra for the whole genome
             includeIntra = ((CommandLineParser) parser).getNoNormOption();
 
             if (args.length < 7) {
@@ -373,6 +365,14 @@ public class Dump extends JuiceboxCLT {
                 System.exit(19);
             }
 
+            if (matrixType == MatrixType.OE) {
+                if (!chr1.equals(chr2)) {
+                    System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
+                    System.err.println("Currently only intrachromosomal O/E is supported.");
+                    System.exit(11);
+                }
+            }
+
             try {
                 if (MatrixType.isDumpMatrixType(matrixType)) {
                     unit = HiC.valueOfUnit(args[6]);
@@ -409,7 +409,11 @@ public class Dump extends JuiceboxCLT {
 
         try {
             if (ofile != null && ofile.length() > 0) {
-                pw = new PrintWriter(new FileOutputStream(ofile));
+                if (ofile.endsWith(".bin")) {
+                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[6]));
+                    les = new LittleEndianOutputStream(bos);
+                }
+                else pw = new PrintWriter(new FileOutputStream(ofile));
             } else {
                 pw = new PrintWriter(System.out);
             }

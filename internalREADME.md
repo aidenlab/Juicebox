@@ -1,4 +1,31 @@
 --------------------
+Quick Start
+--------------------
+```
+ant
+ant sign
+ant bundle
+cd l4j
+~/Downloads/launch4j/launch4j config_bcm.xml 
+cd ../out/artifacts/Juicebox_jar/
+codesign -s "Erez Aiden" Juicebox.app --deep
+hdiutil create -srcfolder Juicebox.app Juicebox.dmg
+cd ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/
+# move old jars, EXEs, and DMGs, update CHANGES
+cd ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/
+emacs -nw CHANGES
+# XXXXXX should be date when file written i.e. 20170103
+mv Juicebox_BCM.dmg Juicebox_BCMXXXXXXXX.dmg
+mv Juicebox_BCM.exe Juicebox_BCMXXXXXXXX.exe
+mv Juicebox.jar JuiceboxXXXXXXXX.jar
+mv ~/Dropbox/Research/JuiceboxDev/l4j/Juicebox.exe Juicebox_BCM.exe
+mv ~/Dropbox/Research/JuiceboxDev/out/artifacts/Juicebox_jar/Juicebox.dmg Juicebox_BCM.dmg
+mv ~/Dropbox/Research/JuiceboxDev/out/artifacts/Juicebox_jar/Juicebox.jar Juicebox.jar
+mv ~/Dropbox/Research/JuiceboxDev/out/artifacts/Juicebox_clt_jar/Juicebox.jar juicebox_tools.8.0.jar
+```
+
+
+--------------------
 Creating Executables 
 --------------------
 
@@ -62,3 +89,42 @@ rm META-INF/*.SF META-INF/*.DSA META-INF/*.RSA
 rm igv.jar
 jar cvf igv.jar ./*
 ```
+
+--------------------
+Building Different CUDA versions
+--------------------
+​​Right now JuiceboxDev (assuming what's in the repo now) is defaulting to 7.0
+
+CUDA 7.0 is used on AWS
+CUDA 7.5 is on most of our internal machines (Hailmary)
+CUDA 8.0 is used on Adam now.
+I think Rice was 7.5 as well, but not sure.
+
+
+To change from 7.0 to 7.5, the build.xml and 
+libraries for compilation need to be changed
+
+---build.xml changes
+
+Change the following line (has x2 occurrences, one for each jar build)
+
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>`
+to
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>`
+or
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>`
+
+---jcuda lib changes
+
+- Go to ~/lib/jcuda
+- Delete all the non .zip files
+- Unzip Archive.JCuda.0.7.5.zip
+  this creates a new folder
+- Move everything in this newly made folder to the folder above it
+  (e.g. path should be ~/lib/jcuda/jcuda-0.7.5.jar, NOT ~/lib/jcuda/Archive.JCuda.0.7.5/jcuda-0.7.0.jar)
+
+
+The jars are really the ones that matter, but I think it's easier to update everything here (especially if testing GPU stuff from within IntelliJ)
+
+​And now it should be fine to build via ant​
+

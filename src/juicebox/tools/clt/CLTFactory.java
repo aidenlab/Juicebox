@@ -50,6 +50,8 @@ public class CLTFactory {
             //        "db",           "db <frag|annot|update> [items]",
             Dump.getUsage(),
             PreProcessing.getBasicUsage(),
+            Pearsons.getUsage(),
+            Eigenvector.getUsage(),
             APA.getBasicUsage(),
             Arrowhead.getBasicUsage(),
             HiCCUPS.getBasicUsage(),
@@ -116,8 +118,8 @@ public class CLTFactory {
             return new GeneFinder();
         } else if (cmd.equals("benchmark")) {
             return new Benchmark();
-        } else if (cmd.equals("pearson")) {
-            return new Pearson();
+        } else if (cmd.equals("pearsons")) {
+            return new Pearsons();
         } else if (cmd.equals("eigenvector")) {
             return new Eigenvector();
         }

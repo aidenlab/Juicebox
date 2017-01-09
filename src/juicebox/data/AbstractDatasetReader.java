@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.collections.DoubleArrayList;
+import juicebox.tools.clt.old.Pearsons;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,11 +61,11 @@ public abstract class AbstractDatasetReader implements DatasetReader {
         // TODO -- need to use zoom unit (BP or FRAG)
         String rootPath = FileUtils.getParent(path);
         String folder = rootPath + "/" + chr1Name;
-        String file = "pearsons" + "_" + chr1Name + "_" + chr2Name + "_" + zoom.getBinSize() + "_" + type + ".bin";
+        String file = "pearsons" + "_"  + zoom.getBinSize() + "_" + type + ".bin";
         String fullPath = folder + "/" + file;
 
         if (FileUtils.resourceExists(fullPath)) {
-            return ScratchPad.readPearsons(fullPath);
+            return Pearsons.readPearsons(fullPath);
         } else {
             return null;
         }
