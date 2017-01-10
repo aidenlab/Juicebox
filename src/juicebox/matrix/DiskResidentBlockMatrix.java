@@ -102,7 +102,12 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
         } else {
             int rowRelative = row - blockRowIdx * blockSize;
             int colRelative = col - blockColIdx * blockSize;
-            return blockData[rowRelative][colRelative];
+            int totalRows = blockData.length;
+            int totalCols = blockData[0].length;
+            // TODO: note this should not happen, probably the bug in MatrixZoomData where there are too many columns.
+            if (rowRelative < totalRows && colRelative < totalCols)
+                return blockData[rowRelative][colRelative];
+            else return Float.NaN;
         }
 
     }

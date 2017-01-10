@@ -190,7 +190,6 @@ public class Pearsons extends JuiceboxCLT {
                 int dim = pearsons.getRowDimension();
                 writeHeader(les, dim, pearsons.getLowerValue(), pearsons.getUpperValue());
                 int block_side = (int) Math.ceil((float) dim / (float) BLOCK_TILE);
-                int count=0;
                 for (int i = 0; i < block_side; i++) {
                     int block_row_start = i * BLOCK_TILE;
                     int block_row_end = Math.min(block_row_start + BLOCK_TILE, dim);
@@ -199,7 +198,7 @@ public class Pearsons extends JuiceboxCLT {
                         int block_col_start = j * BLOCK_TILE;
                         int block_col_end = Math.min(block_col_start + BLOCK_TILE, dim);
                         int col_len = block_col_end - block_col_start;
-                        for (int ui = 1; ui <= row_len; ui++) {
+                        for (int ui = 0; ui < row_len; ui++) {
                             for (int uj = 0; uj < col_len; uj++) {
                                 int now_i = ui + block_row_start;
                                 int now_j = uj + block_col_start;
