@@ -2,6 +2,7 @@
 Quick Start
 --------------------
 ```
+rm -r out
 ant
 ant sign
 ant bundle
@@ -12,7 +13,6 @@ codesign -s "Erez Aiden" Juicebox.app --deep
 hdiutil create -srcfolder Juicebox.app Juicebox.dmg
 cd ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/
 # move old jars, EXEs, and DMGs, update CHANGES
-cd ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/
 emacs -nw CHANGES
 # XXXXXX should be date when file written i.e. 20170103
 mv Juicebox_BCM.dmg Juicebox_BCMXXXXXXXX.dmg

@@ -515,9 +515,6 @@ public class Dump extends JuiceboxCLT {
             System.err.println("Unable to dump");
             e.printStackTrace();
         }
-        finally {
-            pw.close();
-        }
     }
 
     public ChromosomeHandler getChromosomeHandler() {
