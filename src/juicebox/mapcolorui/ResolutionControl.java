@@ -222,13 +222,13 @@ public class ResolutionControl extends JPanel {
 
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
-
+                /*
                 if (zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM && hic.isInPearsonsMode()) {
                     MessageUtils.showMessage("Pearson's matrix is not available at this resolution,\n" +
                             "please use a resolution lower than 500 KB.");
                     setZoom(pearsonZoom);
                     return;
-                }
+                } */
 
                 if (hic.getXContext() != null) {
 
