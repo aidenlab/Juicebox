@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option apaMaxValOption = null;
     private static Option multipleCornerRegionDimensionsOption = null;
     private static Option includeInterChromosomalOption = null;
+    private static Option apaSaveAllData = null;
 
     // for HiCCUPS
     private static Option fdrOption = null;
@@ -64,10 +65,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqbv
+        // wmnxcrplafdptkqbvu
 
         // available flags
-        // hjoyzesgu
+        // hjoyzesg
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -83,6 +84,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         apaMaxValOption = addDoubleOption('x', "max_dist");
         multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
         includeInterChromosomalOption = addBooleanOption('e', "include_inter_chr");
+        apaSaveAllData = addBooleanOption('u', "all_data");
 
         // HICCUPS
         fdrOption = addStringOption('f', "fdr_thresholds");
@@ -114,6 +116,12 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getIncludeInterChromosomal() {
         Object opt = getOptionValue(includeInterChromosomalOption);
+        return opt != null;
+    }
+
+
+    public boolean getAPASaveAllData() {
+        Object opt = getOptionValue(apaSaveAllData);
         return opt != null;
     }
 

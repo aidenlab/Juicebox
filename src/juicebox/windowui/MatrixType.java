@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,12 @@ package juicebox.windowui;
 
 public enum MatrixType {
     OBSERVED("Observed"),
-    OE("O/E"),
+    OE("Observed/Expected"),
     PEARSON("Pearson"),
     EXPECTED("Expected"),
     RATIO("Observed/Control"),
-    DIFF("Diff"),
-    VS("VS"),
+    DIFF("Observed-Control"),
+    VS("Observed vs Control"),
     CONTROL("Control"),
     NORM("Norm"),
     EIGENVECTOR("Eigenvector");

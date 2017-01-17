@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,6 +70,8 @@ public class APARegionStatistics {
 
         DescriptiveStatistics yStats = statistics(data.getSubMatrix(max - regionWidth, max - 1, 0, regionWidth - 1).getData());
         ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
+        System.err.println("P2M:" + peak2mean + " LL:" + peak2LL + " UL:" + peak2UL + " LR:" + peak2LR +
+                " UR:" + peak2UR + " ZLL:" + ZscoreLL);
     }
 
     public static DescriptiveStatistics statistics(double[][] x) {

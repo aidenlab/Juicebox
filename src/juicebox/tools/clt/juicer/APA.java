@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -110,7 +110,7 @@ import java.util.*;
  * > and save them under the results folder
  */
 public class APA extends JuicerCLT {
-    private final boolean saveAllData = true;
+    private boolean saveAllData = false;
     private String hicFilePaths, loopListPath;
     private File outputDirectory;
 
@@ -164,6 +164,8 @@ public class APA extends JuicerCLT {
             window = potentialWindow;
 
         includeInterChr = juicerParser.getIncludeInterChromosomal();
+
+        saveAllData = juicerParser.getAPASaveAllData();
 
         List<String> possibleRegionWidths = juicerParser.getAPACornerRegionDimensionOptions();
         if (possibleRegionWidths != null) {
@@ -290,7 +292,7 @@ public class APA extends JuicerCLT {
 
                             apaDataStack.updateGenomeWideData();
                             if (saveAllData) {
-                                apaDataStack.exportDataSet(chr1.getName() + 'v' + chr2.getName(), peakNumbers, currentRegionWidth);
+                                apaDataStack.exportDataSet(chr1.getName() + 'v' + chr2.getName(), peakNumbers, currentRegionWidth, saveAllData);
                             }
                             if (chr2.getIndex() == chr1.getIndex()) {
                                 System.out.print(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
@@ -299,7 +301,7 @@ public class APA extends JuicerCLT {
                     }
                 }
                 System.out.println("Exporting APA results...");
-                APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth);
+                APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth, saveAllData);
                 APADataStack.clearAllData();
             } else {
                 System.err.println("Loop list is empty or incorrect path provided.");
