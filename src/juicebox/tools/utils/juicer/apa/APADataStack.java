@@ -135,16 +135,8 @@ public class APADataStack {
 
             String title = "N=" + peakNumbers[0] + " (filtered) " + peakNumbers[1] + " (unique) " +
                     peakNumbers[2] + " (total)";
-            APARegionStatistics apaStats = new APARegionStatistics(apaMatrices[i], currentRegionWidth);
-            int dimension = apaMatrices[i].getColumnDimension();
-            int midPoint = dimension / 2;
-            double centralVal = apaMatrices[i].getEntry(midPoint, midPoint);
-            double colorMax = 5 * centralVal / apaStats.getPeak2UR();
-            double colorMin = 0;
-            APAPlotter.plot(apaMatrices[i],
-                    axesRange,
-                    new File(subFolder, apaDataTitles[i] + ".png"),
-                    title, currentRegionWidth, apaDataTitles[i].equals("APA"), colorMin, colorMax);
+            APAPlotter.plot(apaMatrices[i], axesRange, new File(subFolder, apaDataTitles[i] + ".png"),
+                    title, currentRegionWidth, apaDataTitles[i].equals("APA"));
             MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
                     apaMatrices[i]);
         }

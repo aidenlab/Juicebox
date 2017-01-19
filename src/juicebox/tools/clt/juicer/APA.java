@@ -120,8 +120,8 @@ public class APA extends JuicerCLT {
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
-    private int[] resolutions = new int[]{10000, 5000};
-    private int[] regionWidths = new int[]{6, 3};
+    private int[] resolutions = new int[]{25000, 10000, 5000};
+    private int[] regionWidths = new int[]{6, 6, 3};
     private boolean includeInterChr = false;
 
     /**

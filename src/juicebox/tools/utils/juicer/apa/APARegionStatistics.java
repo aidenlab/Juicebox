@@ -42,6 +42,7 @@ public class APARegionStatistics {
 
     private final double peak2mean;
     private final double peak2UL;
+    private final double avgUR;
     private final double peak2UR;
     private final double peak2LL;
     private final double peak2LR;
@@ -59,7 +60,7 @@ public class APARegionStatistics {
         double avgUL = mean(data.getSubMatrix(0, regionWidth - 1, 0, regionWidth - 1).getData());
         peak2UL = centralVal / avgUL;
 
-        double avgUR = mean(data.getSubMatrix(0, regionWidth - 1, max - regionWidth, max - 1).getData());
+        avgUR = mean(data.getSubMatrix(0, regionWidth - 1, max - regionWidth, max - 1).getData());
         peak2UR = centralVal / avgUR;
 
         double avgLL = mean(data.getSubMatrix(max - regionWidth, max - 1, 0, regionWidth - 1).getData());
@@ -70,8 +71,6 @@ public class APARegionStatistics {
 
         DescriptiveStatistics yStats = statistics(data.getSubMatrix(max - regionWidth, max - 1, 0, regionWidth - 1).getData());
         ZscoreLL = (centralVal - yStats.getMean()) / yStats.getStandardDeviation();
-        System.err.println("P2M:" + peak2mean + " LL:" + peak2LL + " UL:" + peak2UL + " LR:" + peak2LR +
-                " UR:" + peak2UR + " ZLL:" + ZscoreLL);
     }
 
     public static DescriptiveStatistics statistics(double[][] x) {
@@ -120,5 +119,9 @@ public class APARegionStatistics {
 
     public double[] getRegionCornerValues() {
         return new double[]{peak2UL, peak2UR, peak2LL, peak2LR};
+    }
+
+    public double getMeanUR() {
+        return avgUR;
     }
 }
