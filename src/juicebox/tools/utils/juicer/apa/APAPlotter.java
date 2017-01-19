@@ -68,11 +68,11 @@ class APAPlotter {
     /**
      * Method for plotting apa data
      *
-     * @param data       for heat map
+     * @param dataOriginal       for heat map
      * @param axesRange  initial values and increments to annotate axes [x0, dx, y0, dy]
      * @param outputFile where image will saved
      */
-    public static void plot(RealMatrix data, int[] axesRange, File outputFile,
+    public static void plot(RealMatrix dataOriginal, int[] axesRange, File outputFile,
                             String title, int currentRegionWidth,
                             boolean useCellPlottingStandards) {
 
@@ -83,6 +83,8 @@ class APAPlotter {
         // The upper-right corner of the 10 kb resolution APA
         // plots is a 6 x 6 window (or 3 x 3 for 5 kb resolution APA plots)."
         // TODO
+
+        RealMatrix data = dataOriginal.copy(); // don't want original edited
 
         APARegionStatistics apaStats = new APARegionStatistics(data, currentRegionWidth);
         DecimalFormat df = new DecimalFormat("0.000");
