@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,15 +68,13 @@ class APAPlotter {
     /**
      * Method for plotting apa data
      *
-     * @param data       for heat map
+     * @param dataOriginal       for heat map
      * @param axesRange  initial values and increments to annotate axes [x0, dx, y0, dy]
      * @param outputFile where image will saved
      */
-    public static void plot(RealMatrix data,
-                            int[] axesRange,
-                            File outputFile,
+    public static void plot(RealMatrix dataOriginal, int[] axesRange, File outputFile,
                             String title, int currentRegionWidth,
-                            boolean userDefinedColorScale, double colorMin, double colorMax) {
+                            boolean useCellPlottingStandards) {
 
         // As noted in the Cell supplement:
         // "The color scale in all APA plots is set as follows.
@@ -86,30 +84,35 @@ class APAPlotter {
         // plots is a 6 x 6 window (or 3 x 3 for 5 kb resolution APA plots)."
         // TODO
 
+        RealMatrix data = dataOriginal.copy(); // don't want original edited
+
+        APARegionStatistics apaStats = new APARegionStatistics(data, currentRegionWidth);
+        DecimalFormat df = new DecimalFormat("0.000");
+        title += ", P2LL = " + df.format(apaStats.getPeak2LL());
+
         Color lowColor;
         Color highColor;
-        if (userDefinedColorScale) {
+        double maxAllowedValueCell = 5 * apaStats.getMeanUR();
+        double minAllowedValueCell = 0;
+        if (useCellPlottingStandards) {
             double dataMin = MatrixTools.calculateMin(data);
             double dataMax = MatrixTools.calculateMax(data);
-            if (dataMax > colorMax) {
-                dataMax = colorMax;
+            if (dataMax > maxAllowedValueCell) {
+                dataMax = maxAllowedValueCell;
             }
-            if (dataMin < colorMin) {
-                dataMin = colorMin;
+            if (dataMin < minAllowedValueCell) {
+                dataMin = minAllowedValueCell;
             }
-            MatrixTools.thresholdValuesDouble(data, colorMin, colorMax);
-            int lowColorGB = (int) (255 - dataMin / colorMax * 255);
-            int highColorGB = (int) (255 - dataMax / colorMax * 255);
+            MatrixTools.thresholdValuesDouble(data, minAllowedValueCell, maxAllowedValueCell);
+
+            int lowColorGB = (int) (255 - dataMin / maxAllowedValueCell * 255);
+            int highColorGB = (int) (255 - dataMax / maxAllowedValueCell * 255);
             lowColor = new Color(255, lowColorGB, lowColorGB);
             highColor = new Color(255, highColorGB, highColorGB);
         } else {
             lowColor = Color.white;
             highColor = Color.red;
         }
-
-        APARegionStatistics apaStats = new APARegionStatistics(data, currentRegionWidth);
-        DecimalFormat df = new DecimalFormat("0.000");
-        title += ", P2LL = " + df.format(apaStats.getPeak2LL());
 
         // initialize heat map
         HeatChart map = new HeatChart(data.getData());
@@ -130,14 +133,13 @@ class APAPlotter {
             g2.setBackground(Color.WHITE);
             g2.fillRect(0, 0, fullWidth, fullHeight);
 
-
             // plot in heat map, color bar, etc
             g2.drawImage(map.getChartImage(), 0, 0, heatmapWidth, fullHeight, null);
             drawHeatMapBorder(g2, map);
             plotColorScaleBar(g2);
 
-            if (userDefinedColorScale) {
-                plotSpecialColorScaleValues(g2, map, colorMin, colorMax);
+            if (useCellPlottingStandards) {
+                plotSpecialColorScaleValues(g2, map, minAllowedValueCell, maxAllowedValueCell);
             } else {
                 plotColorScaleValues(g2, map);
             }

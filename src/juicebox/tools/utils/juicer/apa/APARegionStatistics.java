@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ public class APARegionStatistics {
 
     private final double peak2mean;
     private final double peak2UL;
+    private final double avgUR;
     private final double peak2UR;
     private final double peak2LL;
     private final double peak2LR;
@@ -59,7 +60,7 @@ public class APARegionStatistics {
         double avgUL = mean(data.getSubMatrix(0, regionWidth - 1, 0, regionWidth - 1).getData());
         peak2UL = centralVal / avgUL;
 
-        double avgUR = mean(data.getSubMatrix(0, regionWidth - 1, max - regionWidth, max - 1).getData());
+        avgUR = mean(data.getSubMatrix(0, regionWidth - 1, max - regionWidth, max - 1).getData());
         peak2UR = centralVal / avgUR;
 
         double avgLL = mean(data.getSubMatrix(max - regionWidth, max - 1, 0, regionWidth - 1).getData());
@@ -118,5 +119,9 @@ public class APARegionStatistics {
 
     public double[] getRegionCornerValues() {
         return new double[]{peak2UL, peak2UR, peak2LL, peak2LR};
+    }
+
+    public double getMeanUR() {
+        return avgUR;
     }
 }

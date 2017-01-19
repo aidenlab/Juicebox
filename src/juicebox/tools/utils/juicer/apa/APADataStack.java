@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,23 +106,23 @@ public class APADataStack {
         }
     }
 
-    public static void exportGenomeWideData(Integer[] peakNumbers, int currentRegionWidth) {
+    public static void exportGenomeWideData(Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
         double gwNPeaksUsedInv = 1. / peakNumbers[0];
         gwNormedAPAMatrix = gwNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
         gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
         gwRankAPAMatrix = gwRankAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
 
         RealMatrix[] matrices = {gwAPAMatrix, gwNormedAPAMatrix, gwCenterNormedAPAMatrix, gwRankAPAMatrix};
-        String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
+        String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA"};
 
-        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth);
+        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth, saveAllData);
     }
 
     private static void saveDataSet(String prefix,
                                     RealMatrix[] apaMatrices,
                                     String[] apaDataTitles,
                                     List<Double> givenEnhancement,
-                                    Integer[] peakNumbers, int currentRegionWidth) {
+                                    Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
 
         File subFolder = HiCFileTools.createValidDirectory(new File(dataDirectory, prefix).getAbsolutePath());
         if (HiCGlobals.printVerboseComments) {
@@ -131,26 +131,22 @@ public class APADataStack {
 
         for (int i = 0; i < apaMatrices.length; i++) {
 
+            if (!saveAllData && i > 0) continue;
+
             String title = "N=" + peakNumbers[0] + " (filtered) " + peakNumbers[1] + " (unique) " +
                     peakNumbers[2] + " (total)";
-            APARegionStatistics apaStats = new APARegionStatistics(apaMatrices[i], currentRegionWidth);
-            int dimension = apaMatrices[i].getColumnDimension();
-            int midPoint = dimension / 2;
-            double centralVal = apaMatrices[i].getEntry(midPoint, midPoint);
-            double colorMax = 5 * centralVal / apaStats.getPeak2UR();
-            double colorMin = 0;
-            APAPlotter.plot(apaMatrices[i],
-                    axesRange,
-                    new File(subFolder, apaDataTitles[i] + ".png"),
-                    title, currentRegionWidth, apaDataTitles[i].equals("APA"), colorMin, colorMax);
+            APAPlotter.plot(apaMatrices[i], axesRange, new File(subFolder, apaDataTitles[i] + ".png"),
+                    title, currentRegionWidth, apaDataTitles[i].equals("APA"));
             MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
                     apaMatrices[i]);
         }
 
-        APAUtils.saveListText((new File(subFolder, apaDataTitles[4] + ".txt")).getAbsolutePath(),
-                givenEnhancement);
-        APAUtils.saveMeasures((new File(subFolder, apaDataTitles[5] + ".txt")).getAbsolutePath(),
-                apaMatrices[0], currentRegionWidth);
+        if (saveAllData) {
+            APAUtils.saveListText((new File(subFolder, "enhancement.txt")).getAbsolutePath(),
+                    givenEnhancement);
+            APAUtils.saveMeasures((new File(subFolder, "measures.txt")).getAbsolutePath(),
+                    apaMatrices[0], currentRegionWidth);
+        }
     }
 
     public static void clearAllData() {
@@ -181,7 +177,7 @@ public class APADataStack {
         gwEnhancement.addAll(enhancement);
     }
 
-    public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth) {
+    public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth, boolean saveAllData) {
         double nPeaksUsedInv = 1. / peakNumbers[0];
         normedAPAMatrix = normedAPAMatrix.scalarMultiply(nPeaksUsedInv);
         centerNormedAPAMatrix = centerNormedAPAMatrix.scalarMultiply(nPeaksUsedInv);
@@ -190,7 +186,7 @@ public class APADataStack {
         RealMatrix[] matrices = {APAMatrix, normedAPAMatrix, centerNormedAPAMatrix, rankAPAMatrix};
         String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
 
-        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth);
+        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth, saveAllData);
     }
 
     public void thresholdPlots(int val) {
