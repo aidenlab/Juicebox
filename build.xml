@@ -154,11 +154,6 @@
     <pathelement location="${basedir}/lib/general/jsi1.1.jar"/>
   </path>
   
-  <path id="library.lwjgl.classpath">
-    <fileset dir="${basedir}/lib/lwjgl">
-      <patternset refid="library.patterns"/>
-    </fileset>
-  </path>
   
   <!-- Modules -->
   
@@ -184,7 +179,6 @@
   <path id="juicebox.module.production.classpath">
     <path refid="${module.jdk.classpath.juicebox}"/>
     <path refid="library.jogl.classpath"/>
-    <path refid="library.lwjgl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -194,7 +188,6 @@
   <path id="juicebox.runtime.production.module.classpath">
     <pathelement location="${juicebox.output.dir}"/>
     <path refid="library.jogl.classpath"/>
-    <path refid="library.lwjgl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -205,7 +198,6 @@
     <path refid="${module.jdk.classpath.juicebox}"/>
     <pathelement location="${juicebox.output.dir}"/>
     <path refid="library.jogl.classpath"/>
-    <path refid="library.lwjgl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -216,7 +208,6 @@
     <pathelement location="${juicebox.testoutput.dir}"/>
     <pathelement location="${juicebox.output.dir}"/>
     <path refid="library.jogl.classpath"/>
-    <path refid="library.lwjgl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -315,8 +306,7 @@
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
-      <zipfileset src="${basedir}/lib/lwjgl/lwjgl.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
@@ -355,10 +345,9 @@
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
       <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
-      <zipfileset src="${basedir}/lib/lwjgl/lwjgl.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
     <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox.jar"/>
