@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,10 +58,13 @@ public class QCDialog extends JDialog {
             1873817423, 2310129700L, 2848035868L, 3511191734L, 4328761281L, 5336699231L, 6579332247L, 8111308308L,
             10000000000L};
 
-    public QCDialog(MainWindow mainWindow, HiC hic, String title) {
+    public QCDialog(MainWindow mainWindow, HiC hic, String title, boolean isControl) {
         super(mainWindow);
 
         Dataset dataset = hic.getDataset();
+        if (isControl) {
+            dataset = hic.getControlDataset();
+        }
 
         String text = dataset.getStatistics();
         String textDescription = null;
@@ -279,7 +282,7 @@ public class QCDialog extends JDialog {
             }
         }
 
-        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(hic.getZoom(),
+        final ExpectedValueFunction df = dataset.getExpectedValues(hic.getZoom(),
                 hic.getNormalizationType());
         if (df != null) {
             double[] expected = df.getExpectedValues();
