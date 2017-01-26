@@ -64,7 +64,7 @@ public class CLTFactory {
         System.out.println("Juicebox and Juicer Tools Version " + HiCGlobals.versionNum);
         System.out.println("Usage:");
         for (String usage : commandLineToolUsages) {
-            System.out.println("\t\t" + usage);
+            System.out.println("\t" + usage);
         }
         System.out.println("Type juicebox <commandName> for more detailed usage instructions");
     }
