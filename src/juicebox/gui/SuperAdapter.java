@@ -561,7 +561,7 @@ public class SuperAdapter {
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
     }
 
-    private boolean unsafeDisplayOptionComboBoxActionPerformed() {
+    public boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
         if (hic.isWholeGenome() && !MatrixType.isValidGenomeWideOption(option)) {
@@ -572,7 +572,7 @@ public class SuperAdapter {
 
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
 
-        if (option == MatrixType.VS) {
+        if (MatrixType.isVSTypeDisplay(option)) {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
@@ -580,7 +580,7 @@ public class SuperAdapter {
             }
         }
 
-        if (option == MatrixType.PEARSON) {
+        if (MatrixType.isPearsonType(option)) {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
@@ -588,8 +588,13 @@ public class SuperAdapter {
 
             } else {
                 try {
-                    if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
+                    if (hic.isPearsonsNotAvailable(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
+                        mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                        return false;
+                    }
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                        JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }

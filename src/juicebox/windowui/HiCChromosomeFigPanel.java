@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -215,7 +215,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
         //Draw Chromosome Name
         String rangeString = chromosome.getName();
-        if (hic.getDisplayOption() == MatrixType.VS) {
+        if (hic.isVSTypeDisplay()) {
             if (isHorizontal()) {
                 rangeString = rangeString + " (observed)";
             } else {

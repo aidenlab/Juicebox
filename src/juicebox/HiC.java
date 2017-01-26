@@ -571,6 +571,11 @@ public class HiC {
         return dataset.getExpectedValues(currentZoom, normalizationType);
     }
 
+    public ExpectedValueFunction getExpectedControlValues() {
+        if (controlDataset == null) return null;
+        return controlDataset.getExpectedValues(currentZoom, normalizationType);
+    }
+
     public NormalizationVector getNormalizationVector(int chrIdx) {
         if (dataset == null) return null;
         return dataset.getNormalizationVector(chrIdx, currentZoom, normalizationType);
@@ -1114,7 +1119,7 @@ public class HiC {
     }
 
     public boolean isInPearsonsMode() {
-        return getDisplayOption() == MatrixType.PEARSON;
+        return MatrixType.isPearsonType(displayOption);
     }
 
     public boolean isPearsonEdgeCaseEncountered(HiCZoom zoom) {
@@ -1124,7 +1129,39 @@ public class HiC {
     public boolean isResolutionLocked() {
         return superAdapter.isResolutionLocked() ||
                 // pearson can't zoom in
-                (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
+                // even though it should never be less, I think we should try to catch it
+                // (i.e. <= rather than ==)?
+                (isInPearsonsMode() && currentZoom.getBinSize() <= HiCGlobals.MAX_PEARSON_ZOOM);
+    }
+
+    public boolean isPearsonsNotAvailable(boolean isControl) {
+        try {
+            if (isControl) {
+                MatrixZoomData cZd = getControlZd();
+                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), normalizationType)) == null;
+            } else {
+                MatrixZoomData zd = getZd();
+                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
+            }
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    public Color getColorForRuler() {
+        if (MatrixType.isPearsonType(displayOption)) {
+            return Color.WHITE;
+        } else {
+            return HiCGlobals.RULER_LINE_COLOR;
+        }
+    }
+
+    public boolean isVSTypeDisplay() {
+        return MatrixType.isVSTypeDisplay(displayOption);
+    }
+
+    public boolean isInControlPearsonsMode() {
+        return MatrixType.isControlPearsonType(displayOption);
     }
 
     /*public Feature2DHandler getFeature2DHandler() {

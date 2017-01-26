@@ -146,10 +146,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (hic.getXContext() == null) return;
 
+        // todo pearsons
         if (hic.isInPearsonsMode()) {
             // Possibly force asynchronous computation of pearsons
-            if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution, use 500KB or lower resolution.");
+            if (hic.isPearsonsNotAvailable(false)) {
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
+                        "resolution, use 500KB or lower resolution.");
+                return;
+            }
+            if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailable(false)) {
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
+                        "resolution, use 500KB or lower resolution.");
                 return;
             }
         }
@@ -315,13 +322,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             Point cursorPoint = hic.getCursorPoint();
             if (cursorPoint != null) {
-                g.setColor(HiCGlobals.RULER_LINE_COLOR);
+                g.setColor(hic.getColorForRuler());
                 g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
                 g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
             } else {
                 Point diagonalCursorPoint = hic.getDiagonalCursorPoint();
                 if (diagonalCursorPoint != null) {
-                    g.setColor(HiCGlobals.RULER_LINE_COLOR);
+                    g.setColor(hic.getColorForRuler());
                     // quadrant 4 signs in plotting equal to quadrant 1 flipped across x in cartesian plane
                     // y = -x + b
                     // y + x = b
@@ -431,7 +438,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 hic.getControlZd(),
                 displayOption,
                 normalizationType,
-                hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                hic.getExpectedValues(),
+                hic.getExpectedControlValues(),
                 g);
 
         g.scale(1, 1);
@@ -467,12 +475,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
                                    NormalizationType normalizationType) {
 
-        if (displayOption == MatrixType.PEARSON &&
-                zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType)) == null) {
+        if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
             JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
             return null;
-
         }
+
         int maxBinCountX = zd0.getXGridAxis().getBinCount();
         int maxBinCountY = zd0.getYGridAxis().getBinCount();
 
@@ -481,6 +488,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();
+
         boolean success = renderer.render(0,
                 0,
                 maxBinCountX,
@@ -489,7 +497,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 ctrl0,
                 displayOption,
                 normalizationType,
-                hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType),
+                hic.getExpectedValues(),
+                hic.getExpectedControlValues(),
                 g);
 
         if (!success) return null;
@@ -538,7 +547,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.getControlZd(),
                     displayOption,
                     normalizationType,
-                    hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                    hic.getExpectedValues(),
+                    hic.getExpectedControlValues(),
                     g2D)) {
                 return null;
             }
