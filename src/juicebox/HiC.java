@@ -1148,6 +1148,16 @@ public class HiC {
         }
     }
 
+    public boolean isPearsonsNotAvailable(HiCZoom zoom) {
+        try {
+            MatrixZoomData zd = getMatrix().getZoomData(zoom);
+            return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
+        }
+        catch (Exception e) {
+            return true;
+        }
+    }
+
     public Color getColorForRuler() {
         if (MatrixType.isPearsonType(displayOption)) {
             return Color.WHITE;
