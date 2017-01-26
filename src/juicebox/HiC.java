@@ -1164,6 +1164,26 @@ public class HiC {
         return MatrixType.isControlPearsonType(displayOption);
     }
 
+    public String getColorScaleKey() {
+        try {
+            switch (displayOption) {
+                case OE:
+                case RATIO:
+                case OBSERVED:
+                case DIFF:
+                case VS:
+                case PEARSON:
+                case PEARSONVS:
+                    return getZd().getKey() + displayOption;
+                case CONTROL:
+                case PEARSONCTRL:
+                    return getControlZd().getKey() + displayOption;
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
     /*public Feature2DHandler getFeature2DHandler() {
         return feature2DHandler;
     }*/

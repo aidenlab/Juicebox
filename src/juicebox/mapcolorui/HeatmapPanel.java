@@ -113,6 +113,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.superAdapter = superAdapter;
         this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer();
+        superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);

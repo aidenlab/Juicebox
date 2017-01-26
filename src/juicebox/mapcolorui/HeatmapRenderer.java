@@ -54,7 +54,7 @@ import java.util.List;
  */
 class HeatmapRenderer {
 
-    private final ColorScale pearsonColorScale, pearsonVSColorScale;
+    private final HiCColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<String, OEColorScale>();
     private final PreDefColorScale preDefColorScale;
@@ -63,7 +63,6 @@ class HeatmapRenderer {
     public HeatmapRenderer() {
 
         pearsonColorScale = new HiCColorScale();
-        pearsonVSColorScale = new HiCColorScale();
 
         preDefColorScale = new PreDefColorScale("Template",
                 new Color[]{
@@ -165,11 +164,15 @@ class HeatmapRenderer {
 
         if (displayOption == MatrixType.PEARSON) {
 
+            String key = zd.getKey() + displayOption;
+
             BasicMatrix bm = zd.getPearsons(df);
 
-            ((HiCColorScale) pearsonColorScale).setMin(bm.getLowerValue());
-            ((HiCColorScale) pearsonColorScale).setMax(bm.getUpperValue());
-            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, g);
+            if (!pearsonColorScale.containsKey(key)) {
+                pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
+            }
+
+            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
 
         } else if (displayOption == MatrixType.PEARSONCTRL) {
 
@@ -180,9 +183,11 @@ class HeatmapRenderer {
 
             BasicMatrix bm = controlZD.getPearsons(controlDF);
 
-            ((HiCColorScale) pearsonColorScale).setMin(bm.getLowerValue());
-            ((HiCColorScale) pearsonColorScale).setMax(bm.getUpperValue());
-            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, g);
+            String key = controlZD.getKey() + displayOption;
+            if (!pearsonColorScale.containsKey(key)) {
+                pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
+            }
+            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
 
         } else if (displayOption == MatrixType.PEARSONVS) {
 
@@ -194,12 +199,15 @@ class HeatmapRenderer {
             BasicMatrix bm1 = zd.getPearsons(df);
             BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
-            float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
-            float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
+            String key = zd.getKey() + displayOption;
+            if (!pearsonColorScale.containsKey(key)) {
+                float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
+                float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
+                pearsonColorScale.setMinMax(key, min, max);
+            }
 
-            ((HiCColorScale) pearsonColorScale).setMin(min);
-            ((HiCColorScale) pearsonColorScale).setMax(max);
-            renderVSMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, g);
+
+            renderVSMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
         } else {
             // Iterate through blocks overlapping visible region
 
@@ -453,10 +461,8 @@ class HeatmapRenderer {
                 ratioColorScaleMap.put(key, oeColorScale);
             }
             return oeColorScale;
-        } else if (displayOption == MatrixType.PEARSONVS) {
-            return pearsonVSColorScale;
         } else {
-            return pearsonColorScale;
+            return null;
         }
     }
 
@@ -506,15 +512,15 @@ class HeatmapRenderer {
     /**
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
      * per pixel, scaling happens elsewhere.
-     *
-     * @param rm         Matrix to render
+     *  @param rm         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
      * @param colorScale color scale to apply
+     * @param key
      * @param g          graphics to render matrix into
      */
     private void renderMatrix(BasicMatrix rm, int originX, int originY, int width, int height,
-                              ColorScale colorScale, Graphics2D g) {
+                              HiCColorScale colorScale, String key, Graphics2D g) {
 
 
         int endX = Math.min(originX + width, rm.getColumnDimension());
@@ -525,7 +531,7 @@ class HeatmapRenderer {
             for (int col = originX; col < endX; col++) {
 
                 float score = rm.getEntry(row, col);
-                Color color = getPearsonColor(score, colorScale);
+                Color color = getPearsonColor(key, score, colorScale);
 
                 int px = col - originX;
                 int py = row - originY;
@@ -543,7 +549,7 @@ class HeatmapRenderer {
     }
 
     private void renderVSMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
-                                ColorScale pearsonVSColorScale, Graphics2D g) {
+                                HiCColorScale pearsonVSColorScale, String key, Graphics2D g) {
         int endX = Math.min(originX + width, bm1.getColumnDimension());
         int endY = Math.min(originY + height, bm1.getRowDimension());
 
@@ -553,8 +559,8 @@ class HeatmapRenderer {
 
                 float score = bm1.getEntry(row, col);
                 float controlScore = bm2.getEntry(row, col);
-                Color color = getPearsonColor(score, pearsonVSColorScale);
-                Color controlColor = getPearsonColor(controlScore, pearsonVSColorScale);
+                Color color = getPearsonColor(key, score, pearsonVSColorScale);
+                Color controlColor = getPearsonColor(key, controlScore, pearsonVSColorScale);
 
                 int px = col - originX;
                 int py = row - originY;
@@ -572,12 +578,12 @@ class HeatmapRenderer {
         }
     }
 
-    private Color getPearsonColor(float score, ColorScale colorScale) {
+    private Color getPearsonColor(String key, float score, HiCColorScale colorScale) {
         Color color;
         if (Float.isNaN(score)) {
             color = Color.gray;
         } else {
-            color = score == 0 ? Color.black : colorScale.getColor(score);
+            color = score == 0 ? Color.black : colorScale.getColor(key, score);
         }
         return color;
     }
@@ -626,5 +632,9 @@ class HeatmapRenderer {
             observedColorScale.setNegEnd(min);
             observedColorScale.setPosEnd(max);
         }
+    }
+
+    public HiCColorScale getPearsonColorScale() {
+        return pearsonColorScale;
     }
 }

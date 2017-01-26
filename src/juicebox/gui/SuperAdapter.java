@@ -29,6 +29,8 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
+import juicebox.mapcolorui.HiCColorScale;
+import juicebox.mapcolorui.PearsonColorScaleEditor;
 import juicebox.state.ImportFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
@@ -118,7 +120,8 @@ public class SuperAdapter {
 
     public void exportDataLauncher() {
         if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             new DumpDialog(mainWindow, hic);
         }
@@ -153,6 +156,10 @@ public class SuperAdapter {
 
     public void launchLoadStateFromXML(String mapPath) {
         LoadStateFromXMLFile.reloadSelectedState(this, mapPath);
+    }
+
+    public void launchPearsonColorScaleEditor() {
+        if (pearsonColorScale != null) new PearsonColorScaleEditor(this, pearsonColorScale);
     }
 
     public void restoreLocation(String loc) {
@@ -855,5 +862,11 @@ public class SuperAdapter {
             return n - 2 - currIndex;
         }
         return n - 1 - currIndex;
+    }
+
+    private HiCColorScale pearsonColorScale;
+
+    public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
+        this.pearsonColorScale = pearsonColorScale;
     }
 }

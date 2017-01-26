@@ -513,6 +513,15 @@ public class MainMenuBar {
         figureMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
+        JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
+        editPearsonsColorItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchPearsonColorScaleEditor();
+            }
+        });
+        devMenu.add(editPearsonsColorItem);
+
         JMenuItem mapSubset = new JMenuItem("Select map subset...");
         mapSubset.addActionListener(new ActionListener() {
             @Override
