@@ -168,7 +168,7 @@
   
   <path id="juicebox.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
-    <pathelement location="${jdk.home.1.8}/jre/lib"/>
+    <pathelement location="${jdk.home.1.7}/jre/lib"/>
   </path>
   
   <path id="juicebox.module.production.classpath">
