@@ -35,7 +35,7 @@ import java.util.Map;
 
 /**
  * @author Jim Robinson
- * @date 4/7/12
+ * @since 4/7/12
  */
 public class BinPairIterator implements PairIterator {
 

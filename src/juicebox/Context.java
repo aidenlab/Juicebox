@@ -29,7 +29,7 @@ import org.broad.igv.feature.Chromosome;
 
 /**
  * @author jrobinso
- * @date Aug 11, 2010
+ * @since Aug 11, 2010
  */
 public class Context {
 

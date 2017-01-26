@@ -37,7 +37,7 @@ import java.io.Serializable;
 
 /**
  * @author jrobinso
- * @date Aug 2, 2010
+ * @since Aug 2, 2010
  */
 public class ThumbnailPanel extends JComponent implements Serializable {
 

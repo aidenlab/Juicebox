@@ -26,7 +26,7 @@ package juicebox.data;
 
 /**
  * @author jrobinso
- * @date Aug 3, 2010
+ * @since Aug 3, 2010
  */
 public class ContactRecord implements Comparable<ContactRecord> {
 

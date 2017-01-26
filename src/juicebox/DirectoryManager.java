@@ -37,7 +37,7 @@ import java.util.prefs.Preferences;
 
 /**
  * @author Jim Robinson
- * @date 3/19/12
+ * @since 3/19/12
  */
 public class DirectoryManager {
 

@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * @author jrobinso
- * @date Aug 10, 2010
+ * @since Aug 10, 2010
  */
 public class Block {
 

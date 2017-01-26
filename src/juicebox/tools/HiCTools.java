@@ -39,7 +39,7 @@ import java.io.IOException;
  * Command line tool handling through factory model
  *
  * @author Muhammad Shamim
- * @date 1/20/2015
+ * @since 1/20/2015
  */
 public class HiCTools {
 

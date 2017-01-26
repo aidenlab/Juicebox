@@ -44,7 +44,7 @@ import java.io.Serializable;
 
 /**
  * @author Jay Jung Hee Ryu
- * @date 5/26/16.
+ * @since 5/26/16.
  */
 
 // extends to JScrollPane or ScrollBar//

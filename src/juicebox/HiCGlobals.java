@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * @author Muhammad Shamim
- * @date 11/25/14
+ * @since 11/25/14
  */
 public class HiCGlobals {
 

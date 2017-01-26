@@ -29,7 +29,7 @@ import java.util.Iterator;
 
 /**
  * @author Jim Robinson
- * @date 9/24/11
+ * @since 9/24/11
  */
 interface PairIterator extends Iterator<AlignmentPair> {
     boolean hasNext();

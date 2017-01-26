@@ -45,7 +45,7 @@ import java.util.concurrent.Executors;
 
 /**
  * @author Jim Robinson
- * @date 1/5/12
+ * @since 1/5/12
  */
 class IGVUtils {
 

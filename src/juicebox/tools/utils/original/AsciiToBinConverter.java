@@ -39,7 +39,7 @@ import java.util.Map;
  * Output:  [chr1 index][pos1][chr2 index][pos 2]    (int, int, int, int)/
  *
  * @author Jim Robinson
- * @date 4/7/12
+ * @since 4/7/12
  */
 public class AsciiToBinConverter {
 

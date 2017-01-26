@@ -38,7 +38,7 @@ import java.util.List;
 
 /**
  * @author Jim Robinson
- * @date 5/8/12
+ * @since 5/8/12
  */
 class HiCLoadDialog extends JDialog {
 

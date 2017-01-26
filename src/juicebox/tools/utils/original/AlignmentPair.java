@@ -30,7 +30,7 @@ package juicebox.tools.utils.original;
 
 /**
  * @author Jim Robinson
- * @date 9/24/11
+ * @since 9/24/11
  */
 public class AlignmentPair {
 

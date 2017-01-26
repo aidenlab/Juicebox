@@ -38,7 +38,7 @@ import java.util.Map;
  * Also, the chromosomeOrdinals map seems to always be empty
  *
  * @author Jim Robinson
- * @date 9/24/11
+ * @since 9/24/11
  */
 public class BAMPairIterator implements PairIterator {
 
