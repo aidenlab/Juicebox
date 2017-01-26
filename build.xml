@@ -259,10 +259,10 @@
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
     <property name="artifact.output.juicebox:jar" value="${basedir}/out/artifacts/Juicebox_jar"/>
-    <property name="artifact.output.juicebox_clt:jar" value="${basedir}/out/artifacts/Juicebox_clt_jar"/>
+    <property name="artifact.output.juicebox_tools:jar" value="${basedir}/out/artifacts/Juicebox_tools_jar"/>
     <mkdir dir="${artifacts.temp.dir}"/>
     <property name="temp.jar.path.Juicebox.jar" value="${artifacts.temp.dir}/Juicebox.jar"/>
-    <property name="temp.jar.path.Juicebox.jar2" value="${artifacts.temp.dir}/1/Juicebox.jar"/>
+    <property name="temp.jar.path.juicebox_tools.jar" value="${artifacts.temp.dir}/1/juicebox_tools.jar"/>
     <mkdir dir="${artifacts.temp.dir}/1"/>
   </target>
   
@@ -283,11 +283,11 @@
     <copy file="${temp.jar.path.Juicebox.jar}" tofile="${artifact.temp.output.juicebox:jar}/Juicebox.jar"/>
   </target>
   
-  <target name="artifact.juicebox_clt:jar" depends="init.artifacts, compile.module.juicebox" description="Build &#39;Juicebox_clt:jar&#39; artifact">
-    <property name="artifact.temp.output.juicebox_clt:jar" value="${artifacts.temp.dir}/Juicebox_clt_jar"/>
-    <mkdir dir="${artifact.temp.output.juicebox_clt:jar}"/>
-    <jar destfile="${temp.jar.path.Juicebox.jar2}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF">
-      <zipfileset file="${basedir}/src/resources/manifests/juicebox_clt_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
+  <target name="artifact.juicebox_tools:jar" depends="init.artifacts, compile.module.juicebox" description="Build &#39;Juicebox_tools:jar&#39; artifact">
+    <property name="artifact.temp.output.juicebox_tools:jar" value="${artifacts.temp.dir}/Juicebox_tools_jar"/>
+    <mkdir dir="${artifact.temp.output.juicebox_tools:jar}"/>
+    <jar destfile="${temp.jar.path.juicebox_tools.jar}" duplicate="preserve" manifest="${basedir}/src/resources/manifests/juicebox_tools_jar/META-INF/MANIFEST.MF">
+      <zipfileset file="${basedir}/src/resources/manifests/juicebox_tools_jar/META-INF/MANIFEST.MF" prefix="META-INF"/>
       <zipfileset dir="${juicebox.output.dir}"/>
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
@@ -297,7 +297,7 @@
       <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
-    <copy file="${temp.jar.path.Juicebox.jar2}" tofile="${artifact.temp.output.juicebox_clt:jar}/Juicebox.jar"/>
+    <copy file="${temp.jar.path.juicebox_tools.jar}" tofile="${artifact.temp.output.juicebox_tools:jar}/juicebox_tools.jar"/>
   </target>
   
   <target name="sign">
@@ -309,14 +309,14 @@
     </signjar>
   </target>
 
-  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicebox_clt:jar, sign" description="Build all artifacts">
+  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicebox_tools:jar, sign" description="Build all artifacts">
     <mkdir dir="${artifact.output.juicebox:jar}"/>
     <copy todir="${artifact.output.juicebox:jar}">
       <fileset dir="${artifact.temp.output.juicebox:jar}"/>
     </copy>
-    <mkdir dir="${artifact.output.juicebox_clt:jar}"/>
-    <copy todir="${artifact.output.juicebox_clt:jar}">
-      <fileset dir="${artifact.temp.output.juicebox_clt:jar}"/>
+    <mkdir dir="${artifact.output.juicebox_tools:jar}"/>
+    <copy todir="${artifact.output.juicebox_tools:jar}">
+      <fileset dir="${artifact.temp.output.juicebox_tools:jar}"/>
     </copy>
     
     <!-- Delete temporary files -->
