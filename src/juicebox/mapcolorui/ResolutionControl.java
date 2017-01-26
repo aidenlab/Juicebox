@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -222,13 +222,13 @@ public class ResolutionControl extends JPanel {
 
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
-                /*
+
                 if (zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM && hic.isInPearsonsMode()) {
                     MessageUtils.showMessage("Pearson's matrix is not available at this resolution,\n" +
                             "please use a resolution lower than 500 KB.");
                     setZoom(pearsonZoom);
                     return;
-                } */
+                }
 
                 if (hic.getXContext() != null) {
 

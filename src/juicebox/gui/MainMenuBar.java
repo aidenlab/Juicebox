@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +63,7 @@ public class MainMenuBar {
     private static JMenuItem exportSavedStateMenuItem;
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
+    private static JMenuItem showStats, showControlStats;
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
@@ -174,16 +175,27 @@ public class MainMenuBar {
         fileMenu.add(recentControlMapMenu);
         fileMenu.addSeparator();
 
-        JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
+        showStats = new JMenuItem("Show Dataset Metrics");
         showStats.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                superAdapter.showDataSetMetrics();
+                superAdapter.showDataSetMetrics(false);
             }
         });
+        showStats.setEnabled(false);
+
+        showControlStats = new JMenuItem("Show Control Dataset Metrics");
+        showControlStats.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                superAdapter.showDataSetMetrics(true);
+            }
+        });
+        showControlStats.setEnabled(false);
 
 
         fileMenu.add(showStats);
+        fileMenu.add(showControlStats);
         fileMenu.addSeparator();
 
 
@@ -501,6 +513,15 @@ public class MainMenuBar {
         figureMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
+        JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
+        editPearsonsColorItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchPearsonColorScaleEditor();
+            }
+        });
+        devMenu.add(editPearsonsColorItem);
+
         JMenuItem mapSubset = new JMenuItem("Select map subset...");
         mapSubset.addActionListener(new ActionListener() {
             @Override
@@ -575,12 +596,19 @@ public class MainMenuBar {
         saveLocationList.setEnabled(status);
     }
 
+
     public void updatePrevStateNameFromImport(String path) {
         previousStates.updateNamesFromImport(path);
     }
 
-    public void setContolMapLoadableEnabled(boolean status) {
+    public void updateMainMapHasBeenLoaded(boolean status) {
         loadControlFromList.setEnabled(status);
         recentControlMapMenu.setEnabled(status);
+        // if a control map can be loaded, that means main is loaded and its stats can be viewed
+        showStats.setEnabled(status);
+    }
+
+    public void updateContolMapHasBeenLoaded(boolean status) {
+        showControlStats.setEnabled(status);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -559,6 +559,12 @@ public class MainViewPanel {
         if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
             chrBox1.setSelectedIndex(0);
             chrBox2.setSelectedIndex(0);
+            MatrixType matrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
+            if (MatrixType.isPearsonType(matrixType)) {
+                // can't do pearson's genomewide
+                displayOptionComboBox.setSelectedIndex(0);
+                superAdapter.unsafeDisplayOptionComboBoxActionPerformed();
+            }
         }
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();

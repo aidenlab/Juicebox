@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
+import juicebox.mapcolorui.HiCColorScale;
+import juicebox.mapcolorui.PearsonColorScaleEditor;
 import juicebox.state.ImportFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
 import juicebox.state.Slideshow;
@@ -99,12 +101,14 @@ public class SuperAdapter {
         return mainMenuBar.createMenuBar(this);
     }
 
-    public void showDataSetMetrics() {
+    public void showDataSetMetrics(boolean isControl) {
         if (hic.getDataset() == null) {
             JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             try {
-                new QCDialog(mainWindow, hic, mainWindow.getTitle() + " info");
+                String title = mainWindow.getTitle() + " QC Stats";
+                if (isControl) title += " (control)";
+                new QCDialog(mainWindow, hic, title, isControl);
             } catch (Exception e) {
                 // TODO - test on hic file with no stats file specified
                 e.printStackTrace();
@@ -116,7 +120,8 @@ public class SuperAdapter {
 
     public void exportDataLauncher() {
         if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to show info",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         } else {
             new DumpDialog(mainWindow, hic);
         }
@@ -151,6 +156,10 @@ public class SuperAdapter {
 
     public void launchLoadStateFromXML(String mapPath) {
         LoadStateFromXMLFile.reloadSelectedState(this, mapPath);
+    }
+
+    public void launchPearsonColorScaleEditor() {
+        if (pearsonColorScale != null) new PearsonColorScaleEditor(this, pearsonColorScale);
     }
 
     public void restoreLocation(String loc) {
@@ -474,7 +483,10 @@ public class SuperAdapter {
                 currentlyLoadedMainFiles = newFilesToBeLoaded;
             }
 
-            mainMenuBar.setContolMapLoadableEnabled(true);
+            mainMenuBar.updateMainMapHasBeenLoaded(true);
+            if (control) {
+                mainMenuBar.updateContolMapHasBeenLoaded(true);
+            }
             mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
@@ -556,7 +568,7 @@ public class SuperAdapter {
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
     }
 
-    private boolean unsafeDisplayOptionComboBoxActionPerformed() {
+    public boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
         if (hic.isWholeGenome() && !MatrixType.isValidGenomeWideOption(option)) {
@@ -567,7 +579,7 @@ public class SuperAdapter {
 
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
 
-        if (option == MatrixType.VS) {
+        if (MatrixType.isVSTypeDisplay(option)) {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
@@ -575,7 +587,7 @@ public class SuperAdapter {
             }
         }
 
-        if (option == MatrixType.PEARSON) {
+        if (MatrixType.isPearsonType(option)) {
             if (!hic.getMatrix().isIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
@@ -583,8 +595,13 @@ public class SuperAdapter {
 
             } else {
                 try {
-                    if (hic.getZd().getPearsons(hic.getDataset().getExpectedValues(hic.getZd().getZoom(), hic.getNormalizationType())) == null) {
+                    if (hic.isPearsonsNotAvailable(false)) {
                         JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available at this resolution");
+                        mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                        return false;
+                    }
+                    if (MatrixType.isControlPearsonType(option) && hic.isPearsonsNotAvailable(true)) {
+                        JOptionPane.showMessageDialog(mainWindow, "Control's Pearson matrix is not available at this resolution");
                         mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                         return false;
                     }
@@ -845,5 +862,11 @@ public class SuperAdapter {
             return n - 2 - currIndex;
         }
         return n - 1 - currIndex;
+    }
+
+    private HiCColorScale pearsonColorScale;
+
+    public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
+        this.pearsonColorScale = pearsonColorScale;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ public class HiC {
     private EigenvectorTrack eigenvectorTrack, controlEigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
-    private Point cursorPoint;
+    private Point cursorPoint, diagonalCursorPoint;
     private Point selectedBin;
     private boolean linkedMode;
     private boolean m_zoomChanged;
@@ -314,7 +314,14 @@ public class HiC {
 
     public void setCursorPoint(Point point) {
         this.cursorPoint = point;
+    }
 
+    public Point getDiagonalCursorPoint() {
+        return diagonalCursorPoint;
+    }
+
+    public void setDiagonalCursorPoint(Point diagonalCursorPoint) {
+        this.diagonalCursorPoint = diagonalCursorPoint;
     }
 
     public int[] getCurrentRegionWindowGenomicPositions() {
@@ -562,6 +569,11 @@ public class HiC {
     public ExpectedValueFunction getExpectedValues() {
         if (dataset == null) return null;
         return dataset.getExpectedValues(currentZoom, normalizationType);
+    }
+
+    public ExpectedValueFunction getExpectedControlValues() {
+        if (controlDataset == null) return null;
+        return controlDataset.getExpectedValues(currentZoom, normalizationType);
     }
 
     public NormalizationVector getNormalizationVector(int chrIdx) {
@@ -1107,7 +1119,7 @@ public class HiC {
     }
 
     public boolean isInPearsonsMode() {
-        return getDisplayOption() == MatrixType.PEARSON;
+        return MatrixType.isPearsonType(displayOption);
     }
 
     public boolean isPearsonEdgeCaseEncountered(HiCZoom zoom) {
@@ -1117,7 +1129,59 @@ public class HiC {
     public boolean isResolutionLocked() {
         return superAdapter.isResolutionLocked() ||
                 // pearson can't zoom in
-                (isInPearsonsMode() && currentZoom.getBinSize() == HiCGlobals.MAX_PEARSON_ZOOM);
+                // even though it should never be less, I think we should try to catch it
+                // (i.e. <= rather than ==)?
+                (isInPearsonsMode() && currentZoom.getBinSize() <= HiCGlobals.MAX_PEARSON_ZOOM);
+    }
+
+    public boolean isPearsonsNotAvailable(boolean isControl) {
+        try {
+            if (isControl) {
+                MatrixZoomData cZd = getControlZd();
+                return cZd.getPearsons(controlDataset.getExpectedValues(cZd.getZoom(), normalizationType)) == null;
+            } else {
+                MatrixZoomData zd = getZd();
+                return zd.getPearsons(dataset.getExpectedValues(zd.getZoom(), normalizationType)) == null;
+            }
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    public Color getColorForRuler() {
+        if (MatrixType.isPearsonType(displayOption)) {
+            return Color.WHITE;
+        } else {
+            return HiCGlobals.RULER_LINE_COLOR;
+        }
+    }
+
+    public boolean isVSTypeDisplay() {
+        return MatrixType.isVSTypeDisplay(displayOption);
+    }
+
+    public boolean isInControlPearsonsMode() {
+        return MatrixType.isControlPearsonType(displayOption);
+    }
+
+    public String getColorScaleKey() {
+        try {
+            switch (displayOption) {
+                case OE:
+                case RATIO:
+                case OBSERVED:
+                case DIFF:
+                case VS:
+                case PEARSON:
+                case PEARSONVS:
+                    return getZd().getKey() + displayOption;
+                case CONTROL:
+                case PEARSONCTRL:
+                    return getControlZd().getKey() + displayOption;
+            }
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     /*public Feature2DHandler getFeature2DHandler() {

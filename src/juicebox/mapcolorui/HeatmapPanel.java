@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,7 +90,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Chromosome boundaries in kbases for whole genome view.
      */
     private int[] chromosomeBoundaries;
-    private boolean straightEdgeEnabled = false;
+    private boolean straightEdgeEnabled = false, diagonalEdgeEnabled = false;
     private boolean featureOptionMenuEnabled = false;
     private boolean firstAnnotation;
     private AdjustAnnotation adjustAnnotation = AdjustAnnotation.NONE;
@@ -113,6 +113,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.superAdapter = superAdapter;
         this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer();
+        superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
@@ -146,10 +147,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         if (hic.getXContext() == null) return;
 
+        // todo pearsons
         if (hic.isInPearsonsMode()) {
             // Possibly force asynchronous computation of pearsons
-            if (zd.getPearsons(hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType())) == null) {
-                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution, use 500KB or lower resolution.");
+            if (hic.isPearsonsNotAvailable(false)) {
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
+                        "resolution, use 500KB or lower resolution.");
+                return;
+            }
+            if (hic.isInControlPearsonsMode() && hic.isPearsonsNotAvailable(false)) {
+                JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this " +
+                        "resolution, use 500KB or lower resolution.");
                 return;
             }
         }
@@ -315,9 +323,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             Point cursorPoint = hic.getCursorPoint();
             if (cursorPoint != null) {
-                g.setColor(HiCGlobals.RULER_LINE_COLOR);
+                g.setColor(hic.getColorForRuler());
                 g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
                 g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
+            } else {
+                Point diagonalCursorPoint = hic.getDiagonalCursorPoint();
+                if (diagonalCursorPoint != null) {
+                    g.setColor(hic.getColorForRuler());
+                    // quadrant 4 signs in plotting equal to quadrant 1 flipped across x in cartesian plane
+                    // y = -x + b
+                    // y + x = b
+                    int b = diagonalCursorPoint.x + diagonalCursorPoint.y;
+
+                    // at x = 0, y = b unless y exceeds height
+                    int leftEdgeY = Math.min(b, getHeight());
+                    int leftEdgeX = b - leftEdgeY;
+
+                    // at y = 0, x = b unless x exceeds width
+                    int rightEdgeX = Math.min(b, getWidth());
+                    int rightEdgeY = b - rightEdgeX;
+
+                    g.drawLine(leftEdgeX, leftEdgeY, rightEdgeX, rightEdgeY);
+                }
             }
 
 
@@ -412,7 +439,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 hic.getControlZd(),
                 displayOption,
                 normalizationType,
-                hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                hic.getExpectedValues(),
+                hic.getExpectedControlValues(),
                 g);
 
         g.scale(1, 1);
@@ -448,12 +476,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
                                    NormalizationType normalizationType) {
 
-        if (displayOption == MatrixType.PEARSON &&
-                zd0.getPearsons(hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType)) == null) {
+        if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
             JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
             return null;
-
         }
+
         int maxBinCountX = zd0.getXGridAxis().getBinCount();
         int maxBinCountY = zd0.getYGridAxis().getBinCount();
 
@@ -462,6 +489,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();
+
         boolean success = renderer.render(0,
                 0,
                 maxBinCountX,
@@ -470,7 +498,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 ctrl0,
                 displayOption,
                 normalizationType,
-                hic.getDataset().getExpectedValues(zd0.getZoom(), normalizationType),
+                hic.getExpectedValues(),
+                hic.getExpectedControlValues(),
                 g);
 
         if (!success) return null;
@@ -519,7 +548,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.getControlZd(),
                     displayOption,
                     normalizationType,
-                    hic.getDataset().getExpectedValues(zd.getZoom(), normalizationType),
+                    hic.getExpectedValues(),
+                    hic.getExpectedControlValues(),
                     g2D)) {
                 return null;
             }
@@ -584,6 +614,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 if (mi.isSelected()) {
                     straightEdgeEnabled = true;
+                    diagonalEdgeEnabled = false;
                     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 } else {
                     straightEdgeEnabled = false;
@@ -592,10 +623,30 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     repaint();
                     superAdapter.repaintTrackPanels();
                 }
-
             }
         });
         menu.add(mi);
+
+        final JCheckBoxMenuItem miv2 = new JCheckBoxMenuItem("Enable diagonal edge");
+        miv2.setSelected(diagonalEdgeEnabled);
+        miv2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (miv2.isSelected()) {
+                    straightEdgeEnabled = false;
+                    diagonalEdgeEnabled = true;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                } else {
+                    diagonalEdgeEnabled = false;
+                    hic.setDiagonalCursorPoint(null);
+                    setCursor(Cursor.getDefaultCursor());
+                    repaint();
+                    superAdapter.repaintTrackPanels();
+                }
+
+            }
+        });
+        menu.add(miv2);
 
      /*   final JMenuItem mi2 = new JMenuItem("Goto ...");
         mi2.addActionListener(new ActionListener() {
@@ -1106,15 +1157,23 @@ public class HeatmapPanel extends JComponent implements Serializable {
         repaint();
     }
 
-    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+    private void setProperCursor() {
+        if (straightEdgeEnabled || diagonalEdgeEnabled) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        } else {
+            setCursor(Cursor.getDefaultCursor());
+        }
+    }
 
-    private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
+    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
 //    @Override
 //    public String getToolTipText(MouseEvent e) {
 //        return toolTipText(e.getX(), e.getY());
 //
 //    }
+
+    private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
     static class ImageTile {
         final int bLeft;
@@ -1135,11 +1194,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            if (straightEdgeEnabled) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            } else {
-                setCursor(Cursor.getDefaultCursor());
-            }
+            setProperCursor();
         }
 
         @Override
@@ -1230,7 +1285,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 lastMousePoint = null;
                 zoomRectangle = null;
                 annotateRectangle = null;
-                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                setProperCursor();
+
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
                 Runnable runnable = new Runnable() {
                     @Override
@@ -1290,7 +1346,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 restoreDefaultVariables();
             } else {
-                setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+                setProperCursor();
             }
         }
 
@@ -1333,7 +1389,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             dragMode = DragMode.NONE;
             lastMousePoint = null;
             zoomRectangle = null;
-            setCursor(straightEdgeEnabled ? Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) : Cursor.getDefaultCursor());
+            setProperCursor();
         }
 
 
@@ -1602,6 +1658,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
                         superAdapter.repaintTrackPanels();
+                    }
+                } else if (diagonalEdgeEnabled) {
+                    synchronized (this) {
+                        hic.setDiagonalCursorPoint(e.getPoint());
                     }
                 } else if (adjustAnnotation == AdjustAnnotation.NONE) {
                     hic.setCursorPoint(null);

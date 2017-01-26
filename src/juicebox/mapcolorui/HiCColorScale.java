@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,47 +26,74 @@
 package juicebox.mapcolorui;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Neva Cherniavsky
  * @since 3/22/12
  */
-class HiCColorScale implements org.broad.igv.renderer.ColorScale {
+public class HiCColorScale {
 
-    private float min = -1f;
-    private float max = 1f;
+    private Map<String, Float> posMinMap = new HashMap<String, Float>();
+    private Map<String, Float> posMaxMap = new HashMap<String, Float>();
+    private Map<String, Float> negMinMap = new HashMap<String, Float>();
+    private Map<String, Float> negMaxMap = new HashMap<String, Float>();
 
     public HiCColorScale() {
     }
 
-    public void setMin(float min) {
-        this.min = min;
+    public float getPosMax(String key) {
+        return posMaxMap.get(key);
     }
 
-    public void setMax(float max) {
-        this.max = max;
+    public float getPosMin(String key) {
+        return posMinMap.get(key);
     }
 
-    public Color getColor(float score) {
+    public float getNegMax(String key) {
+        return negMaxMap.get(key);
+    }
+
+    public float getNegMin(String key) {
+        return negMinMap.get(key);
+    }
+
+    public void setMinMax(String key, float min, float max) {
+        setMinMax(key, min, 0, 0, max);
+    }
+
+    public void setMinMax(String key, float negMin, float negMax, float posMin, float posMax) {
+        negMinMap.put(key, negMin);
+        negMaxMap.put(key, negMax);
+        posMaxMap.put(key, posMax);
+        posMinMap.put(key, posMin);
+
+    }
+
+    public Color getColor(String key, float score) {
 
         if (score > 0) {
-            score = score / max;
-            int R = (int) (255 * Math.min(score, 1));
-            int G = 0;
-            int B = 0;
-            return new Color(R, G, B);
+            float min = getPosMin(key), max = getPosMax(key);
+            score = (score - min) / (max - min);
+            if (score > 0) {
+                int R = (int) (255 * Math.min(score, 1));
+                int G = 0;
+                int B = 0;
+                return new Color(R, G, B);
+            }
         } else if (score < 0) {
-            score = score / min;
-            if (score < 0) score = -score; // this shouldn't happen but seems to be happening.
-            int R = 0;
-            int G = 0;
-            int B = (int) (255 * Math.min(score, 1));
-            return new Color(R, G, B);
-        } else {
-            // Nan ?
-            return Color.black;
+            float min = getNegMin(key), max = getNegMax(key);
+            score = (score - max) / (min - max);
+            if (score > 0) {
+                //if (score < 0) score = -score; // this shouldn't happen but seems to be happening.
+                int R = 0;
+                int G = 0;
+                int B = (int) (255 * Math.min(score, 1));
+                return new Color(R, G, B);
+            }
         }
-
+        return Color.black;
     }
 
     public Color getColor(String symbol) {
@@ -86,4 +113,14 @@ class HiCColorScale implements org.broad.igv.renderer.ColorScale {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    public boolean containsKey(String key) {
+        return negMinMap.containsKey(key) && posMaxMap.containsKey(key);
+    }
+
+    public void resetValues(String key) {
+        negMinMap.remove(key);
+        negMaxMap.remove(key);
+        posMinMap.remove(key);
+        posMaxMap.remove(key);
+    }
 }

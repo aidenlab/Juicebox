@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ import java.util.List;
  */
 class HeatmapRenderer {
 
-    private final ColorScale pearsonColorScale;
+    private final HiCColorScale pearsonColorScale;
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<String, OEColorScale>();
     private final PreDefColorScale preDefColorScale;
@@ -132,6 +132,7 @@ class HeatmapRenderer {
                           final MatrixType displayOption,
                           final NormalizationType normalizationType,
                           final ExpectedValueFunction df,
+                          final ExpectedValueFunction controlDF,
                           Graphics2D g) {
 
 
@@ -163,12 +164,50 @@ class HeatmapRenderer {
 
         if (displayOption == MatrixType.PEARSON) {
 
+            String key = zd.getKey() + displayOption;
+
             BasicMatrix bm = zd.getPearsons(df);
 
-            ((HiCColorScale) pearsonColorScale).setMin(bm.getLowerValue());
-            ((HiCColorScale) pearsonColorScale).setMax(bm.getUpperValue());
-            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, g);
+            if (!pearsonColorScale.containsKey(key)) {
+                pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
+            }
 
+            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
+
+        } else if (displayOption == MatrixType.PEARSONCTRL) {
+
+            if (controlDF == null) {
+                System.err.println("Control DF is NULL");
+                return false;
+            }
+
+            BasicMatrix bm = controlZD.getPearsons(controlDF);
+
+            String key = controlZD.getKey() + displayOption;
+            if (!pearsonColorScale.containsKey(key)) {
+                pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
+            }
+            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
+
+        } else if (displayOption == MatrixType.PEARSONVS) {
+
+            if (controlDF == null) {
+                System.err.println("Control DF is NULL");
+                return false;
+            }
+
+            BasicMatrix bm1 = zd.getPearsons(df);
+            BasicMatrix bm2 = controlZD.getPearsons(controlDF);
+
+            String key = zd.getKey() + displayOption;
+            if (!pearsonColorScale.containsKey(key)) {
+                float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
+                float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
+                pearsonColorScale.setMinMax(key, min, max);
+            }
+
+
+            renderVSMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
         } else {
             // Iterate through blocks overlapping visible region
 
@@ -388,6 +427,7 @@ class HeatmapRenderer {
         return true;
     }
 
+
     private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
 
         if (MatrixType.isSimpleType(displayOption)) {
@@ -422,7 +462,7 @@ class HeatmapRenderer {
             }
             return oeColorScale;
         } else {
-            return pearsonColorScale;
+            return null;
         }
     }
 
@@ -472,15 +512,15 @@ class HeatmapRenderer {
     /**
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
      * per pixel, scaling happens elsewhere.
-     *
-     * @param rm         Matrix to render
+     *  @param rm         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
      * @param colorScale color scale to apply
+     * @param key
      * @param g          graphics to render matrix into
      */
     private void renderMatrix(BasicMatrix rm, int originX, int originY, int width, int height,
-                              ColorScale colorScale, Graphics2D g) {
+                              HiCColorScale colorScale, String key, Graphics2D g) {
 
 
         int endX = Math.min(originX + width, rm.getColumnDimension());
@@ -491,12 +531,8 @@ class HeatmapRenderer {
             for (int col = originX; col < endX; col++) {
 
                 float score = rm.getEntry(row, col);
-                Color color;
-                if (Float.isNaN(score)) {
-                    color = Color.gray;
-                } else {
-                    color = score == 0 ? Color.black : colorScale.getColor(score);
-                }
+                Color color = getPearsonColor(key, score, colorScale);
+
                 int px = col - originX;
                 int py = row - originY;
                 g.setColor(color);
@@ -510,6 +546,46 @@ class HeatmapRenderer {
                 }
             }
         }
+    }
+
+    private void renderVSMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
+                                HiCColorScale pearsonVSColorScale, String key, Graphics2D g) {
+        int endX = Math.min(originX + width, bm1.getColumnDimension());
+        int endY = Math.min(originY + height, bm1.getRowDimension());
+
+        // TODO -- need to check bounds before drawing
+        for (int row = originY; row < endY; row++) {
+            for (int col = originX; col < endX; col++) {
+
+                float score = bm1.getEntry(row, col);
+                float controlScore = bm2.getEntry(row, col);
+                Color color = getPearsonColor(key, score, pearsonVSColorScale);
+                Color controlColor = getPearsonColor(key, controlScore, pearsonVSColorScale);
+
+                int px = col - originX;
+                int py = row - originY;
+                g.setColor(color);
+                //noinspection SuspiciousNameCombination
+                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                // Assuming same chromosome
+                if (col != row) {
+                    px = row - originX;
+                    py = col - originY;
+                    g.setColor(controlColor);
+                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                }
+            }
+        }
+    }
+
+    private Color getPearsonColor(String key, float score, HiCColorScale colorScale) {
+        Color color;
+        if (Float.isNaN(score)) {
+            color = Color.gray;
+        } else {
+            color = score == 0 ? Color.black : colorScale.getColor(key, score);
+        }
+        return color;
     }
 
     public void reset() {
@@ -556,5 +632,9 @@ class HeatmapRenderer {
             observedColorScale.setNegEnd(min);
             observedColorScale.setPosEnd(max);
         }
+    }
+
+    public HiCColorScale getPearsonColorScale() {
+        return pearsonColorScale;
     }
 }
