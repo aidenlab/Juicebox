@@ -222,32 +222,34 @@ public class MainMenuBar {
 
                 JPanel textPanel = new JPanel(new GridLayout(0, 1));
                 textPanel.add(new JLabel("<html><center>" +
-                        "<h2 style=\"margin-bottom:30px;\" class=\"header\">" +
+                        "<h3 style=\"margin-bottom:30px;\" class=\"header\">" +
                         "Juicebox: Visualization software for Hi-C data" +
-                        "</h2>" +
+                        "</h3>" +
                         "</center>" +
                         "<p>" +
                         "Juicebox is the Aiden Lab's software for visualizing data<br>"+
                         "from proximity ligation experiments, such as Hi-C.<br>" +
                         "Juicebox was created by Jim Robinson, Neva C. Durand,<br>"+
-                        "and Erez Aiden. Ongoing development work is carried out by<br>" +
-                        "Neva C. Durand, Muhammad S. Shamim, Ido Machol, Zulkifl Gire,<br>" +
+                        "and Erez Aiden. Ongoing development work is carried<br>" +
+                        "out by " +
+                        "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
                         "and Marie Hoeger.<br><br>" +
+                        "Current version: " + HiCGlobals.versionNum + "<br>" +
                         "Copyright © 2014. Broad Institute and Aiden Lab" +
                         "<br><br>" +
                         "" +
                         "If you use Juicebox in your research, please cite:<br><br>" +
                         "" +
-                        "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S. Shamim,<br>" +
-                        "Ido Machol, Jill P. Mesirov, Eric S. Lander, and Erez Lieberman Aiden.<br>" +
-                        " \"Juicebox provides a visualization system for Hi-C contact maps<br>" +
-                        "with unlimited zoom.\" <em>Cell Systems</em> July 2016.</strong>" +
+                        "<strong>Neva C. Durand*, James T. Robinson*, Muhammad S.<br>Shamim, " +
+                        "Ido Machol, Jill P. Mesirov, Eric S. Lander, and<br>Erez Lieberman Aiden.<br>" +
+                        " \"Juicebox provides a visualization system for Hi-C<br>contact maps " +
+                        "with unlimited zoom.\" <em>Cell Systems</em><br>July 2016.</strong>" +
                         "<br><br>" +
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
                         "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
-                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S. Lander,<br>" +
-                        "Erez Lieberman Aiden. \"A 3D Map of the Human Genome at Kilobase<br>"+
-                        "Resolution Reveals Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
+                        "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
+                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase "+
+                        "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
                         "* contributed equally" +
                         "</p></html>"));
 

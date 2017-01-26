@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt;
 
+import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
 import juicebox.tools.utils.Benchmark;
@@ -60,8 +61,8 @@ public class CLTFactory {
     };
 
     public static void generalUsage() {
-
-        System.out.println("Juicebox and Juicer Command Line Tools Usage:");
+        System.out.println("Juicebox and Juicer Tools Version " + HiCGlobals.versionNum);
+        System.out.println("Usage:");
         for (String usage : commandLineToolUsages) {
             System.out.println("\t\t" + usage);
         }
