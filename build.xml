@@ -144,12 +144,6 @@
     </fileset>
   </path>
   
-  <path id="library.jogl.classpath">
-    <fileset dir="${basedir}/lib/jogl">
-      <patternset refid="library.patterns"/>
-    </fileset>
-  </path>
-  
   <path id="library.jsi1.1.classpath">
     <pathelement location="${basedir}/lib/general/jsi1.1.jar"/>
   </path>
@@ -167,18 +161,18 @@
   <property name="module.jdk.bin.juicebox" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.juicebox" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
+  <property name="compiler.args.juicebox" value="-encoding UTF-8 -source 1.7  ${compiler.args}"/>
   
   <property name="juicebox.output.dir" value="${module.juicebox.basedir}/out/production/Juicebox"/>
   <property name="juicebox.testoutput.dir" value="${module.juicebox.basedir}/out/test/Juicebox"/>
   
   <path id="juicebox.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
+    <pathelement location="${jdk.home.1.8}/jre/lib"/>
   </path>
   
   <path id="juicebox.module.production.classpath">
     <path refid="${module.jdk.classpath.juicebox}"/>
-    <path refid="library.jogl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -187,7 +181,6 @@
   
   <path id="juicebox.runtime.production.module.classpath">
     <pathelement location="${juicebox.output.dir}"/>
-    <path refid="library.jogl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -197,7 +190,6 @@
   <path id="juicebox.module.classpath">
     <path refid="${module.jdk.classpath.juicebox}"/>
     <pathelement location="${juicebox.output.dir}"/>
-    <path refid="library.jogl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -207,7 +199,6 @@
   <path id="juicebox.runtime.module.classpath">
     <pathelement location="${juicebox.testoutput.dir}"/>
     <pathelement location="${juicebox.output.dir}"/>
-    <path refid="library.jogl.classpath"/>
     <path refid="library.broadinstitute.classpath"/>
     <path refid="library.jcuda.classpath"/>
     <path refid="library.general.classpath"/>
@@ -234,7 +225,7 @@
   
   <target name="compile.module.juicebox.production" description="Compile module Juicebox; production classes">
     <mkdir dir="${juicebox.output.dir}"/>
-    <javac destdir="${juicebox.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.juicebox}/javac">
+    <javac includeantruntime="false" destdir="${juicebox.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.juicebox}/javac">
       <compilerarg line="${compiler.args.juicebox}"/>
       <bootclasspath refid="juicebox.module.bootclasspath"/>
       <classpath refid="juicebox.module.production.classpath"/>
@@ -284,28 +275,6 @@
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jocl-java-src.zip"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-java-src.zip"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-armv6.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-solaris-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-windows-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-armv6.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-armv6hf.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-solaris-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-windows-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-solaris-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-armv6hf.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-solaris-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
@@ -323,28 +292,6 @@
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jocl-java-src.zip"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-java-src.zip"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-armv6.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-solaris-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-windows-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-armv6.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-linux-armv6hf.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-solaris-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-windows-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-solaris-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-i586.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-linux-armv6hf.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-solaris-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-windows-amd64.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/jogl-all-natives-macosx-universal.jar"/>
-      <zipfileset src="${basedir}/lib/jogl/gluegen-rt-natives-macosx-universal.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
