@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ public class HiC {
     private EigenvectorTrack eigenvectorTrack, controlEigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
-    private Point cursorPoint;
+    private Point cursorPoint, diagonalCursorPoint;
     private Point selectedBin;
     private boolean linkedMode;
     private boolean m_zoomChanged;
@@ -314,7 +314,14 @@ public class HiC {
 
     public void setCursorPoint(Point point) {
         this.cursorPoint = point;
+    }
 
+    public Point getDiagonalCursorPoint() {
+        return diagonalCursorPoint;
+    }
+
+    public void setDiagonalCursorPoint(Point diagonalCursorPoint) {
+        this.diagonalCursorPoint = diagonalCursorPoint;
     }
 
     public int[] getCurrentRegionWindowGenomicPositions() {
