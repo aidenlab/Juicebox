@@ -39,7 +39,21 @@ Creating Executables
 
 > ./launch4j/launch4j config.xml
 
-3. Modify the config.xml file to set the properties file and other parameters.
+Modify the config.xml file to set the properties file and other parameters.
+
+3. Signing is complicated. You'll need openssl and osslsigncode and will need to do a two step procedure.
+
+  - openssl pkcs12 -in ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/ErezSLieberman.p12 -nocerts -nodes -out certificate.pem
+    (You can save this certificate and use it later, just don't forget your password)
+  - Sign for the first time
+     osslsigncode sign -certs ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/erez_s_lieberman.pem -key certificate.pem \
+     -askpass -n "Juicebox" -i http://aidenlab.org/ -in ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/Juicebox.exe \
+     -out signed.exe
+  - Find the size of the signature in bytes i.e. sizeInBytesOf(signed.exe) - sizeInBytesOf(Juicebox.exe)
+  - Edit Juicebox.exe with favorite HEX editor to change last two bytes of exe i.e. the jar i.e. the zip end of 
+    central directory to the size using littleendian byte order and save.  File size should remain the same.
+  - Sign the modified Juicebox.exe using above osslsigncode again
+   
 
 * .app Build (Mac)
 
