@@ -50,8 +50,10 @@ Modify the config.xml file to set the properties file and other parameters.
      -askpass -n "Juicebox" -i http://aidenlab.org/ -in ~/Dropbox\ \(Lab\ at\ Large\)/important_jars/Juicebox.exe \
      -out signed.exe
   - Find the size of the signature in bytes i.e. sizeInBytesOf(signed.exe) - sizeInBytesOf(Juicebox.exe)
+    You can use ls -l for this
   - Edit Juicebox.exe with favorite HEX editor to change last two bytes of exe i.e. the jar i.e. the zip end of 
     central directory to the size using littleendian byte order and save.  File size should remain the same.
+    For example, if the size difference is 4384, the hex number is 0x1120; in Little Endian, this will be 20 11
   - Sign the modified Juicebox.exe using above osslsigncode again
    
 
