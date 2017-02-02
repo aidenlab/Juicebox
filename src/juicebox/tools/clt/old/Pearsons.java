@@ -62,7 +62,7 @@ public class Pearsons extends JuiceboxCLT {
     }
 
     public static String getUsage(){
-        return "pearsons <norm> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+        return "pearsons <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
     }
 
     @Override

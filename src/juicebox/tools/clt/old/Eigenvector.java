@@ -55,7 +55,7 @@ public class Eigenvector extends JuiceboxCLT {
     }
 
     public static String getUsage(){
-        return "eigenvector <norm> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+        return "eigenvector <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
     }
 
     @Override
