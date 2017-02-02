@@ -31,14 +31,16 @@ public enum MatrixType {
     OE("Observed/Expected"),
     PEARSON("Pearson"),
     EXPECTED("Expected"),
-    RATIO("Observed/Control"),
-    DIFF("Observed-Control"),
-    VS("Observed vs Control"),
     CONTROL("Control"),
-    NORM("Norm"),
-    EIGENVECTOR("Eigenvector"),
+    OECTRL("Observed/Expected (Control)"),
     PEARSONCTRL("Pearson (Control)"),
-    PEARSONVS("Pearson (Observed vs Control)");
+    RATIO("Observed/Control"),
+    VS("Observed vs Control"),
+    OEVS("Observed/Expected (Observed vs Control)"),
+    PEARSONVS("Pearson (Observed vs Control)"),
+    DIFF("Observed-Control"),
+    NORM("Norm"),
+    EIGENVECTOR("Eigenvector");
     private final String value;
 
     MatrixType(String value) {
@@ -77,58 +79,52 @@ public enum MatrixType {
 
     /**
      * @param option
+     * @return true is the option is generally available for maps, but does not use expected vector
+     */
+    public static boolean isSimpleObservedOrControlType(MatrixType option) {
+        return option == OBSERVED || option == CONTROL || option == VS;
+    }
+
+    /**
+     * @param option
      * @return true is the option can be manipulated by the color range slider
      */
     public static boolean isColorScaleType(MatrixType option) {
         return isComparisonType(option) || isSimpleObservedOrControlType(option);
     }
 
-    /**
-     * @param option
-     * @return true is the option is generally available for maps, but does not use expected vector
-     */
-    public static boolean isSimpleObservedOrControlType(MatrixType option) {
-        return option == OBSERVED || isControlVSDiffType(option);
-    }
+
 
     /**
      * @param option
      * @return true if the option should allowed in genome-wide view
      */
     public static boolean isValidGenomeWideOption(MatrixType option) {
-        return option == OBSERVED || isControlType(option);
+        return option == OBSERVED || isSimpleControlType(option);
     }
 
     /**
      * @param option
-     * @return true if the option involves comparison/divis
+     * @return true if the option requires control map bu not expected vector
+     */
+    public static boolean isSimpleControlType(MatrixType option) {
+        return option == CONTROL || option == VS || option == DIFF || option == RATIO;
+    }
+
+    /**
+     * @param option
+     * @return true if the option involves comparison/divis (but not pearsons)
      */
     public static boolean isComparisonType(MatrixType option) {
-        return option == OE || option == RATIO || option == DIFF;
+        return option == OE || option == RATIO || option == DIFF || option == OECTRL || option == OEVS;
     }
 
     /**
      * @param option
-     * @return true if the option only works for intrachromosomal maps
+     * @return true if the option only works for intrachromosomal, not interchromosomal (genomewide may still be allowed)
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return isPearsonType(option) || option == VS || option == DIFF; //|| option == OE
-    }
-
-    /**
-     * @param option
-     * @return true if the option requires control map
-     */
-    public static boolean isControlType(MatrixType option) {
-        return isControlVSDiffType(option) || option == RATIO;
-    }
-
-    /**
-     * @param option
-     * @return true if the option is Control, VS, or DIFF
-     */
-    private static boolean isControlVSDiffType(MatrixType option) {
-        return option == MatrixType.CONTROL || option == VS || option == DIFF;
+        return isPearsonType(option) || option == VS || option == DIFF || option == OEVS; //|| option == OE
     }
 
     /**
@@ -136,7 +132,7 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || isPearsonType(option);
+        return option == OE || isPearsonType(option) || isControlExpectedUsedType(option);
     }
 
     /**
@@ -168,10 +164,14 @@ public enum MatrixType {
     }
 
     public static boolean isVSTypeDisplay(MatrixType option) {
-        return option == MatrixType.VS || option == MatrixType.PEARSONVS;
+        return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS;
     }
 
     public static boolean isControlPearsonType(MatrixType option) {
         return option == PEARSONVS || option == PEARSONCTRL;
+    }
+
+    private static boolean isControlExpectedUsedType(MatrixType option) {
+        return option == OECTRL || option == OEVS;
     }
 }

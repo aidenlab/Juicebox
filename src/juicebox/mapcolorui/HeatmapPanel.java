@@ -1100,6 +1100,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append("O'/C' = ");
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
+
+                        double diff = (obsValue - ctlValue) * (obsValue / 2 + ctlValue / 2);
+                        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append("O'-C' = ");
+                        txt.append(getFloatString((float) diff));
+                        txt.append("</span>");
                     }
                 }
             }

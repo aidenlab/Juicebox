@@ -211,7 +211,7 @@ class HeatmapRenderer {
         } else {
             // Iterate through blocks overlapping visible region
 
-            if (displayOption == MatrixType.CONTROL) {
+            if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
                 if (controlZD != null) {
                     List<Block> ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                     if (ctrlBlocks == null) {
@@ -230,18 +230,31 @@ class HeatmapRenderer {
                                 double score = rec.getCounts();
                                 if (Double.isNaN(score)) continue;
 
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
+                                int px = binX - originX;
+                                int py = binY - originY;
+
+                                if (displayOption == MatrixType.OECTRL) {
+                                    if (controlDF != null) {
+                                        int dist = Math.abs(binX - binY);
+                                        double expected = controlDF.getExpectedValue(chr1, dist);
+                                        score = rec.getCounts() / expected;
+                                    } else {
+                                        continue;
+                                    }
+                                }
+
                                 Color color = cs.getColor((float) score);
                                 g.setColor(color);
 
-                                int px = rec.getBinX() - originX;
-                                int py = rec.getBinY() - originY;
                                 if (px > -1 && py > -1 && px <= width && py <= height) {
                                     g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                                 }
 
                                 if (sameChr && (rec.getBinX() != rec.getBinY())) {
-                                    px = (rec.getBinY() - originX);
-                                    py = (rec.getBinX() - originY);
+                                    px = (binY - originX);
+                                    py = (binX - originY);
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
                                         g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                                     }
@@ -250,7 +263,7 @@ class HeatmapRenderer {
                         }
                     }
                 }
-            } else if (displayOption == MatrixType.VS) {
+            } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS) {
 
                 List<Block> comboBlocks = new ArrayList<Block>();
 
@@ -267,7 +280,7 @@ class HeatmapRenderer {
                 String key = zd.getKey() + displayOption;
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
 
-                double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
+                double averageCount = zd.getAverageCount();
                 double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
                 double averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
 
@@ -285,11 +298,24 @@ class HeatmapRenderer {
                                     score = score * averageAcrossMapAndControl;
                                     if (Double.isNaN(score)) continue;
 
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+                                    int px = binX - originX;
+                                    int py = binY - originY;
+
+                                    if (displayOption == MatrixType.OEVS) {
+                                        if (df != null) {
+                                            int dist = Math.abs(binX - binY);
+                                            double expected = df.getExpectedValue(chr1, dist);
+                                            score = rec.getCounts() / expected;
+                                        } else {
+                                            continue;
+                                        }
+
+                                    }
                                     Color color = cs.getColor((float) score);
                                     g.setColor(color);
 
-                                    int px = rec.getBinX() - originX;
-                                    int py = rec.getBinY() - originY;
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
                                         g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                                     }
@@ -311,12 +337,24 @@ class HeatmapRenderer {
                                     score = score * averageAcrossMapAndControl;
                                     if (Double.isNaN(score)) continue;
 
+                                    int binX = rec.getBinX();
+                                    int binY = rec.getBinY();
+
+                                    if (displayOption == MatrixType.OEVS) {
+                                        if (controlDF != null) {
+                                            int dist = Math.abs(binX - binY);
+                                            double expected = controlDF.getExpectedValue(chr1, dist);
+                                            score = rec.getCounts() / expected;
+                                        } else {
+                                            continue;
+                                        }
+                                    }
                                     Color color = cs.getColor((float) score);
                                     g.setColor(color);
 
                                     if (sameChr && (rec.getBinX() != rec.getBinY())) {
-                                        int px = (rec.getBinY() - originX);
-                                        int py = (rec.getBinX() - originY);
+                                        int px = (binY - originX);
+                                        int py = (binX - originY);
                                         if (px > -1 && py > -1 && px <= width && py <= height) {
                                             g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                                         }
@@ -333,7 +371,7 @@ class HeatmapRenderer {
                     return false;
                 }
 
-                boolean hasControl = controlZD != null && MatrixType.isControlType(displayOption);
+                boolean hasControl = controlZD != null && MatrixType.isSimpleControlType(displayOption);
                 Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
                 if (hasControl) {
                     List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
@@ -345,7 +383,7 @@ class HeatmapRenderer {
                 String key = zd.getKey() + displayOption;
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
 
-                double averageCount = zd.getAverageCount(); // Will get overwritten for intra-chr
+                double averageCount = zd.getAverageCount();
                 double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
                 double averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
 
@@ -430,7 +468,17 @@ class HeatmapRenderer {
 
     private ColorScale getColorScale(String key, MatrixType displayOption, boolean wholeGenome, List<Block> blocks) {
 
-        if (MatrixType.isSimpleType(displayOption)) {
+        if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE
+                || displayOption == MatrixType.OECTRL || displayOption == MatrixType.OEVS
+                || displayOption == MatrixType.DIFF) {
+
+            OEColorScale oeColorScale = ratioColorScaleMap.get(key);
+            if (oeColorScale == null) {
+                oeColorScale = new OEColorScale(displayOption);
+                ratioColorScaleMap.put(key, oeColorScale);
+            }
+            return oeColorScale;
+        } else if (MatrixType.isSimpleType(displayOption)) {
             if (MainWindow.hicMapColor != curHiCColor) {
                 curHiCColor = MainWindow.hicMapColor;
                 observedColorScaleMap.clear();
@@ -452,15 +500,6 @@ class HeatmapRenderer {
                 }
                 return observedColorScale;
             }
-
-        } else if (displayOption == MatrixType.RATIO || displayOption == MatrixType.OE || displayOption == MatrixType.DIFF) {
-
-            OEColorScale oeColorScale = ratioColorScaleMap.get(key);
-            if (oeColorScale == null) {
-                oeColorScale = new OEColorScale(displayOption);
-                ratioColorScaleMap.put(key, oeColorScale);
-            }
-            return oeColorScale;
         } else {
             return null;
         }

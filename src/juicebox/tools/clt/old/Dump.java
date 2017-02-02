@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -365,13 +365,6 @@ public class Dump extends JuiceboxCLT {
                 System.exit(19);
             }
 
-            if (matrixType == MatrixType.OE) {
-                if (!chr1.equals(chr2)) {
-                    System.err.println("Chromosome " + chr1 + " not equal to Chromosome " + chr2);
-                    System.err.println("Currently only intrachromosomal O/E is supported.");
-                    System.exit(11);
-                }
-            }
 
             try {
                 if (MatrixType.isDumpMatrixType(matrixType)) {

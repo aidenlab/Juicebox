@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ class OEColorScale implements ColorScale {
 
     private void resetThreshold() {
         if(type == MatrixType.DIFF) {
-            threshold = 5;
+            threshold = defaultMaxOEVal;
         }
         else {
             threshold = Math.log(defaultMaxOEVal);
@@ -62,6 +62,10 @@ class OEColorScale implements ColorScale {
         int B = (int) (255 * Math.min(min * (1.0/score), 1));
   */
         double newValue = Math.log(score);
+        if (type == MatrixType.DIFF) {
+            newValue = score;
+        }
+
         int R, G, B;
         if (newValue > 0) {
             R = 255;

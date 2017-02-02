@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -119,8 +119,7 @@ public class JColorRangePanel extends JPanel {
 
             private void processClick() {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
-                        colorRangeSlider, colorRangeScaleFactor,
-                        MatrixType.isSimpleObservedOrControlType(superAdapter.getHiC().getDisplayOption()));
+                        colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption());
                 setColorRangeSliderVisible(false, superAdapter);
                 if (superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
                     // TODO succeeded
@@ -175,8 +174,7 @@ public class JColorRangePanel extends JPanel {
                 colorRangeSlider.setMaximum(Math.min(Math.max(colorRangeSlider.getMaximum() * 2, 1), (Integer.MAX_VALUE)));
                 HiC hic = superAdapter.getHiC();
 
-                if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO
-                        || hic.getDisplayOption() == MatrixType.DIFF) {
+                if (MatrixType.isComparisonType(hic.getDisplayOption())) {
                     colorRangeSlider.setMinimum(-colorRangeSlider.getMaximum());
                     colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                 }
@@ -194,8 +192,7 @@ public class JColorRangePanel extends JPanel {
                 int newMax = colorRangeSlider.getMaximum() / 2;
                 if (newMax > 0) {
                     colorRangeSlider.setMaximum(newMax);
-                    if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO
-                            || hic.getDisplayOption() == MatrixType.DIFF) {
+                    if (MatrixType.isComparisonType(hic.getDisplayOption())) {
                         colorRangeSlider.setMinimum(-newMax);
                         colorRangeSlider.setLowerValue(-colorRangeSlider.getUpperValue());
                     }
@@ -365,7 +362,7 @@ public class JColorRangePanel extends JPanel {
             Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 
 
-            if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
+            if (MatrixType.isComparisonType(hic.getDisplayOption())) {
                 colorRangeSlider.setToolTipText("Log Enrichment Values");
             } else {
                 colorRangeSlider.setToolTipText("Observed Counts");

@@ -59,10 +59,12 @@ public class HiCGlobals {
     public static final int minVersion = 6; // todo redundant calls to this should be removed
     public static final int bufferSize = 2097152;
 
-    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
-            MatrixType.OE, MatrixType.PEARSON};
-    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
-            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO, MatrixType.PEARSONCTRL, MatrixType.DIFF, MatrixType.PEARSONVS};
+    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{
+            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON};
+    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{
+            MatrixType.OBSERVED, MatrixType.EXPECTED, MatrixType.OE, MatrixType.PEARSON,
+            MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
+            MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     public static int MAX_PEARSON_ZOOM = 500000;
     // Juicebox version (for display purposes only)

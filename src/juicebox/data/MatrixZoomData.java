@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
+import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -42,7 +43,6 @@ import org.apache.commons.math.linear.RealVector;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
-import juicebox.tools.clt.old.Pearsons;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -684,13 +684,16 @@ public class MatrixZoomData {
                         int yActual = y * zoom.getBinSize();
                         float oeVal = 0f;
                         if (matrixType == MatrixType.OE) {
-                            int dist = Math.abs(x - y);
                             double expected = 0;
-                            try {
-                                expected = df.getExpectedValue(chr1.getIndex(), dist);
-                            } catch (Exception e) {
-                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                            if (chr1 == chr2) {
+                                if (df != null) {
+                                    int dist = Math.abs(x - y);
+                                    expected = df.getExpectedValue(chr1.getIndex(), dist);
+                                }
+                            } else {
+                                expected = (averageCount > 0 ? averageCount : 1);
                             }
+
                             double observed = rec.getCounts(); // Observed is already normalized
                             oeVal = (float) (observed / expected);
                         }
