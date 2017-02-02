@@ -296,21 +296,19 @@ public class MainMenuBar {
             }
         });
         annotationsMenu.add(loadFromURLItem);
-
         annotationsMenu.setEnabled(false);
 
-        // Annotations Menu Items
-        final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
-        //final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
-        loadLastMI = new JMenuItem("Load Last Session");
 
-        /*exportOverlapMI.addActionListener(new ActionListener() {
+        JMenuItem layersItem = new JMenuItem("Add 2D Annotations...");
+        layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.exportOverlapMIAction(customAnnotations);
+                Private.launchLayersGUI(superAdapter);
             }
-        });*/
+        });
+        annotationsMenu.add(layersItem);
 
+        loadLastMI = new JMenuItem("Load Last Session's Hand Annotations ");
         loadLastMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -320,17 +318,10 @@ public class MainMenuBar {
                 superAdapter.getActiveLayer().setExportAbility(true);
             }
         });
-
-        //Add annotate menu items
-        //customAnnotationMenu.add(exportOverlapMI);
         if (unsavedEditsExist()) {
-            customAnnotationMenu.add(new JSeparator());
-            customAnnotationMenu.add(loadLastMI);
             loadLastMI.setEnabled(true);
+            annotationsMenu.add(loadLastMI);
         }
-        annotationsMenu.add(customAnnotationMenu);
-        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
-
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
@@ -447,21 +438,6 @@ public class MainMenuBar {
         bookmarksMenu.addSeparator();
         bookmarksMenu.add(exportSavedStateMenuItem);
         bookmarksMenu.add(importMapAsFile);
-        /*
-        //---3D Model Menu-----
-        JMenu toolsMenu = new JMenu("Tools");
-        //---Export Maps----
-        JMenuItem launch3DModel = new JMenuItem();
-        launch3DModel.setText("Visualize 3D Model");
-        launch3DModel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Launcher demo = new Launcher();
-                demo.setVisible(true);
-            }
-        });
-        toolsMenu.add(launch3DModel);
-        */
 
         //---Figure Menu-----
         JMenu figureMenu = new JMenu("View");
@@ -533,15 +509,6 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
-        JMenuItem layersItem = new JMenuItem("Layers...");
-        layersItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Private.launchLayersGUI(superAdapter);
-            }
-        });
-        devMenu.add(layersItem);
-
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
@@ -574,16 +541,12 @@ public class MainMenuBar {
 
             }
         });
-        //devMenu.add(chrSubset);
-
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(figureMenu);
         menuBar.add(devMenu);
-        //menuBar.add(shareMenu);
-        //menuBar.add(toolsMenu);
         return menuBar;
     }
 

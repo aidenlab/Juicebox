@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -181,13 +181,16 @@ public class Feature2DHandler {
         }
     }
 
-    public void loadLoopList(String path, List<Chromosome> chromosomes) {
+    public int loadLoopList(String path, List<Chromosome> chromosomes) {
+        int numFeaturesAdded = 0;
         if (loopLists.get(path) == null) {
             Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
+            numFeaturesAdded += newList.getNumTotalFeatures();
             loopLists.put(path, newList);
         }
         //loopLists.get(path).setVisible(true);
         remakeRTree();
+        return numFeaturesAdded;
     }
 
     public void createNewMergedLoopLists(Collection<Feature2DList> feature2DLists) {

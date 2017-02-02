@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@
 package juicebox.track;
 
 import juicebox.HiC;
-import juicebox.HiCGlobals;
-import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
@@ -60,15 +58,15 @@ public class ResourceTree {
     private final JTree dialogTree;
     private final Set<ResourceLocator> loadedLocators;
     private JDialog dialog;
-    private DefaultMutableTreeNode twoDFeatureRoot;
+
     private DefaultMutableTreeNode oneDFeatureRoot;
-    private DefaultMutableTreeNode ChromatinFeatureRoot;
+
     private LinkedHashSet<ResourceLocator> newLocators;
     private LinkedHashSet<ResourceLocator> deselectedLocators;
     private LinkedHashSet<DefaultMutableTreeNode> addedNodes;
     private File openAnnotationPath = null;
 
-    public ResourceTree(final HiC hic, Document document, boolean show2DOnly) {
+    public ResourceTree(final HiC hic, Document document) {
         dialog = null;
         loadedLocators = new HashSet<ResourceLocator>();
 
@@ -84,10 +82,7 @@ public class ResourceTree {
             ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(node);
         }
 
-        createTreeFromDataset(hic, this, show2DOnly);
-        if (hic.getDataset().getGenomeId().equals("hg19") && show2DOnly) {
-            addExternal();
-        }
+        createTreeFromDataset(hic, this);
         expandTree();
         hic.setResourceTree(this);
         dialogTree.setRootVisible(false);
@@ -149,7 +144,7 @@ public class ResourceTree {
      * @param parent Parent window
      * @return the resources selected by user.
      */
-    public void showResourceTreeDialog(JFrame parent, boolean show2DImportsOnly) {
+    public void showResourceTreeDialog(JFrame parent) {
         newLocators = new LinkedHashSet<ResourceLocator>();
         deselectedLocators = new LinkedHashSet<ResourceLocator>();
 
@@ -177,7 +172,6 @@ public class ResourceTree {
         JPanel buttonPanel = new JPanel();
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        JButton add2DButton = new JButton("Add 2D...");
         JButton add1DButton = new JButton("Add 1D...");
 
         cancelButton.addActionListener(new ActionListener() {
@@ -232,49 +226,7 @@ public class ResourceTree {
             }
         });
 
-        if (show2DImportsOnly) {
-            add2DButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
-
-                    if (twoDfiles != null && twoDfiles.length > 0) {
-                        for (File file : twoDfiles) {
-
-                            String path = file.getAbsolutePath();
-                            openAnnotationPath = new File(path);
-                            ResourceLocator locator = new ResourceLocator(path);
-                            locator.setName(file.getName());
-                            locator.setType("loop");
-                            CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                            if (resourceNotPresentInList(resource, leafResources)) {//!leafResources.contains(resource)
-                                leafResources.add(resource);
-
-                                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                                twoDFeatureRoot.add(treeNode);
-                                if (addedNodes == null) {
-                                    addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
-                                }
-                                addedNodes.add(treeNode);
-                                ((CheckableResource) twoDFeatureRoot.getUserObject()).setSelected(true);
-                                treeNode.setUserObject(resource);
-
-                                expandTree();
-                                dialogTree.updateUI();
-                            } else {
-                                if (HiCGlobals.guiIsCurrentlyActive)
-                                    JOptionPane.showMessageDialog(MainWindow.getInstance(), "File is already loaded. If you would " +
-                                                    "like to reload it, right click and delete the currently loaded version first.",
-                                            "Error", JOptionPane.ERROR_MESSAGE);
-                            }
-
-                        }
-                    }
-
-                }
-            });
-        } else {
-            add1DButton.addActionListener(new ActionListener() {
+        add1DButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
@@ -308,15 +260,11 @@ public class ResourceTree {
                     }
                 }
             });
-        }
+
 
         buttonPanel.add(okButton);
 
-        if (show2DImportsOnly) {
-            buttonPanel.add(add2DButton);
-        } else {
-            buttonPanel.add(add1DButton);
-        }
+        buttonPanel.add(add1DButton);
         buttonPanel.add(cancelButton);
 
         dialog.add(treePanel);
@@ -379,7 +327,7 @@ public class ResourceTree {
 
     }
 
-    private void createTreeFromDataset(HiC hic, ResourceTree resourceTree, boolean show2DImportsOnly) {
+    private void createTreeFromDataset(HiC hic, ResourceTree resourceTree) {
         oneDFeatureRoot = new DefaultMutableTreeNode("Dataset-specific 1-D Features");
         ResourceLocator locator = new ResourceLocator("Dataset-specific 1-D Features");
         locator.setName("Dataset-specific 1-D Features");
@@ -388,22 +336,6 @@ public class ResourceTree {
         oneDFeatureRoot.setUserObject(rootResource);
         oneDFeatureRoot.setAllowsChildren(true);
 
-        twoDFeatureRoot = new DefaultMutableTreeNode("Dataset-specific 2-D Features");
-        locator = new ResourceLocator("Dataset-specific 2-D Features");
-        locator.setName("Dataset-specific 2-D Features");
-        locator.setType("loop");
-        CheckableResource resource = new CheckableResource("Dataset-specific 2-D Features", false, locator);
-        twoDFeatureRoot.setUserObject(resource);
-        twoDFeatureRoot.setAllowsChildren(true);
-
-        ChromatinFeatureRoot = new DefaultMutableTreeNode("Chromatin Features");
-        ResourceLocator loopLocator = new ResourceLocator("Chromatin Features");
-        locator.setName("Chromatin Features");
-        locator.setType("loop");
-        CheckableResource loopResource = new CheckableResource("Chromatin Features", false, locator);
-        ChromatinFeatureRoot.setUserObject(loopResource);
-        ChromatinFeatureRoot.setAllowsChildren(true);
-
         if (hic.getDataset().getVersion() >= 6) {
             if (hic.getDataset().getNormalizationTypes().size() > 0) {
                 DefaultMutableTreeNode normNode = new DefaultMutableTreeNode("Coverage normalizations");
@@ -411,7 +343,7 @@ public class ResourceTree {
                 locator = new ResourceLocator("Coverage normalizations");
                 locator.setName("Coverage normalizations");
                 locator.setType("norm");
-                resource = new CheckableResource("Coverage normalizations", false, locator);
+                CheckableResource resource = new CheckableResource("Coverage normalizations", false, locator);
                 normNode.setUserObject(resource);
                 normNode.setAllowsChildren(true);
 
@@ -433,52 +365,11 @@ public class ResourceTree {
             }
         }
 
-        locator = hic.getDataset().getPeaks();
-        if (locator != null) {
-            locator.setName("Peaks");
-            locator.setType("loop");
-            resource = new CheckableResource("Peaks", false, locator);
-
-            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("Peaks");
-            twoDFeatureRoot.add(treeNode);
-            treeNode.setUserObject(resource);
-            resource.setEnabled(resourceTree.dialogTree.isEnabled());
-            treeNode.setAllowsChildren(false);
-            leafResources.add(resource);
-
-        }
-
-        locator = hic.getDataset().getBlocks();
-        if (locator != null) {
-            locator.setName("Contact domains");
-            locator.setType("loop");
-            resource = new CheckableResource("Contact domains", false, locator);
-
-            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("Contact domains");
-            twoDFeatureRoot.add(treeNode);
-            treeNode.setUserObject(resource);
-            resource.setEnabled(resourceTree.dialogTree.isEnabled());
-            treeNode.setAllowsChildren(false);
-            leafResources.add(resource);
-
-        }
-        locator = hic.getDataset().getSuperLoops();
-        if (locator != null) {
-            resource = new CheckableResource("ChrX super loops", false, locator);
-            locator.setType("loop");
-            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("ChrX super loops");
-            twoDFeatureRoot.add(treeNode);
-            treeNode.setUserObject(resource);
-            resource.setEnabled(resourceTree.dialogTree.isEnabled());
-            treeNode.setAllowsChildren(false);
-            leafResources.add(resource);
-        }
-
 
         locator = new ResourceLocator("Eigenvector");
         locator.setType("eigenvector");
         locator.setName("Eigenvector");
-        resource = new CheckableResource("Eigenvector", false, locator);
+        CheckableResource resource = new CheckableResource("Eigenvector", false, locator);
 
         DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode("Eigenvector");
         oneDFeatureRoot.add(treeNode);
@@ -499,356 +390,7 @@ public class ResourceTree {
             leafResources.add(resource);
         }
 
-        if (show2DImportsOnly) {
-            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(twoDFeatureRoot);
-            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(ChromatinFeatureRoot);
-        } else {
-            ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
-        }
-    }
-
-    private void addExternal() {
-        DefaultMutableTreeNode loopRoot = new DefaultMutableTreeNode("Loop calls");
-        ChromatinFeatureRoot.add(loopRoot);
-        ResourceLocator locator = new ResourceLocator("Loop calls");
-        locator.setName("Loop calls");
-        locator.setType("loop");
-        CheckableResource rootResource = new CheckableResource("Loop calls", false, locator);
-        loopRoot.setUserObject(rootResource);
-        loopRoot.setAllowsChildren(true);
-
-        String label = "GM12878 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        CheckableResource resource = new CheckableResource(label, false, locator);
-        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "IMR90 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HMEC in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "NHEK in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "K562 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "KBM7 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HUVEC in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HeLa in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hela/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "CH12-LX in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "Hap1 in situ Hi-C (Sanborn and Rao et al., PNAS, 2015)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_peaks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        //Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-GM12878.txt");
-        locator.setName("ENCODE 5C GM12878 (Sanyal et al., Nature, 2012)");
-        locator.setType("loop");
-        resource = new CheckableResource("ENCODE 5C GM12878 (Sanyal et al., Nature, 2012)", false, locator);
-        treeNode = new DefaultMutableTreeNode("ENCODE 5C GM12878 (Sanyal et al., Nature, 2012)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-HeLa.txt");
-        locator.setName("ENCODE 5C HeLa (Sanyal et al., Nature, 2012)");
-        locator.setType("loop");
-        resource = new CheckableResource("ENCODE 5C HeLa (Sanyal et al., Nature, 2012)", false, locator);
-        treeNode = new DefaultMutableTreeNode("ENCODE 5C HeLa (Sanyal et al., Nature, 2012)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-K562.txt");
-        locator.setName("ENCODE 5C K562 (Sanyal et al., Nature, 2012)");
-        locator.setType("loop");
-        resource = new CheckableResource("ENCODE 5C K562 (Sanyal et al., Nature, 2012)", false, locator);
-        treeNode = new DefaultMutableTreeNode("ENCODE 5C K562 (Sanyal et al., Nature, 2012)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/JinRenAllLoops.txt");
-        locator.setName("Jin et al. Hi-C IMR90 (Nature, 2013)");
-        locator.setType("loop");
-        resource = new CheckableResource("Jin et al. Hi-C IMR90 (Nature, 2013)", false, locator);
-        treeNode = new DefaultMutableTreeNode("Jin et al. Hi-C IMR90 (Nature, 2013)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562.txt");
-        locator.setName("Li et al. ChIA-PET/PolII K562 (Cell, 2012)");
-        locator.setType("loop");
-        resource = new CheckableResource("Li et al. ChIA-PET/PolII K562 (Cell, 2012)", false, locator);
-        treeNode = new DefaultMutableTreeNode("Li et al. ChIA-PET/PolII K562 (Cell, 2012)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/LiRuanK562CTCF.txt");
-        locator.setName("Li et al. ChIA-PET/CTCF K562 (Cell, 2012)");
-        locator.setType("loop");
-        resource = new CheckableResource("Li et al. ChIA-PET/CTCF K562 (Cell, 2012)", false, locator);
-        treeNode = new DefaultMutableTreeNode("Li et al. ChIA-PET/CTCF K562 (Cell, 2012)");
-        loopRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        //((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(loopRoot);
-
-        //Doamins
-
-        DefaultMutableTreeNode domainRoot = new DefaultMutableTreeNode("Domain calls");
-        ChromatinFeatureRoot.add(domainRoot);
-        locator = new ResourceLocator("Domain calls");
-        locator.setName("Domain calls");
-        locator.setType("loop");
-        rootResource = new CheckableResource("Domain calls", false, locator);
-        domainRoot.setUserObject(rootResource);
-        domainRoot.setAllowsChildren(true);
-
-        label = "GM12878 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "IMR90 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HMEC in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "NHEK in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "K562 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "KBM7 in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HUVEC in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "HeLa in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hela/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "CH12-LX in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        label = "Hap1 in situ Hi-C (Sanborn and Rao et al., PNAS, 2015)";
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_blocks.txt");
-        locator.setName(label);
-        locator.setType("loop");
-        resource = new CheckableResource(label, false, locator);
-        treeNode = new DefaultMutableTreeNode(label);
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/TADS_IMR90_hg19_looplist.txt");
-        locator.setName("Jin et al. Hi-C IMR90 TADs (Nature, 2013)");
-        locator.setType("loop");
-        resource = new CheckableResource("Jin et al. Hi-C IMR90 TADs (Nature, 2013)", false, locator);
-        treeNode = new DefaultMutableTreeNode("Jin et al. Hi-C IMR90 TADs (Nature, 2013)");
-        domainRoot.add(treeNode);
-        treeNode.setUserObject(resource);
-        resource.setEnabled(dialogTree.isEnabled());
-        treeNode.setAllowsChildren(false);
-        leafResources.add(resource);
-
-        //((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(domainRoot);
+        ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).add(oneDFeatureRoot);
     }
 
     private DefaultMutableTreeNode createTreeFromDOM(Document document) {

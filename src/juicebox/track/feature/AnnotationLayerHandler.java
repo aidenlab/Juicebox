@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -478,7 +478,8 @@ public class AnnotationLayerHandler {
     }
 
     public void loadLoopList(String path, List<Chromosome> chromosomes) {
-        getFeatureHandler().loadLoopList(path, chromosomes);
+        if (getFeatureHandler().loadLoopList(path, chromosomes) > 0)
+            setExportAbility(true);
     }
 
     public List<Feature2DList> getAllVisibleLoopLists() {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,6 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.MainWindow;
-import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
@@ -56,23 +54,14 @@ public class LoadAction extends AbstractAction {
 
     private static final long serialVersionUID = -1122795124141741145L;
     private static final Logger log = Logger.getLogger(LoadAction.class);
-
     private final MainWindow mainWindow;
     private final HiC hic;
-    private AnnotationLayerHandler handler;
-    private boolean show2DOnly = false;
 
 
     public LoadAction(String s, MainWindow mainWindow, HiC hic) {
         super(s);
         this.mainWindow = mainWindow;
         this.hic = hic;
-    }
-
-    public LoadAction(String s, AnnotationLayerHandler handler, SuperAdapter superAdapter) {
-        this(s, superAdapter.getMainWindow(), superAdapter.getHiC());
-        this.handler = handler;
-        show2DOnly = true;
     }
 
     private static Document createMasterDocument(String xmlUrl, MainWindow mainWindow) throws ParserConfigurationException {
@@ -224,7 +213,7 @@ public class LoadAction extends AbstractAction {
         try {
             if (resourceTree == null) {
                 Document tempDoc = createMasterDocument(getXmlUrl(), mainWindow);
-                resourceTree = new ResourceTree(hic, tempDoc, show2DOnly);
+                resourceTree = new ResourceTree(hic, tempDoc);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -240,7 +229,7 @@ public class LoadAction extends AbstractAction {
         try {
             if (resourceTree == null) {
                 Document masterDocument = createMasterDocument(xmlFile, mainWindow);
-                resourceTree = new ResourceTree(hic, masterDocument, show2DOnly);
+                resourceTree = new ResourceTree(hic, masterDocument);
             }
         } catch (Exception e) {
             log.error("Could not load from server", e);
@@ -248,7 +237,7 @@ public class LoadAction extends AbstractAction {
             return null;
         }
 
-        resourceTree.showResourceTreeDialog(mainWindow, show2DOnly);
+        resourceTree.showResourceTreeDialog(mainWindow);
 
         LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
         LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
@@ -269,16 +258,6 @@ public class LoadAction extends AbstractAction {
                             }
                         }
                         hic.loadCoverageTrack(option);
-                    } else if (locator.getType() != null && locator.getType().equals("loop")) {
-                        try {
-                            handler.loadLoopList(locator.getPath(), hic.getChromosomes());
-                            repaint = true;
-                        } catch (Exception e) {
-                            log.error("Could not load selected loop locator", e);
-                            MessageUtils.showMessage("Could not load loop selection: " + e.getMessage());
-                            deselectedLocators.add(locator);
-                        }
-
                     } else if (locator.getType() != null && locator.getType().equals("eigenvector")) {
                         hic.loadEigenvectorTrack();
 
@@ -297,18 +276,6 @@ public class LoadAction extends AbstractAction {
                 System.out.println("Removing " + locator.getName());
                 hic.removeTrack(locator);
                 resourceTree.remove(locator);
-
-                /*
-                if (locator.getType() != null && locator.getType().equals("loop")) {
-                    try {
-                        handler.setLoopsInvisible(locator.getPath());
-                        repaint = true;
-                    } catch (Exception e) {
-                        log.error("Error while making loops invisible ", e);
-                        MessageUtils.showMessage("Error while removing loops: " + e.getMessage());
-                    }
-                }
-                */
             }
         }
         if (repaint) {

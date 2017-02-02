@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ package juicebox.tools.dev;
 
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
-import juicebox.track.LoadAction;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.windowui.Load2DAnnotationsDialog;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -67,7 +67,7 @@ public class LayersPanel extends JPanel {
      * @param superAdapter
      */
     public static void launchLayersGUI(SuperAdapter superAdapter) {
-        JFrame frame = new JFrame("Layer Panel");
+        JFrame frame = new JFrame("2D Annotations Layer Panel");
         LayersPanel newContentPane = new LayersPanel(superAdapter);
         newContentPane.setOpaque(true);
         frame.setContentPane(newContentPane);
@@ -330,8 +330,11 @@ public class LayersPanel extends JPanel {
         importAnnotationsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LoadAction loadAction = new LoadAction("Import 2D Annotations...", handler, superAdapter);
-                loadAction.actionPerformed(e);
+                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(handler, superAdapter);
+                dialog.setVisible(true);
+
+                //LoadAction loadAction = new LoadAction("Import 2D Annotations...", handler, superAdapter);
+                //loadAction.actionPerformed(e);
             }
         });
         handler.setImportAnnotationButton(importAnnotationsButton);
