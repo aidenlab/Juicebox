@@ -654,6 +654,20 @@ public class MainViewPanel {
         trackPanelY.repaint();
     }
 
+    public String getTrackPanelPrintouts(int x, int y) {
+        String trackToolTip = "";
+        try {
+            String text = trackPanelX.tooltipText(x, y, false);
+            if (text != null) trackToolTip += "<span style='color:" + HiCGlobals.topChromosomeColor +
+                    "; font-family: arial; font-size: 12pt; '>" + text + "</span>";
+            text = trackPanelY.tooltipText(x, y, false);
+            if (text != null) trackToolTip += "<span style='color:" + HiCGlobals.leftChromosomeColor +
+                    "; font-family: arial; font-size: 12pt; '>" + text + "</span>";
+        } catch (Exception e) {
+        }
+        return trackToolTip;
+    }
+
     public void updateThumbnail(HiC hic) {
         if (ignoreUpdateThumbnail) return;
         //new Exception().printStackTrace();

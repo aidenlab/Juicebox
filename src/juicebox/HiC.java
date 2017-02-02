@@ -1177,17 +1177,20 @@ public class HiC {
     public String getColorScaleKey() {
         try {
             switch (displayOption) {
+                case CONTROL:
+                case OECTRL:
+                case PEARSONCTRL:
+                    return getControlZd().getKey() + displayOption;
                 case OE:
                 case RATIO:
                 case OBSERVED:
                 case DIFF:
                 case VS:
+                case OEVS:
                 case PEARSON:
                 case PEARSONVS:
+                default:
                     return getZd().getKey() + displayOption;
-                case CONTROL:
-                case PEARSONCTRL:
-                    return getControlZd().getKey() + displayOption;
             }
         } catch (Exception e) {
         }

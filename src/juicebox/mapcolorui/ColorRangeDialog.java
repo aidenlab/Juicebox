@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import com.jidesoft.swing.JideButton;
 import juicebox.MainWindow;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
+import juicebox.windowui.MatrixType;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -57,8 +58,10 @@ class ColorRangeDialog extends JDialog {
     private JTextField maximumField;
 
     public ColorRangeDialog(SuperAdapter superAdapter, JColorRangePanel colorRangePanel,
-                            RangeSlider colorSlider, double colorRangeFactor, boolean isObserved) {
+                            RangeSlider colorSlider, double colorRangeFactor, MatrixType option) {
         super(superAdapter.getMainWindow());
+
+        boolean isObserved = MatrixType.isSimpleObservedOrControlType(option);
         initComponents(superAdapter, colorRangePanel, isObserved);
         this.colorSlider = colorSlider;
         if (!isObserved) colorRangeFactor = 8;

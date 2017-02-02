@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ public class TrackPanel extends JPanel {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                TrackPanel.this.superAdapter.updateToolTipText(tooltipText(e.getX(), e.getY()));
+                TrackPanel.this.superAdapter.updateMainViewPanelToolTipText(tooltipText(e.getX(), e.getY(), true));
             }
 
             @Override
@@ -297,20 +297,44 @@ public class TrackPanel extends JPanel {
         return orientation == Orientation.X ? hic.getXContext() : hic.getYContext();
     }
 
-    private String tooltipText(int mx, int my) {
+    public String tooltipText(int mx, int my, boolean isMouseDirectlyOnTrack) {
 
-        int x = mx;
-        int y = my;
-        if (orientation == Orientation.Y) {
-            y = mx;
-            x = my;
-
-        }
-        for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
-            Rectangle r = p.getFirst();
-            if (r.contains(mx, my)) {
-                return p.getSecond().getToolTipText(x, y, orientation);
+        if (isMouseDirectlyOnTrack) {
+            int x = mx;
+            int y = my;
+            if (orientation == Orientation.Y) {
+                y = mx;
+                x = my;
             }
+            for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
+                Rectangle r = p.getFirst();
+                if (r.contains(mx, my)) {
+                    return p.getSecond().getToolTipText(x, y, orientation);
+                }
+            }
+        } else {
+            String toolTipText = "";
+
+            if (orientation == Orientation.X) {
+                for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
+                    Rectangle r = p.getFirst();
+                    int y = r.y + r.height / 2;
+                    if (r.contains(mx, y)) {
+                        String tempText = p.getSecond().getToolTipText(mx, y, orientation);
+                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                    }
+                }
+            } else {
+                for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
+                    Rectangle r = p.getFirst();
+                    int x = r.x + r.width / 2;
+                    if (r.contains(x, my)) {
+                        String tempText = p.getSecond().getToolTipText(my, x, orientation);
+                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                    }
+                }
+            }
+            if (toolTipText.length() > 5) return "<br>" + toolTipText;
         }
         return null;
     }
