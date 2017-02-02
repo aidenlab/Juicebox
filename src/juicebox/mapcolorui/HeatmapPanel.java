@@ -1101,13 +1101,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
 
-                        double diff = (obsValue - ctlValue) * (obsValue / 2 + ctlValue / 2);
+                        double diff = (obsValue - ctlValue);
                         txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append("O'-C' = ");
                         txt.append(getFloatString((float) diff));
                         txt.append("</span>");
                     }
                 }
+
+                txt.append(superAdapter.getTrackPanelPrintouts(x, y));
             }
 
             Point currMouse = new Point(x, y);
@@ -1635,7 +1637,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 // Update tool tip text
                 if (!featureOptionMenuEnabled) {
-                    superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
+                    superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 }
                 // Set check if hovering over feature corner
                 if (mostRecentRectFeaturePair != null) {
@@ -1682,7 +1684,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             try {
                 int scroll = e.getWheelRotation();
                 hic.moveBy(scroll, scroll);
-                superAdapter.updateToolTipText(toolTipText(e.getX(), e.getY()));
+                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
             } catch (Exception e2) {
                 //
             }

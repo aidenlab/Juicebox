@@ -73,6 +73,7 @@ public class SuperAdapter {
     private HiCZoom initialZoom;
     private List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<AnnotationLayerHandler>();
     private AnnotationLayerHandler activeLayer;
+    private HiCColorScale pearsonColorScale;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -144,11 +145,11 @@ public class SuperAdapter {
         updateTitle();
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void launchImportState(File fileForExport) {
         new ImportFileDialog(fileForExport, mainWindow);
@@ -211,10 +212,6 @@ public class SuperAdapter {
         return new LoadAction("Load Basic Annotations...", mainWindow, hic);
     }
 
-    public LoadEncodeAction createNewLoadEncodeAction() {
-        return new LoadEncodeAction("Load ENCODE Tracks...", mainWindow, hic);
-    }
-
     /*
     public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
         List<Feature2DList> loops = hic.getAllVisibleLoopLists();
@@ -224,6 +221,10 @@ public class SuperAdapter {
             new SaveAnnotationsDialog(customAnnotations, loops.get(0));
     }
     */
+
+    public LoadEncodeAction createNewLoadEncodeAction() {
+        return new LoadEncodeAction("Load ENCODE Tracks...", mainWindow, hic);
+    }
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayer().setAnnotationLayer(
@@ -275,10 +276,6 @@ public class SuperAdapter {
         XMLFileHandling.addNewStateToXML(stateDescription, this);
     }
 
-    public void setNormalizationDisplayState() {
-        mainViewPanel.setNormalizationDisplayState(hic);
-    }
-
     /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
@@ -288,6 +285,10 @@ public class SuperAdapter {
         handler.addVisibleLoops(hic);
     }
     */
+
+    public void setNormalizationDisplayState() {
+        mainViewPanel.setNormalizationDisplayState(hic);
+    }
 
     public void centerMap(int xBP, int yBP) {
         hic.center(xBP, yBP);
@@ -558,7 +559,6 @@ public class SuperAdapter {
         return retVal[0];
     }
 
-
     void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
         Runnable runnable = new Runnable() {
             public void run() {
@@ -640,7 +640,7 @@ public class SuperAdapter {
         mainWindow.revalidate();
     }
 
-    public void updateToolTipText(String text) {
+    public void updateMainViewPanelToolTipText(String text) {
         mainViewPanel.updateToolTipText(text);
     }
 
@@ -664,7 +664,6 @@ public class SuperAdapter {
     public boolean isResolutionLocked() {
         return mainViewPanel.isResolutionLocked();
     }
-
 
     public void updateThumbnail() {
         mainViewPanel.updateThumbnail(hic);
@@ -720,7 +719,6 @@ public class SuperAdapter {
     public HeatmapPanel getHeatmapPanel() {
         return mainViewPanel.getHeatmapPanel();
     }
-
 
     public void updateTrackPanel() {
         mainViewPanel.updateTrackPanel(hic.getLoadedTracks().size() > 0);
@@ -791,7 +789,6 @@ public class SuperAdapter {
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
     }
-
 
     public AnnotationLayerHandler getActiveLayer() {
         return activeLayer;
@@ -864,9 +861,11 @@ public class SuperAdapter {
         return n - 1 - currIndex;
     }
 
-    private HiCColorScale pearsonColorScale;
-
     public void setPearsonColorScale(HiCColorScale pearsonColorScale) {
         this.pearsonColorScale = pearsonColorScale;
+    }
+
+    public String getTrackPanelPrintouts(int x, int y) {
+        return mainViewPanel.getTrackPanelPrintouts(x, y);
     }
 }
