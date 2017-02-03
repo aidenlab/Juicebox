@@ -66,12 +66,12 @@ public class HiCGlobals {
             MatrixType.CONTROL, MatrixType.OECTRL, MatrixType.PEARSONCTRL,
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static int MAX_PEARSON_ZOOM = 500000;
     // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.5.2";
+    public static final String versionNum = "1.5.3";
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
+    public static int MAX_PEARSON_ZOOM = 500000;
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
@@ -113,6 +113,12 @@ public class HiCGlobals {
         colors.add(new Color(255, 0, 0));
         colors.add(new Color(0, 0, 0));
         return colors;
+    }
+
+    public static Font font(int size, boolean isBold) {
+        if (isBold)
+            return new Font("Arial", Font.BOLD, size);
+        return new Font("Arial", Font.PLAIN, size);
     }
 
     public enum menuType {MAP, LOCATION, STATE}

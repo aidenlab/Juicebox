@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 
 package juicebox.windowui;
+
+import juicebox.HiCGlobals;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -56,7 +58,7 @@ public class DisabledGlassPane extends JComponent implements KeyListener {
         Color background = new Color(base.getRed(), base.getGreen(), base.getBlue(), 128);
         setBackground(background);
         setLayout(new GridBagLayout());
-        //message.setFont(new Font("Arial", Font.BOLD, 40));
+        message.setFont(HiCGlobals.font(30, true));
         //  Add a message label to the glass pane
 
         add(message, new GridBagConstraints());

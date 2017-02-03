@@ -26,12 +26,12 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,7 +53,7 @@ import java.io.Serializable;
 public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
     private static final long serialVersionUID = 123798L;
-    private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
+    private final Font spanFont = HiCGlobals.font(12, false);
     private final HiC hic;
     private Orientation orientation;
     private Context context;

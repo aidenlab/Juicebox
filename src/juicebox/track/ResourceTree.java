@@ -54,7 +54,7 @@ import static org.broad.igv.util.ResourceLocator.AttributeType.*;
 public class ResourceTree {
 
     private static final Logger log = Logger.getLogger(ResourceTree.class);
-    private final List<CheckableResource> leafResources = new ArrayList<CheckableResource>();
+    private final List<CheckableResource> leafResources = new ArrayList<>();
     private final JTree dialogTree;
     private final Set<ResourceLocator> loadedLocators;
     private JDialog dialog;
@@ -68,7 +68,7 @@ public class ResourceTree {
 
     public ResourceTree(final HiC hic, Document document) {
         dialog = null;
-        loadedLocators = new HashSet<ResourceLocator>();
+        loadedLocators = new HashSet<>();
 
 
         dialogTree = new JTree(new DefaultMutableTreeNode("Available feature sets"));
@@ -278,21 +278,6 @@ public class ResourceTree {
 
     }
 
-    /**
-     * ensures we don't add duplicates to list
-     *
-     * @param resource
-     * @param leafResources
-     * @return
-     */
-    private boolean resourceNotPresentInList(CheckableResource resource, List<CheckableResource> leafResources) {
-        for (CheckableResource res : leafResources) {
-            if (res.getText().equals(resource.getText()))
-                return false;
-        }
-        return true;
-    }
-
     private void removeResourceFromLeaf(CheckableResource resource, List<CheckableResource> leafResources) {
         List<CheckableResource> resourcesToRemove = new ArrayList<CheckableResource>();
         for (CheckableResource res : leafResources) {
@@ -332,8 +317,8 @@ public class ResourceTree {
         ResourceLocator locator = new ResourceLocator("Dataset-specific 1-D Features");
         locator.setName("Dataset-specific 1-D Features");
         locator.setType("norm");
-        CheckableResource rootResource = new CheckableResource("Dataset-specific 1-D Features", false, locator);
-        oneDFeatureRoot.setUserObject(rootResource);
+        //CheckableResource rootResource = new CheckableResource("Dataset-specific 1-D Features", false, locator);
+        //oneDFeatureRoot.setUserObject(rootResource);
         oneDFeatureRoot.setAllowsChildren(true);
 
         if (hic.getDataset().getVersion() >= 6) {
@@ -490,11 +475,10 @@ public class ResourceTree {
             }
         }
 
-        CheckableResource resource = new CheckableResource(name, false, locator);
-        treeNode.setUserObject(resource);
-
         // If it's a leaf set the checkbox to represent the resource
         if (treeNode.isLeaf()) {
+            CheckableResource resource = new CheckableResource(name, false, locator);
+            treeNode.setUserObject(resource);
             treeNode.setAllowsChildren(false);
             leafResources.add(resource);
         } else {

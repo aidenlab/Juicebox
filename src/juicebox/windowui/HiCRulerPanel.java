@@ -26,12 +26,12 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,8 +51,8 @@ public class HiCRulerPanel extends JPanel implements Serializable {
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
     private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = true;
-    private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
-    private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
+    private final Font tickFont = HiCGlobals.font(9, false);
+    private final Font spanFont = HiCGlobals.font(12, false);
     private final HiC hic;
     private Orientation orientation;
     private Context context;

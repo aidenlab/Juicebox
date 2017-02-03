@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ package juicebox.track;
 //import juicebox.Context;
 
 import juicebox.HiC;
-import org.broad.igv.ui.FontManager;
+import juicebox.HiCGlobals;
 
 import javax.swing.*;
 import java.awt.*;
@@ -100,7 +100,7 @@ public class TrackLabelPanel extends JPanel {
     private JLabel getTrackLabel(String name, boolean addToolTip) {
         JLabel label = new JLabel(name); //, SwingConstants.RIGHT);
         label.setVerticalAlignment(SwingConstants.CENTER);
-        label.setFont(FontManager.getFont(Font.BOLD, 10));
+        label.setFont(HiCGlobals.font(10, false));
         if (addToolTip)
             label.setToolTipText(name);
         return label;

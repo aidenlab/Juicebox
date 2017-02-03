@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,7 +95,6 @@ public class Matrix {
         } else {
             return fragZoomData != null ? fragZoomData.get(0) : null;
         }
-
     }
 
     public MatrixZoomData getFirstPearsonZoomData(HiC.Unit unit) {

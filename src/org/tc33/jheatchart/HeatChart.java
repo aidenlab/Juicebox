@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 
 package org.tc33.jheatchart;
+
+import juicebox.HiCGlobals;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -256,7 +258,7 @@ public class HeatChart {
 
         // Default title settings.
         this.title = null;
-        this.titleFont = new Font("Sans-Serif", Font.BOLD, 16);
+        this.titleFont = HiCGlobals.font(16, true);
         this.titleColour = Color.BLACK;
 
         // Default axis settings.
@@ -264,10 +266,10 @@ public class HeatChart {
         this.yAxisLabel = null;
         this.axisThickness = 2;
         this.axisColour = Color.BLACK;
-        this.axisLabelsFont = new Font("Sans-Serif", Font.PLAIN, 12);
+        this.axisLabelsFont = HiCGlobals.font(12, false);
         this.axisLabelColour = Color.BLACK;
         this.axisValuesColour = Color.BLACK;
-        this.axisValuesFont = new Font("Sans-Serif", Font.PLAIN, 10);
+        this.axisValuesFont = HiCGlobals.font(10, false);
         this.xAxisValuesFrequency = 1;
         this.xAxisValuesHeight = 0;
         this.xValuesHorizontal = false;
