@@ -299,7 +299,7 @@ public class MainMenuBar {
         annotationsMenu.setEnabled(false);
 
 
-        JMenuItem layersItem = new JMenuItem("Add 2D Annotations...");
+        JMenuItem layersItem = new JMenuItem("Load 2D Annotations...");
         layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

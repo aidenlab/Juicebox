@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.DirectoryManager;
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.gui.SuperAdapter;
@@ -33,6 +34,7 @@ import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
+import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -70,7 +72,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         final DefaultMutableTreeNode top =
                 new DefaultMutableTreeNode(new ItemInfo("root", ""), true);
 
-        createNodes(top);
+        createNodes(top, superAdapter.getHiC());
 
 
         //Create a tree that allows one selection at a time.
@@ -224,7 +226,6 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
                 }
             }
         });
-
     }
 
     public static TreePath getPath(TreeNode treeNode) {
@@ -304,17 +305,30 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         });
     }
 
-    private boolean createNodes(DefaultMutableTreeNode top) {
-        // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
-        // TreeSet is sorted, so properties file is implemented in order
+    private boolean createNodes(DefaultMutableTreeNode top, HiC hic) {
+
+        // Add dataset-specific 2d annotations
+        DefaultMutableTreeNode subParent = new DefaultMutableTreeNode(new ItemInfo("Dataset-specific 2D Features"), true);
+        ResourceLocator locators[] = {hic.getDataset().getPeaks(), hic.getDataset().getBlocks(), hic.getDataset().getSuperLoops()};
+        String locatorName[] = {"Peaks", "Contact Domains", "ChrX Super Loops"};
+
+        boolean datasetSpecificFeatureAdded = false;
+        for (int i = 0; i < 3; i++) {
+            if (locators[i] != null) {
+                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(new ItemInfo(locatorName[i], locators[i].getURLPath()), false);
+                subParent.add(treeNode);
+                datasetSpecificFeatureAdded = true;
+            }
+        }
+        if (datasetSpecificFeatureAdded) top.add(subParent); // allow specific dataset features to be top-level
+
+        // load remaining features from file
+        DefaultMutableTreeNode parent = new DefaultMutableTreeNode(new ItemInfo("Chromatin Features"), true);
+        top.add(parent);
 
         InputStream is = Load2DAnnotationsDialog.class.getResourceAsStream("annotations2d.txt");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
         String nextLine;
-
-        DefaultMutableTreeNode parent = new DefaultMutableTreeNode(new ItemInfo("Chromatin Features"), true);
-        top.add(parent);
-        DefaultMutableTreeNode subParent = new DefaultMutableTreeNode(new ItemInfo("ignore"), true);
 
         try {
             while ((nextLine = reader.readLine()) != null) {
