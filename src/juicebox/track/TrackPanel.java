@@ -282,6 +282,10 @@ public class TrackPanel extends JPanel {
 
         g2d.setTransform(originalTransform);
         Point cursorPoint = hic.getCursorPoint();
+        if (cursorPoint == null) {
+            cursorPoint = hic.getDiagonalCursorPoint();
+        }
+
         if (cursorPoint != null) {
             g.setColor(HiCGlobals.RULER_LINE_COLOR);
             if (orientation == Orientation.X) {
@@ -290,7 +294,6 @@ public class TrackPanel extends JPanel {
                 g.drawLine(0, cursorPoint.y, getWidth(), cursorPoint.y);
             }
         }
-
     }
 
     private Context getContext() {

@@ -514,10 +514,13 @@ public class ResourceTree {
         enumeration.nextElement();
         while (enumeration.hasMoreElements()) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
-            CheckableResource resource = (CheckableResource) node.getUserObject();
-            if (locator.equals(resource.getResourceLocator())) {
-                resource.setSelected(true);
-                ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
+            try {
+                CheckableResource resource = (CheckableResource) node.getUserObject();
+                if (locator.equals(resource.getResourceLocator())) {
+                    resource.setSelected(true);
+                    ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
+                }
+            } catch (Exception e) {
             }
         }
     }

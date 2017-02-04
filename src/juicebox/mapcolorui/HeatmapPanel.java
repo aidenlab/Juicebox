@@ -308,7 +308,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     // horizontal lines
                     int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
-                    int y = (int) ((yBin - binOriginY) * hic.getScaleFactor());
+                    int y = (int) ((yBin - binOriginY) * scaleFactor);
                     g.drawLine(0, y, getTickWidth(zd), y);
                 }
 
@@ -334,16 +334,48 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // y = -x + b
                     // y + x = b
                     int b = diagonalCursorPoint.x + diagonalCursorPoint.y;
-
                     // at x = 0, y = b unless y exceeds height
                     int leftEdgeY = Math.min(b, getHeight());
                     int leftEdgeX = b - leftEdgeY;
-
                     // at y = 0, x = b unless x exceeds width
                     int rightEdgeX = Math.min(b, getWidth());
                     int rightEdgeY = b - rightEdgeX;
-
                     g.drawLine(leftEdgeX, leftEdgeY, rightEdgeX, rightEdgeY);
+
+                    // now we need to draw the perpendicular
+                    // line which intersects this at the mouse
+                    // m = -1, neg reciprocal is 1
+                    // y2 = x2 + b2
+                    // y2 - x2 = b2
+                    int b2 = diagonalCursorPoint.y - diagonalCursorPoint.x;
+                    // at x2 = 0, y2 = b2 unless y less than 0
+                    int leftEdgeY2 = Math.max(b2, 0);
+                    int leftEdgeX2 = leftEdgeY2 - b2;
+                    // at x2 = width, y2 = width+b2 unless x exceeds height
+                    int rightEdgeY2 = Math.min(getWidth() + b2, getHeight());
+                    int rightEdgeX2 = rightEdgeY2 - b2;
+                    g.drawLine(leftEdgeX2, leftEdgeY2, rightEdgeX2, rightEdgeY2);
+
+                    // find a point on the diagonal (binx = biny)
+                    double binXYOrigin = Math.max(binOriginX, binOriginY);
+                    // ensure diagonal is in view
+                    if (binXYOrigin < bRight && binXYOrigin < bBottom) {
+                        int xDiag = (int) ((binXYOrigin - binOriginX) * scaleFactor);
+                        int yDiag = (int) ((binXYOrigin - binOriginY) * scaleFactor);
+                        // see if new point is above the line y2 = x2 + b2
+                        // y' less than due to flipped topography
+                        int vertDisplacement = yDiag - (xDiag + b2);
+                        // displacement takes care of directionality of diagonal
+                        // being above/below is the second line we drew
+                        int b3 = b2 + (2 * vertDisplacement);
+                        // at x2 = 0, y2 = b2 unless y less than 0
+                        int leftEdgeY3 = Math.max(b3, 0);
+                        int leftEdgeX3 = leftEdgeY3 - b3;
+                        // at x2 = width, y2 = width+b2 unless x exceeds height
+                        int rightEdgeY3 = Math.min(getWidth() + b3, getHeight());
+                        int rightEdgeX3 = rightEdgeY3 - b3;
+                        g.drawLine(leftEdgeX3, leftEdgeY3, rightEdgeX3, rightEdgeY3);
+                    }
                 }
             }
 
@@ -1208,7 +1240,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseExited(MouseEvent e) {
             hic.setCursorPoint(null);
-            if (straightEdgeEnabled) {
+            if (straightEdgeEnabled || diagonalEdgeEnabled) {
                 superAdapter.repaintTrackPanels();
             }
         }
@@ -1670,6 +1702,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else if (diagonalEdgeEnabled) {
                     synchronized (this) {
                         hic.setDiagonalCursorPoint(e.getPoint());
+                        superAdapter.repaintTrackPanels();
                     }
                 } else if (adjustAnnotation == AdjustAnnotation.NONE) {
                     hic.setCursorPoint(null);
