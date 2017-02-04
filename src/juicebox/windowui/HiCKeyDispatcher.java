@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,17 +29,21 @@ import juicebox.HiCGlobals;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.dev.Private;
+import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HiCKeyDispatcher implements KeyEventDispatcher {
 
     private final HiC hic;
     private final JComboBox<MatrixType> displayOptionComboBox;
     private final SuperAdapter superAdapter;
+    private List<AnnotationLayerHandler> handlersPreviouslyHidden = new ArrayList<>();
 
     public HiCKeyDispatcher(SuperAdapter superAdapter, HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
         super();
@@ -64,7 +68,59 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
 
             }
             return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F10) {
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F2) {
+            if (handlersPreviouslyHidden.size() > 0) {
+                for (AnnotationLayerHandler handler : handlersPreviouslyHidden) {
+                    try {
+                        handler.setLayerVisibility(true);
+                    } catch (Exception ee) {
+                    }
+                }
+                superAdapter.repaint();
+                handlersPreviouslyHidden.clear();
+            } else {
+                for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                    if (handler.getLayerVisibility()) {
+                        handler.setLayerVisibility(false);
+                        handlersPreviouslyHidden.add(handler);
+                    }
+                }
+                superAdapter.repaint();
+            }
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F3) {
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (handler.getLayerVisibility()) {
+                    handler.setIsEnlarged(!handler.getIsEnlarged());
+                }
+            }
+            superAdapter.repaint();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F4) {
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (handler.getLayerVisibility()) {
+                    handler.setIsTransparent(!handler.getIsTransparent());
+                }
+            }
+            superAdapter.repaint();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F5) {
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (handler.getLayerVisibility()) {
+                    handler.setIsSparse(!handler.getIsSparse());
+                }
+            }
+            superAdapter.repaint();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F6) {
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (handler.getLayerVisibility()) {
+                    handler.togglePlottingStyle();
+                }
+            }
+            superAdapter.repaint();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F11) {
             String newURL = MessageUtils.showInputDialog("Specify a new properties file",
                     HiCGlobals.defaultPropertiesURL);
             if (newURL != null) {

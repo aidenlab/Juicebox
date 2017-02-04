@@ -65,6 +65,7 @@ public class AnnotationLayerHandler {
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
     private JToggleButton activeLayerButton;
     private Color defaultColor = Color.BLUE;
+    private JButton plottingStyleButton;
 
     public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
@@ -599,5 +600,17 @@ public class AnnotationLayerHandler {
 
         setExportAbility(canExport);
         setLayerName("Merger" + cleanedTitle);
+    }
+
+    public void togglePlottingStyle() {
+        try {
+            plottingStyleButton.doClick();
+        } catch (Exception e) {
+            setPlottingStyle(FeatureRenderer.getNextState(getPlottingStyle()));
+        }
+    }
+
+    public void setPlottingStyleButton(JButton plottingStyleButton) {
+        this.plottingStyleButton = plottingStyleButton;
     }
 }

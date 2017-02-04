@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -139,6 +139,18 @@ public class FeatureRenderer {
                 g2.drawLine(0, y + w, maxWidth, y + w);
             }
         }
+    }
+
+    public static PlottingOption getNextState(PlottingOption state) {
+        switch (state) {
+            case ONLY_LOWER_LEFT:
+                return FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
+            case ONLY_UPPER_RIGHT:
+                return FeatureRenderer.PlottingOption.EVERYTHING;
+            case EVERYTHING:
+                return FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
+        }
+        return FeatureRenderer.PlottingOption.EVERYTHING;
     }
 
     public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}

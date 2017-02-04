@@ -22,12 +22,11 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.dev;
+package juicebox.windowui;
 
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.windowui.Load2DAnnotationsDialog;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -262,6 +261,7 @@ public class LayersPanel extends JPanel {
         /* toggle plotting styles; setup and action done in helper function */
         JButton togglePlottingStyle = createTogglePlottingStyleIconButton(handler, superAdapter);
         togglePlottingStyle.setToolTipText("Change partial plotting style in this layer");
+        handler.setPlottingStyleButton(togglePlottingStyle);
 
         /* export annotations in layer to new file */
         final JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
@@ -469,7 +469,7 @@ public class LayersPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                currentState = getNextState(currentState);
+                currentState = FeatureRenderer.getNextState(currentState);
                 setStateIcons(triStateButton, currentState, iconActive1, iconTransition1, iconInactive1,
                         iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3);
                 handler.setPlottingStyle(currentState);
@@ -482,18 +482,6 @@ public class LayersPanel extends JPanel {
                 iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3);
 
         return triStateButton;
-    }
-
-    private FeatureRenderer.PlottingOption getNextState(FeatureRenderer.PlottingOption state) {
-        switch (state) {
-            case ONLY_LOWER_LEFT:
-                return FeatureRenderer.PlottingOption.ONLY_UPPER_RIGHT;
-            case ONLY_UPPER_RIGHT:
-                return FeatureRenderer.PlottingOption.EVERYTHING;
-            case EVERYTHING:
-                return FeatureRenderer.PlottingOption.ONLY_LOWER_LEFT;
-        }
-        return FeatureRenderer.PlottingOption.EVERYTHING;
     }
 
     private void setStateIcons(JButton triStateButton, FeatureRenderer.PlottingOption state,

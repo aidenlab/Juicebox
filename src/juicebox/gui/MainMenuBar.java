@@ -33,6 +33,7 @@ import juicebox.tools.dev.Private;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.windowui.HiCRulerPanel;
+import juicebox.windowui.LayersPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
 
@@ -276,7 +277,6 @@ public class MainMenuBar {
         annotationsMenu = new JMenu("Annotations");
 
         JMenuItem newLoadMI = new JMenuItem();
-
         trackLoadAction = superAdapter.createNewTrackLoadAction();
         newLoadMI.setAction(trackLoadAction);
         annotationsMenu.add(newLoadMI);
@@ -303,7 +303,7 @@ public class MainMenuBar {
         layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Private.launchLayersGUI(superAdapter);
+                LayersPanel.launchLayersGUI(superAdapter);
             }
         });
         annotationsMenu.add(layersItem);
