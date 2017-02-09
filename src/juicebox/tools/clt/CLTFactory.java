@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
 import juicebox.tools.utils.Benchmark;
-import juicebox.tools.dev.GeneFinder;
 
 /**
  * Factory for command line tools to call different functions
@@ -115,8 +114,6 @@ public class CLTFactory {
             return new HiCCUPS_postproc();
         } else if (cmd.equals("ab_compdiff")) {
             return new ABCompartmentsDiff();
-        } else if (cmd.equals("genes")) {
-            return new GeneFinder();
         } else if (cmd.equals("benchmark")) {
             return new Benchmark();
         } else if (cmd.equals("pearsons")) {

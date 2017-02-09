@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.data;
 
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
-import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
@@ -860,33 +859,23 @@ public class Dataset {
     private String findRestrictionEnzyme(int sites) {
         if (genomeId == null) return null;
 
-        if (Private.assessGenomeForRE(genomeId)) {
-            if (sites == 13393) return "DpnII/MboI";
-        } else if (Private.assessGenomeForRE3(genomeId)) {
-            if (sites == 465673) return "DpnII/MboI";
-        } else if (Private.assessGenomeForRE4(genomeId)) {
-            if (sites == 801622) return "DpnII/MboI";
-        } else if (genomeId.equals("canFam3")) {
+        if (genomeId.equals("canFam3")) {
             if (sites == 345776) return "DpnII/MboI";
         } else if (genomeId.equals("dMel")) {
             // arm_2L
             if (sites == 60924) return "DpnII/MboI";
             if (sites == 6742) return "HindIII";
-            return Private.reForDMEL(sites);
         } else if (genomeId.equals("hg18")) {
             if (sites == 575605) return "DpnII/MboI";
-            return Private.reForHG18(sites);
-        } else if (genomeId.equals("hg19") || Private.assessGenomeForRE2(genomeId)) {
+        } else if (genomeId.equals("hg19")) {
             if (sites == 576357) return "DpnII/MboI";
             if (sites == 64395) return "HindIII";
             if (sites == 59852) return "NcoI";
-            return Private.reForHG19(sites);
         } else if (genomeId.equals("mm9")) {
             // chr1
             if (sites == 479082) return "DpnII/MboI";
             if (sites == 62882) return "HindIII";
             if (sites == 60953) return "NcoI";
-            return Private.reForMM9(sites);
         } else if (genomeId.equals("mm10")) {
             if (sites == 480062) return "DpnII/MboI";
             if (sites == 63013) return "HindIII";

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
-import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -294,9 +293,7 @@ public class HiCTrackManager {
         Genome genome = GenomeManager.getInstance().getCurrentGenome();
         if (genome == null) {
             if (hic.getDataset() != null) {
-                if (Private.assessGenomeID(hic.getDataset().getGenomeId())) {
-                    genomePath = Private.getGenome();
-                } else if (hic.getDataset().getGenomeId().equals("dMel")) {
+                if (hic.getDataset().getGenomeId().equals("dMel")) {
                     genomePath = "http://igvdata.broadinstitute.org/genomes/dmel_r5.22.genome";
                 } else {
                     genomePath = "http://igvdata.broadinstitute.org/genomes/" + hic.getDataset().getGenomeId() + ".genome";

@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
-import juicebox.tools.dev.Private;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -126,9 +125,6 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             if (newURL != null) {
                 HiCFileLoader.changeJuiceboxPropertiesFile(newURL);
             }
-            return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F8) {
-            Private.launchMapSubsetGUI(superAdapter);
             return true;
         } else {
             return false;

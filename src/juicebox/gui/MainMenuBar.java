@@ -29,7 +29,6 @@ import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
-import juicebox.tools.dev.Private;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.windowui.HiCRulerPanel;
@@ -499,15 +498,6 @@ public class MainMenuBar {
             }
         });
         devMenu.add(editPearsonsColorItem);
-
-        JMenuItem mapSubset = new JMenuItem("Select map subset...");
-        mapSubset.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Private.launchMapSubsetGUI(superAdapter);
-            }
-        });
-        devMenu.add(mapSubset);
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
