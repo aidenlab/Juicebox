@@ -120,14 +120,14 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             }
             superAdapter.repaint();
             return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F11) {
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F7) {
             String newURL = MessageUtils.showInputDialog("Specify a new properties file",
                     HiCGlobals.defaultPropertiesURL);
             if (newURL != null) {
                 HiCFileLoader.changeJuiceboxPropertiesFile(newURL);
             }
             return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F12) {
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F8) {
             Private.launchMapSubsetGUI(superAdapter);
             return true;
         } else {
