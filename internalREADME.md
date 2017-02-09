@@ -78,12 +78,13 @@ Steps for creating Public Friendly Version
 --------------------
 
 1. Create a new branch
-2. Delete anything under development (e.g. clustering)
-3. Replace sensitive chrom.sizes
-4. Remove any mention of assembly/sensitive projects
+2. Remove sensitive chrom.sizes. First, delete all contents of the chrom.sizes folder (/src/juicebox/tools/chrom.sizes). Next, go to the top level directory. You will see a compressed folder called PublicFriendlyChromSizes.zip. Extract its contents and copy them into the chrom.sizes folder which was just emptied. Recompile the project in IntelliJ.
+3. Delete anything under development (e.g. clustering, ). Main thing to delete is the dev folder (src/juicebox/tools/dev). After deleting the folder, compile in IntelliJ and fix all the bugs/warnings (i.e. remove any calls to the dev folder). This may be tricky for some parts (especially the restriction enzymes section) See https://github.com/theaidenlab/JuiceboxDev/commit/fd930f5fac9af3df9f44cd87d4fc31e8df5d3ac3 for an example of what was deleted. (Aside: Any new sensitive project should be created in this dev directory to simplify this entire process for us.)
+4. Remove any mention of assembly/sensitive projects (should have technically been taken care on in step 3, but a quick search for the word assembly in the whole project is easy to do)
 5. Change version number as appropriate - HiCGlobals, for display purposes only.
 
-Note this is only in terms of jars/executables. For actaul code release / open-sourcing, we need to wipe other private files, .git histories, etc.
+Note this is only in terms of jars/executables.
+For actual code release / open-sourcing, we need to wipe other private files, especially the .git histories, hidden files, internalREADME (i.e. me!), etc.
 
 --------------------
 Building a new IGV jar for use in Juicebox
