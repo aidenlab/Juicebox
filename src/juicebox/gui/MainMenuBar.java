@@ -303,7 +303,7 @@ public class MainMenuBar {
         layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LayersPanel.launchLayersGUI(superAdapter);
+                new LayersPanel(superAdapter);
             }
         });
         annotationsMenu.add(layersItem);

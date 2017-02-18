@@ -313,12 +313,12 @@ public class ResourceTree {
     }
 
     private void createTreeFromDataset(HiC hic, ResourceTree resourceTree) {
-        oneDFeatureRoot = new DefaultMutableTreeNode("Dataset-specific 1-D Features");
-        ResourceLocator locator = new ResourceLocator("Dataset-specific 1-D Features");
-        locator.setName("Dataset-specific 1-D Features");
+        oneDFeatureRoot = new DefaultMutableTreeNode("Dataset-specific 1D Features");
+        ResourceLocator locator = new ResourceLocator("Dataset-specific 1D Features");
+        locator.setName("Dataset-specific 1D Features");
         locator.setType("norm");
-        //CheckableResource rootResource = new CheckableResource("Dataset-specific 1-D Features", false, locator);
-        //oneDFeatureRoot.setUserObject(rootResource);
+        CheckableResource rootResource = new CheckableResource("Dataset-specific 1D Features", false, locator);
+        oneDFeatureRoot.setUserObject(rootResource);
         oneDFeatureRoot.setAllowsChildren(true);
 
         if (hic.getDataset().getVersion() >= 6) {

@@ -45,12 +45,13 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 8/4/16.
  */
-public class LayersPanel extends JPanel {
+public class LayersPanel extends JDialog {
 
-    private static final long serialVersionUID = 812412892178L;
+    private static final long serialVersionUID = 8124112892178L;
+    private static final int miniButtonSize = 30;
 
     public LayersPanel(SuperAdapter superAdapter) {
-        super(new BorderLayout());
+        super(superAdapter.getMainWindow(), "2D Annotations Layer Panel");
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
@@ -59,19 +60,9 @@ public class LayersPanel extends JPanel {
             layersPanel.setBorder(padding);
         }
 
-        add(layersPanel, BorderLayout.CENTER);
-    }
-
-    /**
-     * @param superAdapter
-     */
-    public static void launchLayersGUI(SuperAdapter superAdapter) {
-        JFrame frame = new JFrame("2D Annotations Layer Panel");
-        LayersPanel newContentPane = new LayersPanel(superAdapter);
-        newContentPane.setOpaque(true);
-        frame.setContentPane(newContentPane);
-        frame.pack();
-        frame.setVisible(true);
+        setSize(660, 200);
+        add(layersPanel);
+        setVisible(true);
     }
 
     /**
@@ -191,8 +182,8 @@ public class LayersPanel extends JPanel {
      */
     private JPanel createLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter,
                                     final JPanel layerBoxGUI) throws IOException {
-        final JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(1, 0));
+        final JPanel parentPanel = new JPanel();
+        parentPanel.setLayout(new FlowLayout());
 
         /* layer name */
         final JTextField nameField = new JTextField(handler.getLayerName(), 5);
@@ -200,18 +191,23 @@ public class LayersPanel extends JPanel {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
             }
         });
         nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
-        nameField.setMaximumSize(new Dimension(5, 5));
+        nameField.setMaximumSize(new Dimension(100, 30));
 
         /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png", handler.getLayerVisibility());
@@ -349,14 +345,14 @@ public class LayersPanel extends JPanel {
                 superAdapter.setActiveLayer(handler);
             }
         });
-        writeButton.setToolTipText("Enable drawing of annotations to this layer");
+        writeButton.setToolTipText("Enable drawing of annotations to this layer; Hold down shift key, then click and drag on map");
 
         JButton deleteButton = createIconButton("/images/layer/trash.png");
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.deleteCustomAnnotationDialog(handler.getLayerName()) == JOptionPane.YES_OPTION) {
-                    layerBoxGUI.remove(panel);
+                    layerBoxGUI.remove(parentPanel);
                     superAdapter.removeLayer(handler);
                     layerBoxGUI.revalidate();
                     layerBoxGUI.repaint();
@@ -371,9 +367,9 @@ public class LayersPanel extends JPanel {
         upButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                layerBoxGUI.remove(panel);
+                layerBoxGUI.remove(parentPanel);
                 int index = superAdapter.moveUpIndex(handler);
-                layerBoxGUI.add(panel, index);
+                layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
                 superAdapter.repaint();
@@ -385,9 +381,9 @@ public class LayersPanel extends JPanel {
         downButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                layerBoxGUI.remove(panel);
+                layerBoxGUI.remove(parentPanel);
                 int index = superAdapter.moveDownIndex(handler);
-                layerBoxGUI.add(panel, index);
+                layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
                 superAdapter.repaint();
@@ -415,24 +411,16 @@ public class LayersPanel extends JPanel {
         });
         copyButton.setToolTipText("Duplicate this layer");
 
-        panel.add(writeButton);
-        panel.add(nameField);
-        panel.add(toggleVisibleButton);
-        panel.add(colorButton);
-        panel.add(toggleTransparentButton);
-        panel.add(toggleEnlargeButton);
-        panel.add(togglePlottingStyle);
-        panel.add(toggleSparseButton);
-        panel.add(undoButton);
-        panel.add(clearButton);
-        panel.add(importAnnotationsButton);
-        panel.add(exportLayerButton);
-        panel.add(copyButton);
-        panel.add(upButton);
-        panel.add(downButton);
-        panel.add(deleteButton);
+        parentPanel.add(nameField);
+        AbstractButton[] allButtons = new AbstractButton[]{writeButton, toggleVisibleButton, colorButton,
+                toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton, undoButton,
+                clearButton, importAnnotationsButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+        for (AbstractButton button : allButtons) {
+            button.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
+            parentPanel.add(button);
+        }
 
-        return panel;
+        return parentPanel;
     }
 
     private JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
@@ -462,6 +450,7 @@ public class LayersPanel extends JPanel {
         final ImageIcon iconInactive3 = new ImageIcon(translucentImage(imageActive3, 0.2f));
 
         final JButton triStateButton = new JButton();
+        triStateButton.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
         triStateButton.setBorderPainted(false);
         triStateButton.addActionListener(new ActionListener() {
 
@@ -525,6 +514,7 @@ public class LayersPanel extends JPanel {
         button.setRolloverIcon(iconTransition);
         button.setPressedIcon(iconInactive);
         button.setBorderPainted(false);
+        button.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
         return button;
     }
 
@@ -554,6 +544,7 @@ public class LayersPanel extends JPanel {
 
         toggleButton.setBorderPainted(false);
         toggleButton.setSelected(activatedStatus);
+        toggleButton.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
 
         return toggleButton;
     }
@@ -585,6 +576,7 @@ public class LayersPanel extends JPanel {
             super();
             updateColor(handler.getDefaultColor());
             setBorderPainted(false);
+            setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
         }
 
         private void updateColor(Color color) {
