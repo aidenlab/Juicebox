@@ -680,35 +680,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(miv2);
 
-     /*   final JMenuItem mi2 = new JMenuItem("Goto ...");
-        mi2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String fragmentString = JOptionPane.showInputDialog(HeatmapPanel.this,
-                        "Enter fragment or bp range in the form <bp|frag>:x:y");
-                if (fragmentString != null) {
-                    String[] tokens = Globals.colonPattern.split(fragmentString);
-                    HiC.Unit unit = HiC.Unit.FRAG;
-                    int idx = 0;
-                    if (tokens.length == 3) {
-                        if (tokens[idx++].equalsIgnoreCase(HiCFileTools.BP)) {
-                            unit = HiC.Unit.BP;
-                        }
-                    }
-                    int x = Integer.parseInt(tokens[idx++].replace(",", ""));
-                    int y = (tokens.length > idx) ? Integer.parseInt(tokens[idx].replace(",", "")) : x;
-
-                    if (unit == HiC.Unit.FRAG) {
-                        hic.centerFragment(x, y);
-                    } else {
-                        hic.centerBP(x, y);
-                    }
-
-
-                }
-            }
-        });*/
-
         // internally, single sync = what we previously called sync
         final JMenuItem mi3 = new JMenuItem("Broadcast Single Sync");
         mi3.addActionListener(new ActionListener() {
@@ -781,7 +752,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 showFeatureHighlight = true;
+                hic.setShowFeatureHighlight(showFeatureHighlight);
                 highlightedFeature = mostRecentRectFeaturePair.getSecond();
+                hic.setHighlightedFeature(highlightedFeature);
+                superAdapter.repaintTrackPanels();
                 repaint();
             }
         });
@@ -792,6 +766,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 showFeatureHighlight = !showFeatureHighlight;
+                hic.setShowFeatureHighlight(showFeatureHighlight);
                 repaint();
             }
         });
@@ -802,6 +777,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 highlightedFeature = null;
+                hic.setHighlightedFeature(highlightedFeature);
+                superAdapter.repaintTrackPanels();
                 repaint();
             }
         });

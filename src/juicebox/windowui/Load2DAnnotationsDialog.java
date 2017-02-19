@@ -52,6 +52,7 @@ import java.util.List;
 public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
+    private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private JTree tree;
     private JButton openButton;
@@ -59,7 +60,6 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     private JButton add2DButton;
     private JTextField fTextField;
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
-    private DefaultMutableTreeNode customAddedFeatures = null;
     private Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
 
     public Load2DAnnotationsDialog(final AnnotationLayerHandler handler, SuperAdapter superAdapter) {
@@ -349,6 +349,9 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             }
         } catch (Exception e) {
 
+        }
+        if (customAddedFeatures != null) {
+            top.add(customAddedFeatures);
         }
         return true;
     }

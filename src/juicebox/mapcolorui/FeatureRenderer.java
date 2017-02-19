@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
@@ -123,7 +124,7 @@ public class FeatureRenderer {
             int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
             int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
 
-            g2.setColor(Color.BLACK);
+            g2.setColor(HiCGlobals.HighlightColor);
             if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
                 int x = (int) ((binStart1 - binOriginX) * scaleFactor);
                 int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));

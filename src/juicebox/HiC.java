@@ -30,6 +30,7 @@ import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
+import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -88,6 +89,8 @@ public class HiC {
     private boolean m_zoomChanged;
     private boolean m_displayOptionChanged;
     private boolean m_normalizationTypeChanged;
+    private Feature2D highlightedFeature;
+    private boolean showFeatureHighlight;
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -1195,6 +1198,21 @@ public class HiC {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    public Feature2D getHighlightedFeature() {
+        if (showFeatureHighlight) {
+            return highlightedFeature;
+        }
+        return null;
+    }
+
+    public void setHighlightedFeature(Feature2D highlightedFeature) {
+        this.highlightedFeature = highlightedFeature;
+    }
+
+    public void setShowFeatureHighlight(boolean showFeatureHighlight) {
+        this.showFeatureHighlight = showFeatureHighlight;
     }
 
     /*public Feature2DHandler getFeature2DHandler() {
