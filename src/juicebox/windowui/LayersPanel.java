@@ -210,7 +210,8 @@ public class LayersPanel extends JDialog {
         nameField.setMaximumSize(new Dimension(100, 30));
 
         /* show/hide annotations for this layer */
-        final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked.png", handler.getLayerVisibility());
+        final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked_green.png",
+                "/images/layer/eye_clicked.png", handler.getLayerVisibility());
         toggleVisibleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -221,7 +222,8 @@ public class LayersPanel extends JDialog {
         toggleVisibleButton.setToolTipText("Toggle visibility of this layer");
 
         /* toggle transparency for this layer */
-        final JToggleButton toggleTransparentButton = createToggleIconButton("/images/layer/trans_clicked.png", handler.getIsTransparent());
+        final JToggleButton toggleTransparentButton = createToggleIconButton("/images/layer/trans_clicked_green.png",
+                "/images/layer/trans_clicked.png", handler.getIsTransparent());
         toggleTransparentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -241,10 +243,12 @@ public class LayersPanel extends JDialog {
                 superAdapter.repaint();
             }
         });
-        toggleSparseButton.setToolTipText("Plot a limited number of 2D annotations in this layer at a time\n(speed up plotting when there are many annotations).");
+        toggleSparseButton.setToolTipText("Plot a limited number of 2D annotations in this layer at a time " +
+                "(speed up plotting when there are many annotations).");
 
         /* toggle whether the features will be enlarged for this layer */
-        final JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked.png", handler.getIsEnlarged());
+        final JToggleButton toggleEnlargeButton = createToggleIconButton("/images/layer/enlarge_clicked_down.png",
+                "/images/layer/enlarge_clicked_up.png", handler.getIsEnlarged());
         toggleEnlargeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -260,7 +264,7 @@ public class LayersPanel extends JDialog {
         handler.setPlottingStyleButton(togglePlottingStyle);
 
         /* export annotations in layer to new file */
-        final JButton exportLayerButton = createIconButton("/images/layer/export_icon.png");
+        final JButton exportLayerButton = createIconButton("/images/layer/export_icon_green.png");
         exportLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -322,7 +326,7 @@ public class LayersPanel extends JDialog {
         clearButton.setToolTipText("Clear all annotations in this layer");
 
         /* import 2d annotations into layer */
-        JButton importAnnotationsButton = createIconButton("/images/layer/import_icon.png");
+        JButton importAnnotationsButton = createIconButton("/images/layer/import_icon_green.png");
         importAnnotationsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -337,7 +341,7 @@ public class LayersPanel extends JDialog {
         importAnnotationsButton.setEnabled(handler.getImportAnnotationsEnabled());
         importAnnotationsButton.setToolTipText("Import annotations into this layer");
 
-        final JToggleButton writeButton = createToggleIconButton("/images/layer/write.png", handler.isActiveLayer(superAdapter));
+        final JToggleButton writeButton = createToggleIconButton("/images/layer/pencil.png", "/images/layer/pencil_gray.png", handler.isActiveLayer(superAdapter));
         handler.setActiveLayerButton(writeButton);
         writeButton.addActionListener(new ActionListener() {
             @Override
@@ -412,9 +416,9 @@ public class LayersPanel extends JDialog {
         copyButton.setToolTipText("Duplicate this layer");
 
         parentPanel.add(nameField);
-        AbstractButton[] allButtons = new AbstractButton[]{writeButton, toggleVisibleButton, colorButton,
-                toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton, undoButton,
-                clearButton, importAnnotationsButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+        AbstractButton[] allButtons = new AbstractButton[]{writeButton, importAnnotationsButton, toggleVisibleButton,
+                colorButton, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton,
+                undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
         for (AbstractButton button : allButtons) {
             button.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
             parentPanel.add(button);
@@ -539,6 +543,37 @@ public class LayersPanel extends JDialog {
         toggleButton.setPressedIcon(iconDisabled);
         toggleButton.setSelectedIcon(iconActive);
         toggleButton.setRolloverSelectedIcon(iconTransition);
+        toggleButton.setDisabledIcon(iconDisabled);
+        toggleButton.setDisabledSelectedIcon(iconDisabled);
+
+        toggleButton.setBorderPainted(false);
+        toggleButton.setSelected(activatedStatus);
+        toggleButton.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
+
+        return toggleButton;
+    }
+
+    /**
+     * @return toggle button which changes icon transparency when clicked
+     * @throws IOException
+     */
+    private JToggleButton createToggleIconButton(String url1, String url2, boolean activatedStatus) throws IOException {
+
+        // image when button is active/selected (is the darkest shade/color)
+        //BufferedImage imageActive = ImageIO.read(getClass().getResource(url1));
+        ImageIcon iconActive = new ImageIcon(ImageIO.read(getClass().getResource(url1)));
+
+        // image when button is inactive/transitioning (lighter shade/color)
+        ImageIcon iconTransitionDown = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.6f));
+        ImageIcon iconTransitionUp = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url1)), 0.6f));
+        ImageIcon iconInactive = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.2f));
+        ImageIcon iconDisabled = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.1f));
+
+        JToggleButton toggleButton = new JToggleButton(iconInactive);
+        toggleButton.setRolloverIcon(iconTransitionDown);
+        toggleButton.setPressedIcon(iconDisabled);
+        toggleButton.setSelectedIcon(iconActive);
+        toggleButton.setRolloverSelectedIcon(iconTransitionUp);
         toggleButton.setDisabledIcon(iconDisabled);
         toggleButton.setDisabledSelectedIcon(iconDisabled);
 
