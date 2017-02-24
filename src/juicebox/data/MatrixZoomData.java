@@ -758,12 +758,8 @@ public class MatrixZoomData {
 
             maxX++;
             maxY++;
-            float[][] matrix = new float[maxX][maxY];
-            for (int i = 0; i < maxX; i++) {
-                for (int j = 0; j < maxY; j++) {
-                    matrix[i][j] = Float.NaN;
-                }
-            }
+            float[][] matrix = new float[maxX][maxY];  // auto initialized to 0
+
             for (Integer blockNumber : blocksToIterateOver) {
                 Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
                 if (b != null) {
