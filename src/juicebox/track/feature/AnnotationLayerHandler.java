@@ -161,6 +161,7 @@ public class AnnotationLayerHandler {
 
     // Adds to lower lefthand side, for consistency.
     public void addFeature(HiC hic) {
+        if (selectionRegion == null) return;
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
