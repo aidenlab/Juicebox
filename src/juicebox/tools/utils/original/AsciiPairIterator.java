@@ -89,7 +89,7 @@ public class AsciiPairIterator implements PairIterator {
      * <p/>
      * DCIC form:
      * First 7 fields reserved:
-     * readID, chr1, chr2, pos1, pos2, strand1, strand2
+     * readID, chr1, pos1, chr2, pos2, strand1, strand2
      * Optionally, readID and strands can be blank (‘.’) : DCIC provides both readID and strands.
      * Positions are 5’end of reads.
      * Optional columns follow, ignored by us
@@ -148,12 +148,11 @@ public class AsciiPairIterator implements PairIterator {
 
                 } else if (format == Format.DCIC) {
                     String chrom1 = getInternedString(tokens.get(1));
-                    String chrom2 = getInternedString(tokens.get(2));
+                    String chrom2 = getInternedString(tokens.get(3));
                     if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
-
                         int chr1 = chromosomeOrdinals.get(chrom1);
                         int chr2 = chromosomeOrdinals.get(chrom2);
-                        int pos1 = Integer.parseInt(tokens.get(3));
+                        int pos1 = Integer.parseInt(tokens.get(2));
                         int pos2 = Integer.parseInt(tokens.get(4));
                         boolean strand1 = tokens.get(5).equals("+");
                         boolean strand2 = tokens.get(6).equals("+");
