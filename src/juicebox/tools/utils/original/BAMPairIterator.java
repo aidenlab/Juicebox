@@ -105,15 +105,6 @@ public class BAMPairIterator implements PairIterator {
         }
     }
 
-    @Override
-    public void push(AlignmentPair pair) {
-        if (preNext != null) {
-            throw new RuntimeException("Cannot push more than one alignment pair back on stack");
-        } else {
-            preNext = pair;
-        }
-    }
-
     public void remove() {
         // Not implemented
     }

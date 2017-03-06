@@ -51,7 +51,6 @@ public class AsciiPairIterator implements PairIterator {
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
     private AlignmentPair nextPair = null;
-    private AlignmentPair preNext = null;
     private BufferedReader reader;
     private Format format = null;
     //CharMatcher.anyOf(";,.")
@@ -78,17 +77,34 @@ public class AsciiPairIterator implements PairIterator {
      * 0 15 61559113 0 16 15 61559309 16
      * 16 10 26641879 16 0 9 12797549 0
      * <p/>
-     * Medium for,:
+     * Short with score:
+     * str1 chr1 pos1 frag1 str2 chr2 pos2 frag2 score
+     * score is the count for this location (instead of 1)
+     * <p/>
+     * Medium form:
      * readname str1 chr1 pos1 frag1 str2 chr2 pos2 frag2 mapq1 mapq2
      * <p/>
      * Long form:
      * str1 chr1 pos1 frag1 str2 chr2 pos2 frag2 mapq1 cigar1 seq1 mapq2 cigar2 seq2 rname1 rname2
+     * <p/>
+     * DCIC form:
+     * First 7 fields reserved:
+     * readID, chr1, chr2, pos1, pos2, strand1, strand2
+     * Optionally, readID and strands can be blank (‘.’) : DCIC provides both readID and strands.
+     * Positions are 5’end of reads.
+     * Optional columns follow, ignored by us
      */
     private void advance() {
 
         try {
             String nextLine;
             if ((nextLine = reader.readLine()) != null) {
+                if (nextLine.startsWith("#")) {
+                    // header line, skip; DCIC files MUST have header
+                    format = Format.DCIC;
+                    nextPair = new AlignmentPair(true);
+                    return;
+                }
                 //String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
                 List<String> tokens = MY_SPLITTER.splitToList(nextLine);
 
@@ -105,10 +121,9 @@ public class AsciiPairIterator implements PairIterator {
                     } else if (nTokens == 11) {
                         format = Format.MEDIUM;
                     } else {
-                        throw new IOException("Unexpected column count.  Only 11 or 16 columns supported.  Check file format");
+                        throw new IOException("Unexpected column count.  Check file format");
                     }
                 }
-
                 if (format == Format.MEDIUM) {
                     String chrom1 = getInternedString(tokens.get(2));
                     String chrom2 = getInternedString(tokens.get(6));
@@ -127,7 +142,27 @@ public class AsciiPairIterator implements PairIterator {
                         boolean strand2 = Integer.parseInt(tokens.get(5)) == 0;
                         nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
                     }
+                    else {
+                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                    }
 
+                } else if (format == Format.DCIC) {
+                    String chrom1 = getInternedString(tokens.get(1));
+                    String chrom2 = getInternedString(tokens.get(2));
+                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+
+                        int chr1 = chromosomeOrdinals.get(chrom1);
+                        int chr2 = chromosomeOrdinals.get(chrom2);
+                        int pos1 = Integer.parseInt(tokens.get(3));
+                        int pos2 = Integer.parseInt(tokens.get(4));
+                        boolean strand1 = tokens.get(5).equals("+");
+                        boolean strand2 = tokens.get(6).equals("+");
+                        nextPair = new AlignmentPair(strand1, chr1, pos1, 0, 1000, strand2, chr2, pos2, 1, 1000);
+
+                    }
+                    else {
+                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                    }
                 } else {
                     // this should be strand, chromosome, position, fragment.
 
@@ -185,28 +220,14 @@ public class AsciiPairIterator implements PairIterator {
     }
 
     public boolean hasNext() {
-        return preNext != null || nextPair != null;  //To change body of implemented methods use File | Settings | File Templates.
+        return nextPair != null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public AlignmentPair next() {
-        if (preNext == null) {
-            AlignmentPair p = nextPair;
-            advance();
-            return p;
-        } else {
-            AlignmentPair p = preNext;
-            preNext = null;
-            return p;
-        }
-    }
+        AlignmentPair p = nextPair;
+        advance();
+        return p;
 
-    @Override
-    public void push(AlignmentPair pair) {
-        if (preNext != null) {
-            throw new RuntimeException("Cannot push more than one alignment pair back on stack");
-        } else {
-            preNext = pair;
-        }
     }
 
     public void remove() {
@@ -221,6 +242,6 @@ public class AsciiPairIterator implements PairIterator {
         }
     }
 
-    enum Format {SHORT, LONG, MEDIUM, SHORT_WITH_SCORE}
+    enum Format {SHORT, LONG, MEDIUM, SHORT_WITH_SCORE, DCIC}
 
 }

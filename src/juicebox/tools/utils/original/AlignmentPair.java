@@ -46,6 +46,7 @@ public class AlignmentPair {
     private final int mapq2;
     private float score = 1.0f;  // The score (or count)
     private boolean isContigPair = false;
+    private boolean isHeaderLine = false;
 
 
     public AlignmentPair(boolean strand1, int chr1, int pos1, int frag1, int mapq1, boolean strand2, int chr2, int pos2, int frag2, int mapq2) {
@@ -60,11 +61,18 @@ public class AlignmentPair {
         this.frag2 = frag2;
         this.mapq2 = mapq2;
         this.isContigPair = false;
+        this.isHeaderLine = false;
     }
 
     public AlignmentPair() {
         this(false, -1, -1, -1, -1, false, -1, -1, -1, -1);
         this.isContigPair = true;
+    }
+
+    public AlignmentPair(boolean isHeaderLine) {
+        this(false, -1, -1, -1, -1, false, -1, -1, -1, -1);
+        this.isContigPair = false;
+        this.isHeaderLine = isHeaderLine;
     }
 
 

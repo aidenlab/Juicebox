@@ -73,14 +73,6 @@ public class BinPairIterator implements PairIterator {
         }
     }
 
-    @Override
-    public void push(AlignmentPair pair) {
-        if (preNext != null) {
-            throw new RuntimeException("Cannot push more than one alignment pair back on stack");
-        } else {
-            preNext = pair;
-        }
-    }
 
     public void remove() {
         //To change body of implemented methods use File | Settings | File Templates.

@@ -117,7 +117,7 @@ public class HiCFileTools {
             List<Chromosome> chromosomes = new ArrayList<Chromosome>();
             chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
 
-            Pattern pattern = Pattern.compile("\t");
+            Pattern pattern = Pattern.compile("\\s+");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
             String nextLine;
             long genomeLength = 0;
