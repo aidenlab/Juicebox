@@ -94,8 +94,7 @@ public class TrackPanel extends JPanel {
     }
 
     public List<HiCTrack> getTrackList() {
-        return hic.getLoadedTrackList();
-
+        return hic.getLoadedTracks();
     }
 
     private void addMouseAdapter(final SuperAdapter superAdapter) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,6 @@ public class HiCTrackManager {
     //static String path = "/Users/jrobinso/Documents/IGV/hg19_encode.xml";
 
     private final List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
-    private final List<HiCTrack> reloadTrackNames = new ArrayList<HiCTrack>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<NormalizationType, HiCTrack>();
     private final SuperAdapter superAdapter;
     private final HiC hic;

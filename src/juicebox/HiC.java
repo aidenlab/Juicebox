@@ -204,7 +204,7 @@ public class HiC {
         this.linkedMode = linkedMode;
     }
 
-    public java.util.List<HiCTrack> getLoadedTracks() {
+    public List<HiCTrack> getLoadedTracks() {
         return trackManager == null ? new ArrayList<HiCTrack>() : trackManager.getLoadedTracks();
     }
 
@@ -240,11 +240,6 @@ public class HiC {
             //move the track down
             trackManager.moveTrackDown(track);
         }
-    }
-
-    public List<HiCTrack> getLoadedTrackList() {
-        return trackManager.getLoadedTracks();
-
     }
 
     public Dataset getDataset() {

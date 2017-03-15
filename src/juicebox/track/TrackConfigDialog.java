@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,6 @@ class TrackConfigDialog extends JDialog {
     private JRadioButton meanRB;
     private JRadioButton maxRB;
     private JTextField nameField;
-    private HiCTrackManager trackManager;
 
 
     public TrackConfigDialog(Frame owner, HiCTrack track) {
@@ -423,23 +422,4 @@ class TrackConfigDialog extends JDialog {
             return false;
         }
     }
-
-    // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables
-    // Generated using JFormDesigner non-commercial license
-    /*
-    private JPanel dialogPane;
-    private JPanel contentPanel;
-    private JPanel panel4;
-    private JPanel panel1;
-    private JLabel label2;
-    private JLabel label3;
-    private JPanel panel2;
-    private JLabel label4;
-    private JLabel label5;
-    private JPanel panel3;
-    private JPanel buttonBar;
-    private JButton okButton;
-    private JButton cancelButton;
-    */
-    // JFormDesigner - End of variables declaration  //GEN-END:variables
 }

@@ -501,6 +501,32 @@ public class MainViewPanel {
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 
+        final JToggleButton launch2DAnnotationsToggleButton = new JToggleButton("Show Annotation Panel");
+        launch2DAnnotationsToggleButton.setSelected(false);
+
+        launch2DAnnotationsToggleButton.addActionListener(new ActionListener() {
+
+            private LayersPanel layersPanel;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!launch2DAnnotationsToggleButton.isSelected()) {
+                    launch2DAnnotationsToggleButton.setText("Show Annotation Panel");
+                    if (layersPanel != null) {
+                        layersPanel.setVisible(false);
+                    }
+                } else {
+                    launch2DAnnotationsToggleButton.setText("Hide Annotation Panel");
+                    if (layersPanel != null) {
+                        layersPanel.setVisible(true);
+                    } else {
+                        layersPanel = new LayersPanel(superAdapter);
+                    }
+                }
+            }
+        });
+        rightSidePanel.add(launch2DAnnotationsToggleButton, BorderLayout.SOUTH);
+
         // compute preferred size
         Dimension preferredSize = new Dimension();
         for (int i = 0; i < rightSidePanel.getComponentCount(); i++) {

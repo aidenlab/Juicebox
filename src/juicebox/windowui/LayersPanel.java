@@ -26,6 +26,8 @@ package juicebox.windowui;
 
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
+import juicebox.track.HiCTrack;
+import juicebox.track.TrackConfigPanel;
 import juicebox.track.feature.AnnotationLayerHandler;
 
 import javax.imageio.ImageIO;
@@ -51,18 +53,63 @@ public class LayersPanel extends JDialog {
     private static final int miniButtonSize = 30;
 
     public LayersPanel(SuperAdapter superAdapter) {
-        super(superAdapter.getMainWindow(), "2D Annotations Layer Panel");
+        super(superAdapter.getMainWindow(), "Annotations Layer Panel");
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
-        JPanel layersPanel = generateLayerSelectionPanel(superAdapter);
-        if (layersPanel != null) {
-            layersPanel.setBorder(padding);
-        }
+        JPanel annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
+        if (annotations1DPanel != null) annotations1DPanel.setBorder(padding);
+
+        JPanel layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
+        if (layers2DPanel != null) layers2DPanel.setBorder(padding);
+
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("1D Annotations", null, annotations1DPanel,
+                "Does twice as much nothing");
+        //tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
+
+        tabbedPane.addTab("2D Annotations", null, layers2DPanel,
+                "Manage 2D Annotations");
+        //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
         setSize(660, 200);
-        add(layersPanel);
+        add(tabbedPane);
         setVisible(true);
+    }
+
+    private JPanel generate1DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
+        final JPanel layerBoxGUI = new JPanel();
+        //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
+        layerBoxGUI.setLayout(new GridLayout(0, 1));
+
+        for (HiCTrack track : superAdapter.getHiC().getLoadedTracks()) {
+            if (track != null) {
+                JPanel panel = new TrackConfigPanel(superAdapter, track);
+                layerBoxGUI.add(panel, 0);
+            }
+        }
+        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
+
+        JButton refreshButton = new JButton("Refresh View");
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.refresh();
+            }
+        });
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+        buttonPanel.add(refreshButton);
+
+        final JPanel pane = new JPanel(new BorderLayout());
+        pane.add(scrollPane, BorderLayout.CENTER);
+        pane.add(buttonPanel, BorderLayout.PAGE_END);
+
+        Dimension dim = pane.getPreferredSize();
+        dim.setSize(dim.getWidth(), dim.getHeight() * 4);
+        pane.setPreferredSize(dim);
+
+        return pane;
     }
 
     /**
@@ -70,7 +117,7 @@ public class LayersPanel extends JDialog {
      * @param superAdapter
      * @return
      */
-    private JPanel generateLayerSelectionPanel(final SuperAdapter superAdapter) {
+    private JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
         final JPanel layerBoxGUI = new JPanel();
         //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
         layerBoxGUI.setLayout(new GridLayout(0, 1));
@@ -97,12 +144,9 @@ public class LayersPanel extends JDialog {
         });
 
         JButton newLayerButton = new JButton("Add New Layer");
-
         JButton mergeButton = new JButton("Merge Visible Layers");
 
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(1, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
         buttonPanel.add(refreshButton);
         buttonPanel.add(newLayerButton);
         buttonPanel.add(mergeButton);
@@ -110,6 +154,7 @@ public class LayersPanel extends JDialog {
         final JPanel pane = new JPanel(new BorderLayout());
         pane.add(scrollPane, BorderLayout.CENTER);
         pane.add(buttonPanel, BorderLayout.PAGE_END);
+
         Dimension dim = pane.getPreferredSize();
         dim.setSize(dim.getWidth(), dim.getHeight() * 4);
         pane.setPreferredSize(dim);
@@ -117,60 +162,64 @@ public class LayersPanel extends JDialog {
         newLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AnnotationLayerHandler handler = superAdapter.createNewLayer();
-                try {
-                    JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
-                    layerBoxGUI.add(panel, 0);
-                    layerBoxGUI.revalidate();
-                    layerBoxGUI.repaint();
-                    superAdapter.setActiveLayer(handler);
-                    superAdapter.updateLayerDeleteStatus();
-                } catch (Exception ee) {
-                    System.err.println("Unable to add new layer to GUI");
-                }
-
+                new2DAnnotationsLayerAction(e, superAdapter, layerBoxGUI);
             }
         });
 
         mergeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                List<AnnotationLayerHandler> visibleLayers = new ArrayList<AnnotationLayerHandler>();
-                for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
-                    if (handler.getLayerVisibility()) {
-                        visibleLayers.add(handler);
-                    }
-                }
-
-                AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer();
-                mergedHandler.mergeDetailsFrom(visibleLayers);
-                try {
-                    JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI);
-
-                    layerBoxGUI.add(panel, 0);
-
-                    for (AnnotationLayerHandler handler : visibleLayers) {
-                        int index = superAdapter.removeLayer(handler);
-                        if (index > -1) {
-                            layerBoxGUI.remove(index);
-                        }
-                    }
-
-                    layerBoxGUI.revalidate();
-                    layerBoxGUI.repaint();
-                    superAdapter.setActiveLayer(mergedHandler);
-                    superAdapter.updateLayerDeleteStatus();
-                } catch (Exception ee) {
-                    System.err.println("Unable to add merged layer to GUI");
-                    ee.printStackTrace();
-                }
-
+                merge2DAnnotationsAction(e, superAdapter, layerBoxGUI);
             }
         });
 
         superAdapter.updateLayerDeleteStatus();
-
         return pane;
+    }
+
+    private void new2DAnnotationsLayerAction(ActionEvent e, SuperAdapter superAdapter, JPanel layerBoxGUI) {
+        AnnotationLayerHandler handler = superAdapter.createNewLayer();
+        try {
+            JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
+            layerBoxGUI.add(panel, 0);
+            layerBoxGUI.revalidate();
+            layerBoxGUI.repaint();
+            superAdapter.setActiveLayer(handler);
+            superAdapter.updateLayerDeleteStatus();
+        } catch (Exception ee) {
+            System.err.println("Unable to add new layer to GUI");
+        }
+    }
+
+    private void merge2DAnnotationsAction(ActionEvent e, SuperAdapter superAdapter, JPanel layerBoxGUI) {
+        List<AnnotationLayerHandler> visibleLayers = new ArrayList<AnnotationLayerHandler>();
+        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+            if (handler.getLayerVisibility()) {
+                visibleLayers.add(handler);
+            }
+        }
+
+        AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer();
+        mergedHandler.mergeDetailsFrom(visibleLayers);
+        try {
+            JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI);
+            layerBoxGUI.add(panel, 0);
+
+            for (AnnotationLayerHandler handler : visibleLayers) {
+                int index = superAdapter.removeLayer(handler);
+                if (index > -1) {
+                    layerBoxGUI.remove(index);
+                }
+            }
+
+            layerBoxGUI.revalidate();
+            layerBoxGUI.repaint();
+            superAdapter.setActiveLayer(mergedHandler);
+            superAdapter.updateLayerDeleteStatus();
+        } catch (Exception ee) {
+            System.err.println("Unable to add merged layer to GUI");
+            ee.printStackTrace();
+        }
     }
 
     /**
@@ -187,25 +236,7 @@ public class LayersPanel extends JDialog {
 
         /* layer name */
         final JTextField nameField = new JTextField(handler.getLayerName(), 5);
-        nameField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                handler.setLayerName(nameField.getText());
-                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                handler.setLayerName(nameField.getText());
-                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                handler.setLayerName(nameField.getText());
-                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
-            }
-        });
+        nameField.getDocument().addDocumentListener(anyTextChangeListener(handler, nameField));
         nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
         nameField.setMaximumSize(new Dimension(100, 30));
 
@@ -425,6 +456,29 @@ public class LayersPanel extends JDialog {
         }
 
         return parentPanel;
+    }
+
+    private DocumentListener anyTextChangeListener(final AnnotationLayerHandler handler,
+                                                   final JTextField nameField) {
+        return new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+        };
     }
 
     private JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
