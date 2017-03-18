@@ -228,7 +228,7 @@ public class SuperAdapter {
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayer().setAnnotationLayer(
-                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
+                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
@@ -442,7 +442,7 @@ public class SuperAdapter {
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomes(dataset.getChromosomes());
-                mainViewPanel.setChromosomes(hic.getChromosomes());
+                mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
                 String[] normalizationOptions;
                 if (dataset.getVersion() < HiCGlobals.minVersion) {

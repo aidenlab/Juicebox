@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,11 @@
 
 package juicebox;
 
+import juicebox.data.ChromosomeHandler;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
-import java.util.List;
 
 /**
  * TODO These should probably be deleted, but keeping them until respective author decides/refactors
@@ -43,7 +43,7 @@ class Unused {
         int resolution = Integer.valueOf(tokens[0]);
         int vectorLength = Integer.valueOf(tokens[1]);
         int expectedLength = Integer.valueOf(tokens[2]);
-        List<Chromosome> chromosomes = hic.getChromosomes();
+        ChromosomeHandler chromosomeHandler = hic.getChromosomeHandler();
 
         double[] nv = new double[vectorLength];
         double[] exp = new double[expectedLength];
@@ -59,7 +59,7 @@ class Unused {
         }
 
         int location1 = 0;
-        for (Chromosome c1 : chromosomes) {
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
             if (c1.getName().equals(Globals.CHR_ALL)) continue;
             int chrBinned = c1.getLength() / resolution + 1;
             double[] chrNV = new double[chrBinned];

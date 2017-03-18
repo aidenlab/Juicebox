@@ -74,6 +74,7 @@ public class HiC {
     private MatrixType displayOption;
     private NormalizationType normalizationType;
     private List<Chromosome> chromosomes;
+    private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
     private Dataset controlDataset;
     private HiCZoom currentZoom;
@@ -125,6 +126,7 @@ public class HiC {
         dataset = null;
         resetContexts();
         chromosomes = null;
+        chromosomeHandler = null;
         eigenvectorTrack = null;
         controlEigenvectorTrack = null;
         resourceTree = null;
@@ -398,12 +400,9 @@ public class HiC {
         return xContext != null && HiCFileTools.isAllChromosome(xContext.getChromosome());
     }
 
-    public java.util.List<Chromosome> getChromosomes() {
-        return chromosomes;
-    }
-
     public void setChromosomes(List<Chromosome> chromosomes) {
         this.chromosomes = chromosomes;
+        this.chromosomeHandler = new ChromosomeHandler(chromosomes);
     }
 
     private void setZoomChanged() {
@@ -873,9 +872,8 @@ public class HiC {
 
     private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
-            ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
-            Chromosome chrX = handler.getChr(chrXName);
-            Chromosome chrY = handler.getChr(chrYName);
+            Chromosome chrX = chromosomeHandler.getChr(chrXName);
+            Chromosome chrY = chromosomeHandler.getChr(chrYName);
 
             if (chrX == null || chrY == null) {
                 //log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
@@ -989,7 +987,7 @@ public class HiC {
     */
 
     public void loadLoopList(String path) {
-        superAdapter.getActiveLayer().loadLoopList(path, chromosomes);
+        superAdapter.getActiveLayer().loadLoopList(path, chromosomeHandler);
     }
 
     /*
@@ -1208,6 +1206,10 @@ public class HiC {
 
     public void setShowFeatureHighlight(boolean showFeatureHighlight) {
         this.showFeatureHighlight = showFeatureHighlight;
+    }
+
+    public ChromosomeHandler getChromosomeHandler() {
+        return chromosomeHandler;
     }
 
     /*public Feature2DHandler getFeature2DHandler() {

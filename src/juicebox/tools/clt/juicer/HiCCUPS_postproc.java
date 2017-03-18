@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import jcuda.runtime.JCuda;
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.mapcolorui.Feature2DHandler;
@@ -51,8 +50,10 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * HiC Computational Unbiased Peak Search
@@ -301,14 +302,16 @@ public class HiCCUPS_postproc extends JuicerCLT {
     public void run() {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
-        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
         File outputMergedFile = new File(outputDirectory, MERGED);
         if (dataShouldBePostProcessed) {
          //   loopLists.put(conf.getResolution(), enrichedPixels);
-            loopLists.put(5000, Feature2DParser.loadFeatures(featureListPath1, commonChromosomes, true, null, false));
-            loopLists.put(10000, Feature2DParser.loadFeatures(featureListPath2, commonChromosomes, true, null, false));
+            loopLists.put(5000, Feature2DParser.loadFeatures(featureListPath1, chromosomeHandler, true,
+                    null, false));
+            loopLists.put(10000, Feature2DParser.loadFeatures(featureListPath2, chromosomeHandler, true,
+                    null, false));
 
-            Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
+            Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
                     configurations, norm, outputDirectory);
             finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
             System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
@@ -323,10 +326,11 @@ public class HiCCUPS_postproc extends JuicerCLT {
      *
      * @param ds                dataset from hic file
      * @param conf              configuration of hiccups inputs
-     * @param commonChromosomes list of chromosomes to run hiccups on
+     * @param chromosomeHandler list of chromosomes to run hiccups on
      * @return list of enriched pixels
      */
-    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes, Feature2DHandler inputListFeature2DHandler) {
+    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf,
+                                               ChromosomeHandler chromosomeHandler, Feature2DHandler inputListFeature2DHandler) {
 
         long begin_time = System.currentTimeMillis();
 
@@ -371,11 +375,11 @@ public class HiCCUPS_postproc extends JuicerCLT {
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run
-        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, commonChromosomes) * 2;
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler) * 2;
 
         int currentProgressStatus = 0;
         for (int runNum : new int[]{0, 1}) {
-            for (Chromosome chromosome : commonChromosomes) {
+            for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
 
                 // skip these matrices
                 if (chromosome.getName().equals(Globals.CHR_ALL)) continue;

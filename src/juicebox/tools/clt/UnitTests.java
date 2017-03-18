@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.juicer.hiccups.HiCCUPSConfiguration;
@@ -33,7 +34,6 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.*;
@@ -69,7 +69,7 @@ class UnitTests {
         File outputDirectory = new File(folder);
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(folder + "inter_30.hic"), true);
         File outputMergedFile = new File(outputDirectory, "merged_loops");
-        List<Chromosome> commonChromosomes = ds.getChromosomes();
+        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
         NormalizationType norm = NormalizationType.KR;
 
         List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<HiCCUPSConfiguration>();
@@ -81,10 +81,10 @@ class UnitTests {
         String link2 = baseLink + "10000";
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
-        loopLists.put(5000, Feature2DParser.loadFeatures(link1, commonChromosomes, true, null, false));
-        loopLists.put(10000, Feature2DParser.loadFeatures(link2, commonChromosomes, true, null, false));
+        loopLists.put(5000, Feature2DParser.loadFeatures(link1, chromosomeHandler, true, null, false));
+        loopLists.put(10000, Feature2DParser.loadFeatures(link2, chromosomeHandler, true, null, false));
 
-        Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
+        Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, chromosomeHandler,
                 filteredConfigurations, norm, outputDirectory);
         finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
         System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +

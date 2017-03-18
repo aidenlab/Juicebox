@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,9 +54,8 @@ public class Feature2DParser {
         return loadFeatures(path, HiCFileTools.loadChromosomes(genomeID), loadAttributes, featureFilter, useFeature2DWithMotif);
     }
 
-    public static Feature2DList loadFeatures(String path, List<Chromosome> chromosomes, boolean loadAttributes,
+    public static Feature2DList loadFeatures(String path, ChromosomeHandler handler, boolean loadAttributes,
                                              FeatureFilter featureFilter, boolean useFeature2DWithMotif) {
-        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
         Feature2DList newList;
         if (path.endsWith(".px")) {
             newList = parseHiCCUPSLoopFile(path, handler, loadAttributes, featureFilter);

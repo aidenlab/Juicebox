@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@
 package juicebox.tools.utils.original;
 
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import juicebox.data.ChromosomeHandler;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,11 +46,12 @@ public class AsciiToBinConverter {
     /**
      * @param inputPath
      * @param outputFile
+     * @param chromosomeHandler
      */
-    public static void convert(String inputPath, String outputFile, List<Chromosome> chromosomes) throws IOException {
+    public static void convert(String inputPath, String outputFile, ChromosomeHandler chromosomeHandler) throws IOException {
 
         Map<String, Integer> chromosomeOrdinals = new HashMap<String, Integer>();
-        for (Chromosome c : chromosomes) {
+        for (Chromosome c : chromosomeHandler.getChromosomeArray()) {
             chromosomeOrdinals.put(c.getName(), c.getIndex());
         }
 

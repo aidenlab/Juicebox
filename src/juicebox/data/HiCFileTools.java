@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,13 +83,17 @@ public class HiCFileTools {
         return dataset;
     }
 
+    public static ChromosomeHandler loadChromosomes(String idOrFile) {
+        return new ChromosomeHandler(loadChromosomesListFromFile(idOrFile));
+    }
+
     /**
      * Load the list of chromosomes based on given genome id or file
      *
      * @param idOrFile string
      * @return list of chromosomes
      */
-    public static List<Chromosome> loadChromosomes(String idOrFile) {
+    private static List<Chromosome> loadChromosomesListFromFile(String idOrFile) {
 
         InputStream is = null;
 
@@ -316,16 +320,16 @@ public class HiCFileTools {
      * For each given chromosome name, find its equivalent Chromosome object
      *
      * @param chromosomesSpecified by strings
-     * @param referenceChromosomes as Chromosome objects
+     * @param handler as Chromosome objects
      * @return the specified Chromosomes corresponding to the given strings
      */
-    public static Set<Chromosome> stringToChromosomes(Set<String> chromosomesSpecified,
-                                                      List<Chromosome> referenceChromosomes) {
+    public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
+                                                        ChromosomeHandler handler) {
         Set<Chromosome> chromosomes = new HashSet<Chromosome>();
 
         for (String strKey : chromosomesSpecified) {
             boolean chrFound = false;
-            for (Chromosome chrKey : referenceChromosomes) {
+            for (Chromosome chrKey : handler.getChromosomeArray()) {
                 if (equivalentChromosome(strKey, chrKey)) {
                     chromosomes.add(chrKey);
                     chrFound = true;
@@ -336,7 +340,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new HashSet<Chromosome>(chromosomes);
+        return new ChromosomeHandler(new ArrayList<>(chromosomes));
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.*;
@@ -32,10 +33,23 @@ import java.util.*;
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
-    Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
-    List<String> chrIndices = new ArrayList<String>();
+    private final List<Chromosome> chromosomes;
+    private Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
+    private List<String> chrIndices = new ArrayList<String>();
+    private Map<String, Integer> chromosomeIndexesHashTable;
+    private int[] chromosomeBoundaries;
+    private Chromosome[] chromosomesArray;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
+
+        // set the global chromosome list
+        long genomeLength = 0;
+        for (Chromosome c : chromosomes) {
+            if (c != null)
+                genomeLength += c.getLength();
+        }
+        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+
         for (Chromosome c : chromosomes) {
             chromosomeMap.put(c.getName().trim().toLowerCase().replaceAll("chr", ""), c);
             if (c.getName().equalsIgnoreCase("MT")) {
@@ -46,6 +60,24 @@ public class ChromosomeHandler {
         for (Chromosome chr : chromosomes) {
             chrIndices.add("" + chr.getIndex());
         }
+
+        // for pre
+        chromosomeIndexesHashTable = new Hashtable<>();
+        for (int i = 0; i < chromosomes.size(); i++) {
+            chromosomeIndexesHashTable.put(chromosomes.get(i).getName(), i);
+        }
+
+        // for all-by-all view
+        chromosomeBoundaries = new int[chromosomes.size() - 1];
+        long bound = 0;
+        for (int i = 1; i < chromosomes.size(); i++) {
+            Chromosome c = chromosomes.get(i);
+            bound += (c.getLength() / 1000);
+            chromosomeBoundaries[i - 1] = (int) bound;
+        }
+
+        chromosomesArray = chromosomes.toArray(new Chromosome[chromosomes.size()]);
+        this.chromosomes = new ArrayList<>(chromosomes);
     }
 
     private String cleanedChrName(String name) {
@@ -70,5 +102,21 @@ public class ChromosomeHandler {
 
     public Set<String> getChrNames() {
         return chromosomeMap.keySet();
+    }
+
+    public int[] getChromosomeBoundaries() {
+        return chromosomeBoundaries;
+    }
+
+    public Chromosome[] getChromosomeArray() {
+        return chromosomesArray;
+    }
+
+    public Chromosome get(int indx) {
+        return chromosomesArray[indx];
+    }
+
+    public Map<String, Integer> getChromosomeIndexesHashTable() {
+        return chromosomeIndexesHashTable;
     }
 }

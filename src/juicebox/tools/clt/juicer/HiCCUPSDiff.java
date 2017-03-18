@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.clt.juicer;
 
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -35,7 +36,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ public class HiCCUPSDiff extends JuicerCLT {
     private Feature2DList looplist1;
     private Feature2DList looplist2;
     private File outputDirectory;
-    private List<Chromosome> commonChromosomes;
+    private ChromosomeHandler commonChromosomesHandler;
     private List<HiCCUPSConfiguration> configs;
 
     public HiCCUPSDiff() {
@@ -100,22 +100,22 @@ public class HiCCUPSDiff extends JuicerCLT {
         }
         // intersecting for the edge case where one of the hic files may not be using all chromosomes
         // e.g. the mbr_19 files for testing
-        commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.getSetIntersection(
-                new HashSet<Chromosome>(ds1.getChromosomes()), new HashSet<Chromosome>(ds2.getChromosomes())));
+        commonChromosomesHandler = new ChromosomeHandler(new ArrayList<>(HiCFileTools.getSetIntersection(
+                new HashSet<>(ds1.getChromosomes()), new HashSet<>(ds2.getChromosomes()))));
+
         if (givenChromosomes != null && givenChromosomes.size() > 0)
-            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    commonChromosomes));
+            commonChromosomesHandler = HiCFileTools.stringToChromosomes(givenChromosomes, commonChromosomesHandler);
 
         List<HiCZoom> availableZooms = new ArrayList<HiCZoom>(HiCFileTools.getZoomSetIntersection(
                 ds1.getBpZooms(), ds1.getBpZooms()));
 
-        looplist1 = Feature2DParser.loadFeatures(args[3], commonChromosomes, true, null, false);
-        looplist2 = Feature2DParser.loadFeatures(args[4], commonChromosomes, true, null, false);
+        looplist1 = Feature2DParser.loadFeatures(args[3], commonChromosomesHandler, true, null, false);
+        looplist2 = Feature2DParser.loadFeatures(args[4], commonChromosomesHandler, true, null, false);
 
         configs = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
 
         if (configs == null) {
-            configs = new ArrayList<HiCCUPSConfiguration>();
+            configs = new ArrayList<>();
             if (Feature2DTools.isResolutionPresent(looplist1, 5000) && Feature2DTools.isResolutionPresent(looplist2, 5000)) {
                 configs.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
             }
@@ -166,8 +166,10 @@ public class HiCCUPSDiff extends JuicerCLT {
             System.out.println("Running HiCCUPS with alternate loop lists");
             hiccups1 = new HiCCUPS();
             hiccups2 = new HiCCUPS();
-            hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4], norm, matrixSize, commonChromosomes, configs, thresholds);
-            hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3], norm, matrixSize, commonChromosomes, configs, thresholds);
+            hiccups1.initializeDirectly(args[1], outputDirectory + File.separator + "file1", args[4],
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds);
+            hiccups2.initializeDirectly(args[2], outputDirectory + File.separator + "file2", args[3],
+                    norm, matrixSize, commonChromosomesHandler, configs, thresholds);
         }
     }
 
@@ -194,7 +196,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         Feature2DList results1 = new Feature2DList();
         for (HiCCUPSConfiguration config : configs) {
             String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution();
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomes, true, null, false);
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results1.add(requestedList);
         }
@@ -204,7 +206,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         Feature2DList results2 = new Feature2DList();
         for (HiCCUPSConfiguration config : configs) {
             String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution();
-            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomes, true, null, false);
+            Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results2.add(requestedList);
         }

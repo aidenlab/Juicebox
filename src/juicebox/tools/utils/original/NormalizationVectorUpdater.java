@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,9 @@ public class NormalizationVectorUpdater {
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
 
-        List<Chromosome> chromosomes = ds.getChromosomes();
+        //List<Chromosome> chromosomes = ds.getChromosomes();
+        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
+
 
 
         // chr -> frag count map.  Needed for expected value calculations
@@ -131,12 +133,12 @@ public class NormalizationVectorUpdater {
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
 
-            ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomes, zoom.getBinSize(), fcm, NormalizationType.VC);
-            ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomes, zoom.getBinSize(), fcm, NormalizationType.VC_SQRT);
-            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomes, zoom.getBinSize(), fcm, NormalizationType.KR);
+            ExpectedValueCalculation evVC = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.VC);
+            ExpectedValueCalculation evVCSqrt = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.VC_SQRT);
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.KR);
 
             // Loop through chromosomes
-            for (Chromosome chr : chromosomes) {
+            for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
                 Matrix matrix = ds.getMatrix(chr, chr);
@@ -685,12 +687,12 @@ public class NormalizationVectorUpdater {
         if (norm == NormalizationType.GW_KR || norm == NormalizationType.GW_VC) {
             includeIntra = true;
         }
-        final List<Chromosome> chromosomes = dataset.getChromosomes();
+        final ChromosomeHandler chromosomeHandler = new ChromosomeHandler(dataset.getChromosomes());
         final int resolution = zoom.getBinSize();
-        final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomes, zoom, includeIntra);
+        final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         int totalSize = 0;
-        for (Chromosome c1 : chromosomes) {
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
             if (c1.getName().equals(Globals.CHR_ALL)) continue;
             totalSize += c1.getLength() / resolution + 1;
         }
@@ -700,10 +702,10 @@ public class NormalizationVectorUpdater {
         double[] vector = calculations.getNorm(norm);
 
 
-        ExpectedValueCalculation expectedValueCalculation = new ExpectedValueCalculation(chromosomes, resolution, null, norm);
+        ExpectedValueCalculation expectedValueCalculation = new ExpectedValueCalculation(chromosomeHandler, resolution, null, norm);
         int addY = 0;
         // Loop through chromosomes
-        for (Chromosome chr : chromosomes) {
+        for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
 
             if (chr.getName().equals(Globals.CHR_ALL)) continue;
             final int chrIdx = chr.getIndex();
@@ -730,7 +732,7 @@ public class NormalizationVectorUpdater {
         // Split normalization vector by chromosome
         Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<Chromosome, NormalizationVector>();
         int location1 = 0;
-        for (Chromosome c1 : chromosomes) {
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
             if (c1.getName().equals(Globals.CHR_ALL)) continue;
             int chrBinned = c1.getLength() / resolution + 1;
             double[] chrNV = new double[chrBinned];
@@ -749,13 +751,14 @@ public class NormalizationVectorUpdater {
     }
 
 
-    private static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, List<Chromosome> tmp, HiCZoom zoom, boolean includeIntra) {
+    public static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler,
+                                                                    HiCZoom zoom, boolean includeIntra) {
         ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
         int addX = 0;
         int addY = 0;
-        for (Chromosome c1 : tmp) {
+        for (Chromosome c1 : handler.getChromosomeArray()) {
             if (c1.getName().equals(Globals.CHR_ALL)) continue;
-            for (Chromosome c2 : tmp) {
+            for (Chromosome c2 : handler.getChromosomeArray()) {
                 if (c2.getName().equals(Globals.CHR_ALL)) continue;
                 if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
                     Matrix matrix = dataset.getMatrix(c1, c2);

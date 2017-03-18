@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,10 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.AsciiToBinConverter;
-import org.broad.igv.feature.Chromosome;
-
-import java.util.List;
 
 public class PairsToBin extends JuiceboxCLT {
 
@@ -52,9 +50,9 @@ public class PairsToBin extends JuiceboxCLT {
 
     @Override
     public void run() {
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
+        ChromosomeHandler chromosomeHandler = HiCFileTools.loadChromosomes(genomeId);
         try {
-            AsciiToBinConverter.convert(ifile, ofile, chromosomes);
+            AsciiToBinConverter.convert(ifile, ofile, chromosomeHandler);
         } catch (Exception e) {
             System.err.println("Unable to convert from ascii to bin");
             e.printStackTrace();

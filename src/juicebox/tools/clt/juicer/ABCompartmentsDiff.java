@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package juicebox.tools.clt.juicer;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
@@ -39,9 +40,7 @@ import org.broad.igv.feature.Chromosome;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 6/2/16.
@@ -49,7 +48,7 @@ import java.util.List;
 public class ABCompartmentsDiff extends JuicerCLT {
 
     private final HiCZoom highZoom = new HiCZoom(HiC.Unit.BP, 500000);
-    private List<Chromosome> chromosomes;
+    private ChromosomeHandler chromosomeHandler;
     private Dataset ds1, ds2;
     private PrintWriter diffFileWriter, simFileWriter;
 
@@ -83,11 +82,10 @@ public class ABCompartmentsDiff extends JuicerCLT {
             System.err.println("Hi-C maps must be from the same genome");
             System.exit(2);
         }
-        chromosomes = ds1.getChromosomes();
+        chromosomeHandler = new ChromosomeHandler(ds1.getChromosomes());
 
         if (givenChromosomes != null)
-            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    chromosomes));
+            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
@@ -99,10 +97,10 @@ public class ABCompartmentsDiff extends JuicerCLT {
     @Override
     public void run() {
 
-        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds1, chromosomes);
+        double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds1, chromosomeHandler);
         int currentProgressStatus = 0;
 
-        for (Chromosome chromosome : chromosomes) {
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
 
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nProcessing " + chromosome.getName());

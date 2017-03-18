@@ -45,19 +45,16 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 public class Dump extends JuiceboxCLT {
 
 
     private static int[] regionIndices = new int[]{-1, -1, -1, -1};
     private static boolean useRegionIndices = false;
-    private final List<String> files = new ArrayList<String>();
     private HiC.Unit unit = null;
     private NormalizationType norm = null;
     private String chr1, chr2;
     private Dataset dataset = null;
-    private List<Chromosome> chromosomeList;
     private ChromosomeHandler chromosomeHandler;
     private int binSize = 0;
     private MatrixType matrixType = null;
@@ -79,6 +76,37 @@ public class Dump extends JuiceboxCLT {
 
     }
 
+    private static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler, HiCZoom zoom, boolean includeIntra) {
+        ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
+        int addX = 0;
+        int addY = 0;
+        for (Chromosome c1 : handler.getChromosomeArray()) {
+            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+            for (Chromosome c2 : handler.getChromosomeArray()) {
+                if (c2.getName().equals(Globals.CHR_ALL)) continue;
+                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
+                    Matrix matrix = dataset.getMatrix(c1, c2);
+                    if (matrix != null) {
+                        MatrixZoomData zd = matrix.getZoomData(zoom);
+                        if (zd != null) {
+                            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+                            while (iter.hasNext()) {
+                                ContactRecord cr = iter.next();
+                                int binX = cr.getBinX() + addX;
+                                int binY = cr.getBinY() + addY;
+                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
+                            }
+                        }
+                    }
+                }
+                addY += c2.getLength() / zoom.getBinSize() + 1;
+            }
+            addX += c1.getLength() / zoom.getBinSize() + 1;
+            addY = 0;
+        }
+        return recordArrayList;
+    }
+
     private void dumpGenomeWideData() throws IOException {
 
         if (unit == HiC.Unit.FRAG) {
@@ -87,10 +115,10 @@ public class Dump extends JuiceboxCLT {
         }
 
         // Build a "whole-genome" matrix
-        ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeList, zoom, includeIntra);
+        ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         int totalSize = 0;
-        for (Chromosome c1 : chromosomeList) {
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
             if (c1.getName().equals(Globals.CHR_ALL)) continue;
             totalSize += c1.getLength() / binSize + 1;
         }
@@ -100,10 +128,10 @@ public class Dump extends JuiceboxCLT {
 
         if (matrixType == MatrixType.NORM) {
 
-            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeList, binSize, null, NormalizationType.GW_KR);
+            ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationType.GW_KR);
             int addY = 0;
             // Loop through chromosomes
-            for (Chromosome chr : chromosomeList) {
+            for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
 
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
                 final int chrIdx = chr.getIndex();
@@ -195,38 +223,6 @@ public class Dump extends JuiceboxCLT {
             }
         }
     }
-
-    private static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, List<Chromosome> tmp, HiCZoom zoom, boolean includeIntra) {
-        ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
-        int addX = 0;
-        int addY = 0;
-        for (Chromosome c1 : tmp) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
-            for (Chromosome c2 : tmp) {
-                if (c2.getName().equals(Globals.CHR_ALL)) continue;
-                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    Matrix matrix = dataset.getMatrix(c1, c2);
-                    if (matrix != null) {
-                        MatrixZoomData zd = matrix.getZoomData(zoom);
-                        if (zd != null) {
-                            Iterator<ContactRecord> iter = zd.contactRecordIterator();
-                            while (iter.hasNext()) {
-                                ContactRecord cr = iter.next();
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
-                        }
-                    }
-                }
-                addY += c2.getLength() / zoom.getBinSize() + 1;
-            }
-            addX += c1.getLength() / zoom.getBinSize() + 1;
-            addY = 0;
-        }
-        return recordArrayList;
-    }
-
 
     /**
      * Dumps the matrix.  Does more argument checking, thus this should not be called outside of this class.

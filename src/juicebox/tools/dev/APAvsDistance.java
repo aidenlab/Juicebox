@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.juicer.MotifFinder;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -61,9 +60,7 @@ class APAvsDistance {
     public static void main() {
 
         GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
-
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes("hg19");
-        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+        ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
 
         // read in all smc3, rad21, ctcf tracks and intersect them
         List<String> bedFiles = new ArrayList<String>();

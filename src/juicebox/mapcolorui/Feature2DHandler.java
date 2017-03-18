@@ -25,6 +25,7 @@
 package juicebox.mapcolorui;
 
 import gnu.trove.procedure.TIntProcedure;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Feature2D;
@@ -33,7 +34,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.awt.*;
@@ -181,10 +181,10 @@ public class Feature2DHandler {
         }
     }
 
-    public int loadLoopList(String path, List<Chromosome> chromosomes) {
+    public int loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
         int numFeaturesAdded = 0;
         if (loopLists.get(path) == null) {
-            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomes, true, null, false);
+            Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomeHandler, true, null, false);
             numFeaturesAdded += newList.getNumTotalFeatures();
             loopLists.put(path, newList);
         }

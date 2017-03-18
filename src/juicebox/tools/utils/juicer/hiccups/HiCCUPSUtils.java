@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.tools.utils.juicer.hiccups;
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.HiCFileTools;
 import juicebox.data.NormalizationVector;
@@ -130,11 +131,11 @@ public class HiCCUPSUtils {
     }
 
     private static void removeLowMapQFeatures(Feature2DList list, final int resolution,
-                                              final Dataset ds, final List<Chromosome> chromosomes,
+                                              final Dataset ds, final ChromosomeHandler chromosomeHandler,
                                               final NormalizationType norm) {
 
         final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
-        for (Chromosome chr : chromosomes) {
+        for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
         if (HiCGlobals.printVerboseComments) {
@@ -514,12 +515,12 @@ public class HiCCUPSUtils {
     }
 
     public static Feature2DList postProcess(Map<Integer, Feature2DList> looplists, Dataset ds,
-                                            List<Chromosome> commonChromosomes, List<HiCCUPSConfiguration> configurations,
+                                            ChromosomeHandler chromosomeHandler, List<HiCCUPSConfiguration> configurations,
                                             NormalizationType norm, File outputDirectory) {
         for (HiCCUPSConfiguration conf : configurations) {
 
             int res = conf.getResolution();
-            removeLowMapQFeatures(looplists.get(res), res, ds, commonChromosomes, norm);
+            removeLowMapQFeatures(looplists.get(res), res, ds, chromosomeHandler, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
             looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res), true, Feature2DList.ListFormat.FINAL);

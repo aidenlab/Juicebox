@@ -27,6 +27,7 @@ package juicebox.windowui;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
@@ -40,7 +41,6 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.List;
 
 /**
  * @author jrobinso
@@ -251,16 +251,16 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
         if (HiCFileTools.isAllChromosome(chromosome)) {
             int x1 = 0;
-            List<Chromosome> chromosomes = hic.getChromosomes();
+            ChromosomeHandler handler = hic.getChromosomeHandler();
             // Index 0 is whole genome
             int genomeCoord = 0;
-            for (int i = 1; i < chromosomes.size(); i++) {
+            for (int i = 1; i < handler.size(); i++) {
                 Color tColor = isHorizontal() ? topTick : leftTick;
                 g.setColor(tColor);
 
 
                 double binOrigin = context.getBinOrigin();
-                Chromosome c = chromosomes.get(i);
+                Chromosome c = handler.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
                 int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);

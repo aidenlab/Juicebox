@@ -926,13 +926,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             Chromosome yChrom = null;
             for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
-                    xChrom = hic.getChromosomes().get(i + 1);
+                    xChrom = hic.getChromosomeHandler().get(i + 1);
                     break;
                 }
             }
             for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
-                    yChrom = hic.getChromosomes().get(i + 1);
+                    yChrom = hic.getChromosomeHandler().get(i + 1);
                     break;
                 }
             }
@@ -1538,10 +1538,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
                 for (int i = 0; i < chromosomeBoundaries.length; i++) {
                     if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                        xChrom = hic.getChromosomes().get(i + 1);
+                        xChrom = hic.getChromosomeHandler().get(i + 1);
                     }
                     if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                        yChrom = hic.getChromosomes().get(i + 1);
+                        yChrom = hic.getChromosomeHandler().get(i + 1);
                     }
                 }
             } catch (Exception ex) {

@@ -25,13 +25,13 @@
 package juicebox.track.feature;
 
 import juicebox.HiC;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.SaveAnnotationsDialog;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
@@ -479,8 +479,8 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public void loadLoopList(String path, List<Chromosome> chromosomes) {
-        if (getFeatureHandler().loadLoopList(path, chromosomes) > 0)
+    public void loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
+        if (getFeatureHandler().loadLoopList(path, chromosomeHandler) > 0)
             setExportAbility(true);
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,18 @@ package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.tools.utils.original.Preprocessor;
-import org.broad.igv.Globals;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
-import java.util.List;
 
 public class PreProcessing extends JuiceboxCLT {
 
-    private long genomeLength = 0;
+
     private String inputFile;
     private String outputFile;
     private Preprocessor preprocessor;
@@ -76,19 +74,13 @@ public class PreProcessing extends JuiceboxCLT {
         }
 
 
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
-
-        for (Chromosome c : chromosomes) {
-            if (c != null)
-                genomeLength += c.getLength();
-        }
-        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        ChromosomeHandler chromHandler = HiCFileTools.loadChromosomes(genomeId);
 
         inputFile = args[1];
         outputFile = args[2];
         String tmpDir = parser1.getTmpdirOption();
 
-        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromosomes);
+        preprocessor = new Preprocessor(new File(outputFile), genomeId, chromHandler);
         preprocessor.setIncludedChromosomes(parser1.getChromosomeOption());
         preprocessor.setCountThreshold(parser1.getCountThresholdOption());
         preprocessor.setMapqThreshold(parser1.getMapqThresholdOption());

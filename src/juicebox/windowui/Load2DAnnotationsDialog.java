@@ -29,9 +29,9 @@ import juicebox.DirectoryManager;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
-import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -62,10 +62,10 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
     private Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
 
-    public Load2DAnnotationsDialog(final AnnotationLayerHandler handler, SuperAdapter superAdapter) {
+    public Load2DAnnotationsDialog(final AnnotationLayerHandler layerHandler, SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select 2D annotation file(s) to open");
 
-        final List<Chromosome> chromosomes = superAdapter.getHiC().getChromosomes();
+        final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
         final MainWindow window = superAdapter.getMainWindow();
 
         //Create the nodes.
@@ -92,7 +92,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
                         if (node != null && node.isLeaf()) {
                             TreePath[] paths = new TreePath[1];
                             paths[0] = selPath;
-                            loadAnnotationFiles(paths, handler, chromosomes);
+                            loadAnnotationFiles(paths, layerHandler, chromosomeHandler);
 
                             Load2DAnnotationsDialog.this.setVisible(false);
                         }
@@ -114,7 +114,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         openButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                loadAnnotationFiles(tree.getSelectionPaths(), handler, chromosomes);
+                loadAnnotationFiles(tree.getSelectionPaths(), layerHandler, chromosomeHandler);
                 Load2DAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -257,13 +257,13 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         }
     }
 
-    private void loadAnnotationFiles(TreePath[] paths, AnnotationLayerHandler handler, List<Chromosome> chromosomes) {
+    private void loadAnnotationFiles(TreePath[] paths, AnnotationLayerHandler handler, ChromosomeHandler chromosomeHandler) {
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
                 try {
-                    handler.loadLoopList(info.itemURL, chromosomes);
+                    handler.loadLoopList(info.itemURL, chromosomeHandler);
                 } catch (Exception ee) {
                     System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
                     MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());

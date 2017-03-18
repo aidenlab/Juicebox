@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,10 +105,9 @@ public class MotifFinder extends JuicerCLT {
 
     @Override
     public void run() {
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
-        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+        ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 
-        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
+        Feature2DList features = Feature2DParser.loadFeatures(loopListPath, handler, true, null, true);
 
         findUniqueMotifs(handler, features);
 

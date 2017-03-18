@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +25,11 @@
 package juicebox.tools.dev;
 
 import juicebox.HiC;
-import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.gui.SuperAdapter;
-import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -80,6 +75,7 @@ public class GenomeSelectionPanel extends JPanel {
     private JPanel generateGenomeActivationPanel(final SuperAdapter superAdapter, String title) {
         final JButton showItButton = new JButton("Update View");
         try {
+            /*
             final List<Chromosome> chromosomes = superAdapter.getHiC().getChromosomes();
             if (chromosomes != null && chromosomes.size() > 0) {
 
@@ -103,7 +99,9 @@ public class GenomeSelectionPanel extends JPanel {
                     }
                 });
                 return createPane(title, checkBoxes, showItButton);
+
             }
+            */
         } catch (Exception e) {
             //e.printStackTrace();
         }
