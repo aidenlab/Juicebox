@@ -55,7 +55,7 @@ public class Preprocessor {
     private static final int BLOCK_SIZE = 1000;
 
     private final ChromosomeHandler chromosomeHandler;
-
+    private final Map<String, Integer> chromosomeIndexes;
     private final File outputFile;
     private final Map<String, IndexEntry> matrixPositions;
     private final String genomeId;
@@ -89,7 +89,12 @@ public class Preprocessor {
         this.genomeId = genomeId;
         this.outputFile = outputFile;
         this.matrixPositions = new LinkedHashMap<String, IndexEntry>();
+
         this.chromosomeHandler = chromosomeHandler;
+        chromosomeIndexes = new Hashtable<String, Integer>();
+        for (int i = 0; i < chromosomeHandler.size(); i++) {
+            chromosomeIndexes.put(chromosomeHandler.get(i).getName(), i);
+        }
 
         compressor = new Deflater();
         compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
@@ -366,8 +371,8 @@ public class Preprocessor {
         writeMatrix(wholeGenomeMatrix);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile, chromosomeHandler.getChromosomeIndexesHashTable()) :
-                new AsciiPairIterator(inputFile, chromosomeHandler.getChromosomeIndexesHashTable());
+                new BinPairIterator(inputFile, chromosomeIndexes) :
+                new AsciiPairIterator(inputFile, chromosomeIndexes);
 
 
         int currentChr1 = -1;
@@ -478,8 +483,8 @@ public class Preprocessor {
         // Create an index the first time through
         try {
             iter = (file.endsWith(".bin")) ?
-                    new BinPairIterator(file, chromosomeHandler.getChromosomeIndexesHashTable()) :
-                    new AsciiPairIterator(file, chromosomeHandler.getChromosomeIndexesHashTable());
+                    new BinPairIterator(file, chromosomeIndexes) :
+                    new AsciiPairIterator(file, chromosomeIndexes);
 
             while (iter.hasNext()) {
                 totalRead++;

@@ -36,7 +36,6 @@ public class ChromosomeHandler {
     private final List<Chromosome> chromosomes;
     private Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
     private List<String> chrIndices = new ArrayList<String>();
-    private Map<String, Integer> chromosomeIndexesHashTable;
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
 
@@ -59,12 +58,6 @@ public class ChromosomeHandler {
 
         for (Chromosome chr : chromosomes) {
             chrIndices.add("" + chr.getIndex());
-        }
-
-        // for pre
-        chromosomeIndexesHashTable = new Hashtable<>();
-        for (int i = 0; i < chromosomes.size(); i++) {
-            chromosomeIndexesHashTable.put(chromosomes.get(i).getName(), i);
         }
 
         // for all-by-all view
@@ -97,7 +90,7 @@ public class ChromosomeHandler {
     }
 
     public int size() {
-        return chromosomeMap.size();
+        return chromosomesArray.length;
     }
 
     public Set<String> getChrNames() {
@@ -114,9 +107,5 @@ public class ChromosomeHandler {
 
     public Chromosome get(int indx) {
         return chromosomesArray[indx];
-    }
-
-    public Map<String, Integer> getChromosomeIndexesHashTable() {
-        return chromosomeIndexesHashTable;
     }
 }

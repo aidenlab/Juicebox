@@ -33,6 +33,7 @@ import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.ExpectedValueCalculation;
 import juicebox.tools.utils.original.NormalizationCalculations;
+import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -76,37 +77,6 @@ public class Dump extends JuiceboxCLT {
 
     }
 
-    private static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler, HiCZoom zoom, boolean includeIntra) {
-        ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
-        int addX = 0;
-        int addY = 0;
-        for (Chromosome c1 : handler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
-            for (Chromosome c2 : handler.getChromosomeArray()) {
-                if (c2.getName().equals(Globals.CHR_ALL)) continue;
-                if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
-                    Matrix matrix = dataset.getMatrix(c1, c2);
-                    if (matrix != null) {
-                        MatrixZoomData zd = matrix.getZoomData(zoom);
-                        if (zd != null) {
-                            Iterator<ContactRecord> iter = zd.contactRecordIterator();
-                            while (iter.hasNext()) {
-                                ContactRecord cr = iter.next();
-                                int binX = cr.getBinX() + addX;
-                                int binY = cr.getBinY() + addY;
-                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
-                            }
-                        }
-                    }
-                }
-                addY += c2.getLength() / zoom.getBinSize() + 1;
-            }
-            addX += c1.getLength() / zoom.getBinSize() + 1;
-            addY = 0;
-        }
-        return recordArrayList;
-    }
-
     private void dumpGenomeWideData() throws IOException {
 
         if (unit == HiC.Unit.FRAG) {
@@ -115,7 +85,7 @@ public class Dump extends JuiceboxCLT {
         }
 
         // Build a "whole-genome" matrix
-        ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
+        ArrayList<ContactRecord> recordArrayList = NormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         int totalSize = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
