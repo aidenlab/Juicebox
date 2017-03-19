@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-//import juicebox.MainWindow;
-//import org.broad.igv.renderer.DataRange;
-//import org.broad.igv.track.RenderContext;
 
 /**
  * @author jrobinso
@@ -46,6 +43,8 @@ public abstract class HiCTrack {
 
     private static int height = 25;
     private final ResourceLocator locator;
+    private Color posColor = Color.blue.darker();
+    private Color negColor = Color.red.darker();
 
     HiCTrack(ResourceLocator locator) {
         this.locator = locator;
@@ -112,7 +111,21 @@ public abstract class HiCTrack {
 
     public abstract void setName(String text);
 
-    public abstract Color getPosColor();
+    public Color getPosColor() {
+        return posColor;
+    }
+
+    public void setPosColor(Color posColor) {
+        this.posColor = posColor;
+    }
+
+    public Color getNegColor() {
+        return negColor;
+    }
+
+    public void setNegColor(Color negColor) {
+        this.negColor = negColor;
+    }
 
     public abstract void render(Graphics g2d,
                                 Context context,
@@ -121,8 +134,4 @@ public abstract class HiCTrack {
                                 HiCGridAxis gridAxis);
 
     public abstract String getToolTipText(int x, int y, TrackPanel.Orientation orientation);
-
-    public abstract void setColor(Color selectedColor);
-
-    public abstract void setAltColor(Color selectedColor);
 }

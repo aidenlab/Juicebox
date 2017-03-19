@@ -130,6 +130,9 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F8) {
             Private.launchMapSubsetGUI(superAdapter);
             return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
+            superAdapter.togglePanelVisible();
+            return true;
         } else {
             return false;
         }

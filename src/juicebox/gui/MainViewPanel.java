@@ -43,6 +43,8 @@ import org.broad.igv.feature.Chromosome;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -81,6 +83,7 @@ public class MainViewPanel {
     private static JPanel chrSidePanel3;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
+    private JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
 
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
@@ -501,31 +504,31 @@ public class MainViewPanel {
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 
-        final JToggleButton launch2DAnnotationsToggleButton = new JToggleButton("Show Annotation Panel");
-        launch2DAnnotationsToggleButton.setSelected(false);
-
-        launch2DAnnotationsToggleButton.addActionListener(new ActionListener() {
-
-            private LayersPanel layersPanel;
-
+        annotationsPanelToggleButton.addChangeListener(new ChangeListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!launch2DAnnotationsToggleButton.isSelected()) {
-                    launch2DAnnotationsToggleButton.setText("Show Annotation Panel");
-                    if (layersPanel != null) {
-                        layersPanel.setVisible(false);
-                    }
+            public void stateChanged(ChangeEvent e) {
+                if (annotationsPanelToggleButton.isSelected()) {
+                    annotationsPanelToggleButton.setText("Hide Annotation Panel");
                 } else {
-                    launch2DAnnotationsToggleButton.setText("Hide Annotation Panel");
-                    if (layersPanel != null) {
-                        layersPanel.setVisible(true);
-                    } else {
-                        layersPanel = new LayersPanel(superAdapter);
-                    }
+                    annotationsPanelToggleButton.setText("Show Annotation Panel");
                 }
             }
         });
-        rightSidePanel.add(launch2DAnnotationsToggleButton, BorderLayout.SOUTH);
+        annotationsPanelToggleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (annotationsPanelToggleButton.isSelected()) {
+                    superAdapter.setLayersPanelVisible(true);
+                    annotationsPanelToggleButton.setText("Hide Annotation Panel");
+                } else {
+                    superAdapter.setLayersPanelVisible(false);
+                    annotationsPanelToggleButton.setText("Show Annotation Panel");
+                }
+            }
+        });
+        annotationsPanelToggleButton.setSelected(false);
+        annotationsPanelToggleButton.setEnabled(false);
+        rightSidePanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
 
         // compute preferred size
         Dimension preferredSize = new Dimension();
@@ -836,6 +839,7 @@ public class MainViewPanel {
             // TODO failed
         }
         goPanel.setEnabled(status);
+        annotationsPanelToggleButton.setEnabled(status);
     }
 
     public String getColorRangeValues() {
@@ -933,6 +937,10 @@ public class MainViewPanel {
 
     public HiCChromosomeFigPanel getChromosomeFigPanelX() {
         return chromosomePanelX;
+    }
+
+    public void setAnnotationsPanelToggleButtonSelected(boolean status) {
+        annotationsPanelToggleButton.setSelected(status);
     }
 
 

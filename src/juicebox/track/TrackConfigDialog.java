@@ -63,6 +63,11 @@ class TrackConfigDialog extends JDialog {
 
         nameField.setText(track.getName());
         posColorChooser.setSelectedColor(track.getPosColor());
+        altColorChooser.setSelectedColor(track.getNegColor());
+
+        if (track instanceof EigenvectorTrack) {
+            altColorChooser.setEnabled(true);
+        }
 
         if (track instanceof HiCDataTrack) {
             minYField.setEnabled(true);
@@ -76,7 +81,7 @@ class TrackConfigDialog extends JDialog {
             minYField.setText(String.valueOf(dataTrack.getDataRange().getMinimum()));
             maxYField.setText(String.valueOf(dataTrack.getDataRange().getMaximum()));
             logScaleCB.setSelected(dataTrack.getDataRange().isLog());
-            altColorChooser.setSelectedColor(dataTrack.getAltColor());
+            altColorChooser.setSelectedColor(dataTrack.getNegColor());
 
             if (!dataTrack.getAvailableWindowFunctions().contains(WindowFunction.max)) {
                 maxRB.setEnabled(false);
@@ -126,7 +131,7 @@ class TrackConfigDialog extends JDialog {
         if (validateNumeric(minYField.getText()) && validateNumeric(maxYField.getText())) {
 
             track.setName(nameField.getText());
-            track.setColor(posColorChooser.getSelectedColor());
+            track.setPosColor(posColorChooser.getSelectedColor());
             if (track instanceof HiCDataTrack) {
                 float newMin = Float.parseFloat(minYField.getText());
                 float newMax = Float.parseFloat(maxYField.getText());
@@ -136,7 +141,7 @@ class TrackConfigDialog extends JDialog {
                 }
                 newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
                 ((HiCDataTrack) track).setDataRange(newDataRange);
-                track.setAltColor(altColorChooser.getSelectedColor());
+                track.setNegColor(altColorChooser.getSelectedColor());
 
                 WindowFunction wf = maxRB.isSelected() ? WindowFunction.max : WindowFunction.mean;
                 ((HiCDataTrack) track).setWindowFunction(wf);

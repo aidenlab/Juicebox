@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,7 @@ public class EigenvectorTrack extends HiCTrack {
     private final Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
     private final Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
     private final HiC hic;
-    private Color color = Color.blue.darker();
-    private Color altColor = Color.red.darker();
+
     private int currentZoom = -1;
     private String name;
     private boolean isControl = false;
@@ -107,10 +106,6 @@ public class EigenvectorTrack extends HiCTrack {
         medianCache.clear();
     }
 
-    public Color getPosColor() {
-        return color;
-    }
-
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
 
@@ -122,16 +117,6 @@ public class EigenvectorTrack extends HiCTrack {
 //
 //        return bin < data.length ? String.valueOf(data[bin]) : null;
 
-    }
-
-    @Override
-    public void setColor(Color selectedColor) {
-        this.color = selectedColor;
-    }
-
-    @Override
-    public void setAltColor(Color selectedColor) {
-        this.altColor = selectedColor;
     }
 
     /**
@@ -146,7 +131,7 @@ public class EigenvectorTrack extends HiCTrack {
     @Override
     public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
 
-        g.setColor(color);
+        g.setColor(getPosColor());
 
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
@@ -216,8 +201,10 @@ public class EigenvectorTrack extends HiCTrack {
 
             int myh = (int) ((x2 / max) * h);
             if (x2 > 0) {
+                g.setColor(getPosColor());
                 g.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);
             } else {
+                g.setColor(getNegColor());
                 g.fillRect(xPixelLeft, y + h, (xPixelRight - xPixelLeft), -myh);
             }
         }

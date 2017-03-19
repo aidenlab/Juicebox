@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,10 +180,10 @@ public class LoadStateFromXMLFile {
                             hic.getResourceTree().checkTrackBoxesForReloadState(currentTrack.trim());
                             hic.loadLoopList(currentTrack);
                         } else if (currentTrack.contains("goldenPath") || currentTrack.toLowerCase().contains("ensemble")) {
-                            hic.loadTrack(currentTrack);
+                            hic.unsafeLoadTrack(currentTrack);
                             loadEncodeAction.checkEncodeBoxes(trackNames[i].trim());
                         } else {
-                            hic.loadTrack(currentTrack);
+                            hic.unsafeLoadTrack(currentTrack);
                             loadAction.checkBoxesForReload(trackNames[i].trim());
                         }
 
@@ -199,8 +199,8 @@ public class LoadStateFromXMLFile {
                                 for (String aConfigTrackInfo : configTrackInfo) {
 
                                     String[] configInfo = aConfigTrackInfo.split("\\,"); //todo check
-                                    hiCDataTrack.setColor(new Color(Integer.parseInt(configInfo[1])));
-                                    hiCDataTrack.setAltColor(new Color(Integer.parseInt(configInfo[2])));
+                                    hiCDataTrack.setPosColor(new Color(Integer.parseInt(configInfo[1])));
+                                    hiCDataTrack.setNegColor(new Color(Integer.parseInt(configInfo[2])));
                                     DataRange newDataRange = new DataRange(Float.parseFloat(configInfo[3]), Float.parseFloat(configInfo[4]));//min,max
                                     if (Boolean.parseBoolean(configInfo[5])) {
                                         newDataRange.setType(DataRange.Type.LOG);

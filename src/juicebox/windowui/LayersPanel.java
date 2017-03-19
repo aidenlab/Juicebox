@@ -27,8 +27,11 @@ package juicebox.windowui;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCTrack;
+import juicebox.track.LoadAction;
+import juicebox.track.LoadEncodeAction;
 import juicebox.track.TrackConfigPanel;
 import juicebox.track.feature.AnnotationLayerHandler;
+import org.broad.igv.ui.color.ColorChooserPanel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -38,6 +41,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,11 +54,15 @@ import java.util.List;
  */
 public class LayersPanel extends JDialog {
 
+    public static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final long serialVersionUID = 8124112892178L;
     private static final int miniButtonSize = 30;
+    private static LoadAction trackLoadAction;
+    private static LoadEncodeAction encodeAction;
 
-    public LayersPanel(SuperAdapter superAdapter) {
+    public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
+        rootPane.setGlassPane(disabledGlassPane);
 
         Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
@@ -65,40 +74,59 @@ public class LayersPanel extends JDialog {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("1D Annotations", null, annotations1DPanel,
-                "Does twice as much nothing");
+                "Manage 1D Annotations");
         //tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
         tabbedPane.addTab("2D Annotations", null, layers2DPanel,
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        setSize(660, 200);
+        setSize(800, 600);
         add(tabbedPane);
         setVisible(true);
+
+        this.addWindowListener(new WindowListener() {
+            public void windowActivated(WindowEvent e) {
+            }
+
+            public void windowClosed(WindowEvent e) {
+            }
+
+            public void windowClosing(WindowEvent e) {
+                superAdapter.setLayersPanelGUIControllersSelected(false);
+            }
+
+            public void windowDeactivated(WindowEvent e) {
+            }
+
+            public void windowDeiconified(WindowEvent e) {
+            }
+
+            public void windowIconified(WindowEvent e) {
+            }
+
+            public void windowOpened(WindowEvent e) {
+            }
+        });
+    }
+
+    public LoadEncodeAction getEncodeAction() {
+        return encodeAction;
     }
 
     private JPanel generate1DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
         final JPanel layerBoxGUI = new JPanel();
-        //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
         layerBoxGUI.setLayout(new GridLayout(0, 1));
-
-        for (HiCTrack track : superAdapter.getHiC().getLoadedTracks()) {
-            if (track != null) {
-                JPanel panel = new TrackConfigPanel(superAdapter, track);
-                layerBoxGUI.add(panel, 0);
-            }
-        }
-        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
-
-        JButton refreshButton = new JButton("Refresh View");
-        refreshButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.refresh();
-            }
-        });
+        JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+        JButton loadBasicButton = new JButton("Load Basic Annotations...");
+        buttonPanel.add(loadBasicButton);
+        JButton loadEncodeButton = new JButton("Load ENCODE Tracks...");
+        buttonPanel.add(loadEncodeButton);
+        JButton loadFromURLButton = new JButton("Load from URL...");
+        buttonPanel.add(loadFromURLButton);
+        JButton refreshButton = new JButton("Refresh View");
         buttonPanel.add(refreshButton);
 
         final JPanel pane = new JPanel(new BorderLayout());
@@ -109,7 +137,61 @@ public class LayersPanel extends JDialog {
         dim.setSize(dim.getWidth(), dim.getHeight() * 4);
         pane.setPreferredSize(dim);
 
+        final Runnable repaint1DLayersPanel = new Runnable() {
+            @Override
+            public void run() {
+                redraw1DLayerPanels(superAdapter, layerBoxGUI, pane);
+            }
+        };
+        repaint1DLayersPanel.run();
+
+        trackLoadAction = new LoadAction("Load Basic Annotations...", superAdapter.getMainWindow(),
+                superAdapter.getHiC(), repaint1DLayersPanel);
+        loadBasicButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                trackLoadAction.actionPerformed(e);
+            }
+        });
+
+        encodeAction = new LoadEncodeAction("Load ENCODE Tracks...",
+                superAdapter.getMainWindow(), superAdapter.getHiC(), repaint1DLayersPanel);
+
+        loadEncodeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                encodeAction.actionPerformed(e);
+            }
+        });
+
+        loadFromURLButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.safeLoadFromURLActionPerformed(repaint1DLayersPanel);
+            }
+        });
+
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.refresh();
+                redraw1DLayerPanels(superAdapter, layerBoxGUI, pane);
+            }
+        });
         return pane;
+    }
+
+    private void redraw1DLayerPanels(SuperAdapter superAdapter, JPanel layerBoxGUI, JPanel pane) {
+        layerBoxGUI.removeAll();
+        for (HiCTrack track : superAdapter.getHiC().getLoadedTracks()) {
+            if (track != null) {
+                layerBoxGUI.add(new TrackConfigPanel(superAdapter, track));
+            }
+        }
+        layerBoxGUI.revalidate();
+        layerBoxGUI.repaint();
+        pane.revalidate();
+        pane.repaint();
     }
 
     /**
@@ -319,25 +401,19 @@ public class LayersPanel extends JDialog {
         undoButton.setEnabled(handler.getUndoCapability());
         undoButton.setToolTipText("Undo last new feature in this layer");
 
-        /* clear annotations in this layer */
-        //final JButton colorButton = createDynamicIconButton("/images/layer/color.png", handler);
-        final DynamicJButton colorButton = new DynamicJButton(handler);
-        colorButton.addActionListener(new ActionListener() {
+        final ColorChooserPanel colorChooserPanel = new ColorChooserPanel();
+        colorChooserPanel.setSelectedColor(handler.getDefaultColor());
+        colorChooserPanel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JColorChooser colorChooser = new JColorChooser(handler.getDefaultColor());
-                JDialog dialog = JColorChooser.createDialog(new JPanel(null), "Layer Color Selection", true, colorChooser,
-                        null, null);
-                dialog.setVisible(true);
-                Color c = colorChooser.getColor();
+                Color c = colorChooserPanel.getSelectedColor();
                 if (c != null) {
                     handler.setColorOfAllAnnotations(c);
                     superAdapter.repaint();
-                    colorButton.updateColor(c);
                 }
             }
         });
-        colorButton.setToolTipText("Re-color all annotations in this layer");
+        colorChooserPanel.setToolTipText("Re-color all annotations in this layer");
 
         /* clear annotations in this layer */
         JButton clearButton = createIconButton("/images/layer/erase.png");
@@ -447,12 +523,14 @@ public class LayersPanel extends JDialog {
         copyButton.setToolTipText("Duplicate this layer");
 
         parentPanel.add(nameField);
-        AbstractButton[] allButtons = new AbstractButton[]{writeButton, importAnnotationsButton, toggleVisibleButton,
-                colorButton, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton,
+        Component[] allComponents = new Component[]{writeButton, importAnnotationsButton, toggleVisibleButton,
+                colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton,
                 undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
-        for (AbstractButton button : allButtons) {
-            button.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
-            parentPanel.add(button);
+        for (Component component : allComponents) {
+            if (component instanceof AbstractButton) {
+                component.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
+            }
+            parentPanel.add(component);
         }
 
         return parentPanel;
@@ -656,42 +734,7 @@ public class LayersPanel extends JDialog {
         return newImage;
     }
 
-    private class DynamicJButton extends JButton {
-
-        private final static long serialVersionUID = 182637L;
-        private ImageIcon iconActive, iconTransition, iconInactive;
-
-        public DynamicJButton(AnnotationLayerHandler handler) {
-            super();
-            updateColor(handler.getDefaultColor());
-            setBorderPainted(false);
-            setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
-        }
-
-        private void updateColor(Color color) {
-            iconActive = updateIconColor(color, 1f);
-            iconTransition = updateIconColor(color, .6f);
-            iconInactive = updateIconColor(color, .2f);
-            setIcon(iconActive);
-            setRolloverIcon(iconTransition);
-            setPressedIcon(iconInactive);
-        }
-
-        private ImageIcon updateIconColor(Color color, float alpha) {
-            BufferedImage newImage = new BufferedImage(25, 25, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = newImage.createGraphics();
-
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-
-            g.setColor(color);
-            g.fillOval(1, 1, 23, 23);
-            g.setColor(color.brighter());
-            g.setStroke(new BasicStroke(2));
-            g.drawOval(2, 2, 21, 21);
-            g.setColor(color.darker());
-            g.drawOval(1, 1, 23, 23);
-            g.dispose();
-            return new ImageIcon(newImage);
-        }
+    public LoadAction getTrackLoadAction() {
+        return trackLoadAction;
     }
 }

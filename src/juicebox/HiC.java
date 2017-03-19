@@ -211,8 +211,8 @@ public class HiC {
         trackManager.unsafeTrackLoad(locators);
     }
 
-    public void loadTrack(String path) {
-        trackManager.loadTrack(path);
+    public void unsafeLoadTrack(String path) {
+        trackManager.unsafeLoadTrackDirect(path);
     }
 
     public void loadCoverageTrack(NormalizationType no) {
@@ -1063,7 +1063,7 @@ public class HiC {
                         // TODO this still doesn't add to the resource tree / load annotation dialog box
                         //superAdapter.getTrackLoadAction();
                         //getResourceTree().add1DCustomTrack(outputWigFile);
-                        HiC.this.loadTrack(outputWigFile.getAbsolutePath());
+                        HiC.this.unsafeLoadTrack(outputWigFile.getAbsolutePath());
                         LoadAction loadAction = superAdapter.getTrackLoadAction();
                         loadAction.checkBoxesForReload(outputWigFile.getName());
                     }

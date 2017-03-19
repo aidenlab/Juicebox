@@ -61,6 +61,10 @@ public class TrackConfigPanel extends JPanel {
         this.track = track;
         initComponents(superAdapter);
 
+        if (track instanceof EigenvectorTrack) {
+            altColorChooser.setEnabled(true);
+        }
+
         if (track instanceof HiCDataTrack) {
             minYField.setEnabled(true);
             maxYField.setEnabled(true);
@@ -73,7 +77,7 @@ public class TrackConfigPanel extends JPanel {
             minYField.setText(String.valueOf(dataTrack.getDataRange().getMinimum()));
             maxYField.setText(String.valueOf(dataTrack.getDataRange().getMaximum()));
             logScaleCB.setSelected(dataTrack.getDataRange().isLog());
-            altColorChooser.setSelectedColor(dataTrack.getAltColor());
+            altColorChooser.setSelectedColor(dataTrack.getNegColor());
 
             if (!dataTrack.getAvailableWindowFunctions().contains(WindowFunction.max)) {
                 maxRB.setEnabled(false);
@@ -118,7 +122,7 @@ public class TrackConfigPanel extends JPanel {
         // Generated using JFormDesigner non-commercial license
 
 
-        nameField = new JTextField(track.getName(), 5);
+        nameField = new JTextField(track.getName(), 10);
         nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
         nameField.setMaximumSize(new Dimension(100, 30));
         nameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -127,6 +131,8 @@ public class TrackConfigPanel extends JPanel {
                 track.setName(nameField.getText());
                 nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
                 superAdapter.updateTrackPanel();
+                superAdapter.repaintTrackPanels();
+                superAdapter.repaint();
             }
 
             @Override
@@ -134,6 +140,8 @@ public class TrackConfigPanel extends JPanel {
                 track.setName(nameField.getText());
                 nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
                 superAdapter.updateTrackPanel();
+                superAdapter.repaintTrackPanels();
+                superAdapter.repaint();
             }
 
             @Override
@@ -141,17 +149,54 @@ public class TrackConfigPanel extends JPanel {
                 track.setName(nameField.getText());
                 nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
                 superAdapter.updateTrackPanel();
+                superAdapter.repaintTrackPanels();
+                superAdapter.repaint();
             }
         });
         add(nameField);
 
+        add(new JLabel("Positive:"));
+        posColorChooser = new ColorChooserPanel();
+        posColorChooser.setToolTipText("Change color for positive values");
+        posColorChooser.setSelectedColor(track.getPosColor());
+        posColorChooser.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Color color = posColorChooser.getSelectedColor();
+                if (color != null) {
+                    track.setPosColor(color);
+                    superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
+                }
+            }
+        });
+        add(posColorChooser);
+
+        add(new JLabel("Negative:"));
+        altColorChooser = new ColorChooserPanel();
+        altColorChooser.setToolTipText("Change color for negative values");
+        altColorChooser.setSelectedColor(track.getNegColor());
+        altColorChooser.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Color color = altColorChooser.getSelectedColor();
+                if (color != null) {
+                    track.setNegColor(color);
+                    superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
+                }
+            }
+        });
+        add(altColorChooser);
+
         add(new JLabel("Min:"));
-        minYField = new JTextField("", 5);
+        minYField = new JTextField("", 3);
         minYField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 minYFieldFocusLost(e);
                 superAdapter.updateTrackPanel();
+                superAdapter.repaintTrackPanels();
             }
         });
         add(minYField);
@@ -171,17 +216,19 @@ public class TrackConfigPanel extends JPanel {
                     ((HiCDataTrack) track).setDataRange(newDataRange);
 
                     superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
                 }
             }
         });
 
         add(new JLabel("Max:"));
-        maxYField = new JTextField("", 5);
+        maxYField = new JTextField("", 3);
         maxYField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 maxYFieldFocusLost(e);
                 superAdapter.updateTrackPanel();
+                superAdapter.repaintTrackPanels();
             }
         });
         add(maxYField);
@@ -201,6 +248,7 @@ public class TrackConfigPanel extends JPanel {
                     ((HiCDataTrack) track).setDataRange(newDataRange);
 
                     superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
                 }
             }
         });
@@ -209,39 +257,12 @@ public class TrackConfigPanel extends JPanel {
         logScaleCB.setText("Log scale");
         logScaleCB.setEnabled(false);
 
-        add(new JLabel("Pos vals:"));
-        posColorChooser = new ColorChooserPanel();
-        posColorChooser.setSelectedColor(track.getPosColor());
-        posColorChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Color color = posColorChooser.getSelectedColor();
-                if (color != null) {
-                    track.setColor(color);
-                    superAdapter.updateTrackPanel();
-                }
-            }
-        });
-        add(posColorChooser);
 
-        add(new JLabel("Neg vals:"));
-        altColorChooser = new ColorChooserPanel();
-        altColorChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Color color = altColorChooser.getSelectedColor();
-                if (color != null) {
-                    track.setAltColor(color);
-                    superAdapter.updateTrackPanel();
-                }
-            }
-        });
-        add(altColorChooser);
-
-
-        add(new JLabel("Data Reduction Function"));
+        add(new JLabel("DRF"));
         meanRB = new JRadioButton("Mean");
+        meanRB.setToolTipText("Data Reduction Function");
         maxRB = new JRadioButton("Max");
+        maxRB.setToolTipText("Data Reduction Function");
         ButtonGroup dataReductionGroup = new ButtonGroup();
         dataReductionGroup.add(meanRB);
         dataReductionGroup.add(maxRB);
@@ -254,6 +275,7 @@ public class TrackConfigPanel extends JPanel {
                     WindowFunction wf = maxRB.isSelected() ? WindowFunction.max : WindowFunction.mean;
                     ((HiCDataTrack) track).setWindowFunction(wf);
                     superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
                 }
             }
         });
@@ -264,6 +286,7 @@ public class TrackConfigPanel extends JPanel {
                     WindowFunction wf = maxRB.isSelected() ? WindowFunction.max : WindowFunction.mean;
                     ((HiCDataTrack) track).setWindowFunction(wf);
                     superAdapter.updateTrackPanel();
+                    superAdapter.repaintTrackPanels();
                 }
             }
         });

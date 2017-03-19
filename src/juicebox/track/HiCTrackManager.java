@@ -66,14 +66,13 @@ public class HiCTrackManager {
 
     }
 
-    public void loadTrack(final String path) {
+    public void unsafeLoadTrackDirect(final String path) {
         Runnable runnable = new Runnable() {
             public void run() {
-                loadTrack(new ResourceLocator(path));
+                unsafeLoadTrackDirect(new ResourceLocator(path));
                 superAdapter.updateTrackPanel();
             }
         };
-        // mainWindow.executeLongRunningTask(runnable);
         runnable.run();
     }
 
@@ -99,7 +98,7 @@ public class HiCTrackManager {
     public void unsafeTrackLoad(final List<ResourceLocator> locators) {
         for (ResourceLocator locator : locators) {
             try {
-                loadTrack(locator);
+                unsafeLoadTrackDirect(locator);
             } catch (Exception e) {
                 MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
                 System.out.println("Removing " + locator.getName());
@@ -126,7 +125,7 @@ public class HiCTrackManager {
         superAdapter.updateTrackPanel();
     }
 
-    private void loadTrack(final ResourceLocator locator) {
+    private void unsafeLoadTrackDirect(final ResourceLocator locator) {
 
         Genome genome = loadGenome();
         String path = locator.getPath();

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
     }
 
     @Override
-    public Color getColor() {
+    public Color getPosColor() {
         return color;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -154,12 +154,12 @@ public class HiCWigAdapter extends HiCDataAdapter {
     }
 
     @Override
-    public Color getAltColor() {
+    public Color getNegColor() {
         return altColor;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public void setAltColor(Color selectedColor) {
+    public void setNegColor(Color selectedColor) {
         this.altColor = selectedColor;
     }
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,8 +85,8 @@ public class HiCDataTrack extends HiCTrack {
 
         if (data == null) return;
 
-        Color posColor = dataSource.getColor();
-        Color negColor = dataSource.getAltColor();
+        Color posColor = dataSource.getPosColor();
+        Color negColor = dataSource.getNegColor();
 
         // Get the Y axis definition, consisting of minimum, maximum, and base value.  Often
         // the base value is == min value which is == 0.
@@ -191,10 +191,7 @@ public class HiCDataTrack extends HiCTrack {
         dataSource.setName(text);
     }
 
-    @Override
-    public Color getPosColor() {
-        return dataSource.getColor();
-    }
+
 
     @Override
     public String getToolTipText(int x, int y, TrackPanel.Orientation orientation) {
@@ -260,11 +257,6 @@ public class HiCDataTrack extends HiCTrack {
     }
 
     @Override
-    public void setColor(Color selectedColor) {
-        dataSource.setColor(selectedColor);
-    }
-
-    @Override
     public JPopupMenu getPopupMenu(final TrackPanel trackPanel, final SuperAdapter superAdapter) {
 
         JPopupMenu menu = super.getPopupMenu(trackPanel, superAdapter);
@@ -293,13 +285,24 @@ public class HiCDataTrack extends HiCTrack {
         dataSource.setDataRange(dataRange);
     }
 
-    public Color getAltColor() {
-        return dataSource.getAltColor();
+    @Override
+    public Color getPosColor() {
+        return dataSource.getPosColor();
     }
 
     @Override
-    public void setAltColor(Color selectedColor) {
-        dataSource.setAltColor(selectedColor);
+    public void setPosColor(Color selectedColor) {
+        dataSource.setColor(selectedColor);
+    }
+
+    @Override
+    public Color getNegColor() {
+        return dataSource.getNegColor();
+    }
+
+    @Override
+    public void setNegColor(Color selectedColor) {
+        dataSource.setNegColor(selectedColor);
     }
 
     public Collection<WindowFunction> getAvailableWindowFunctions() {

@@ -30,10 +30,7 @@ import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
-import juicebox.track.LoadAction;
-import juicebox.track.LoadEncodeAction;
 import juicebox.windowui.HiCRulerPanel;
-import juicebox.windowui.LayersPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
 
@@ -68,20 +65,11 @@ public class MainMenuBar {
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
-    private static LoadEncodeAction encodeAction;
-    private static LoadAction trackLoadAction;
+    final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
-    private JCheckBoxMenuItem showLoopsItem;
 
-    public LoadAction getTrackLoadAction() {
-        return trackLoadAction;
-    }
-
-    public LoadEncodeAction getEncodeAction() {
-        return encodeAction;
-    }
 
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
@@ -275,35 +263,17 @@ public class MainMenuBar {
 
         // "Annotations" menu items
         annotationsMenu = new JMenu("Annotations");
-
-        JMenuItem newLoadMI = new JMenuItem();
-        trackLoadAction = superAdapter.createNewTrackLoadAction();
-        newLoadMI.setAction(trackLoadAction);
-        annotationsMenu.add(newLoadMI);
-
-        JMenuItem loadEncodeMI = new JMenuItem();
-        encodeAction = superAdapter.createNewLoadEncodeAction();
-        loadEncodeMI.setAction(encodeAction);
-        annotationsMenu.add(loadEncodeMI);
-
-        JMenuItem loadFromURLItem = new JMenuItem("Load 1D Annotation from URL...");
-        loadFromURLItem.addActionListener(new AbstractAction() {
-            private static final long serialVersionUID = 4203L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.loadFromURLActionPerformed();
-            }
-        });
-        annotationsMenu.add(loadFromURLItem);
         annotationsMenu.setEnabled(false);
 
-
-        JMenuItem layersItem = new JMenuItem("Load 2D Annotations...");
         layersItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new LayersPanel(superAdapter);
+                if (layersItem.isSelected()) {
+                    superAdapter.setLayersPanelVisible(true);
+                } else {
+                    superAdapter.setLayersPanelVisible(false);
+                }
+
             }
         });
         annotationsMenu.add(layersItem);
@@ -575,5 +545,9 @@ public class MainMenuBar {
 
     public void updateContolMapHasBeenLoaded(boolean status) {
         showControlStats.setEnabled(status);
+    }
+
+    public void setAnnotationPanelMenuItemSelected(boolean status) {
+        layersItem.setSelected(status);
     }
 }

@@ -56,7 +56,6 @@ public class HiCFeatureTrack extends HiCTrack {
     private final Font font;
     private final HiC hic;
     private final FeatureSource<?> featureSource;
-    private Color color = Color.blue.darker();
     private String name;
 
 
@@ -98,7 +97,7 @@ public class HiCFeatureTrack extends HiCTrack {
         int fCenter = y + height / 2;
 
         g.setFont(font);
-        g.setColor(color);
+        g.setColor(getPosColor());
 
         //Graphics strGraphics = g.create();
         g.setColor(new Color(0, 150, 0));
@@ -172,11 +171,6 @@ public class HiCFeatureTrack extends HiCTrack {
                 }
             }
         }
-    }
-
-    @Override
-    public Color getPosColor() {
-        return color;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -254,15 +248,6 @@ public class HiCFeatureTrack extends HiCTrack {
         }
 
         return null;
-    }
-
-    @Override
-    public void setColor(Color selectedColor) {
-        this.color = selectedColor;
-    }
-
-    @Override
-    public void setAltColor(Color selectedColor) {
     }
 
     @Override

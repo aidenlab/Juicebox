@@ -170,7 +170,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         //urlButton = new JButton("URL...");
         //urlButton.addActionListener(this);
         //urlButton.setPreferredSize(new Dimension((int) urlButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
-        //HiCFileLoader.loadFromURLActionPerformed(superAdapter, control);
+        //HiCFileLoader.safeLoadFromURLActionPerformed(superAdapter, control);
         //setVisible(false);
 
 

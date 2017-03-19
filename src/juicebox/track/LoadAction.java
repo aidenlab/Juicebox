@@ -24,8 +24,6 @@
 
 package juicebox.track;
 
-//~--- non-JDK imports --------------------------------------------------------
-
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
@@ -56,12 +54,14 @@ public class LoadAction extends AbstractAction {
     private static final Logger log = Logger.getLogger(LoadAction.class);
     private final MainWindow mainWindow;
     private final HiC hic;
+    private Runnable repaint1DLayersPanel = null;
 
 
-    public LoadAction(String s, MainWindow mainWindow, HiC hic) {
+    public LoadAction(String s, MainWindow mainWindow, HiC hic, Runnable repaint1DLayersPanel) {
         super(s);
         this.mainWindow = mainWindow;
         this.hic = hic;
+        this.repaint1DLayersPanel = repaint1DLayersPanel;
     }
 
     private static Document createMasterDocument(String xmlUrl, MainWindow mainWindow) throws ParserConfigurationException {
@@ -181,7 +181,8 @@ public class LoadAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent evt) {
         if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to load annotations", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainWindow, "File must be loaded to load annotations",
+                    "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         String genome = hic.getDataset().getGenomeId();
@@ -201,6 +202,9 @@ public class LoadAction extends AbstractAction {
                 if (locators != null && !locators.isEmpty()) {
                     // TODO MSS
                     hic.unsafeLoadHostedTracks(locators);
+                }
+                if (repaint1DLayersPanel != null) {
+                    repaint1DLayersPanel.run();
                 }
             }
         };

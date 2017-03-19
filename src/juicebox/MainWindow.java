@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
 import juicebox.windowui.FileDropTargetListener;
+import juicebox.windowui.LayersPanel;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
@@ -212,6 +213,7 @@ public class MainWindow extends JFrame {
 
     private void showDisabledGlassPane(String caller, String displayMessage) {
         disabledGlassPane.activate(displayMessage);
+        LayersPanel.disabledGlassPane.activate(displayMessage);
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Loading " + caller);
         }
@@ -226,6 +228,7 @@ public class MainWindow extends JFrame {
             System.out.println("Done loading " + caller);
         }
         disabledGlassPane.deactivate();
+        LayersPanel.disabledGlassPane.deactivate();
     }
 
     public void updateNamesFromImport(String path) {

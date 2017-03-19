@@ -74,6 +74,8 @@ public class SuperAdapter {
     private List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<AnnotationLayerHandler>();
     private AnnotationLayerHandler activeLayer;
     private HiCColorScale pearsonColorScale;
+    private LayersPanel layersPanel;
+    private boolean layerPanelIsVisible = false;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -168,11 +170,11 @@ public class SuperAdapter {
     }
 
     public LoadEncodeAction getEncodeAction() {
-        return mainMenuBar.getEncodeAction();
+        return layersPanel.getEncodeAction();
     }
 
     public LoadAction getTrackLoadAction() {
-        return mainMenuBar.getTrackLoadAction();
+        return layersPanel.getTrackLoadAction();
     }
 
     public void updatePrevStateNameFromImport(String path) {
@@ -208,10 +210,6 @@ public class SuperAdapter {
         }
     }
 
-    public LoadAction createNewTrackLoadAction() {
-        return new LoadAction("Load Basic Annotations...", mainWindow, hic);
-    }
-
     /*
     public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
         List<Feature2DList> loops = hic.getAllVisibleLoopLists();
@@ -221,10 +219,6 @@ public class SuperAdapter {
             new SaveAnnotationsDialog(customAnnotations, loops.get(0));
     }
     */
-
-    public LoadEncodeAction createNewLoadEncodeAction() {
-        return new LoadEncodeAction("Load ENCODE Tracks...", mainWindow, hic);
-    }
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayer().setAnnotationLayer(
@@ -251,16 +245,22 @@ public class SuperAdapter {
         mainWindow.repaint();
     }
 
-    public void loadFromURLActionPerformed() {
-        if (hic.getDataset() == null) {
-            JOptionPane.showMessageDialog(mainWindow, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    public void safeLoadFromURLActionPerformed(final Runnable refresh1DLayers) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                if (hic.getDataset() == null) {
+                    JOptionPane.showMessageDialog(mainWindow, "HiC file must be loaded to load tracks", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-        String url = JOptionPane.showInputDialog("Enter URL: ");
-        if (url != null) {
-            hic.loadTrack(url);
-        }
+                String url = JOptionPane.showInputDialog("Enter URL: ");
+                if (url != null && url.length() > 0) {
+                    hic.unsafeLoadTrack(url);
+                }
+                refresh1DLayers.run();
+            }
+        };
+        mainWindow.executeLongRunningTask(runnable, "Load from url");
     }
 
     public String getLocationDescription() {
@@ -867,5 +867,24 @@ public class SuperAdapter {
 
     public String getTrackPanelPrintouts(int x, int y) {
         return mainViewPanel.getTrackPanelPrintouts(x, y);
+    }
+
+    public void setLayersPanelVisible(boolean status) {
+        this.layerPanelIsVisible = status;
+        if (layersPanel != null) {
+            layersPanel.setVisible(status);
+        } else {
+            if (status) layersPanel = new LayersPanel(this);
+        }
+        setLayersPanelGUIControllersSelected(status);
+    }
+
+    public void setLayersPanelGUIControllersSelected(boolean status) {
+        mainViewPanel.setAnnotationsPanelToggleButtonSelected(status);
+        mainMenuBar.setAnnotationPanelMenuItemSelected(status);
+    }
+
+    public void togglePanelVisible() {
+        setLayersPanelVisible(!layerPanelIsVisible);
     }
 }

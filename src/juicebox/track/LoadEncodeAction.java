@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,12 +68,14 @@ public class LoadEncodeAction extends AbstractAction {
     private final HiC hic;
     private String genome;
     private HashSet<ResourceLocator> loadedLocators;
+    private Runnable updateLayerPanelRunnable = null;
 
-    public LoadEncodeAction(String s, MainWindow mainWindow, HiC hic) {
+    public LoadEncodeAction(String s, MainWindow mainWindow, HiC hic, Runnable updateLayerPanelRunnable) {
         super(s);
         this.mainWindow = mainWindow;
         this.hic = hic;
         this.genome = null;
+        this.updateLayerPanelRunnable = updateLayerPanelRunnable;
 
     }
 
@@ -127,6 +129,9 @@ public class LoadEncodeAction extends AbstractAction {
             @Override
             public void run() {
                 unsafeLoadENCODETracks(records, visibleAttributes);
+                if (updateLayerPanelRunnable != null) {
+                    updateLayerPanelRunnable.run();
+                }
             }
         };
         mainWindow.executeLongRunningTask(runnable, "safe load encode tracks");
