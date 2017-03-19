@@ -61,7 +61,7 @@ public class ChromosomeHandler {
     }
 
     public static String cleanUpName(String name) {
-        return name.trim().toLowerCase().replaceAll("chr", "");
+        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
     }
 
     /**
@@ -87,7 +87,7 @@ public class ChromosomeHandler {
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
             if (c.getName().equalsIgnoreCase("MT")) {
-                chromosomeMap.put("m", c); // special case for mitochondria
+                chromosomeMap.put("M", c); // special case for mitochondria
             }
         }
 

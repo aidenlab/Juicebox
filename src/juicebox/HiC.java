@@ -1205,7 +1205,7 @@ public class HiC {
         return chromosomeHandler;
     }
 
-    public void setChromosomeHandler(ChromosomeHandler chromosomes) {
+    public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
     }
 
