@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Map;
 //import java.util.zip.GZIPInputStream;
 
 /**
@@ -49,10 +48,9 @@ public class BinPairIterator implements PairIterator {
      * TODO -- the bin pair file is the same being used for the hic file,  a fragile assumption.
      *
      * @param path
-     * @param chromosomeIndexes
      * @throws IOException
      */
-    public BinPairIterator(String path, Map<String, Integer> chromosomeIndexes) throws IOException {
+    public BinPairIterator(String path) throws IOException {
         is = new LittleEndianInputStream(new BufferedInputStream(new FileInputStream(path)));
         advance();
     }

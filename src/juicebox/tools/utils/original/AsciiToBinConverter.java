@@ -89,8 +89,7 @@ public class AsciiToBinConverter {
             File f = new File(outputFile);
             FileWriter fw = new FileWriter(f);
             pw = new PrintWriter(fw);
-            Map<String, Integer> chromosomeIndexMap = null;  // TODO
-            BinPairIterator iter = new BinPairIterator(inputPath, chromosomeIndexMap);
+            BinPairIterator iter = new BinPairIterator(inputPath);
             while (iter.hasNext()) {
                 AlignmentPair pair = iter.next();
                 pw.println(pair);

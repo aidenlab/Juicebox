@@ -116,9 +116,11 @@ public class Preprocessor {
     }
 
     public void setIncludedChromosomes(Set<String> includedChromosomes) {
-        this.includedChromosomes = new HashSet<>();
-        for (String name : includedChromosomes) {
-            this.includedChromosomes.add(ChromosomeHandler.cleanUpName(name));
+        if (includedChromosomes != null && includedChromosomes.size() > 0) {
+            this.includedChromosomes = new HashSet<>();
+            for (String name : includedChromosomes) {
+                this.includedChromosomes.add(ChromosomeHandler.cleanUpName(name));
+            }
         }
     }
 
@@ -374,7 +376,7 @@ public class Preprocessor {
         writeMatrix(wholeGenomeMatrix);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile, chromosomeIndexes) :
+                new BinPairIterator(inputFile) :
                 new AsciiPairIterator(inputFile, chromosomeIndexes);
 
 
@@ -486,7 +488,7 @@ public class Preprocessor {
         // Create an index the first time through
         try {
             iter = (file.endsWith(".bin")) ?
-                    new BinPairIterator(file, chromosomeIndexes) :
+                    new BinPairIterator(file) :
                     new AsciiPairIterator(file, chromosomeIndexes);
 
             while (iter.hasNext()) {
