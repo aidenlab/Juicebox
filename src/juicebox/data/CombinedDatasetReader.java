@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -226,7 +226,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
         final Dataset firstDataset = datasetList.get(0);
         dataset.genomeId = firstDataset.getGenomeId();
-        dataset.chromosomes = firstDataset.getChromosomes();
+        dataset.setChromosomeHandler(firstDataset.getChromosomeHandler());
 
         String enzyme = firstDataset.getRestrictionEnzyme();
         hasFrags = enzyme != null;

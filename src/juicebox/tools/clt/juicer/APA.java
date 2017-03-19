@@ -27,10 +27,7 @@ package juicebox.tools.clt.juicer;
 import com.google.common.primitives.Ints;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
+import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.apa.APADataStack;
@@ -41,7 +38,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFilter;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -218,15 +214,14 @@ public class APA extends JuicerCLT {
             System.out.println("Processing APA for resolution " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-            List<Chromosome> chromosomes = ds.getChromosomes();
+            ChromosomeHandler handler = ds.getChromosomeHandler();
             if (givenChromosomes != null)
-                chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                        chromosomes));
+                handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
             // Metrics resulting from apa filtering
             final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
 
-            Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, chromosomes, false,
+            Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
                     new FeatureFilter() {
                         // Remove duplicates and filters by size
                         // also save internal metrics for these measures
@@ -246,16 +241,13 @@ public class APA extends JuicerCLT {
 
             if (loopList.getNumTotalFeatures() > 0) {
 
-                double maxProgressStatus = chromosomes.size();
+                double maxProgressStatus = handler.size();
                 int currentProgressStatus = 0;
 
-                for (Chromosome chr1 : chromosomes) {
-                    for (Chromosome chr2 : chromosomes) {
+                for (Chromosome chr1 : handler.getChromosomeArrayWithoutAllByAll()) {
+                    for (Chromosome chr2 : handler.getChromosomeArrayWithoutAllByAll()) {
                         if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
                             APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
-
-                            if (chr1.getName().equals(Globals.CHR_ALL) && chr2.getName().equals(Globals.CHR_ALL))
-                                continue;
 
                             Matrix matrix = ds.getMatrix(chr1, chr2);
                             if (matrix == null) continue;

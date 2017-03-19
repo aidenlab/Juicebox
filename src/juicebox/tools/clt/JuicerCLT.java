@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,10 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.Dataset;
 import juicebox.data.Matrix;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.HashSet;
@@ -47,10 +47,9 @@ public abstract class JuicerCLT extends JuiceboxCLT {
         super(usage);
     }
 
-    protected int determineHowManyChromosomesWillActuallyRun(Dataset ds, List<Chromosome> chromosomes) {
+    protected int determineHowManyChromosomesWillActuallyRun(Dataset ds, ChromosomeHandler chromosomeHandler) {
         int maxProgressStatus = 0;
-        for (Chromosome chr : chromosomes) {
-            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             Matrix matrix = ds.getMatrix(chr, chr);
             if (matrix == null) continue;
             maxProgressStatus++;

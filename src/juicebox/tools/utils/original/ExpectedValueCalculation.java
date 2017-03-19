@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,15 @@
 package juicebox.tools.utils.original;
 
 import juicebox.HiC;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Computes an "expected" density vector.  Essentially there are 3 steps to using this class
@@ -75,7 +78,7 @@ public class ExpectedValueCalculation {
     /**
      * Chromosome in this genome, needed for normalizations
      */
-    private Map<Integer, Chromosome> chromosomes = null;
+    private Map<Integer, Chromosome> chromosomesMap = null;
     /**
      * Stores restriction site fragment information for fragment maps
      */
@@ -84,12 +87,12 @@ public class ExpectedValueCalculation {
     /**
      * Instantiate a DensityCalculation.  This constructor is used to compute the "expected" density from pair data.
      *
-     * @param chromosomeList   List of chromosomes, mainly used for size
+     * @param chromosomeHandler Handler for list of chromosomesMap, mainly used for size
      * @param gridSize         Grid size, used for binning appropriately
      * @param fragmentCountMap Optional.  Map of chromosome name -> number of fragments
      * @param type             Identifies the observed matrix type,  either NONE (observed), VC, or KR.
      */
-    public ExpectedValueCalculation(List<Chromosome> chromosomeList, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
+    public ExpectedValueCalculation(ChromosomeHandler chromosomeHandler, int gridSize, Map<String, Integer> fragmentCountMap, NormalizationType type) {
 
         this.type = type;
         this.gridSize = gridSize;
@@ -100,11 +103,11 @@ public class ExpectedValueCalculation {
         }
 
         long maxLen = 0;
-        this.chromosomes = new LinkedHashMap<Integer, Chromosome>();
+        this.chromosomesMap = new LinkedHashMap<Integer, Chromosome>();
 
-        for (Chromosome chr : chromosomeList) {
-            if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
-                chromosomes.put(chr.getIndex(), chr);
+        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+            if (chr != null) {
+                chromosomesMap.put(chr.getIndex(), chr);
                 try {
                     maxLen = isFrag ?
                             Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
@@ -142,16 +145,16 @@ public class ExpectedValueCalculation {
     }
 
     /**
-     * Set list of chromosomes; need to do this when reading from file
+     * Set list of chromosomesMap; need to do this when reading from file
      *
-     * @param chromosomes1 Array of chromosomes to set
+     * @param chromosomes1 Array of chromosomesMap to set
      */
-    public void setChromosomes(Chromosome[] chromosomes1) {
+    public void setChromosomesMap(Chromosome[] chromosomes1) {
 
-        this.chromosomes = new LinkedHashMap<Integer, Chromosome>();
+        this.chromosomesMap = new LinkedHashMap<Integer, Chromosome>();
         for (Chromosome chr : chromosomes1) {
             if (chr != null) {
-                chromosomes.put(chr.getIndex(), chr);
+                chromosomesMap.put(chr.getIndex(), chr);
             }
         }
     }
@@ -169,7 +172,7 @@ public class ExpectedValueCalculation {
         if (Double.isNaN(weight)) return;
 
         int dist;
-        Chromosome chr = chromosomes.get(chrIdx);
+        Chromosome chr = chromosomesMap.get(chrIdx);
         if (chr == null) return;
 
         Double count = chromosomeCounts.get(chrIdx);
@@ -208,7 +211,7 @@ public class ExpectedValueCalculation {
          */
         double[] possibleDistances = new double[numberOfBins];
 
-        for (Chromosome chr : chromosomes.values()) {
+        for (Chromosome chr : chromosomesMap.values()) {
 
             // didn't see anything at all from a chromosome, then don't include it in possDists.
             if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) continue;
@@ -265,7 +268,7 @@ public class ExpectedValueCalculation {
 
         // Compute fudge factors for each chromosome so the total "expected" count for that chromosome == the observed
 
-        for (Chromosome chr : chromosomes.values()) {
+        for (Chromosome chr : chromosomesMap.values()) {
 
             if (chr == null || !chromosomeCounts.containsKey(chr.getIndex())) {
                 continue;

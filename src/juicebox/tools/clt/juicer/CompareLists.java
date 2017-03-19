@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,15 @@
 package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.*;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
@@ -89,20 +87,19 @@ public class CompareLists extends JuicerCLT {
     @Override
     public void run() {
 
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
+        ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
         if (givenChromosomes != null)
-            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    chromosomes));
+            handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
         Feature2DList listA = null, listB = null;
         if (compareTypeID == 0) {
-            listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, false, null, false);
-            listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, false, null, false);
+            listA = Feature2DParser.loadFeatures(inputFileA, handler, false, null, false);
+            listB = Feature2DParser.loadFeatures(inputFileB, handler, false, null, false);
 
         } else if (compareTypeID == 1 || compareTypeID == 2) {
             Feature2DWithMotif.useSimpleOutput = true;
-            listA = Feature2DParser.loadFeatures(inputFileA, chromosomes, true, null, true);
-            listB = Feature2DParser.loadFeatures(inputFileB, chromosomes, true, null, true);
+            listA = Feature2DParser.loadFeatures(inputFileA, handler, true, null, true);
+            listB = Feature2DParser.loadFeatures(inputFileB, handler, true, null, true);
         }
 
         if (compareTypeID == 2) {

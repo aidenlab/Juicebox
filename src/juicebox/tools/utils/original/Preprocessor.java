@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
@@ -53,11 +54,8 @@ public class Preprocessor {
     private static final int VERSION = 8;
     private static final int BLOCK_SIZE = 1000;
 
-    private final List<Chromosome> chromosomes;
-
-    // Map of name -> index
+    private final ChromosomeHandler chromosomeHandler;
     private final Map<String, Integer> chromosomeIndexes;
-
     private final File outputFile;
     private final Map<String, IndexEntry> matrixPositions;
     private final String genomeId;
@@ -87,15 +85,15 @@ public class Preprocessor {
     private Map<String, ExpectedValueCalculation> expectedValueCalculations;
     private File tmpDir;
 
-    public Preprocessor(File outputFile, String genomeId, List<Chromosome> chromosomes) {
+    public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler) {
         this.genomeId = genomeId;
         this.outputFile = outputFile;
         this.matrixPositions = new LinkedHashMap<String, IndexEntry>();
 
-        this.chromosomes = chromosomes;
+        this.chromosomeHandler = chromosomeHandler;
         chromosomeIndexes = new Hashtable<String, Integer>();
-        for (int i = 0; i < chromosomes.size(); i++) {
-            chromosomeIndexes.put(chromosomes.get(i).getName(), i);
+        for (int i = 0; i < chromosomeHandler.size(); i++) {
+            chromosomeIndexes.put(chromosomeHandler.get(i).getName(), i);
         }
 
         compressor = new Deflater();
@@ -118,7 +116,12 @@ public class Preprocessor {
     }
 
     public void setIncludedChromosomes(Set<String> includedChromosomes) {
-        this.includedChromosomes = includedChromosomes;
+        if (includedChromosomes != null && includedChromosomes.size() > 0) {
+            this.includedChromosomes = new HashSet<>();
+            for (String name : includedChromosomes) {
+                this.includedChromosomes.add(ChromosomeHandler.cleanUpName(name));
+            }
+        }
     }
 
     public void setFragmentFile(String fragmentFileName) {
@@ -244,7 +247,7 @@ public class Preprocessor {
 
             expectedValueCalculations = new LinkedHashMap<String, ExpectedValueCalculation>();
             for (int bBinSize : bpBinSizes) {
-                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, bBinSize, null, NormalizationType.NONE);
+                ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
                 String key = "BP_" + bBinSize;
                 expectedValueCalculations.put(key, calc);
             }
@@ -261,7 +264,7 @@ public class Preprocessor {
 
 
                 for (int fBinSize : fragBinSizes) {
-                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomes, fBinSize, fragmentCountMap, NormalizationType.NONE);
+                    ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, fBinSize, fragmentCountMap, NormalizationType.NONE);
                     String key = "FRAG_" + fBinSize;
                     expectedValueCalculations.put(key, calc);
                 }
@@ -333,9 +336,9 @@ public class Preprocessor {
         }
 
         // Sequence dictionary
-        int nChrs = chromosomes.size();
+        int nChrs = chromosomeHandler.size();
         los.writeInt(nChrs);
-        for (Chromosome chromosome : chromosomes) {
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
             los.writeString(chromosome.getName());
             los.writeInt(chromosome.getLength());
         }
@@ -356,7 +359,7 @@ public class Preprocessor {
 
         // fragment sites
         if (nFragRes > 0) {
-            for (Chromosome chromosome : chromosomes) {
+            for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
                 int[] sites = fragmentCalculation.getSites(chromosome.getName());
                 int nSites = sites == null ? 0 : sites.length;
                 los.writeInt(nSites);
@@ -373,7 +376,7 @@ public class Preprocessor {
         writeMatrix(wholeGenomeMatrix);
 
         PairIterator iter = (inputFile.endsWith(".bin")) ?
-                new BinPairIterator(inputFile, chromosomeIndexes) :
+                new BinPairIterator(inputFile) :
                 new AsciiPairIterator(inputFile, chromosomeIndexes);
 
 
@@ -408,8 +411,8 @@ public class Preprocessor {
                 // Filters
                 if (diagonalsOnly && chr1 != chr2) continue;
                 if (includedChromosomes != null && chr1 != 0) {
-                    String c1Name = chromosomes.get(chr1).getName();
-                    String c2Name = chromosomes.get(chr2).getName();
+                    String c1Name = chromosomeHandler.get(chr1).getName();
+                    String c2Name = chromosomeHandler.get(chr2).getName();
                     if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
                         continue;
                     }
@@ -467,7 +470,7 @@ public class Preprocessor {
         MatrixPP matrix;
         // NOTE: always true that c1 <= c2
 
-        int genomeLength = chromosomes.get(0).getLength();  // <= whole genome in KB
+        int genomeLength = chromosomeHandler.get(0).getLength();  // <= whole genome in KB
         int binSize = genomeLength / 500;
         if (binSize == 0) binSize = 1;
         int nBinsX = genomeLength / binSize + 1;
@@ -485,7 +488,7 @@ public class Preprocessor {
         // Create an index the first time through
         try {
             iter = (file.endsWith(".bin")) ?
-                    new BinPairIterator(file, chromosomeIndexes) :
+                    new BinPairIterator(file) :
                     new AsciiPairIterator(file, chromosomeIndexes);
 
             while (iter.hasNext()) {
@@ -506,8 +509,8 @@ public class Preprocessor {
                     int pos1, pos2;
                     if (diagonalsOnly && chr1 != chr2) continue;
                     if (includedChromosomes != null && chr1 != 0) {
-                        String c1Name = chromosomes.get(chr1).getName();
-                        String c2Name = chromosomes.get(chr2).getName();
+                        String c1Name = chromosomeHandler.get(chr1).getName();
+                        String c2Name = chromosomeHandler.get(chr2).getName();
                         if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
                             continue;
                         }
@@ -551,7 +554,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     private int getGenomicPosition(int chr, int pos) {
         long len = 0;
         for (int i = 1; i < chr; i++) {
-            len += chromosomes.get(i).getLength();
+            len += chromosomeHandler.get(i).getLength();
         }
         len += pos;
 
@@ -1147,8 +1150,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             int zoom = 0; //
             for (int idx = 0; idx < bpBinSizes.length; idx++) {
                 int binSize = bpBinSizes[zoom];
-                Chromosome chrom1 = chromosomes.get(chr1Idx);
-                Chromosome chrom2 = chromosomes.get(chr2Idx);
+                Chromosome chrom1 = chromosomeHandler.get(chr1Idx);
+                Chromosome chrom2 = chromosomeHandler.get(chr2Idx);
 
                 // Size block (submatrices) to be ~500 bins wide.
                 int len = Math.max(chrom1.getLength(), chrom2.getLength());
@@ -1160,8 +1163,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             }
 
             if (fragmentCalculation != null) {
-                Chromosome chrom1 = chromosomes.get(chr1Idx);
-                Chromosome chrom2 = chromosomes.get(chr2Idx);
+                Chromosome chrom1 = chromosomeHandler.get(chr1Idx);
+                Chromosome chrom2 = chromosomeHandler.get(chr2Idx);
                 int nFragBins1 = Math.max(fragmentCalculation.getNumberFragments(chrom1.getName()),
                         fragmentCalculation.getNumberFragments(chrom2.getName()));
 
@@ -1188,7 +1191,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             this.chr1Idx = chr1Idx;
             this.chr2Idx = chr2Idx;
             zoomData = new MatrixZoomDataPP[1];
-            zoomData[0] = new MatrixZoomDataPP(chromosomes.get(chr1Idx), chromosomes.get(chr2Idx), binSize, blockColumnCount, 0, false);
+            zoomData[0] = new MatrixZoomDataPP(chromosomeHandler.get(chr1Idx), chromosomeHandler.get(chr2Idx),
+                    binSize, blockColumnCount, 0, false);
 
         }
 

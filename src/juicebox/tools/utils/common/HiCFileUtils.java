@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -110,7 +110,7 @@ class HiCFileUtils {
     }
 
     private Chromosome findChromosome(String name) {
-        for (Chromosome chr : dataset.getChromosomes()) {
+        for (Chromosome chr : dataset.getChromosomeHandler().getChromosomeArray()) {
             if (chr.getName().equalsIgnoreCase(name)) return chr;
         }
         return null;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@ import juicebox.tools.utils.juicer.GeneTools;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
-import org.broad.igv.feature.Chromosome;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -78,14 +77,13 @@ public class GeneFinder extends JuicerCLT {
 
     @Override
     public void run() {
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
-        ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+        ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 
 
         try {
 
             GenomeWideList<MotifAnchor> genes = GeneTools.parseGenome(genomeID, handler);
-            final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, chromosomes, false, null, false);
+            final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, handler, false, null, false);
             GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromFeatures(allLoops, false, handler);
             final Feature2DList filteredLoops = new Feature2DList();
 

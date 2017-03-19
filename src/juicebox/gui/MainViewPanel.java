@@ -28,7 +28,7 @@ import com.jidesoft.swing.JideButton;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.HiCFileTools;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
@@ -612,27 +612,18 @@ public class MainViewPanel {
         rulerPanelY.setContext(yContext, HiCRulerPanel.Orientation.VERTICAL);
         chromosomePanelX.setContext(xContext, HiCChromosomeFigPanel.Orientation.HORIZONTAL);
         chromosomePanelY.setContext(yContext, HiCChromosomeFigPanel.Orientation.VERTICAL);
-        resolutionSlider.setEnabled(!xChrom.getName().equals(Globals.CHR_ALL));
+        resolutionSlider.setEnabled(!ChromosomeHandler.isAllByAll(xChrom));
     }
 
     /**
      * Chromosome "0" is whole genome
      *
-     * @param chromosomes list of chromosomes
+     * @param handler for list of chromosomes
      */
-    void setChromosomes(List<Chromosome> chromosomes) {
-        int[] chromosomeBoundaries = new int[chromosomes.size() - 1];
-        long bound = 0;
-        for (int i = 1; i < chromosomes.size(); i++) {
-            Chromosome c = chromosomes.get(i);
-            bound += (c.getLength() / 1000);
-            chromosomeBoundaries[i - 1] = (int) bound;
-        }
-        heatmapPanel.setChromosomeBoundaries(chromosomeBoundaries);
-
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(chromosomes.toArray(new Chromosome[chromosomes.size()])));
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(chromosomes.toArray(new Chromosome[chromosomes.size()])));
-
+    void setChromosomes(ChromosomeHandler handler) {
+        heatmapPanel.setChromosomeBoundaries(handler.getChromosomeBoundaries());
+        chrBox1.setModel(new DefaultComboBoxModel<>(handler.getChromosomeArray()));
+        chrBox2.setModel(new DefaultComboBoxModel<>(handler.getChromosomeArray()));
     }
 
     private boolean isInterChromosomal() {
@@ -648,13 +639,13 @@ public class MainViewPanel {
     private boolean isWholeGenome() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
+        return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
     private boolean isWholeGenome(HiC hic) {
         Chromosome chr1 = hic.getXContext().getChromosome();
         Chromosome chr2 = hic.getYContext().getChromosome();
-        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
+        return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
     public void setNormalizationDisplayState(HiC hic) {

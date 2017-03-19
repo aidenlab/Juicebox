@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ package juicebox.tools.utils.original;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import org.broad.igv.util.ParsingUtils;
 
 import java.io.*;
@@ -125,8 +126,8 @@ public class AsciiPairIterator implements PairIterator {
                     }
                 }
                 if (format == Format.MEDIUM) {
-                    String chrom1 = getInternedString(tokens.get(2));
-                    String chrom2 = getInternedString(tokens.get(6));
+                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(2)));
+                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(6)));
                     // some contigs will not be present in the chrom.sizes file
                     if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
                         int chr1 = chromosomeOrdinals.get(chrom1);
@@ -147,8 +148,8 @@ public class AsciiPairIterator implements PairIterator {
                     }
 
                 } else if (format == Format.DCIC) {
-                    String chrom1 = getInternedString(tokens.get(1));
-                    String chrom2 = getInternedString(tokens.get(3));
+                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
+                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(3)));
                     if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
                         int chr1 = chromosomeOrdinals.get(chrom1);
                         int chr2 = chromosomeOrdinals.get(chrom2);
@@ -165,8 +166,8 @@ public class AsciiPairIterator implements PairIterator {
                 } else {
                     // this should be strand, chromosome, position, fragment.
 
-                    String chrom1 = getInternedString(tokens.get(1));
-                    String chrom2 = getInternedString(tokens.get(5));
+                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
+                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(5)));
                     // some contigs will not be present in the chrom.sizes file
                     if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
                         int chr1 = chromosomeOrdinals.get(chrom1);

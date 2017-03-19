@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,8 +77,7 @@ public class MotifAnchorParser {
             System.err.println("Unable to create input stream for global motifs " + motifLocation);
             System.exit(49);
         } finally {
-            List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
-            ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
+            ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 
             Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
 
@@ -100,7 +99,7 @@ public class MotifAnchorParser {
                     //e4.printStackTrace();
                 }
             }
-            newAnchorList = new GenomeWideList<MotifAnchor>(chromosomes, new ArrayList<MotifAnchor>(anchors));
+            newAnchorList = new GenomeWideList<>(handler, new ArrayList<>(anchors));
         }
 
         if (anchorFilter != null)

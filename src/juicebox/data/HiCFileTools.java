@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ public class HiCFileTools {
      * @param idOrFile string
      * @return list of chromosomes
      */
-    public static List<Chromosome> loadChromosomes(String idOrFile) {
+    public static ChromosomeHandler loadChromosomes(String idOrFile) {
 
         InputStream is = null;
 
@@ -120,7 +120,6 @@ public class HiCFileTools {
             Pattern pattern = Pattern.compile("\\s+");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
             String nextLine;
-            long genomeLength = 0;
             int idx = 1;
 
             try {
@@ -129,7 +128,6 @@ public class HiCFileTools {
                     if (tokens.length == 2) {
                         String name = tokens[0];
                         int length = Integer.parseInt(tokens[1]);
-                        genomeLength += length;
                         chromosomes.add(idx, new Chromosome(idx, name, length));
                         idx++;
                     } else {
@@ -140,10 +138,8 @@ public class HiCFileTools {
                 e.printStackTrace();
             }
 
-            // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-
-            return chromosomes;
+            // "pseudo-chromosome" All taken care of by by chromosome handler
+            return new ChromosomeHandler(chromosomes);
         } finally {
             if (is != null) {
                 try {
@@ -153,14 +149,6 @@ public class HiCFileTools {
                 }
             }
         }
-    }
-
-    public static boolean isAllChromosome(Chromosome chromosome) {
-        return isAllChromosome(chromosome.getName());
-    }
-
-    public static boolean isAllChromosome(String name) {
-        return name.equalsIgnoreCase(Globals.CHR_ALL);
     }
 
     /**
@@ -284,22 +272,8 @@ public class HiCFileTools {
     }
 
 
-    /**
-     * Set intersection
-     * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
-     *
-     * @param collection1
-     * @param collection2
-     * @return intersection of set1 and set2
-     */
-    public static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
-        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
-        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
-
-        boolean set1IsLarger = set1.size() > set2.size();
-        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
-        cloneSet.retainAll(set1IsLarger ? set1 : set2);
-        return cloneSet;
+    public static ChromosomeHandler getChromosomeSetIntersection(ChromosomeHandler handler1, ChromosomeHandler handler2) {
+        return handler1.getIntersetionWith(handler2);
     }
 
     public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
@@ -316,16 +290,16 @@ public class HiCFileTools {
      * For each given chromosome name, find its equivalent Chromosome object
      *
      * @param chromosomesSpecified by strings
-     * @param referenceChromosomes as Chromosome objects
+     * @param handler as Chromosome objects
      * @return the specified Chromosomes corresponding to the given strings
      */
-    public static Set<Chromosome> stringToChromosomes(Set<String> chromosomesSpecified,
-                                                      List<Chromosome> referenceChromosomes) {
+    public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
+                                                        ChromosomeHandler handler) {
         Set<Chromosome> chromosomes = new HashSet<Chromosome>();
 
         for (String strKey : chromosomesSpecified) {
             boolean chrFound = false;
-            for (Chromosome chrKey : referenceChromosomes) {
+            for (Chromosome chrKey : handler.getChromosomeArray()) {
                 if (equivalentChromosome(strKey, chrKey)) {
                     chromosomes.add(chrKey);
                     chrFound = true;
@@ -336,7 +310,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new HashSet<Chromosome>(chromosomes);
+        return new ChromosomeHandler(new ArrayList<>(chromosomes));
     }
 
     /**

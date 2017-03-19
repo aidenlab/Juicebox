@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -158,7 +158,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
 
-        ChromosomeHandler handler = new ChromosomeHandler(hic.getDataset().getChromosomes());
+        ChromosomeHandler handler = hic.getDataset().getChromosomeHandler();
 
         Chromosome topChr = handler.getChr(topChrTokens[0]);
         if (topChr == null) {
@@ -351,9 +351,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
 
         try {
-            List<Chromosome> chromosomes = hic.getChromosomes();
-            ChromosomeHandler handler = new ChromosomeHandler(chromosomes);
-
+            ChromosomeHandler handler = hic.getChromosomeHandler();
             geneLocationHashMap = GeneTools.getLocationMap(reader, handler);
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);

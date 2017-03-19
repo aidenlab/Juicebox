@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,13 +48,13 @@ import java.util.BitSet;
  */
 public class Pearsons extends JuiceboxCLT {
 
+    private static final int BLOCK_TILE = 500;
+    String ofile = null;
     private HiC.Unit unit = null;
     private NormalizationType norm = null;
     private Dataset dataset = null;
     private int binSize = 0;
     private Chromosome chromosome1;
-    String ofile = null;
-    private static final int BLOCK_TILE=500;
 
 
     public Pearsons() {
@@ -63,6 +63,102 @@ public class Pearsons extends JuiceboxCLT {
 
     public static String getUsage(){
         return "pearsons <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+    }
+
+    public static BasicMatrix readPearsons(String path) throws IOException {
+
+        // Peak at file to determine version
+        BufferedInputStream bis = null;
+        int magic;
+        try {
+            InputStream is = ParsingUtils.openInputStream(path);
+            bis = new BufferedInputStream(is);
+            LittleEndianInputStream les = new LittleEndianInputStream(bis);
+
+            magic = les.readInt();
+
+            if (magic != 6515048) {
+                System.err.println("Problem reading Pearson's " + path);
+                return null;
+            }
+        } finally {
+            if (bis != null)
+                bis.close();
+        }
+
+        return new DiskResidentBlockMatrix(path);
+
+    }
+
+    private static double computePearsons(double[] scores1, double[] scores2) {
+
+//        double length = scores1.length;
+//        double sum_xsq = 0;
+//        double sum_ysq = 0;
+//        double sumx = 0;
+//        double sumy = 0;
+//        for (int i=0; i<length; i++) sum_xsq += scores1[i]*scores1[i];
+//        for (int i=0; i<length; i++) sum_ysq += scores2[i]*scores2[i];
+//        for (int i=0; i<length; i++) sumx += scores1[i];
+//        for (int i=0; i<length; i++) sumy += scores2[i];
+//        double denominator = (sum_xsq - (sumx*sumx/length))*(sum_ysq - (sumy*sumy/length));
+//        double numerator = 0;
+//        for (int i=0; i<length; i++) numerator += scores1[i]*scores2[i]; // dot product
+//        return (numerator - (sumx*sumy/length))/Math.sqrt(denominator);
+
+        double result;
+        double sum_sq_x = 0;
+        double sum_sq_y = 0;
+        double sum_coproduct = 0;
+        double mean_x = scores1[0];
+        double mean_y = scores2[0];
+        for (int i = 1; i < scores1.length; i++) {
+
+            double sweep = ((double) i) / (i + 1);
+            double delta_x = scores1[i] - mean_x;
+            double delta_y = scores2[i] - mean_y;
+
+            sum_sq_x += delta_x * delta_x * sweep;
+            sum_sq_y += delta_y * delta_y * sweep;
+            sum_coproduct += delta_x * delta_y * sweep;
+
+            mean_x += delta_x / (i + 1);
+            mean_y += delta_y / (i + 1);
+        }
+        double pop_sd_x = Math.sqrt(sum_sq_x / scores1.length);
+        double pop_sd_y = Math.sqrt(sum_sq_y / scores1.length);
+        double cov_x_y = sum_coproduct / scores1.length;
+        result = cov_x_y / (pop_sd_x * pop_sd_y);
+        return result;
+    }
+
+    public static BasicMatrix computePearsons(double[][] columns, int dim) {
+
+        BasicMatrix pearsons = new InMemoryMatrix(dim);
+        //pearsons.fill(Float.NaN);
+
+        BitSet bitSet = new BitSet(dim);
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                if (i == j) continue;
+
+                double[] v1 = columns[i];
+                double[] v2 = columns[j];
+                if (v1 == null || v2 == null) {
+                    pearsons.setEntry(i, j, Float.NaN);
+                } else {
+                    double corr = Pearsons.computePearsons(columns[i], columns[j]);
+                    pearsons.setEntry(i, j, (float) corr);
+                    bitSet.set(i);
+                }
+            }
+        }
+        // Set diagonal to 1, set centromere to NaN
+        for (int i = 0; i < dim; i++) {
+            if (bitSet.get(i)) pearsons.setEntry(i, i, 1.0f);
+            else pearsons.setEntry(i, i, Float.NaN);
+        }
+        return pearsons;
     }
 
     @Override
@@ -80,7 +176,7 @@ public class Pearsons extends JuiceboxCLT {
         }
 
         dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), true);
-        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(dataset.getChromosomes());
+        ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
         if (!chromosomeHandler.containsChromosome(args[3])) {
             System.err.println("Unknown chromosome: " + args[3]);
@@ -105,13 +201,12 @@ public class Pearsons extends JuiceboxCLT {
         }
 
         if ((unit == HiC.Unit.BP && binSize < HiCGlobals.MAX_PEARSON_ZOOM) ||
-                        (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM/1000)) {
+                (unit == HiC.Unit.FRAG && binSize < HiCGlobals.MAX_PEARSON_ZOOM / 1000)) {
             System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
             System.out.println("To override this limitation, send in the \"-p\" flag.");
             System.exit(0);
-         //   System.out.println("WARNING: Pearson's and eigenvector calculation at high resolution can take a long time");
+            //   System.out.println("WARNING: Pearson's and eigenvector calculation at high resolution can take a long time");
         }
-
 
         if (args.length == 7) {
             ofile = args[6];
@@ -218,6 +313,7 @@ public class Pearsons extends JuiceboxCLT {
             }
         }
     }
+
     private void writeHeader(LittleEndianOutputStream les, int dim, float lower, float upper) throws IOException {
 
         // Magic number - 4 bytes
@@ -245,102 +341,6 @@ public class Pearsons extends JuiceboxCLT {
         les.writeInt(dim);  // # rows
         les.writeInt(dim);  // # cols
         les.writeInt(BLOCK_TILE);
-    }
-
-    public static BasicMatrix readPearsons(String path) throws IOException {
-
-        // Peak at file to determine version
-        BufferedInputStream bis = null;
-        int magic;
-        try {
-            InputStream is = ParsingUtils.openInputStream(path);
-            bis = new BufferedInputStream(is);
-            LittleEndianInputStream les = new LittleEndianInputStream(bis);
-
-            magic = les.readInt();
-
-            if (magic != 6515048) {
-                System.err.println("Problem reading Pearson's " + path);
-                return null;
-            }
-        } finally {
-            if (bis != null)
-                bis.close();
-        }
-
-        return new DiskResidentBlockMatrix(path);
-
-    }
-
-    private static double computePearsons(double[] scores1, double[] scores2) {
-
-//        double length = scores1.length;
-//        double sum_xsq = 0;
-//        double sum_ysq = 0;
-//        double sumx = 0;
-//        double sumy = 0;
-//        for (int i=0; i<length; i++) sum_xsq += scores1[i]*scores1[i];
-//        for (int i=0; i<length; i++) sum_ysq += scores2[i]*scores2[i];
-//        for (int i=0; i<length; i++) sumx += scores1[i];
-//        for (int i=0; i<length; i++) sumy += scores2[i];
-//        double denominator = (sum_xsq - (sumx*sumx/length))*(sum_ysq - (sumy*sumy/length));
-//        double numerator = 0;
-//        for (int i=0; i<length; i++) numerator += scores1[i]*scores2[i]; // dot product
-//        return (numerator - (sumx*sumy/length))/Math.sqrt(denominator);
-
-        double result;
-        double sum_sq_x = 0;
-        double sum_sq_y = 0;
-        double sum_coproduct = 0;
-        double mean_x = scores1[0];
-        double mean_y = scores2[0];
-        for (int i = 1; i < scores1.length; i++) {
-
-            double sweep = ((double) i) / (i + 1);
-            double delta_x = scores1[i] - mean_x;
-            double delta_y = scores2[i] - mean_y;
-
-            sum_sq_x += delta_x * delta_x * sweep;
-            sum_sq_y += delta_y * delta_y * sweep;
-            sum_coproduct += delta_x * delta_y * sweep;
-
-            mean_x += delta_x / (i + 1);
-            mean_y += delta_y / (i + 1);
-        }
-        double pop_sd_x = Math.sqrt(sum_sq_x / scores1.length);
-        double pop_sd_y = Math.sqrt(sum_sq_y / scores1.length);
-        double cov_x_y = sum_coproduct / scores1.length;
-        result = cov_x_y / (pop_sd_x * pop_sd_y);
-        return result;
-    }
-
-    public static BasicMatrix computePearsons(double[][] columns, int dim) {
-
-        BasicMatrix pearsons = new InMemoryMatrix(dim);
-        //pearsons.fill(Float.NaN);
-
-        BitSet bitSet = new BitSet(dim);
-        for (int i = 0; i < dim; i++) {
-            for (int j = 0; j < dim; j++) {
-                if (i == j) continue;
-
-                double[] v1 = columns[i];
-                double[] v2 = columns[j];
-                if (v1 == null || v2 == null) {
-                    pearsons.setEntry(i, j, Float.NaN);
-                } else {
-                    double corr = Pearsons.computePearsons(columns[i], columns[j]);
-                    pearsons.setEntry(i, j, (float) corr);
-                    bitSet.set(i);
-                }
-            }
-        }
-        // Set diagonal to 1, set centromere to NaN
-        for (int i = 0; i < dim; i++) {
-            if (bitSet.get(i)) pearsons.setEntry(i, i, 1.0f);
-            else pearsons.setEntry(i, i, Float.NaN);
-        }
-        return pearsons;
     }
 }
 

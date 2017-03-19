@@ -27,7 +27,7 @@ package juicebox.windowui;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.data.HiCFileTools;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
@@ -40,7 +40,6 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.List;
 
 /**
  * @author jrobinso
@@ -193,7 +192,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (!HiCFileTools.isAllChromosome(chromosome)) {
+            if (!ChromosomeHandler.isAllByAll(chromosome)) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
@@ -249,18 +248,18 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
-        if (HiCFileTools.isAllChromosome(chromosome)) {
+        if (ChromosomeHandler.isAllByAll(chromosome)) {
             int x1 = 0;
-            List<Chromosome> chromosomes = hic.getChromosomes();
+            ChromosomeHandler handler = hic.getChromosomeHandler();
             // Index 0 is whole genome
             int genomeCoord = 0;
-            for (int i = 1; i < chromosomes.size(); i++) {
+            for (int i = 1; i < handler.size(); i++) {
                 Color tColor = isHorizontal() ? topTick : leftTick;
                 g.setColor(tColor);
 
 
                 double binOrigin = context.getBinOrigin();
-                Chromosome c = chromosomes.get(i);
+                Chromosome c = handler.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
                 int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);

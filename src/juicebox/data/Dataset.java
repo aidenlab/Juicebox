@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,8 +56,6 @@ public class Dataset {
     private final DatasetReader reader;
     private final LRUCache<String, double[]> eigenvectorCache;
     private final LRUCache<String, NormalizationVector> normalizationVectorCache;
-    //Chromosome lookup table
-    public List<Chromosome> chromosomes;
     Map<String, ExpectedValueFunction> expectedValueFunctionMap;
     String genomeId;
     String restrictionEnzyme = null;
@@ -68,6 +66,7 @@ public class Dataset {
     private Map<String, Integer> fragmentCounts;
     private Map<String, NormalizationVector> loadedNormalizationVectors;
     private List<NormalizationType> normalizationTypes;
+    private ChromosomeHandler chromosomeHandler;
 
     public Dataset(DatasetReader reader) {
         this.reader = reader;
@@ -252,15 +251,13 @@ public class Dataset {
         this.expectedValueFunctionMap = df;
     }
 
-    public List<Chromosome> getChromosomes() {
-        return chromosomes;
+    public ChromosomeHandler getChromosomeHandler() {
+        return chromosomeHandler;
     }
 
-
-    public void setChromosomes(List<Chromosome> chromosomes) {
-        this.chromosomes = chromosomes;
+    public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
+        this.chromosomeHandler = chromosomeHandler;
     }
-
 
     public int getVersion() {
         return reader.getVersion();

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -178,9 +178,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 int size = dis.readInt();
                 position += 4;
 
-                chromosomes.add(new Chromosome(i, name, size));
+                chromosomes.add(new Chromosome(i, ChromosomeHandler.cleanUpName(name), size));
             }
-            dataset.setChromosomes(chromosomes);
+            dataset.setChromosomeHandler(new ChromosomeHandler(chromosomes));
 
             int nBpResolutions = dis.readInt();
             position += 4;
@@ -559,8 +559,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
-        Chromosome chr1 = dataset.getChromosomes().get(c1);
-        Chromosome chr2 = dataset.getChromosomes().get(c2);
+        Chromosome chr1 = dataset.getChromosomeHandler().get(c1);
+        Chromosome chr2 = dataset.getChromosomeHandler().get(c2);
 
         // # of resolution levels (bp and frags)
         int nResolutions = dis.readInt();

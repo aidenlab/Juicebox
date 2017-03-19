@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.*;
@@ -32,28 +33,97 @@ import java.util.*;
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
-    Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
-    List<String> chrIndices = new ArrayList<String>();
+    private final List<Chromosome> cleanedChromosomes;
+    private Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
+    private List<String> chrIndices = new ArrayList<String>();
+    private int[] chromosomeBoundaries;
+    private Chromosome[] chromosomesArray;
+    private Chromosome[] chromosomeArrayWithoutAllByAll;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
+
+        // set the global chromosome list
+        long genomeLength = 0;
         for (Chromosome c : chromosomes) {
-            chromosomeMap.put(c.getName().trim().toLowerCase().replaceAll("chr", ""), c);
+            if (c != null)
+                genomeLength += c.getLength();
+        }
+        chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+
+        this.cleanedChromosomes = new ArrayList<>();
+
+        for (Chromosome c : chromosomes) {
+            String cleanName = cleanUpName(c.getName());
+            Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
+            cleanedChromosomes.add(cleanChromosome);
+        }
+
+        initializeInternalVariables();
+    }
+
+    public static String cleanUpName(String name) {
+        return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
+    }
+
+    /**
+     * Set intersection
+     * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
+     *
+     * @param collection1
+     * @param collection2
+     * @return intersection of set1 and set2
+     */
+    private static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
+        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
+        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
+    public static boolean isAllByAll(Chromosome chromosome) {
+        return isAllByAll(chromosome.getName());
+    }
+
+    public static boolean isAllByAll(String name) {
+        return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    }
+
+    private void initializeInternalVariables() {
+
+        for (Chromosome c : cleanedChromosomes) {
+            chromosomeMap.put(c.getName(), c);
             if (c.getName().equalsIgnoreCase("MT")) {
-                chromosomeMap.put("m", c); // special case for mitochondria
+                chromosomeMap.put("M", c); // special case for mitochondria
             }
         }
 
-        for (Chromosome chr : chromosomes) {
+        for (Chromosome chr : cleanedChromosomes) {
             chrIndices.add("" + chr.getIndex());
+        }
+
+        // for all-by-all view
+        chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
+        long bound = 0;
+        for (int i = 1; i < cleanedChromosomes.size(); i++) {
+            Chromosome c = cleanedChromosomes.get(i);
+            bound += (c.getLength() / 1000);
+            chromosomeBoundaries[i - 1] = (int) bound;
+        }
+
+        chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
+
+        // array without all by all
+        chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
+        for (int i = 1; i < chromosomesArray.length; i++) {
+            chromosomeArrayWithoutAllByAll[i - 1] = chromosomesArray[i];
         }
     }
 
-    private String cleanedChrName(String name) {
-        return name.trim().toLowerCase().replaceAll("chr", "");
-    }
-
     public Chromosome getChr(String name) {
-        return chromosomeMap.get(cleanedChrName(name));
+        return chromosomeMap.get(cleanUpName(name));
     }
 
     public List<String> getChrIndices() {
@@ -61,14 +131,30 @@ public class ChromosomeHandler {
     }
 
     public boolean containsChromosome(String name) {
-        return chromosomeMap.containsKey(cleanedChrName(name));
+        return chromosomeMap.containsKey(cleanUpName(name));
     }
 
     public int size() {
-        return chromosomeMap.size();
+        return chromosomesArray.length;
     }
 
-    public Set<String> getChrNames() {
-        return chromosomeMap.keySet();
+    public int[] getChromosomeBoundaries() {
+        return chromosomeBoundaries;
+    }
+
+    public Chromosome[] getChromosomeArray() {
+        return chromosomesArray;
+    }
+
+    public Chromosome get(int indx) {
+        return chromosomesArray[indx];
+    }
+
+    public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
+        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.cleanedChromosomes, handler2.cleanedChromosomes)));
+    }
+
+    public Chromosome[] getChromosomeArrayWithoutAllByAll() {
+        return chromosomeArrayWithoutAllByAll;
     }
 }

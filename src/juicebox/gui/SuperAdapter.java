@@ -228,7 +228,7 @@ public class SuperAdapter {
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayer().setAnnotationLayer(
-                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomes(), true, null, false)));
+                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
@@ -333,7 +333,7 @@ public class SuperAdapter {
         //For now, in case of Pearson - set initial to 500KB resolution.
         if (hic.isInPearsonsMode()) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
-        } else if (HiCFileTools.isAllChromosome(hic.getXContext().getChromosome())) {
+        } else if (ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {
@@ -441,8 +441,8 @@ public class SuperAdapter {
             } else {
                 hic.reset();
                 hic.setDataset(dataset);
-                hic.setChromosomes(dataset.getChromosomes());
-                mainViewPanel.setChromosomes(hic.getChromosomes());
+                hic.setChromosomeHandler(dataset.getChromosomeHandler());
+                mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
                 String[] normalizationOptions;
                 if (dataset.getVersion() < HiCGlobals.minVersion) {

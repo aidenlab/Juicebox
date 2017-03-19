@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@
 package juicebox.tools.clt.juicer;
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.*;
-import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
 import java.io.File;
@@ -110,16 +110,15 @@ public class LoopDomains extends JuicerCLT {
     @Override
     public void run() {
 
-        List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeID);
+        ChromosomeHandler chromosomeHandler = HiCFileTools.loadChromosomes(genomeID);
         if (givenChromosomes != null) {
-            chromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
-                    chromosomes));
+            chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);
         }
 
         // need to keep motifs for loop list
-        final Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, chromosomes, true, null, true);
+        final Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, chromosomeHandler, true, null, true);
         // domains have to use the extended with motif class, but they'll just have null values for that
-        Feature2DList domainList = Feature2DParser.loadFeatures(domainListPath, chromosomes, false, null, true);
+        Feature2DList domainList = Feature2DParser.loadFeatures(domainListPath, chromosomeHandler, false, null, true);
 
         loopList.clearAllAttributes();
         domainList.clearAllAttributes();
