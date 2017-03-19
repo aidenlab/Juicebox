@@ -199,7 +199,7 @@ public class Arrowhead extends JuicerCLT {
             }
         }
 
-        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
         Feature2DList contactDomainsGenomeWide = new Feature2DList();
         Feature2DList contactDomainListScoresGenomeWide = new Feature2DList();

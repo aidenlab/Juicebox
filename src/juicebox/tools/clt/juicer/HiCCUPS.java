@@ -339,7 +339,7 @@ public class HiCCUPS extends JuicerCLT {
             }
         }
 
-        ChromosomeHandler commonChromosomesHandler = new ChromosomeHandler(ds.getChromosomes());
+        ChromosomeHandler commonChromosomesHandler = ds.getChromosomeHandler();
         if (directlyInitializedChromosomeHandler != null && directlyInitializedChromosomeHandler.size() > 0) {
             commonChromosomesHandler = directlyInitializedChromosomeHandler;
         } else if (givenChromosomes != null && givenChromosomes.size() > 0) {

@@ -441,7 +441,7 @@ public class SuperAdapter {
             } else {
                 hic.reset();
                 hic.setDataset(dataset);
-                hic.setChromosomes(dataset.getChromosomes());
+                hic.setChromosomeHandler(dataset.getChromosomeHandler());
                 mainViewPanel.setChromosomes(hic.getChromosomeHandler());
 
                 String[] normalizationOptions;

@@ -310,7 +310,7 @@ public class Dump extends JuiceboxCLT {
 
             dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[3].split("\\+")), false);
 
-            chromosomeHandler = new ChromosomeHandler(dataset.getChromosomes());
+            chromosomeHandler = dataset.getChromosomeHandler();
 
             // retrieve input chromosomes / regions
             chr1 = args[4];

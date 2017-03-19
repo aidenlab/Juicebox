@@ -215,7 +215,7 @@ public class APA extends JuicerCLT {
             System.out.println("Processing APA for resolution " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
 
-            ChromosomeHandler handler = new ChromosomeHandler(ds.getChromosomes());
+            ChromosomeHandler handler = ds.getChromosomeHandler();
             if (givenChromosomes != null)
                 handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 

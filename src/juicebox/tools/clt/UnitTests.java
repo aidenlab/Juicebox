@@ -69,7 +69,7 @@ class UnitTests {
         File outputDirectory = new File(folder);
         Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(folder + "inter_30.hic"), true);
         File outputMergedFile = new File(outputDirectory, "merged_loops");
-        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         NormalizationType norm = NormalizationType.KR;
 
         List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<HiCCUPSConfiguration>();

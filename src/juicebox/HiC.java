@@ -73,7 +73,6 @@ public class HiC {
     private String yPosition;
     private MatrixType displayOption;
     private NormalizationType normalizationType;
-    private List<Chromosome> chromosomes;
     private ChromosomeHandler chromosomeHandler;
     private Dataset dataset;
     private Dataset controlDataset;
@@ -125,7 +124,6 @@ public class HiC {
     public void reset() {
         dataset = null;
         resetContexts();
-        chromosomes = null;
         chromosomeHandler = null;
         eigenvectorTrack = null;
         controlEigenvectorTrack = null;
@@ -400,11 +398,6 @@ public class HiC {
         return xContext != null && HiCFileTools.isAllChromosome(xContext.getChromosome());
     }
 
-    public void setChromosomes(List<Chromosome> chromosomes) {
-        this.chromosomes = chromosomes;
-        this.chromosomeHandler = new ChromosomeHandler(chromosomes);
-    }
-
     private void setZoomChanged() {
         m_zoomChanged = true;
     }
@@ -553,12 +546,12 @@ public class HiC {
         if (isControl) {
             if (controlDataset == null) return null;
 
-            Chromosome chr = chromosomes.get(chrIdx);
+            Chromosome chr = chromosomeHandler.get(chrIdx);
             return controlDataset.getEigenvector(chr, currentZoom, n, normalizationType);
         } else {
             if (dataset == null) return null;
 
-            Chromosome chr = chromosomes.get(chrIdx);
+            Chromosome chr = chromosomeHandler.get(chrIdx);
             return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
         }
     }
@@ -659,6 +652,22 @@ public class HiC {
                 message, allowLocationBroadcast);
     }
 
+    private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
+                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
+                                                   final double scaleFactor, final boolean resetZoom,
+                                                   final ZoomCallType zoomCallType, String message,
+                                                   final boolean allowLocationBroadcast) {
+        final boolean[] returnVal = new boolean[1];
+        superAdapter.executeLongRunningTask(new Runnable() {
+            @Override
+            public void run() {
+                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                        resetZoom, zoomCallType, allowLocationBroadcast);
+            }
+        }, message);
+        return returnVal[0];
+    }
+
     /*  TODO Undo Zoom implementation mss2 _UZI
      private boolean canUndoZoomChange = false;
      private boolean canRedoZoomChange = false;
@@ -726,22 +735,6 @@ public class HiC {
          }
       }
      */
-
-    private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
-                                                   final HiCZoom newZoom, final int genomeX, final int genomeY,
-                                                   final double scaleFactor, final boolean resetZoom,
-                                                   final ZoomCallType zoomCallType, String message,
-                                                   final boolean allowLocationBroadcast) {
-        final boolean[] returnVal = new boolean[1];
-        superAdapter.executeLongRunningTask(new Runnable() {
-            @Override
-            public void run() {
-                returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                        resetZoom, zoomCallType, allowLocationBroadcast);
-            }
-        }, message);
-        return returnVal[0];
-    }
 
     /**
      * *************************************************************
@@ -976,6 +969,10 @@ public class HiC {
         binSizeDictionary.put("1f", 1);
     }
 
+    public void loadLoopList(String path) {
+        superAdapter.getActiveLayer().loadLoopList(path, chromosomeHandler);
+    }
+
     // TODO MSS REMOVE
     /*public void setShowLoops(boolean showLoops) {
         feature2DHandler.setLayerVisibility(showLoops);
@@ -986,8 +983,35 @@ public class HiC {
     }
     */
 
-    public void loadLoopList(String path) {
-        superAdapter.getActiveLayer().loadLoopList(path, chromosomeHandler);
+    public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
+
+        if (!MatrixType.isObservedOrControl(displayOption)) {
+            MessageUtils.showMessage("This feature is only available for Observed or Control views");
+            return;
+        }
+
+        // extract the starting position
+        int binStartPosition = (int) (getXContext().getBinOrigin() + mousePos / getScaleFactor());
+        if (isHorizontal) binStartPosition = (int) (getYContext().getBinOrigin() + mousePos / getScaleFactor());
+
+        // Initialize default file name
+        String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
+        filename += isHorizontal ? "_horz" : "_vert";
+        filename += "_bin" + binStartPosition + "_res" + currentZoom.getBinSize();
+        filename = cleanUpNumbersInName(filename);
+
+        // allow user to customize or change the name
+        filename = MessageUtils.showInputDialog("Enter a name for the resulting .wig file", filename);
+        if (filename == null || filename.equalsIgnoreCase("null"))
+            return;
+
+        File outputWigFile = new File(DirectoryManager.getHiCDirectory(), filename + ".wig");
+        MessageUtils.showMessage("Data will be saved to " + outputWigFile.getAbsolutePath());
+
+        Chromosome chromosomeForPosition = getXContext().getChromosome();
+        if (isHorizontal) chromosomeForPosition = getYContext().getChromosome();
+
+        safeSave1DTrackToWigFile(chromosomeForPosition, outputWigFile, binStartPosition);
     }
 
     /*
@@ -1027,37 +1051,6 @@ public class HiC {
     }
     */
 
-    public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
-
-        if (!MatrixType.isObservedOrControl(displayOption)) {
-            MessageUtils.showMessage("This feature is only available for Observed or Control views");
-            return;
-        }
-
-        // extract the starting position
-        int binStartPosition = (int) (getXContext().getBinOrigin() + mousePos / getScaleFactor());
-        if (isHorizontal) binStartPosition = (int) (getYContext().getBinOrigin() + mousePos / getScaleFactor());
-
-        // Initialize default file name
-        String filename = displayOption == MatrixType.OBSERVED ? "obs" : "ctrl";
-        filename += isHorizontal ? "_horz" : "_vert";
-        filename += "_bin" + binStartPosition + "_res" + currentZoom.getBinSize();
-        filename = cleanUpNumbersInName(filename);
-
-        // allow user to customize or change the name
-        filename = MessageUtils.showInputDialog("Enter a name for the resulting .wig file", filename);
-        if (filename == null || filename.equalsIgnoreCase("null"))
-            return;
-
-        File outputWigFile = new File(DirectoryManager.getHiCDirectory(), filename + ".wig");
-        MessageUtils.showMessage("Data will be saved to " + outputWigFile.getAbsolutePath());
-
-        Chromosome chromosomeForPosition = getXContext().getChromosome();
-        if (isHorizontal) chromosomeForPosition = getYContext().getChromosome();
-
-        safeSave1DTrackToWigFile(chromosomeForPosition, outputWigFile, binStartPosition);
-    }
-
     private void safeSave1DTrackToWigFile(final Chromosome chromosomeForPosition, final File outputWigFile,
                                           final int binStartPosition) {
         superAdapter.getMainWindow().executeLongRunningTask(new Runnable() {
@@ -1086,7 +1079,7 @@ public class HiC {
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
                                             int binStartPosition) throws IOException {
         int resolution = getZoom().getBinSize();
-        for (Chromosome chromosome : chromosomes) {
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
             if (chromosome.getName().equals(Globals.CHR_ALL)) continue;
             Matrix matrix = null;
             if (displayOption == MatrixType.OBSERVED) {
@@ -1210,6 +1203,10 @@ public class HiC {
 
     public ChromosomeHandler getChromosomeHandler() {
         return chromosomeHandler;
+    }
+
+    public void setChromosomeHandler(ChromosomeHandler chromosomes) {
+        this.chromosomeHandler = chromosomeHandler;
     }
 
     /*public Feature2DHandler getFeature2DHandler() {

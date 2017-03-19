@@ -73,12 +73,30 @@ public class ChromosomeHandler {
         this.chromosomes = new ArrayList<>(chromosomes);
     }
 
-    private String cleanedChrName(String name) {
+    public static String cleanUpName(String name) {
         return name.trim().toLowerCase().replaceAll("chr", "");
     }
 
+    /**
+     * Set intersection
+     * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
+     *
+     * @param collection1
+     * @param collection2
+     * @return intersection of set1 and set2
+     */
+    private static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
+        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
+        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
     public Chromosome getChr(String name) {
-        return chromosomeMap.get(cleanedChrName(name));
+        return chromosomeMap.get(cleanUpName(name));
     }
 
     public List<String> getChrIndices() {
@@ -86,7 +104,7 @@ public class ChromosomeHandler {
     }
 
     public boolean containsChromosome(String name) {
-        return chromosomeMap.containsKey(cleanedChrName(name));
+        return chromosomeMap.containsKey(cleanUpName(name));
     }
 
     public int size() {
@@ -107,5 +125,9 @@ public class ChromosomeHandler {
 
     public Chromosome get(int indx) {
         return chromosomesArray[indx];
+    }
+
+    public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
+        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.chromosomes, handler2.chromosomes)));
     }
 }

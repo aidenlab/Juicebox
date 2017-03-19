@@ -302,7 +302,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
     public void run() {
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
-        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         File outputMergedFile = new File(outputDirectory, MERGED);
         if (dataShouldBePostProcessed) {
          //   loopLists.put(conf.getResolution(), enrichedPixels);

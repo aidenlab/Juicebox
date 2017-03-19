@@ -40,7 +40,6 @@ import juicebox.windowui.NormalizationType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -100,8 +99,8 @@ public class HiCCUPSDiff extends JuicerCLT {
         }
         // intersecting for the edge case where one of the hic files may not be using all chromosomes
         // e.g. the mbr_19 files for testing
-        commonChromosomesHandler = new ChromosomeHandler(new ArrayList<>(HiCFileTools.getSetIntersection(
-                new HashSet<>(ds1.getChromosomes()), new HashSet<>(ds2.getChromosomes()))));
+        commonChromosomesHandler = HiCFileTools.getChromosomeSetIntersection(ds1.getChromosomeHandler(),
+                ds2.getChromosomeHandler());
 
         if (givenChromosomes != null && givenChromosomes.size() > 0)
             commonChromosomesHandler = HiCFileTools.stringToChromosomes(givenChromosomes, commonChromosomesHandler);

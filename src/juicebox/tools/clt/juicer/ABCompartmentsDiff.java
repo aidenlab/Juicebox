@@ -82,7 +82,7 @@ public class ABCompartmentsDiff extends JuicerCLT {
             System.err.println("Hi-C maps must be from the same genome");
             System.exit(2);
         }
-        chromosomeHandler = new ChromosomeHandler(ds1.getChromosomes());
+        chromosomeHandler = ds1.getChromosomeHandler();
 
         if (givenChromosomes != null)
             chromosomeHandler = HiCFileTools.stringToChromosomes(givenChromosomes, chromosomeHandler);

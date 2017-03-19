@@ -158,7 +158,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             return;
         }
 
-        ChromosomeHandler handler = new ChromosomeHandler(hic.getDataset().getChromosomes());
+        ChromosomeHandler handler = hic.getDataset().getChromosomeHandler();
 
         Chromosome topChr = handler.getChr(topChrTokens[0]);
         if (topChr == null) {

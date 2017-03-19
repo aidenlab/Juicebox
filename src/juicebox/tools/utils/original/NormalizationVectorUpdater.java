@@ -68,9 +68,7 @@ public class NormalizationVectorUpdater {
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
-
-        //List<Chromosome> chromosomes = ds.getChromosomes();
-        ChromosomeHandler chromosomeHandler = new ChromosomeHandler(ds.getChromosomes());
+        ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
 
 
 
@@ -265,8 +263,6 @@ public class NormalizationVectorUpdater {
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
-        List<Chromosome> chromosomes = ds.getChromosomes();
-
         List<HiCZoom> resolutions = new ArrayList<HiCZoom>();
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
@@ -327,7 +323,7 @@ public class NormalizationVectorUpdater {
             */
 
             // Loop through chromosomes
-            for (Chromosome chr : chromosomes) {
+            for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArray()) {
                 if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
                 Matrix matrix = ds.getMatrix(chr, chr);
@@ -687,7 +683,7 @@ public class NormalizationVectorUpdater {
         if (norm == NormalizationType.GW_KR || norm == NormalizationType.GW_VC) {
             includeIntra = true;
         }
-        final ChromosomeHandler chromosomeHandler = new ChromosomeHandler(dataset.getChromosomes());
+        final ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
         final int resolution = zoom.getBinSize();
         final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
