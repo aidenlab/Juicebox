@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.clt.old.Dump;
 import org.broad.igv.Globals;
+import org.broad.igv.feature.Chromosome;
 
 import java.util.Random;
 
@@ -84,8 +85,8 @@ public class Benchmark extends JuiceboxCLT {
         String[] chrs = new String[handler.size() - 1];
         int ind=0;
 
-        for (String chr : handler.getChrNames()) {
-            if (!chr.equals("All")) chrs[ind++]=chr;
+        for (Chromosome chr : handler.getChromosomeArray()) {
+            if (!chr.getName().equalsIgnoreCase("All")) chrs[ind++] = chr.getName();
         }
 
         // BP bin sizes in this dataset

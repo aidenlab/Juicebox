@@ -33,7 +33,7 @@ import java.util.*;
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
-    private final List<Chromosome> chromosomes;
+    private final List<Chromosome> cleanedChromosomes;
     private Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
     private List<String> chrIndices = new ArrayList<String>();
     private int[] chromosomeBoundaries;
@@ -49,28 +49,15 @@ public class ChromosomeHandler {
         }
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
+        this.cleanedChromosomes = new ArrayList<>();
+
         for (Chromosome c : chromosomes) {
-            chromosomeMap.put(c.getName().trim().toLowerCase().replaceAll("chr", ""), c);
-            if (c.getName().equalsIgnoreCase("MT")) {
-                chromosomeMap.put("m", c); // special case for mitochondria
-            }
+            String cleanName = cleanUpName(c.getName());
+            Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
+            cleanedChromosomes.add(cleanChromosome);
         }
 
-        for (Chromosome chr : chromosomes) {
-            chrIndices.add("" + chr.getIndex());
-        }
-
-        // for all-by-all view
-        chromosomeBoundaries = new int[chromosomes.size() - 1];
-        long bound = 0;
-        for (int i = 1; i < chromosomes.size(); i++) {
-            Chromosome c = chromosomes.get(i);
-            bound += (c.getLength() / 1000);
-            chromosomeBoundaries[i - 1] = (int) bound;
-        }
-
-        chromosomesArray = chromosomes.toArray(new Chromosome[chromosomes.size()]);
-        this.chromosomes = new ArrayList<>(chromosomes);
+        initializeInternalVariables();
     }
 
     public static String cleanUpName(String name) {
@@ -95,6 +82,31 @@ public class ChromosomeHandler {
         return cloneSet;
     }
 
+    private void initializeInternalVariables() {
+
+        for (Chromosome c : cleanedChromosomes) {
+            chromosomeMap.put(c.getName(), c);
+            if (c.getName().equalsIgnoreCase("MT")) {
+                chromosomeMap.put("m", c); // special case for mitochondria
+            }
+        }
+
+        for (Chromosome chr : cleanedChromosomes) {
+            chrIndices.add("" + chr.getIndex());
+        }
+
+        // for all-by-all view
+        chromosomeBoundaries = new int[cleanedChromosomes.size() - 1];
+        long bound = 0;
+        for (int i = 1; i < cleanedChromosomes.size(); i++) {
+            Chromosome c = cleanedChromosomes.get(i);
+            bound += (c.getLength() / 1000);
+            chromosomeBoundaries[i - 1] = (int) bound;
+        }
+
+        chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
+    }
+
     public Chromosome getChr(String name) {
         return chromosomeMap.get(cleanUpName(name));
     }
@@ -111,10 +123,6 @@ public class ChromosomeHandler {
         return chromosomesArray.length;
     }
 
-    public Set<String> getChrNames() {
-        return chromosomeMap.keySet();
-    }
-
     public int[] getChromosomeBoundaries() {
         return chromosomeBoundaries;
     }
@@ -128,6 +136,6 @@ public class ChromosomeHandler {
     }
 
     public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
-        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.chromosomes, handler2.chromosomes)));
+        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.cleanedChromosomes, handler2.cleanedChromosomes)));
     }
 }
