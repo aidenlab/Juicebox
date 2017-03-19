@@ -37,7 +37,6 @@ import juicebox.tools.utils.original.NormalizationVectorUpdater;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -88,8 +87,7 @@ public class Dump extends JuiceboxCLT {
         ArrayList<ContactRecord> recordArrayList = NormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / binSize + 1;
         }
 
@@ -101,9 +99,7 @@ public class Dump extends JuiceboxCLT {
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, binSize, null, NormalizationType.GW_KR);
             int addY = 0;
             // Loop through chromosomes
-            for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
-
-                if (chr.getName().equals(Globals.CHR_ALL)) continue;
+            for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 final int chrIdx = chr.getIndex();
                 Matrix matrix = dataset.getMatrix(chr, chr);
 
@@ -178,7 +174,7 @@ public class Dump extends JuiceboxCLT {
             }
             int length = df.getLength();
 
-            if (HiCFileTools.isAllChromosome(chromosome)) { // removed cast to ExpectedValueFunctionImpl
+            if (ChromosomeHandler.isAllByAll(chromosome)) { // removed cast to ExpectedValueFunctionImpl
                 // print out vector
                 for (double element : df.getExpectedValues()) {
                     pw.println(element);
@@ -461,8 +457,8 @@ public class Dump extends JuiceboxCLT {
                 dumpFeature();
             }
             else if ((matrixType == MatrixType.OBSERVED || matrixType == MatrixType.NORM)
-                        && chr1.equals(Globals.CHR_ALL)
-                        && chr2.equals(Globals.CHR_ALL)) {
+                    && ChromosomeHandler.isAllByAll(chr1)
+                    && ChromosomeHandler.isAllByAll(chr2)) {
                     dumpGenomeWideData();
             } else if (MatrixType.isDumpMatrixType(matrixType)) {
                 dumpMatrix();

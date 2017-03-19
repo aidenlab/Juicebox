@@ -36,7 +36,6 @@ import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.apache.log4j.Logger;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -395,7 +394,7 @@ public class HiC {
     }
 
     public boolean isWholeGenome() {
-        return xContext != null && HiCFileTools.isAllChromosome(xContext.getChromosome());
+        return xContext != null && ChromosomeHandler.isAllByAll(xContext.getChromosome());
     }
 
     private void setZoomChanged() {
@@ -786,7 +785,7 @@ public class HiC {
         }
 
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
-        if (HiCFileTools.isAllChromosome(chr1)) {
+        if (ChromosomeHandler.isAllByAll(chr1)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
         }
 
@@ -1079,8 +1078,7 @@ public class HiC {
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
                                             int binStartPosition) throws IOException {
         int resolution = getZoom().getBinSize();
-        for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
-            if (chromosome.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             Matrix matrix = null;
             if (displayOption == MatrixType.OBSERVED) {
                 matrix = dataset.getMatrix(chromosomeForPosition, chromosome);

@@ -59,8 +59,7 @@ class Unused {
         }
 
         int location1 = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             int chrBinned = c1.getLength() / resolution + 1;
             double[] chrNV = new double[chrBinned];
             for (int i = 0; i < chrNV.length; i++) {

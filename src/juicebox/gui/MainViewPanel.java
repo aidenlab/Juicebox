@@ -29,7 +29,6 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
-import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
@@ -613,7 +612,7 @@ public class MainViewPanel {
         rulerPanelY.setContext(yContext, HiCRulerPanel.Orientation.VERTICAL);
         chromosomePanelX.setContext(xContext, HiCChromosomeFigPanel.Orientation.HORIZONTAL);
         chromosomePanelY.setContext(yContext, HiCChromosomeFigPanel.Orientation.VERTICAL);
-        resolutionSlider.setEnabled(!xChrom.getName().equals(Globals.CHR_ALL));
+        resolutionSlider.setEnabled(!ChromosomeHandler.isAllByAll(xChrom));
     }
 
     /**
@@ -640,13 +639,13 @@ public class MainViewPanel {
     private boolean isWholeGenome() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
+        return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
     private boolean isWholeGenome(HiC hic) {
         Chromosome chr1 = hic.getXContext().getChromosome();
         Chromosome chr2 = hic.getYContext().getChromosome();
-        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
+        return ChromosomeHandler.isAllByAll(chr1) || ChromosomeHandler.isAllByAll(chr2);
     }
 
     public void setNormalizationDisplayState(HiC hic) {

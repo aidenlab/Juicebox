@@ -29,7 +29,6 @@ import juicebox.HiC;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.util.Arrays;
@@ -106,8 +105,8 @@ public class ExpectedValueCalculation {
         long maxLen = 0;
         this.chromosomesMap = new LinkedHashMap<Integer, Chromosome>();
 
-        for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
-            if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
+        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
+            if (chr != null) {
                 chromosomesMap.put(chr.getIndex(), chr);
                 try {
                     maxLen = isFrag ?

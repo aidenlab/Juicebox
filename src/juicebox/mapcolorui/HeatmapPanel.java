@@ -28,8 +28,8 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
-import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
@@ -40,7 +40,6 @@ import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.renderer.GraphicUtils;
 import org.broad.igv.ui.FontManager;
@@ -290,8 +289,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //            }
 //            g2.dispose();
 
-            boolean isWholeGenome = HiCFileTools.isAllChromosome(hic.getXContext().getChromosome()) &&
-                    HiCFileTools.isAllChromosome(hic.getYContext().getChromosome());
+            boolean isWholeGenome = ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome()) &&
+                    ChromosomeHandler.isAllByAll(hic.getYContext().getChromosome());
 
             //if (mainWindow.isRefreshTest()) {
             // Draw grid
@@ -854,7 +853,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi6);
             menu.add(mi7);
             menu.add(mi8);
-            if (!hic.getXContext().getChromosome().getName().equals(Globals.CHR_ALL)
+            if (!ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome())
                     && MatrixType.isObservedOrControl(hic.getDisplayOption())) {
                 menu.addSeparator();
                 menu.add(mi9_h);

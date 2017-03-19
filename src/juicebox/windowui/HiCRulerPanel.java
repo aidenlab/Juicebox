@@ -28,7 +28,6 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
-import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
@@ -193,7 +192,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (!HiCFileTools.isAllChromosome(chromosome)) {
+            if (!ChromosomeHandler.isAllByAll(chromosome)) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
@@ -249,7 +248,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
-        if (HiCFileTools.isAllChromosome(chromosome)) {
+        if (ChromosomeHandler.isAllByAll(chromosome)) {
             int x1 = 0;
             ChromosomeHandler handler = hic.getChromosomeHandler();
             // Index 0 is whole genome

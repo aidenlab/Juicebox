@@ -333,7 +333,7 @@ public class SuperAdapter {
         //For now, in case of Pearson - set initial to 500KB resolution.
         if (hic.isInPearsonsMode()) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
-        } else if (HiCFileTools.isAllChromosome(hic.getXContext().getChromosome())) {
+        } else if (ChromosomeHandler.isAllByAll(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {

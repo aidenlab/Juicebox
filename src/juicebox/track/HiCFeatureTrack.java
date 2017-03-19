@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.data.HiCFileTools;
+import juicebox.data.ChromosomeHandler;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
@@ -104,7 +104,7 @@ public class HiCFeatureTrack extends HiCTrack {
         g.setColor(new Color(0, 150, 0));
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !HiCFileTools.isAllChromosome(chr)) {
+                !ChromosomeHandler.isAllByAll(chr)) {
             chr = "chr" + chr;
         }
 
@@ -218,7 +218,7 @@ public class HiCFeatureTrack extends HiCTrack {
         String chr = context.getChromosome().getName();
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !HiCFileTools.isAllChromosome(chr)) {
+                !ChromosomeHandler.isAllByAll(chr)) {
             chr = "chr" + chr;
         }
 

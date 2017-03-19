@@ -28,7 +28,7 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.data.HiCFileTools;
+import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.broad.igv.feature.Chromosome;
@@ -191,7 +191,7 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
     private void drawChr(Graphics2D g) {
         Chromosome chromosome = context.getChromosome();
 
-        if (chromosome == null || HiCFileTools.isAllChromosome(chromosome)) return;
+        if (chromosome == null || ChromosomeHandler.isAllByAll(chromosome)) return;
 
         MatrixZoomData zd;
         try {

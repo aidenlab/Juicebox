@@ -34,7 +34,6 @@ import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.ArrayTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -100,13 +99,11 @@ public class ABCompartmentsDiff extends JuicerCLT {
         double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds1, chromosomeHandler);
         int currentProgressStatus = 0;
 
-        for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
+        for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
             if (HiCGlobals.printVerboseComments) {
                 System.out.println("\nProcessing " + chromosome.getName());
             }
-
-            if (chromosome.getName().equals(Globals.CHR_ALL)) continue;
 
             double[] eigenvector1, eigenvector2;
             try {

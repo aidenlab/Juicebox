@@ -83,17 +83,13 @@ public class HiCFileTools {
         return dataset;
     }
 
-    public static ChromosomeHandler loadChromosomes(String idOrFile) {
-        return new ChromosomeHandler(loadChromosomesListFromFile(idOrFile));
-    }
-
     /**
      * Load the list of chromosomes based on given genome id or file
      *
      * @param idOrFile string
      * @return list of chromosomes
      */
-    private static List<Chromosome> loadChromosomesListFromFile(String idOrFile) {
+    public static ChromosomeHandler loadChromosomes(String idOrFile) {
 
         InputStream is = null;
 
@@ -124,7 +120,6 @@ public class HiCFileTools {
             Pattern pattern = Pattern.compile("\\s+");
             BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
             String nextLine;
-            long genomeLength = 0;
             int idx = 1;
 
             try {
@@ -133,7 +128,6 @@ public class HiCFileTools {
                     if (tokens.length == 2) {
                         String name = tokens[0];
                         int length = Integer.parseInt(tokens[1]);
-                        genomeLength += length;
                         chromosomes.add(idx, new Chromosome(idx, name, length));
                         idx++;
                     } else {
@@ -144,10 +138,8 @@ public class HiCFileTools {
                 e.printStackTrace();
             }
 
-            // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-
-            return chromosomes;
+            // "pseudo-chromosome" All taken care of by by chromosome handler
+            return new ChromosomeHandler(chromosomes);
         } finally {
             if (is != null) {
                 try {
@@ -157,14 +149,6 @@ public class HiCFileTools {
                 }
             }
         }
-    }
-
-    public static boolean isAllChromosome(Chromosome chromosome) {
-        return isAllChromosome(chromosome.getName());
-    }
-
-    public static boolean isAllChromosome(String name) {
-        return name.equalsIgnoreCase(Globals.CHR_ALL);
     }
 
     /**

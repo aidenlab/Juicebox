@@ -43,7 +43,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.Feature2DTools;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
@@ -379,10 +378,8 @@ public class HiCCUPS_postproc extends JuicerCLT {
 
         int currentProgressStatus = 0;
         for (int runNum : new int[]{0, 1}) {
-            for (Chromosome chromosome : chromosomeHandler.getChromosomeArray()) {
-
+            for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 // skip these matrices
-                if (chromosome.getName().equals(Globals.CHR_ALL)) continue;
                 Matrix matrix = ds.getMatrix(chromosome, chromosome);
                 if (matrix == null) continue;
 

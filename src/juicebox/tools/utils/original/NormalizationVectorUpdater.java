@@ -29,7 +29,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.*;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.tdf.BufferedByteWriter;
 import org.broad.igv.util.Pair;
@@ -136,9 +135,7 @@ public class NormalizationVectorUpdater {
             ExpectedValueCalculation evKR = new ExpectedValueCalculation(chromosomeHandler, zoom.getBinSize(), fcm, NormalizationType.KR);
 
             // Loop through chromosomes
-            for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
-                if (chr.getName().equals(Globals.CHR_ALL)) continue;
-
+            for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
                 Matrix matrix = ds.getMatrix(chr, chr);
 
                 if (matrix == null) continue;
@@ -323,9 +320,7 @@ public class NormalizationVectorUpdater {
             */
 
             // Loop through chromosomes
-            for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArray()) {
-                if (chr.getName().equals(Globals.CHR_ALL)) continue;
-
+            for (Chromosome chr : ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll()) {
                 Matrix matrix = ds.getMatrix(chr, chr);
 
                 if (matrix == null) continue;
@@ -688,8 +683,7 @@ public class NormalizationVectorUpdater {
         final ArrayList<ContactRecord> recordArrayList = createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
         int totalSize = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / resolution + 1;
         }
 
@@ -701,9 +695,7 @@ public class NormalizationVectorUpdater {
         ExpectedValueCalculation expectedValueCalculation = new ExpectedValueCalculation(chromosomeHandler, resolution, null, norm);
         int addY = 0;
         // Loop through chromosomes
-        for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
-
-            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             final int chrIdx = chr.getIndex();
             Matrix matrix = dataset.getMatrix(chr, chr);
 
@@ -728,8 +720,7 @@ public class NormalizationVectorUpdater {
         // Split normalization vector by chromosome
         Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<Chromosome, NormalizationVector>();
         int location1 = 0;
-        for (Chromosome c1 : chromosomeHandler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             int chrBinned = c1.getLength() / resolution + 1;
             double[] chrNV = new double[chrBinned];
             for (int i = 0; i < chrNV.length; i++) {
@@ -752,10 +743,8 @@ public class NormalizationVectorUpdater {
         ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
         int addX = 0;
         int addY = 0;
-        for (Chromosome c1 : handler.getChromosomeArray()) {
-            if (c1.getName().equals(Globals.CHR_ALL)) continue;
-            for (Chromosome c2 : handler.getChromosomeArray()) {
-                if (c2.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
+            for (Chromosome c2 : handler.getChromosomeArrayWithoutAllByAll()) {
                 if (c1.getIndex() < c2.getIndex() || (c1.equals(c2) && includeIntra)) {
                     Matrix matrix = dataset.getMatrix(c1, c2);
                     if (matrix != null) {

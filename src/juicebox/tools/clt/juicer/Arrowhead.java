@@ -35,7 +35,6 @@ import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -230,9 +229,7 @@ public class Arrowhead extends JuicerCLT {
         double maxProgressStatus = determineHowManyChromosomesWillActuallyRun(ds, chromosomeHandler);
         int currentProgressStatus = 0;
 
-        for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
-
-            if (chr.getName().equals(Globals.CHR_ALL)) continue;
+        for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
 
             Matrix matrix = ds.getMatrix(chr, chr);
             if (matrix == null) continue;

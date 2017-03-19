@@ -38,6 +38,7 @@ public class ChromosomeHandler {
     private List<String> chrIndices = new ArrayList<String>();
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
+    private Chromosome[] chromosomeArrayWithoutAllByAll;
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -82,6 +83,14 @@ public class ChromosomeHandler {
         return cloneSet;
     }
 
+    public static boolean isAllByAll(Chromosome chromosome) {
+        return isAllByAll(chromosome.getName());
+    }
+
+    public static boolean isAllByAll(String name) {
+        return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    }
+
     private void initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
@@ -105,6 +114,12 @@ public class ChromosomeHandler {
         }
 
         chromosomesArray = cleanedChromosomes.toArray(new Chromosome[cleanedChromosomes.size()]);
+
+        // array without all by all
+        chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
+        for (int i = 1; i < chromosomesArray.length; i++) {
+            chromosomeArrayWithoutAllByAll[i - 1] = chromosomesArray[i];
+        }
     }
 
     public Chromosome getChr(String name) {
@@ -137,5 +152,9 @@ public class ChromosomeHandler {
 
     public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
         return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.cleanedChromosomes, handler2.cleanedChromosomes)));
+    }
+
+    public Chromosome[] getChromosomeArrayWithoutAllByAll() {
+        return chromosomeArrayWithoutAllByAll;
     }
 }

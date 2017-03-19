@@ -38,7 +38,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFilter;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.io.File;
@@ -245,13 +244,10 @@ public class APA extends JuicerCLT {
                 double maxProgressStatus = handler.size();
                 int currentProgressStatus = 0;
 
-                for (Chromosome chr1 : handler.getChromosomeArray()) {
-                    for (Chromosome chr2 : handler.getChromosomeArray()) {
+                for (Chromosome chr1 : handler.getChromosomeArrayWithoutAllByAll()) {
+                    for (Chromosome chr2 : handler.getChromosomeArrayWithoutAllByAll()) {
                         if ((chr2.getIndex() > chr1.getIndex() && includeInterChr) || (chr2.getIndex() == chr1.getIndex())) {
                             APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
-
-                            if (chr1.getName().equals(Globals.CHR_ALL) && chr2.getName().equals(Globals.CHR_ALL))
-                                continue;
 
                             Matrix matrix = ds.getMatrix(chr1, chr2);
                             if (matrix == null) continue;
