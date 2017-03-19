@@ -116,7 +116,10 @@ public class Preprocessor {
     }
 
     public void setIncludedChromosomes(Set<String> includedChromosomes) {
-        this.includedChromosomes = includedChromosomes;
+        this.includedChromosomes = new HashSet<>();
+        for (String name : includedChromosomes) {
+            this.includedChromosomes.add(ChromosomeHandler.cleanUpName(name));
+        }
     }
 
     public void setFragmentFile(String fragmentFileName) {
