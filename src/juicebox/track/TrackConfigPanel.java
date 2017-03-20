@@ -35,7 +35,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 /**
@@ -126,31 +125,28 @@ public class TrackConfigPanel extends JPanel {
         nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
         nameField.setMaximumSize(new Dimension(100, 30));
         nameField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
+
+            private void action() {
                 track.setName(nameField.getText());
                 nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
                 superAdapter.updateTrackPanel();
                 superAdapter.repaintTrackPanels();
                 superAdapter.repaint();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                action();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                track.setName(nameField.getText());
-                nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
-                superAdapter.updateTrackPanel();
-                superAdapter.repaintTrackPanels();
-                superAdapter.repaint();
+                action();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                track.setName(nameField.getText());
-                nameField.setToolTipText("Change the name for this annotation: " + nameField.getText());
-                superAdapter.updateTrackPanel();
-                superAdapter.repaintTrackPanels();
-                superAdapter.repaint();
+                action();
             }
         });
         add(nameField);
@@ -191,71 +187,41 @@ public class TrackConfigPanel extends JPanel {
 
         add(new JLabel("Min:"));
         minYField = new JTextField("", 3);
-        minYField.addFocusListener(new FocusAdapter() {
+        /*minYField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 minYFieldFocusLost(e);
                 superAdapter.updateTrackPanel();
                 superAdapter.repaintTrackPanels();
             }
-        });
+        });*/
         add(minYField);
-        minYField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (track instanceof HiCDataTrack && validateNumeric(minYField.getText())
-                        && validateNumeric(maxYField.getText())) {
-
-                    float newMin = Float.parseFloat(minYField.getText());
-                    float newMax = Float.parseFloat(maxYField.getText());
-                    DataRange newDataRange = new DataRange(newMin, newMax);
-                    if (newMin < 0 && newMax > 0) {
-                        newDataRange = new DataRange(newMin, 0f, newMax);
-                    }
-                    newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
-                    ((HiCDataTrack) track).setDataRange(newDataRange);
-
-                    superAdapter.updateTrackPanel();
-                    superAdapter.repaintTrackPanels();
-                }
-            }
-        });
+        minYField.getDocument().addDocumentListener(dataActionDocument(minYField, superAdapter));
 
         add(new JLabel("Max:"));
         maxYField = new JTextField("", 3);
-        maxYField.addFocusListener(new FocusAdapter() {
+        /*maxYField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 maxYFieldFocusLost(e);
                 superAdapter.updateTrackPanel();
                 superAdapter.repaintTrackPanels();
             }
-        });
+        });*/
         add(maxYField);
-        maxYField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (track instanceof HiCDataTrack && validateNumeric(minYField.getText())
-                        && validateNumeric(maxYField.getText())) {
-
-                    float newMin = Float.parseFloat(minYField.getText());
-                    float newMax = Float.parseFloat(maxYField.getText());
-                    DataRange newDataRange = new DataRange(newMin, newMax);
-                    if (newMin < 0 && newMax > 0) {
-                        newDataRange = new DataRange(newMin, 0f, newMax);
-                    }
-                    newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
-                    ((HiCDataTrack) track).setDataRange(newDataRange);
-
-                    superAdapter.updateTrackPanel();
-                    superAdapter.repaintTrackPanels();
-                }
-            }
-        });
+        maxYField.getDocument().addDocumentListener(dataActionDocument(maxYField, superAdapter));
 
         logScaleCB = new JCheckBox();
-        logScaleCB.setText("Log scale");
+        logScaleCB.setText("Log");
+        logScaleCB.setToolTipText("Set logarithmic scaling");
         logScaleCB.setEnabled(false);
+        add(logScaleCB);
+        logScaleCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                performDataAction(superAdapter);
+            }
+        });
 
 
         add(new JLabel("DRF"));
@@ -292,13 +258,64 @@ public class TrackConfigPanel extends JPanel {
         });
     }
 
+    private DocumentListener dataActionDocument(final JTextField field, final SuperAdapter superAdapter) {
+        return new DocumentListener() {
+
+            private void action() {
+                field.setToolTipText("Change: " + field.getText());
+                if (isReasonableText(field.getText())) {
+                    performDataAction(superAdapter);
+                }
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                action();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                action();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                action();
+            }
+        };
+    }
+
+    private void performDataAction(SuperAdapter superAdapter) {
+        if (track instanceof HiCDataTrack && validateNumeric(minYField.getText())
+                && validateNumeric(maxYField.getText())) {
+
+            float newMin = Float.parseFloat(minYField.getText());
+            float newMax = Float.parseFloat(maxYField.getText());
+            DataRange newDataRange = new DataRange(newMin, newMax);
+            if (newMin < 0 && newMax > 0) {
+                newDataRange = new DataRange(newMin, 0f, newMax);
+            }
+            newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
+            ((HiCDataTrack) track).setDataRange(newDataRange);
+
+            superAdapter.updateTrackPanel();
+            superAdapter.repaintTrackPanels();
+        }
+    }
+
+    private boolean isReasonableText(String text) {
+        return text.length() > 0 && !text.equals(".") && !text.equals("-");
+    }
+
     private boolean validateNumeric(String text) {
         try {
-            Double.parseDouble(text);
-            return true;
+            if (isReasonableText(text)) {
+                Double.parseDouble(text);
+                return true;
+            }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Error: numeric value required (" + text + ")");
-            return false;
         }
+        return false;
     }
 }
