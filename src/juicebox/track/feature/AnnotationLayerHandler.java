@@ -32,10 +32,12 @@ import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
 import juicebox.windowui.SaveAnnotationsDialog;
+import org.broad.igv.ui.color.ColorChooserPanel;
 import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +68,8 @@ public class AnnotationLayerHandler {
     private JToggleButton activeLayerButton;
     private Color defaultColor = Color.BLUE;
     private JButton plottingStyleButton;
+    private ColorChooserPanel colorChooserPanel;
+    private JTextField nameTextField;
 
     public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
@@ -432,6 +436,13 @@ public class AnnotationLayerHandler {
         this.layerName = layerName;
     }
 
+    public void setLayerNameAndField(String layerName) {
+        this.layerName = layerName;
+        if (nameTextField != null) nameTextField.setText(layerName);
+    }
+
+
+
     public Feature2DHandler getFeatureHandler() {
         return annotationLayer.getFeatureHandler();
     }
@@ -480,8 +491,13 @@ public class AnnotationLayerHandler {
     }
 
     public void loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
-        if (getFeatureHandler().loadLoopList(path, chromosomeHandler) > 0)
+        Feature2DHandler.resultContainer result = getFeatureHandler().loadLoopList(path, chromosomeHandler);
+        if (result.n > 0) {
             setExportAbility(true);
+            if (result.color != null) {
+                setDefaultColor(result.color);
+            }
+        }
     }
 
     public List<Feature2DList> getAllVisibleLoopLists() {
@@ -547,6 +563,11 @@ public class AnnotationLayerHandler {
         return defaultColor;
     }
 
+    public void setDefaultColor(Color defaultColor) {
+        this.defaultColor = defaultColor;
+        if (colorChooserPanel != null) colorChooserPanel.setSelectedColor(defaultColor);
+    }
+
     public void setDeleteLayerButtonStatus(boolean status) {
         if (deleteLayerButton != null) {
             deleteLayerButton.setEnabled(status);
@@ -568,15 +589,22 @@ public class AnnotationLayerHandler {
 
     public void duplicateDetailsFrom(AnnotationLayerHandler handlerOriginal) {
         featureType = handlerOriginal.featureType;
+        System.out.println("...p...");
 
-        setLayerName("Copy of " + handlerOriginal.getLayerName());
+        setLayerNameAndField("Copy of " + handlerOriginal.getLayerName());
         setLayerVisibility(handlerOriginal.getLayerVisibility());
-        setColorOfAllAnnotations(handlerOriginal.getDefaultColor());
+        setDefaultColor(handlerOriginal.getDefaultColor());
         setIsTransparent(handlerOriginal.getIsTransparent());
         setIsEnlarged(handlerOriginal.getIsEnlarged());
         setPlottingStyle(handlerOriginal.getPlottingStyle());
 
-        annotationLayer.createMergedLoopLists(handlerOriginal.getAnnotationLayer().getAllFeatureLists());
+        Collection<Feature2DList> origLists = handlerOriginal.getAnnotationLayer().getAllFeatureLists();
+        Collection<Feature2DList> dupLists = new ArrayList<>();
+        for (Feature2DList list : origLists) {
+            dupLists.add(list.deepCopy());
+        }
+
+        annotationLayer.createMergedLoopLists(dupLists);
         setImportAnnotationsEnabled(handlerOriginal.getImportAnnotationsEnabled());
         setExportAbility(handlerOriginal.getExportCapability());
         setIsSparse(handlerOriginal.getIsSparse());
@@ -613,5 +641,13 @@ public class AnnotationLayerHandler {
 
     public void setPlottingStyleButton(JButton plottingStyleButton) {
         this.plottingStyleButton = plottingStyleButton;
+    }
+
+    public void setColorChooserPanel(ColorChooserPanel colorChooserPanel) {
+        this.colorChooserPanel = colorChooserPanel;
+    }
+
+    public void setNameTextField(JTextField nameTextField) {
+        this.nameTextField = nameTextField;
     }
 }

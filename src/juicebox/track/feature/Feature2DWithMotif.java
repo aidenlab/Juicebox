@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import juicebox.tools.clt.juicer.CompareLists;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,9 +68,9 @@ public class Feature2DWithMotif extends Feature2D {
     private int motifStart1, motifEnd1, motifStart2, motifEnd2;
     private double score1, score2;
 
-    public Feature2DWithMotif(FeatureType featureName, String chr1, int chr1Index, int start1, int end1,
+    public Feature2DWithMotif(FeatureType featureType, String chr1, int chr1Index, int start1, int end1,
                               String chr2, int chr2Index, int start2, int end2, Color c, Map<String, String> attributes) {
-        super(featureName, chr1, start1, end1, chr2, start2, end2, c, attributes);
+        super(featureType, chr1, start1, end1, chr2, start2, end2, c, attributes);
         this.chr1Index = chr1Index;
         this.chr2Index = chr2Index;
 
@@ -364,5 +365,28 @@ public class Feature2DWithMotif extends Feature2D {
         }
 
         return 4;
+    }
+
+    @Override
+    public Feature2D deepCopy() {
+        Map<String, String> attrClone = new HashMap<>();
+        for (String key : attributes.keySet()) {
+            attrClone.put(key, attributes.get(key));
+        }
+        Feature2DWithMotif clone = new Feature2DWithMotif(featureType, getChr1(), chr1Index, start1, end1, getChr2(), chr2Index, start2, end2,
+                getColor(), attrClone);
+        clone.strand1 = strand1;
+        clone.strand2 = strand2;
+        clone.unique1 = unique1;
+        clone.unique2 = unique2;
+        clone.sequence1 = sequence1;
+        clone.sequence2 = sequence2;
+        clone.motifStart1 = motifStart1;
+        clone.motifEnd1 = motifEnd1;
+        clone.motifStart2 = motifStart2;
+        clone.motifEnd2 = motifEnd2;
+        clone.score1 = score1;
+        clone.score2 = score2;
+        return clone;
     }
 }

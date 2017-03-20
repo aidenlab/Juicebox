@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -532,6 +532,18 @@ public class Feature2DList {
                 }
             }
         });
+    }
+
+    public Feature2DList deepCopy() {
+        Feature2DList clone = new Feature2DList();
+        for (String key : featureList.keySet()) {
+            List<Feature2D> cloneList = new ArrayList<>();
+            for (Feature2D f : featureList.get(key)) {
+                cloneList.add(f.deepCopy());
+            }
+            clone.featureList.put(key, cloneList);
+        }
+        return clone;
     }
 
 

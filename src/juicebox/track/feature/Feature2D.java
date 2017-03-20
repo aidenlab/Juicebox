@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,8 @@ import juicebox.tools.utils.juicer.hiccups.HiCCUPSUtils;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -52,13 +50,13 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
+    protected final FeatureType featureType;
     final Map<String, String> attributes;
     final int start1;
     final int start2;
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    private final FeatureType featureType;
     int end1;
     int end2;
     private Feature2D reflection = null;
@@ -468,6 +466,14 @@ public class Feature2D implements Comparable<Feature2D> {
             anchors.add(new MotifAnchor(handler.getChr(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
         }
         return anchors;
+    }
+
+    public Feature2D deepCopy() {
+        Map<String, String> attrClone = new HashMap<>();
+        for (String key : attributes.keySet()) {
+            attrClone.put(key, attributes.get(key));
+        }
+        return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
     }
 
 

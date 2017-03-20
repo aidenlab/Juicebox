@@ -225,13 +225,15 @@ public class LayersPanel extends JDialog {
             }
         });
 
+        JButton importButton = new JButton("Load Loops/Domains...");
         JButton newLayerButton = new JButton("Add New Layer");
         JButton mergeButton = new JButton("Merge Visible Layers");
 
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
-        buttonPanel.add(refreshButton);
+        buttonPanel.add(importButton);
         buttonPanel.add(newLayerButton);
         buttonPanel.add(mergeButton);
+        buttonPanel.add(refreshButton);
 
         final JPanel pane = new JPanel(new BorderLayout());
         pane.add(scrollPane, BorderLayout.CENTER);
@@ -241,17 +243,27 @@ public class LayersPanel extends JDialog {
         dim.setSize(dim.getWidth(), dim.getHeight() * 4);
         pane.setPreferredSize(dim);
 
+        /* import 2d annotations into layer */
+        importButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                dialog.setVisible(true);
+            }
+        });
+        importButton.setToolTipText("Import annotations into new layer");
+
         newLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new2DAnnotationsLayerAction(e, superAdapter, layerBoxGUI);
+                new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
             }
         });
 
         mergeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                merge2DAnnotationsAction(e, superAdapter, layerBoxGUI);
+                merge2DAnnotationsAction(superAdapter, layerBoxGUI);
             }
         });
 
@@ -259,8 +271,10 @@ public class LayersPanel extends JDialog {
         return pane;
     }
 
-    private void new2DAnnotationsLayerAction(ActionEvent e, SuperAdapter superAdapter, JPanel layerBoxGUI) {
+    public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
+                                                              AnnotationLayerHandler sourceHandler) {
         AnnotationLayerHandler handler = superAdapter.createNewLayer();
+        if (sourceHandler != null) handler.duplicateDetailsFrom(sourceHandler);
         try {
             JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
             layerBoxGUI.add(panel, 0);
@@ -271,9 +285,10 @@ public class LayersPanel extends JDialog {
         } catch (Exception ee) {
             System.err.println("Unable to add new layer to GUI");
         }
+        return handler;
     }
 
-    private void merge2DAnnotationsAction(ActionEvent e, SuperAdapter superAdapter, JPanel layerBoxGUI) {
+    private void merge2DAnnotationsAction(SuperAdapter superAdapter, JPanel layerBoxGUI) {
         List<AnnotationLayerHandler> visibleLayers = new ArrayList<AnnotationLayerHandler>();
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             if (handler.getLayerVisibility()) {
@@ -317,10 +332,11 @@ public class LayersPanel extends JDialog {
         parentPanel.setLayout(new FlowLayout());
 
         /* layer name */
-        final JTextField nameField = new JTextField(handler.getLayerName(), 5);
+        final JTextField nameField = new JTextField(handler.getLayerName(), 10);
         nameField.getDocument().addDocumentListener(anyTextChangeListener(handler, nameField));
         nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
         nameField.setMaximumSize(new Dimension(100, 30));
+        handler.setNameTextField(nameField);
 
         /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked_green.png",
@@ -414,6 +430,7 @@ public class LayersPanel extends JDialog {
             }
         });
         colorChooserPanel.setToolTipText("Re-color all annotations in this layer");
+        handler.setColorChooserPanel(colorChooserPanel);
 
         /* clear annotations in this layer */
         JButton clearButton = createIconButton("/images/layer/erase.png");
@@ -431,22 +448,6 @@ public class LayersPanel extends JDialog {
             }
         });
         clearButton.setToolTipText("Clear all annotations in this layer");
-
-        /* import 2d annotations into layer */
-        JButton importAnnotationsButton = createIconButton("/images/layer/import_icon_green.png");
-        importAnnotationsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(handler, superAdapter);
-                dialog.setVisible(true);
-
-                //LoadAction loadAction = new LoadAction("Import 2D Annotations...", handler, superAdapter);
-                //loadAction.actionPerformed(e);
-            }
-        });
-        handler.setImportAnnotationButton(importAnnotationsButton);
-        importAnnotationsButton.setEnabled(handler.getImportAnnotationsEnabled());
-        importAnnotationsButton.setToolTipText("Import annotations into this layer");
 
         final JToggleButton writeButton = createToggleIconButton("/images/layer/pencil.png", "/images/layer/pencil_gray.png", handler.isActiveLayer(superAdapter));
         handler.setActiveLayerButton(writeButton);
@@ -506,24 +507,13 @@ public class LayersPanel extends JDialog {
         copyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AnnotationLayerHandler handlerDup = superAdapter.createNewLayer();
-                handlerDup.duplicateDetailsFrom(handler);
-                try {
-                    JPanel panel = createLayerPanel(handlerDup, superAdapter, layerBoxGUI);
-                    layerBoxGUI.add(panel, 0);
-                    layerBoxGUI.revalidate();
-                    layerBoxGUI.repaint();
-                    superAdapter.setActiveLayer(handlerDup);
-                    superAdapter.updateLayerDeleteStatus();
-                } catch (Exception iee) {
-                    System.err.println("Unable to duplicate layer");
-                }
+                AnnotationLayerHandler handlerDup = new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, handler);
             }
         });
         copyButton.setToolTipText("Duplicate this layer");
 
         parentPanel.add(nameField);
-        Component[] allComponents = new Component[]{writeButton, importAnnotationsButton, toggleVisibleButton,
+        Component[] allComponents = new Component[]{writeButton, toggleVisibleButton,
                 colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton,
                 undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
         for (Component component : allComponents) {
