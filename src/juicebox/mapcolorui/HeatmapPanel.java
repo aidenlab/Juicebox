@@ -1670,6 +1670,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     setCursor(Cursor.getDefaultCursor());
                 }
 
+                if (hic.isWholeGenome()) {
+                    synchronized (this) {
+                        hic.setGWCursorPoint(e.getPoint());
+                        superAdapter.repaintGridRulerPanels();
+                    }
+                } else {
+                    hic.setGWCursorPoint(null);
+                }
+
                 if (straightEdgeEnabled || e.isShiftDown()) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());

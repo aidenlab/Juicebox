@@ -82,7 +82,7 @@ public class HiC {
     private EigenvectorTrack eigenvectorTrack, controlEigenvectorTrack;
     private ResourceTree resourceTree;
     private LoadEncodeAction encodeAction;
-    private Point cursorPoint, diagonalCursorPoint;
+    private Point cursorPoint, diagonalCursorPoint, gwCursorPoint;
     private Point selectedBin;
     private boolean linkedMode;
     private boolean m_zoomChanged;
@@ -317,8 +317,16 @@ public class HiC {
         return diagonalCursorPoint;
     }
 
-    public void setDiagonalCursorPoint(Point diagonalCursorPoint) {
-        this.diagonalCursorPoint = diagonalCursorPoint;
+    public void setDiagonalCursorPoint(Point point) {
+        this.diagonalCursorPoint = point;
+    }
+
+    public Point getGWCursorPoint() {
+        return gwCursorPoint;
+    }
+
+    public void setGWCursorPoint(Point point) {
+        gwCursorPoint = point;
     }
 
     public int[] getCurrentRegionWindowGenomicPositions() {

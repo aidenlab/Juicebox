@@ -674,6 +674,11 @@ public class MainViewPanel {
         trackPanelY.repaint();
     }
 
+    public void repaintGridRulerPanels() {
+        rulerPanelX.repaint();
+        rulerPanelY.repaint();
+    }
+
     public String getTrackPanelPrintouts(int x, int y) {
         String trackToolTip = "";
         try {

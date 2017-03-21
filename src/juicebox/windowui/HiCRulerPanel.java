@@ -175,7 +175,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
 
         // Clear panel
-        drawTicks(g2D);
+        drawTicks(g2D); // TODO ms3
         drawChr(g2D);
 
         g2D.setTransform(t);
@@ -249,35 +249,47 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
         if (ChromosomeHandler.isAllByAll(chromosome)) {
-            int x1 = 0;
-            ChromosomeHandler handler = hic.getChromosomeHandler();
-            // Index 0 is whole genome
-            int genomeCoord = 0;
-            for (int i = 1; i < handler.size(); i++) {
-                Color tColor = isHorizontal() ? topTick : leftTick;
-                g.setColor(tColor);
 
+            Point cursorPoint = hic.getGWCursorPoint();
+            if (cursorPoint != null) {
+                int x1 = 0;
+                ChromosomeHandler handler = hic.getChromosomeHandler();
+                // Index 0 is whole genome
+                int genomeCoord = 0;
+                for (int i = 1; i < handler.size(); i++) {
+                    Color tColor = isHorizontal() ? topTick : leftTick;
+                    g.setColor(tColor);
 
-                double binOrigin = context.getBinOrigin();
-                Chromosome c = handler.get(i);
-                genomeCoord += (c.getLength() / 1000);
+                    double binOrigin = context.getBinOrigin();
+                    Chromosome c = handler.get(i);
+                    genomeCoord += (c.getLength() / 1000);
 
-                int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
-                int x2 = (int) ((xBin - binOrigin) * hic.getScaleFactor());
+                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
+                    int x2 = (int) ((xBin - binOrigin) * hic.getScaleFactor());
 
-                int x = (x1 + x2) / 2;
-                int strWidth = g.getFontMetrics().stringWidth(c.getName());
-                int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
-                g.drawString(c.getName(), strPosition, h - 15);
-
-                int xpos = isHorizontal() ? x2 : -x2;
-
-                g.drawLine(xpos, h - 10, xpos, h - 2);
-
-                x1 = x2;
+                    int x = (x1 + x2) / 2;
+                    int strWidth = g.getFontMetrics().stringWidth(c.getName());
+                    if (isHorizontal()) {
+                        if (x1 < cursorPoint.x && cursorPoint.x < x2) {
+                            int strPosition = x - strWidth / 2;
+                            g.drawString(c.getName(), strPosition, h - 15);
+                            g.drawLine(x2, h - 10, x2, h - 2);
+                            g.drawLine(x1, h - 10, x1, h - 2);
+                            break;
+                        }
+                    } else {
+                        if (-x2 < -cursorPoint.y && -cursorPoint.y < -x1) {
+                            int strPosition = -x - strWidth / 2;
+                            g.drawString(c.getName(), strPosition, h - 15);
+                            g.drawLine(-x2, h - 10, -x2, h - 2);
+                            g.drawLine(-x1, h - 10, -x1, h - 2);
+                            break;
+                        }
+                    }
+                    x1 = x2;
+                }
             }
         }
-
         else {
             HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 

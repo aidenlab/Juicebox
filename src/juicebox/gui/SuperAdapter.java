@@ -660,6 +660,10 @@ public class SuperAdapter {
         mainViewPanel.repaintTrackPanels();
     }
 
+    public void repaintGridRulerPanels() {
+        mainViewPanel.repaintGridRulerPanels();
+    }
+
     // only hic should call this
     public boolean isResolutionLocked() {
         return mainViewPanel.isResolutionLocked();
