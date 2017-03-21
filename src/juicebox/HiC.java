@@ -212,7 +212,7 @@ public class HiC {
     }
 
     public void unsafeLoadTrack(String path) {
-        trackManager.unsafeLoadTrackDirect(path);
+        trackManager.unsafeLoadTrackDirectPath(path);
     }
 
     public void loadCoverageTrack(NormalizationType no) {

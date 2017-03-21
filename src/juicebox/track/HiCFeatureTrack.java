@@ -27,7 +27,6 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
-import juicebox.data.ChromosomeHandler;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
@@ -102,14 +101,14 @@ public class HiCFeatureTrack extends HiCTrack {
         //Graphics strGraphics = g.create();
         g.setColor(new Color(0, 150, 0));
 
-        if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !ChromosomeHandler.isAllByAll(chr)) {
-            chr = "chr" + chr;
-        }
-
         Iterator<?> iter;
         try {
             iter = featureSource.getFeatures(chr, gStart, gEnd);
+            if (!iter.hasNext()) {
+                // if empty, probably because "chr" missing at start of chromosome
+                // TODO mitochondrial genes may be an issue here?
+                iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
+            }
         } catch (IOException error) {
             log.error("Error getting feature source " + error);
             return;
@@ -211,11 +210,6 @@ public class HiCFeatureTrack extends HiCTrack {
 
         String chr = context.getChromosome().getName();
 
-        if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !ChromosomeHandler.isAllByAll(chr)) {
-            chr = "chr" + chr;
-        }
-
         int b1 = Math.max(0, bin - 2);
         int b2 = bin + 2;
         int buffer = (gridAxis.getGenomicEnd(b2) - gridAxis.getGenomicStart(b1)) / 2;
@@ -226,6 +220,11 @@ public class HiCFeatureTrack extends HiCTrack {
         Iterator<?> iter;
         try {
             iter = featureSource.getFeatures(chr, start, end);
+            if (!iter.hasNext()) {
+                // if empty, probably because "chr" missing at start of chromosome
+                // TODO mitochondrial genes may be an issue here?
+                iter = featureSource.getFeatures("chr" + chr, start, end);
+            }
         } catch (IOException error) {
             log.error("Error getting feature source " + error);
             return null;

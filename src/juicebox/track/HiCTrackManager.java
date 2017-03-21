@@ -63,17 +63,11 @@ public class HiCTrackManager {
     public HiCTrackManager(SuperAdapter superAdapter, HiC hic) {
         this.superAdapter = superAdapter;
         this.hic = hic;
-
     }
 
-    public void unsafeLoadTrackDirect(final String path) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                unsafeLoadTrackDirect(new ResourceLocator(path));
-                superAdapter.updateTrackPanel();
-            }
-        };
-        runnable.run();
+    public void unsafeLoadTrackDirectPath(final String path) {
+        unsafeLoadTrackDirect(new ResourceLocator(path));
+        superAdapter.updateTrackPanel();
     }
 
     public void loadCoverageTrack(NormalizationType no) {
@@ -86,15 +80,6 @@ public class HiCTrackManager {
         superAdapter.updateTrackPanel();
     }
 
-    public void safeTrackLoad(final List<ResourceLocator> locators) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                unsafeTrackLoad(locators);
-            }
-        };
-        superAdapter.getMainWindow().executeLongRunningTask(runnable, "Safe Track Load");
-    }
-
     public void unsafeTrackLoad(final List<ResourceLocator> locators) {
         for (ResourceLocator locator : locators) {
             try {
@@ -103,18 +88,6 @@ public class HiCTrackManager {
                 MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
                 System.out.println("Removing " + locator.getName());
                 hic.removeTrack(locator);
-
-                /*
-                if (locator.getType() != null && ((locator.getType().equals("loop")) || locator.getType().equals("domain"))) {
-                    try {
-                        System.out.println("Loading invis " + locator.getPath());
-                        hic.setLoopsInvisible(locator.getPath());
-                    } catch (Exception e2) {
-                        log.error("Error while making loops invisible ", e2);
-                        MessageUtils.showMessage("Error while removing loops: " + e2.getMessage());
-                    }
-                }
-                */
             }
         }
         superAdapter.updateTrackPanel();
@@ -146,7 +119,7 @@ public class HiCTrackManager {
             if (extension.equals(".txt") || extension.equals(".zip")) {
                 MessageUtils.showMessage(Level.INFO, ".txt files are not a currently supported 1D track. " +
                         "If you are trying to use refGene, make sure it is in the .txt.gz format. " +
-                        "If you are trying to load 2D annotations (loops/domains), use \"Add 2D...\"");
+                        "If you are trying to load loops/domains, use the 2D Annotations panel.");
                 return;
             } else {
                 locator.setType(extension);
@@ -320,8 +293,8 @@ public class HiCTrackManager {
      * @param locator
      * @param newTracks
      */
-    private void loadTribbleFile(ResourceLocator locator, List<HiCTrack> newTracks, Genome genome) throws IOException, TribbleIndexNotFoundException {
-        String typeString = locator.getTypeString();
+    private void loadTribbleFile(ResourceLocator locator, List<HiCTrack> newTracks, Genome genome)
+            throws IOException, TribbleIndexNotFoundException {
 
         TribbleFeatureSource tribbleFeatureSource = TribbleFeatureSource.getFeatureSource(locator, genome);
         FeatureSource<?> src = GFFFeatureSource.isGFF(locator.getPath()) ?
