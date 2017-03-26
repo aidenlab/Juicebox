@@ -123,7 +123,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             }
         });
 
-        add2DButton = new JButton("Add 2D...");
+        add2DButton = new JButton("Add Local...");
         add2DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
