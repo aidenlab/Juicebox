@@ -55,6 +55,7 @@ public class NormalizationCalculations {
     private boolean isEnoughMemory = false;
 
     public NormalizationCalculations(MatrixZoomData zd) {
+
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
         }
@@ -409,7 +410,8 @@ public class NormalizationCalculations {
                 // if (recalculate) System.out.print(" " + rowsTossed);
             }
             iteration++;
-
+            sparseMatrix = null;
+            System.gc();
         }
         if (iteration > 6 && recalculate) {
             kr = new double[totSize];

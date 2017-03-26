@@ -54,6 +54,8 @@ public class AsciiPairIterator implements PairIterator {
     private AlignmentPair nextPair = null;
     private BufferedReader reader;
     private Format format = null;
+    private int dcicFragIndex1 = -1;
+    private int dcicFragIndex2 = -1;
     //CharMatcher.anyOf(";,.")
 
     public AsciiPairIterator(String path, Map<String, Integer> chromosomeOrdinals) throws IOException {
@@ -100,16 +102,27 @@ public class AsciiPairIterator implements PairIterator {
         try {
             String nextLine;
             if ((nextLine = reader.readLine()) != null) {
-                if (nextLine.startsWith("#")) {
-                    // header line, skip; DCIC files MUST have header
-                    format = Format.DCIC;
-                    nextPair = new AlignmentPair(true);
-                    return;
-                }
                 //String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
                 List<String> tokens = MY_SPLITTER.splitToList(nextLine);
 
                 int nTokens = tokens.size();
+
+                if (nextLine.startsWith("#")) {
+                    // header line, skip; DCIC files MUST have header
+                    format = Format.DCIC;
+                    nextPair = new AlignmentPair(true);
+                    if (nextLine.contains("column")) {
+                        for (int i=0; i<tokens.size(); i++) {
+                            if (tokens.get(i).contains("frag1")) {
+                                dcicFragIndex1 = i-1;
+                            }
+                            if (tokens.get(i).contains("frag2")) {
+                                dcicFragIndex2 = i-1;
+                            }
+                        }
+                    }
+                    return;
+                }
 
                 if (format == null) {
                     if (nTokens == 8) {
@@ -157,7 +170,13 @@ public class AsciiPairIterator implements PairIterator {
                         int pos2 = Integer.parseInt(tokens.get(4));
                         boolean strand1 = tokens.get(5).equals("+");
                         boolean strand2 = tokens.get(6).equals("+");
-                        nextPair = new AlignmentPair(strand1, chr1, pos1, 0, 1000, strand2, chr2, pos2, 1, 1000);
+                        int frag1=0;
+                        int frag2=1;
+                        if (dcicFragIndex1 != -1 && dcicFragIndex2 != -1) {
+                            frag1 = Integer.parseInt(tokens.get(dcicFragIndex1));
+                            frag2 = Integer.parseInt(tokens.get(dcicFragIndex2));
+                        }
+                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, 1000, strand2, chr2, pos2, frag2, 1000);
 
                     }
                     else {
