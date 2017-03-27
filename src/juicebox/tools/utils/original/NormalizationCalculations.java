@@ -54,7 +54,7 @@ public class NormalizationCalculations {
     private int totSize;
     private boolean isEnoughMemory = false;
 
-    public NormalizationCalculations(MatrixZoomData zd) {
+    NormalizationCalculations(MatrixZoomData zd) {
 
         if (zd.getChr1Idx() != zd.getChr2Idx()) {
             throw new RuntimeException("Norm cannot be calculated for inter-chr matrices.");
@@ -68,7 +68,7 @@ public class NormalizationCalculations {
         if (count * 1000 < Runtime.getRuntime().maxMemory()) {
             isEnoughMemory = true;
 
-            this.list = new ArrayList<ContactRecord>();
+            this.list = new ArrayList<>();
             Iterator<ContactRecord> iter = zd.contactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
@@ -90,7 +90,7 @@ public class NormalizationCalculations {
         String nextLine;
         int lineCount = 0;
         int maxBin = 0;
-        ArrayList<ContactRecord> readList = new ArrayList<ContactRecord>();
+        ArrayList<ContactRecord> readList = new ArrayList<>();
         while ((nextLine = reader.readLine()) != null) {
             lineCount++;
             String[] tokens = Globals.singleTabMultiSpacePattern.split(nextLine);
@@ -145,13 +145,13 @@ public class NormalizationCalculations {
         double g = 0.9;
         double etamax = 0.1;
         double eta = etamax;
-        double[] x = x0;
+
         double rt = Math.pow(tol, 2);
 
-        double[] v = A.multiply(x);
+        double[] v = A.multiply(x0);
         double[] rk = new double[v.length];
         for (int i = 0; i < v.length; i++) {
-            v[i] = v[i] * x[i];
+            v[i] = v[i] * x0[i];
             rk[i] = 1 - v[i];
         }
         double rho_km1 = 0;
@@ -195,13 +195,13 @@ public class NormalizationCalculations {
                 }
                 double[] tmp = new double[e.length];
                 for (int i = 0; i < tmp.length; i++) {
-                    tmp[i] = x[i] * p[i];
+                    tmp[i] = x0[i] * p[i];
                 }
                 tmp = A.multiply(tmp);
                 alpha = 0;
                 // Update search direction efficiently.
                 for (int i = 0; i < tmp.length; i++) {
-                    w[i] = x[i] * tmp[i] + v[i] * p[i];
+                    w[i] = x0[i] * tmp[i] + v[i] * p[i];
                     alpha += p[i] * w[i];
                 }
                 alpha = rho_km1 / alpha;
@@ -235,13 +235,13 @@ public class NormalizationCalculations {
                 }
 
             } // end inner loop
-            for (int i = 0; i < x.length; i++) {
-                x[i] = x[i] * y[i];
+            for (int i = 0; i < x0.length; i++) {
+                x0[i] = x0[i] * y[i];
             }
-            v = A.multiply(x);
+            v = A.multiply(x0);
             rho_km1 = 0;
             for (int i = 0; i < v.length; i++) {
-                v[i] = v[i] * x[i];
+                v[i] = v[i] * x0[i];
                 rk[i] = 1 - v[i];
                 rho_km1 += rk[i] * rk[i];
             }
@@ -264,10 +264,10 @@ public class NormalizationCalculations {
         if (not_changing >= 100) {
             return null;
         }
-        return x;
+        return x0;
     }
 
-    public boolean isEnoughMemory() {
+    boolean isEnoughMemory() {
         return isEnoughMemory;
     }
 
@@ -277,7 +277,12 @@ public class NormalizationCalculations {
             norm = computeKR();
         } else if (normOption == NormalizationType.VC || normOption == NormalizationType.GW_VC || normOption == NormalizationType.INTER_VC) {
             norm = computeVC();
-        } else {
+        } else if (normOption == NormalizationType.NONE) {
+            norm = new double[totSize];
+            Arrays.fill(norm, 1);
+            return norm;
+        }
+        else {
             System.err.println("Not supported for normalization " + normOption);
             return null;
         }
@@ -294,7 +299,7 @@ public class NormalizationCalculations {
      *
      * @return Normalization vector
      */
-    public double[] computeVC() {
+    double[] computeVC() {
         double[] rowsums = new double[totSize];
 
         for (int i = 0; i < rowsums.length; i++) rowsums[i] = 0;
@@ -319,7 +324,7 @@ public class NormalizationCalculations {
      * @param norm Normalization vector
      * @return Square root of ratio of original to normalized vector
      */
-    public double getSumFactor(double[] norm) {
+    double getSumFactor(double[] norm) {
         double matrix_sum = 0;
         double norm_sum = 0;
         for (ContactRecord cr : list) {
@@ -342,7 +347,7 @@ public class NormalizationCalculations {
     }
 
 
-    public double[] computeKR() {
+    double[] computeKR() {
 
         boolean recalculate = true;
         int[] offset = getOffset(0);
@@ -491,7 +496,7 @@ public class NormalizationCalculations {
         FloatArrayList values2 = null;
 
 
-        public SparseSymmetricMatrix() {
+        SparseSymmetricMatrix() {
             rows1 = new IntArrayList();
             cols1 = new IntArrayList();
             values1 = new FloatArrayList();
@@ -522,7 +527,7 @@ public class NormalizationCalculations {
         }
 
 
-        public double[] multiply(double[] vector) {
+        double[] multiply(double[] vector) {
 
             double[] result = new double[vector.length];
             Arrays.fill(result, 0);
