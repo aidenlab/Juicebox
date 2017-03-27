@@ -31,6 +31,8 @@ import juicebox.tools.utils.original.NormalizationVectorUpdater;
 
 public class AddNorm extends JuiceboxCLT {
 
+    private boolean noFragNorm = false;
+
     private boolean useGenomeWideResolution = false;
 
     private int genomeWideResolution = -100;
@@ -38,23 +40,30 @@ public class AddNorm extends JuiceboxCLT {
     private String file;
 
     public AddNorm() {
-        super("addNorm <input_HiC_file> [0 for no frag, 1 for no single frag]");
+        super("addNorm <input_HiC_file> [genome-wide resolution] [no-frag]");
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
-        if (args.length < 2 || args.length > 3) {
+        if (args.length < 2 || args.length > 4) {
             printUsageAndExit();
         }
         file = args[1];
         if (args.length > 2) {
             try {
                 genomeWideResolution = Integer.valueOf(args[2]);
+                useGenomeWideResolution = true;
             } catch (NumberFormatException error) {
                 printUsageAndExit();
             }
-            useGenomeWideResolution = true;
+        }
+        if (args.length > 3) {
+            try {
+                noFragNorm = Boolean.valueOf(args[3]);
+            }  catch (Exception error) {
+                printUsageAndExit();
+            }
         }
     }
 
@@ -62,9 +71,9 @@ public class AddNorm extends JuiceboxCLT {
     public void run() {
         try {
             if (useGenomeWideResolution)
-                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution);
+                NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
             else
-                NormalizationVectorUpdater.updateHicFile(file);
+                NormalizationVectorUpdater.updateHicFile(file, 0, noFragNorm);
         } catch (Exception e) {
             e.printStackTrace();
         }
