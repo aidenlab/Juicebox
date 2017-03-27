@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by muhammadsaadshamim on 9/4/15.
+ * Command Line Parser for original (Pre/Dump) calls. Created by muhammadsaadshamim on 9/4/15.
  */
 public class CommandLineParser extends CmdLineParser {
 
@@ -52,6 +52,8 @@ public class CommandLineParser extends CmdLineParser {
     // ints
     private static Option countThresholdOption = null;
     private static Option mapqOption = null;
+    private static Option noFragNormOption = null;
+    private static Option genomeWideOption = null;
 
     // sets of strings
     private static Option multipleChromosomesOption = null;
@@ -65,6 +67,7 @@ public class CommandLineParser extends CmdLineParser {
         verboseOption = addBooleanOption('v', "verbose");
         noNormOption = addBooleanOption('n', "no normalization");
         allPearsonsOption = addBooleanOption('p', "Pearson's/eigenvector at all resolutions");
+        noFragNormOption = addBooleanOption('F', "no fragment normalization");
 
         fragmentOption = addStringOption('f', "restriction fragment site file");
         tmpDirOption = addStringOption('t', "tmpDir");
@@ -73,6 +76,8 @@ public class CommandLineParser extends CmdLineParser {
 
         countThresholdOption = addIntegerOption('m', "minCountThreshold");
         mapqOption = addIntegerOption('q', "mapping quality threshold");
+
+        genomeWideOption = addIntegerOption('w', "smallest BP to normalization genome-wide (>=10000); or smallest fragment to normalize (<10000)");
 
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         resolutionOption = addStringOption('r', "resolutions");
@@ -105,6 +110,8 @@ public class CommandLineParser extends CmdLineParser {
     public boolean getNoNormOption() { return optionToBoolean(noNormOption); }
 
     public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
+
+    public boolean getNoFragNormOption() { return optionToBoolean(noFragNormOption); }
 
     /**
      * String flags
@@ -146,12 +153,15 @@ public class CommandLineParser extends CmdLineParser {
         return optionToInt(mapqOption);
     }
 
+    public int getGenomeWideOption() { return optionToInt(genomeWideOption); }
+
+
     /**
      * String Set flags
      */
     private Set<String> optionToStringSet(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? null : new HashSet<String>(Arrays.asList(opt.toString().split(",")));
+        return opt == null ? null : new HashSet<>(Arrays.asList(opt.toString().split(",")));
     }
 
     public Set<String> getChromosomeOption() {
