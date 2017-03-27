@@ -60,7 +60,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     /**
      * Cache of chromosome name -> array of restriction sites
      */
-    private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
+    private final Map<String, int[]> fragmentSitesCache = new HashMap<>();
     private final CompressionUtils compressionUtils;
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
@@ -79,14 +79,14 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         this.stream = IGVSeekableStreamFactory.getInstance().getStreamFor(path);
 
         if (this.stream != null) {
-            masterIndex = new HashMap<String, Preprocessor.IndexEntry>();
+            masterIndex = new HashMap<>();
             dataset = new Dataset(this);
         }
         compressionUtils = new CompressionUtils();
-        blockIndexMap = new HashMap<String, Map<Integer, Preprocessor.IndexEntry>>();
+        blockIndexMap = new HashMap<>();
     }
 
-    public static String getMagicString(String path) throws IOException {
+    static String getMagicString(String path) throws IOException {
 
         SeekableStream stream = null;
         LittleEndianInputStream dis = null;
@@ -148,7 +148,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             genomeId = genomeId.substring(chromSizes1+1,chromSizes2);
             dataset.setGenomeId(genomeId);
 
-            Map<String, String> attributes = new HashMap<String, String>();
+            Map<String, String> attributes = new HashMap<>();
             // Attributes  (key-value pairs)
             if (version > 4) {
                 int nAttributes = dis.readInt();
@@ -170,7 +170,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             int nchrs = dis.readInt();
             position += 4;
 
-            List<Chromosome> chromosomes = new ArrayList<Chromosome>(nchrs);
+            List<Chromosome> chromosomes = new ArrayList<>(nchrs);
             for (int i = 0; i < nchrs; i++) {
                 String name = dis.readString();
                 position += name.length() + 1;
@@ -207,8 +207,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             dis = null;
             if (nFragResolutions > 0) {
                 stream.seek(position);
-                fragmentSitesIndex = new HashMap<String, FragIndexEntry>();
-                Map<String, Integer> map = new HashMap<String, Integer>();
+                fragmentSitesIndex = new HashMap<>();
+                Map<String, Integer> map = new HashMap<>();
                 for (int i = 0; i < nchrs; i++) {
                     String chr = chromosomes.get(i).getName();
 
@@ -256,8 +256,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int binSize = dis.readInt();
         HiCZoom zoom = new HiCZoom(unit, binSize);
-        // todo: Default binSize value for "ALL" is 6197...
-        // We need to make sure our maps hold a valid binSize value as default.
+        // TODO: Default binSize value for "ALL" is 6197...(actually (genomeLength/1000)/500; depending on bug fix, could be 6191 for hg19); We need to make sure our maps hold a valid binSize value as default.
 
         int blockBinCount = dis.readInt();
         int blockColumnCount = dis.readInt();
@@ -265,7 +264,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites, this);
 
         int nBlocks = dis.readInt();
-        HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<Integer, Preprocessor.IndexEntry>(nBlocks);
+        HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<>(nBlocks);
 
         for (int b = 0; b < nBlocks; b++) {
             int blockNumber = dis.readInt();
@@ -288,17 +287,19 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
     public String readStats() throws IOException {
         String statsFileName = path.substring(0, path.lastIndexOf('.')) + "_stats.html";
-        String stats = null;
+        String stats;
         BufferedReader reader = null;
         try {
-            stats = "";
+            StringBuilder builder = new StringBuilder("");
             reader = ParsingUtils.openBufferedReader(statsFileName);
             String nextLine;
             int count = 0; // if there is an big text file that happens to be named the same, don't read it forever
             while ((nextLine = reader.readLine()) != null && count < 1000) {
-                stats += nextLine + "\n";
+                builder.append(nextLine);
+                builder.append("\n");
                 count++;
             }
+            stats = builder.toString();
         } finally {
             if (reader != null) {
                 reader.close();
@@ -321,22 +322,24 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
         });
 
-        List<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
+        List<JCheckBox> checkBoxList = new ArrayList<>();
         checkBoxList.add(checkBox);
         return checkBoxList;
     }
 
     private String readGraphs(String graphFileName) throws IOException {
-        String graphs = null;
+        String graphs;
         BufferedReader reader = null;
         try {
             reader = ParsingUtils.openBufferedReader(graphFileName);
             if (reader == null) return null;
-            graphs = "";
+            StringBuilder builder = new StringBuilder("");
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
-                graphs += nextLine + "\n";
+                builder.append(nextLine);
+                builder.append("\n");
             }
+            graphs = builder.toString();
         } catch (IOException e) {
             System.err.println("Error while reading graphs file: " + e);
             graphs = null;
@@ -445,7 +448,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             masterIndex.put(key, new Preprocessor.IndexEntry(filePosition, sizeInBytes));
         }
 
-        Map<String, ExpectedValueFunction> expectedValuesMap = new LinkedHashMap<String, ExpectedValueFunction>();
+        Map<String, ExpectedValueFunction> expectedValuesMap = new LinkedHashMap<>();
 
         // Expected values from non-normalized matrix
         int nExpectedValues = dis.readInt();
@@ -464,7 +467,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             }
 
             int nNormalizationFactors = dis.readInt();
-            Map<Integer, Double> normFactors = new LinkedHashMap<Integer, Double>();
+            Map<Integer, Double> normFactors = new LinkedHashMap<>();
             for (int j = 0; j < nNormalizationFactors; j++) {
                 Integer chrIdx = dis.readInt();
                 Double normFactor = dis.readDouble();
@@ -508,7 +511,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 }
 
                 int nNormalizationFactors = dis.readInt();
-                Map<Integer, Double> normFactors = new LinkedHashMap<Integer, Double>();
+                Map<Integer, Double> normFactors = new LinkedHashMap<>();
                 for (int j = 0; j < nNormalizationFactors; j++) {
                     Integer chrIdx = dis.readInt();
                     Double normFactor = dis.readDouble();
@@ -524,7 +527,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             // Normalization vectors (indexed)
 
             nEntries = dis.readInt();
-            normVectorIndex = new HashMap<String, Preprocessor.IndexEntry>(nEntries * 2);
+            normVectorIndex = new HashMap<>(nEntries * 2);
             for (int i = 0; i < nEntries; i++) {
 
                 NormalizationType type = NormalizationType.valueOf(dis.readString());
@@ -565,7 +568,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         // # of resolution levels (bp and frags)
         int nResolutions = dis.readInt();
 
-        List<MatrixZoomData> zdList = new ArrayList<MatrixZoomData>();
+        List<MatrixZoomData> zdList = new ArrayList<>();
 
         int[] chr1Sites = fragmentSitesCache.get(chr1.getName());
         if (chr1Sites == null && fragmentSitesIndex != null) {
@@ -592,7 +595,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         return new Matrix(c1, c2, zdList);
     }
 
-    public int getFragCount(Chromosome chromosome) {
+    int getFragCount(Chromosome chromosome) {
         FragIndexEntry entry = null;
         if (fragmentSitesIndex != null)
             entry = fragmentSitesIndex.get(chromosome.getName());
@@ -635,7 +638,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                 LittleEndianInputStream dis = new LittleEndianInputStream(new ByteArrayInputStream(buffer));
                 int nRecords = dis.readInt();
-                List<ContactRecord> records = new ArrayList<ContactRecord>(nRecords);
+                List<ContactRecord> records = new ArrayList<>(nRecords);
 
                 if (version < 7) {
                     for (int i = 0; i < nRecords; i++) {
@@ -731,7 +734,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             if (rawBlock == null) return null;
 
             Collection<ContactRecord> records = rawBlock.getContactRecords();
-            List<ContactRecord> normRecords = new ArrayList<ContactRecord>(records.size());
+            List<ContactRecord> normRecords = new ArrayList<>(records.size());
             for (ContactRecord rec : records) {
                 int x = rec.getBinX();
                 int y = rec.getBinY();
@@ -754,7 +757,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     @Override
     public List<Integer> getBlockNumbers(MatrixZoomData zd) {
         Map<Integer, Preprocessor.IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
-        return blockIndex == null ? null : new ArrayList<Integer>(blockIndex.keySet());
+        return blockIndex == null ? null : new ArrayList<>(blockIndex.keySet());
     }
 
     @Override
