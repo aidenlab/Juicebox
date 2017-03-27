@@ -83,9 +83,37 @@ public class Dump extends JuiceboxCLT {
             System.exit(8);
         }
 
+        // This is for internal purposes only - to print the All vs All matrix
+        // This matrix should not in general be exposed since it is arbitrairily binned
+        // If in the future we wish to expose, we should use a more reasonable flag.
+        if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
+            Chromosome chr = chromosomeHandler.getChr("All");
+            Matrix matrix =  dataset.getMatrix(chr, chr);
+            if (matrix == null) {
+                System.err.println("No All vs. All matrix");
+                System.exit(1);
+            }
+            MatrixZoomData zd = matrix.getZoomData(zoom);
+            if (zd == null){
+                System.err.println("No All vs. All matrix; be sure zoom is correct");
+                System.exit(1);
+            }
+            Iterator<ContactRecord> iter = zd.contactRecordIterator();
+            while (iter.hasNext()) {
+                ContactRecord cr = iter.next();
+                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+            }
+            pw.close();
+            return;
+        }
+
         // Build a "whole-genome" matrix
         ArrayList<ContactRecord> recordArrayList = NormalizationVectorUpdater.createWholeGenomeRecords(dataset, chromosomeHandler, zoom, includeIntra);
 
+        if (recordArrayList.isEmpty()) {
+            System.err.println("No reads found at " +  zoom +". Include intra is " + includeIntra);
+            return;
+        }
         int totalSize = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             totalSize += c1.getLength() / binSize + 1;
@@ -93,6 +121,7 @@ public class Dump extends JuiceboxCLT {
 
         NormalizationCalculations calculations = new NormalizationCalculations(recordArrayList, totalSize);
         double[] vector = calculations.getNorm(norm);
+
 
         if (matrixType == MatrixType.NORM) {
 
@@ -193,7 +222,7 @@ public class Dump extends JuiceboxCLT {
     /**
      * Dumps the matrix.  Does more argument checking, thus this should not be called outside of this class.
      *
-     * @throws java.io.IOException
+     * @throws java.io.IOException   In case of problems writing out matrix
      */
     private void dumpMatrix() throws IOException {
 
