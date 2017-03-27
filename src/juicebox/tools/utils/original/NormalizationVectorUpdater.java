@@ -52,17 +52,22 @@ public class NormalizationVectorUpdater {
         String path = args[0];
 
         if (args.length > 1) {
-            updateHicFile(path, Integer.valueOf(args[1]));
+            if (args.length == 2) {
+                updateHicFile(path, Integer.valueOf(args[1]), false);
+            }
+            else if (args.length == 3) {
+                updateHicFile(path, Integer.valueOf(args[1]), Boolean.valueOf(args[2]));
+            }
         } else updateHicFile(path);
 
     }
 
 
-    public static void updateHicFile(String path) throws IOException {
-        updateHicFile(path, -100);
+    private static void updateHicFile(String path) throws IOException {
+        updateHicFile(path, -100, false);
     }
 
-    public static void updateHicFile(String path, int genomeWideResolution) throws IOException {
+    public static void updateHicFile(String path, int genomeWideResolution, boolean noFrag) throws IOException {
         DatasetReaderV2 reader = new DatasetReaderV2(path);
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
@@ -74,24 +79,24 @@ public class NormalizationVectorUpdater {
         // chr -> frag count map.  Needed for expected value calculations
         Map<String, Integer> fragCountMap = ds.getFragmentCounts();
 
-        List<HiCZoom> resolutions = new ArrayList<HiCZoom>();
+        List<HiCZoom> resolutions = new ArrayList<>();
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
 
         // Keep track of chromosomes that fail to converge, so we don't try them at higher resolutions.
-        Set<Chromosome> krBPFailedChromosomes = new HashSet<Chromosome>();
-        Set<Chromosome> krFragFailedChromosomes = new HashSet<Chromosome>();
+        Set<Chromosome> krBPFailedChromosomes = new HashSet<>();
+        Set<Chromosome> krFragFailedChromosomes = new HashSet<>();
 
         BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<NormalizationVectorIndexEntry>();
-        List<ExpectedValueCalculation> expectedValueCalculations = new ArrayList<ExpectedValueCalculation>();
+        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
+        List<ExpectedValueCalculation> expectedValueCalculations = new ArrayList<>();
 
 
         // Loop through resolutions
         for (HiCZoom zoom : resolutions) {
 
             // Optionally compute genome-wide normalizaton
-            if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
+            if (genomeWideResolution > 0 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
 
                 // do all four genome-wide normalizations
                 NormalizationType[] types = {NormalizationType.GW_KR, NormalizationType.GW_VC,
@@ -123,9 +128,8 @@ public class NormalizationVectorUpdater {
             System.out.print("Calculating norms for zoom " + zoom);
 
             // Integer is either limit on genome wide resolution or limit on what fragment resolution to calculate
-            if (genomeWideResolution == 0 && zoom.getUnit() == HiC.Unit.FRAG) continue;
-            if (genomeWideResolution < 10000 && zoom.getUnit() == HiC.Unit.FRAG && zoom.getBinSize() <= genomeWideResolution)
-                continue;
+            if (noFrag && zoom.getUnit() == HiC.Unit.FRAG) continue;
+
             Set<Chromosome> failureSet = zoom.getUnit() == HiC.Unit.FRAG ? krFragFailedChromosomes : krBPFailedChromosomes;
 
             Map<String, Integer> fcm = zoom.getUnit() == HiC.Unit.FRAG ? fragCountMap : null;
@@ -260,13 +264,13 @@ public class NormalizationVectorUpdater {
         Dataset ds = reader.read();
         HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
 
-        List<HiCZoom> resolutions = new ArrayList<HiCZoom>();
+        List<HiCZoom> resolutions = new ArrayList<>();
         resolutions.addAll(ds.getBpZooms());
         resolutions.addAll(ds.getFragZooms());
 
 
         BufferedByteWriter normVectorBuffer = new BufferedByteWriter();
-        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<NormalizationVectorIndexEntry>();
+        List<NormalizationVectorIndexEntry> normVectorIndex = new ArrayList<>();
         Map<String, ExpectedValueFunction> expectedValueFunctionMap = ds.getExpectedValueFunctionMap();
 
         for (Iterator<Map.Entry<String, ExpectedValueFunction>> it = expectedValueFunctionMap.entrySet().iterator(); it.hasNext(); ) {
@@ -373,7 +377,7 @@ public class NormalizationVectorUpdater {
             BufferedByteWriter buffer) throws IOException {
 
 
-        List<NormalizedSum> sums = new ArrayList<NormalizedSum>();
+        List<NormalizedSum> sums = new ArrayList<>();
         // Conventions:  chromosomes[0] == Chr_ALL.  Other  chromosomes in increasing order
         for (int i = 1; i < chromosomes.size(); i++) {
 
@@ -589,8 +593,8 @@ public class NormalizationVectorUpdater {
      * Compute the size of the index in bytes.  This is needed to set offsets for the actual index entries.  The
      * easiest way to do this is to write it to a buffer and check the size
      *
-     * @param normVectorIndex
-     * @return
+     * @param buffer Buffer to write to
+     * @param normVectorIndex  Normalization index to write
      */
     private static void writeNormIndex(BufferedByteWriter buffer, List<NormalizationVectorIndexEntry> normVectorIndex) throws IOException {
         buffer.putInt(normVectorIndex.size());
@@ -718,7 +722,7 @@ public class NormalizationVectorUpdater {
         }
 
         // Split normalization vector by chromosome
-        Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<Chromosome, NormalizationVector>();
+        Map<Chromosome, NormalizationVector> normVectorMap = new LinkedHashMap<>();
         int location1 = 0;
         for (Chromosome c1 : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             int chrBinned = c1.getLength() / resolution + 1;
@@ -730,7 +734,7 @@ public class NormalizationVectorUpdater {
             normVectorMap.put(c1, new NormalizationVector(norm, c1.getIndex(), zoom.getUnit(), resolution, chrNV));
         }
 
-        return new Pair<Map<Chromosome, NormalizationVector>, ExpectedValueCalculation>(normVectorMap, expectedValueCalculation);
+        return new Pair<>(normVectorMap, expectedValueCalculation);
     }
 
     private static boolean isValidNormValue(double v) {
@@ -740,7 +744,7 @@ public class NormalizationVectorUpdater {
 
     public static ArrayList<ContactRecord> createWholeGenomeRecords(Dataset dataset, ChromosomeHandler handler,
                                                                     HiCZoom zoom, boolean includeIntra) {
-        ArrayList<ContactRecord> recordArrayList = new ArrayList<ContactRecord>();
+        ArrayList<ContactRecord> recordArrayList = new ArrayList<>();
         int addX = 0;
         int addY = 0;
         for (Chromosome c1 : handler.getChromosomeArrayWithoutAllByAll()) {
