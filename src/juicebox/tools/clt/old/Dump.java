@@ -71,8 +71,8 @@ public class Dump extends JuiceboxCLT {
 
     public static String getUsage(){
         return "dump <observed/oe> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize> [outfile]\n" +
-                "dump <norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]\n" +
-                "dump <loops/domains> <hicFile URL> [outfile]";
+                "\tdump <norm/expected> <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]\n" +
+                "\tdump <loops/domains> <hicFile URL> [outfile]";
 
     }
 
