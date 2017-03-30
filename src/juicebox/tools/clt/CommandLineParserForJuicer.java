@@ -32,7 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by muhammadsaadshamim on 9/4/15.
+ * Command Line Parser for Juicer commands (hiccups, arrowhead, apa)
+ * @author Muhammad Shamim
  */
 public class CommandLineParserForJuicer extends CmdLineParser {
 
@@ -43,6 +44,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option normalizationTypeOption = null;
     private static Option bypassMinimumMapCountCheckOption = null;
     private static Option verboseOption = null;
+    private static Option helpOption = null;
+    private static Option versionOption = null;
 
     // APA
     private static Option apaWindowOption = null;
@@ -65,10 +68,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptkqbvu
+        // wmnxcrplafdptkqbvuh
 
         // available flags
-        // hjoyzesg
+        // joyzesg
 
         // General
         matrixSizeOption = addIntegerOption('m', "matrix_window_width");
@@ -77,6 +80,8 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         normalizationTypeOption = addStringOption('k', "normalization");
         bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
         verboseOption = addBooleanOption('v', "verbose");
+        helpOption = addBooleanOption('h', "help");
+        versionOption = addBooleanOption('V', "version");
 
         // APA
         apaWindowOption = addIntegerOption('w', "window");
@@ -122,6 +127,16 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public boolean getAPASaveAllData() {
         Object opt = getOptionValue(apaSaveAllData);
+        return opt != null;
+    }
+
+    public boolean getHelpOption() {
+        Object opt = getOptionValue(helpOption);
+        return opt != null;
+    }
+
+    public boolean getVersionOption() {
+        Object opt = getOptionValue(versionOption);
         return opt != null;
     }
 
@@ -191,10 +206,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
      */
     private List<String> optionToStringList(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? null : new ArrayList<String>(Arrays.asList(opt.toString().split(",")));
+        return opt == null ? null : new ArrayList<>(Arrays.asList(opt.toString().split(",")));
     }
 
-    public List<String> getChromosomeOption() {
+    List<String> getChromosomeOption() {
         return optionToStringList(multipleChromosomesOption);
     }
 

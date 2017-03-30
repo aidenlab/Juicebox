@@ -51,7 +51,8 @@ public class CLTFactory {
             //        "db",           "db <frag|annot|update> [items]",
             Dump.getUsage(),
             PreProcessing.getBasicUsage(),
-            Pearsons.getUsage(),
+            AddNorm.getBasicUsage(),
+            Pearsons.getBasicUsage(),
             Eigenvector.getUsage(),
             APA.getBasicUsage(),
             Arrowhead.getBasicUsage(),
@@ -61,12 +62,15 @@ public class CLTFactory {
     };
 
     public static void generalUsage() {
-        System.out.println("Juicebox and Juicer Tools Version " + HiCGlobals.versionNum);
+        System.out.println("Juicer Tools Version " + HiCGlobals.versionNum);
         System.out.println("Usage:");
         for (String usage : commandLineToolUsages) {
             System.out.println("\t" + usage);
         }
-        System.out.println("Type juicebox <commandName> for more detailed usage instructions");
+        System.out.println("\t" + "-h, --help print help");
+        System.out.println("\t" + "-v, --verbose verbose mode");
+        System.out.println("\t" + "-V, --version print version");
+        System.out.println("Type juicer_tools <commandName> for more detailed usage instructions");
     }
 
     public static JuiceboxCLT getCLTCommand(String cmd) {

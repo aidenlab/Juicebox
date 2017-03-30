@@ -25,6 +25,7 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
+import juicebox.tools.clt.CommandLineParser;
 import juicebox.tools.clt.JuiceboxCLT;
 import juicebox.tools.utils.original.NormalizationVectorUpdater;
 
@@ -40,31 +41,32 @@ public class AddNorm extends JuiceboxCLT {
     private String file;
 
     public AddNorm() {
-        super("addNorm <input_HiC_file> [genome-wide resolution] [no-frag]");
+        super(getBasicUsage()+"\n"
+                + "           : -d use intra chromosome (diagonal) [false]\n"
+                + "           : -F don't calculate normalization for fragment-delimited maps [false]\n"
+                + "           : -w <int> calculate genome-wide resolution on all resolutions >= input resolution [not set]\n"
+        );
+    }
+
+    public static String getBasicUsage() {
+        return "addNorm <input_HiC_file>";
     }
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
-        //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
-        if (args.length < 2 || args.length > 4) {
+        CommandLineParser parser1 = (CommandLineParser) parser;
+        if (parser1.getHelpOption()) {
             printUsageAndExit();
         }
+
+        //setUsage("juicebox addNorm hicFile");
+        if (args.length != 2) {
+            printUsageAndExit();
+        }
+        noFragNorm = parser1.getNoFragNormOption();
+        genomeWideResolution = parser1.getGenomeWideOption();
         file = args[1];
-        if (args.length > 2) {
-            try {
-                genomeWideResolution = Integer.valueOf(args[2]);
-                useGenomeWideResolution = true;
-            } catch (NumberFormatException error) {
-                printUsageAndExit();
-            }
-        }
-        if (args.length > 3) {
-            try {
-                noFragNorm = Boolean.valueOf(args[3]);
-            }  catch (Exception error) {
-                printUsageAndExit();
-            }
-        }
+
     }
 
     @Override

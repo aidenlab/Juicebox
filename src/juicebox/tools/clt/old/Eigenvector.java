@@ -39,7 +39,8 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 
 /**
- * Created by nchernia on 12/15/16.
+ * Class for calculating Eigenvector (separated out from Dump)
+ * @author Neva Durand
  */
 public class Eigenvector extends JuiceboxCLT {
 
@@ -51,11 +52,11 @@ public class Eigenvector extends JuiceboxCLT {
     private PrintWriter pw;
 
     public Eigenvector() {
-        super(getUsage());
+        super(getUsage() + "\n\t-p, --pearsons_all_resolutions: calculate eigenvector at all resolutions");
     }
 
     public static String getUsage(){
-        return "eigenvector <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+        return "eigenvector -p <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
     }
 
     @Override

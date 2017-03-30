@@ -50,9 +50,13 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -d only calculate intra chromosome (diagonal) [false]\n"
                 + "           : -f <restriction site file> calculate fragment map\n"
                 + "           : -m <int> only write cells with count above threshold m [0]\n"
-                + "           : -q <int> filter by MAPQ score greater than or equal to q\n"
-                + "           : -c <chromosome ID> only calculate map on specific chromosome\n"
-                + "           : -h print help"
+                + "           : -q <int> filter by MAPQ score greater than or equal to q [not set]\n"
+                + "           : -c <chromosome ID> only calculate map on specific chromosome [not set]\n"
+                + "           : -r <comma-separated list of resolutions> Only calculate specific resolutions [not set]\n"
+                + "           : -t <tmpDir> Set a temporary directory for writing\n"
+                + "           : -s <statistics file> Add the text statistics file to the Hi-C file header\n"
+                + "           : -g <graphs file> Add the text graphs file to the Hi-C file header\n"
+                + "           : -n Don't normalize the matrices\n"
         );
     }
 
@@ -63,9 +67,6 @@ public class PreProcessing extends JuiceboxCLT {
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
         CommandLineParser parser1 = (CommandLineParser) parser;
-        if (parser1.getHelpOption()) {
-            printUsageAndExit();
-        }
 
         String genomeId = "";
         try {

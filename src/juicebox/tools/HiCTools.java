@@ -46,10 +46,11 @@ public class HiCTools {
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
 
-        if (argv.length == 0) {
+        if (argv.length == 0 || argv[0].equals("-h") || argv[0].equals("--help") || argv[0].equals("-V") || argv[0].equals("--version")) {
             CLTFactory.generalUsage();
             System.exit(0);
         }
+
         String cmdName = argv[0].toLowerCase();
 
         CmdLineParser parser = new CommandLineParser();
@@ -57,13 +58,19 @@ public class HiCTools {
             parser = new CommandLineParserForJuicer();
             HiCGlobals.useCache = false; //TODO until memory leak cleared
         }
-
+        boolean help;
+        boolean version;
         parser.parse(argv);
+
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             HiCGlobals.printVerboseComments = ((CommandLineParserForJuicer)parser).getVerboseOption();
+            help = ((CommandLineParserForJuicer)parser).getHelpOption();
+            version =  ((CommandLineParserForJuicer)parser).getVersionOption();
         }
         else {
             HiCGlobals.printVerboseComments = ((CommandLineParser)parser).getVerboseOption();
+            help = ((CommandLineParser)parser).getHelpOption();
+            version = ((CommandLineParser)parser).getVersionOption();
             if (((CommandLineParser)parser).getAllPearsonsOption()) {
                 HiCGlobals.MAX_PEARSON_ZOOM = 1;
             }
@@ -79,9 +86,13 @@ public class HiCTools {
             instanceOfCLT = CLTFactory.getCLTCommand(cmd);
         }
         if (instanceOfCLT != null) {
-            if (args.length == 1) {
+            if (version) {
+                System.out.println("Juicer tools version " + HiCGlobals.versionNum);
+            }
+            if (args.length == 1 || help) {
                 instanceOfCLT.printUsageAndExit();
             }
+
             instanceOfCLT.readArguments(args, parser);
             instanceOfCLT.run();
         } else {

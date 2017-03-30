@@ -42,6 +42,7 @@ public class CommandLineParser extends CmdLineParser {
     private static Option verboseOption = null;
     private static Option noNormOption = null;
     private static Option allPearsonsOption = null;
+    private static Option versionOption = null;
 
     // String
     private static Option fragmentOption = null;
@@ -63,21 +64,22 @@ public class CommandLineParser extends CmdLineParser {
 
         diagonalsOption = addBooleanOption('d', "diagonals");
         helpOption = addBooleanOption('h', "help");
-        removeCacheMemoryOption = addBooleanOption('x', "remove memory cache");
+        removeCacheMemoryOption = addBooleanOption('x', "remove_memory_cache");
         verboseOption = addBooleanOption('v', "verbose");
-        noNormOption = addBooleanOption('n', "no normalization");
-        allPearsonsOption = addBooleanOption('p', "Pearson's/eigenvector at all resolutions");
-        noFragNormOption = addBooleanOption('F', "no fragment normalization");
+        noNormOption = addBooleanOption('n', "no_normalization");
+        allPearsonsOption = addBooleanOption('p', "pearsons_all_resolutions");
+        noFragNormOption = addBooleanOption('F', "no_fragment_normalization");
+        versionOption = addBooleanOption('V', "version");
 
-        fragmentOption = addStringOption('f', "restriction fragment site file");
+        fragmentOption = addStringOption('f', "restriction_fragment_site_file");
         tmpDirOption = addStringOption('t', "tmpDir");
-        statsOption = addStringOption('s', "statistics text file");
-        graphOption = addStringOption('g', "graph text file");
+        statsOption = addStringOption('s', "statistics");
+        graphOption = addStringOption('g', "graphs");
 
-        countThresholdOption = addIntegerOption('m', "minCountThreshold");
-        mapqOption = addIntegerOption('q', "mapping quality threshold");
+        countThresholdOption = addIntegerOption('m', "min_count");
+        mapqOption = addIntegerOption('q', "mapq");
 
-        genomeWideOption = addIntegerOption('w', "smallest BP to normalization genome-wide (>=10000); or smallest fragment to normalize (<10000)");
+        genomeWideOption = addIntegerOption('w', "genome_wide");
 
         multipleChromosomesOption = addStringOption('c', "chromosomes");
         resolutionOption = addStringOption('r', "resolutions");
@@ -91,9 +93,7 @@ public class CommandLineParser extends CmdLineParser {
         return opt != null && (Boolean) opt;
     }
 
-    public boolean getHelpOption() {
-        return optionToBoolean(helpOption);
-    }
+    public boolean getHelpOption() { return optionToBoolean(helpOption);}
 
     public boolean getDiagonalsOption() {
         return optionToBoolean(diagonalsOption);
@@ -112,6 +112,8 @@ public class CommandLineParser extends CmdLineParser {
     public boolean getAllPearsonsOption() {return optionToBoolean(allPearsonsOption);}
 
     public boolean getNoFragNormOption() { return optionToBoolean(noFragNormOption); }
+
+    public boolean getVersionOption() { return optionToBoolean(versionOption); }
 
     /**
      * String flags

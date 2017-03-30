@@ -44,12 +44,13 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 /**
- * Created by nchernia on 11/30/16.
+ * Class for calculating Pearsons (separated out from Dump)
+ * @author Neva Durand
  */
 public class Pearsons extends JuiceboxCLT {
 
     private static final int BLOCK_TILE = 500;
-    String ofile = null;
+    private String ofile = null;
     private HiC.Unit unit = null;
     private NormalizationType norm = null;
     private Dataset dataset = null;
@@ -58,11 +59,11 @@ public class Pearsons extends JuiceboxCLT {
 
 
     public Pearsons() {
-        super(getUsage());
+        super(getBasicUsage() + "\n\t-p, --pearsons_all_resolutions: calculate Pearson's at all resolutions");
     }
 
-    public static String getUsage(){
-        return "pearsons <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
+    public static String getBasicUsage(){
+        return "pearsons [-p] <NONE/VC/VC_SQRT/KR> <hicFile(s)> <chr> <BP/FRAG> <binsize> [outfile]";
     }
 
     public static BasicMatrix readPearsons(String path) throws IOException {
@@ -205,7 +206,6 @@ public class Pearsons extends JuiceboxCLT {
             System.out.println("Pearson's and Eigenvector are not calculated for high resolution datasets");
             System.out.println("To override this limitation, send in the \"-p\" flag.");
             System.exit(0);
-            //   System.out.println("WARNING: Pearson's and eigenvector calculation at high resolution can take a long time");
         }
 
         if (args.length == 7) {
