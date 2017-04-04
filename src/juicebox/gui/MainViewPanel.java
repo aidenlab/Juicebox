@@ -160,8 +160,8 @@ public class MainViewPanel {
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
-        chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)}));
+        chrBox1 = new JComboBox<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox1.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox1ActionPerformed(e);
@@ -171,8 +171,8 @@ public class MainViewPanel {
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
-        chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)}));
+        chrBox2 = new JComboBox<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox2.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox2ActionPerformed(e);
@@ -217,8 +217,9 @@ public class MainViewPanel {
         JPanel displayOptionButtonPanel = new JPanel();
         displayOptionButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
         displayOptionButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        displayOptionComboBox = new JComboBox<MatrixType>();
-        displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(new MatrixType[]{MatrixType.OBSERVED}));
+        displayOptionComboBox = new JComboBox<>(new MatrixType[]{MatrixType.OBSERVED});
+        displayOptionComboBox.setPreferredSize(new Dimension(500, 30));
+        displayOptionComboBox.addPopupMenuListener(new BoundsPopupMenuListener<MatrixType>(true, false));
         displayOptionComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeDisplayOptionComboBoxActionPerformed();
@@ -254,8 +255,8 @@ public class MainViewPanel {
         JPanel normalizationButtonPanel = new JPanel();
         normalizationButtonPanel.setBorder(new EmptyBorder(0, 10, 0, 10));
         normalizationButtonPanel.setLayout(new GridLayout(1, 0, 20, 0));
-        normalizationComboBox = new JComboBox<String>();
-        normalizationComboBox.setModel(new DefaultComboBoxModel<String>(new String[]{NormalizationType.NONE.getLabel()}));
+        normalizationComboBox = new JComboBox<>(new String[]{NormalizationType.NONE.getLabel()});
+        normalizationComboBox.addPopupMenuListener(new BoundsPopupMenuListener<String>(true, false));
         normalizationComboBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.safeNormalizationComboBoxActionPerformed(e);
