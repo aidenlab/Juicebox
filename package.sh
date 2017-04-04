@@ -15,25 +15,25 @@ LAL_DROPBOX="/Users/nchernia/Dropbox (Lab at Large)/"
 
 printHelpAndExit() {
     echo "Usage: ${0##*/} <version_number> -bh"
-    echo "       <version_number>: 1.6.1 e.g.  Required"
+    echo "       -v <version_number>: 1.6.1 e.g.  Required"
     echo "       -b: BCM-only version"
     echo "       -h: Print this help and exit"
     exit "$1"
 }
 
-if test "$#" -ne 1; then
-    printHelpAndExit 1
-fi
-
-while getopts "bh" opt; do
+while getopts "v:bh" opt; do
     case $opt in
+    v) VERSION=$OPTARG ;;
 	h) printHelpAndExit 0;;
 	b) BCM=1 ;;
 	[?]) printHelpAndExit 1;;
 	esac
 done
 
-VERSION=$1
+if [ -z "$VERSION" ]
+then
+   printHelpAndExit 1
+fi
 
 if [ -z "${BCM}" ]
 then
@@ -201,4 +201,4 @@ osslsigncode sign -certs "${LAL_DROPBOX}"/important_jars/erez_s_lieberman.pem \
      -out "${BASE_DIR}"/l4j/signed.exe
 mv "${BASE_DIR}"/l4j/signed.exe "${ARTIFACT_DIR}"/Juicebox\ ${VERSION}.exe
 mv "${ARTIFACT_DIR}"/Juicebox.jar "${ARTIFACT_DIR}"/Juicebox\ ${VERSION}.jar
-echo 'Done. The packaged executables live in "${ARTIFACT_DIR}"'
+echo "Done. The packaged executables live in ${ARTIFACT_DIR}"
