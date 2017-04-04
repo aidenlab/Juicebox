@@ -28,16 +28,16 @@ package juicebox.windowui;
 
 public enum MatrixType {
     OBSERVED("Observed"),
-    OE("Observed/Expected"),
-    PEARSON("Pearson"),
     EXPECTED("Expected"),
+    OE("Observed/Expected"),
+    PEARSON("Observed Pearson"),
     CONTROL("Control"),
-    OECTRL("Observed/Expected (Control)"),
-    PEARSONCTRL("Pearson (Control)"),
+    OECTRL("Control/Expected"),
+    PEARSONCTRL("Control Pearson"),
     RATIO("Observed/Control"),
     VS("Observed vs Control"),
-    OEVS("Observed/Expected (Observed vs Control)"),
-    PEARSONVS("Pearson (Observed vs Control)"),
+    OEVS("Observed/Expected vs Control/Expected"),
+    PEARSONVS("Observed Pearson vs Control Pearson"),
     DIFF("Observed-Control"),
     NORM("Norm"),
     EIGENVECTOR("Eigenvector");
@@ -159,10 +159,6 @@ public enum MatrixType {
         return option == OE || option == OBSERVED;
     }
 
-    public String toString() {
-        return value;
-    }
-
     public static boolean isVSTypeDisplay(MatrixType option) {
         return option == MatrixType.VS || option == MatrixType.PEARSONVS || option == MatrixType.OEVS;
     }
@@ -173,5 +169,9 @@ public enum MatrixType {
 
     private static boolean isControlExpectedUsedType(MatrixType option) {
         return option == OECTRL || option == OEVS;
+    }
+
+    public String toString() {
+        return value;
     }
 }
