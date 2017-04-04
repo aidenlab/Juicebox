@@ -342,10 +342,26 @@
       <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
       <option value="-Xmx8000m"/>
       <option value="-d64"/>
+    </jarbundler>
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+
+  <target name="bundlebcm" depends="init.artifacts">
+    <jarbundler outputdirectory="${artifact.output.juicebox:jar}"
+                name="Juicebox"
+                displayname="Juicebox"
+                identifier="juicebox.MainWindow"
+                icon="JuiceboxIcon.icns"
+                mainclassname="juicebox.MainWindow">
+      <classpath file="${artifact.output.juicebox:jar}/Juicebox.jar" />
+      <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
+      <option value="-Xmx8000m"/>
+      <option value="-d64"/>
       <option value="-Djnlp.loadMenu=http://adam.bcma.bcm.edu/hicInternalMenu.properties"/>
     </jarbundler>
     <delete dir="${artifacts.temp.dir}"/>
   </target>
+
 
 
 

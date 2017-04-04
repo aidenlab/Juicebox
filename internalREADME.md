@@ -1,6 +1,17 @@
 --------------------
 Quick Start
 --------------------
+1. Run `package.sh <versionNum>`
+versionNum lives in src/juicebox/HiCGlobals.
+This will compile, sign, bundle, and create the DMG and EXE.
+You will be prompted to change the EXE with a HEX editor, just follow
+the instructions.
+2. The new executables will be in out/artifacts/Juicebox_jar
+3. move old jars, EXEs, and DMGs, update CHANGES in important_jars
+
+------------------
+Previous version
+------------------
 ```
 rm -r out
 ant
