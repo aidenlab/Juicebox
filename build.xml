@@ -275,8 +275,7 @@
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-        <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0RC-linux-x86_64.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
@@ -295,8 +294,7 @@
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-        <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0RC-linux-x86_64.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
     <copy file="${temp.jar.path.juicer_tools.jar}" tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>
@@ -311,7 +309,7 @@
     </signjar>
   </target>
 
-  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicer_tools:jar, sign" description="Build all artifacts">
+  <target name="build.all.artifacts" depends="artifact.juicebox:jar, artifact.juicer_tools:jar" description="Build all artifacts">
     <mkdir dir="${artifact.output.juicebox:jar}"/>
     <copy todir="${artifact.output.juicebox:jar}">
       <fileset dir="${artifact.temp.output.juicebox:jar}"/>
@@ -321,6 +319,16 @@
       <fileset dir="${artifact.temp.output.juicer_tools:jar}"/>
     </copy>
     
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+
+  <target name="juicer_tools" depends="artifact.juicer_tools:jar" description="Build juicer_tools artifact">
+    <mkdir dir="${artifact.output.juicer_tools:jar}"/>
+    <copy todir="${artifact.output.juicer_tools:jar}">
+      <fileset dir="${artifact.temp.output.juicer_tools:jar}"/>
+    </copy>
+
     <!-- Delete temporary files -->
     <delete dir="${artifacts.temp.dir}"/>
   </target>

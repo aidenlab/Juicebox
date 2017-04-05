@@ -49,7 +49,7 @@ ARTIFACT_DIR="${BASE_DIR}/out/artifacts/Juicebox_jar"
 DMG_BACKGROUND_IMG="Juicebox_bg.png"
 
 # compile, bundle, sign 
-cd ${BASE_DIR}
+cd "${BASE_DIR}"
 rm -r out
 ant
 ant sign
@@ -60,8 +60,7 @@ else
     ant bundlebcm
 fi
 
-cd ${ARTIFACT_DIR}
-codesign -s "Erez Aiden" "${APP_NAME}".app --deep
+cd "${ARTIFACT_DIR}"
 
 APP_EXE="${APP_NAME}.app/Contents/MacOS/JavaAppLauncher" 
 VOL_NAME="${APP_NAME} ${VERSION}"  
@@ -71,6 +70,8 @@ STAGING_DIR="./Install"
 
 # clear out any old data
 rm -rf "${STAGING_DIR}" "${DMG_TMP}" "${DMG_FINAL}"
+
+codesign -s "Erez Aiden" "${APP_NAME}".app --deep
  
 # copy over the stuff we want in the final disk image to our staging dir
 mkdir -p "${STAGING_DIR}"
@@ -80,15 +81,15 @@ cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
 pushd "${STAGING_DIR}"
  
 # strip the executable
-echo "Stripping ${APP_EXE}..."
-strip -u -r "${APP_EXE}"
+#echo "Stripping ${APP_EXE}..."
+#strip -u -r "${APP_EXE}"
  
 # compress the executable if we have upx in PATH
 #  UPX: http://upx.sourceforge.net/
-if hash upx 2>/dev/null; then
-   echo "Compressing (UPX) ${APP_EXE}..."
-   upx -9 "${APP_EXE}"
-fi
+#if hash upx 2>/dev/null; then
+#   echo "Compressing (UPX) ${APP_EXE}..."
+#   upx -9 "${APP_EXE}"
+#fi
  
 # ... perform any other stripping/compressing of libs and executables
  
@@ -102,7 +103,7 @@ if [ $? -ne 0 ]; then
    echo "Error: Cannot compute size of staging dir"
    exit
 fi
- 
+
 # create the temp DMG file
 hdiutil create -srcfolder "${STAGING_DIR}" -volname "${VOL_NAME}" -fs HFS+ \
       -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M "${DMG_TMP}"
