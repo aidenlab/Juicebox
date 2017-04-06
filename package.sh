@@ -169,11 +169,16 @@ echo 'Done creating DMG'
 ### BUNDLE EXE
 ###
 
-cd "${BASE_DIR}"/l4j 
+cd "${BASE_DIR}"/l4j
+
 # clean up any old versions
-rm *.exe 2> /dev/null
+if ls *.exe 1> /dev/null 2>&1 
+then
+    rm *.exe 
+fi
+
 # Package exe
-${LAUNCH4J_EXE} ${CONFIG_FILE}
+"${LAUNCH4J_EXE}" "${CONFIG_FILE}"
 
 # Sign.  Uncomment below to change signature
 #openssl pkcs12 -in ${LAL_DROPBOX}/important_jars/ErezSLieberman.p12 -nocerts\
