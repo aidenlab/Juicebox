@@ -605,6 +605,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else return -1;
     }
 
+
+
     @Override
     synchronized public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
 
@@ -796,6 +798,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
     }
+
+    public Map<String, Preprocessor.IndexEntry> getNormVectorIndex()  { return normVectorIndex;}
 
     public long getNormFilePosition() {
         return version <= 5 ? (new File(this.path)).length() : normVectorFilePosition;

@@ -41,23 +41,21 @@ import java.util.*;
  * Update an existing hic file with new normalization vectors (included expected value vectors)
  *
  * @author jrobinso
- *         Date: 2/8/13
- *         Time: 8:34 PM
+ * @since 2/8/13
  */
 public class NormalizationVectorUpdater {
 
-
+    /**
+     * Main method is for internal testing and should not be used in general
+     * @param args If one argument, call updater code; if two, call dump index code
+     * @throws IOException In case of error while reading or writing
+     */
     public static void main(String[] args) throws IOException {
 
         String path = args[0];
 
         if (args.length > 1) {
-            if (args.length == 2) {
-                updateHicFile(path, Integer.valueOf(args[1]), false);
-            }
-            else if (args.length == 3) {
-                updateHicFile(path, Integer.valueOf(args[1]), Boolean.valueOf(args[2]));
-            }
+            dumpNormalizationVectorIndex(path, args[1]);
         } else updateHicFile(path);
 
     }
@@ -770,6 +768,56 @@ public class NormalizationVectorUpdater {
             addY = 0;
         }
         return recordArrayList;
+    }
+
+    static private void dumpNormalizationVectorIndex(String path, String outputFile) throws IOException {
+        DatasetReaderV2 reader = new DatasetReaderV2(path);
+        reader.read();
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(outputFile, "rw");
+
+            BufferedByteWriter buffer = new BufferedByteWriter();
+
+            // header: magic string HICNORM; version number 1; path
+            buffer.putNullTerminatedString("HICNORM");
+            buffer.putInt(1);
+            buffer.putNullTerminatedString(path);
+
+            Map<String, Preprocessor.IndexEntry> normVectorMap = reader.getNormVectorIndex();
+
+            List<NormalizationVectorIndexEntry> normList = new ArrayList<>();
+
+            for (Map.Entry<String, Preprocessor.IndexEntry> entry : normVectorMap.entrySet()) {
+                String[] parts = entry.getKey().split("_");
+                String strType;
+                int chrIdx;
+                String unit;
+                int resolution;
+
+                if (parts.length != 4) {
+                    NormalizationType type = NormalizationType.enumValueFromString(parts[0] + "_" + parts[1]);
+                    strType = type.toString();
+                    chrIdx =  Integer.valueOf(parts[2]);
+                    unit = parts[3];
+                    resolution = Integer.valueOf(parts[4]);
+                }
+                else {
+                    strType = parts[0];
+                    chrIdx =  Integer.valueOf(parts[1]);
+                    unit = parts[2];
+                    resolution = Integer.valueOf(parts[3]);
+                }
+                NormalizationVectorIndexEntry newEntry = new NormalizationVectorIndexEntry(strType, chrIdx, unit, resolution, entry.getValue().position, entry.getValue().size);
+                normList.add(newEntry);
+            }
+
+            writeNormIndex(buffer, normList);
+            raf.write(buffer.getBytes());
+        }
+        finally {
+            if (raf != null) raf.close();
+        }
     }
 
 
