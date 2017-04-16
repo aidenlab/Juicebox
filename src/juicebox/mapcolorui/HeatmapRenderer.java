@@ -172,7 +172,7 @@ class HeatmapRenderer {
                 pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
             }
 
-            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
+            renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
 
         } else if (displayOption == MatrixType.PEARSONCTRL) {
 
@@ -187,7 +187,7 @@ class HeatmapRenderer {
             if (!pearsonColorScale.containsKey(key)) {
                 pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
             }
-            renderMatrix(bm, originX, originY, width, height, pearsonColorScale, key, g);
+            renderPearsonMatrix(bm, null, originX, originY, width, height, pearsonColorScale, key, g);
 
         } else if (displayOption == MatrixType.PEARSONVS) {
 
@@ -207,7 +207,7 @@ class HeatmapRenderer {
             }
 
 
-            renderVSMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
+            renderPearsonMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
         } else {
             // Iterate through blocks overlapping visible region
 
@@ -551,44 +551,16 @@ class HeatmapRenderer {
     /**
      * Render a dense matrix. Used for Pearsons correlation.  The bitmap is drawn at 1 data point
      * per pixel, scaling happens elsewhere.
-     *  @param rm         Matrix to render
+     * @param bm1         Matrix to render
+     * @param bm2         Matrix to render
      * @param originX    origin in pixels
      * @param originY    origin in pixels
-     * @param colorScale color scale to apply
+     * @param pearsonColorScale color scale to apply
      * @param key
      * @param g          graphics to render matrix into
      */
-    private void renderMatrix(BasicMatrix rm, int originX, int originY, int width, int height,
-                              HiCColorScale colorScale, String key, Graphics2D g) {
-
-
-        int endX = Math.min(originX + width, rm.getColumnDimension());
-        int endY = Math.min(originY + height, rm.getRowDimension());
-
-        // TODO -- need to check bounds before drawing
-        for (int row = originY; row < endY; row++) {
-            for (int col = originX; col < endX; col++) {
-
-                float score = rm.getEntry(row, col);
-                Color color = getPearsonColor(key, score, colorScale);
-
-                int px = col - originX;
-                int py = row - originY;
-                g.setColor(color);
-                //noinspection SuspiciousNameCombination
-                g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                // Assuming same chromosome
-                if (col != row) {
-                    px = row - originX;
-                    py = col - originY;
-                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                }
-            }
-        }
-    }
-
-    private void renderVSMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
-                                HiCColorScale pearsonVSColorScale, String key, Graphics2D g) {
+    private void renderPearsonMatrix(BasicMatrix bm1, BasicMatrix bm2, int originX, int originY, int width, int height,
+                                     HiCColorScale pearsonColorScale, String key, Graphics2D g) {
         int endX = Math.min(originX + width, bm1.getColumnDimension());
         int endY = Math.min(originY + height, bm1.getRowDimension());
 
@@ -597,21 +569,27 @@ class HeatmapRenderer {
             for (int col = originX; col < endX; col++) {
 
                 float score = bm1.getEntry(row, col);
-                float controlScore = bm2.getEntry(row, col);
-                Color color = getPearsonColor(key, score, pearsonVSColorScale);
-                Color controlColor = getPearsonColor(key, controlScore, pearsonVSColorScale);
-
+                Color color = getPearsonColor(key, score, pearsonColorScale);
                 int px = col - originX;
                 int py = row - originY;
                 g.setColor(color);
+
                 //noinspection SuspiciousNameCombination
                 g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                 // Assuming same chromosome
                 if (col != row) {
-                    px = row - originX;
-                    py = col - originY;
-                    g.setColor(controlColor);
-                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                    if (bm2 != null) {
+                        float controlScore = bm2.getEntry(row, col);
+                        Color controlColor = getPearsonColor(key, controlScore, pearsonColorScale);
+                        px = row - originX;
+                        py = col - originY;
+                        g.setColor(controlColor);
+                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                    } else {
+                        px = row - originX;
+                        py = col - originY;
+                        g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                    }
                 }
             }
         }

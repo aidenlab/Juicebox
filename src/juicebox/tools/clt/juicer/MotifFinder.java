@@ -95,8 +95,8 @@ public class MotifFinder extends JuicerCLT {
         } catch (Exception e) {
             System.err.println("Unable to locate BED files");
             System.err.println("All BED files should include the '.bed' extension");
-            System.err.println("BED files for locating unique motifs should be located in given_bed_file_dir/unique");
-            System.err.println("BED files for locating inferred motifs should be located in given_bed_file_dir/inferred");
+            System.err.println("BED files for locating unique motifs should be located in " + bedFileDirPath + "/unique/*.bed");
+            System.err.println("BED files for locating inferred motifs should be located in " + bedFileDirPath + "/inferred/*.bed");
             System.exit(54);
         }
 
@@ -306,6 +306,4 @@ public class MotifFinder extends JuicerCLT {
 
         return bedFiles;
     }
-
-
 }

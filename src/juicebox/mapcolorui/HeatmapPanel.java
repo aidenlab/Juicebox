@@ -833,7 +833,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                             hic.getYContext().getBinOrigin(), hic.getScaleFactor(), feature);
                 } catch (Exception ee) {
-                    System.err.println("Could not remove custom annot.");
+                    System.err.println("Could not remove custom annotation");
                 }
             }
         });
