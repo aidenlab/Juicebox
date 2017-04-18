@@ -178,7 +178,7 @@ public class NormalizationVectorUpdater {
 
 
                 Iterator<ContactRecord> iter = zd.contactRecordIterator();
-
+                // TODO: this is inefficient, we have all of the contact records when we leave normcalculations, should do this there if possible
                 final int chrIdx = chr.getIndex();
                 while (iter.hasNext()) {
                     ContactRecord cr = iter.next();
