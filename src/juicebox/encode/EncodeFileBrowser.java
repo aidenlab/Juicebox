@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ public class EncodeFileBrowser extends JDialog {
     private static final long serialVersionUID = 3049287764412827292L;
     private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
-    private static final HashSet<String> supportedGenomes = new HashSet<String>(Arrays.asList("hg19", "mm9", "hic"));
+    private static final HashSet<String> supportedGenomes = new HashSet<>(Arrays.asList("hg19", "mm9", "hic"));
     private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
     private final EncodeTableModel model;
     private JTable table;
