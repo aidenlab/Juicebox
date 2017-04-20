@@ -1090,13 +1090,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt.append(getFloatString(controlValue));
                     txt.append("</span>");
 
-                    double obsValue = (value / zd.getAverageCount());
+                    double obsAvg = zd.getAverageCount();
+                    double obsValue = (value / obsAvg);
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append("observed/average = ");
                     txt.append(getFloatString((float) obsValue));
                     txt.append("</span>");
 
-                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
+                    double ctrlAvg = controlZD.getAverageCount();
+                    double ctlValue = (float) (controlValue / ctrlAvg);
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append("control/average = ");
                     txt.append(getFloatString((float) ctlValue));
@@ -1109,7 +1111,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
 
-                        double diff = (obsValue - ctlValue);
+                        double diff = (obsValue - ctlValue) * (obsAvg / 2. + ctrlAvg / 2.);
                         txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append("O'-C' = ");
                         txt.append(getFloatString((float) diff));

@@ -42,6 +42,7 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
@@ -59,6 +60,7 @@ class HeatmapRenderer {
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<String, OEColorScale>();
     private final PreDefColorScale preDefColorScale;
     private Color curHiCColor = Color.white;
+    private boolean isInAssemblyMode = true;
 
     public HeatmapRenderer() {
 
@@ -287,6 +289,7 @@ class HeatmapRenderer {
 
                 if (zd != null) {
                     blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
+                    //zd.
                     if (blocks != null) {
                         for (Block b : blocks) {
 
@@ -300,6 +303,13 @@ class HeatmapRenderer {
 
                                     int binX = rec.getBinX();
                                     int binY = rec.getBinY();
+
+                                    if (isInAssemblyMode) {
+                                        Pair<Integer, Integer> binXY = AssemblyIntermediateProcessor.process(binX, binY);
+                                        binX = binXY.getFirst();
+                                        binY = binXY.getSecond();
+                                    }
+
                                     int px = binX - originX;
                                     int py = binY - originY;
 
@@ -385,7 +395,7 @@ class HeatmapRenderer {
 
                 double averageCount = zd.getAverageCount();
                 double ctrlAverageCount = controlZD == null ? 1 : controlZD.getAverageCount();
-                double averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+                double averageAcrossMapAndControl = (averageCount / 2. + ctrlAverageCount / 2.);
 
                 for (Block b : blocks) {
 
@@ -434,7 +444,7 @@ class HeatmapRenderer {
                                 if (ctrlRecord != null && ctrlRecord.getCounts() > 0) {
                                     double num = rec.getCounts() / averageCount;
                                     double den = ctrlRecord.getCounts() / ctrlAverageCount;
-                                    score = num - den;
+                                    score = (num - den) * averageAcrossMapAndControl;
                                 }
                             } else {
                                 score = rec.getCounts();

@@ -479,6 +479,16 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
+        JMenuItem assemblyMode = new JMenuItem("Launch assembly mode editor...");
+        assemblyMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO
+                System.out.print("An attempt was made");
+            }
+        });
+        devMenu.add(assemblyMode);
+
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
