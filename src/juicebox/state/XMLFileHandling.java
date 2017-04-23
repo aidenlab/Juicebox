@@ -96,7 +96,7 @@ public class XMLFileHandling {
         }
 
         // TODO this needs some major restructuring
-        List<Feature2DList> visibleLoops = new ArrayList<Feature2DList>();
+        List<Feature2DList> visibleLoops = new ArrayList<>();
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             visibleLoops.addAll(handler.getAllVisibleLoopLists());
         }

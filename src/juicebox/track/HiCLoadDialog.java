@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ import java.util.List;
 class HiCLoadDialog extends JDialog {
 
     private static final long serialVersionUID = -7529973146086845915L;
-    private final Collection<String> selectedTracks = new HashSet<String>();
+    private final Collection<String> selectedTracks = new HashSet<>();
     private boolean canceled = false;
 
 
@@ -68,7 +68,7 @@ class HiCLoadDialog extends JDialog {
         final Box mainPanel = new Box(BoxLayout.Y_AXIS);
         mainPanel.setAlignmentX(LEFT_ALIGNMENT);
 
-        Set<String> loadedTrackNames = new HashSet<String>(tracks.size());
+        Set<String> loadedTrackNames = new HashSet<>(tracks.size());
         for (HiCTrack t : tracks) {
             loadedTrackNames.add(t.getName());
         }

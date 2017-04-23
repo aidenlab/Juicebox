@@ -88,10 +88,10 @@ public class Preprocessor {
     public Preprocessor(File outputFile, String genomeId, ChromosomeHandler chromosomeHandler) {
         this.genomeId = genomeId;
         this.outputFile = outputFile;
-        this.matrixPositions = new LinkedHashMap<String, IndexEntry>();
+        this.matrixPositions = new LinkedHashMap<>();
 
         this.chromosomeHandler = chromosomeHandler;
-        chromosomeIndexes = new Hashtable<String, Integer>();
+        chromosomeIndexes = new Hashtable<>();
         for (int i = 0; i < chromosomeHandler.size(); i++) {
             chromosomeIndexes.put(chromosomeHandler.get(i).getName(), i);
         }
@@ -134,8 +134,8 @@ public class Preprocessor {
 
     public void setResolutions(Set<String> resolutions) {
         if (resolutions != null) {
-            ArrayList<Integer> fragResolutions= new ArrayList<Integer>();
-            ArrayList<Integer> bpResolutions= new ArrayList<Integer>();
+            ArrayList<Integer> fragResolutions = new ArrayList<>();
+            ArrayList<Integer> bpResolutions = new ArrayList<>();
 
             for (String str:resolutions) {
                 boolean fragment = false;
@@ -245,7 +245,7 @@ public class Preprocessor {
                 }
             }
 
-            expectedValueCalculations = new LinkedHashMap<String, ExpectedValueCalculation>();
+            expectedValueCalculations = new LinkedHashMap<>();
             for (int bBinSize : bpBinSizes) {
                 ExpectedValueCalculation calc = new ExpectedValueCalculation(chromosomeHandler, bBinSize, null, NormalizationType.NONE);
                 String key = "BP_" + bBinSize;
@@ -255,7 +255,7 @@ public class Preprocessor {
 
                 // Create map of chr name -> # of fragments
                 Map<String, int[]> sitesMap = fragmentCalculation.getSitesMap();
-                Map<String, Integer> fragmentCountMap = new HashMap<String, Integer>();
+                Map<String, Integer> fragmentCountMap = new HashMap<>();
                 for (Map.Entry<String, int[]> entry : sitesMap.entrySet()) {
                     int fragCount = entry.getValue().length + 1;
                     String chr = entry.getKey();
@@ -383,7 +383,7 @@ public class Preprocessor {
         int currentChr1 = -1;
         int currentChr2 = -1;
         MatrixPP currentMatrix = null;
-        HashSet<String> writtenMatrices = new HashSet<String>();
+        HashSet<String> writtenMatrices = new HashSet<>();
         String currentMatrixKey = null;
 
         while (iter.hasNext()) {
@@ -734,7 +734,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
 
         // Sort keys in row-major order
-        List<Point> keys = new ArrayList<Point>(records.keySet());
+        List<Point> keys = new ArrayList<>(records.keySet());
         Collections.sort(keys, new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
@@ -751,7 +751,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         boolean isInteger = true;
         float maxCounts = 0;
 
-        LinkedHashMap<Integer, List<ContactRecord>> rows = new LinkedHashMap<Integer, List<ContactRecord>>();
+        LinkedHashMap<Integer, List<ContactRecord>> rows = new LinkedHashMap<>();
         for (Point point : keys) {
             final ContactCount contactCount = records.get(point);
             float counts = contactCount.getCounts();
@@ -764,7 +764,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 final int py = point.y - binYOffset;
                 List<ContactRecord> row = rows.get(py);
                 if (row == null) {
-                    row = new ArrayList<ContactRecord>(10);
+                    row = new ArrayList<>(10);
                     rows.put(py, row);
                 }
                 row.add(new ContactRecord(px, py, counts));
@@ -963,7 +963,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 lis = new LittleEndianInputStream(bis);
 
 
-                Map<Point, ContactCount> contactRecordMap = new HashMap<Point, ContactCount>(nRecords);
+                Map<Point, ContactCount> contactRecordMap = new HashMap<>(nRecords);
                 for (int i = 0; i < nRecords; i++) {
                     int x = lis.readInt();
                     int y = lis.readInt();
@@ -1012,7 +1012,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         BlockQueueMem(Collection<BlockPP> blockCollection) {
 
-            this.blocks = new ArrayList<BlockPP>(blockCollection);
+            this.blocks = new ArrayList<>(blockCollection);
             Collections.sort(blocks, new Comparator<BlockPP>() {
                 @Override
                 public int compare(BlockPP o1, BlockPP o2) {
@@ -1047,7 +1047,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         BlockPP(int number) {
             this.number = number;
-            this.contactRecordMap = new HashMap<Point, ContactCount>();
+            this.contactRecordMap = new HashMap<>();
         }
 
         public BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
@@ -1267,8 +1267,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
          */
         MatrixZoomDataPP(Chromosome chr1, Chromosome chr2, int binSize, int blockColumnCount, int zoom, boolean isFrag) {
 
-            this.tmpFiles = new ArrayList<File>();
-            this.blockNumbers = new HashSet<Integer>(1000);
+            this.tmpFiles = new ArrayList<>();
+            this.blockNumbers = new HashSet<>(1000);
 
             this.sum = 0;
             this.chr1 = chr1;
@@ -1285,7 +1285,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             int nBinsX = len / binSize + 1;
 
             blockBinCount = nBinsX / blockColumnCount + 1;
-            blocks = new LinkedHashMap<Integer, BlockPP>(blockColumnCount * blockColumnCount);
+            blocks = new LinkedHashMap<>(blockColumnCount * blockColumnCount);
         }
 
         HiC.Unit getUnit() {
@@ -1405,7 +1405,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             try {
                 los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(file), 4194304));
 
-                List<BlockPP> blockList = new ArrayList<BlockPP>(blocks.values());
+                List<BlockPP> blockList = new ArrayList<>(blocks.values());
                 Collections.sort(blockList, new Comparator<BlockPP>() {
                     @Override
                     public int compare(BlockPP o1, BlockPP o2) {
@@ -1449,7 +1449,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         private List<IndexEntry> mergeAndWriteBlocks() throws IOException {
             DownsampledDoubleArrayList sampledData = new DownsampledDoubleArrayList(10000, 10000);
 
-            List<BlockQueue> activeList = new ArrayList<BlockQueue>();
+            List<BlockQueue> activeList = new ArrayList<>();
 
             // Initialize queues -- first whatever is left over in memory
             if (blocks.size() > 0) {
@@ -1464,7 +1464,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                 }
             }
 
-            List<IndexEntry> indexEntries = new ArrayList<IndexEntry>();
+            List<IndexEntry> indexEntries = new ArrayList<>();
 
             if (activeList.size() == 0) {
                 throw new RuntimeException("No reads in Hi-C contact matrices. This could be because the MAPQ filter is set too high (-q) or because all reads map to the same fragment.");

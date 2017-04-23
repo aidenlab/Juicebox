@@ -50,7 +50,7 @@ public class AsciiToBinConverter {
      */
     public static void convert(String inputPath, String outputFile, ChromosomeHandler chromosomeHandler) throws IOException {
 
-        Map<String, Integer> chromosomeOrdinals = new HashMap<String, Integer>();
+        Map<String, Integer> chromosomeOrdinals = new HashMap<>();
         for (Chromosome c : chromosomeHandler.getChromosomeArray()) {
             chromosomeOrdinals.put(c.getName(), c.getIndex());
         }

@@ -54,7 +54,7 @@ class UnitTests {
         String link3 = baseLink + "25000";
         String outputPath = folder + "new_merged_loops";
 
-        Map<Integer, Feature2DList> map = new HashMap<Integer, Feature2DList>();
+        Map<Integer, Feature2DList> map = new HashMap<>();
         map.put(5000, Feature2DParser.loadFeatures(link1, "hg19", true, null, false));
         map.put(10000, Feature2DParser.loadFeatures(link2, "hg19", true, null, false));
         map.put(25000, Feature2DParser.loadFeatures(link3, "hg19", true, null, false));
@@ -67,12 +67,12 @@ class UnitTests {
         // example with hard-coded links
         String folder = "/Users/muhammadsaadshamim/Desktop/test_adam/";
         File outputDirectory = new File(folder);
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(folder + "inter_30.hic"), true);
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Collections.singletonList(folder + "inter_30.hic"), true);
         File outputMergedFile = new File(outputDirectory, "merged_loops");
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         NormalizationType norm = NormalizationType.KR;
 
-        List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<HiCCUPSConfiguration>();
+        List<HiCCUPSConfiguration> filteredConfigurations = new ArrayList<>();
         filteredConfigurations.add(new HiCCUPSConfiguration(10000, 10, 2, 5, 20000));
         filteredConfigurations.add(new HiCCUPSConfiguration(5000, 10, 4, 7, 20000));
 
@@ -80,7 +80,7 @@ class UnitTests {
         String link1 = baseLink + "5000";
         String link2 = baseLink + "10000";
 
-        Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
+        Map<Integer, Feature2DList> loopLists = new HashMap<>();
         loopLists.put(5000, Feature2DParser.loadFeatures(link1, chromosomeHandler, true, null, false));
         loopLists.put(10000, Feature2DParser.loadFeatures(link2, chromosomeHandler, true, null, false));
 

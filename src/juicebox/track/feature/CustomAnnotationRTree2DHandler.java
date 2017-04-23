@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 11/2/16.
  */
-public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
+class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public CustomAnnotationRTree2DHandler(Feature2DList inputList) {
         clearLists();
@@ -113,6 +113,7 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
     }
 
     public Feature2D extractSingleFeature() {
+        //noinspection LoopStatementThatDoesntLoop
         for (Feature2DList featureList : loopLists.values()) {
             return featureList.extractSingleFeature();
         }
@@ -121,7 +122,7 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public List<Feature2D> get(int chrIdx1, int chrIdx2) {
 
-        List<Feature2D> features = new ArrayList<Feature2D>();
+        List<Feature2D> features = new ArrayList<>();
         for (Feature2DList featureList : loopLists.values()) {
             features.addAll(featureList.get(chrIdx1, chrIdx2));
         }
@@ -129,13 +130,10 @@ public class CustomAnnotationRTree2DHandler extends Feature2DHandler {
     }
 
     public boolean exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
-        boolean nothingExported = false;
         Feature2DList mergedList = new Feature2DList();
         for (Feature2DList featureList : loopLists.values()) {
             mergedList.add(featureList);
         }
-
-        nothingExported |= mergedList.exportFeatureList(file, b, na) == -1;
-        return nothingExported;
+        return mergedList.exportFeatureList(file, b, na) == -1;
     }
 }

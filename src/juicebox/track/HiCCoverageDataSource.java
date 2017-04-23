@@ -121,7 +121,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
     }
 
     public Collection<WindowFunction> getAvailableWindowFunctions() {
-        return new ArrayList<WindowFunction>();
+        return new ArrayList<>();
     }
 
     public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {

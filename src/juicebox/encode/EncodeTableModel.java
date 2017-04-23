@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ class EncodeTableModel extends AbstractTableModel {
 
         this.records = records;
 
-        List<String> tmp = new ArrayList<String>();
+        List<String> tmp = new ArrayList<>();
         tmp.add("");  // Checkbox heading
         for (String h : headings) {
             String heading = h.trim();
@@ -80,7 +80,7 @@ class EncodeTableModel extends AbstractTableModel {
         columnHeadings = tmp.toArray(new String[tmp.size()]);
 
 
-        sorter = new TableRowSorter<EncodeTableModel>(this);
+        sorter = new TableRowSorter<>(this);
 
         sorter.setStringConverter(new TableStringConverter() {
             @Override

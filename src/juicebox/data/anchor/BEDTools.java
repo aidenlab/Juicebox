@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ class BEDTools {
     public static List<MotifAnchor> merge(List<MotifAnchor> anchors) {
         Collections.sort(anchors);
 
-        Set<MotifAnchor> merged = new HashSet<MotifAnchor>();
+        Set<MotifAnchor> merged = new HashSet<>();
         if (anchors.size() > 0) {
             MotifAnchor current = (MotifAnchor) anchors.get(0).deepClone();
 
@@ -56,7 +56,7 @@ class BEDTools {
             }
             merged.add(current); // in case last merger missed (i.e. boolean evaluated to true)
         }
-        return new ArrayList<MotifAnchor>(merged);
+        return new ArrayList<>(merged);
     }
 
     /**
@@ -74,7 +74,7 @@ class BEDTools {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
-        Set<MotifAnchor> intersected = new HashSet<MotifAnchor>();
+        Set<MotifAnchor> intersected = new HashSet<>();
 
         int topIndex = 0;
         int bottomIndex = 0;
@@ -124,7 +124,7 @@ class BEDTools {
             }
         }
 
-        return new ArrayList<MotifAnchor>(intersected);
+        return new ArrayList<>(intersected);
     }
 
     /**
@@ -169,7 +169,7 @@ class BEDTools {
         Collections.sort(topAnchors);
         Collections.sort(bottomAnchors);
 
-        Set<MotifAnchor> intersected = new HashSet<MotifAnchor>();
+        Set<MotifAnchor> intersected = new HashSet<>();
 
         int topIndex = 0;
         int bottomIndex = 0;
@@ -219,7 +219,7 @@ class BEDTools {
             }
         }
 
-        return new ArrayList<MotifAnchor>(intersected);
+        return new ArrayList<>(intersected);
     }
 
     /**

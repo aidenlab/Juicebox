@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         }
     }
 
-    public float[] getRow(int rowNum) {
+    private float[] getRow(int rowNum) {
 
         float[] result = new float[totSize];
 
@@ -136,7 +136,7 @@ public class SparseSymmetricMatrix implements BasicMatrix {
         print(new PrintWriter(System.out));
     }
 
-    public void print(PrintWriter pw) {
+    private void print(PrintWriter pw) {
         for (int i = 0; i < totSize; i++) {
             float[] row = getRow(i);
             for (int j = 0; j < totSize; j++) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ public class BPToFragment extends JuiceboxCLT {
     private static void bpToFrag(String fragmentFile, String inputFile, String outputDir) throws IOException {
         BufferedReader fragmentReader = null;
         Pattern pattern = Pattern.compile("\\s");
-        Map<String, int[]> fragmentMap = new HashMap<String, int[]>();  // Map of chr -> site positions
+        Map<String, int[]> fragmentMap = new HashMap<>();  // Map of chr -> site positions
         try {
             fragmentReader = new BufferedReader(new FileReader(fragmentFile), HiCGlobals.bufferSize);
 

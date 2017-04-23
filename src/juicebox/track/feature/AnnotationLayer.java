@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ public class AnnotationLayer {
         lastItem = null;
         unsavedEdits = false;
         customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(new Feature2DList());
-        attributeKeys = new ArrayList<String>();
+        attributeKeys = new ArrayList<>();
     }
 
     public void clearAnnotations() {
@@ -187,7 +187,7 @@ public class AnnotationLayer {
         return false;
     }
 
-    public void removeRecentFromList(int idx1, int idx2, Feature2D feature) {
+    private void removeRecentFromList(int idx1, int idx2, Feature2D feature) {
 
         if (idx1 > 0 && idx2 > 0) {
             List<Feature2D> lastList;

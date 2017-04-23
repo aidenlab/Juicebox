@@ -44,6 +44,20 @@ public class Contig2D extends Feature2D {
         initialEnd = end1;
     }
 
+    private static int processInversionPlotting(int pos, int limitStart, int limitEnd) {
+        if (pos >= limitStart && pos <= limitEnd) {
+            return limitStart + (limitEnd - pos);
+        }
+        return pos;
+    }
+
+    private static int processTranslationPlotting(int pos, int initStart, int initEnd, int newStart) {
+        if (pos >= initStart && pos <= initEnd) {
+            return pos + (newStart - initStart);
+        }
+        return pos;
+    }
+
     public void toggleInversion() {
         isInverted = !isInverted;
     }
@@ -68,5 +82,17 @@ public class Contig2D extends Feature2D {
         attributes.put("origEnd", "" + initialEnd);
         attributes.put("Inverted", "" + isInverted);
         return super.tooltipText();
+    }
+
+    public boolean hasSomeOriginalOverlapWith(int pos) {
+        return pos >= initialStart && pos <= initialEnd;
+    }
+
+    public int getAlteredBinIndex(int binPos, int binSize) {
+        int translatedPos = processTranslationPlotting(binPos * binSize, initialStart, initialEnd, start1);
+        if (isInverted) {
+            translatedPos = processInversionPlotting(translatedPos, start1, end1);
+        }
+        return translatedPos / binSize;
     }
 }

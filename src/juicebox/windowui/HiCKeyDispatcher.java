@@ -44,7 +44,7 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
     private final HiC hic;
     private final JComboBox<MatrixType> displayOptionComboBox;
     private final SuperAdapter superAdapter;
-    private List<AnnotationLayerHandler> handlersPreviouslyHidden = new ArrayList<>();
+    private final List<AnnotationLayerHandler> handlersPreviouslyHidden = new ArrayList<>();
 
     public HiCKeyDispatcher(SuperAdapter superAdapter, HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
         super();

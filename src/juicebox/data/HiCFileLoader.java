@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -63,7 +63,7 @@ public class HiCFileLoader {
 
         File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", openHiCPath, hicFilter);
         if (files != null && files.length > 0) {
-            List<String> fileNames = new ArrayList<String>();
+            List<String> fileNames = new ArrayList<>();
             String str = "";
             String path = "";
             for (File f : files) {
@@ -83,7 +83,7 @@ public class HiCFileLoader {
 
         if (url != null) {
             superAdapter.addRecentMapMenuEntry(title.trim() + "@@" + url, true);
-            superAdapter.safeLoad(Arrays.asList(url), control, title);
+            superAdapter.safeLoad(Collections.singletonList(url), control, title);
         }
     }
 
@@ -92,7 +92,7 @@ public class HiCFileLoader {
         if (urlString != null) {
             try {
                 String[] urls = urlString.split(",");
-                List<String> urlList = new ArrayList<String>();
+                List<String> urlList = new ArrayList<>();
                 String title = "";
                 for (String url : urls) {
                     urlList.add(url);

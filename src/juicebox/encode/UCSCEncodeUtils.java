@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,17 +41,17 @@ import java.util.*;
  */
 class UCSCEncodeUtils {
 
-    private static final HashSet<String> labs = new HashSet<String>();
-    private static final HashSet<String> dataTypes = new HashSet<String>();
-    private static final HashSet<String> cells = new HashSet<String>();
-    private static final HashSet<String> antibodies = new HashSet<String>();
-    private static final HashSet<String> fileTypes = new HashSet<String>();
-    private static final HashSet<String> allHeaders = new LinkedHashSet<String>();
+    private static final HashSet<String> labs = new HashSet<>();
+    private static final HashSet<String> dataTypes = new HashSet<>();
+    private static final HashSet<String> cells = new HashSet<>();
+    private static final HashSet<String> antibodies = new HashSet<>();
+    private static final HashSet<String> fileTypes = new HashSet<>();
+    private static final HashSet<String> allHeaders = new LinkedHashSet<>();
 
     private static final List<String> rnaChipQualifiers = Arrays.asList("CellTotal", "Longnonpolya", "Longpolya",
             "NucleolusTotal", "ChromatinTotal", "ChromatinTotal", "NucleoplasmTotal");
     private static final String[] columnHeadings = {"cell", "dataType", "antibody", "view", "replicate", "type", "lab"};
-    private static final HashSet<String> knownFileTypes = new HashSet<String>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
+    private static final HashSet<String> knownFileTypes = new HashSet<>(Arrays.asList("bam", "bigBed", "bed", "bb", "bw", "bigWig", "gtf", "broadPeak", "narrowPeak", "gff"));
 
     public static void main(String[] args) throws IOException {
 
@@ -84,7 +84,7 @@ class UCSCEncodeUtils {
 
     private static List<EncodeFileRecord> parseTableFile(String url) throws IOException {
 
-        List<EncodeFileRecord> records = new ArrayList<EncodeFileRecord>(20000);
+        List<EncodeFileRecord> records = new ArrayList<>(20000);
 
         BufferedReader reader = null;
 
@@ -98,7 +98,7 @@ class UCSCEncodeUtils {
             if (!nextLine.startsWith("#")) {
                 String[] tokens = Globals.tabPattern.split(nextLine, -1);
                 String path = tokens[0];
-                Map<String, String> attributes = new HashMap<String, String>();
+                Map<String, String> attributes = new HashMap<>();
                 for (int i = 0; i < headers.length; i++) {
                     String value = tokens[i];
                     if (value.length() > 0) {
@@ -114,7 +114,7 @@ class UCSCEncodeUtils {
 
     private static void updateEncodeTableFile(String inputFile, String outputFile) throws IOException {
 
-        List<EncodeFileRecord> records = new ArrayList<EncodeFileRecord>();
+        List<EncodeFileRecord> records = new ArrayList<>();
 
         BufferedReader reader = null;
         //reader = ParsingUtils.openBufferedReader(inputFile);
@@ -194,7 +194,7 @@ class UCSCEncodeUtils {
 
             String[] attributes = Globals.semicolonPattern.split(tokens[1]);
 
-            LinkedHashMap<String, String> kvalues = new LinkedHashMap<String, String>();
+            LinkedHashMap<String, String> kvalues = new LinkedHashMap<>();
             for (String tk : attributes) {
 
                 String[] kv = Globals.equalPattern.split(tk);

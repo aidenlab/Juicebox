@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ public abstract class RecentMenu extends JMenu {
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
     private final File JuiceboxStatesXML = new File(DirectoryManager.getHiCDirectory(), "JuiceboxStatesXML.txt");
     private final HiCGlobals.menuType myType;
-    private List<String> m_items = new ArrayList<String>();
+    private List<String> m_items = new ArrayList<>();
 
     public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type) {
         super(name);
@@ -100,7 +100,7 @@ public abstract class RecentMenu extends JMenu {
                 }
                 //clear the existing items
                 removeAll();
-                m_items = new ArrayList<String>();
+                m_items = new ArrayList<>();
                 setEnabled(false);
 
                 //Clean state data:
@@ -203,7 +203,7 @@ public abstract class RecentMenu extends JMenu {
         }
         //clear the existing items
         removeAll();
-        m_items = new ArrayList<String>();
+        m_items = new ArrayList<>();
         //import names to previous states menu
         try {
             DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
@@ -247,12 +247,8 @@ public abstract class RecentMenu extends JMenu {
 
             addClearItem();
 
-        } catch (ParserConfigurationException pce) {
+        } catch (ParserConfigurationException | IOException | SAXException pce) {
             pce.printStackTrace();
-        } catch (SAXException se) {
-            se.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
 

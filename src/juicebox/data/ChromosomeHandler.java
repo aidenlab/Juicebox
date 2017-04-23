@@ -34,8 +34,8 @@ import java.util.*;
  */
 public class ChromosomeHandler {
     private final List<Chromosome> cleanedChromosomes;
-    private Map<String, Chromosome> chromosomeMap = new HashMap<String, Chromosome>();
-    private List<String> chrIndices = new ArrayList<String>();
+    private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
+    private final List<String> chrIndices = new ArrayList<>();
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
@@ -74,11 +74,11 @@ public class ChromosomeHandler {
      * @return intersection of set1 and set2
      */
     private static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
-        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
-        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+        Set<Chromosome> set1 = new HashSet<>(collection1);
+        Set<Chromosome> set2 = new HashSet<>(collection2);
 
         boolean set1IsLarger = set1.size() > set2.size();
-        Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        Set<Chromosome> cloneSet = new HashSet<>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }
@@ -117,9 +117,7 @@ public class ChromosomeHandler {
 
         // array without all by all
         chromosomeArrayWithoutAllByAll = new Chromosome[chromosomesArray.length - 1];
-        for (int i = 1; i < chromosomesArray.length; i++) {
-            chromosomeArrayWithoutAllByAll[i - 1] = chromosomesArray[i];
-        }
+        System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
     }
 
     public Chromosome getChr(String name) {

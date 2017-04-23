@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ public class DatasetReaderFactory {
             String file = fileList.get(0);
             return getReaderForFile(file);
         } else {
-            List<DatasetReaderV2> readers = new ArrayList<DatasetReaderV2>(fileList.size());
+            List<DatasetReaderV2> readers = new ArrayList<>(fileList.size());
             for (String f : fileList) {
                 DatasetReaderV2 r = getReaderForFile(f);
                 if (r != null) {

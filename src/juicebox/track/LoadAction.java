@@ -94,7 +94,7 @@ public class LoadAction extends AbstractAction {
     }
 
     private static Document readXMLDocument(String url, StringBuffer errors) {
-        InputStream is = null;
+        InputStream is;
         Document xmlDocument = null;
         is = LoadAction.class.getResourceAsStream(url);
         if (is == null) {
@@ -245,7 +245,7 @@ public class LoadAction extends AbstractAction {
 
         LinkedHashSet<ResourceLocator> selectedLocators = resourceTree.getLocators();
         LinkedHashSet<ResourceLocator> deselectedLocators = resourceTree.getDeselectedLocators();
-        List<ResourceLocator> newLoadList = new ArrayList<ResourceLocator>();
+        List<ResourceLocator> newLoadList = new ArrayList<>();
 
         boolean repaint = false;
 

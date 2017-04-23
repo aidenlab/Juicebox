@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
         this.feature = feature;
         setTitle("Attribute Editor");
 
-        textFields = new HashMap<String, JTextField>();
+        textFields = new HashMap<>();
 
         attributeKeys = feature.getAttributeKeys();
         Object[] array = new Object[2 * (attributeKeys.size() + 2)];
@@ -181,8 +181,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
 
                             // If added new attribute with valid field
                             if (!typedText.equals(defaultNewAttributeName) && typedText != null) {
-                                if (!newAttributeText.equals(defaultNewAttributeValue) &&
-                                        newAttributeText != null) {
+                                if (!newAttributeText.equals(defaultNewAttributeValue)) {
                                     if (echoOption.isSelected()) {
                                         annotationsLayer.addAllAttributeValues(typedText, newAttributeText);
                                     } else {

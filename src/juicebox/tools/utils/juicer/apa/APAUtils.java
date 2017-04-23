@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -154,7 +154,7 @@ public class APAUtils {
      */
     public static ArrayList<Feature2D> filterFeaturesBySize(List<Feature2D> features,
                                                             double minPeakDist, double maxPeakDist, int resolution) {
-        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<Feature2D>();
+        ArrayList<Feature2D> sizeFilteredFeatures = new ArrayList<>();
 
         for (Feature2D feature : features) {
             double xMidPt = feature.getMidPt1();
@@ -167,7 +167,7 @@ public class APAUtils {
                 }
             }
         }
-        return new ArrayList<Feature2D>(sizeFilteredFeatures);
+        return new ArrayList<>(sizeFilteredFeatures);
     }
 
     public static RealMatrix extractLocalizedData(MatrixZoomData zd, Feature2D loop,

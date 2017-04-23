@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,11 +36,11 @@ import java.util.List;
  */
 class BinnedScore {
 
-    private final List<Double> scores = new ArrayList<Double>();
-    private final List<Double> uVarScores = new ArrayList<Double>();
-    private final List<Double> lVarScores = new ArrayList<Double>();
-    private final List<Double> upSigns = new ArrayList<Double>();
-    private final List<Double> loSigns = new ArrayList<Double>();
+    private final List<Double> scores = new ArrayList<>();
+    private final List<Double> uVarScores = new ArrayList<>();
+    private final List<Double> lVarScores = new ArrayList<>();
+    private final List<Double> upSigns = new ArrayList<>();
+    private final List<Double> loSigns = new ArrayList<>();
     private int minX;
     private int maxX;
     private int minY;
@@ -55,7 +55,7 @@ class BinnedScore {
     }
 
     public static List<HighScore> convertBinnedScoresToHighScores(List<BinnedScore> binnedScores) {
-        List<HighScore> highScores = new ArrayList<HighScore>();
+        List<HighScore> highScores = new ArrayList<>();
         for (BinnedScore score : binnedScores) {
             highScores.add(score.convertToHighScore());
         }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,11 +48,11 @@ public class MotifAnchorTools {
                                                                          final boolean onlyUninitializedFeatures,
                                                                          final ChromosomeHandler handler) {
 
-        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<MotifAnchor>();
+        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
         features.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
-                List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+                List<MotifAnchor> anchors = new ArrayList<>();
                 for (Feature2D f : feature2DList) {
                     anchors.addAll(f.getAnchors(onlyUninitializedFeatures, handler));
                 }
@@ -105,7 +105,7 @@ public class MotifAnchorTools {
                 if (secondList.containsKey(key)) {
                     return BEDTools.intersect(anchorList, secondList.getFeatures(key), conductFullIntersection);
                 } else {
-                    return new ArrayList<MotifAnchor>();
+                    return new ArrayList<>();
                 }
             }
         });
@@ -119,7 +119,7 @@ public class MotifAnchorTools {
                 if (secondList.containsKey(key)) {
                     return BEDTools.preservativeIntersect(anchorList, secondList.getFeatures(key), conductFullIntersection);
                 } else {
-                    return new ArrayList<MotifAnchor>();
+                    return new ArrayList<>();
                 }
             }
         });
@@ -168,20 +168,20 @@ public class MotifAnchorTools {
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
 
                 // bin the motifs within resolution/threshold
-                Map<String, List<MotifAnchor>> uniqueMapping = new HashMap<String, List<MotifAnchor>>();
+                Map<String, List<MotifAnchor>> uniqueMapping = new HashMap<>();
                 for (MotifAnchor motif : anchorList) {
                     String key = (motif.getX1() / threshold) + "_" + (motif.getX2() / threshold);
                     if (uniqueMapping.containsKey(key)) {
                         uniqueMapping.get(key).add(motif);
                     } else {
-                        List<MotifAnchor> motifList = new ArrayList<MotifAnchor>();
+                        List<MotifAnchor> motifList = new ArrayList<>();
                         motifList.add(motif);
                         uniqueMapping.put(key, motifList);
                     }
                 }
 
                 // select for bins with only one value
-                List<MotifAnchor> uniqueMotifs = new ArrayList<MotifAnchor>();
+                List<MotifAnchor> uniqueMotifs = new ArrayList<>();
                 for (List<MotifAnchor> motifList : uniqueMapping.values()) {
                     if (motifList.size() == 1) {
                         uniqueMotifs.add(motifList.get(0));
@@ -207,7 +207,7 @@ public class MotifAnchorTools {
             public List<MotifAnchor> filter(String chr, List<MotifAnchor> anchorList) {
 
                 // bin the motifs within resolution/threshold, saving only the highest scoring motif
-                Map<String, MotifAnchor> bestMapping = new HashMap<String, MotifAnchor>();
+                Map<String, MotifAnchor> bestMapping = new HashMap<>();
                 for (MotifAnchor motif : anchorList) {
                     String key = (motif.getX1() / threshold) + "_" + (motif.getX2() / threshold);
                     if (bestMapping.containsKey(key)) {
@@ -219,7 +219,7 @@ public class MotifAnchorTools {
                     }
                 }
 
-                return new ArrayList<MotifAnchor>(bestMapping.values());
+                return new ArrayList<>(bestMapping.values());
             }
         });
 
@@ -272,7 +272,7 @@ public class MotifAnchorTools {
     }
 
     public static List<MotifAnchor> searchForFeaturesWithin(final int chrID, final int start, final int end, GenomeWideList<MotifAnchor> anchorList) {
-        final List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        final List<MotifAnchor> anchors = new ArrayList<>();
         anchorList.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
@@ -295,7 +295,7 @@ public class MotifAnchorTools {
                 if (secondList.containsKey(key)) {
                     return retainProteinsInLocus(anchorList, secondList.getFeatures(key), retainUniqueSites, copyFeatureReferences);
                 } else {
-                    return new ArrayList<MotifAnchor>();
+                    return new ArrayList<>();
                 }
             }
         });
@@ -303,7 +303,7 @@ public class MotifAnchorTools {
 
     private static List<MotifAnchor> retainProteinsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList,
                                                            boolean retainUniqueSites, boolean copyFeatureReferences) {
-        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<MotifAnchor, Set<MotifAnchor>>();
+        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
             bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
@@ -358,7 +358,7 @@ public class MotifAnchorTools {
             }
         }
 
-        List<MotifAnchor> uniqueAnchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> uniqueAnchors = new ArrayList<>();
 
         if (copyFeatureReferences) {
             for (MotifAnchor anchor : bottomListToTopList.keySet()) {
@@ -387,7 +387,7 @@ public class MotifAnchorTools {
     // true --> upstream
     public static GenomeWideList<MotifAnchor> extractDirectionalAnchors(GenomeWideList<MotifAnchor> featureAnchors,
                                                                         final boolean direction) {
-        final GenomeWideList<MotifAnchor> directionalAnchors = new GenomeWideList<MotifAnchor>();
+        final GenomeWideList<MotifAnchor> directionalAnchors = new GenomeWideList<>();
         featureAnchors.processLists(new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
             @Override
             public void process(String chr, List<MotifAnchor> featureList) {
@@ -409,14 +409,14 @@ public class MotifAnchorTools {
                 if (secondList.containsKey(key)) {
                     return retainBestMotifsInLocus(anchorList, secondList.getFeatures(key));
                 } else {
-                    return new ArrayList<MotifAnchor>();
+                    return new ArrayList<>();
                 }
             }
         });
     }
 
     private static List<MotifAnchor> retainBestMotifsInLocus(List<MotifAnchor> topAnchors, List<MotifAnchor> baseList) {
-        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<MotifAnchor, Set<MotifAnchor>>();
+        Map<MotifAnchor, Set<MotifAnchor>> bottomListToTopList = new HashMap<>();
 
         for (MotifAnchor anchor : baseList) {
             bottomListToTopList.put(anchor, new HashSet<MotifAnchor>());
@@ -482,7 +482,7 @@ public class MotifAnchorTools {
             }
         }
 
-        List<MotifAnchor> uniqueAnchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> uniqueAnchors = new ArrayList<>();
         for (Set<MotifAnchor> motifs : bottomListToTopList.values()) {
             if (motifs.size() == 1) {
                 uniqueAnchors.addAll(motifs);

@@ -42,7 +42,6 @@ import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.renderer.ColorScale;
 import org.broad.igv.renderer.ContinuousColorScale;
-import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.DoubleArrayList;
 
 import java.awt.*;
@@ -56,11 +55,10 @@ import java.util.List;
 class HeatmapRenderer {
 
     private final HiCColorScale pearsonColorScale;
-    private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<String, ContinuousColorScale>();
-    private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<String, OEColorScale>();
+    private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
+    private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
     private final PreDefColorScale preDefColorScale;
     private Color curHiCColor = Color.white;
-    private boolean isInAssemblyMode = true;
 
     public HeatmapRenderer() {
 
@@ -267,7 +265,7 @@ class HeatmapRenderer {
                 }
             } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS) {
 
-                List<Block> comboBlocks = new ArrayList<Block>();
+                List<Block> comboBlocks = new ArrayList<>();
 
                 List<Block> blocks =  zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                 if (blocks != null) comboBlocks.addAll(blocks);
@@ -303,12 +301,6 @@ class HeatmapRenderer {
 
                                     int binX = rec.getBinX();
                                     int binY = rec.getBinY();
-
-                                    if (isInAssemblyMode) {
-                                        Pair<Integer, Integer> binXY = AssemblyIntermediateProcessor.process(binX, binY);
-                                        binX = binXY.getFirst();
-                                        binY = binXY.getSecond();
-                                    }
 
                                     int px = binX - originX;
                                     int py = binY - originY;
@@ -377,12 +369,13 @@ class HeatmapRenderer {
             } else {
 
                 List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
+                //System.out.println("b1 - "+blocks.size());
                 if (blocks == null) {
                     return false;
                 }
 
                 boolean hasControl = controlZD != null && MatrixType.isSimpleControlType(displayOption);
-                Map<Integer, Block> controlBlocks = new HashMap<Integer, Block>();
+                Map<Integer, Block> controlBlocks = new HashMap<>();
                 if (hasControl) {
                     List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                     for (Block b : ctrls) {
@@ -402,7 +395,7 @@ class HeatmapRenderer {
                     Collection<ContactRecord> recs = b.getContactRecords();
                     if (recs != null) {
 
-                        Map<String, ContactRecord> controlRecords = new HashMap<String, ContactRecord>();
+                        Map<String, ContactRecord> controlRecords = new HashMap<>();
                         if (hasControl) {
                             Block cb = controlBlocks.get(b.getNumber());
                             if (cb != null) {

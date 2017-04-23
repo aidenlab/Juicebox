@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,10 +40,10 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 8/4/16.
  */
-public class MapSelectionPanel extends JPanel {
+class MapSelectionPanel extends JPanel {
 
     private static final long serialVersionUID = 81248921738L;
-    private final List<ActionListener> actionListeners = new ArrayList<ActionListener>();
+    private final List<ActionListener> actionListeners = new ArrayList<>();
 
     /**
      * @param reader

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -239,7 +239,7 @@ class MatrixTriangles {
 
     public List<HighScore> calculateResults(List<Set<Point>> connectedComponents) {
         /*  for each connected component, get result for highest scoring point  */
-        ArrayList<HighScore> results = new ArrayList<HighScore>();
+        ArrayList<HighScore> results = new ArrayList<>();
         for (Set<Point> connectedComponent : connectedComponents) {
             Point score = getHighestScoringPoint(blockScore, connectedComponent);
             int i = score.x, j = score.y;

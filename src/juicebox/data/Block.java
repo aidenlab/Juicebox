@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ public class Block {
 
     public Block(int number) {
         this.number = number;
-        records = new ArrayList<ContactRecord>();
+        records = new ArrayList<>();
     }
 
     public Block(int number, List<ContactRecord> records) {

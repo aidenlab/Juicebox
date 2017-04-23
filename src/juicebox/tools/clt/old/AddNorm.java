@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,6 @@ import juicebox.tools.utils.original.NormalizationVectorUpdater;
 public class AddNorm extends JuiceboxCLT {
 
     private boolean noFragNorm = false;
-
-    private boolean useGenomeWideResolution = false;
 
     private int genomeWideResolution = -100;
 
@@ -72,6 +70,7 @@ public class AddNorm extends JuiceboxCLT {
     @Override
     public void run() {
         try {
+            boolean useGenomeWideResolution = false;
             if (useGenomeWideResolution)
                 NormalizationVectorUpdater.updateHicFile(file, genomeWideResolution, noFragNorm);
             else

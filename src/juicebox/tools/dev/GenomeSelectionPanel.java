@@ -36,7 +36,7 @@ import java.util.List;
  * Created by muhammadsaadshamim on 9/6/16.
  * Probably should just be deleted, but keep for now.
  */
-public class GenomeSelectionPanel extends JPanel {
+class GenomeSelectionPanel extends JPanel {
 
     private static final long serialVersionUID = 817133921738L;
 

@@ -63,7 +63,7 @@ public class HiC {
     //private final MainWindow mainWindow;
     //private final Feature2DHandler feature2DHandler;
     private final HiCTrackManager trackManager;
-    private final HashMap<String, Integer> binSizeDictionary = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> binSizeDictionary = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
@@ -134,7 +134,7 @@ public class HiC {
 
     // TODO zgire - why iterate through tracksToRemove if you end up calling clearFeatures() at the end?
     public void clearTracksForReloadState() {
-        ArrayList<HiCTrack> tracksToRemove = new ArrayList<HiCTrack>(trackManager.getLoadedTracks());
+        ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
             if (trackToRemove.getName().equals(eigString)) {
                 eigenvectorTrack = null;
@@ -1213,6 +1213,15 @@ public class HiC {
 
     public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
+    }
+
+    public void clearMatrixZoomDataCache() {
+        try {
+            getZd().clearCache();
+            getControlZd().clearCache();
+        } catch (Exception e) {
+            System.err.println("Unable to clear matrixZoomData cache");
+        }
     }
 
     /*public Feature2DHandler getFeature2DHandler() {

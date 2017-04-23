@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ public class Feature2DTools {
 
                 if (featureList.containsKey(chr)) {
 
-                    final Set<String> keys = new HashSet<String>();
+                    final Set<String> keys = new HashSet<>();
                     for (Feature2D f : feature2DList) {
                         keys.add(f.getLocationKey());
                     }
@@ -81,7 +81,7 @@ public class Feature2DTools {
                     // there are centroids for this chr i.e. need to check if loops should be added
 
                     // get upper left corner location value
-                    final Set<String> keys = new HashSet<String>();
+                    final Set<String> keys = new HashSet<>();
                     for (Feature2D f : centroids.getFeatureList(chr)) {
                         keys.add(f.getLocationKey());
                     }

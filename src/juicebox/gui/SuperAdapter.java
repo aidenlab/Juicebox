@@ -66,12 +66,12 @@ public class SuperAdapter {
     public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
+    private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
     private MainMenuBar mainMenuBar;
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
-    private List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<AnnotationLayerHandler>();
     private AnnotationLayerHandler activeLayer;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
@@ -448,7 +448,7 @@ public class SuperAdapter {
                 if (dataset.getVersion() < HiCGlobals.minVersion) {
                     normalizationOptions = new String[]{NormalizationType.NONE.getLabel()};
                 } else {
-                    ArrayList<String> tmp = new ArrayList<String>();
+                    ArrayList<String> tmp = new ArrayList<>();
                     tmp.add(NormalizationType.NONE.getLabel());
                     for (NormalizationType t : hic.getDataset().getNormalizationTypes()) {
                         tmp.add(t.getLabel());

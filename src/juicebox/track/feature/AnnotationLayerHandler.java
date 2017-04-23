@@ -51,8 +51,6 @@ public class AnnotationLayerHandler {
     private static boolean importAnnotationsEnabled = false;
     // displacement in terms of gene pos
     private final int peakDisplacement = 3;
-    // threshold in terms of pixel pos
-    private final int threshold = 15;
     private Rectangle selectionRegion;
     private Feature2D.FeatureType featureType;
     private Feature2D lastResizeLoop = null;
@@ -105,12 +103,12 @@ public class AnnotationLayerHandler {
     }
 
     public void setStationaryStart(int start1, int start2) {
-        lastStarts = new Pair<Integer, Integer>(start1, start2);
+        lastStarts = new Pair<>(start1, start2);
         lastEnds = null;
     }
 
     public void setStationaryEnd(int end1, int end2) {
-        lastEnds = new Pair<Integer, Integer>(end1, end2);
+        lastEnds = new Pair<>(end1, end2);
         lastStarts = null;
     }
 
@@ -176,7 +174,7 @@ public class AnnotationLayerHandler {
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<String, String>();
+        HashMap<String, String> attributes = new HashMap<>();
         int rightBound = hic.getXContext().getChromosome().getLength();
         int bottomBound = hic.getYContext().getChromosome().getLength();
         int leftBound = 0;
@@ -336,6 +334,7 @@ public class AnnotationLayerHandler {
         int start1 = getXBin(hic, x);
         int start2 = getYBin(hic, y);
 
+        int threshold = 15;
         return Math.abs(start1 - start2) < threshold;
     }
 
@@ -479,7 +478,7 @@ public class AnnotationLayerHandler {
         this.importAnnotationsButton = importAnnotationsButton;
     }
 
-    public boolean getImportAnnotationsEnabled() {
+    private boolean getImportAnnotationsEnabled() {
         return importAnnotationsEnabled;
     }
 
@@ -563,7 +562,7 @@ public class AnnotationLayerHandler {
         return defaultColor;
     }
 
-    public void setDefaultColor(Color defaultColor) {
+    private void setDefaultColor(Color defaultColor) {
         this.defaultColor = defaultColor;
         if (colorChooserPanel != null) colorChooserPanel.setSelectedColor(defaultColor);
     }
@@ -612,11 +611,11 @@ public class AnnotationLayerHandler {
 
     public void mergeDetailsFrom(Collection<AnnotationLayerHandler> originalHandlers) {
 
-        String cleanedTitle = "";
+        StringBuilder cleanedTitle = new StringBuilder();
         for (AnnotationLayerHandler originalHandler : originalHandlers) {
             featureType = originalHandler.featureType;
 
-            cleanedTitle += "-" + originalHandler.getLayerName().toLowerCase().replaceAll("layer", "").replaceAll("\\s", "");
+            cleanedTitle.append("-").append(originalHandler.getLayerName().toLowerCase().replaceAll("layer", "").replaceAll("\\s", ""));
 
             setLayerVisibility(originalHandler.getLayerVisibility());
             setColorOfAllAnnotations(originalHandler.getDefaultColor());

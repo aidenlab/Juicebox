@@ -79,7 +79,7 @@ public class MotifAnchorParser {
         } finally {
             ChromosomeHandler handler = HiCFileTools.loadChromosomes(genomeID);
 
-            Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
+            Set<MotifAnchor> anchors = new HashSet<>();
 
             try {
                 if (reader != null) {
@@ -132,7 +132,7 @@ public class MotifAnchorParser {
 
     private static GenomeWideList<MotifAnchor> parseMotifFile(String path, ChromosomeHandler handler,
                                                               FeatureFilter<MotifAnchor> anchorFilter) {
-        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> anchors = new ArrayList<>();
 
         try {
             //BufferedReader br = ParsingUtils.openBufferedReader(path);
@@ -142,7 +142,7 @@ public class MotifAnchorParser {
             ec.printStackTrace();
         }
 
-        GenomeWideList<MotifAnchor> newAnchorList = new GenomeWideList<MotifAnchor>(handler, anchors);
+        GenomeWideList<MotifAnchor> newAnchorList = new GenomeWideList<>(handler, anchors);
         if (anchorFilter != null)
             newAnchorList.filterLists(anchorFilter);
 
@@ -158,11 +158,10 @@ public class MotifAnchorParser {
      * @throws IOException
      */
     private static List<MotifAnchor> parseGlobalMotifFile(BufferedReader bufferedReader, ChromosomeHandler handler) throws IOException {
-        Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
+        Set<MotifAnchor> anchors = new HashSet<>();
         String nextLine;
-
-        // header
-        nextLine = bufferedReader.readLine();
+        // skip header
+        bufferedReader.readLine();
 
         //String[] headers = Globals.tabPattern.split(nextLine);
 
@@ -234,7 +233,7 @@ public class MotifAnchorParser {
             }
         }
         bufferedReader.close();
-        return new ArrayList<MotifAnchor>(anchors);
+        return new ArrayList<>(anchors);
     }
 
     /**
@@ -243,7 +242,7 @@ public class MotifAnchorParser {
      * @return List of motif anchors from the provided bed file
      */
     public static GenomeWideList<MotifAnchor> loadFromBEDFile(ChromosomeHandler handler, String bedFilePath) {
-        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> anchors = new ArrayList<>();
 
         try {
             //BufferedReader br = ParsingUtils.openBufferedReader(bedFilePath);
@@ -253,7 +252,7 @@ public class MotifAnchorParser {
             ec.printStackTrace();
         }
 
-        return new GenomeWideList<MotifAnchor>(handler, anchors);
+        return new GenomeWideList<>(handler, anchors);
     }
 
     /**
@@ -270,7 +269,7 @@ public class MotifAnchorParser {
      * @throws IOException
      */
     private static List<MotifAnchor> parseBEDFile(BufferedReader bufferedReader, ChromosomeHandler handler) throws IOException {
-        Set<MotifAnchor> anchors = new HashSet<MotifAnchor>();
+        Set<MotifAnchor> anchors = new HashSet<>();
         String nextLine;
 
         int errorCount = 0;
@@ -303,7 +302,7 @@ public class MotifAnchorParser {
             }
         }
         bufferedReader.close();
-        return new ArrayList<MotifAnchor>(anchors);
+        return new ArrayList<>(anchors);
     }
 
     /**

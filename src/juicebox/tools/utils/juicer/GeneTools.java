@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ package juicebox.tools.utils.juicer;
 
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
-import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.GenomeWideList;
@@ -60,7 +59,7 @@ public class GeneTools {
         return null;
     }
 
-    public static String extractProperGeneFilePath(String genomeID) {
+    private static String extractProperGeneFilePath(String genomeID) {
         String newURL = "http://hicfiles.s3.amazonaws.com/internal/" + genomeID + "_refGene.txt";
         try {
             return MotifAnchorParser.downloadFromUrl(new URL(newURL), "genes");
@@ -71,7 +70,7 @@ public class GeneTools {
     }
 
     public static Map<String, GeneLocation> getLocationMap(BufferedReader reader, ChromosomeHandler handler) throws IOException {
-        Map<String, GeneLocation> geneLocationHashMap = new HashMap<String, GeneLocation>();
+        Map<String, GeneLocation> geneLocationHashMap = new HashMap<>();
 
         String nextLine;
         while ((nextLine = reader.readLine()) != null) {
@@ -96,16 +95,15 @@ public class GeneTools {
     public static GenomeWideList<MotifAnchor> parseGenome(String genomeID, ChromosomeHandler handler) throws Exception {
         BufferedReader reader = getStreamToGeneFile(genomeID);
         List<MotifAnchor> allGenes = extractAllGenes(reader, handler);
-        return new GenomeWideList<MotifAnchor>(handler, allGenes);
+        return new GenomeWideList<>(handler, allGenes);
     }
 
     private static List<MotifAnchor> extractAllGenes(BufferedReader reader, ChromosomeHandler handler)
             throws IOException {
-        List<MotifAnchor> genes = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> genes = new ArrayList<>();
 
-        String nextLine="";
+        String nextLine;
         try {
-
             while ((nextLine = reader.readLine()) != null) {
                 String[] values = nextLine.split("\\s+");
                 if (values.length == 4 || values.length == 16) {  // 16 is refGene official format

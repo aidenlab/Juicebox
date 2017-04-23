@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,7 @@ public class HiCCUPSConfiguration {
         if (resString == null) return null;
         int[] resolutions = ArrayTools.extractIntegers(resString);
 
-        Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<Integer, HiCCUPSConfiguration>();
+        Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<>();
         for (int res : resolutions) {
             if (res == 5000) {
                 configurationMap.put(res, getDefaultConfigFor5K());
@@ -96,14 +96,14 @@ public class HiCCUPSConfiguration {
             if (radii != null) configurationMap.get(resolutions[i]).clusterRadius = radii[i];
         }
 
-        Set<Integer> filteredResolutions = new HashSet<Integer>(HiCFileTools.filterResolutions(availableZooms, resolutions));
+        Set<Integer> filteredResolutions = new HashSet<>(HiCFileTools.filterResolutions(availableZooms, resolutions));
         for (int res : resolutions) {
             if (!filteredResolutions.contains(res)) {
                 System.err.println("Resolution " + res + " not available.");
             }
         }
 
-        List<HiCCUPSConfiguration> validConfigs = new ArrayList<HiCCUPSConfiguration>();
+        List<HiCCUPSConfiguration> validConfigs = new ArrayList<>();
         for (int res : filteredResolutions) {
             if (configurationMap.containsKey(res)) {
                 HiCCUPSConfiguration config = configurationMap.get(res);

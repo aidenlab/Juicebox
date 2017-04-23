@@ -28,11 +28,13 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.Contig2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -69,7 +71,7 @@ public class MatrixZoomData {
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
     // Cache the last 20 blocks loaded
-    private final LRUCache<String, Block> blockCache = new LRUCache<String, Block>(20);
+    private final LRUCache<String, Block> blockCache = new LRUCache<>(20);
     DatasetReader reader;
     private double averageCount = -1;
 //    private static final SuperAdapter superAdapter = new SuperAdapter();
@@ -124,8 +126,8 @@ public class MatrixZoomData {
 
         }
 
-        pearsonsMap = new HashMap<NormalizationType, BasicMatrix>();
-        missingPearsonFiles = new HashSet<NormalizationType>();
+        pearsonsMap = new HashMap<>();
+        missingPearsonFiles = new HashSet<>();
     }
 
     public Chromosome getChr1() {
@@ -181,80 +183,26 @@ public class MatrixZoomData {
      * @return List of overlapping blocks, normalized
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+        int maxSize = ((binX2 - binX1) / blockBinCount + 1) * ((binY2 - binY1) / blockBinCount + 1);
+        final List<Block> blockList = new ArrayList<>(maxSize);
 
-        int col1 = binX1 / blockBinCount;
-        int row1 = binY1 / blockBinCount;
-
-        int col2 = binX2 / blockBinCount;
-        int row2 = binY2 / blockBinCount;
-
-        int maxSize = (col2 - col1 + 1) * (row2 - row1 + 1);
-
-        final List<Block> blockList = new ArrayList<Block>(maxSize);
-        final List<Integer> blocksToLoad = new ArrayList<Integer>();
-        for (int r = row1; r <= row2; r++) {
-            for (int c = col1; c <= col2; c++) {
-                int blockNumber = r * getBlockColumnCount() + c;
-
-                String key = getKey() + "_" + blockNumber + "_" + no;
-                Block b;
-                if (HiCGlobals.useCache && blockCache.containsKey(key)) {
-                    b = blockCache.get(key);
-                    blockList.add(b);
-                } else {
-                    blocksToLoad.add(blockNumber);
-                }
-            }
-        }
-
-        final AtomicInteger errorCounter = new AtomicInteger();
-
-        List<Thread> threads = new ArrayList<Thread>();
-        for (final int blockNumber : blocksToLoad) {
-            Runnable loader = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String key = getKey() + "_" + blockNumber + "_" + no;
-                        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
-                        if (b == null) {
-                            b = new Block(blockNumber);   // An empty block
-                        }
-                        if (HiCGlobals.useCache) {
-                            blockCache.put(key, b);
-                        }
-                        blockList.add(b);
-                    } catch (IOException e) {
-                        errorCounter.incrementAndGet();
-                    }
-                }
-            };
-
-            Thread t = new Thread(loader);
-            threads.add(t);
-            t.start();
-        }
-
-        // Wait for all threads to complete
-        for (Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignore) {
-            }
-        }
-
-        // untested since files got fixed - MSS
-        if (errorCounter.get() > 0) {
-            return null;
-        }
-
-        return blockList;
+        return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
     }
 
+    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, List<Integer> blocksToLoad) {
+        int blockNumber = r * getBlockColumnCount() + c;
+        String key = getKey() + "_" + blockNumber + "_" + no;
+        Block b;
+        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
+            b = blockCache.get(key);
+            blockList.add(b);
+        } else {
+            blocksToLoad.add(blockNumber);
+        }
+    }
 
     /**
      * Return the blocks of normalized, observed values overlapping the rectangular region specified.
-     * The units are "bins"
      *
      * @param binY1 leftmost position in "bins"
      * @param binX2 rightmost position in "bins"
@@ -262,33 +210,34 @@ public class MatrixZoomData {
      * @param no    normalization type
      * @return List of overlapping blocks, normalized
      */
-    public int addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+    public List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
+                                                 final NormalizationType no) {
 
+        List<Integer> blocksToLoad = new ArrayList<>();
+        List<Contig2D> contigs = new ArrayList<>();
+
+        if (HiCGlobals.assemblyModeEnabled) {
+            contigs.addAll(AssemblyIntermediateProcessor.retrieveRelevantBlocks(this, blocksToLoad, blockList,
+                    chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
+        }
+
+        // have to do this regardless (just in case)
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
-
         int col2 = binX2 / blockBinCount;
         int row2 = binY2 / blockBinCount;
 
-        List<Integer> blocksToLoad = new ArrayList<Integer>();
         for (int r = row1; r <= row2; r++) {
             for (int c = col1; c <= col2; c++) {
-                int blockNumber = r * getBlockColumnCount() + c;
-
-                String key = getKey() + "_" + blockNumber + "_" + no;
-                Block b;
-                if (HiCGlobals.useCache && blockCache.containsKey(key)) {
-                    b = blockCache.get(key);
-                    blockList.add(b);
-                } else {
-                    blocksToLoad.add(blockNumber);
-                }
+                populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
             }
         }
 
+        blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
+
         final AtomicInteger errorCounter = new AtomicInteger();
 
-        List<Thread> threads = new ArrayList<Thread>();
+        List<Thread> threads = new ArrayList<>();
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
                 @Override
@@ -321,9 +270,15 @@ public class MatrixZoomData {
             } catch (InterruptedException ignore) {
             }
         }
+        if (errorCounter.get() > 0) {
+            System.err.println(errorCounter.get() + " errors while reading blocks");
+        }
 
-        // untested since files got fixed - MSS
-        return errorCounter.get();
+        if (HiCGlobals.assemblyModeEnabled) {
+            return AssemblyIntermediateProcessor.filterBlockList(contigs, blockList, zoom.getBinSize());
+        }
+
+        return new ArrayList<>(new HashSet<>(blockList));
     }
 
 
@@ -344,7 +299,6 @@ public class MatrixZoomData {
                 //noinspection SuspiciousNameCombination
                 binX = binY;
                 binY = tmp;
-
             }
         }
 
@@ -629,7 +583,7 @@ public class MatrixZoomData {
         int row2 = (regionIndices[3] + 1) / blockBinCount;
 
         // first check the upper triangular matrix
-        Set<Integer> blocksSet = new HashSet<Integer>();
+        Set<Integer> blocksSet = new HashSet<>();
         for (int r = row1; r <= row2; r++) {
             for (int c = col1; c <= col2; c++) {
                 int blockNumber = r * getBlockColumnCount() + c;
@@ -647,7 +601,7 @@ public class MatrixZoomData {
             }
         }
 
-        List<Integer> blocksToIterateOver = new ArrayList<Integer>(blocksSet);
+        List<Integer> blocksToIterateOver = new ArrayList<>(blocksSet);
         Collections.sort(blocksToIterateOver);
         return blocksToIterateOver;
     }
@@ -919,6 +873,10 @@ public class MatrixZoomData {
      */
     public Iterator<ContactRecord> contactRecordIterator() {
         return new ContactRecordIterator();
+    }
+
+    public void clearCache() {
+        blockCache.clear();
     }
 
     /**

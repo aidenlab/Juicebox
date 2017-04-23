@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ import java.util.List;
  */
 class AFAUtils {
     public static List<Feature2D> filterFeaturesByAttribute(List<Feature2D> features, String attribute) {
-        List<Feature2D> filteredFeatures = new ArrayList<Feature2D>();
+        List<Feature2D> filteredFeatures = new ArrayList<>();
 
         for (Feature2D feature : features) {
             if (feature.containsAttributeValue(attribute)) {

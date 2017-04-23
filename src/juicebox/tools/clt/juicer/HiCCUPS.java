@@ -316,7 +316,7 @@ public class HiCCUPS extends JuicerCLT {
 
             // high quality (e.g. GM12878) maps have different settings
             if (!configurationsSetByUser) {
-                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations = new ArrayList<>();
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
                 // TODO: this should be changed to the sum of Hi-C contacts, which we can read from dataset
@@ -330,7 +330,7 @@ public class HiCCUPS extends JuicerCLT {
         } catch (Exception e) {
             System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
             if (!configurationsSetByUser) {
-                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations = new ArrayList<>();
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
                 configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
@@ -345,7 +345,7 @@ public class HiCCUPS extends JuicerCLT {
             commonChromosomesHandler = HiCFileTools.stringToChromosomes(givenChromosomes, commonChromosomesHandler);
         }
 
-        Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
+        Map<Integer, Feature2DList> loopLists = new HashMap<>();
 
         File outputMergedFile = new File(outputDirectory, MERGED);
 

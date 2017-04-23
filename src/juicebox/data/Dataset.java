@@ -52,7 +52,7 @@ public class Dataset {
     private static final Logger log = Logger.getLogger(Dataset.class);
 
     // private boolean caching = true;
-    private final Map<String, Matrix> matrices = new HashMap<String, Matrix>(25 * 25);
+    private final Map<String, Matrix> matrices = new HashMap<>(25 * 25);
     private final DatasetReader reader;
     private final LRUCache<String, double[]> eigenvectorCache;
     private final LRUCache<String, NormalizationVector> normalizationVectorCache;
@@ -70,9 +70,9 @@ public class Dataset {
 
     public Dataset(DatasetReader reader) {
         this.reader = reader;
-        eigenvectorCache = new LRUCache<String, double[]>(20);
-        normalizationVectorCache = new LRUCache<String, NormalizationVector>(20);
-        normalizationTypes = new ArrayList<NormalizationType>();
+        eigenvectorCache = new LRUCache<>(20);
+        normalizationVectorCache = new LRUCache<>(20);
+        normalizationTypes = new ArrayList<>();
     }
 
 
@@ -301,7 +301,7 @@ public class Dataset {
     }
 
     private String convertStats(String oldStats) {
-        HashMap<String, String> statsMap = new HashMap<String, String>();
+        HashMap<String, String> statsMap = new HashMap<>();
         StringTokenizer lines = new StringTokenizer(oldStats, "\n");
         DecimalFormat decimalFormat = new DecimalFormat("0.00%");
         NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
@@ -727,7 +727,7 @@ public class Dataset {
 
         bpZoomResolutions = Ints.asList(bpBinSizes);
 
-        bpZooms = new ArrayList<HiCZoom>(bpBinSizes.length);
+        bpZooms = new ArrayList<>(bpBinSizes.length);
         for (int bpBinSize : bpZoomResolutions) {
             bpZooms.add(new HiCZoom(HiC.Unit.BP, bpBinSize));
         }
@@ -742,7 +742,7 @@ public class Dataset {
         // Don't show fragments in restricted mode
 //        if (MainWindow.isRestricted()) return;
 
-        this.fragZooms = new ArrayList<HiCZoom>(fragBinSizes.length);
+        this.fragZooms = new ArrayList<>(fragBinSizes.length);
         for (int fragBinSize : fragBinSizes) {
             fragZooms.add(new HiCZoom(HiC.Unit.FRAG, fragBinSize));
         }
@@ -841,7 +841,7 @@ public class Dataset {
     public void putLoadedNormalizationVector(int chrIdx, int resolution, double[] data, double[] exp) {
         NormalizationVector normalizationVector = new NormalizationVector(NormalizationType.LOADED, chrIdx, HiC.Unit.BP, resolution, data);
         if (loadedNormalizationVectors == null) {
-            loadedNormalizationVectors = new HashMap<String, NormalizationVector>();
+            loadedNormalizationVectors = new HashMap<>();
 
         }
         loadedNormalizationVectors.put(normalizationVector.getKey(), normalizationVector);
@@ -897,7 +897,7 @@ public class Dataset {
 
     public void setAttributes(String key, String value) {
         if (this.attributes == null) {
-            attributes = new HashMap<String, String>();
+            attributes = new HashMap<>();
         }
         attributes.put(key, value);
     }

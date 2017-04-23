@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,10 +45,6 @@ public class Clustering extends JuicerCLT {
 
     private boolean doDifferentialClustering = false;
 
-    private int resolution = 1000000;
-    private NormalizationType norm = NormalizationType.KR;
-    private String inputFiles, outputPath;
-
     public Clustering() {
         super("clustering [-r resolution] [-k NONE/VC/VC_SQRT/KR] <input_HiC_file(s)> <output_file>");
         HiCGlobals.useCache = false;
@@ -61,17 +57,18 @@ public class Clustering extends JuicerCLT {
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        NormalizationType norm = NormalizationType.KR;
         if (preferredNorm != null)
             norm = preferredNorm;
 
-        inputFiles = args[1];
-        outputPath = args[2];
+        String inputFiles = args[1];
+        String outputPath = args[2];
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
             if (possibleResolutions.size() > 1)
                 System.err.println("Only one resolution can be specified for Clustering\nUsing " + possibleResolutions.get(0));
-            resolution = Integer.parseInt(possibleResolutions.get(0));
+            int resolution = Integer.parseInt(possibleResolutions.get(0));
         }
     }
 
@@ -90,9 +87,9 @@ public class Clustering extends JuicerCLT {
 
         OpdfMultiGaussianFactory factory = new OpdfMultiGaussianFactory(6);
         new ObservationVector(data[0]);
-        Hmm<ObservationVector> hmm = new Hmm<ObservationVector>(6, factory);
+        Hmm<ObservationVector> hmm = new Hmm<>(6, factory);
 
-        List<ObservationVector> sequences = new ArrayList<ObservationVector>();
+        List<ObservationVector> sequences = new ArrayList<>();
 
         /* todo
         for (double[] row : data)

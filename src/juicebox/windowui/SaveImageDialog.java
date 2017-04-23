@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -139,11 +139,8 @@ public class SaveImageDialog extends JFileChooser {
     }
 
     private void writeGraphicsToFile(ProcessingPipeline g, File file) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        try {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             fileOutputStream.write(g.getBytes());
-        } finally {
-            fileOutputStream.close();
         }
     }
 

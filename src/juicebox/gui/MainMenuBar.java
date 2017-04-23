@@ -65,7 +65,7 @@ public class MainMenuBar {
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
-    final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
+    private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");

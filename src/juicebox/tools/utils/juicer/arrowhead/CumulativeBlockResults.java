@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ class CumulativeBlockResults {
 
     private final ArrowheadScoreList cumulativeInternalList;
     private final ArrowheadScoreList cumulativeInternalControl;
-    private List<HighScore> cumulativeResults = new ArrayList<HighScore>();
+    private List<HighScore> cumulativeResults = new ArrayList<>();
 
     public CumulativeBlockResults(int resolution) {
         cumulativeInternalList = new ArrowheadScoreList(resolution);
@@ -57,7 +57,7 @@ class CumulativeBlockResults {
     }
 
     public void setCumulativeResults(List<HighScore> cumulativeResults) {
-        this.cumulativeResults = new ArrayList<HighScore>(cumulativeResults);
+        this.cumulativeResults = new ArrayList<>(cumulativeResults);
     }
 
     public ArrowheadScoreList getCumulativeInternalList() {
