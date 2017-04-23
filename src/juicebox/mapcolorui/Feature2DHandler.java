@@ -221,7 +221,9 @@ public class Feature2DHandler {
         List<Feature2DList> visibleLoopList = new ArrayList<Feature2DList>();
         if (layerVisible) {
             for (Feature2DList list : loopLists.values()) {
-                visibleLoopList.add(list);
+                if (list.getNumTotalFeatures() > 0) {
+                    visibleLoopList.add(list);
+                }
             }
         }
         return visibleLoopList;

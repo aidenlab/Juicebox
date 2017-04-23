@@ -52,13 +52,13 @@ public class Feature2D implements Comparable<Feature2D> {
     public static boolean allowHiCCUPSOrdering = false;
     protected final FeatureType featureType;
     final Map<String, String> attributes;
-    final int start1;
-    final int start2;
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    int end1;
-    int end2;
+    protected int start1;
+    protected int start2;
+    protected int end1;
+    protected int end2;
     private Feature2D reflection = null;
     private Color color, translucentColor;
     private boolean test = false;
@@ -476,6 +476,12 @@ public class Feature2D implements Comparable<Feature2D> {
         return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
     }
 
+    public Contig2D toContig() {
+        if (this instanceof Contig2D) {
+            return (Contig2D) this;
+        }
+        return new Contig2D(featureType, chr1, start1, end1, color, attributes);
+    }
 
     public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC

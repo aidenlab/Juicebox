@@ -211,6 +211,10 @@ public class Feature2DList {
         }
     }
 
+    public void setWithKey(String key, List<Feature2D> features) {
+        featureList.put(key, features);
+    }
+
     /**
      * Export feature list to given file path
      *
