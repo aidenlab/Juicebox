@@ -167,6 +167,14 @@ public class AssemblyIntermediateProcessor {
         return actuallyNeededContigs;
     }
 
+    /**
+     * TODO @meh this can be optimized
+     *
+     * @param contigs
+     * @param blockList
+     * @param binSize
+     * @return
+     */
     public static List<Block> filterBlockList(List<Contig2D> contigs, List<Block> blockList, int binSize) {
 
         List<Block> alteredBlockList = new ArrayList<>();
