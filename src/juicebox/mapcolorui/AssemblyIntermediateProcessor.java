@@ -168,7 +168,15 @@ public class AssemblyIntermediateProcessor {
     }
 
     /**
-     * TODO @meh this can be optimized
+     * TODO @meh @nchernia @sa501428 this can be optimized
+     * actually should probably be done a little upstream
+     * basically when the actually needed contigs are calculated above,
+     * we should post-process them and merge the actuallyNeededContigs
+     *
+     * if neighboring contigs are not inverted, share original continuity
+     * and share current continuity, they can essentially be merged
+     * this will reduce the number of contigs, and drastically speed up
+     * this method below
      *
      * @param contigs
      * @param blockList
