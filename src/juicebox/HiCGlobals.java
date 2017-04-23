@@ -54,7 +54,7 @@ public class HiCGlobals {
             "JuiceboxStatesForExport.xml");
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
-    public static final ArrayList<String> savedStatesList = new ArrayList<String>();
+    public static final ArrayList<String> savedStatesList = new ArrayList<>();
     // min hic file version supported
     public static final int minVersion = 6; // todo redundant calls to this should be removed
     public static final int bufferSize = 2097152;
@@ -67,7 +67,7 @@ public class HiCGlobals {
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.6.3";
+    public static final String versionNum = "1.7.1";
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
@@ -78,6 +78,7 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
+    public static boolean assemblyModeEnabled = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
@@ -87,7 +88,7 @@ public class HiCGlobals {
     }
 
     public static List<Color> createNewPreDefMapColorGradient() {
-        List<Color> colors = new ArrayList<Color>();
+        List<Color> colors = new ArrayList<>();
         colors.add(new Color(255, 242, 255));
         colors.add(new Color(255, 242, 255));
         colors.add(new Color(255, 230, 242));

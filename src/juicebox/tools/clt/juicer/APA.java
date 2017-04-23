@@ -166,7 +166,7 @@ public class APA extends JuicerCLT {
 
         List<String> possibleRegionWidths = juicerParser.getAPACornerRegionDimensionOptions();
         if (possibleRegionWidths != null) {
-            List<Integer> widths = new ArrayList<Integer>();
+            List<Integer> widths = new ArrayList<>();
             for (String res : possibleRegionWidths) {
                 widths.add(Integer.parseInt(res));
             }
@@ -175,7 +175,7 @@ public class APA extends JuicerCLT {
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
-            List<Integer> intResolutions = new ArrayList<Integer>();
+            List<Integer> intResolutions = new ArrayList<>();
             for (String res : possibleResolutions) {
                 intResolutions.add(Integer.parseInt(res));
             }
@@ -219,7 +219,7 @@ public class APA extends JuicerCLT {
                 handler = HiCFileTools.stringToChromosomes(givenChromosomes, handler);
 
             // Metrics resulting from apa filtering
-            final Map<String, Integer[]> filterMetrics = new HashMap<String, Integer[]>();
+            final Map<String, Integer[]> filterMetrics = new HashMap<>();
 
             Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
                     new FeatureFilter() {
@@ -228,7 +228,7 @@ public class APA extends JuicerCLT {
                         @Override
                         public List<Feature2D> filter(String chr, List<Feature2D> features) {
 
-                            List<Feature2D> uniqueFeatures = new ArrayList<Feature2D>(new HashSet<Feature2D>(features));
+                            List<Feature2D> uniqueFeatures = new ArrayList<>(new HashSet<>(features));
                             List<Feature2D> filteredUniqueFeatures = APAUtils.filterFeaturesBySize(uniqueFeatures,
                                     minPeakDist, maxPeakDist, resolution);
 

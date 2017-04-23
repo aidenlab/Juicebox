@@ -86,7 +86,7 @@ public class HiCCUPSUtils {
                                          float expectedBL, float expectedDonut, float expectedH, float expectedV,
                                          float binBL, float binDonut, float binH, float binV, int resolution) {
 
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
 
         attributes.put(OBSERVED, String.valueOf(observed));
         attributes.put(PEAK, String.valueOf(peak));
@@ -134,7 +134,7 @@ public class HiCCUPSUtils {
                                               final Dataset ds, final ChromosomeHandler chromosomeHandler,
                                               final NormalizationType norm) {
 
-        final Map<String, Integer> chrNameToIndex = new HashMap<String, Integer>();
+        final Map<String, Integer> chrNameToIndex = new HashMap<>();
         for (Chromosome chr : chromosomeHandler.getChromosomeArray()) {
             chrNameToIndex.put(Feature2DList.getKey(chr, chr), chr.getIndex());
         }
@@ -150,7 +150,7 @@ public class HiCCUPSUtils {
                     System.err.println("Unable to remove low mapQ entries for " + chr);
                     //e.printStackTrace();
                 }
-                return new ArrayList<Feature2D>();
+                return new ArrayList<>();
             }
         });
 
@@ -176,7 +176,7 @@ public class HiCCUPSUtils {
     }
 
     private static List<Feature2D> enrichmentThreshold(List<Feature2D> feature2DList, final float maxEnrich) {
-        List<Feature2D> filtered = new ArrayList<Feature2D>();
+        List<Feature2D> filtered = new ArrayList<>();
         for (Feature2D feature : feature2DList) {
             if (enrichmentThresholdSatisfied(feature, maxEnrich))
                 filtered.add(feature);
@@ -194,7 +194,7 @@ public class HiCCUPSUtils {
     }
 
     private static List<Feature2D> fdrThreshold(List<Feature2D> feature2DList) {
-        List<Feature2D> filtered = new ArrayList<Feature2D>();
+        List<Feature2D> filtered = new ArrayList<>();
         for (Feature2D feature : feature2DList) {
             if (fdrThresholdsSatisfied(feature))
                 filtered.add(feature);
@@ -204,7 +204,7 @@ public class HiCCUPSUtils {
 
     private static List<Feature2D> removeLowMapQ(int res, int chrIndex, Dataset ds, List<Feature2D> list, NormalizationType norm) throws IOException {
 
-        List<Feature2D> features = new ArrayList<Feature2D>();
+        List<Feature2D> features = new ArrayList<>();
         NormalizationVector normVectorContainer = ds.getNormalizationVector(chrIndex, ds.getZoomForBPResolution(res),
                 norm);
         if (normVectorContainer == null) {
@@ -236,8 +236,8 @@ public class HiCCUPSUtils {
     private static List<Feature2D> coalescePixelsToCentroid(int resolution, List<Feature2D> feature2DList,
                                                             int originalClusterRadius) {
         // HashSet intermediate for removing duplicates; LinkedList used so that we can pop out highest obs values
-        LinkedList<Feature2D> featureLL = new LinkedList<Feature2D>(new HashSet<Feature2D>(feature2DList));
-        List<Feature2D> coalesced = new ArrayList<Feature2D>();
+        LinkedList<Feature2D> featureLL = new LinkedList<>(new HashSet<>(feature2DList));
+        List<Feature2D> coalesced = new ArrayList<>();
 
         while (!featureLL.isEmpty()) {
 
@@ -247,7 +247,7 @@ public class HiCCUPSUtils {
 
             Feature2D pixel = featureLL.pollFirst();
             featureLL.remove(pixel);
-            List<Feature2D> pixelList = new ArrayList<Feature2D>();
+            List<Feature2D> pixelList = new ArrayList<>();
             pixelList.add(pixel);
 
             int pixelListX = pixel.getStart1();
@@ -263,7 +263,7 @@ public class HiCCUPSUtils {
                     pixelListX = mean(pixelList, 1);
                     pixelListY = mean(pixelList, 2);
 
-                    List<Double> distances = new ArrayList<Double>();
+                    List<Double> distances = new ArrayList<>();
                     for (Feature2D px2 : pixelList) {
                         double dist = hypotenuse(pixelListX - px2.getStart1(), pixelListY - px2.getStart2());
                         if (Double.isNaN(dist) || dist < 0) {

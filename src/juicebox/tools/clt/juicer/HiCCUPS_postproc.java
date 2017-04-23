@@ -152,10 +152,10 @@ import java.util.Map;
  */
 public class HiCCUPS_postproc extends JuicerCLT {
 
-    public static final int regionMargin = 20;
     public static final int krNeighborhood = 5;
     public static final Color defaultPeakColor = Color.cyan;
     public static final boolean shouldColorBeScaledByFDR = false;
+    private static final int regionMargin = 20;
     private static final int totalMargin = 2 * regionMargin;
     private static final int w1 = 40;      // TODO dimension should be variably set
     private static final int w2 = 10000;   // TODO dimension should be variably set
@@ -164,10 +164,10 @@ public class HiCCUPS_postproc extends JuicerCLT {
     private static final String FDR_THRESHOLDS = "fdr_thresholds";
     private static final String ENRICHED_PIXELS = "enriched_pixels";
     private static final String REQUESTED_LIST = "requested_list";
-    public static double fdrsum = 0.02;
-    public static double oeThreshold1 = 1.5;
-    public static double oeThreshold2 = 1.75;
-    public static double oeThreshold3 = 2;
+    private static double fdrsum = 0.02;
+    private static double oeThreshold1 = 1.5;
+    private static double oeThreshold2 = 1.75;
+    private static double oeThreshold3 = 2;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
     private boolean configurationsSetByUser = false;
@@ -175,7 +175,6 @@ public class HiCCUPS_postproc extends JuicerCLT {
     private String featureListPath2;
     private boolean listGiven = false;
     private boolean checkMapDensityThreshold = true;
-    private List<Chromosome> directlyInitializedCommonChromosomes = null;
 
     /*
      * Reasonable Commands
@@ -277,7 +276,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
             this.featureListPath1 = featureListPath;
         }
 
-        directlyInitializedCommonChromosomes = providedCommonChromosomes;
+        List<Chromosome> directlyInitializedCommonChromosomes = providedCommonChromosomes;
 
         if (preferredNorm != null) norm = preferredNorm;
 
@@ -300,7 +299,7 @@ public class HiCCUPS_postproc extends JuicerCLT {
     @Override
     public void run() {
 
-        Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
+        Map<Integer, Feature2DList> loopLists = new HashMap<>();
         ChromosomeHandler chromosomeHandler = ds.getChromosomeHandler();
         File outputMergedFile = new File(outputDirectory, MERGED);
         if (dataShouldBePostProcessed) {

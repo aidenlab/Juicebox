@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -175,7 +175,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     }
 
     public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<Object>();
+        List<Object> nodes = new ArrayList<>();
         if (treeNode != null) {
             nodes.add(treeNode);
             treeNode = treeNode.getParent();
@@ -247,8 +247,8 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private boolean createNodes(DefaultMutableTreeNode top, Properties properties) {
         // Enumeration<DefaultMutableTreeNode> enumeration = top.breadthFirstEnumeration();
         // TreeSet is sorted, so properties file is implemented in order
-        TreeSet<String> keys = new TreeSet<String>(properties.stringPropertyNames());
-        HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<String, DefaultMutableTreeNode>();
+        TreeSet<String> keys = new TreeSet<>(properties.stringPropertyNames());
+        HashMap<String, DefaultMutableTreeNode> hashMap = new HashMap<>();
         hashMap.put(((ItemInfo) top.getUserObject()).uid, top);
         //HashMap<String, DefaultMutableTreeNode> tempHash = new HashMap<String, DefaultMutableTreeNode>();
         //tempHash.put(((ItemInfo) top.getUserObject()).uid, top);
@@ -333,21 +333,21 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     }
 
     private void loadFiles(TreePath[] paths, String ext) {
-        ArrayList<ItemInfo> filesToLoad = new ArrayList<ItemInfo>();
-        String title = "";
+        ArrayList<ItemInfo> filesToLoad = new ArrayList<>();
+        StringBuilder title = new StringBuilder();
 
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 filesToLoad.add((ItemInfo) node.getUserObject());
-                title += path.toString().replace("[", "").replace("]", "").replace(",", "");
-                if (ext != null) title += " MAPQ \u2265 " + ext;
+                title.append(path.toString().replace("[", "").replace("]", "").replace(",", ""));
+                if (ext != null) title.append(" MAPQ \u2265 ").append(ext);
             }
         }
 
 
         setVisible(false);
-        java.util.List<String> urls = new ArrayList<String>();
+        java.util.List<String> urls = new ArrayList<>();
         for (ItemInfo info : filesToLoad) {
             if (info.itemURL == null || !info.itemURL.endsWith(".hic")) {
                 JOptionPane.showMessageDialog(this, info.itemName + " is not a hic file, or the path to the file is not specified.");
@@ -362,7 +362,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
         }
 
         //code to add a recent file to the menu
-        superAdapter.safeLoad(urls, control, title);
+        superAdapter.safeLoad(urls, control, title.toString());
     }
 
 

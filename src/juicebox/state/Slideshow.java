@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ public class Slideshow extends JDialog {
     private final static JButton nextButton = new JButton("\u25BA");
     private final static JButton prevButton = new JButton("\u25C4");
     private static final long serialVersionUID = -1443095232042271867L;
-    private static ArrayList<String> slideNames = new ArrayList<String>();
+    private static ArrayList<String> slideNames = new ArrayList<>();
     private final JLabel slideLabel;
     private int counter;
     private int currentSlideNum;
@@ -65,7 +65,7 @@ public class Slideshow extends JDialog {
         //super(mainWindow);
         super();
         // TODO zgire - if panel needs to be independent of juicebox, then remove the line above (i.e. pass in mainwindow as parent)
-        ArrayList<String> files = new ArrayList<String>();
+        ArrayList<String> files = new ArrayList<>();
         setLayout(new FlowLayout());
         setResizable(true);
         setVisible(true);
@@ -85,10 +85,10 @@ public class Slideshow extends JDialog {
         nextPanel.setVisible(true);
 
         try {
-            final ArrayList<String> savedStatePaths = new ArrayList<String>();
-            final ArrayList<String> xChromosomesForReload = new ArrayList<String>();
-            final ArrayList<String> yChromosomesForReload = new ArrayList<String>();
-            final ArrayList<String> unitNamesForReload = new ArrayList<String>();
+            final ArrayList<String> savedStatePaths = new ArrayList<>();
+            final ArrayList<String> xChromosomesForReload = new ArrayList<>();
+            final ArrayList<String> yChromosomesForReload = new ArrayList<>();
+            final ArrayList<String> unitNamesForReload = new ArrayList<>();
             Document dom;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
@@ -170,11 +170,7 @@ public class Slideshow extends JDialog {
             });
 
 
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (ParserConfigurationException | IOException | SAXException e) {
             e.printStackTrace();
         }
 

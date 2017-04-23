@@ -37,8 +37,8 @@ import java.awt.*;
 class OEColorScale implements ColorScale {
 
     public static final int defaultMaxOEVal = 5;
+    private final MatrixType type;
     private double threshold;
-    private MatrixType type;
 
     public OEColorScale(MatrixType type) {
         super();

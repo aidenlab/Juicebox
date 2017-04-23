@@ -127,7 +127,7 @@ public class Feature2DParser {
 
                 Color c = tokens.length > 6 ? ColorUtilities.stringToColor(tokens[6].trim()) : Color.black;
 
-                Map<String, String> attrs = new LinkedHashMap<String, String>();
+                Map<String, String> attrs = new LinkedHashMap<>();
                 if (loadAttributes) {
                     for (int i = attCol; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
@@ -263,7 +263,7 @@ public class Feature2DParser {
                 Color c = tokens.length > 4 ? ColorUtilities.stringToColor(tokens[4].trim()) : Color.black;
 
 
-                Map<String, String> attrs = new LinkedHashMap<String, String>();
+                Map<String, String> attrs = new LinkedHashMap<>();
                 if (loadAttributes) {
                     for (int i = attCol + 1; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
@@ -358,7 +358,7 @@ public class Feature2DParser {
                 }
 
                 Color c = Color.black;
-                Map<String, String> attrs = new LinkedHashMap<String, String>();
+                Map<String, String> attrs = new LinkedHashMap<>();
                 if (loadAttributes) {
                     for (int i = attCol; i < tokens.length; i++) {
                         attrs.put(headers[i], tokens[i]);
@@ -411,17 +411,41 @@ public class Feature2DParser {
         String[] headers = new String[tmpHeaders.length];
 
         for (int i=0; i<tmpHeaders.length; i++) {
-            if (tmpHeaders[i].equals("o")) headers[i] = "observed";
-            else if (tmpHeaders[i].equals("e_bl")) headers[i] = "expectedBL";
-            else if (tmpHeaders[i].equals("e_donut")) headers[i] = "expectedDonut";
-            else if (tmpHeaders[i].equals("e_h")) headers[i] = "expectedH";
-            else if (tmpHeaders[i].equals("e_v")) headers[i] = "expectedV";
-            else if (tmpHeaders[i].equals("fdr_bl")) headers[i] = "fdrBL";
-            else if (tmpHeaders[i].equals("fdr_donut")) headers[i] = "fdrDonut";
-            else if (tmpHeaders[i].equals("fdr_h")) headers[i] = "fdrH";
-            else if (tmpHeaders[i].equals("fdr_v")) headers[i] = "fdrV";
-            else if (tmpHeaders[i].equals("num_collapsed")) headers[i] = "numCollapsed";
-            else headers[i] = tmpHeaders[i];
+            switch (tmpHeaders[i]) {
+                case "o":
+                    headers[i] = "observed";
+                    break;
+                case "e_bl":
+                    headers[i] = "expectedBL";
+                    break;
+                case "e_donut":
+                    headers[i] = "expectedDonut";
+                    break;
+                case "e_h":
+                    headers[i] = "expectedH";
+                    break;
+                case "e_v":
+                    headers[i] = "expectedV";
+                    break;
+                case "fdr_bl":
+                    headers[i] = "fdrBL";
+                    break;
+                case "fdr_donut":
+                    headers[i] = "fdrDonut";
+                    break;
+                case "fdr_h":
+                    headers[i] = "fdrH";
+                    break;
+                case "fdr_v":
+                    headers[i] = "fdrV";
+                    break;
+                case "num_collapsed":
+                    headers[i] = "numCollapsed";
+                    break;
+                default:
+                    headers[i] = tmpHeaders[i];
+                    break;
+            }
         }
         return headers;
     }

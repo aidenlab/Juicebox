@@ -46,9 +46,9 @@ import java.util.Map;
 public class EigenvectorTrack extends HiCTrack {
 
 
-    private final Map<Integer, double[]> dataCache = new HashMap<Integer, double[]>();
-    private final Map<Integer, Double> dataMaxCache = new HashMap<Integer, Double>();
-    private final Map<Integer, Double> medianCache = new HashMap<Integer, Double>();
+    private final Map<Integer, double[]> dataCache = new HashMap<>();
+    private final Map<Integer, Double> dataMaxCache = new HashMap<>();
+    private final Map<Integer, Double> medianCache = new HashMap<>();
     private final HiC hic;
 
     private int currentZoom = -1;

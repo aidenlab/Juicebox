@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,7 +79,7 @@ public class FileDropTargetListener implements DropTargetListener {
         try {
             @SuppressWarnings("unchecked") // Transferable when called with DataFlavor javaFileList is guaranteed to return a File List.
                     java.util.List<File> files = (java.util.List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-            List<String> paths = new ArrayList<String>();
+            List<String> paths = new ArrayList<>();
             for (File f : files) {
                 paths.add(f.getAbsolutePath());
             }
@@ -90,7 +90,7 @@ public class FileDropTargetListener implements DropTargetListener {
             try {
                 obj = transferable.getTransferData(DataFlavor.stringFlavor).toString();
                 if (HttpUtils.isRemoteURL(obj)) {
-                    superAdapter.safeLoad(Arrays.asList(obj), false, obj);
+                    superAdapter.safeLoad(Collections.singletonList(obj), false, obj);
                 }
             } catch (Exception e1) {
                 e1.printStackTrace();

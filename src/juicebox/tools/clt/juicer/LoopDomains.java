@@ -134,9 +134,9 @@ public class LoopDomains extends JuicerCLT {
         domainList.processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
-                List<Feature2D> domains = new ArrayList<Feature2D>(feature2DList);
+                List<Feature2D> domains = new ArrayList<>(feature2DList);
 
-                List<Feature2D> loops = new ArrayList<Feature2D>();
+                List<Feature2D> loops = new ArrayList<>();
                 if (loopList.containsKey(chr)) {
                     loops.addAll(loopList.get(chr));
                 }

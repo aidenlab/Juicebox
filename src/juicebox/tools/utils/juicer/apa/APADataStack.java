@@ -71,7 +71,7 @@ public class APADataStack {
         normedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
         centerNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
         rankAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
-        enhancement = new ArrayList<Double>();
+        enhancement = new ArrayList<>();
 
         initializeGenomeWideVariables(n);
         initializeDataSaveFolder(outputFolder, customPrefix);
@@ -101,7 +101,7 @@ public class APADataStack {
             gwCenterNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
             gwRankAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
             //gwCoverage = APAUtils.cleanArray2DMatrix(n, n);
-            gwEnhancement = new ArrayList<Double>();
+            gwEnhancement = new ArrayList<>();
             genomeWideVariablesNotSet = false;
         }
     }

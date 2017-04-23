@@ -258,7 +258,7 @@ public class JColorRangePanel extends JPanel {
         colorRangeSlider.setUpperValue(uValue);
         colorRangeSlider.setMaximum(iMax);
 
-        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
         Font f = FontManager.getFont(8);
 
@@ -300,7 +300,7 @@ public class JColorRangePanel extends JPanel {
         colorRangeSlider.setUpperValue(uValue);
         colorRangeSlider.setMaximum(iMax);
 
-        Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
         Font f = FontManager.getFont(8);
 
@@ -359,7 +359,7 @@ public class JColorRangePanel extends JPanel {
 
             Font f = FontManager.getFont(8);
 
-            Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+            Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
 
 
             if (MatrixType.isComparisonType(hic.getDisplayOption())) {

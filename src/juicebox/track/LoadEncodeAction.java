@@ -53,7 +53,7 @@ public class LoadEncodeAction extends AbstractAction {
     private static final Map<String, Color> colors;
 
     static {
-        colors = new HashMap<String, Color>();
+        colors = new HashMap<>();
         colors.put("H3K27AC", new Color(200, 0, 0));
         colors.put("H3K27ME3", new Color(200, 0, 0));
         colors.put("H3K36ME3", new Color(0, 0, 150));
@@ -140,7 +140,7 @@ public class LoadEncodeAction extends AbstractAction {
     private void unsafeLoadENCODETracks(List<EncodeFileRecord> records, String[] visibleAttributes) {
         if (records.size() > 0) {
             if (loadedLocators == null) {
-                loadedLocators = new HashSet<ResourceLocator>();
+                loadedLocators = new HashSet<>();
             }
 
             List<ResourceLocator> locators = null;
@@ -161,7 +161,7 @@ public class LoadEncodeAction extends AbstractAction {
                 }
                 if (!loadedLocators.contains(rl)) {
                     if (locators == null) {
-                        locators = new ArrayList<ResourceLocator>();
+                        locators = new ArrayList<>();
                     }
 
                     locators.add(rl);

@@ -49,18 +49,16 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.List;
 
-public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
+class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
-    private JTree tree;
-    private JButton openButton;
-    private JButton cancelButton;
-    private JButton add2DButton;
-    private JTextField fTextField;
+    private final JTree tree;
+    private final JButton openButton;
+    private final JTextField fTextField;
+    private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
-    private Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
 
     public Load2DAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
         super(superAdapter.getMainWindow(), "Select 2D annotation file(s) to open");
@@ -123,7 +121,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             }
         });
 
-        add2DButton = new JButton("Add Local...");
+        JButton add2DButton = new JButton("Add Local...");
         add2DButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -215,7 +213,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
         //setVisible(false);
 
 
-        cancelButton = new JButton("Cancel");
+        JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -271,7 +269,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
 
 
     public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<Object>();
+        List<Object> nodes = new ArrayList<>();
         if (treeNode != null) {
             nodes.add(treeNode);
             treeNode = treeNode.getParent();

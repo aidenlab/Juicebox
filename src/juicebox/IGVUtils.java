@@ -56,9 +56,9 @@ class IGVUtils {
 
     private static void createSocketHelper() {
         if (helper == null) {
-            Socket socket = null;
-            PrintWriter out = null;
-            BufferedReader in = null;
+            Socket socket;
+            PrintWriter out;
+            BufferedReader in;
             try {
                 socket = new Socket("127.0.0.1", 60151);
                 out = new PrintWriter(socket.getOutputStream(), true);

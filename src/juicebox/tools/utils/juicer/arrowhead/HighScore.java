@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,7 @@ public class HighScore implements Comparable<HighScore> {
     }
 
     public Feature2D toFeature2D(String chrName, int res) {
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put("score", Double.toString(score));
         attributes.put("uVarScore", Double.toString(uVarScore));
         attributes.put("lVarScore", Double.toString(lVarScore));

@@ -50,13 +50,13 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
-    protected final FeatureType featureType;
+    final FeatureType featureType;
     final Map<String, String> attributes;
-    final int start1;
-    final int start2;
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
+    int start1;
+    int start2;
     int end1;
     int end2;
     private Feature2D reflection = null;
@@ -196,7 +196,7 @@ public class Feature2D implements Comparable<Feature2D> {
 
         if (HiCGlobals.allowSpacingBetweenFeatureText) {
             // organize attributes into categories. +1 is for the leftover category if no keywords present
-            ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<ArrayList<Map.Entry<String, String>>>();
+            ArrayList<ArrayList<Map.Entry<String, String>>> sortedFeatureAttributes = new ArrayList<>();
             for (int i = 0; i < categories.length + 1; i++) {
                 sortedFeatureAttributes.add(new ArrayList<Map.Entry<String, String>>());
             }
@@ -261,16 +261,16 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public String getOutputFileHeader() {
-        String output = genericHeader;
+        StringBuilder output = new StringBuilder(genericHeader);
 
-        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        ArrayList<String> keys = new ArrayList<>(attributes.keySet());
         Collections.sort(keys);
 
         for (String key : keys) {
-            output += "\t" + key;
+            output.append("\t").append(key);
         }
 
-        return output;
+        return output.toString();
     }
 
     public String simpleString() {
@@ -281,19 +281,19 @@ public class Feature2D implements Comparable<Feature2D> {
 
     @Override
     public String toString() {
-        String output = simpleString();
+        StringBuilder output = new StringBuilder(simpleString());
 
-        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        ArrayList<String> keys = new ArrayList<>(attributes.keySet());
         Collections.sort(keys);
         for (String key : keys) {
-            output += "\t" + attributes.get(key);
+            output.append("\t").append(attributes.get(key));
         }
 
-        return output;
+        return output.toString();
     }
 
     public ArrayList<String> getAttributeKeys() {
-        ArrayList<String> keys = new ArrayList<String>(attributes.keySet());
+        ArrayList<String> keys = new ArrayList<>(attributes.keySet());
         Collections.sort(keys);
         return keys;
     }
@@ -452,15 +452,15 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
-        List<Feature2D> originalFeatures = new ArrayList<Feature2D>();
+        List<Feature2D> originalFeatures = new ArrayList<>();
         originalFeatures.add(this);
 
-        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> anchors = new ArrayList<>();
         if (isOnDiagonal()) {
             // loops should not be on diagonal
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
-            List<Feature2D> emptyList = new ArrayList<Feature2D>();
+            List<Feature2D> emptyList = new ArrayList<>();
 
             anchors.add(new MotifAnchor(handler.getChr(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
             anchors.add(new MotifAnchor(handler.getChr(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
@@ -476,6 +476,12 @@ public class Feature2D implements Comparable<Feature2D> {
         return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
     }
 
+    public Contig2D toContig() {
+        if (this instanceof Contig2D) {
+            return (Contig2D) this;
+        }
+        return new Contig2D(featureType, chr1, start1, end1, color, attributes);
+    }
 
     public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC

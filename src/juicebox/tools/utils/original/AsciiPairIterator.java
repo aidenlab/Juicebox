@@ -48,7 +48,7 @@ public class AsciiPairIterator implements PairIterator {
      * A map of chromosome name -> chromosome string.  A private "intern" pool.  The java "intern" pool stores string
      * in perm space, which is rather limited and can cause us to run out of memory.
      */
-    private final Map<String, String> stringInternPool = new HashMap<String, String>();
+    private final Map<String, String> stringInternPool = new HashMap<>();
     // Map of name -> index
     private Map<String, Integer> chromosomeOrdinals;
     private AlignmentPair nextPair = null;

@@ -48,7 +48,7 @@ public class Feature2DList {
     /**
      * List of 2D features stored by chromosome
      */
-    private final Map<String, List<Feature2D>> featureList = new HashMap<String, List<Feature2D>>();
+    private final Map<String, List<Feature2D>> featureList = new HashMap<>();
 
     /**
      * Initialized hashtable
@@ -106,7 +106,7 @@ public class Feature2DList {
         commonFeatures.filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                List<Feature2D> commonVals = new ArrayList<Feature2D>();
+                List<Feature2D> commonVals = new ArrayList<>();
                 if (listA.containsKey(chr)) {
                     List<Feature2D> listAFeatures = listA.getFeatureList(chr);
                     for (Feature2D feature : listAFeatures) {
@@ -145,7 +145,7 @@ public class Feature2DList {
     public List<Feature2D> get(int chr1Idx, int chr2Idx) {
         String key = getKey(chr1Idx, chr2Idx);
         if (!featureList.containsKey(key)) {
-            List<Feature2D> features = new ArrayList<Feature2D>();
+            List<Feature2D> features = new ArrayList<>();
             featureList.put(key, features);
         }
         return featureList.get(key);
@@ -160,7 +160,7 @@ public class Feature2DList {
      */
     public List<Feature2D> get(String key) {
         if (!featureList.containsKey(key)) {
-            List<Feature2D> features = new ArrayList<Feature2D>();
+            List<Feature2D> features = new ArrayList<>();
             featureList.put(key, features);
         }
         return featureList.get(key);
@@ -190,7 +190,7 @@ public class Feature2DList {
         if (featureList.containsKey(key)) {
             featureList.get(key).add(feature);
         } else {
-            List<Feature2D> loops = new ArrayList<Feature2D>();
+            List<Feature2D> loops = new ArrayList<>();
             loops.add(feature);
             featureList.put(key, loops);
         }
@@ -206,9 +206,13 @@ public class Feature2DList {
         if (featureList.containsKey(key)) {
             featureList.get(key).addAll(features);
         } else {
-            List<Feature2D> loops = new ArrayList<Feature2D>(features);
+            List<Feature2D> loops = new ArrayList<>(features);
             featureList.put(key, loops);
         }
+    }
+
+    public void setWithKey(String key, List<Feature2D> features) {
+        featureList.put(key, features);
     }
 
     /**
@@ -235,8 +239,8 @@ public class Feature2DList {
             Feature2D featureZero = extractSingleFeature();
             if (featureZero != null) {
                 if (formattedOutput) {
-                    String header = Feature2D.genericHeader;
-                    final ArrayList<String> outputKeys = new ArrayList<String>();
+                    StringBuilder header = new StringBuilder(Feature2D.genericHeader);
+                    final ArrayList<String> outputKeys = new ArrayList<>();
                     if (listFormat == ListFormat.ENRICHED) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
@@ -247,16 +251,16 @@ public class Feature2DList {
                         outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                     }
                     for (String key : outputKeys) {
-                        header += "\t" + key;
+                        header.append("\t").append(key);
                     }
                     outputFilePrintWriter.println(header);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             for (Feature2D feature : feature2DList) {
-                                String output = feature.simpleString();
+                                StringBuilder output = new StringBuilder(feature.simpleString());
                                 for (String key : outputKeys) {
-                                    output += "\t" + feature.attributes.get(key);
+                                    output.append("\t").append(feature.attributes.get(key));
                                 }
                                 outputFilePrintWriter.println(output);
                             }
@@ -315,6 +319,7 @@ public class Feature2DList {
      */
     public Feature2D extractSingleFeature() {
         for (List<Feature2D> features : featureList.values()) {
+            //noinspection LoopStatementThatDoesntLoop
             for (Feature2D feature : features) {
                 return feature;
             }
@@ -354,7 +359,7 @@ public class Feature2DList {
             if (featureList.containsKey(inputKey)) {
                 featureList.get(inputKey).addAll(inputFeatures);
             } else {
-                List<Feature2D> features = new ArrayList<Feature2D>();
+                List<Feature2D> features = new ArrayList<>();
                 features.addAll(inputFeatures);
                 featureList.put(inputKey, features);
             }
@@ -380,7 +385,7 @@ public class Feature2DList {
                 //features.addAll(inputFeatures);
                 addAllUnique(inputFeatures, featureList.get(inputKey));
             } else {
-                List<Feature2D> features = new ArrayList<Feature2D>();
+                List<Feature2D> features = new ArrayList<>();
                 features.addAll(inputFeatures);
                 featureList.put(inputKey, features);
             }
@@ -425,7 +430,7 @@ public class Feature2DList {
         filterLists(new FeatureFilter() {
             @Override
             public List<Feature2D> filter(String chr, List<Feature2D> feature2DList) {
-                return new ArrayList<Feature2D>(new HashSet<Feature2D>(feature2DList));
+                return new ArrayList<>(new HashSet<>(feature2DList));
             }
         });
     }
@@ -455,7 +460,7 @@ public class Feature2DList {
      * @param filter
      */
     public void filterLists(FeatureFilter filter) {
-        List<String> keys = new ArrayList<String>(featureList.keySet());
+        List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
         for (String key : keys) {
             featureList.put(key, filter.filter(key, featureList.get(key)));
@@ -468,7 +473,7 @@ public class Feature2DList {
      * @param function
      */
     public void processLists(FeatureFunction function) {
-        List<String> keys = new ArrayList<String>(featureList.keySet());
+        List<String> keys = new ArrayList<>(featureList.keySet());
         Collections.sort(keys);
         for (String key : keys) {
             function.process(key, featureList.get(key));

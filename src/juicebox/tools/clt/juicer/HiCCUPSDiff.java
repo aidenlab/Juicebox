@@ -105,7 +105,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         if (givenChromosomes != null && givenChromosomes.size() > 0)
             commonChromosomesHandler = HiCFileTools.stringToChromosomes(givenChromosomes, commonChromosomesHandler);
 
-        List<HiCZoom> availableZooms = new ArrayList<HiCZoom>(HiCFileTools.getZoomSetIntersection(
+        List<HiCZoom> availableZooms = new ArrayList<>(HiCFileTools.getZoomSetIntersection(
                 ds1.getBpZooms(), ds1.getBpZooms()));
 
         looplist1 = Feature2DParser.loadFeatures(args[3], commonChromosomesHandler, true, null, false);

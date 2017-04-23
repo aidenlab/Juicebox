@@ -229,7 +229,7 @@ public class HiCFeatureTrack extends HiCTrack {
             log.error("Error getting feature source " + error);
             return null;
         }
-        List<Feature> allFeatures = new ArrayList<Feature>();
+        List<Feature> allFeatures = new ArrayList<>();
         while (iter.hasNext()) {
             allFeatures.add((Feature) iter.next());
         }

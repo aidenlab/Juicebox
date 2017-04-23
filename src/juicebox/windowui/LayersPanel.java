@@ -289,7 +289,7 @@ public class LayersPanel extends JDialog {
     }
 
     private void merge2DAnnotationsAction(SuperAdapter superAdapter, JPanel layerBoxGUI) {
-        List<AnnotationLayerHandler> visibleLayers = new ArrayList<AnnotationLayerHandler>();
+        List<AnnotationLayerHandler> visibleLayers = new ArrayList<>();
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
             if (handler.getLayerVisibility()) {
                 visibleLayers.add(handler);
@@ -711,7 +711,7 @@ public class LayersPanel extends JDialog {
      * @param alpha
      * @return original image with transparency alpha
      */
-    public Image translucentImage(BufferedImage originalImage, float alpha) {
+    private Image translucentImage(BufferedImage originalImage, float alpha) {
 
         int width = originalImage.getWidth(), height = originalImage.getHeight();
 

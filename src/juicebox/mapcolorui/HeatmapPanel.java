@@ -70,19 +70,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     // used for finding nearby features
     private static final int NUM_NEIGHBORS = 7;
+    /**
+     * Image tile width in pixels
+     */
+    private static final int imageTileWidth = 500;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
     private final SuperAdapter superAdapter;
     private final int RESIZE_SNAP = 5;
-    /**
-     * Image tile width in pixels
-     */
-    private final int imageTileWidth = 500;
-    private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<String, ImageTile>(26);
+    private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
     private final HeatmapRenderer renderer;
     //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
-    private transient List<Pair<Rectangle, Feature2D>> customFeaturePairs = new ArrayList<Pair<Rectangle, Feature2D>>();
+    private final transient List<Pair<Rectangle, Feature2D>> customFeaturePairs = new ArrayList<>();
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -175,6 +175,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         int tRight = (int) Math.ceil(bRight / imageTileWidth);
         int tTop = (int) (binOriginY / imageTileWidth);
         int tBottom = (int) Math.ceil(bBottom / imageTileWidth);
+
+        //System.out.println("binX "+binOriginX+" "+bRight+" binY "+binOriginY+" "+bBottom);
+        //System.out.println("tileX "+tLeft+" "+tRight+" tileY "+tTop+" "+tBottom);
 
         MatrixType displayOption = hic.getDisplayOption();
         NormalizationType normalizationType = hic.getNormalizationType();
@@ -403,7 +406,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                             centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
-                    List<Feature2D> cLoopsReflected = new ArrayList<Feature2D>();
+                    List<Feature2D> cLoopsReflected = new ArrayList<>();
                     for (Feature2D feature2D : loops) {
                         if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
                             cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
@@ -539,6 +542,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     }
 
+
     /**
      * Return the specified image tile, scaled by scaleFactor
      *
@@ -570,6 +574,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;
+
+            //System.out.println("tx "+tileColumn+" ty "+tileRow+" bx "+bx0+" by "+by0);
 
             if (!renderer.render(bx0,
                     by0,
@@ -805,7 +811,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 Pair<Rectangle, Feature2D> featureCopy =
-                        new Pair<Rectangle, Feature2D>(mostRecentRectFeaturePair.getFirst(), mostRecentRectFeaturePair.getSecond());
+                        new Pair<>(mostRecentRectFeaturePair.getFirst(), mostRecentRectFeaturePair.getSecond());
                 launchColorSelectionMenu(featureCopy);
             }
         });
@@ -1090,13 +1096,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt.append(getFloatString(controlValue));
                     txt.append("</span>");
 
-                    double obsValue = (value / zd.getAverageCount());
+                    double obsAvg = zd.getAverageCount();
+                    double obsValue = (value / obsAvg);
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append("observed/average = ");
                     txt.append(getFloatString((float) obsValue));
                     txt.append("</span>");
 
-                    double ctlValue = (float) (controlValue / controlZD.getAverageCount());
+                    double ctrlAvg = controlZD.getAverageCount();
+                    double ctlValue = (float) (controlValue / ctrlAvg);
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append("control/average = ");
                     txt.append(getFloatString((float) ctlValue));
@@ -1109,7 +1117,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append(getFloatString((float) ratio));
                         txt.append("</span>");
 
-                        double diff = (obsValue - ctlValue);
+                        double diff = (obsValue - ctlValue) * (obsAvg / 2. + ctrlAvg / 2.);
                         txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append("O'-C' = ");
                         txt.append(getFloatString((float) diff));
@@ -1279,7 +1287,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                    preAdjustLoop = new Pair<Pair<Integer, Integer>, Feature2D>(new Pair<Integer, Integer>(chr1Idx, chr2Idx), loop);
+                    preAdjustLoop = new Pair<>(new Pair<>(chr1Idx, chr2Idx), loop);
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -1331,7 +1339,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     if (superAdapter.getActiveLayer().hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
-                            hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize == true) {
+                            hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize) {
                         superAdapter.getActiveLayer().removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                                 hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
@@ -1547,10 +1555,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // do nothing, leave chromosomes null
             }
             if (xChrom != null && yChrom != null) {
-
-                final Chromosome xC = xChrom;
-                final Chromosome yC = yChrom;
-                superAdapter.unsafeSetSelectedChromosomes(xC, yC);
+                superAdapter.unsafeSetSelectedChromosomes(xChrom, yChrom);
             }
 
             //Only if zoom is changed All->Chr:

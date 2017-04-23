@@ -31,7 +31,6 @@ import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
-import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -57,7 +56,7 @@ public class ResolutionControl extends JPanel {
     private final HeatmapPanel heatmapPanel;
     private final JideButton lockButton;
     private final JLabel resolutionLabel;
-    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>();
+    private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<>();
     private final Map<Integer, String> bpLabelMap;
     private final HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
     public HiC.Unit unit = HiC.Unit.BP;
@@ -67,7 +66,7 @@ public class ResolutionControl extends JPanel {
 
     {
         // todo @nchernia shouldn't this use hic.getDataset().getBpZooms() ?
-        bpLabelMap = new Hashtable<Integer, String>();
+        bpLabelMap = new Hashtable<>();
         bpLabelMap.put(2500000, "2.5 MB");
         bpLabelMap.put(1000000, "1 MB");
         bpLabelMap.put(500000, "500 KB");
@@ -309,7 +308,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider.setMinorTickSpacing(1);
 
         // Create labels
-        Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<Integer, JLabel>();
+        Dictionary<Integer, JLabel> resolutionLabels = new Hashtable<>();
         Font f = FontManager.getFont(8);
         int skip = maxIdx > 6 ? 2 : 1;   // Skip every other if more than 6 levels
         for (int i = 0; i <= maxIdx; i++) {

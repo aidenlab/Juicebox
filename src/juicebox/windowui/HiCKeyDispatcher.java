@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.tools.dev.Private;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.MessageUtils;
@@ -43,7 +44,7 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
     private final HiC hic;
     private final JComboBox<MatrixType> displayOptionComboBox;
     private final SuperAdapter superAdapter;
-    private List<AnnotationLayerHandler> handlersPreviouslyHidden = new ArrayList<>();
+    private final List<AnnotationLayerHandler> handlersPreviouslyHidden = new ArrayList<>();
 
     public HiCKeyDispatcher(SuperAdapter superAdapter, HiC hic, JComboBox<MatrixType> displayOptionComboBox) {
         super();
@@ -132,6 +133,12 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
             superAdapter.togglePanelVisible();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F12) {
+            String newURL = MessageUtils.showInputDialog("Specify reassembling");
+            if (newURL != null) {
+                AssemblyIntermediateProcessor.makeChanges(newURL.split(","), superAdapter);
+            }
             return true;
         } else {
             return false;

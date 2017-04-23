@@ -129,7 +129,7 @@ public class EncodeFileBrowser extends JDialog {
 
             String[] headers = Globals.tabPattern.split(reader.readLine());
 
-            List<EncodeFileRecord> records = new ArrayList<EncodeFileRecord>(20000);
+            List<EncodeFileRecord> records = new ArrayList<>(20000);
             String nextLine;
             while ((nextLine = reader.readLine()) != null) {
                 if (!nextLine.startsWith("#")) {
@@ -140,7 +140,7 @@ public class EncodeFileBrowser extends JDialog {
                     // Filter BAMs for hic
                     if (path == null || path.endsWith("bam")) continue;
 
-                    Map<String, String> attributes = new HashMap<String, String>();
+                    Map<String, String> attributes = new HashMap<>();
                     for (int i = 0; i < headers.length; i++) {
                         String value = i < tokens.length ? tokens[i] : "";
                         if (value.length() > 0) {
@@ -154,7 +154,7 @@ public class EncodeFileBrowser extends JDialog {
                 }
 
             }
-            return new Pair<String[], List<EncodeFileRecord>>(headers, records);
+            return new Pair<>(headers, records);
         } finally {
             if (is != null) is.close();
         }
@@ -204,9 +204,7 @@ public class EncodeFileBrowser extends JDialog {
         //If current expression doesn't parse, don't update.
         try {
             rf = new RegexFilter(filterTextField.getText());
-        } catch (java.util.regex.PatternSyntaxException e) {
-            return;
-        } catch (ClassCastException e) {
+        } catch (java.util.regex.PatternSyntaxException | ClassCastException e) {
             return;
         }
         model.getSorter().setRowFilter(rf);
@@ -238,7 +236,7 @@ public class EncodeFileBrowser extends JDialog {
      */
     public List<EncodeFileRecord> getSelectedRecords() {
 
-        List<EncodeFileRecord> selectedRecords = new ArrayList<EncodeFileRecord>();
+        List<EncodeFileRecord> selectedRecords = new ArrayList<>();
         List<EncodeFileRecord> allRecords = model.getRecords();
 
         int rowCount = table.getRowCount();
@@ -393,7 +391,7 @@ public class EncodeFileBrowser extends JDialog {
             if (text == null) {
                 throw new IllegalArgumentException("Pattern must be non-null");
             }
-            matchers = new ArrayList<Pair<String, Matcher>>();
+            matchers = new ArrayList<>();
             String[] tokens = Globals.whitespacePattern.split(text);
             for (String t : tokens) {
                 // If token contains an = sign apply to specified column only
@@ -409,7 +407,7 @@ public class EncodeFileBrowser extends JDialog {
                     }
                 }
 
-                matchers.add(new Pair<String, Matcher>(column, Pattern.compile("(?i)" + value).matcher("")));
+                matchers.add(new Pair<>(column, Pattern.compile("(?i)" + value).matcher("")));
             }
 
         }

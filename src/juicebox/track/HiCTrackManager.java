@@ -55,8 +55,8 @@ public class HiCTrackManager {
     //static String path = "http://www.broadinstitute.org/igvdata/hic/tracksMenu.xml";
     //static String path = "/Users/jrobinso/Documents/IGV/hg19_encode.xml";
 
-    private final List<HiCTrack> loadedTracks = new ArrayList<HiCTrack>();
-    private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<NormalizationType, HiCTrack>();
+    private final List<HiCTrack> loadedTracks = new ArrayList<>();
+    private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final HiC hic;
 
@@ -151,13 +151,11 @@ public class HiCTrackManager {
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
-            List<HiCTrack> tracks = new ArrayList<HiCTrack>();
+            List<HiCTrack> tracks = new ArrayList<>();
             try {
                 loadTribbleFile(locator, tracks, genome);
 
-                for (HiCTrack t : tracks) {
-                    loadedTracks.add(t);
-                }
+                loadedTracks.addAll(tracks);
             } catch (Exception e) {
                 log.error("Error loading track: " + locator.getPath(), e);
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());

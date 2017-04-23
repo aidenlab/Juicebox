@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,7 @@ class CategoryPanel extends JPanel {
     }
 
     public Collection<String> getSelectedTracks() {
-        List<String> selectedTracks = new ArrayList<String>();
+        List<String> selectedTracks = new ArrayList<>();
         for (Component c : listPanel.getComponents()) {
             if (c instanceof JCheckBox && ((JCheckBox) c).isSelected()) {
                 selectedTracks.add(((JCheckBox) c).getText());

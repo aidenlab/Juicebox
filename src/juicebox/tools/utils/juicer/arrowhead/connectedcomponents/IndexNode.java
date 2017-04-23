@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@ import java.util.Set;
  */
 class IndexNode {
     private final int n;
-    private final Set<IndexNode> connectedNodes = new HashSet<IndexNode>();
-    private final Set<Point> matrixIndices = new HashSet<Point>();
+    private final Set<IndexNode> connectedNodes = new HashSet<>();
+    private final Set<Point> matrixIndices = new HashSet<>();
     private boolean hasNotBeenIndexed = true;
 
     public IndexNode(int n) {

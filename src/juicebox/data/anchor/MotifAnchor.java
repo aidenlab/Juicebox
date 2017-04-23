@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,8 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     // critical components of a motif anchor
     private final int chrIndex;
     // references to original features if applicable
-    private final List<Feature2D> originalFeatures1 = new ArrayList<Feature2D>();
-    private final List<Feature2D> originalFeatures2 = new ArrayList<Feature2D>();
+    private final List<Feature2D> originalFeatures1 = new ArrayList<>();
+    private final List<Feature2D> originalFeatures2 = new ArrayList<>();
     private boolean strand;
     private int x1;
     private int x2;

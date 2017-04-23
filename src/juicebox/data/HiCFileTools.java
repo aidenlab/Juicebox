@@ -114,7 +114,7 @@ public class HiCFileTools {
                 }
             }
 
-            List<Chromosome> chromosomes = new ArrayList<Chromosome>();
+            List<Chromosome> chromosomes = new ArrayList<>();
             chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
 
             Pattern pattern = Pattern.compile("\\s+");
@@ -182,7 +182,7 @@ public class HiCFileTools {
                 }
             }
 
-            List<Chromosome> chromosomes = new ArrayList<Chromosome>();
+            List<Chromosome> chromosomes = new ArrayList<>();
             chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
 
             Pattern pattern = Pattern.compile("\t");
@@ -236,12 +236,12 @@ public class HiCFileTools {
      */
     public static List<Integer> filterResolutions(List<HiCZoom> availableZooms, int[] resolutions) {
 
-        TreeSet<Integer> resSet = new TreeSet<Integer>();
+        TreeSet<Integer> resSet = new TreeSet<>();
         for (HiCZoom zoom : availableZooms) {
             resSet.add(zoom.getBinSize());
         }
 
-        List<Integer> finalResolutions = new ArrayList<Integer>();
+        List<Integer> finalResolutions = new ArrayList<>();
         for (int res : resolutions) {
             finalResolutions.add(closestValue(res, resSet));
         }
@@ -277,11 +277,11 @@ public class HiCFileTools {
     }
 
     public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
-        Set<HiCZoom> set1 = new HashSet<HiCZoom>(collection1);
-        Set<HiCZoom> set2 = new HashSet<HiCZoom>(collection2);
+        Set<HiCZoom> set1 = new HashSet<>(collection1);
+        Set<HiCZoom> set2 = new HashSet<>(collection2);
 
         boolean set1IsLarger = set1.size() > set2.size();
-        Set<HiCZoom> cloneSet = new HashSet<HiCZoom>(set1IsLarger ? set2 : set1);
+        Set<HiCZoom> cloneSet = new HashSet<>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }
@@ -295,7 +295,7 @@ public class HiCFileTools {
      */
     public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
                                                         ChromosomeHandler handler) {
-        Set<Chromosome> chromosomes = new HashSet<Chromosome>();
+        Set<Chromosome> chromosomes = new HashSet<>();
 
         for (String strKey : chromosomesSpecified) {
             boolean chrFound = false;
@@ -356,12 +356,12 @@ public class HiCFileTools {
 
         // numRows/numCols is just to ensure a set size in case bounds are approximate
         // left upper corner is reference for 0,0
-        List<Block> blocks = new ArrayList<Block>();
+        List<Block> blocks = new ArrayList<>();
 
         int numDataReadingErrors = 0;
 
         try {
-            numDataReadingErrors += zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
+            zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
         } catch (Exception e) {
             triggerNormError(normalizationType);
             if (HiCGlobals.printVerboseComments) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ import java.util.List;
 public class ArrowheadScoreList {
 
     private int resolution = -1;
-    private List<ArrowheadScore> arrowheadScores = new ArrayList<ArrowheadScore>();
+    private List<ArrowheadScore> arrowheadScores = new ArrayList<>();
 
     public ArrowheadScoreList(int resolution) {
         this.resolution = resolution;
@@ -101,7 +101,7 @@ public class ArrowheadScoreList {
     }
 
     public void mergeScores() {
-        List<ArrowheadScore> mergedScores = new ArrayList<ArrowheadScore>();
+        List<ArrowheadScore> mergedScores = new ArrayList<>();
 
         for (ArrowheadScore aScore : arrowheadScores) {
             boolean valueNotFound = true;

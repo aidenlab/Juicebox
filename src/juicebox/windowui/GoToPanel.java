@@ -378,7 +378,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         // Note that the global BP resolutions might not be what's stored in the file
         List<HiCZoom> zooms = hic.getDataset().getBpZooms();
 
-        List<Integer> bpResolutions = new ArrayList<Integer>();
+        List<Integer> bpResolutions = new ArrayList<>();
         for (HiCZoom zoom:zooms){
             bpResolutions.add(zoom.getBinSize());
         }

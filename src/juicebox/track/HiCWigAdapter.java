@@ -45,7 +45,7 @@ import java.util.List;
  */
 public class HiCWigAdapter extends HiCDataAdapter {
 
-    private final Map<String, List<LocusScore>> locusScoreMap = new HashMap<String, List<LocusScore>>();
+    private final Map<String, List<LocusScore>> locusScoreMap = new HashMap<>();
     private WiggleDataset dataset;
     private String trackName;
     private Color color;
@@ -122,7 +122,7 @@ public class HiCWigAdapter extends HiCDataAdapter {
             }
             if (values == null) return null;
 
-            scores = new ArrayList<LocusScore>(values.length);
+            scores = new ArrayList<>(values.length);
             for (int i = 0; i < values.length; i++) {
                 BasicScore bs = new BasicScore(startLocations[i], endLocations[i], values[i]);
                 scores.add(bs);

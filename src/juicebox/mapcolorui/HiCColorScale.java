@@ -35,10 +35,10 @@ import java.util.Map;
  */
 public class HiCColorScale {
 
-    private Map<String, Float> posMinMap = new HashMap<String, Float>();
-    private Map<String, Float> posMaxMap = new HashMap<String, Float>();
-    private Map<String, Float> negMinMap = new HashMap<String, Float>();
-    private Map<String, Float> negMaxMap = new HashMap<String, Float>();
+    private final Map<String, Float> posMinMap = new HashMap<>();
+    private final Map<String, Float> posMaxMap = new HashMap<>();
+    private final Map<String, Float> negMinMap = new HashMap<>();
+    private final Map<String, Float> negMaxMap = new HashMap<>();
 
     public HiCColorScale() {
     }

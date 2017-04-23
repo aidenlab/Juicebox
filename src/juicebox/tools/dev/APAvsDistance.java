@@ -63,12 +63,12 @@ class APAvsDistance {
         ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
 
         // read in all smc3, rad21, ctcf tracks and intersect them
-        List<String> bedFiles = new ArrayList<String>();
+        List<String> bedFiles = new ArrayList<>();
 
         File folder = new File("/users/name" + "directoryPath");
         File[] listOfFiles = folder.listFiles();
 
-        for (File file : listOfFiles) {
+        for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
             if (file.isFile()) {
                 String path = file.getAbsolutePath();
                 if (path.endsWith(".bed")) {

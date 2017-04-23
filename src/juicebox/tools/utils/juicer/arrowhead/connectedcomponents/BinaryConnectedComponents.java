@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ public class BinaryConnectedComponents {
         // pixel label matrix
         int[][] labels = new int[r][c];
 
-        List<IndexNode> indices = new ArrayList<IndexNode>();
+        List<IndexNode> indices = new ArrayList<>();
         indices.add(new IndexNode(-1));
         nextLabel = 1;
 
@@ -72,12 +72,12 @@ public class BinaryConnectedComponents {
      * @return connected components
      */
     private static List<Set<Point>> processLabeledIndices(List<IndexNode> indices) {
-        List<Set<Point>> components = new ArrayList<Set<Point>>();
+        List<Set<Point>> components = new ArrayList<>();
         for (int i = 1; i < nextLabel; i++) {
             IndexNode current = indices.get(i);
             if (current.hasNotBeenIndexed()) {
-                Queue<IndexNode> queue = new LinkedBlockingQueue<IndexNode>();
-                Set<Point> points = new HashSet<Point>(current.getMatrixIndices());
+                Queue<IndexNode> queue = new LinkedBlockingQueue<>();
+                Set<Point> points = new HashSet<>(current.getMatrixIndices());
                 queue.addAll(current.getConnectedNodes());
                 current.index();
 
@@ -121,7 +121,7 @@ public class BinaryConnectedComponents {
 
         int lowestLabel = 0;
         if (allPosVals.size() > 0)
-            lowestLabel = Collections.min(new ArrayList<Integer>(allPosVals));
+            lowestLabel = Collections.min(new ArrayList<>(allPosVals));
 
         if (lowestLabel <= 0) {
             lowestLabel = nextLabel;
@@ -150,7 +150,7 @@ public class BinaryConnectedComponents {
     }
 
     private static Set<Integer> positiveValues(int[][] matrix) {
-        Set<Integer> values = new HashSet<Integer>();
+        Set<Integer> values = new HashSet<>();
         for (int[] row : matrix) {
             for (int val : row) {
                 if (val > 0) {

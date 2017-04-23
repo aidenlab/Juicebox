@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import juicebox.MainWindow;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
-import juicebox.tools.clt.old.Dump;
 
 import javax.swing.*;
 import java.awt.*;
@@ -126,7 +125,7 @@ public class DumpDialog extends JFileChooser {
         JDialog dialog = super.createDialog(component);
         JPanel panel1 = new JPanel();
         JLabel label = new JLabel("Dump ");
-        box = new JComboBox<String>(new String[]{"Matrix", "Norm vector", "Expected vector", "Expected genome-wide vector"});
+        box = new JComboBox<>(new String[]{"Matrix", "Norm vector", "Expected vector", "Expected genome-wide vector"});
         panel1.add(label);
         panel1.add(box);
         dialog.add(panel1, BorderLayout.NORTH);

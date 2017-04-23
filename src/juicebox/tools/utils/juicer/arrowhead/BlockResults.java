@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ class BlockResults {
 
     private final ArrowheadScoreList internalList;
     private final ArrowheadScoreList internalControl;
-    private List<HighScore> results = new ArrayList<HighScore>();
+    private List<HighScore> results = new ArrayList<>();
 
     public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,
                         ArrowheadScoreList list, ArrowheadScoreList control, int limStart, int limEnd) {

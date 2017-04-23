@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,7 +81,7 @@ public class ArrowheadScore {
     }
 
     public Feature2D toFeature2D(String chrName) {
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put("score", Double.toString(score));
         return new Feature2D(Feature2D.FeatureType.DOMAIN, chrName, indices[0], indices[1],
                 chrName, indices[2], indices[3], Color.yellow, attributes);

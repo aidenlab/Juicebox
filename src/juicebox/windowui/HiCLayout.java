@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -219,7 +219,7 @@ public class HiCLayout implements LayoutManager2,
             Dimension dim = new Dimension(0, 0);
 
             boolean ltr = target.getComponentOrientation().isLeftToRight();
-            Component c = null;
+            Component c;
 
             if ((c = getChild(EAST, ltr)) != null) {
                 Dimension d = c.getMinimumSize();
@@ -276,7 +276,7 @@ public class HiCLayout implements LayoutManager2,
             Dimension dim = new Dimension(0, 0);
 
             boolean ltr = target.getComponentOrientation().isLeftToRight();
-            Component c = null;
+            Component c;
 
             if ((c = getChild(EAST, ltr)) != null) {
                 Dimension d = c.getPreferredSize();
@@ -435,21 +435,25 @@ public class HiCLayout implements LayoutManager2,
     private Component getChild(String key, boolean ltr) {
         Component result = null;
 
-        if (key.equals(NORTH)) {
-            result = north;
-        } else if (key.equals(SOUTH)) {
-            result = south;
-        } else if (key.equals(WEST)) {
-
-            result = west;
-
-        } else if (key.equals(EAST)) {
-            result = east;
-
-        } else if (key.equals(CENTER)) {
-            result = center;
-        } else if (key.equals(NORTH_WEST)) {
-            result = northwest;
+        switch (key) {
+            case NORTH:
+                result = north;
+                break;
+            case SOUTH:
+                result = south;
+                break;
+            case WEST:
+                result = west;
+                break;
+            case EAST:
+                result = east;
+                break;
+            case CENTER:
+                result = center;
+                break;
+            case NORTH_WEST:
+                result = northwest;
+                break;
         }
         if (result != null && !result.isVisible()) {
             result = null;

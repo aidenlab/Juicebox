@@ -57,7 +57,7 @@ import java.util.List;
 public class MainViewPanel {
 
     public static final List<Color> preDefMapColorGradient = HiCGlobals.createNewPreDefMapColorGradient();
-    public static final List<Float> preDefMapColorFractions = new ArrayList<Float>();
+    public static final List<Float> preDefMapColorFractions = new ArrayList<>();
     public static boolean preDefMapColor = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
@@ -81,10 +81,9 @@ public class MainViewPanel {
     private static JPanel bottomChromosomeFigPanel;
     private static JPanel chrSidePanel;
     private static JPanel chrSidePanel3;
+    private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
-    private JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
-
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -160,7 +159,7 @@ public class MainViewPanel {
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
-        chrBox1 = new JComboBox<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox1 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox1.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -171,7 +170,7 @@ public class MainViewPanel {
         chrButtonPanel.add(chrBox1);
 
         //---- chrBox2 ----
-        chrBox2 = new JComboBox<Chromosome>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
+        chrBox2 = new JComboBox<>(new Chromosome[]{new Chromosome(0, Globals.CHR_ALL, 0)});
         chrBox2.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -872,7 +871,7 @@ public class MainViewPanel {
         if (normalizationOptions.length == 1) {
             normalizationComboBox.setEnabled(false);
         } else {
-            normalizationComboBox.setModel(new DefaultComboBoxModel<String>(normalizationOptions));
+            normalizationComboBox.setModel(new DefaultComboBoxModel<>(normalizationOptions));
             normalizationComboBox.setSelectedIndex(0);
             normalizationComboBox.setEnabled(status && !isWholeGenome());
         }
@@ -890,7 +889,7 @@ public class MainViewPanel {
     public void setSelectedDisplayOption(MatrixType[] options, boolean control) {
         if (control) {
             MatrixType originalMatrixType = (MatrixType) displayOptionComboBox.getSelectedItem();
-            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+            displayOptionComboBox.setModel(new DefaultComboBoxModel<>(options));
             int indx = 0;
             for (int i = 0; i < displayOptionComboBox.getItemCount(); i++) {
                 if (originalMatrixType.equals(displayOptionComboBox.getItemAt(i))) {
@@ -900,7 +899,7 @@ public class MainViewPanel {
             }
             displayOptionComboBox.setSelectedIndex(indx);
         } else {
-            displayOptionComboBox.setModel(new DefaultComboBoxModel<MatrixType>(options));
+            displayOptionComboBox.setModel(new DefaultComboBoxModel<>(options));
             displayOptionComboBox.setSelectedIndex(0);
         }
     }

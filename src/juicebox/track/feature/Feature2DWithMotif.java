@@ -237,15 +237,15 @@ public class Feature2DWithMotif extends Feature2D {
 
     @Override
     public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
-        List<Feature2D> originalFeatures = new ArrayList<Feature2D>();
+        List<Feature2D> originalFeatures = new ArrayList<>();
         originalFeatures.add(this);
 
-        List<MotifAnchor> anchors = new ArrayList<MotifAnchor>();
+        List<MotifAnchor> anchors = new ArrayList<>();
         if (isOnDiagonal()) {
             // loops should not be on diagonal
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
-            List<Feature2D> emptyList = new ArrayList<Feature2D>();
+            List<Feature2D> emptyList = new ArrayList<>();
 
             // always should be only uninitialized?
             if (onlyUninitializedFeatures) {

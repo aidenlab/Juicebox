@@ -64,7 +64,7 @@ public class TrackPanel extends JPanel {
         this.hic = hiC;
         this.orientation = orientation;
         setAutoscrolls(true);
-        trackRectangles = new ArrayList<Pair<Rectangle, HiCTrack>>();
+        trackRectangles = new ArrayList<>();
         //setBackground(new Color(238, 238, 238));
         setBackground(Color.white);
         addMouseAdapter(superAdapter);
@@ -238,7 +238,7 @@ public class TrackPanel extends JPanel {
         }
 
         trackRectangles.clear();
-        java.util.List<HiCTrack> tracks = new ArrayList<HiCTrack>(hic.getLoadedTracks());
+        java.util.List<HiCTrack> tracks = new ArrayList<>(hic.getLoadedTracks());
         if (tracks.isEmpty()) {
             return;
         }
@@ -271,7 +271,7 @@ public class TrackPanel extends JPanel {
                         hicTrack.render(g, getContext(), trackRectangle, orientation, gridAxis);
                         y += h;
 
-                        trackRectangles.add(new Pair<Rectangle, HiCTrack>(trackRectangle, hicTrack));
+                        trackRectangles.add(new Pair<>(trackRectangle, hicTrack));
                     }
 
 

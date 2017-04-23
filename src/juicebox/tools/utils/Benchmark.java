@@ -39,16 +39,16 @@ import java.util.Random;
 
 public class Benchmark extends JuiceboxCLT {
 
+    private final int NUM_QUERIES = 1000;
     // Query 10,000 times at 256x256 and 2048x2048
-    int QUERY_SIZE=256;
-    int NUM_QUERIES=1000;
+    private int QUERY_SIZE = 256;
     private Dump dump;
     
     public Benchmark() {
         super(getUsage());
     }
 
-    public static String getUsage(){
+    private static String getUsage() {
         return "benchmark <hicFile> <norm>";
     }
 

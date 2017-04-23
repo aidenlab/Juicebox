@@ -65,7 +65,7 @@ public class MainMenuBar {
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
-    final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
+    private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
@@ -478,6 +478,16 @@ public class MainMenuBar {
             }
         });
         devMenu.add(mapSubset);
+
+        JMenuItem assemblyMode = new JMenuItem("Launch assembly mode editor...");
+        assemblyMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO
+                System.out.print("An attempt was made");
+            }
+        });
+        devMenu.add(assemblyMode);
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);

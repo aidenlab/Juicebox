@@ -67,8 +67,8 @@ public class Matrix {
 
     private void initZoomDataMap(List<MatrixZoomData> zoomDataList) {
 
-        bpZoomData = new ArrayList<MatrixZoomData>();
-        fragZoomData = new ArrayList<MatrixZoomData>();
+        bpZoomData = new ArrayList<>();
+        fragZoomData = new ArrayList<>();
         for (MatrixZoomData zd : zoomDataList) {
             if (zd.getZoom().getUnit() == HiC.Unit.BP) {
                 bpZoomData.add(zd);

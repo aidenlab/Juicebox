@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -186,7 +186,7 @@ public class BlockBuster {
      * @return list of scores binned within distance
      */
     private static List<HighScore> binScoresByDistance(List<HighScore> scores, int dist) {
-        List<BinnedScore> binnedScores = new ArrayList<BinnedScore>();
+        List<BinnedScore> binnedScores = new ArrayList<>();
         for (HighScore score : scores) {
             boolean scoreNotBinned = true;
             for (BinnedScore binnedScore : binnedScores) {
@@ -214,7 +214,7 @@ public class BlockBuster {
      */
     private static void appendNonConflictingBlocks(List<HighScore> mainList, List<HighScore> possibleAdditions) {
 
-        Map<Integer, HighScore> blockEdges = new HashMap<Integer, HighScore>();
+        Map<Integer, HighScore> blockEdges = new HashMap<>();
         for (HighScore score : mainList) {
             blockEdges.put(score.getI(), score);
             blockEdges.put(score.getJ(), score);
@@ -244,7 +244,7 @@ public class BlockBuster {
      * @return blockList with small blocks (i.e. < minWidth) removed
      */
     private static List<HighScore> filterBlocksBySize(List<HighScore> blockList, int minWidth) {
-        List<HighScore> filteredList = new ArrayList<HighScore>();
+        List<HighScore> filteredList = new ArrayList<>();
         for (HighScore score : blockList) {
             if (score.getWidth() > minWidth) {
                 filteredList.add(score);
@@ -262,10 +262,10 @@ public class BlockBuster {
      */
     private static List<HighScore> orderedSetDifference(List<HighScore> listA, List<HighScore> listB) {
         // remove duplicates
-        Set<HighScore> setA = new HashSet<HighScore>(listA);
-        Set<HighScore> setB = new HashSet<HighScore>(listB);
+        Set<HighScore> setA = new HashSet<>(listA);
+        Set<HighScore> setB = new HashSet<>(listB);
 
-        List<HighScore> diffSet = new ArrayList<HighScore>();
+        List<HighScore> diffSet = new ArrayList<>();
         for (HighScore score : setA) {
             if (!setB.contains(score)) {
                 diffSet.add(score);

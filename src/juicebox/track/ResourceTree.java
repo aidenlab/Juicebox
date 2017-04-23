@@ -145,8 +145,8 @@ public class ResourceTree {
      * @return the resources selected by user.
      */
     public void showResourceTreeDialog(JFrame parent) {
-        newLocators = new LinkedHashSet<ResourceLocator>();
-        deselectedLocators = new LinkedHashSet<ResourceLocator>();
+        newLocators = new LinkedHashSet<>();
+        deselectedLocators = new LinkedHashSet<>();
 
         dialog = new JDialog(parent, "Available Features", true);
 
@@ -181,7 +181,7 @@ public class ResourceTree {
                 dialog.dispose();
                 // get selected locators
                 LinkedHashSet<ResourceLocator> selectedLocators = getSelectedResourceLocators();
-                LinkedHashSet<ResourceLocator> newlyAddedLocators = new LinkedHashSet<ResourceLocator>();
+                LinkedHashSet<ResourceLocator> newlyAddedLocators = new LinkedHashSet<>();
                 // these have been added from dialog open to hitting the "cancel" button
                 for (ResourceLocator locator : selectedLocators) {
                     if (!loadedLocators.contains(locator)) {
@@ -216,9 +216,7 @@ public class ResourceTree {
                     }
                 }
                 // add these to loaded ones for next use
-                for (ResourceLocator locator : newLocators) {
-                    loadedLocators.add(locator);
-                }
+                loadedLocators.addAll(newLocators);
                 for (ResourceLocator locator : deselectedLocators) {
                     loadedLocators.remove(locator);
                 }
@@ -246,7 +244,7 @@ public class ResourceTree {
                             DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
                             oneDFeatureRoot.add(treeNode);
                             if (addedNodes == null) {
-                                addedNodes = new LinkedHashSet<DefaultMutableTreeNode>();
+                                addedNodes = new LinkedHashSet<>();
                             }
                             addedNodes.add(treeNode);
                             ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
@@ -279,7 +277,7 @@ public class ResourceTree {
     }
 
     private void removeResourceFromLeaf(CheckableResource resource, List<CheckableResource> leafResources) {
-        List<CheckableResource> resourcesToRemove = new ArrayList<CheckableResource>();
+        List<CheckableResource> resourcesToRemove = new ArrayList<>();
         for (CheckableResource res : leafResources) {
             if (res.getText().equals(resource.getText()))
                 resourcesToRemove.add(res);
@@ -527,7 +525,7 @@ public class ResourceTree {
 
     private LinkedHashSet<ResourceLocator> getSelectedResourceLocators() {
 
-        LinkedHashSet<ResourceLocator> resourceLocators = new LinkedHashSet<ResourceLocator>();
+        LinkedHashSet<ResourceLocator> resourceLocators = new LinkedHashSet<>();
 
         for (CheckableResource resource : leafResources) {
 

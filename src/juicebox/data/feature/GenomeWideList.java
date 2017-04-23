@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ public class GenomeWideList<T extends Feature> {
      * Genome-wide list of features, where each string is a key for an
      * inter or intra-chromosomal region
      */
-    private final Map<String, List<T>> featureLists = new HashMap<String, List<T>>();
+    private final Map<String, List<T>> featureLists = new HashMap<>();
 
     /** Constructors**/
 
@@ -60,7 +60,7 @@ public class GenomeWideList<T extends Feature> {
     /**
      * @param handler
      */
-    public GenomeWideList(ChromosomeHandler handler) {
+    private GenomeWideList(ChromosomeHandler handler) {
         for (String indx : handler.getChrIndices()) {
             featureLists.put(indx, new ArrayList<T>());
         }
@@ -177,7 +177,7 @@ public class GenomeWideList<T extends Feature> {
      * @return deep copy of the anchor list
      */
     public GenomeWideList<T> deepClone() {
-        GenomeWideList<T> clone = new GenomeWideList<T>();
+        GenomeWideList<T> clone = new GenomeWideList<>();
         for (String key : featureLists.keySet()) {
             clone.featureLists.put(key, cloneFeatureList(featureLists.get(key)));
         }
@@ -190,7 +190,7 @@ public class GenomeWideList<T extends Feature> {
      */
     @SuppressWarnings("unchecked")
     private List<T> cloneFeatureList(List<T> features) {
-        List<T> clonedFeatures = new ArrayList<T>();
+        List<T> clonedFeatures = new ArrayList<>();
         for (T feature : features) {
             clonedFeatures.add((T) feature.deepClone());//feature.<T>deepClone()
         }
@@ -214,7 +214,7 @@ public class GenomeWideList<T extends Feature> {
         if (featureLists.containsKey(key)) {
             featureLists.get(key).add(feature);
         } else {
-            List<T> features = new ArrayList<T>();
+            List<T> features = new ArrayList<>();
             features.add(feature);
             featureLists.put(key, features);
         }

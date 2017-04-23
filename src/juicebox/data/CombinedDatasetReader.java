@@ -59,7 +59,7 @@ public class CombinedDatasetReader implements DatasetReader {
     public Dataset read() throws IOException {
         // Temporarily create a dataset for each reader, then merge them
 
-        List<Dataset> tmpDatasets = new ArrayList<Dataset>();
+        List<Dataset> tmpDatasets = new ArrayList<>();
         version = 100000;
         for (DatasetReader r : readers) {
             tmpDatasets.add(r.read());
@@ -108,7 +108,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     @Override
     public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
-        List<JCheckBox> allBoxes = new ArrayList<JCheckBox>();
+        List<JCheckBox> allBoxes = new ArrayList<>();
         for (DatasetReaderV2 reader : readers) {
             allBoxes.addAll(reader.getCheckBoxes(actionListeners));
         }
@@ -124,7 +124,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     public Matrix readMatrix(String key) throws IOException {
         //
-        List<Matrix> tmpDatasets = new ArrayList<Matrix>();
+        List<Matrix> tmpDatasets = new ArrayList<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 tmpDatasets.add(r.readMatrix(key));
@@ -138,7 +138,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
 
-        List<Block> blockList = new ArrayList<Block>();
+        List<Block> blockList = new ArrayList<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb = r.readBlock(blockNumber, zd);
@@ -155,7 +155,7 @@ public class CombinedDatasetReader implements DatasetReader {
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = new ArrayList<Block>();
+        List<Block> blockList = new ArrayList<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 Block cb;
@@ -179,13 +179,13 @@ public class CombinedDatasetReader implements DatasetReader {
 
     public List<Integer> getBlockNumbers(MatrixZoomData matrixZoomData) {
 
-        Set<Integer> blockNumberSet = new HashSet<Integer>();
+        Set<Integer> blockNumberSet = new HashSet<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
                 blockNumberSet.addAll(r.getBlockNumbers(matrixZoomData));
             }
         }
-        List<Integer> blockNumbers = new ArrayList<Integer>(blockNumberSet);
+        List<Integer> blockNumbers = new ArrayList<>(blockNumberSet);
         Collections.sort(blockNumbers);
         return blockNumbers;
     }
@@ -255,13 +255,13 @@ public class CombinedDatasetReader implements DatasetReader {
 
         // Expected values, just sum
         // Map key ==  unit_binSize
-        Map<String, ExpectedValueFunction> dfMap = new HashMap<String, ExpectedValueFunction>();
+        Map<String, ExpectedValueFunction> dfMap = new HashMap<>();
 
         Collection<String> keys = firstDataset.getExpectedValueFunctionMap().keySet();
-        Set<String> zoomsToRemove = new HashSet<String>();
+        Set<String> zoomsToRemove = new HashSet<>();
         for (String key : keys) {
             if (!hasFrags && key.startsWith(HiC.Unit.FRAG.toString())) continue;
-            List<ExpectedValueFunction> evFunctions = new ArrayList<ExpectedValueFunction>();
+            List<ExpectedValueFunction> evFunctions = new ArrayList<>();
             boolean haveAll = true;
             for (Dataset ds : datasetList) {
                 final ExpectedValueFunction e = ds.getExpectedValueFunctionMap().get(key);
@@ -283,7 +283,7 @@ public class CombinedDatasetReader implements DatasetReader {
         dataset.expectedValueFunctionMap = dfMap;
 
         if (zoomsToRemove.size() > 0) {
-            List<HiCZoom> trimmedBpZooms = new ArrayList<HiCZoom>(dataset.bpZooms.size());
+            List<HiCZoom> trimmedBpZooms = new ArrayList<>(dataset.bpZooms.size());
             for (HiCZoom zoom : dataset.bpZooms) {
                 if (!zoomsToRemove.contains(zoom.getKey())) {
                     trimmedBpZooms.add(zoom);
@@ -291,7 +291,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
             dataset.bpZooms = trimmedBpZooms;
             if (hasFrags) {
-                List<HiCZoom> trimmedFragZooms = new ArrayList<HiCZoom>(dataset.bpZooms.size());
+                List<HiCZoom> trimmedFragZooms = new ArrayList<>(dataset.bpZooms.size());
                 for (HiCZoom zoom : dataset.fragZooms) {
                     if (!zoomsToRemove.contains(zoom.getKey())) {
                         trimmedFragZooms.add(zoom);
@@ -303,9 +303,9 @@ public class CombinedDatasetReader implements DatasetReader {
         }
 
 
-        ArrayList<String> statisticsList = new ArrayList<String>();
-        ArrayList<String> graphsList = new ArrayList<String>();
-        HashSet<String> reList = new HashSet<String>();
+        ArrayList<String> statisticsList = new ArrayList<>();
+        ArrayList<String> graphsList = new ArrayList<>();
+        HashSet<String> reList = new HashSet<>();
         for (Dataset ds : datasetList) {
             try {
                 statisticsList.add(ds.getStatistics());
@@ -321,7 +321,7 @@ public class CombinedDatasetReader implements DatasetReader {
         }
 
 
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put("statistics", mergeStatistics(statisticsList));
         attributes.put("graphs", mergeGraphs(graphsList));
         dataset.setAttributes(attributes);
@@ -332,7 +332,7 @@ public class CombinedDatasetReader implements DatasetReader {
         dataset.restrictionEnzyme = newRestrictionEnzyme;
 
         // Set normalization types (for menu)
-        LinkedHashSet<NormalizationType> normTypes = new LinkedHashSet<NormalizationType>();
+        LinkedHashSet<NormalizationType> normTypes = new LinkedHashSet<>();
         for (Dataset ds : datasetList) {
             List<NormalizationType> tmp = ds.getNormalizationTypes();
             if (tmp != null) normTypes.addAll(tmp);
@@ -341,7 +341,7 @@ public class CombinedDatasetReader implements DatasetReader {
             List<NormalizationType> tmp = ds.getNormalizationTypes();
             if (tmp != null) normTypes.retainAll(tmp);
         }
-        dataset.setNormalizationTypes(new ArrayList<NormalizationType>(normTypes));
+        dataset.setNormalizationTypes(new ArrayList<>(normTypes));
 
         return dataset;
     }
@@ -384,7 +384,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     private String mergeStatistics(List<String> statisticsList) {
 
-        LinkedHashMap<String, String> statsMap = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> statsMap = new LinkedHashMap<>();
 
 
         int numberFiles = statisticsList.size();
@@ -500,7 +500,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
     private Matrix mergeMatrices(List<Matrix> matrixList) {
 
-        Map<String, Double> averageCount = new HashMap<String, Double>();
+        Map<String, Double> averageCount = new HashMap<>();
         for (Matrix matrix : matrixList) {
             for (MatrixZoomData zd : matrix.bpZoomData) {
                 String key = zd.getKey();
@@ -560,7 +560,7 @@ public class CombinedDatasetReader implements DatasetReader {
         int repSize = firstBlock.getContactRecords().size();
         int blockNumber = firstBlock.getNumber(); // TODO -- this should be checked, all blocks should have same number
 
-        HashMap<String, ContactRecord> mergedRecordMap = new HashMap<String, ContactRecord>(blockList.size() * repSize * 2);
+        HashMap<String, ContactRecord> mergedRecordMap = new HashMap<>(blockList.size() * repSize * 2);
 
         for (Block b : blockList) {
             Collection<ContactRecord> records = b.getContactRecords();
@@ -576,7 +576,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
         }
 
-        List<ContactRecord> mergedRecords = new ArrayList<ContactRecord>(mergedRecordMap.values());
+        List<ContactRecord> mergedRecords = new ArrayList<>(mergedRecordMap.values());
         return new Block(blockNumber, mergedRecords);
     }
 

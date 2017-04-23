@@ -103,7 +103,7 @@ public class ExpectedValueCalculation {
         }
 
         long maxLen = 0;
-        this.chromosomesMap = new LinkedHashMap<Integer, Chromosome>();
+        this.chromosomesMap = new LinkedHashMap<>();
 
         for (Chromosome chr : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             if (chr != null) {
@@ -134,8 +134,8 @@ public class ExpectedValueCalculation {
 
         actualDistances = new double[numberOfBins];
         Arrays.fill(actualDistances, 0);
-        chromosomeCounts = new HashMap<Integer, Double>();
-        chrScaleFactors = new LinkedHashMap<Integer, Double>();
+        chromosomeCounts = new HashMap<>();
+        chrScaleFactors = new LinkedHashMap<>();
 
     }
 
@@ -151,7 +151,7 @@ public class ExpectedValueCalculation {
      */
     public void setChromosomesMap(Chromosome[] chromosomes1) {
 
-        this.chromosomesMap = new LinkedHashMap<Integer, Chromosome>();
+        this.chromosomesMap = new LinkedHashMap<>();
         for (Chromosome chr : chromosomes1) {
             if (chr != null) {
                 chromosomesMap.put(chr.getIndex(), chr);

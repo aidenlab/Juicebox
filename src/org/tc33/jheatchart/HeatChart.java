@@ -1490,14 +1490,14 @@ public class HeatChart {
         int heatMapHeight = (zValues.length * cellSize.height);
         heatMapSize = new Dimension(heatMapWidth, heatMapHeight);
 
-        int yValuesHorizontalSize = 0;
+        int yValuesHorizontalSize;
         if (yValuesHorizontal) {
             yValuesHorizontalSize = yAxisValuesWidthMax;
         } else {
             yValuesHorizontalSize = yAxisValuesHeight;
         }
 
-        int xValuesVerticalSize = 0;
+        int xValuesVerticalSize;
         if (xValuesHorizontal) {
             xValuesVerticalSize = xAxisValuesHeight;
         } else {

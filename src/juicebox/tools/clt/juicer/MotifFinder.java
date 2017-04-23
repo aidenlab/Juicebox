@@ -45,16 +45,15 @@ import java.util.List;
  */
 public class MotifFinder extends JuicerCLT {
 
-    private final List<String> tierOneFiles = new ArrayList<String>();
-    private final List<String> tierTwoFiles = new ArrayList<String>();
-    private final List<String> tierThreeFiles = new ArrayList<String>();
+    private final List<String> tierOneFiles = new ArrayList<>();
+    private final List<String> tierTwoFiles = new ArrayList<>();
+    private final List<String> tierThreeFiles = new ArrayList<>();
     private String outputPath;
     private String loopListPath;
     private String genomeID;
     private List<String> proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
-    private String bedFileDirPath;
     private String globalMotifListPath;
-    private GenomeWideList<MotifAnchor> genomeWideAnchorsList = new GenomeWideList<MotifAnchor>();
+    private GenomeWideList<MotifAnchor> genomeWideAnchorsList = new GenomeWideList<>();
 
     public MotifFinder() {
         super("motifs <genomeID> <bed_file_dir> <looplist> [custom_global_motif_list]");
@@ -78,7 +77,7 @@ public class MotifFinder extends JuicerCLT {
 
         int i = 1;
         genomeID = args[i++];
-        bedFileDirPath = args[i++];
+        String bedFileDirPath = args[i++];
         loopListPath = args[i++];
         if (args.length == 5) {
             globalMotifListPath = args[i++];
@@ -258,10 +257,10 @@ public class MotifFinder extends JuicerCLT {
                     anchors = MotifAnchorParser.loadMotifsFromLocalFile(globalMotifListPath, genomeID, null);
                 }
             }
-            genomeWideAnchorsList = new GenomeWideList<MotifAnchor>(anchors);
+            genomeWideAnchorsList = new GenomeWideList<>(anchors);
             return anchors;
         } else {
-            return new GenomeWideList<MotifAnchor>(genomeWideAnchorsList);
+            return new GenomeWideList<>(genomeWideAnchorsList);
         }
     }
 
@@ -286,7 +285,7 @@ public class MotifFinder extends JuicerCLT {
 
     private List<String> retrieveBEDFilesByExtensionInFolder(String directoryPath, String description) throws IOException {
 
-        List<String> bedFiles = new ArrayList<String>();
+        List<String> bedFiles = new ArrayList<>();
 
         File folder = new File(directoryPath);
         File[] listOfFiles = folder.listFiles();

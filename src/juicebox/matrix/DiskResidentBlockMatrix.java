@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
     private static final Logger log = Logger.getLogger(DiskResidentBlockMatrix.class);
 
     private final String path;
-    private final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<String, float[][]>(200);
+    private final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<>(200);
     boolean isLoading = false;
     private String genome;
     private String chr1;
