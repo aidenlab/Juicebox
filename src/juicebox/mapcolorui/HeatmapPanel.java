@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -538,6 +538,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         Color c = colorChooser.getColor();
         if (c != null) {
             selectedFeaturePair.getSecond().setColor(c);
+            repaint();
         }
     }
 
@@ -591,6 +592,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
         menu.add(mi);
+
+        final JMenuItem mi2 = new JMenuItem("Mark feature");
+        mi2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                featureOptionMenuEnabled = false;
+                Pair<Rectangle, Feature2D> featureCopy =
+                        new Pair<Rectangle, Feature2D>(mostRecentRectFeaturePair.getFirst(), mostRecentRectFeaturePair.getSecond());
+                featureCopy.getSecond().setColor(Color.yellow);
+                repaint();
+            }
+        });
+        menu.add(mi2);
 
      /*   final JMenuItem mi2 = new JMenuItem("Goto ...");
         mi2.addActionListener(new ActionListener() {
@@ -734,7 +748,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-
         final JMenuItem mi10_1 = new JMenuItem("Change Color");
         mi10_1.addActionListener(new ActionListener() {
             @Override
@@ -768,14 +781,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         });
 
-
         final JMenu configureFeatureMenu = new JMenu("Configure feature");
         configureFeatureMenu.add(mi10_1);
         configureFeatureMenu.add(mi10_2);
         configureFeatureMenu.add(mi10_3);
 
         if (hic != null) {
-            //    menu.add(mi2);
+            //           menu.add(mi2);
             menu.add(mi3);
             mi4.setSelected(hic.isLinkedMode());
             menu.add(mi4);
