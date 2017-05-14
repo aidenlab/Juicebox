@@ -25,6 +25,7 @@
 package juicebox.track.feature;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,8 +33,8 @@ import java.util.Map;
  */
 public class Contig2D extends Feature2D {
 
-    private final String initialChr;
-    private final int initialStart, initialEnd;
+    private String initialChr;
+    private int initialStart, initialEnd;
     private boolean isInverted = false;
 
     public Contig2D(FeatureType featureType, String chr1, int start1, int end1, Color c, Map<String, String> attributes) {
@@ -84,6 +85,10 @@ public class Contig2D extends Feature2D {
         return super.tooltipText();
     }
 
+    public boolean isInverted() {
+        return isInverted;
+    }
+
     public boolean hasSomeOriginalOverlapWith(int pos) {
         return pos >= initialStart && pos <= initialEnd;
     }
@@ -94,5 +99,50 @@ public class Contig2D extends Feature2D {
             translatedPos = processInversionPlotting(translatedPos, start1, end1);
         }
         return translatedPos / binSize;
+    }
+
+    @Override
+    public Feature2D deepCopy() {
+        Map<String, String> attrClone = new HashMap<>();
+        for (String key : attributes.keySet()) {
+            attrClone.put(key, attributes.get(key));
+        }
+        Contig2D clone = new Contig2D(featureType, getChr1(), start1, end1, getColor(), attrClone);
+        clone.initialChr = initialChr;
+        clone.initialStart = initialStart;
+        clone.initialEnd = initialEnd;
+        clone.isInverted = isInverted;
+        return clone;
+    }
+
+    public Contig2D mergeContigs(Contig2D contig) {
+        if (isInverted && contig.isInverted()) {
+            if (initialChr.equals(contig.initialChr)
+                    && withinTolerance(initialStart, contig.initialEnd)
+                    && withinTolerance(start1, contig.end1)) {
+                Contig2D merger = new Contig2D(featureType, getChr1(), contig.start1, end1, getColor(), new HashMap<String, String>());
+                merger.initialChr = initialChr;
+                merger.initialStart = contig.initialStart;
+                merger.initialEnd = initialEnd;
+                merger.isInverted = isInverted;
+                return merger;
+            }
+        } else if ((!isInverted) && (!contig.isInverted())) {
+            if (initialChr.equals(contig.initialChr)
+                    && withinTolerance(initialEnd, contig.initialStart)
+                    && withinTolerance(end1, contig.start1)) {
+                Contig2D merger = new Contig2D(featureType, getChr1(), start1, contig.end1, getColor(), new HashMap<String, String>());
+                merger.initialChr = initialChr;
+                merger.initialStart = initialStart;
+                merger.initialEnd = contig.initialEnd;
+                merger.isInverted = isInverted;
+                return merger;
+            }
+        }
+        return null;
+    }
+
+    private boolean withinTolerance(int val1, int val2) {
+        return Math.abs(val1 - val2) < 2;
     }
 }

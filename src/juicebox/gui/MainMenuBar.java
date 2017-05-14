@@ -27,12 +27,14 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -483,8 +485,10 @@ public class MainMenuBar {
         assemblyMode.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO
-                System.out.print("An attempt was made");
+                String newURL = MessageUtils.showInputDialog("Specify reassembling");
+                if (newURL != null) {
+                    AssemblyIntermediateProcessor.makeChanges(newURL.split(","), superAdapter);
+                }
             }
         });
         devMenu.add(assemblyMode);

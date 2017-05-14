@@ -36,9 +36,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 4/17/17.
@@ -164,32 +162,26 @@ public class AssemblyIntermediateProcessor {
                 }
             }
         }
+
         return actuallyNeededContigs;
     }
 
     /**
-     * TODO @meh @nchernia @sa501428 this can be optimized
-     * actually should probably be done a little upstream
-     * basically when the actually needed contigs are calculated above,
-     * we should post-process them and merge the actuallyNeededContigs
      *
-     * if neighboring contigs are not inverted, share original continuity
-     * and share current continuity, they can essentially be merged
-     * this will reduce the number of contigs, and drastically speed up
-     * this method below
-     *
-     * @param contigs
+     * @param preMergeContigs
      * @param blockList
      * @param binSize
      * @return
      */
-    public static List<Block> filterBlockList(List<Contig2D> contigs, List<Block> blockList, int binSize) {
+    public static List<Block> filterBlockList(List<Contig2D> preMergeContigs, Set<Block> blockList, int binSize) {
+        List<Contig2D> contigs = mergeRedundantContiguousContigs(preMergeContigs);
 
         List<Block> alteredBlockList = new ArrayList<>();
         if (contigs.size() < 1) return alteredBlockList;
 
         for (Block block : blockList) {
             List<ContactRecord> alteredContacts = new ArrayList<>();
+            System.out.println("contacts l1 " + block.getContactRecords().size());
             for (ContactRecord record : block.getContactRecords()) {
                 boolean includeXRecord = false;
                 boolean includeYRecord = false;
@@ -228,5 +220,40 @@ public class AssemblyIntermediateProcessor {
         }
         //System.out.println("num alters "+alteredBlockList.size());
         return alteredBlockList;
+    }
+
+
+    /**
+     * if neighboring contigs are not inverted, share original continuity
+     * and share current continuity, they can essentially be merged
+     * this will reduce the number of contigs, and improve speed
+     *
+     * @param currentContigs
+     * @return mergedContigs
+     */
+    private static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
+
+        List<Contig2D> mergedContigs = new ArrayList<>();
+        Contig2D growingContig = null;
+
+        for (Contig2D contig : currentContigs) {
+            if (growingContig == null) {
+                growingContig = contig.deepCopy().toContig();
+                continue;
+            } else {
+                Contig2D result = growingContig.mergeContigs(contig);
+                if (result == null) {
+                    // cannot be merged
+                    if (growingContig != null) mergedContigs.add(growingContig);
+                    growingContig = contig.deepCopy().toContig();
+                    continue;
+                } else {
+                    growingContig = result;
+                }
+            }
+        }
+        if (growingContig != null) mergedContigs.add(growingContig);
+
+        return new ArrayList<>(new HashSet<>(mergedContigs));
     }
 }

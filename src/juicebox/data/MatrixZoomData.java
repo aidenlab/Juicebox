@@ -274,11 +274,13 @@ public class MatrixZoomData {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
 
+        Set<Block> blockSet = new HashSet<>(blockList);
+
         if (HiCGlobals.assemblyModeEnabled) {
-            return AssemblyIntermediateProcessor.filterBlockList(contigs, blockList, zoom.getBinSize());
+            return AssemblyIntermediateProcessor.filterBlockList(contigs, blockSet, zoom.getBinSize());
         }
 
-        return new ArrayList<>(new HashSet<>(blockList));
+        return new ArrayList<>(blockSet);
     }
 
 
