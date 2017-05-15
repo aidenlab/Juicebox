@@ -29,6 +29,7 @@ import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 
 import java.awt.*;
@@ -42,6 +43,7 @@ public class FeatureRenderer {
     public static void render(Graphics2D g2, AnnotationLayerHandler annotationHandler, List<Feature2D> loops, MatrixZoomData zd,
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
+                              List<Feature2D> selectedContigs,
                               int maxWidth, int maxHeight) {
 
         Feature2DHandler feature2DHandler = annotationHandler.getFeatureHandler();
@@ -53,6 +55,10 @@ public class FeatureRenderer {
 
         if (loops != null) {
             for (Feature2D feature : loops) {
+                if (feature instanceof Contig2D) {
+                    renderContig((Contig2D) feature, g2, xAxis, zd, binOriginX, scaleFactor, maxHeight);
+                    continue;
+                }
 
                 if (!feature.isOnDiagonal()) {
                     if (feature.isInLowerLeft()) {
@@ -116,6 +122,25 @@ public class FeatureRenderer {
             }
         }
 
+        if (selectedContigs != null) {
+            Stroke oldStroke = g2.getStroke();
+            g2.setColor(HiCGlobals.ContigSelectColor);
+            g2.setStroke(new BasicStroke(4));
+            for (Feature2D contig : selectedContigs) {
+                int binStart1 = xAxis.getBinNumberForGenomicPosition(contig.getStart1());
+                int binEnd1 = xAxis.getBinNumberForGenomicPosition(contig.getEnd1());
+
+                if (HiCFileTools.equivalentChromosome(contig.getChr1(), zd.getChr1())) {
+                    int x = (int) ((binStart1 - binOriginX) * scaleFactor);
+                    int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+
+                    g2.drawLine(x, 0, x, maxHeight);
+                    g2.drawLine(x + h, 0, x + h, maxHeight);
+                }
+            }
+            g2.setStroke(oldStroke);
+        }
+
         if (highlightedFeature != null && showFeatureHighlight) {
             g2.setColor(highlightedFeature.getColor());
 
@@ -156,5 +181,20 @@ public class FeatureRenderer {
 
     public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}
 
+    // Renders Contig2D as lines
+    private static void renderContig(Contig2D feature, Graphics2D g2, HiCGridAxis xAxis, MatrixZoomData zd,
+                                     double binOriginX, double scaleFactor, int maxHeight) {
+        int binStart1 = xAxis.getBinNumberForGenomicPosition(feature.getStart1());
+        int binEnd1 = xAxis.getBinNumberForGenomicPosition(feature.getEnd1());
+
+        g2.setColor(HiCGlobals.ContigColor);
+        if (HiCFileTools.equivalentChromosome(feature.getChr1(), zd.getChr1())) {
+            int x = (int) ((binStart1 - binOriginX) * scaleFactor);
+            int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));
+
+            g2.drawLine(x, 0, x, maxHeight);
+            g2.drawLine(x + h, 0, x + h, maxHeight);
+        }
+    }
 
 }
