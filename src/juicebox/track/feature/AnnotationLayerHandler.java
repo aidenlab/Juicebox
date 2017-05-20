@@ -437,7 +437,7 @@ public class AnnotationLayerHandler {
      * Gets the contained featuers within the selction region, including the features that the
      * selection starts and ends in
      */
-    public List<Feature2D> getSelectedFeatures(HiC hic, int lastX) {
+    public List<Feature2D> getSelectedFeatures(HiC hic, int lastX, int lastY) {
         List<Feature2D> selectedFeatures = new ArrayList<Feature2D>();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
@@ -480,7 +480,7 @@ public class AnnotationLayerHandler {
                 // Find closest loop to starting selection
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
                 selectedFeatures.addAll(getNearbyFeatures(hic.getZd(), chr1Idx, chr2Idx,
-                        lastX, lastX, 1, hic.getXContext().getBinOrigin(),
+                        lastX, lastY, 1, hic.getXContext().getBinOrigin(),
                         hic.getYContext().getBinOrigin(), hic.getScaleFactor()));
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
             } catch (Exception e) {

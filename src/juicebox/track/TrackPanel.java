@@ -300,7 +300,7 @@ public class TrackPanel extends JPanel {
         try {
             Feature2D highlight = hic.getHighlightedFeature();
             if (highlight != null) {
-                g.setColor(HiCGlobals.HighlightColor);
+                g.setColor(HiCGlobals.HIGHLIGHT_COLOR);
                 MatrixZoomData zd = hic.getZd();
                 HiCGridAxis xAxis = zd.getXGridAxis();
                 HiCGridAxis yAxis = zd.getYGridAxis();
