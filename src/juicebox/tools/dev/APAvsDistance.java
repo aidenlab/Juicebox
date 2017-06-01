@@ -59,6 +59,7 @@ class APAvsDistance {
 
     public static void main() {
 
+/*
         GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
         ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
 
@@ -78,7 +79,7 @@ class APAvsDistance {
         }
 
         GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(handler, bedFiles);
-
+         */
         // preservative intersection of these protein list with motif list
 
 
@@ -96,6 +97,62 @@ class APAvsDistance {
 
 
         // plot APA score vs binned distance
+
+        /*
+         * Detailed psuedo code
+         * Main
+         Read In Loop File
+            Bin by distance
+                Not sure if want to write files or create a linked list of (loop lists) and pass into
+            Get apa score
+            Plot apa graph
+            Get apa chart
+
+         Linked List<loop> readInLoopFile (loop file)
+            Open loopfile
+            While next line
+                 Read line
+                 Split by tabs
+                 Create Linked List<loop>
+                 List.add (line[0:6])
+                 Close file
+
+
+
+         Void Bin by distance ( loop list, int start dist, int exponent, wdir? ,output path ) : binned loop files
+            int bucket=1
+             create bucket 1
+             int offset= initialCutoff
+             int cutoff = minDistance+offset
+             if distance < cutoff
+                add to bucket
+             Else
+                 close bucket
+                 cutoff = cutoff+expOffset
+                 offset= offset*exponent
+             Run apa score
+                insert logiv
+
+             Get apa score (apa tool path,
+                insert logic
+             Plot apa graph
+                insert logic
+             Get apa graph
+                insert logic
+
+         Loop object
+         String Chr 1, Int X1, Int X2, String Chr 2, Int Y1, Int Y2, String Color, Int distance
+         calcDis
+         Return y1-x1
+         Getters and setters
+         constructor(chr1, x1 , x2, chr2, y1 ,y2 , color)
+         this=*;
+         Distance = calculate distance
+
+         */
+
+
+
 
     }
 
