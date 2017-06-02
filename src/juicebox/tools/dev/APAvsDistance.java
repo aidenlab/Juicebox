@@ -59,27 +59,8 @@ class APAvsDistance {
 
     public static void main() {
 
-/*
-        GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
-        ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
 
-        // read in all smc3, rad21, ctcf tracks and intersect them
-        List<String> bedFiles = new ArrayList<>();
 
-        File folder = new File("/users/name" + "directoryPath");
-        File[] listOfFiles = folder.listFiles();
-
-        for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
-            if (file.isFile()) {
-                String path = file.getAbsolutePath();
-                if (path.endsWith(".bed")) {
-                    bedFiles.add(path);
-                }
-            }
-        }
-
-        GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(handler, bedFiles);
-         */
         // preservative intersection of these protein list with motif list
 
 
@@ -149,11 +130,124 @@ class APAvsDistance {
          this=*;
          Distance = calculate distance
 
+
+
+
+
+
+
+public static void main()
+{
+        String outputDir;
+        int initialCutoff;
+        int exponent;
+        String loopFilePath;
+        int exponent;
+
+        Map<Integer, String> map = sortByValues(hmap); //test
+
+        Feature2DList looplist = Feature2DParser.loadFeatures(loopFilePath, commonChromosomesHandler, true, null, false);
+        looplist=sortByDiffDistance(looplist);
+        bin(looplist, initialCutoff, exponent, outputDir);
+
+        /*
+        Then need to calucualte apa score for each binned loop file
+        create graph with info from apa and plot apa score vs distance
+        obtain apa heatmap from same folder that recived score from
+
+        */
+
+    }
+/*
+
+  private static HashMap sortByValues(HashMap map) {
+       List list = new LinkedList(map.entrySet());
+       // Defined Custom Comparator here
+       Collections.sort(list, new Comparator() {
+            public int compare(Object o1, Object o2) {
+               return ((Comparable) ((Map.Entry) (o1)).getValue())
+                  .compareTo(((Map.Entry) (o2)).getValue());
+            }
+       });
+
+       // Here I am copying the sorted list in HashMap
+       // using LinkedHashMap to preserve the insertion order
+       HashMap sortedHashMap = new LinkedHashMap();
+       for (Iterator it = list.iterator(); it.hasNext();) {
+              Map.Entry entry = (Map.Entry) it.next();
+              sortedHashMap.put(entry.getKey(), entry.getValue());
+       }
+       return sortedHashMap;
+  }
+
+
+
+    public static Feature2DList sortByDiffDistance(Feature2DList){
+        // may be a way to extend
+    }
+
+    public static int getDiffDistance(2DFeature feature)
+    { return feature.getStart2-feature.getStart1;}
+
+    public void Feature2DList bin( Feature2DList loopList, int cutoff, int exponent, String outputDir) { //accepts a sorted loops list by Diffdistance
+        int counter=1;
+        int offset=cutoff;
+        Feature2DList currentBin = new Feature2DList();//want a blank feature 2d list
+        Iterator it = looplist.entrySet().iterator(); //interate though Feature2DList
+        while (it.hasNext()) {
+
+            Map.Entry pair = (Map.Entry)it.next();
+            2DFeature feature = pair.getValue());
+
+            if(getDiffDistance(feature) < cutoff)
+            {
+                currentBin.add(feature)
+                it.remove(); // avoids a ConcurrentModificationException
+            }
+            else
+            {
+                counter++;
+                currentBin.tofile(outputDir, etc...);  //write currentBin to file with path name bin number and cutoff size
+                currentBin.close();
+                currentBin = new Feature2DList;
+                cutoff=cutoff+offset;
+                offset=offset*exponent;
+            }
+        }
+    }
+
+
+
          */
+
+
 
 
 
 
     }
 
-}
+
+
+
+/*
+        GenomeWideList<MotifAnchor> motifs = MotifAnchorParser.loadMotifsFromGenomeID("hg19", null);
+        ChromosomeHandler handler = HiCFileTools.loadChromosomes("hg19");
+
+        // read in all smc3, rad21, ctcf tracks and intersect them
+        List<String> bedFiles = new ArrayList<>();
+
+        File folder = new File("/users/name" + "directoryPath");
+        File[] listOfFiles = folder.listFiles();
+
+        for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
+            if (file.isFile()) {
+                String path = file.getAbsolutePath();
+                if (path.endsWith(".bed")) {
+                    bedFiles.add(path);
+                }
+            }
+        }
+
+        GenomeWideList<MotifAnchor> proteins = MotifFinder.getIntersectionOfBEDFiles(handler, bedFiles);
+         */
