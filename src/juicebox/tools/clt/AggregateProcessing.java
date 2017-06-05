@@ -27,6 +27,7 @@ package juicebox.tools.clt;
 import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.tools.HiCTools;
+import juicebox.tools.dev.APAvsDistance;
 
 import java.io.IOException;
 
@@ -39,6 +40,8 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
+        APAvsDistance test= new APAvsDistance();
+        test.run();
 
 
 
