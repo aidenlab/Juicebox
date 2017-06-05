@@ -30,6 +30,7 @@ import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.Feature;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.clt.juicer.MotifFinder;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.*;
@@ -62,9 +63,17 @@ import java.util.List;
  * and then do APA on the pairs in each bin. You should get a strong apa score at 300kb.
  * what about 3mb? 30mb?
  */
-class APAvsDistance {
+public class APAvsDistance extends JuicerCLT implements  {
 
-    public static void main() {
+    public APAvsDistance(){
+        super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
+                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
+                " <hicFile(s)> <PeaksFile> <SaveFolder>");
+        run();
+    }
+
+   @Override
+    public void run() {
         String HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
         String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
         String SaveFolder="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
