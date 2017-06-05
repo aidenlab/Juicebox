@@ -28,12 +28,18 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.feature.Feature;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.juicer.MotifFinder;
+import juicebox.tools.utils.juicer.apa.APAUtils;
+import juicebox.track.feature.*;
 
-import java.io.File;
+
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+
 
 /**
  * Created by muhammadsaadshamim on 1/19/16.
@@ -59,6 +65,55 @@ class APAvsDistance {
 
     public static void main() {
 
+
+    }
+
+
+    public static void bin(String loopListPath, String handler, String outputDir, final int initialCutoff, int exponent, int resolution){
+
+        int minPeakDist=0;
+        int maxPeakDist=initialCutoff;
+        String outputPath;
+        
+        for (int i=1;i<10;i++)
+        {
+            outputPath=outputDir+"/bin_"+i+"_"+minPeakDist+"-"+maxPeakDist;
+            bin(outputPath,loopListPath,handler,minPeakDist,maxPeakDist,resolution);
+            minPeakDist=maxPeakDist;
+            maxPeakDist+=maxPeakDist*exponent;
+        }
+    }
+
+
+    private static void bin(String outputPath, String loopListPath, String handler, final double minPeakDist, final double maxPeakDist, final int resolution) {
+        Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
+                new FeatureFilter() {
+                    // Remove duplicates and filters by size
+                    // also save internal metrics for these measures
+                    @Override
+                    public List<Feature2D> filter(String chr, List<Feature2D> features) {
+
+                        List<Feature2D> uniqueFeatures = new ArrayList<>(new HashSet<>(features));
+                        return APAUtils.filterFeaturesBySize(uniqueFeatures,
+                                minPeakDist, maxPeakDist, resolution);
+                        /*
+                        List<Feature2D> filteredUniqueFeatures = APAUtils.filterFeaturesBySize(uniqueFeatures,
+                                minPeakDist, maxPeakDist, resolution);
+
+
+                            filterMetrics.put(chr,
+                                    new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
+                            */
+
+                       // return filteredUniqueFeatures; 
+                    }
+                }, false);
+        File outputFile = new File(outputPath);
+        loopList.exportFeatureList(outputFile, false, Feature2DList.ListFormat.NA);
+    }
+
+
+}
 
 
         // preservative intersection of these protein list with motif list
@@ -121,14 +176,6 @@ class APAvsDistance {
              Get apa graph
                 insert logic
 
-         Loop object
-         String Chr 1, Int X1, Int X2, String Chr 2, Int Y1, Int Y2, String Color, Int distance
-         calcDis
-         Return y1-x1
-         Getters and setters
-         constructor(chr1, x1 , x2, chr2, y1 ,y2 , color)
-         this=*;
-         Distance = calculate distance
 
 
 
@@ -157,7 +204,7 @@ public static void main()
 
         */
 
-    }
+
 /*
 
   private static HashMap sortByValues(HashMap map) {
@@ -225,7 +272,7 @@ public static void main()
 
 
 
-    }
+
 
 
 
