@@ -33,6 +33,7 @@ import juicebox.data.feature.GenomeWideList;
 import juicebox.tools.clt.juicer.MotifFinder;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.*;
+import juicebox.windowui.NormalizationType;
 
 
 import java.io.*;
@@ -64,12 +65,29 @@ import java.util.List;
 class APAvsDistance {
 
     public static void main() {
+        String HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
+        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
+        String SaveFolder="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
+        int resolution=5000;
+        String chromosomes="Chr19";
+        NormalizationType preferredNorm=NormalizationType.KR;// Knight-Ruiz
+
+        List<ChromosomeHandler> ChromList=new List<ChromosomeHandler>;
+        ChromosomeHandler handler=new ChromosomeHandler(ChromList);
+        int initialCutoff=5000;
+        int exponent=2;
+        //int resolution;
+
+
+
+        bin(PeaksFile,handler,SaveFolder,initialCutoff,exponent,resolution);
+
 
 
     }
 
 
-    public static void bin(String loopListPath, String handler, String outputDir, final int initialCutoff, int exponent, int resolution){
+    public static void bin(String loopListPath, ChromosomeHandler handler, String outputDirectory, final int initialCutoff, int exponent, int resolution){
 
         int minPeakDist=0;
         int maxPeakDist=initialCutoff;
@@ -77,7 +95,7 @@ class APAvsDistance {
         
         for (int i=1;i<10;i++)
         {
-            outputPath=outputDir+"/bin_"+i+"_"+minPeakDist+"-"+maxPeakDist;
+            outputPath=outputDirectory+"/bin_"+i+"_"+minPeakDist+"-"+maxPeakDist;
             bin(outputPath,loopListPath,handler,minPeakDist,maxPeakDist,resolution);
             minPeakDist=maxPeakDist;
             maxPeakDist+=maxPeakDist*exponent;
@@ -85,7 +103,7 @@ class APAvsDistance {
     }
 
 
-    private static void bin(String outputPath, String loopListPath, String handler, final double minPeakDist, final double maxPeakDist, final int resolution) {
+    private static void bin(String outputPath, String loopListPath, ChromosomeHandler handler, final double minPeakDist, final double maxPeakDist, final int resolution) {
         Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
                 new FeatureFilter() {
                     // Remove duplicates and filters by size
@@ -105,7 +123,7 @@ class APAvsDistance {
                                     new Integer[]{filteredUniqueFeatures.size(), uniqueFeatures.size(), features.size()});
                             */
 
-                       // return filteredUniqueFeatures; 
+                       // return filteredUniqueFeatures;
                     }
                 }, false);
         File outputFile = new File(outputPath);
