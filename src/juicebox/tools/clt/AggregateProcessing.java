@@ -39,41 +39,9 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
-        // genes <genomeID> <bed_file> <looplist> [output]
-        String[] ajkhsd = {"dump", "observed", "VC",
-                "https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined.hic",
-                "1:0:5000", "1:0:10000", "BP", "5000", "/Users/muhammadsaadshamim/Desktop/test/ignore/chr1_VCnorm_5kb.txt"
-        };
 
-        ajkhsd = new String[]{"genes", "hg19", "/Users/muhammadsaadshamim/Desktop/intersected_cbx28_y1.bed",
-                "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
-                "/Users/muhammadsaadshamim/Desktop/k562_cbx28_yy1_genes"};
 
-        ajkhsd = new String[]{"hiccupsdiff", "/Users/muhammadsaadshamim/Desktop/LocalFiles/k562/k562_combined_30.hic",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/k562/k562_combined_30.hic",
-                "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
-                "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined_peaks_with_motifs.txt",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/general/rice_mbr19_30hic_fakediff"};
 
-        ajkhsd = new String[]{"dump", "pearson", "KR",
-                "https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined.hic",
-                "12", "12", "BP", "500000", "/Users/muhammadsaadshamim/Desktop/test/ignore/k562_chr12_pearson"
-        };
 
-        ajkhsd = new String[]{"genes", "hg19", "null",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/regev/diff_loops_1_2/differential_loops1.txt",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/regev/diff_loops_1_2/genes1.txt"
-        };
-
-        //HiCGlobals.printVerboseComments = true;
-        //HiCTools.main(ajkhsd);
-
-        ajkhsd = new String[]{"genes", "hg19", "null",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/hawk/inter_30_loops/merged_loops",
-                "/Users/muhammadsaadshamim/Desktop/LocalFiles/hawk/inter_30_loops/genes.txt"
-        };
-
-        HiCGlobals.printVerboseComments = true;
-        HiCTools.main(ajkhsd);
     }
 }
