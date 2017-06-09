@@ -118,6 +118,10 @@ public class APADataStack {
         saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth, saveAllData);
     }
 
+    public static APARegionStatistics retrieveDataStatistics(int currentRegionWidth){
+        return new APARegionStatistics(gwAPAMatrix, currentRegionWidth);
+    }
+
     private static void saveDataSet(String prefix,
                                     RealMatrix[] apaMatrices,
                                     String[] apaDataTitles,
