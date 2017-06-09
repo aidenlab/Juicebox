@@ -25,7 +25,7 @@
 package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.HiCGlobals;
+
 import juicebox.tools.HiCTools;
 import juicebox.tools.dev.APAvsDistance;
 
@@ -40,11 +40,30 @@ class AggregateProcessing {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
 
+        String hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
+        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
+        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
+
+        /*
         APAvsDistance test= new APAvsDistance();
         test.run();
 
+        */
+
+        String[] ll51231123 = {"apa_vs_distance", hicFilePaths,PeaksFile,SaveFolderPath};
+
+        HiCTools.main(ll51231123);
 
 
+        /*
+        String[] ll51231123 = {"motifs",
+                "hg19",
+                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
+                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
+
+
+        HiCTools.main(ll51231123);
+*/
 
     }
 }

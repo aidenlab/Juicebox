@@ -320,7 +320,7 @@ public class APA extends JuicerCLT {
                 }
                 System.out.println("Exporting APA results...");
                 //save data as int array
-                 result= APADataStack.retreiveDataStatistics(currentRegionWidth); //should retrieve data
+                result= APADataStack.retrieveDataStatistics(currentRegionWidth); //should retrieve data
                 APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth, saveAllData);
                 APADataStack.clearAllData();
             } else {

@@ -106,7 +106,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
                 || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
-                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes");
+                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff") || cmd.equals("genes") || cmd.equals("apa_vs_distance");
     }
 
     public boolean getBypassMinimumMapCountCheckOption() {

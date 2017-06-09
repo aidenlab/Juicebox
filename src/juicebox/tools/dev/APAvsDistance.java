@@ -24,7 +24,9 @@
 
 package juicebox.tools.dev;
 
+import com.google.common.primitives.Ints;
 import jcuda.utils.Print;
+import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
@@ -64,7 +66,10 @@ import java.util.List;
 
 
 /**
+ * Aggregated Peak Analysis vs Distance
  * Created by muhammadsaadshamim on 1/19/16.
+ * Developed by Fanny Huang
+ * Implemented by Nathan Musial
  * <p/>
  * Except for superloops, we don't observe long-range loops. Why not?
  * <p/>
@@ -85,16 +90,17 @@ import java.util.List;
  */
 public class APAvsDistance extends JuicerCLT  {
 
-    public String HiCFiles;
-    public String PeaksFile;
-    public String SaveFolderPath;
-    public File   SaveFolder;
+    private String hicFilePaths;
+    private String PeaksFile;
+    private String SaveFolderPath;
+    private File   SaveFolder;
 
     //Defaults todo adjust binning algorithm so that there is enough features in each bucket for apa to run
-    public int numBuckets=8;
-    public double exponent=2;
-    public double minPeakDist=0;
-    public double maxPeakDist=30;
+    private int[]resolutions;
+    private int numBuckets=8;
+    private double exponent=2;
+    private double minPeakDist=0;
+    private double maxPeakDist=30;
 
 
 
@@ -103,13 +109,19 @@ public class APAvsDistance extends JuicerCLT  {
         super("APAvsDistance [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
+        HiCGlobals.useCache = false;
+
 
     }
+    public static String getBasicUsage() {
+        return "APAvsDistance <hicFile(s)> <PeaksFile> <SaveFolder>";
+    } //todo change to match apa vs distance
+
 
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int numBuckets, double exponent,double
                                    minPeakDist, double maxPeakDist){
 
-        this.HiCFiles=inputHiCFileName;
+        this.hicFilePaths=inputHiCFileName;
         this.PeaksFile=inputPeaksFile;
         this.SaveFolderPath=outputDirectoryPath;
         this.numBuckets=numBuckets;
@@ -117,46 +129,100 @@ public class APAvsDistance extends JuicerCLT  {
         this.minPeakDist=minPeakDist;
         this.maxPeakDist=maxPeakDist;
 
-    //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
-   // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
-
-
     }
 
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
 
+        if (args.length != 4) {
+            printUsageAndExit();
+        }
+
+        hicFilePaths = args[1];
+        PeaksFile = args[2];
+        SaveFolderPath=args[3];
+        SaveFolder = HiCFileTools.createValidDirectory(args[3]);
+
+        /*
+        NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
+        if (preferredNorm != null)
+            norm = preferredNorm;
+            */
+
+        double potentialMinPeakDist = juicerParser.getAPAMinVal();
+        if (potentialMinPeakDist >= 0)
+            minPeakDist = potentialMinPeakDist;
+
+        double potentialMaxPeakDist = juicerParser.getAPAMaxVal();
+        if (potentialMaxPeakDist > 0)
+            maxPeakDist = potentialMaxPeakDist;
+
+        /*
+        int potentialWindow = juicerParser.getAPAWindowSizeOption();
+        if (potentialWindow > 0)
+            window = potentialWindow;
+            */
+/*
+        includeInterChr = juicerParser.getIncludeInterChromosomal();
+
+        saveAllData = juicerParser.getAPASaveAllData();
+
+        */
+
+/*
+        List<String> possibleRegionWidths = juicerParser.getAPACornerRegionDimensionOptions();
+        if (possibleRegionWidths != null) {
+            List<Integer> widths = new ArrayList<>();
+            for (String res : possibleRegionWidths) {
+                widths.add(Integer.parseInt(res));
+            }
+            regionWidths = Ints.toArray(widths);
+        }
+
+        */
+
+        List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
+        if (possibleResolutions != null) {
+            List<Integer> intResolutions = new ArrayList<>();
+            for (String res : possibleResolutions) {
+                intResolutions.add(Integer.parseInt(res));
+            }
+            resolutions = Ints.toArray(intResolutions);
+        }
     }
+
+
 
    @Override
     public void run()  {
 
 
-       HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
+       hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
        PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
        SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
        SaveFolder= new File(SaveFolderPath);
        numBuckets=8;
 
        exponent=2;
-       minPeakDist=30;
-       maxPeakDist=40;
+      // minPeakDist=30;
+      // maxPeakDist=40;
        //  minPeakDist=0;
        //maxPeakDist=30;
        double[] results= new double[numBuckets];
        String[] windows= new String[numBuckets];
        XYSeries XYresults=new XYSeries("APA Result");
        File outputDirectory;
+       APA apa;
 
 
 
-       APA apa1= new APA();
+       //APA apa1= new APA();
 
 
       for(int i=0;i<numBuckets;i++)
       {
-          apa1=new APA();
+          apa=new APA();
          // apa1.hicFilePaths = HiCFiles;
          // apa1.loopListPath = PeaksFile;
          // outputDirectory = new File(SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist);//cut off decimals
@@ -164,13 +230,13 @@ public class APAvsDistance extends JuicerCLT  {
          // apa1.outputDirectory =outPutDirectory;
 
          // apa1.resolutions = new int[]{25000};
-          int[] resolutions = new int[]{25000};
+           resolutions = new int[]{25000};
 
 
           //apa1.minPeakDist=minPeakDist;
          // apa1.maxPeakDist=maxPeakDist;
 
-          apa1.initializeDirectly(HiCFiles,PeaksFile,SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist,resolutions,minPeakDist,maxPeakDist);
+          apa.initializeDirectly(hicFilePaths,PeaksFile,SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist,resolutions,minPeakDist,maxPeakDist);
           windows[i]=minPeakDist+"-"+maxPeakDist;
 
 
@@ -180,7 +246,7 @@ public class APAvsDistance extends JuicerCLT  {
 
 
 
-           results[i]=apa1.runWithReturn().getPeak2LL();
+           results[i]=apa.runWithReturn().getPeak2LL();
           //APARegionStatistics
        //   System.out.println(results[i]);
         //if specifes too many bins
@@ -191,7 +257,7 @@ public class APAvsDistance extends JuicerCLT  {
           //if(i==numBuckets-2)
             //  maxPeakDist=Double.POSITIVE_INFINITY;
 
-          apa1=null;
+          //apa=null;
 
       }
        plotChart(SaveFolderPath,XYresults);
@@ -203,7 +269,7 @@ public class APAvsDistance extends JuicerCLT  {
 
    }
 
-   public static void printResults(String[] windows,double[] results, String SaveFolderPath){
+   private static void printResults(String[] windows,double[] results, String SaveFolderPath){
 
       File outFolder= new File(SaveFolderPath+"/results.txt");
 
@@ -227,7 +293,7 @@ public class APAvsDistance extends JuicerCLT  {
     }
 
 
-   public static void plotChart(String SaveFolderPath,XYSeries results){
+   private static void plotChart(String SaveFolderPath,XYSeries results){
        File file= new File(SaveFolderPath+"/results.png");
 
 

@@ -27,6 +27,7 @@ package juicebox.tools.clt;
 import juicebox.HiCGlobals;
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
+import juicebox.tools.dev.APAvsDistance;
 import juicebox.tools.utils.Benchmark;
 import juicebox.tools.dev.GeneFinder;
 
@@ -128,6 +129,10 @@ public class CLTFactory {
         } else if (cmd.equals("eigenvector")) {
             return new Eigenvector();
         }
+        else if (cmd.equals("apa_vs_distance")) { //Todo check if okay
+        return new APAvsDistance();
+        }
+
 
 
         return null;
