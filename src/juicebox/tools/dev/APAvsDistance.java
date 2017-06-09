@@ -90,7 +90,7 @@ public class APAvsDistance extends JuicerCLT  {
     public String SaveFolderPath;
     public File   SaveFolder;
 
-    //Defaults
+    //Defaults todo adjust binning algorithm so that there is enough features in each bucket for apa to run
     public int numBuckets=8;
     public double exponent=2;
     public double minPeakDist=0;
@@ -99,14 +99,23 @@ public class APAvsDistance extends JuicerCLT  {
 
 
 
-    public APAvsDistance(){
-        super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
+    public APAvsDistance(){ //TODO add new flags for (exponent, numBins)
+        super("APAvsDistance [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
 
     }
 
-    public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath){
+    public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int numBuckets, double exponent,double
+                                   minPeakDist, double maxPeakDist){
+
+        this.HiCFiles=inputHiCFileName;
+        this.PeaksFile=inputPeaksFile;
+        this.SaveFolderPath=outputDirectoryPath;
+        this.numBuckets=numBuckets;
+        this.exponent=exponent;
+        this.minPeakDist=minPeakDist;
+        this.maxPeakDist=maxPeakDist;
 
     //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
    // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
@@ -138,7 +147,7 @@ public class APAvsDistance extends JuicerCLT  {
        double[] results= new double[numBuckets];
        String[] windows= new String[numBuckets];
        XYSeries XYresults=new XYSeries("APA Result");
-       File outPutDirectory;
+       File outputDirectory;
 
 
 
@@ -148,16 +157,20 @@ public class APAvsDistance extends JuicerCLT  {
       for(int i=0;i<numBuckets;i++)
       {
           apa1=new APA();
-          apa1.hicFilePaths = HiCFiles;
-          apa1.loopListPath = PeaksFile;
-          outPutDirectory = new File(SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist);//cut off decimals
-          outPutDirectory.mkdir();
-          apa1.outputDirectory =outPutDirectory;
+         // apa1.hicFilePaths = HiCFiles;
+         // apa1.loopListPath = PeaksFile;
+         // outputDirectory = new File(SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist);//cut off decimals
+         // outputDirectory.mkdir();
+         // apa1.outputDirectory =outPutDirectory;
 
-          apa1.resolutions = new int[]{25000};
+         // apa1.resolutions = new int[]{25000};
+          int[] resolutions = new int[]{25000};
 
-          apa1.minPeakDist=minPeakDist;
-          apa1.maxPeakDist=maxPeakDist;
+
+          //apa1.minPeakDist=minPeakDist;
+         // apa1.maxPeakDist=maxPeakDist;
+
+          apa1.initializeDirectly(HiCFiles,PeaksFile,SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist,resolutions,minPeakDist,maxPeakDist);
           windows[i]=minPeakDist+"-"+maxPeakDist;
 
 
