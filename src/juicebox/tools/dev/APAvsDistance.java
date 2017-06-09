@@ -30,11 +30,30 @@ import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.feature.Feature;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.clt.CommandLineParser;
+import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
+import juicebox.tools.clt.juicer.APA;
 import juicebox.tools.clt.juicer.MotifFinder;
+import juicebox.tools.utils.juicer.apa.APARegionStatistics;
 import juicebox.tools.utils.juicer.apa.APAUtils;
-import juicebox.track.feature.*;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.Feature2DParser;
+import juicebox.track.feature.FeatureFilter;
 import juicebox.windowui.NormalizationType;
+
+import org.jfree.chart.*;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLine3DRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+
 
 
 import java.io.*;
@@ -63,36 +82,145 @@ import java.util.List;
  * and then do APA on the pairs in each bin. You should get a strong apa score at 300kb.
  * what about 3mb? 30mb?
  */
-public class APAvsDistance extends JuicerCLT implements  {
+public class APAvsDistance extends JuicerCLT  {
 
     public APAvsDistance(){
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
-     
+
+    }
+
+
+    @Override
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
+
     }
 
    @Override
-    public void run() {
-        String HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files";
-        String SaveFolder="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
-        int resolution=5000;
+    public void run()  {
+        String HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
+        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
+        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
+        File   SaveFolder= new File(SaveFolderPath);
+        //int resolution=10000;
         String chromosomes="Chr19";
-        NormalizationType preferredNorm=NormalizationType.KR;// Knight-Ruiz
-
-        List<ChromosomeHandler> ChromList=new List<ChromosomeHandler>;
-        ChromosomeHandler handler=new ChromosomeHandler(ChromList);
-        int initialCutoff=5000;
-        int exponent=2;
-        //int resolution;
+        //NormalizationType preferredNorm=NormalizationType.KR;// Knight-Ruiz
 
 
 
-        bin(PeaksFile,handler,SaveFolder,initialCutoff,exponent,resolution);
+        //ChromosomeHandler handler;
+        //int initialCutoff=5000;
+        //int exponent=2;
+        //bin(PeaksFile,handler,SaveFolder,initialCutoff,exponent,resolution);
+
+       //for(){
+       //APA apa1;
+
+
+      //  apa1.givenChromosomes=new HashSet<String>();
+       // apa1.givenChromosomes.add("19");
+       //int initialCutoff=5000;
+
+      //try {
+
+
+      //}
+      //catch
 
 
 
+       APA apa1= new APA();
+       int numBuckets=8;
+
+       double[] results= new double[numBuckets];
+       double exponent=2;
+       double minPeakDist=30;
+       double maxPeakDist=5000;
+       minPeakDist=0;
+       maxPeakDist=30;
+       XYSeries XYresults=new XYSeries("APA Result");
+
+
+      for(int i=0;i<numBuckets;i++)
+      {
+          apa1=new APA();
+          apa1.hicFilePaths = HiCFiles;
+          apa1.loopListPath = PeaksFile;
+          apa1.outputDirectory = SaveFolder;//make file
+          apa1.resolutions = new int[]{25000};
+
+          apa1.minPeakDist=minPeakDist;
+          apa1.maxPeakDist=maxPeakDist;
+
+
+          //apa1.maxPeakDistance/minPeakDistance
+          System.out.println("Bucket:"+(i+1)+" Window: "+minPeakDist+"-"+maxPeakDist);
+
+
+
+           results[i]=apa1.runWithReturn().getPeak2LL();
+          //APARegionStatistics
+          System.out.println(results[i]);
+        //if specifes too many bins
+        //  results[i]=i;
+          XYresults.add(Math.log(maxPeakDist),results[i]);
+          minPeakDist=maxPeakDist;
+          maxPeakDist*=exponent;
+          //if(i==numBuckets-2)
+            //  maxPeakDist=Double.POSITIVE_INFINITY;
+
+          apa1=null;
+
+      }
+       plotChart(SaveFolderPath,XYresults);
+
+
+
+
+   }
+
+   public static void plotChart(String SaveFolderPath,XYSeries results){
+       File file= new File(SaveFolderPath+"/test.png");
+
+
+       final XYSeriesCollection dataset = new XYSeriesCollection( );
+       dataset.addSeries( results );
+
+
+       JFreeChart Chart = ChartFactory.createXYLineChart(
+               "APA vs Distance",
+               "Distance Bucket",
+               "APA Score",
+               dataset,
+               PlotOrientation.VERTICAL,
+               true, true, false);
+
+       // LogarithmicAxis logAxis= new LogarithmicAxis("Distance (log)");
+        //XYPlot plot= Chart.getXYPlot();
+       // plot.setDomainAxis(logAxis);
+        //Chart.
+
+
+       //XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)plot.getRenderer();
+       //renderer.setSeriesShapesVisible(0, true);
+
+       //ChartFrame frame = new ChartFrame("My Chart", Chart);
+       //frame.pack();
+       //frame.setVisible(true);
+
+       int width = 640;   /* Width of the image */
+       int height = 480;  /* Height of the image */
+       //File XYChart = new File( "XYLineChart.jpeg" );
+
+       try {
+           ChartUtilities.saveChartAsPNG( file, Chart, width, height);
+          // ChartUtilities.
+
+       }
+        catch (IOException ex) {
+           ex.printStackTrace();
+       }
     }
 
 
