@@ -31,6 +31,7 @@ import juicebox.data.*;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.juicer.apa.APADataStack;
+import juicebox.tools.utils.juicer.apa.APARegionStatistics;
 import juicebox.tools.utils.juicer.apa.APAUtils;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -134,6 +135,22 @@ public class APA extends JuicerCLT {
         return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
     }
 
+    public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int[] resolutions,double
+            minPeakDist, double maxPeakDist){
+        this.resolutions=resolutions;
+        this.hicFilePaths=inputHiCFileName;
+        this.loopListPath=inputPeaksFile;
+        outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
+
+        this.minPeakDist=minPeakDist;
+        this.maxPeakDist=maxPeakDist;
+
+        //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+        // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
+
+
+    }
+
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
@@ -185,6 +202,13 @@ public class APA extends JuicerCLT {
 
     @Override
     public void run() {
+        runWithReturn();
+    }
+
+
+    public APARegionStatistics runWithReturn() {
+
+        APARegionStatistics result=null;
 
         //Calculate parameters that will need later
         int L = 2 * window + 1;
@@ -220,7 +244,7 @@ public class APA extends JuicerCLT {
 
             // Metrics resulting from apa filtering
             final Map<String, Integer[]> filterMetrics = new HashMap<>();
-
+            //looplist is empty here why??
             Feature2DList loopList = Feature2DParser.loadFeatures(loopListPath, handler, false,
                     new FeatureFilter() {
                         // Remove duplicates and filters by size
@@ -294,6 +318,8 @@ public class APA extends JuicerCLT {
                     }
                 }
                 System.out.println("Exporting APA results...");
+                //save data as int array
+                result= APADataStack.retrieveDataStatistics(currentRegionWidth); //should retrieve data
                 APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth, saveAllData);
                 APADataStack.clearAllData();
             } else {
@@ -302,5 +328,7 @@ public class APA extends JuicerCLT {
             }
         }
         System.out.println("APA complete");
+        return result;
+        //if no data return null
     }
 }

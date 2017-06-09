@@ -41,7 +41,7 @@ import java.util.Set;
 public abstract class JuicerCLT extends JuiceboxCLT {
 
     protected NormalizationType norm = NormalizationType.KR;
-    protected Set<String> givenChromosomes = null;
+    protected Set<String> givenChromosomes = null; //TODO set to protected
 
     protected JuicerCLT(String usage) {
         super(usage);

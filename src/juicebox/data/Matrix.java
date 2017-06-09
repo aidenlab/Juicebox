@@ -107,12 +107,29 @@ public class Matrix {
     }
 
     public MatrixZoomData getZoomData(HiCZoom zoom) {
+        int targetZoom = zoom.getBinSize();
         List<MatrixZoomData> zdList = (zoom.getUnit() == HiC.Unit.BP) ? bpZoomData : fragZoomData;
         //linear search for bin size, the lists are not large
         for (MatrixZoomData zd : zdList) {
-            if (zd.getBinSize() == zoom.getBinSize()) {
+            if (zd.getBinSize() == targetZoom) {
                 return zd;
             }
+        }
+
+        // special exception for all by all
+        if (chr1 == 0 && chr2 == 0) {
+
+            MatrixZoomData closestValue = zdList.get(0);
+            int distance = Math.abs(closestValue.getBinSize() - targetZoom);
+            for (MatrixZoomData zd : zdList) {
+                int cdistance = Math.abs(zd.getBinSize() - targetZoom);
+                if (cdistance < distance) {
+                    closestValue = zd;
+                    distance = cdistance;
+                }
+            }
+
+            return closestValue;
         }
 
         return null;
