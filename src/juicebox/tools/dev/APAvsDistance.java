@@ -24,6 +24,7 @@
 
 package juicebox.tools.dev;
 
+import jcuda.utils.Print;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
@@ -84,10 +85,32 @@ import java.util.List;
  */
 public class APAvsDistance extends JuicerCLT  {
 
+    public String HiCFiles;
+    public String PeaksFile;
+    public String SaveFolderPath;
+    public File   SaveFolder;
+
+    //Defaults
+    public int numBuckets=8;
+    public double exponent=2;
+    public double minPeakDist=0;
+    public double maxPeakDist=30;
+
+
+
+
     public APAvsDistance(){
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
                 " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] [-e include_inter_chr] [-u save_all_data]" +
                 " <hicFile(s)> <PeaksFile> <SaveFolder>");
+
+    }
+
+    public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath){
+
+    //ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+   // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
+
 
     }
 
@@ -99,47 +122,27 @@ public class APAvsDistance extends JuicerCLT  {
 
    @Override
     public void run()  {
-        String HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
-        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
-        File   SaveFolder= new File(SaveFolderPath);
-        //int resolution=10000;
-        String chromosomes="Chr19";
-        //NormalizationType preferredNorm=NormalizationType.KR;// Knight-Ruiz
 
 
+       HiCFiles="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
+       PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
+       SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
+       SaveFolder= new File(SaveFolderPath);
+       numBuckets=8;
 
-        //ChromosomeHandler handler;
-        //int initialCutoff=5000;
-        //int exponent=2;
-        //bin(PeaksFile,handler,SaveFolder,initialCutoff,exponent,resolution);
-
-       //for(){
-       //APA apa1;
-
-
-      //  apa1.givenChromosomes=new HashSet<String>();
-       // apa1.givenChromosomes.add("19");
-       //int initialCutoff=5000;
-
-      //try {
-
-
-      //}
-      //catch
+       exponent=2;
+       minPeakDist=30;
+       maxPeakDist=40;
+       //  minPeakDist=0;
+       //maxPeakDist=30;
+       double[] results= new double[numBuckets];
+       String[] windows= new String[numBuckets];
+       XYSeries XYresults=new XYSeries("APA Result");
+       File outPutDirectory;
 
 
 
        APA apa1= new APA();
-       int numBuckets=8;
-
-       double[] results= new double[numBuckets];
-       double exponent=2;
-       double minPeakDist=30;
-       double maxPeakDist=5000;
-       minPeakDist=0;
-       maxPeakDist=30;
-       XYSeries XYresults=new XYSeries("APA Result");
 
 
       for(int i=0;i<numBuckets;i++)
@@ -147,11 +150,16 @@ public class APAvsDistance extends JuicerCLT  {
           apa1=new APA();
           apa1.hicFilePaths = HiCFiles;
           apa1.loopListPath = PeaksFile;
-          apa1.outputDirectory = SaveFolder;//make file
+          outPutDirectory = new File(SaveFolderPath+"/"+(int)minPeakDist+"-"+(int)maxPeakDist);//cut off decimals
+          outPutDirectory.mkdir();
+          apa1.outputDirectory =outPutDirectory;
+
           apa1.resolutions = new int[]{25000};
 
           apa1.minPeakDist=minPeakDist;
           apa1.maxPeakDist=maxPeakDist;
+          windows[i]=minPeakDist+"-"+maxPeakDist;
+
 
 
           //apa1.maxPeakDistance/minPeakDistance
@@ -161,9 +169,9 @@ public class APAvsDistance extends JuicerCLT  {
 
            results[i]=apa1.runWithReturn().getPeak2LL();
           //APARegionStatistics
-          System.out.println(results[i]);
+       //   System.out.println(results[i]);
         //if specifes too many bins
-        //  results[i]=i;
+         //results[i]=i;
           XYresults.add(Math.log(maxPeakDist),results[i]);
           minPeakDist=maxPeakDist;
           maxPeakDist*=exponent;
@@ -174,14 +182,40 @@ public class APAvsDistance extends JuicerCLT  {
 
       }
        plotChart(SaveFolderPath,XYresults);
+      printResults(windows,results,SaveFolderPath);
+
 
 
 
 
    }
 
+   public static void printResults(String[] windows,double[] results, String SaveFolderPath){
+
+      File outFolder= new File(SaveFolderPath+"/results.txt");
+
+
+       try {
+           PrintWriter pw= new PrintWriter(outFolder);
+            pw.println("PeaktoPeak Distance\tAPA Score");
+           for( int i =0; i<results.length;i++){
+               pw.println(windows[i]+"\t"+results[i]);
+
+           }
+           pw.close();
+
+       }
+       catch (IOException ex) {
+           ex.printStackTrace();
+       }
+
+
+
+    }
+
+
    public static void plotChart(String SaveFolderPath,XYSeries results){
-       File file= new File(SaveFolderPath+"/test.png");
+       File file= new File(SaveFolderPath+"/results.png");
 
 
        final XYSeriesCollection dataset = new XYSeriesCollection( );
@@ -222,6 +256,8 @@ public class APAvsDistance extends JuicerCLT  {
            ex.printStackTrace();
        }
     }
+
+
 
 
     public static void bin(String loopListPath, ChromosomeHandler handler, String outputDirectory, final int initialCutoff, int exponent, int resolution){
@@ -269,6 +305,7 @@ public class APAvsDistance extends JuicerCLT  {
 
 
 }
+
 
 
         // preservative intersection of these protein list with motif list
