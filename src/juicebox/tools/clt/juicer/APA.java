@@ -108,16 +108,16 @@ import java.util.*;
  */
 public class APA extends JuicerCLT {
     private boolean saveAllData = false;
-    private String hicFilePaths, loopListPath; //TODO change to private
-    private File outputDirectory; //TODO change to private
+    private String hicFilePaths, loopListPath;
+    private File outputDirectory;
 
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
     // TODO the sqrt(2) scaling should be removed (i.e. handle scaling internally)
-    private double minPeakDist = 30; // distance between two bins, can be changed in opts //TODO change to private
-    private double maxPeakDist = Double.POSITIVE_INFINITY; //TODO change to private
+    private double minPeakDist = 30; // distance between two bins, can be changed in opts
+    private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
-    private int[] resolutions = new int[]{25000, 10000, 5000};//TODO change to private
+    private int[] resolutions = new int[]{25000, 10000, 5000};
     private int[] regionWidths = new int[]{6, 6, 3};
     private boolean includeInterChr = false;
 
@@ -131,6 +131,9 @@ public class APA extends JuicerCLT {
         HiCGlobals.useCache = false;
     }
 
+    public static String getBasicUsage() {
+        return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
+    }
 
     public void initializeDirectly(String inputHiCFileName, String inputPeaksFile, String outputDirectoryPath, int[] resolutions,double
             minPeakDist, double maxPeakDist){
@@ -146,10 +149,6 @@ public class APA extends JuicerCLT {
         // outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
 
 
-    }
-
-    public static String getBasicUsage() {
-        return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
     }
 
     @Override
