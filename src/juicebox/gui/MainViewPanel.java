@@ -808,6 +808,10 @@ public class MainViewPanel {
         chrSidePanel3.invalidate();
     }
 
+    public void setShowGridLines(boolean showGridLines) {
+        HeatmapPanel.setShowGridLines(showGridLines);
+    }
+
     public String getToolTip() {
         return mouseHoverTextPanel.getText();
     }

@@ -305,6 +305,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Color color = g.getColor();
                 g.setColor(Color.LIGHT_GRAY);
 
+                // Draw grid lines only if option is selected
                 if (showGridLines) {
                     for (int bound : chromosomeBoundaries) {
                         // vertical lines

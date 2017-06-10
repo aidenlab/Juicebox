@@ -794,6 +794,10 @@ public class SuperAdapter {
         mainViewPanel.setShowChromosomeFig(status);
     }
 
+    public void setShowGridLines(boolean status) {
+        mainViewPanel.setShowGridLines(status);
+    }
+
     public AnnotationLayerHandler getActiveLayer() {
         return activeLayer;
     }

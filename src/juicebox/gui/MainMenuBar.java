@@ -448,7 +448,7 @@ public class MainMenuBar {
         showGrids.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                superAdapter.setShowGridLines(showGrids.isSelected());
                 superAdapter.repaint();
             }
         });
