@@ -37,9 +37,7 @@ import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -472,7 +470,7 @@ public class AnnotationLayerHandler {
                 return selectedFeatures;
             }
             selectionRegion = null;
-            return selectedFeatures;
+            return new ArrayList<>(new HashSet<>(selectedFeatures));
 
         // Single region selected
         } else {
