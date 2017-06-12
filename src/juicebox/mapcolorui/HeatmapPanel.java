@@ -104,7 +104,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     /**
      * Heatmap grids variables
      */
-    private static boolean showGridLines = true;
+    private boolean showGridLines = true;
     /**
      * Initialize heatmap panel
      *
@@ -604,8 +604,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         return tile;
     }
 
-    public static boolean getShowGridLines() {
-        return showGridLines;
+    public boolean getShowGridLines() {
+        return this.showGridLines;
     }
 
     public void clearTileCache() {
@@ -1199,8 +1199,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    public static void setShowGridLines(boolean newShowGridLines) {
-        showGridLines = newShowGridLines;
+    public void setShowGridLines(boolean showGridLines) {
+        this.showGridLines = showGridLines;
     }
 
     private enum AdjustAnnotation {LEFT, RIGHT, NONE}

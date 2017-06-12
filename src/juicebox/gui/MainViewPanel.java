@@ -808,8 +808,17 @@ public class MainViewPanel {
         chrSidePanel3.invalidate();
     }
 
-    public void setShowGridLines(boolean showGridLines) {
-        HeatmapPanel.setShowGridLines(showGridLines);
+    public void setShowGridLines(boolean status) {
+        if (heatmapPanel != null) {
+            heatmapPanel.setShowGridLines(status);
+        }
+    }
+
+    public boolean getShowGridLines() {
+        if (heatmapPanel != null) {
+            return heatmapPanel.getShowGridLines();
+        }
+        return true; // when starting from scratch, the gridlines option is set to true
     }
 
     public String getToolTip() {

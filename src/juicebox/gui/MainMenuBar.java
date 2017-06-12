@@ -443,8 +443,8 @@ public class MainMenuBar {
 
         //---Grids mode-----
         // turn grids on/off
-        final JCheckBoxMenuItem showGrids = new JCheckBoxMenuItem("Grids");
-        showGrids.setSelected(HeatmapPanel.getShowGridLines());
+        final JCheckBoxMenuItem showGrids = new JCheckBoxMenuItem("Gridlines");
+        showGrids.setSelected(superAdapter.getShowGridLines());
         showGrids.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

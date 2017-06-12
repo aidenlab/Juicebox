@@ -798,6 +798,10 @@ public class SuperAdapter {
         mainViewPanel.setShowGridLines(status);
     }
 
+    public boolean getShowGridLines() {
+        return mainViewPanel.getShowGridLines();
+    }
+
     public AnnotationLayerHandler getActiveLayer() {
         return activeLayer;
     }
