@@ -49,6 +49,7 @@ public class ChromosomeHandler {
                 genomeLength += c.getLength();
         }
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        chromosomes.add(new Chromosome(chromosomes.size(), "Choose Custom Submatrix", 0));
 
         this.cleanedChromosomes = new ArrayList<>();
 

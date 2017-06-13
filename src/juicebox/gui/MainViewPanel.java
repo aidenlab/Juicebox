@@ -163,7 +163,7 @@ public class MainViewPanel {
         chrBox1.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                chrBox1ActionPerformed(e);
+                chrBox1ActionPerformed(e, superAdapter);
             }
         });
         chrBox1.setPreferredSize(new Dimension(95, 70));
@@ -174,7 +174,7 @@ public class MainViewPanel {
         chrBox2.addPopupMenuListener(new BoundsPopupMenuListener<Chromosome>(true, false));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                chrBox2ActionPerformed(e);
+                chrBox2ActionPerformed(e, superAdapter);
             }
         });
         chrBox2.setPreferredSize(new Dimension(95, 70));
@@ -585,6 +585,8 @@ public class MainViewPanel {
 
     public void unsafeRefreshChromosomes(SuperAdapter superAdapter) {
 
+        int customSubMatrixChromosomeIndex = superAdapter.getHiC().getChromosomeHandler().size() - 1;
+
         if (chrBox1.getSelectedIndex() == 0 || chrBox2.getSelectedIndex() == 0) {
             chrBox1.setSelectedIndex(0);
             chrBox2.setSelectedIndex(0);
@@ -594,6 +596,13 @@ public class MainViewPanel {
                 displayOptionComboBox.setSelectedIndex(0);
                 superAdapter.unsafeDisplayOptionComboBoxActionPerformed();
             }
+        }
+        else if (chrBox1.getSelectedIndex() == customSubMatrixChromosomeIndex ||
+                chrBox2.getSelectedIndex() == customSubMatrixChromosomeIndex) {
+            chrBox1.setSelectedIndex(customSubMatrixChromosomeIndex);
+            chrBox2.setSelectedIndex(customSubMatrixChromosomeIndex);
+//            System.out.println("Hello!");
+            
         }
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
@@ -717,15 +726,23 @@ public class MainViewPanel {
         }
     }
 
-    private void chrBox1ActionPerformed(ActionEvent e) {
+    private void chrBox1ActionPerformed(ActionEvent e, SuperAdapter superAdapter) {
+        int customSubMatrixOptionIndex = superAdapter.getHiC().getChromosomeHandler().size() - 1;
         if (chrBox1.getSelectedIndex() == 0) {
             chrBox2.setSelectedIndex(0);
         }
+        else if (chrBox1.getSelectedIndex() == customSubMatrixOptionIndex) {
+            chrBox2.setSelectedIndex(customSubMatrixOptionIndex);
+        }
     }
 
-    private void chrBox2ActionPerformed(ActionEvent e) {
+    private void chrBox2ActionPerformed(ActionEvent e, SuperAdapter superAdapter) {
+        int customSubMatrixOptionIndex = superAdapter.getHiC().getChromosomeHandler().size() - 1;
         if (chrBox2.getSelectedIndex() == 0) {
             chrBox1.setSelectedIndex(0);
+        }
+        else if (chrBox2.getSelectedIndex() == customSubMatrixOptionIndex) {
+            chrBox1.setSelectedIndex(customSubMatrixOptionIndex);
         }
     }
 
