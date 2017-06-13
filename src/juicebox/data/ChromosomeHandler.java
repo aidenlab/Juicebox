@@ -97,6 +97,7 @@ public class ChromosomeHandler {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
+            System.out.println(c.getName());
             if (c.getName().equalsIgnoreCase("MT")) {
                 chromosomeMap.put("M", c); // special case for mitochondria
             }
@@ -150,7 +151,7 @@ public class ChromosomeHandler {
         return chromosomesArray[indx];
     }
 
-    public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
+    public ChromosomeHandler getIntersectionWith(ChromosomeHandler handler2) {
         return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.cleanedChromosomes, handler2.cleanedChromosomes)));
     }
 

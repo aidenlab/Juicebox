@@ -38,8 +38,29 @@ public class SelectChromosomesDialog extends JDialog {
     private static final int DIALOG_HEIGHT = 600;
     private boolean showSelectChromosomesDialog = false;
 
+    /**
+     * Declare scroll panes for both x and y-axes
+     */
+    private JScrollPane chrXScrollPane;
+    private JScrollPane chrYScrollPane;
+
+    /**
+     * Declare scroll bars for x-axis pane
+     */
+    private JScrollBar chrXHorizontalScrollBar;
+    private JScrollBar chrXVerticalScrollBar;
+
+    /**
+     * Declare scroll bars for y-axis pane
+     */
+    private JScrollBar chrYVerticalScrollBar;
+    private JScrollBar chrYHorizontalScrollBar;
+
+
     public SelectChromosomesDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Custom Chromosomes");
+
+        buildScrollPane();
 
         setSize(getDialogWidth(), getDialogHeight());
         setVisible(getShowSelectChromosomesDialog());
@@ -80,6 +101,19 @@ public class SelectChromosomesDialog extends JDialog {
 
             }
         });
+    }
+
+    private void buildScrollPane() {
+        chrXScrollPane = new JScrollPane();
+        chrYScrollPane = new JScrollPane();
+
+        add(chrXScrollPane);
+        add(chrYScrollPane);
+
+    }
+
+    private void buildScrollBar() {
+
     }
 
     public int getDialogWidth() {

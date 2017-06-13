@@ -273,7 +273,7 @@ public class HiCFileTools {
 
 
     public static ChromosomeHandler getChromosomeSetIntersection(ChromosomeHandler handler1, ChromosomeHandler handler2) {
-        return handler1.getIntersetionWith(handler2);
+        return handler1.getIntersectionWith(handler2);
     }
 
     public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
