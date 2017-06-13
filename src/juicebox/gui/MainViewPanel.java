@@ -602,9 +602,7 @@ public class MainViewPanel {
                 chrBox2.getSelectedIndex() == customSubMatrixChromosomeIndex) {
             chrBox1.setSelectedIndex(customSubMatrixChromosomeIndex);
             chrBox2.setSelectedIndex(customSubMatrixChromosomeIndex);
-            if (selectChromosomesDialog != null) {
-                selectChromosomesDialog.setShowSelectChromosomesDialog(true);
-            }
+            superAdapter.setShowSelectChromosomesDialog(true);
         }
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();

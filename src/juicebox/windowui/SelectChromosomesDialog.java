@@ -39,7 +39,7 @@ public class SelectChromosomesDialog extends JDialog {
     private boolean showSelectChromosomesDialog = false;
 
     public SelectChromosomesDialog(final SuperAdapter superAdapter) {
-        super(superAdapter.getMainWindow(), "Select Chromosomes");
+        super(superAdapter.getMainWindow(), "Select Custom Chromosomes");
 
         setSize(getDialogWidth(), getDialogHeight());
         setVisible(getShowSelectChromosomesDialog());
@@ -96,6 +96,7 @@ public class SelectChromosomesDialog extends JDialog {
 
     public void setShowSelectChromosomesDialog(boolean showSelectChromosomesDialog) {
         this.showSelectChromosomesDialog = showSelectChromosomesDialog;
+        setVisible(getShowSelectChromosomesDialog());
     }
 
 }

@@ -77,6 +77,7 @@ public class SuperAdapter {
     private LayersPanel layersPanel;
     private SelectChromosomesDialog selectChromosomesDialog;
     private boolean layerPanelIsVisible = false;
+    private boolean showSelectChromosomesDialog = false;
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -899,5 +900,21 @@ public class SuperAdapter {
 
     public void togglePanelVisible() {
         setLayersPanelVisible(!layerPanelIsVisible);
+    }
+
+    public void setShowSelectChromosomesDialog(boolean status) {
+        this.showSelectChromosomesDialog = status;
+        if (selectChromosomesDialog == null) {
+            selectChromosomesDialog = new SelectChromosomesDialog(this);
+        }
+        selectChromosomesDialog.setShowSelectChromosomesDialog(status);
+    }
+
+    public boolean getShowSelectChromosomesDialog() {
+        return this.showSelectChromosomesDialog;
+    }
+
+    public void toggleShowSelectChromosomesDialog() {
+        setShowSelectChromosomesDialog(!getShowSelectChromosomesDialog());
     }
 }
