@@ -75,6 +75,7 @@ public class SuperAdapter {
     private AnnotationLayerHandler activeLayer;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
+    private SelectChromosomesDialog selectChromosomesDialog;
     private boolean layerPanelIsVisible = false;
 
     public HiCZoom getInitialZoom() {

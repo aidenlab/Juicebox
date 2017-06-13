@@ -81,6 +81,7 @@ public class MainViewPanel {
     private static JPanel bottomChromosomeFigPanel;
     private static JPanel chrSidePanel;
     private static JPanel chrSidePanel3;
+    private static SelectChromosomesDialog selectChromosomesDialog;
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
@@ -601,8 +602,9 @@ public class MainViewPanel {
                 chrBox2.getSelectedIndex() == customSubMatrixChromosomeIndex) {
             chrBox1.setSelectedIndex(customSubMatrixChromosomeIndex);
             chrBox2.setSelectedIndex(customSubMatrixChromosomeIndex);
-//            System.out.println("Hello!");
-            
+            if (selectChromosomesDialog != null) {
+                selectChromosomesDialog.setShowSelectChromosomesDialog(true);
+            }
         }
 
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();

@@ -49,7 +49,7 @@ public class ChromosomeHandler {
                 genomeLength += c.getLength();
         }
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
-        chromosomes.add(new Chromosome(chromosomes.size(), "Choose Custom Submatrix", 0));
+        chromosomes.add(new Chromosome(chromosomes.size(), "Custom Selection", 0));
 
         this.cleanedChromosomes = new ArrayList<>();
 
@@ -63,6 +63,7 @@ public class ChromosomeHandler {
     }
 
     public static String cleanUpName(String name) {
+
         return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
     }
 
