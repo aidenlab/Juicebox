@@ -1486,8 +1486,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //                    }
 
-                        superAdapter.getActiveLayer().addFeature(hic);
+                        Feature2D oldFeature2D = preAdjustLoop.getSecond().deepCopy();
+                        Feature2D tempFeature2D = superAdapter.getActiveLayer().addFeature(hic);
                         superAdapter.getActiveLayer().setLastItem(idx1, idx2, secondLoop);
+
+                        for (String newKey : oldFeature2D.getAttributeKeys()) {
+                            tempFeature2D.setAttribute(newKey, preAdjustLoop.getSecond().getAttribute(newKey));
+                        }
                     }
                 } catch (Exception ee) {
                     System.err.println("Unable to remove pre-resized loop");

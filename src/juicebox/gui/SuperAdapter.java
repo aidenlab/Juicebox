@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.*;
-import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -812,7 +811,7 @@ public class SuperAdapter {
     }
 
     // mhoeger - Used for contig layer, currently returns the first element
-    public AnnotationLayerHandler getContigLayer() {
+    public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
         return annotationLayerHandlers.get(0);
     }
 

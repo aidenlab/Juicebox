@@ -160,8 +160,8 @@ public class AnnotationLayerHandler {
     */
 
     // Adds to lower lefthand side, for consistency.
-    public void addFeature(HiC hic) {
-        if (selectionRegion == null) return;
+    public Feature2D addFeature(HiC hic) {
+        if (selectionRegion == null) return null;
 
         int start1, start2, end1, end2;
         Feature2D newFeature;
@@ -172,7 +172,7 @@ public class AnnotationLayerHandler {
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<>();
+        HashMap<String, String> attributes = new HashMap<>(); //here
         int rightBound = hic.getXContext().getChromosome().getLength();
         int bottomBound = hic.getYContext().getChromosome().getLength();
         int leftBound = 0;
@@ -238,12 +238,14 @@ public class AnnotationLayerHandler {
             }
         }
 
+
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                defaultColor, attributes);
+                defaultColor, attributes); // could be here need to find a way to get list of
         annotationLayer.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
+        return newFeature;
     }
 
     private boolean regionsOverlapSignificantly(int start1, int end1, int start2, int end2, double tolerance) {
@@ -570,6 +572,9 @@ public class AnnotationLayerHandler {
             setExportAbility(true);
             if (result.color != null) {
                 setDefaultColor(result.color);
+            }
+            if (result.attributes != null) {
+                annotationLayer.setAttributeKeys(result.attributes);
             }
         }
     }

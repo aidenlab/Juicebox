@@ -183,16 +183,18 @@ public class Feature2DHandler {
 
     public resultContainer loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
         int numFeaturesAdded = 0;
+        ArrayList<String> attributes = null;
         Color color = null;
         if (loopLists.get(path) == null) {
             Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomeHandler, true, null, false);
             numFeaturesAdded += newList.getNumTotalFeatures();
             color = newList.extractSingleFeature().getColor();
             loopLists.put(path, newList);
+            attributes = newList.extractSingleFeature().getAttributeKeys();
         }
         //loopLists.get(path).setVisible(true);
         remakeRTree();
-        return new resultContainer(numFeaturesAdded, color);
+        return new resultContainer(numFeaturesAdded, color, attributes);
     }
 
     public void createNewMergedLoopLists(Collection<Feature2DList> feature2DLists) {
@@ -374,10 +376,12 @@ public class Feature2DHandler {
     public class resultContainer {
         public final int n;
         public final Color color;
+        public final ArrayList<String> attributes;
 
-        resultContainer(int n, Color color) {
+        resultContainer(int n, Color color, ArrayList<String> attributes) {
             this.n = n;
             this.color = color;
+            this.attributes = attributes;
         }
 
     }

@@ -281,9 +281,13 @@ public class AnnotationLayer {
         for (String key : featureKeys) {
             if (!attributeKeys.contains(key)) {
                 attributeKeys.add(key);
-                customAnnotationRTreeHandler.addAttributeFieldToAll(key, "null");
+                customAnnotationRTreeHandler.addAttributeFieldToAll(key, "null"); //todo fix bug with null attributes
             }
         }
+    }
+
+    public void setAttributeKeys(ArrayList<String> attributeKeys) {
+        this.attributeKeys = attributeKeys;
     }
 
     public void addAllAttributeValues(String key, String newValue) {

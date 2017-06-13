@@ -203,6 +203,7 @@ public class LayersPanel extends JDialog {
         final JPanel layerBoxGUI = new JPanel();
         //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
         layerBoxGUI.setLayout(new GridLayout(0, 1));
+        //initialize here
 
         int i = 0;
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
@@ -247,7 +248,7 @@ public class LayersPanel extends JDialog {
         importButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI); //todo initialize at top level
                 dialog.setVisible(true);
             }
         });
