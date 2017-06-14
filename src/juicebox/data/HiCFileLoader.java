@@ -88,9 +88,11 @@ public class HiCFileLoader {
     }
 
     public static void loadFromURLActionPerformed(SuperAdapter superAdapter, boolean control) {
-        String urlString = JOptionPane.showInputDialog("Enter URLs (seperated by commas): ");
-        if (urlString != null) {
+        String urlString = JOptionPane.showInputDialog("Enter URLs (separated by commas): ");
+
+        if (urlString != null && urlString.length() > 0) {
             try {
+                urlString = urlString.trim();
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<>();
                 String title = "";
