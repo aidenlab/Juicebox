@@ -172,7 +172,7 @@ public class ResourceTree {
         JPanel buttonPanel = new JPanel();
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        JButton add1DButton = new JButton("Add 1D...");
+        JButton add1DButton = new JButton("Add Local");
 
         cancelButton.addActionListener(new ActionListener() {
             @Override
