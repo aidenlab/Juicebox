@@ -33,7 +33,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -329,12 +328,12 @@ public class AnnotationLayer {
         customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
     }
 
-    public void createMergedLoopLists(Collection<Feature2DList> lists) {
+    public void createMergedLoopLists(Feature2DList lists) {
         customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
     }
 
-    public Collection<Feature2DList> getAllFeatureLists() {
-        return customAnnotationRTreeHandler.getAllFeatureLists();
+    public Feature2DList getFeatureList() {
+        return customAnnotationRTreeHandler.getFeatureList();
     }
 
 

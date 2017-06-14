@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,7 +67,7 @@ public class UnsavedAnnotationWarning {
 
         if (response == JOptionPane.NO_OPTION) {
             //System.out.println("Deleting annotations");
-            superAdapter.getActiveLayer().clearAnnotations();
+            superAdapter.getActiveLayerHandler().clearAnnotations();
             return true;
         } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
             //System.out.println("meh i don't wanna commit");
@@ -76,7 +76,7 @@ public class UnsavedAnnotationWarning {
             System.out.println("Saving annotations");
             // Save the annotations
             //superAdapter.exportAnnotations();
-            superAdapter.getActiveLayer().clearAnnotations();
+            superAdapter.getActiveLayerHandler().clearAnnotations();
             return true;
         }
         return false;

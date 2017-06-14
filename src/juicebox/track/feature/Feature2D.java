@@ -52,6 +52,7 @@ public class Feature2D implements Comparable<Feature2D> {
     public static boolean allowHiCCUPSOrdering = false;
     final FeatureType featureType;
     final Map<String, String> attributes;
+    private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
     int start1;

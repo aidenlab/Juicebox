@@ -42,31 +42,21 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
     }
 
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {
-        for (Feature2DList featureList : loopLists.values()) {
-            featureList.add(chr1Idx, chr2Idx, feature);
-        }
+        loopList.add(chr1Idx, chr2Idx, feature);
         // TODO can be optimized further i.e. no need to remake entire rtree, just add necessary nodes
         remakeRTree();
     }
 
     public int getNumberOfFeatures() {
-        int total = 0;
-        for (Feature2DList featureList : loopLists.values()) {
-            total += featureList.getNumTotalFeatures();
-        }
-        return total;
+        return loopList.getNumTotalFeatures();
     }
 
     public void addAttributeFieldToAll(String key, String aNull) {
-        for (Feature2DList featureList : loopLists.values()) {
-            featureList.addAttributeFieldToAll(key, aNull);
-        }
+        loopList.addAttributeFieldToAll(key, aNull);
     }
 
     public void add(Feature2DList newAnnotations) {
-        for (Feature2DList featureList : loopLists.values()) {
-            featureList.add(newAnnotations);
-        }
+        loopList.add(newAnnotations);
         remakeRTree(); // adding lots of annotations, safer to remake rtree
     }
 
@@ -76,9 +66,7 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
      * @param outputFile
      */
     public void autoSaveNew(PrintWriter outputFile, Feature2D feature) {
-        for (Feature2DList featureList : loopLists.values()) {
-            featureList.autoSaveNew(outputFile, feature);
-        }
+        loopList.autoSaveNew(outputFile, feature);
     }
 
     /**
@@ -87,16 +75,11 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
      * @param outputFile
      */
     public void autoSaveAll(PrintWriter outputFile) {
-        for (Feature2DList featureList : loopLists.values()) {
-            featureList.autoSaveAll(outputFile);
-        }
+        loopList.autoSaveAll(outputFile);
     }
 
     public boolean checkAndRemoveFeature(int idx1, int idx2, Feature2D feature2D) {
-        boolean somethingWasDeleted = false;
-        for (Feature2DList featureList : loopLists.values()) {
-            somethingWasDeleted = somethingWasDeleted || featureList.checkAndRemoveFeature(idx1, idx2, feature2D);
-        }
+        boolean somethingWasDeleted = loopList.checkAndRemoveFeature(idx1, idx2, feature2D);
         if (somethingWasDeleted)
             remakeRTree();
         // TODO can be optimized further i.e. no need to remake entire rtree, just delete necessary nodes
@@ -106,34 +89,25 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public Feature2DList getOverlap(Feature2DList inputList) {
         Feature2DList overlapFeature2DList = new Feature2DList();
-        for (Feature2DList featureList : loopLists.values()) {
-            overlapFeature2DList.add(featureList.getOverlap(inputList));
-        }
+        overlapFeature2DList.add(loopList.getOverlap(inputList));
         return overlapFeature2DList;
     }
 
     public Feature2D extractSingleFeature() {
         //noinspection LoopStatementThatDoesntLoop
-        for (Feature2DList featureList : loopLists.values()) {
-            return featureList.extractSingleFeature();
-        }
-        return null;
+        return loopList.extractSingleFeature();
     }
 
     public List<Feature2D> get(int chrIdx1, int chrIdx2) {
 
         List<Feature2D> features = new ArrayList<>();
-        for (Feature2DList featureList : loopLists.values()) {
-            features.addAll(featureList.get(chrIdx1, chrIdx2));
-        }
+        features.addAll(loopList.get(chrIdx1, chrIdx2));
         return features;
     }
 
     public boolean exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
         Feature2DList mergedList = new Feature2DList();
-        for (Feature2DList featureList : loopLists.values()) {
-            mergedList.add(featureList);
-        }
+        mergedList.add(loopList);
         return mergedList.exportFeatureList(file, b, na) == -1;
     }
 }

@@ -977,7 +977,7 @@ public class HiC {
     }
 
     public void loadLoopList(String path) {
-        superAdapter.getActiveLayer().loadLoopList(path, chromosomeHandler);
+        superAdapter.getActiveLayerHandler().loadLoopList(path, chromosomeHandler);
     }
 
     // TODO MSS REMOVE

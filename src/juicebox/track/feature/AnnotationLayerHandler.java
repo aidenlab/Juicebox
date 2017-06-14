@@ -615,7 +615,7 @@ public class AnnotationLayerHandler {
     }
 
     public boolean isActiveLayer(SuperAdapter superAdapter) {
-        return annotationLayer.getId() == superAdapter.getActiveLayer().getAnnotationLayer().getId();
+        return annotationLayer.getId() == superAdapter.getActiveLayerHandler().getAnnotationLayer().getId();
     }
 
     public void setActiveLayerButtonStatus(boolean status) {
@@ -677,11 +677,11 @@ public class AnnotationLayerHandler {
         setIsEnlarged(handlerOriginal.getIsEnlarged());
         setPlottingStyle(handlerOriginal.getPlottingStyle());
 
-        Collection<Feature2DList> origLists = handlerOriginal.getAnnotationLayer().getAllFeatureLists();
-        Collection<Feature2DList> dupLists = new ArrayList<>();
-        for (Feature2DList list : origLists) {
-            dupLists.add(list.deepCopy());
-        }
+        Feature2DList origLists = handlerOriginal.getAnnotationLayer().getFeatureList();
+        Feature2DList dupLists = new Feature2DList();
+
+        dupLists = (origLists.deepCopy());
+
 
         annotationLayer.createMergedLoopLists(dupLists);
         setImportAnnotationsEnabled(handlerOriginal.getImportAnnotationsEnabled());
@@ -700,7 +700,7 @@ public class AnnotationLayerHandler {
             setLayerVisibility(originalHandler.getLayerVisibility());
             setColorOfAllAnnotations(originalHandler.getDefaultColor());
 
-            annotationLayer.createMergedLoopLists(originalHandler.getAnnotationLayer().getAllFeatureLists());
+            annotationLayer.createMergedLoopLists(originalHandler.getAnnotationLayer().getFeatureList());
             importAnnotationsEnabled |= originalHandler.getImportAnnotationsEnabled();
 
             canExport |= originalHandler.getExportCapability();
