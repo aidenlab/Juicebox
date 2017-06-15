@@ -52,7 +52,7 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
     }
 
     public void addAttributeFieldToAll(String key, String aNull) {
-        loopList.addAttributeFieldToAll(key, aNull);
+        loopList.addDefaultAttribute(key, aNull);
     }
 
     public void add(Feature2DList newAnnotations) {

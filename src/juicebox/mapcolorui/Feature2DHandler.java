@@ -148,9 +148,13 @@ public class Feature2DHandler {
             Feature2DList newList = Feature2DParser.loadFeatures(path, chromosomeHandler, true, null, false);
             numFeaturesAdded += newList.getNumTotalFeatures();
             color = newList.extractSingleFeature().getColor();
-
             attributes = newList.extractSingleFeature().getAttributeKeys();
             loopList = newList;
+            Map<String, String> defaultAttributes = new HashMap<String, String>(); //creates defaultAttributes map
+            for (String attribute : attributes) {
+                defaultAttributes.put(attribute, null);
+            }
+            loopList.setDefaultAttributes(defaultAttributes);
         }
         //loopLists.get(path).setVisible(true);
         remakeRTree();

@@ -573,9 +573,6 @@ public class AnnotationLayerHandler {
             if (result.color != null) {
                 setDefaultColor(result.color);
             }
-            if (result.attributes != null) {
-                annotationLayer.setAttributeKeys(result.attributes);
-            }
         }
     }
 
