@@ -226,11 +226,13 @@ public class LayersPanel extends JDialog {
         });
 
         JButton importButton = new JButton("Load Loops/Domains...");
+        JButton addLocalButton = new JButton("Add Local...");
         JButton newLayerButton = new JButton("Add New Layer");
         JButton mergeButton = new JButton("Merge Visible Layers");
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 0));
         buttonPanel.add(importButton);
+        buttonPanel.add(addLocalButton);
         buttonPanel.add(newLayerButton);
         buttonPanel.add(mergeButton);
         buttonPanel.add(refreshButton);
@@ -252,6 +254,17 @@ public class LayersPanel extends JDialog {
             }
         });
         importButton.setToolTipText("Import annotations into new layer");
+
+        addLocalButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                dialog.setVisible(true);
+                dialog.add2DLocalButtonActionPerformed(superAdapter);
+//                dialog.setVisible(false);
+//                dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+            }
+        });
 
         newLayerButton.addActionListener(new ActionListener() {
             @Override

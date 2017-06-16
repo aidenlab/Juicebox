@@ -54,7 +54,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
-    private final JTree tree;
+    private JTree tree;
     private final JButton openButton;
     private final JTextField fTextField;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
@@ -71,7 +71,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 new DefaultMutableTreeNode(new ItemInfo("root", ""), true);
 
         createNodes(top, superAdapter.getHiC());
-
 
         //Create a tree that allows one selection at a time.
         tree = new JTree(top);
@@ -95,7 +94,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                             } catch (Exception e) {
                                 MessageUtils.showErrorMessage("Unable to load file", e);
                             }
-
                             Load2DAnnotationsDialog.this.setVisible(false);
                         }
                     }
@@ -162,12 +160,10 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                         customAddedFeatures.add(treeNode);
                         expandTree();
                         tree.updateUI();
-
                     }
                 }
             }
         });
-
 
         JButton urlButton = new JButton("URL...");
         urlButton.addActionListener(new ActionListener() {
@@ -265,6 +261,60 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 }
             }
         });
+    }
+
+    public void add2DLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+        // Get the main window
+        final MainWindow window = superAdapter.getMainWindow();
+
+        //Create the nodes.
+        final DefaultMutableTreeNode top =
+                new DefaultMutableTreeNode(new ItemInfo("root", ""), true);
+        createNodes(top, superAdapter.getHiC());
+
+        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+
+        if (twoDfiles != null && twoDfiles.length > 0) {
+            for (File file : twoDfiles) {
+
+                if (file == null || !file.exists()) continue;
+
+                if (customAddedFeatures == null) {
+                    customAddedFeatures = new DefaultMutableTreeNode(
+                            new ItemInfo("Added 2D Features", ""), true);
+                    top.add(customAddedFeatures);
+                }
+
+                String path = file.getAbsolutePath();
+                openAnnotationPath = new File(path);
+
+                if (loadedAnnotationsMap.containsKey(path)) {
+                    if (HiCGlobals.guiIsCurrentlyActive) {
+                        int dialogResult = JOptionPane.showConfirmDialog(window,
+                                "File is already loaded. Would you like to overwrite it?", "Warning",
+                                JOptionPane.YES_NO_OPTION);
+                        if (dialogResult == JOptionPane.YES_OPTION) {
+                            customAddedFeatures.remove(loadedAnnotationsMap.get(path));
+                            loadedAnnotationsMap.remove(path);
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+
+                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(
+                        new ItemInfo(file.getName(), path), false);
+
+                loadedAnnotationsMap.put(path, treeNode);
+                customAddedFeatures.add(treeNode);
+                expandTree();
+                tree.updateUI();
+            }
+        }
+        else {
+            // If no files are loaded, close the Load2DAnnotationsLayerDialog box
+            this.setVisible(Boolean.FALSE);
+        }
     }
 
 
