@@ -108,10 +108,10 @@ public class AssemblyIntermediateProcessor {
 
         //System.out.println("x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
 
-        System.out.println(superAdapter);
-        System.out.println(superAdapter.getContigLayer());
-        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
-        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
+//        System.out.println(superAdapter);
+//        System.out.println(superAdapter.getContigLayer());
+//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
+//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
         Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
         List<Feature2DList> allFeatureLists = handler.getAllVisibleLoopLists();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
@@ -253,5 +253,13 @@ public class AssemblyIntermediateProcessor {
         if (growingContig != null) mergedContigs.add(growingContig);
 
         return new ArrayList<>(new HashSet<>(mergedContigs));
+    }
+
+    public static SuperAdapter getSuperAdapter() {
+        return superAdapter;
+    }
+
+    public static void setSuperAdapter(SuperAdapter newSuperAdapter) {
+        superAdapter = newSuperAdapter;
     }
 }

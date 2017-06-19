@@ -661,6 +661,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.assemblyModeEnabled = true;
                 activelyEditingAssembly = true;
+                AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
             }
         });
         menu.add(mi_0);
