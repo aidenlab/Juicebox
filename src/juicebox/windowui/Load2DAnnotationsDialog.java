@@ -25,7 +25,6 @@
 package juicebox.windowui;
 
 import com.jidesoft.swing.JideBoxLayout;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import juicebox.DirectoryManager;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
