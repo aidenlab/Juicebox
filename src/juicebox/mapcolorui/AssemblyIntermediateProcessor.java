@@ -53,7 +53,7 @@ public class AssemblyIntermediateProcessor {
         Feature2DList features = allFeatureLists.get(0);
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
         superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        HiCGlobals.assemblyModeEnabled = true;
+        HiCGlobals.assemblyModeEnabled = true; // todo enables assembly mode make a checkbox in gui
         //superAdapter.getHiC().clearMatrixZoomDataCache();
         superAdapter.refresh();
     }

@@ -185,7 +185,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                                     if (echoOption.isSelected()) {
                                         annotationsLayer.addAllAttributeValues(typedText, newAttributeText);
                                     } else {
-                                        annotationsLayer.addAllAttributeValues(typedText, "null");
+                                        annotationsLayer.addAllAttributeValues(typedText, "null"); //sets default to null
                                         feature.setAttribute(typedText, newAttributeText);
                                     }
                                 }

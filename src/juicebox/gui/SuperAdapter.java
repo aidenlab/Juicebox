@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.*;
-import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -222,7 +221,7 @@ public class SuperAdapter {
     */
 
     public void generateNewCustomAnnotation(File temp) {
-        getActiveLayer().setAnnotationLayer(
+        getActiveLayerHandler().setAnnotationLayer(
                 new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
     }
 
@@ -790,7 +789,7 @@ public class SuperAdapter {
     }
 
     public void deleteUnsavedEdits() {
-        getActiveLayer().deleteTempFile();
+        getActiveLayerHandler().deleteTempFile();
     }
 
     public void setShowChromosomeFig(boolean status) {
@@ -805,11 +804,12 @@ public class SuperAdapter {
         mainViewPanel.setShowGridLines(status);
     }
 
-    public AnnotationLayerHandler getActiveLayer() {
+    public AnnotationLayerHandler getActiveLayerHandler() {
+
         return activeLayer;
     }
 
-    public void setActiveLayer(AnnotationLayerHandler activeLayer) {
+    public void setActiveLayerHandler(AnnotationLayerHandler activeLayer) {
         this.activeLayer = activeLayer;
         for (AnnotationLayerHandler layer : annotationLayerHandlers) {
             layer.setActiveLayerButtonStatus(false);
@@ -822,14 +822,14 @@ public class SuperAdapter {
     }
 
     // mhoeger - Used for contig layer, currently returns the first element
-    public AnnotationLayerHandler getContigLayer() {
+    public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
         return annotationLayerHandlers.get(0);
     }
 
     public AnnotationLayerHandler createNewLayer() {
         activeLayer = new AnnotationLayerHandler();
         annotationLayerHandlers.add(activeLayer);
-        setActiveLayer(activeLayer); // call this anyways because other layers need to fix button settings
+        setActiveLayerHandler(activeLayer); // call this anyways because other layers need to fix button settings
         return activeLayer;
     }
 
@@ -847,7 +847,7 @@ public class SuperAdapter {
             annotationLayerHandlers.remove(handler);
             if (handler == activeLayer) {
                 // need to set a new active layer; let's use first one as default
-                setActiveLayer(annotationLayerHandlers.get(0));
+                setActiveLayerHandler(annotationLayerHandlers.get(0));
             }
         }
         updateLayerDeleteStatus();

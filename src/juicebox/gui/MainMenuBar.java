@@ -286,7 +286,7 @@ public class MainMenuBar {
                 superAdapter.generateNewCustomAnnotation(temp);
                 temp.delete();
                 loadLastMI.setEnabled(false);
-                superAdapter.getActiveLayer().setExportAbility(true);
+                superAdapter.getActiveLayerHandler().setExportAbility(true);
             }
         });
         if (unsavedEditsExist()) {
