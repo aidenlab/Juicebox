@@ -59,6 +59,7 @@ public class LayersPanel extends JDialog {
     private static final int miniButtonSize = 30;
     private static LoadAction trackLoadAction;
     private static LoadEncodeAction encodeAction;
+    private static Load2DAnnotationsDialog load2DAnnotationsDialog;
 
     public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
@@ -81,7 +82,7 @@ public class LayersPanel extends JDialog {
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        setSize(800, 600);
+        setSize(950, 700);
         add(tabbedPane);
         setVisible(true);
 
@@ -230,7 +231,7 @@ public class LayersPanel extends JDialog {
         JButton newLayerButton = new JButton("Add New Layer");
         JButton mergeButton = new JButton("Merge Visible Layers");
 
-        JPanel buttonPanel = new JPanel(new GridLayout(2, 0));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
         buttonPanel.add(importButton);
         buttonPanel.add(addLocalButton);
         buttonPanel.add(newLayerButton);
@@ -249,8 +250,10 @@ public class LayersPanel extends JDialog {
         importButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
-                dialog.setVisible(true);
+                if (load2DAnnotationsDialog == null) {
+                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                }
+                load2DAnnotationsDialog.setVisible(Boolean.TRUE);
             }
         });
         importButton.setToolTipText("Import annotations into new layer");
@@ -258,11 +261,10 @@ public class LayersPanel extends JDialog {
         addLocalButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Load2DAnnotationsDialog dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
-                dialog.setVisible(true);
-                dialog.add2DLocalButtonActionPerformed(superAdapter);
-//                dialog.setVisible(false);
-//                dialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                if (load2DAnnotationsDialog == null) {
+                    load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
+                }
+                load2DAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
 
