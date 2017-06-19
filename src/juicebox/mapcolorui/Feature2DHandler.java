@@ -252,7 +252,6 @@ public class Feature2DHandler {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
 
-
                 featureRtrees.get(key).nearestN(
                         getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
                         new TIntProcedure() {         // a procedure whose execute() method will be called with the results

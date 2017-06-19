@@ -27,7 +27,6 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.state.SaveFileDialog;
@@ -35,7 +34,6 @@ import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
-import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -494,6 +492,7 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
+        /*
         JMenuItem assemblyMode = new JMenuItem("Launch assembly mode editor...");
         assemblyMode.addActionListener(new ActionListener() {
             @Override
@@ -505,6 +504,7 @@ public class MainMenuBar {
             }
         });
         devMenu.add(assemblyMode);
+        */
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);

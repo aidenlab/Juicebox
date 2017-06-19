@@ -35,6 +35,7 @@ import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -98,13 +99,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
      */
     private boolean showFeatureHighlight = true;
     private Feature2D highlightedFeature = null;
+    private List<Feature2D> selectedFeatures = null;
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
+
+    private boolean activelyEditingAssembly = false;
+
+
     /**
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
+
     /**
      * Initialize heatmap panel
      *
@@ -407,9 +414,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                 //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
 
-                for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                // Only look at contig layer if we're in assembly mode
+                List<AnnotationLayerHandler> handlers;
+                if (activelyEditingAssembly) {
+                    handlers = new ArrayList<>();
+                    handlers.add(superAdapter.getContigLayer());
+                } else {
+                    handlers = superAdapter.getAllLayers();
+                }
 
 
+                for (AnnotationLayerHandler handler : handlers) {
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                             centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                     List<Feature2D> cLoopsReflected = new ArrayList<>();
@@ -653,6 +668,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi0UndoOrRedo);
         }
         */
+
+        final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
+        mi_0.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.assemblyModeEnabled = true;
+                activelyEditingAssembly = true;
+            }
+        });
+        menu.add(mi_0);
 
         final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
         mi.setSelected(straightEdgeEnabled);
@@ -913,6 +938,81 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         return menu;
 
+    }
+
+    /*// Launches assembly mode
+    private void launchAssemblyMode(){
+        // TODO: in the future this will launch dialog to load specific assembly annotation file, do
+        // validation checks on that, and so on.
+        // confirm that we're on assembly vs. assembly
+        assemblyMode = true;
+        Feature2DList temp = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoopLists().get(0);
+        final String key = Feature2DList.getKey(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
+        temp.convertFeaturesToContigs(key);
+        repaint();
+        superAdapter.repaintTrackPanels();
+    }*/
+
+    private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos) {
+
+        JidePopupMenu menu = new JidePopupMenu();
+
+        if (selectedFeatures != null && selectedFeatures.size() > 0) {
+            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
+            miSelect.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateSelectedFeatures(false);
+                    selectedFeatures.clear();
+                }
+            });
+            menu.add(miSelect);
+        }
+
+        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Invert");
+        mi.setSelected(straightEdgeEnabled);
+        mi.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (Feature2D feature2D : selectedFeatures) {
+                    if (feature2D instanceof Contig2D) {
+                        ((Contig2D) feature2D).toggleInversion();
+                    }
+                }
+
+                //invert
+                // then move around
+                // invert action here
+            }
+        });
+        menu.add(mi);
+
+        /* @meh what is this for?
+        final JCheckBoxMenuItem mi2 = new JCheckBoxMenuItem("Send to back");
+        mi2.setSelected(diagonalEdgeEnabled);
+        mi2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // action here
+            }
+        });
+        menu.add(mi2);
+        */
+
+        // internally, single sync = what we previously called sync
+        final JMenuItem mi3 = new JMenuItem("Exit Assembly Editing");
+        mi3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // assemblyMode = false;
+                updateSelectedFeatures(false);
+                selectedFeatures.clear();
+                activelyEditingAssembly = false;
+            }
+        });
+        menu.add(mi3);
+
+        return menu;
     }
 
     private String toolTipText(int x, int y) {
@@ -1199,17 +1299,29 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+
+    private void updateSelectedFeatures(boolean status) {
+        if (selectedFeatures != null) {
+            for (Feature2D feature2D : selectedFeatures) {
+                feature2D.setSetIsSelectedColorUpdate(status);
+            }
+        }
+    }
+  
     public void setShowGridLines(boolean showGridLines) {
         this.showGridLines = showGridLines;
     }
 
     private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
+
 //    @Override
 //    public String getToolTipText(MouseEvent e) {
 //        return toolTipText(e.getX(), e.getY());
 //
 //    }
+
+    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
     private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
@@ -1253,27 +1365,34 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 return;
             }
+
             // Priority is right click
             if (e.isPopupTrigger()) {
-                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                if (activelyEditingAssembly) {
+                    getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                } else {
+                    getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                }
                 // Alt down for zoom
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
             } else if (e.isShiftDown()) {
-                boolean showWarning = false;
+                if (!activelyEditingAssembly) {
+                    boolean showWarning = false;
 
-                if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
-                    firstAnnotation = false;
-                    String text = "There are unsaved hand annotations from your previous session! \n" +
-                            "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
-                    System.err.println(text);
-                    JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
+                    if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
+                        firstAnnotation = false;
+                        String text = "There are unsaved hand annotations from your previous session! \n" +
+                                "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
+                        System.err.println(text);
+                        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
+                    }
+
+                    //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
+                    superAdapter.getActiveLayer().doPeak();
                 }
-
                 dragMode = DragMode.ANNOTATE;
-                //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
-                superAdapter.getActiveLayer().doPeak();
 
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
@@ -1287,7 +1406,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else {
                     superAdapter.getActiveLayer().setStationaryStart(loop.getStart1(), loop.getStart2());
                 }
-
 
                 try {
                     HiCGridAxis xAxis = hic.getZd().getXGridAxis();
@@ -1318,12 +1436,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mouseReleased(final MouseEvent e) {
             if (e.isPopupTrigger()) {
-                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                if (activelyEditingAssembly) {
+                    getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                } else {
+                    getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                }
                 dragMode = DragMode.NONE;
                 lastMousePoint = null;
                 zoomRectangle = null;
                 annotateRectangle = null;
                 setProperCursor();
+                // After popup, priority is assembly mode, highlighting those features.
+            } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
+                // New annotation is added (not single click) and new feature from custom annotation
+
+                updateSelectedFeatures(false);
+                selectedFeatures = superAdapter.getActiveLayer().getSelectedFeatures(hic, e.getX(), e.getY());
+                updateSelectedFeatures(true);
+
+                getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                restoreDefaultVariables();
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
                 Runnable runnable = new Runnable() {

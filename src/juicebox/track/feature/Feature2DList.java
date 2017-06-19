@@ -410,6 +410,20 @@ public class Feature2DList {
         return output;
     }
 
+    public void convertFeaturesToContigs(String key) {
+        List<Feature2D> contigs = new ArrayList<>();
+        for (Feature2D entry : this.get(key)) {
+            // Only proceed if not instance of Contig2D
+            if (entry instanceof Contig2D) {
+                return;
+            }
+            contigs.add(entry.toContig());
+        }
+        Collections.sort(contigs);
+
+        this.setWithKey(key, contigs);
+    }
+
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
         processLists(new FeatureFunction() {
             @Override

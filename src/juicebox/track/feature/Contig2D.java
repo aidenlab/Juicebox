@@ -61,6 +61,7 @@ public class Contig2D extends Feature2D {
 
     public void toggleInversion() {
         isInverted = !isInverted;
+        System.out.println("inverted");
     }
 
     public int setNewStart(int newStart) {
