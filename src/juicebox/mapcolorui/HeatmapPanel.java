@@ -103,7 +103,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
+
     private boolean activelyEditingAssembly = false;
+
+
+    /**
+     * Heatmap grids variables
+     */
+    private boolean showGridLines = true;
 
     /**
      * Initialize heatmap panel
@@ -305,16 +312,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Color color = g.getColor();
                 g.setColor(Color.LIGHT_GRAY);
 
-                for (int bound : chromosomeBoundaries) {
-                    // vertical lines
-                    int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(bound);
-                    int x = (int) ((xBin - binOriginX) * scaleFactor);
-                    g.drawLine(x, 0, x, getTickHeight(zd));
+                // Draw grid lines only if option is selected
+                if (showGridLines) {
+                    for (int bound : chromosomeBoundaries) {
+                        // vertical lines
+                        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(bound);
+                        int x = (int) ((xBin - binOriginX) * scaleFactor);
+                        g.drawLine(x, 0, x, getTickHeight(zd));
 
-                    // horizontal lines
-                    int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
-                    int y = (int) ((yBin - binOriginY) * scaleFactor);
-                    g.drawLine(0, y, getTickWidth(zd), y);
+                        // horizontal lines
+                        int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
+                        int y = (int) ((yBin - binOriginY) * scaleFactor);
+                        g.drawLine(0, y, getTickWidth(zd), y);
+                    }
                 }
 
                 g.setColor(color);
@@ -607,6 +617,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             tileCache.put(key, tile);
         }
         return tile;
+    }
+
+    public boolean getShowGridLines() {
+        return this.showGridLines;
     }
 
     public void clearTileCache() {
@@ -1285,6 +1299,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+
     private void updateSelectedFeatures(boolean status) {
         if (selectedFeatures != null) {
             for (Feature2D feature2D : selectedFeatures) {
@@ -1292,6 +1307,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
     }
+  
+    public void setShowGridLines(boolean showGridLines) {
+        this.showGridLines = showGridLines;
+    }
+
+    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+
 
 //    @Override
 //    public String getToolTipText(MouseEvent e) {

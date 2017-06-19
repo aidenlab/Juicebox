@@ -255,7 +255,9 @@ public class SuperAdapter {
                 }
 
                 String url = JOptionPane.showInputDialog("Enter URL: ");
+
                 if (url != null && url.length() > 0) {
+                    url = url.trim();
                     hic.unsafeLoadTrack(url);
                 }
                 refresh1DLayers.run();
@@ -793,6 +795,14 @@ public class SuperAdapter {
 
     public void setShowChromosomeFig(boolean status) {
         mainViewPanel.setShowChromosomeFig(status);
+    }
+
+    public boolean getShowGridLines() {
+        return mainViewPanel.getShowGridLines();
+    }
+
+    public void setShowGridLines(boolean status) {
+        mainViewPanel.setShowGridLines(status);
     }
 
     public AnnotationLayerHandler getActiveLayer() {
