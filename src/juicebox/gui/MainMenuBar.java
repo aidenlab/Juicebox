@@ -28,6 +28,7 @@ import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCRulerPanel;
@@ -438,6 +439,18 @@ public class MainMenuBar {
         });
         figureMenu.add(showChromosomeFig);
 
+        //---Grids mode-----
+        // turn grids on/off
+        final JCheckBoxMenuItem showGrids = new JCheckBoxMenuItem("Gridlines");
+        showGrids.setSelected(superAdapter.getShowGridLines());
+        showGrids.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setShowGridLines(showGrids.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        figureMenu.add(showGrids);
 
         figureMenu.addSeparator();
 
