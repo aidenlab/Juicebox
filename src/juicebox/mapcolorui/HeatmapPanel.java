@@ -993,7 +993,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 // assemblyMode = false;
                 updateSelectedFeatures(false);
-                selectedFeatures.clear();
+                if (selectedFeatures != null) {
+                    selectedFeatures.clear();
+                }
                 activelyEditingAssembly = false;
             }
         });
