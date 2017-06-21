@@ -29,8 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.HiCDataTrack;
-import juicebox.track.HiCTrack;
+import juicebox.track.*;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
@@ -79,8 +78,10 @@ public class XMLFileHandling {
                 currentTrackName += track.getName() + ", ";
                 track.getLocator().getColor();
                 try {
-                    HiCDataTrack hiCDataTrack = (HiCDataTrack) track;
-                    configTrackInfo = hiCDataTrack.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
+                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
+                    HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, track.getLocator(), source);
+
+                    configTrackInfo = track.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
                             + hiCDataTrack.getNegColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
                             + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
                     //Name, PosColor, AltColor, Min, Max, isLogScale
