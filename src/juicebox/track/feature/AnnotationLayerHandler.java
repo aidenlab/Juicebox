@@ -303,7 +303,7 @@ public class AnnotationLayerHandler {
         if (hic.getXContext() == null || hic.getYContext() == null)
             return;
 
-        java.util.List<Feature2DList> loops = hic.getAllVisibleLoopLists();
+        java.util.List<Feature2DList> loops = hic.getAllVisibleLoops();
         if (loops == null) return;
         if (customAnnotation == null) {
             System.err.println("Error! Custom annotations should not be null!");
@@ -582,8 +582,8 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        return getFeatureHandler().getAllVisibleLoopLists();
+    public Feature2DList getAllVisibleLoops() {
+        return getFeatureHandler().getAllVisibleLoops();
     }
 
 

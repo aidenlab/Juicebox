@@ -1021,8 +1021,8 @@ public class HiC {
     }
 
     /*
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        return feature2DHandler.getAllVisibleLoopLists();
+    public List<Feature2DList> getAllVisibleLoops() {
+        return feature2DHandler.getAllVisibleLoops();
     }
 
     /*

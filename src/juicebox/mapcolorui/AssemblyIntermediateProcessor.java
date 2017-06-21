@@ -48,9 +48,8 @@ public class AssemblyIntermediateProcessor {
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
         AssemblyIntermediateProcessor.superAdapter = superAdapter;
-        List<Feature2DList> allFeatureLists = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
-                .getAllVisibleLoopLists();
-        Feature2DList features = allFeatureLists.get(0);
+        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+                .getAllVisibleLoops();
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
         superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         HiCGlobals.assemblyModeEnabled = true;
@@ -113,11 +112,10 @@ public class AssemblyIntermediateProcessor {
 //        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
 //        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
         Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
-        List<Feature2DList> allFeatureLists = handler.getAllVisibleLoopLists();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
         handler.getContainedFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
-        Feature2DList features = allFeatureLists.get(0);
+        Feature2DList features = handler.getAllVisibleLoops();
         final String keyF = Feature2DList.getKey(chr1, chr2);
         List<Contig2D> contigs = new ArrayList<>();
         for (Feature2D entry : features.get(keyF)) {

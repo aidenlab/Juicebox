@@ -649,7 +649,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         // validation checks on that, and so on.
         // confirm that we're on assembly vs. assembly
         assemblyMode = true;
-        Feature2DList temp = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoopLists().get(0);
+        Feature2DList temp = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoops().get(0);
         final String key = Feature2DList.getKey(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
         temp.convertFeaturesToContigs(key);
         repaint();

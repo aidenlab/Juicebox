@@ -183,13 +183,10 @@ public class Feature2DHandler {
         }
     }
 
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        List<Feature2DList> visibleLoopList = new ArrayList<>();
+    public Feature2DList getAllVisibleLoops() {
+        Feature2DList visibleLoopList = new Feature2DList();
         if (layerVisible) {
-
-            if (loopList.getNumTotalFeatures() > 0) {
-                visibleLoopList.add(loopList);
-            }
+            visibleLoopList = loopList;
         }
         return visibleLoopList;
     }
@@ -197,11 +194,9 @@ public class Feature2DHandler {
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
         List<Feature2D> visibleLoopList = new ArrayList<>();
         if (layerVisible) {
-
             List<Feature2D> currList = loopList.get(chrIdx1, chrIdx2);
             if (currList != null) {
                 visibleLoopList.addAll(currList);
-
             }
         }
         return visibleLoopList;

@@ -213,15 +213,6 @@ public class SuperAdapter {
         }
     }
 
-    /*
-    public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
-        List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-        if (loops.size() != 1)
-            JOptionPane.showMessageDialog(mainWindow, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
-        else
-            new SaveAnnotationsDialog(customAnnotations, loops.get(0));
-    }
-    */
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayerHandler().setAnnotationLayer(
