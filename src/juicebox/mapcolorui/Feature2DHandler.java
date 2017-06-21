@@ -27,7 +27,6 @@ package juicebox.mapcolorui;
 import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
-import juicebox.data.feature.Feature;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
