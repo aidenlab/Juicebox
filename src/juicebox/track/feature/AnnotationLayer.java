@@ -256,10 +256,6 @@ public class AnnotationLayer {
                 binOriginX, binOriginY, scale);
     }
 
-    public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
-        return customAnnotationRTreeHandler.getContainedFeatures(chrIdx1, chrIdx2, currentWindow);
-    }
-
     public Feature2DHandler getFeatureHandler() {
         return customAnnotationRTreeHandler;
     }

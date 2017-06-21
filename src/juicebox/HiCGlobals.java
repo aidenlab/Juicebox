@@ -71,8 +71,7 @@ public class HiCGlobals {
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
-    public static final Color HIGHLIGHT_COLOR = Color.BLACK;
-    public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
+    public static final Color HighlightColor = Color.BLACK;
     public static int MAX_PEARSON_ZOOM = 500000;
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;

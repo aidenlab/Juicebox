@@ -54,6 +54,7 @@ public class XMLFileWriter {
             Element root = initXML();
 
             for (String stateString : HiCGlobals.savedStatesList) {
+                System.out.println(stateString);
                 convert(stateString, root);
             }
 
