@@ -154,6 +154,7 @@ public class Feature2D implements Comparable<Feature2D> {
         return color;
     }
 
+
     public void setColor(Color color) {
         this.color = color;
         if (reflection != null)

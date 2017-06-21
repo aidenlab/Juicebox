@@ -82,7 +82,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
     private final HeatmapRenderer renderer;
     //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
-    private final transient List<Pair<Rectangle, Feature2D>> customFeaturePairs = new ArrayList<>();
+    private final transient List<Pair<Rectangle, Feature2D>> allFeaturePairs = new ArrayList<>();
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -101,10 +101,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
+
+    private boolean activelyEditingAssembly = false;
+
     /**
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
+  
     /**
      * Initialize heatmap panel
      *
@@ -402,7 +406,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int centerX = (int) (screenWidth / scaleFactor) / 2;
                 int centerY = (int) (screenHeight / scaleFactor) / 2;
                 Graphics2D g2 = (Graphics2D) g.create();
-                customFeaturePairs.clear();
+                allFeaturePairs.clear();
 
                 //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                 //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
@@ -419,7 +423,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     }
 
-                    customFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(loops, zd, binOriginX, binOriginY, scaleFactor));
+                    // handler.removeFromList();
+
+                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(loops, zd, binOriginX, binOriginY, scaleFactor));
                     loops.addAll(cLoopsReflected);
 
                     FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
@@ -1146,7 +1152,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             //List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
             //neighbors.addAll(customFeaturePairs);
 
-            for (Pair<Rectangle, Feature2D> loop : customFeaturePairs) {
+
+            for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
                 if (loop.getFirst().contains(x, y)) {
                     // TODO - why is this code duplicated in this file?
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
@@ -1161,6 +1168,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     //mouseIsOverFeature = true;
                 }
             }
+
             txt.append("</html>");
             return txt.toString();
         }
@@ -1199,9 +1207,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+    private void updateSelectedFeatures(boolean status) {
+        if (selectedFeatures != null) {
+            for (Feature2D feature2D : selectedFeatures) {
+                feature2D.setSetIsSelectedColorUpdate(status);
+            }
+        }
+    }
+  
     public void setShowGridLines(boolean showGridLines) {
         this.showGridLines = showGridLines;
     }
+
+    //private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+
 
     private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
@@ -1261,14 +1280,21 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
             } else if (e.isShiftDown()) {
-                boolean showWarning = false;
 
-                if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
-                    firstAnnotation = false;
-                    String text = "There are unsaved hand annotations from your previous session! \n" +
-                            "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
-                    System.err.println(text);
-                    JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
+                if (!activelyEditingAssembly) {
+                    boolean showWarning = false;
+
+                    if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
+                        firstAnnotation = false;
+                        String text = "There are unsaved hand annotations from your previous session! \n" +
+                                "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
+                        System.err.println(text);
+                        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
+                    }
+
+                    //superAdapter.getActiveLayerHandler().updateSelectionPoint(e.getX(), e.getY());
+                    superAdapter.getActiveLayerHandler().doPeak();
+
                 }
 
                 dragMode = DragMode.ANNOTATE;
@@ -1324,6 +1350,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 zoomRectangle = null;
                 annotateRectangle = null;
                 setProperCursor();
+                // After popup, priority is assembly mode, highlighting those features.
+            } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
+                // New annotation is added (not single click) and new feature from custom annotation
+
+                updateSelectedFeatures(false);
+                selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                updateSelectedFeatures(true);
+
+                getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                restoreDefaultVariables();
+
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
                 Runnable runnable = new Runnable() {
@@ -1341,6 +1378,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // New annotation is added (not single click) and new feature from custom annotation
                 int idx1 = preAdjustLoop.getFirst().getFirst();
                 int idx2 = preAdjustLoop.getFirst().getSecond();
+
                 Feature2D secondLoop = preAdjustLoop.getSecond();
                 // Add a new loop if it was resized (prevents deletion on single click)
 
@@ -1354,6 +1392,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (superAdapter.getActiveLayerHandler().hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
                             Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                             hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize) {
+                        Feature2D oldFeature2D = secondLoop.deepCopy();
+
                         superAdapter.getActiveLayerHandler().removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                                 hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
@@ -1376,8 +1416,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //                    }
 
-                        superAdapter.getActiveLayerHandler().addFeature(hic);
+
+
+                        Feature2D tempFeature2D = superAdapter.getActiveLayerHandler().addFeature(hic);
                         superAdapter.getActiveLayerHandler().setLastItem(idx1, idx2, secondLoop);
+                        for (String newKey : oldFeature2D.getAttributeKeys()) {
+                            tempFeature2D.setAttribute(newKey, oldFeature2D.getAttribute(newKey));
+                        }
+
+                        //remove preadjust loop from list
                     }
                 } catch (Exception ee) {
                     System.err.println("Unable to remove pre-resized loop");

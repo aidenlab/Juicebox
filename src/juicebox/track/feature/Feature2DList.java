@@ -50,14 +50,25 @@ public class Feature2DList {
      */
     private final Map<String, List<Feature2D>> featureList = new HashMap<>();
 
+    private Map<String, String> defaultAttributes;
+
     /**
      * Initialized hashtable
      */
     public Feature2DList() {
+        defaultAttributes = null;
     }
 
     public Feature2DList(Feature2DList list) {
         add(list);
+        defaultAttributes = null;
+    }
+
+    public Feature2DList(Feature2DList list, List<String> featureKeys) {
+        add(list);
+        for (String attribute : featureKeys) {
+            defaultAttributes.put(attribute, "null");
+        }
     }
 
     /**
@@ -187,8 +198,11 @@ public class Feature2DList {
      * @param feature to add
      */
     public void addByKey(String key, Feature2D feature) {
+
+        feature = updateAttributeForFeature(feature);
+
         if (featureList.containsKey(key)) {
-            featureList.get(key).add(feature);
+            featureList.get(key).add(feature);//could be an issue
         } else {
             List<Feature2D> loops = new ArrayList<>();
             loops.add(feature);
@@ -203,6 +217,7 @@ public class Feature2DList {
      * @param features to add
      */
     public void addByKey(String key, List<Feature2D> features) {
+        features = updateAttributes(features);
         if (featureList.containsKey(key)) {
             featureList.get(key).addAll(features);
         } else {
@@ -211,6 +226,42 @@ public class Feature2DList {
         }
     }
 
+    public Feature2D updateAttributeForFeature(Feature2D feature) {
+        if (defaultAttributes != null) {
+            if (feature.getAttributeKeys() == null) {
+                for (String attribute : defaultAttributes.keySet()) {
+                    feature.addStringAttribute(attribute, defaultAttributes.get(attribute));
+                    System.out.println("Added:1 " + attribute);
+                }
+            } else {
+                List<String> featureKeys = feature.getAttributeKeys();
+
+                for (String customKey : defaultAttributes.keySet()) {
+                    if (!featureKeys.contains(customKey)) {
+                        feature.addStringAttribute(customKey, defaultAttributes.get(customKey));
+                        System.out.println("Added:2 " + customKey); //seems to be calling every time it adds even if already existing
+                    }
+                }
+            }
+        }
+        return feature;
+    }
+
+    public List<Feature2D> updateAttributes(List<Feature2D> features) {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    updateAttributeForFeature(feature);
+                }
+            }
+        });
+        return features;
+    }
+
+    public void putFeature(String key, List<Feature2D> loops) {
+        featureList.put(key, loops);
+    }
     public void setWithKey(String key, List<Feature2D> features) {
         featureList.put(key, features);
     }
@@ -361,7 +412,7 @@ public class Feature2DList {
             } else {
                 List<Feature2D> features = new ArrayList<>();
                 features.addAll(inputFeatures);
-                featureList.put(inputKey, features);
+                putFeature(inputKey, features);
             }
         }
     }
@@ -387,7 +438,8 @@ public class Feature2DList {
             } else {
                 List<Feature2D> features = new ArrayList<>();
                 features.addAll(inputFeatures);
-                featureList.put(inputKey, features);
+                // featureList.put(inputKey, features);
+                putFeature(inputKey, features);
             }
         }
     }
@@ -409,6 +461,44 @@ public class Feature2DList {
         }
         return output;
     }
+
+
+    public void convertFeaturesToContigs(String key) {
+        List<Feature2D> contigs = new ArrayList<>();
+        for (Feature2D entry : this.get(key)) {
+            // Only proceed if not instance of Contig2D
+            if (entry instanceof Contig2D) {
+                return;
+            }
+            contigs.add(entry.toContig());
+        }
+        Collections.sort(contigs);
+
+        this.setWithKey(key, contigs);
+    }
+
+    public Map<String, String> getDefaultAtributes() {
+        return defaultAttributes;
+    }
+
+    public void setDefaultAttributes(Map<String, String> defaultAttributes) {
+        this.defaultAttributes = defaultAttributes;
+    }
+
+    public void addDefaultAttribute(String attribute) {
+        addDefaultAttribute(attribute, null);
+    }
+
+    public void addDefaultAttribute(String attribute, String value) {
+        defaultAttributes.put(attribute, value);
+        addAttributeFieldToAll(attribute, value);
+    }
+    /*
+
+    public void addAttributeFieldToAll(String newAttributeName){
+        addAttributeFieldToAll(newAttributeName,null);
+    }
+    */
 
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
         processLists(new FeatureFunction() {

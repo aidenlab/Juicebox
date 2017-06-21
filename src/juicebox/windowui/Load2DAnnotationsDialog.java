@@ -72,7 +72,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
         createNodes(top, superAdapter.getHiC());
 
-
         //Create a tree that allows one selection at a time.
         tree = new JTree(top);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -95,7 +94,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                             } catch (Exception e) {
                                 MessageUtils.showErrorMessage("Unable to load file", e);
                             }
-
                             Load2DAnnotationsDialog.this.setVisible(false);
                         }
                     }
@@ -120,54 +118,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 Load2DAnnotationsDialog.this.setVisible(false);
             }
         });
-
-        JButton add2DButton = new JButton("Add Local...");
-        add2DButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
-
-                if (twoDfiles != null && twoDfiles.length > 0) {
-                    for (File file : twoDfiles) {
-
-                        if (file == null || !file.exists()) continue;
-
-                        if (customAddedFeatures == null) {
-                            customAddedFeatures = new DefaultMutableTreeNode(
-                                    new ItemInfo("Added 2D Features", ""), true);
-                            top.add(customAddedFeatures);
-                        }
-
-                        String path = file.getAbsolutePath();
-                        openAnnotationPath = new File(path);
-
-                        if (loadedAnnotationsMap.containsKey(path)) {
-                            if (HiCGlobals.guiIsCurrentlyActive) {
-                                int dialogResult = JOptionPane.showConfirmDialog(window,
-                                        "File is already loaded. Would you like to overwrite it?", "Warning",
-                                        JOptionPane.YES_NO_OPTION);
-                                if (dialogResult == JOptionPane.YES_OPTION) {
-                                    customAddedFeatures.remove(loadedAnnotationsMap.get(path));
-                                    loadedAnnotationsMap.remove(path);
-                                } else {
-                                    continue;
-                                }
-                            }
-                        }
-
-                        DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(
-                                new ItemInfo(file.getName(), path), false);
-
-                        loadedAnnotationsMap.put(path, treeNode);
-                        customAddedFeatures.add(treeNode);
-                        expandTree();
-                        tree.updateUI();
-
-                    }
-                }
-            }
-        });
-
 
         JButton urlButton = new JButton("URL...");
         urlButton.addActionListener(new ActionListener() {
@@ -207,13 +157,11 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                     expandTree();
                     tree.updateUI();
                 }
-
             }
         });
         urlButton.setPreferredSize(new Dimension((int) urlButton.getPreferredSize().getWidth(),
                 (int) openButton.getPreferredSize().getHeight()));
         //setVisible(false);
-
 
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
@@ -226,7 +174,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 (int) openButton.getPreferredSize().getHeight()));
 
         buttonPanel.add(openButton);
-        buttonPanel.add(add2DButton);
         buttonPanel.add(urlButton);
         buttonPanel.add(cancelButton);
 
@@ -269,6 +216,58 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         });
     }
 
+    public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+        // Get the main window
+        final MainWindow window = superAdapter.getMainWindow();
+
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+
+        Boolean localFilesAdded = Boolean.FALSE;
+
+        File twoDfiles[] = FileDialogUtils.chooseMultiple("Choose 2D Annotation file", openAnnotationPath, null);
+
+        if (twoDfiles != null && twoDfiles.length > 0) {
+            for (File file : twoDfiles) {
+
+                if (file == null || !file.exists()) continue;
+
+                localFilesAdded = Boolean.TRUE;
+
+                if (customAddedFeatures == null) {
+                    customAddedFeatures = new DefaultMutableTreeNode(
+                            new ItemInfo("Added 2D Features", ""), true);
+                    root.add(customAddedFeatures);
+                }
+
+                String path = file.getAbsolutePath();
+                openAnnotationPath = new File(path);
+
+                if (loadedAnnotationsMap.containsKey(path)) {
+                    if (HiCGlobals.guiIsCurrentlyActive) {
+                        int dialogResult = JOptionPane.showConfirmDialog(window,
+                                "File is already loaded. Would you like to overwrite it?", "Warning",
+                                JOptionPane.YES_NO_OPTION);
+                        if (dialogResult == JOptionPane.YES_OPTION) {
+                            customAddedFeatures.remove(loadedAnnotationsMap.get(path));
+                            loadedAnnotationsMap.remove(path);
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+
+                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(
+                        new ItemInfo(file.getName(), path), false);
+
+                loadedAnnotationsMap.put(path, treeNode);
+                customAddedFeatures.add(treeNode);
+            }
+            model.reload(root);
+            expandTree();
+        }
+        Load2DAnnotationsDialog.this.setVisible(localFilesAdded);
+    }
 
     public static TreePath getPath(TreeNode treeNode) {
         List<Object> nodes = new ArrayList<>();
@@ -323,7 +322,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 } catch (Exception ee) {
                     System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
                     MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
-                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL));
+                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
                     loadedAnnotationsMap.remove(path);
                 }
             }
