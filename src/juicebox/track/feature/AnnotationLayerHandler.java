@@ -37,9 +37,7 @@ import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -174,7 +172,7 @@ public class AnnotationLayerHandler {
         String chr2 = hic.getYContext().getChromosome().getName();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<>(); //here
+        HashMap<String, String> attributes = new HashMap<>();
         int rightBound = hic.getXContext().getChromosome().getLength();
         int bottomBound = hic.getYContext().getChromosome().getLength();
         int leftBound = 0;
@@ -240,10 +238,9 @@ public class AnnotationLayerHandler {
             }
         }
 
-
         // Add new feature
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                defaultColor, attributes); // could be here need to find a way to get list of
+                defaultColor, attributes);
         annotationLayer.add(chr1Idx, chr2Idx, newFeature);
         lastStarts = null;
         lastEnds = null;
@@ -417,6 +414,92 @@ public class AnnotationLayerHandler {
                 binOriginX, binOriginY, scaleFactor);
     }
 
+    public List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
+        return annotationLayer.getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
+    }
+
+    public List<Feature2D> getContainedFeatures(HiC hic) {
+        if (selectionRegion == null) return null;
+
+        int start1, end1;
+        int x = selectionRegion.x;
+        int width = selectionRegion.width;
+        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+
+        // Get starting chrx and ending chrx
+        start1 = geneXPos(hic, x, 0);
+        end1 = geneXPos(hic, x + width, 0);
+
+        net.sf.jsi.Rectangle selectionWindow = new net.sf.jsi.Rectangle(start1, start1, end1, end1);
+
+        return annotationLayer.getContainedFeatures(chr1Idx, chr2Idx, selectionWindow);
+    }
+
+    /*
+     * Gets the contained featuers within the selction region, including the features that the
+     * selection starts and ends in
+     */
+    public List<Feature2D> getSelectedFeatures(HiC hic, int lastX, int lastY) {
+        List<Feature2D> selectedFeatures = new ArrayList<Feature2D>();
+        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+        // Multiple regions selected
+        if (selectionRegion != null) {
+            int startX, endX;
+            int startY, endY;
+
+            int x = selectionRegion.x;
+            int width = selectionRegion.width;
+
+            int y = selectionRegion.y;
+            int height = selectionRegion.height;
+
+            // Get starting chrX and ending chrX and window
+            startX = geneXPos(hic, x, 0);
+            endX = geneXPos(hic, x + width, 0);
+
+            // Get starting chrY and ending chrY and window
+            startY = geneYPos(hic, y, 0);
+            endY = geneYPos(hic, y + height, 0);
+
+            net.sf.jsi.Rectangle selectionWindow = new net.sf.jsi.Rectangle(startX, startY, endX, endY);
+
+            try {
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
+
+                // Get features that are both contained by and touching (nearest single neighbor)
+                // the selection rectangle
+                List<Feature2D> intersectingFeatures = getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
+                selectedFeatures.addAll(intersectingFeatures);
+
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+            } catch (Exception e) {
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                selectionRegion = null;
+                return selectedFeatures;
+            }
+            selectionRegion = null;
+            return new ArrayList<>(new HashSet<>(selectedFeatures));
+
+            // Single region selected
+        } else {
+            try {
+                // Find closest loop to starting selection
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
+                selectedFeatures.addAll(getNearbyFeatures(hic.getZd(), chr1Idx, chr2Idx,
+                        lastX, lastY, 1, hic.getXContext().getBinOrigin(),
+                        hic.getYContext().getBinOrigin(), hic.getScaleFactor()));
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+            } catch (Exception e) {
+                System.out.println("error:" + e);
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                return selectedFeatures;
+            }
+            return selectedFeatures;
+        }
+    }
+
     public void removeFromList(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY, int numberOfLoopsToFind,
                                double binOriginX, double binOriginY, double scaleFactor, Feature2D feature) {
         annotationLayer.removeFromList(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
@@ -441,8 +524,6 @@ public class AnnotationLayerHandler {
         this.layerName = layerName;
         if (nameTextField != null) nameTextField.setText(layerName);
     }
-
-
 
     public Feature2DHandler getFeatureHandler() {
         return annotationLayer.getFeatureHandler();

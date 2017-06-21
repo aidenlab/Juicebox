@@ -124,7 +124,7 @@ public class FeatureRenderer {
             int binStart2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getStart2());
             int binEnd2 = yAxis.getBinNumberForGenomicPosition(highlightedFeature.getEnd2());
 
-            g2.setColor(HiCGlobals.HighlightColor);
+            g2.setColor(HiCGlobals.HIGHLIGHT_COLOR);
             if (HiCFileTools.equivalentChromosome(highlightedFeature.getChr1(), zd.getChr1())) {
                 int x = (int) ((binStart1 - binOriginX) * scaleFactor);
                 int h = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1));

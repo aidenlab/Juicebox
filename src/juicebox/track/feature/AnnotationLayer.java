@@ -32,6 +32,7 @@ import juicebox.mapcolorui.Feature2DHandler;
 import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,6 +51,7 @@ public class AnnotationLayer {
     private int lastChr2Idx;
     private PrintWriter tempWriter;
     private File tempFile;
+    private ArrayList<String> attributeKeys;
 
     public AnnotationLayer() {
         id = i++;
@@ -70,6 +72,7 @@ public class AnnotationLayer {
         lastItem = null;
         unsavedEdits = false;
         customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(new Feature2DList());
+        attributeKeys = new ArrayList<>();
     }
 
     public void clearAnnotations() {
@@ -82,6 +85,15 @@ public class AnnotationLayer {
         if (feature == null) {
             return;
         }
+        // Add attributes to feature
+        List<String> featureKeys = feature.getAttributeKeys();
+        for (String customKey : attributeKeys) {
+            if (!featureKeys.contains(customKey)) {
+                feature.addStringAttribute(customKey, "null");
+                //System.out.println("Added" + customKey);
+            }
+        }
+        getAndAddAttributes(featureKeys);
 
         customAnnotationRTreeHandler.add(chr1Idx, chr2Idx, feature);
 
@@ -232,7 +244,26 @@ public class AnnotationLayer {
 
     // Note assumes that all attributes are already correctly formatted. Ok to assume
     // because loaded list must have consistent formatting.
+    public void addVisibleToCustom(Feature2DList newAnnotations) {
+        Feature2D featureZero = newAnnotations.extractSingleFeature();
+        // Add attributes to feature
+        List<String> featureKeys = featureZero.getAttributeKeys();
+        for (String customKey : attributeKeys) {
+            if (!featureKeys.contains(customKey)) {
+                newAnnotations.addAttributeFieldToAll(customKey, "null");
+            }
+        }
+        getAndAddAttributes(featureKeys);
+        customAnnotationRTreeHandler.add(newAnnotations);
 
+        // Autosave the information
+        unsavedEdits = true;
+        if (firstSave) {
+            makeTempFile();
+            firstSave = false;
+        }
+        updateAutoSave();
+    }
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
@@ -244,9 +275,18 @@ public class AnnotationLayer {
         return ok;
     }
 
-
+    private void getAndAddAttributes(List<String> featureKeys) {
+        // Add feature's unique attributes to all others
+        for (String key : featureKeys) {
+            if (!attributeKeys.contains(key)) {
+                attributeKeys.add(key);
+                customAnnotationRTreeHandler.addAttributeFieldToAll(key, "null");
+            }
+        }
+    }
 
     public void addAllAttributeValues(String key, String newValue) {
+        attributeKeys.add(key);
         customAnnotationRTreeHandler.addAttributeFieldToAll(key, newValue);
     }
 
@@ -254,6 +294,14 @@ public class AnnotationLayer {
                                              double binOriginX, double binOriginY, double scale) {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
                 binOriginX, binOriginY, scale);
+    }
+
+    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
+        return customAnnotationRTreeHandler.getIntersectingFeatures(chrIdx1, chrIdx2, selectionWindow);
+    }
+
+    public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
+        return customAnnotationRTreeHandler.getContainedFeatures(chrIdx1, chrIdx2, currentWindow);
     }
 
     public Feature2DHandler getFeatureHandler() {
