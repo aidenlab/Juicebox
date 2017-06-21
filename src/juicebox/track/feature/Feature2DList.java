@@ -462,6 +462,7 @@ public class Feature2DList {
         return output;
     }
 
+
     public void convertFeaturesToContigs(String key) {
         List<Feature2D> contigs = new ArrayList<>();
         for (Feature2D entry : this.get(key)) {
