@@ -1316,7 +1316,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.showGridLines = showGridLines;
     }
 
-    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+    //private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
 
 //    @Override
