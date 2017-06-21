@@ -297,6 +297,10 @@ public class AnnotationLayer {
                 binOriginX, binOriginY, scale);
     }
 
+    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
+        return customAnnotationRTreeHandler.getIntersectingFeatures(chrIdx1, chrIdx2, selectionWindow);
+    }
+
     public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
         return customAnnotationRTreeHandler.getContainedFeatures(chrIdx1, chrIdx2, currentWindow);
     }
