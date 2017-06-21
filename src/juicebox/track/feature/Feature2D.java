@@ -59,9 +59,8 @@ public class Feature2D implements Comparable<Feature2D> {
     int start2;
     int end1;
     int end2;
-    private boolean isSelected = false;
     private Feature2D reflection = null;
-    private Color color, preSelectionColor, translucentColor;
+    private Color color, translucentColor;
     private boolean test = false;
 
     public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
@@ -152,11 +151,7 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getColor() {
-        if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
-        } else {
-            return color;
-        }
+        return color;
     }
 
     public void setColor(Color color) {
@@ -167,11 +162,7 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getTranslucentColor() {
-        if (isSelected) {
-            return HiCGlobals.SELECT_FEATURE_COLOR;
-        } else {
-            return translucentColor;
-        }
+        return translucentColor;
     }
 
     private void setTranslucentColor() {
@@ -490,10 +481,6 @@ public class Feature2D implements Comparable<Feature2D> {
             return (Contig2D) this;
         }
         return new Contig2D(featureType, chr1, start1, end1, color, attributes);
-    }
-
-    public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
-        isSelected = setIsSelectedColorUpdate;
     }
 
     public enum FeatureType {

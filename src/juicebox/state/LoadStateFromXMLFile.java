@@ -84,7 +84,6 @@ public class LoadStateFromXMLFile {
                     trackURLsAndNamesAndConfigInfo[1] = (infoForReload[19]); //trackNames
                     trackURLsAndNamesAndConfigInfo[2] = (infoForReload[20]); //trackConfigInfo
                     //Increase XMLFileParser::infoForReload when adding more elements.
-
                     safeLoadStateFromXML(superAdapter, hic, initialInfo, binSize, doubleInfo, displayOption, normType, trackURLsAndNamesAndConfigInfo);
                 } catch (NumberFormatException nfe) {
                     JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error:\n" + nfe.getMessage(), "Error",
@@ -119,6 +118,7 @@ public class LoadStateFromXMLFile {
                                                String[] tracks) {
 
         superAdapter.resetControlMap(); //TODO test
+
 
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
@@ -157,6 +157,7 @@ public class LoadStateFromXMLFile {
         superAdapter.setEnableForAllElements(true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
+
         LoadAction loadAction = superAdapter.getTrackLoadAction();
 
         // TODO - do not erase previous tracks, rather check if some may already be loaded
@@ -164,7 +165,6 @@ public class LoadStateFromXMLFile {
             if (tracks.length > 0 && !tracks[1].contains("none")) {
                 String[] trackURLs = tracks[0].split("\\,");
                 String[] trackNames = tracks[1].split("\\,");
-
                 for (int i = 0; i < trackURLs.length; i++) {
                     String currentTrack = trackURLs[i].trim();
                     if (!currentTrack.isEmpty()) {
@@ -183,7 +183,6 @@ public class LoadStateFromXMLFile {
                             hic.unsafeLoadTrack(currentTrack);
                             loadAction.checkBoxesForReload(trackNames[i].trim());
                         }
-
                     }
                 }
                 for (HiCTrack loadedTrack : hic.getLoadedTracks()) {
@@ -191,8 +190,10 @@ public class LoadStateFromXMLFile {
                         if (trackURLs[i].contains(loadedTrack.getName())) {
                             loadedTrack.setName(trackNames[i].trim());
                             if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
+
                                 HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
                                 HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, loadedTrack.getLocator(), source);
+
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");
                                 for (String aConfigTrackInfo : configTrackInfo) {
 

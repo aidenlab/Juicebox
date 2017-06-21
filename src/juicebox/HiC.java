@@ -56,7 +56,6 @@ import java.util.List;
  * @since 4/8/12
  */
 public class HiC {
-
     private static final Logger log = Logger.getLogger(HiC.class);
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
@@ -977,7 +976,7 @@ public class HiC {
     }
 
     public void loadLoopList(String path) {
-        superAdapter.getActiveLayer().loadLoopList(path, chromosomeHandler);
+        superAdapter.getActiveLayerHandler().loadLoopList(path, chromosomeHandler);
     }
 
     // TODO MSS REMOVE

@@ -175,7 +175,9 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
             public void actionPerformed(ActionEvent e) {
 
                 String url = JOptionPane.showInputDialog("Enter URL: ");
+
                 if (url != null && url.length() > 0) {
+                    url = url.trim();
 
                     if (customAddedFeatures == null) {
                         customAddedFeatures = new DefaultMutableTreeNode(

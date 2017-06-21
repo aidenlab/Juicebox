@@ -280,7 +280,7 @@ public class LayersPanel extends JDialog {
             layerBoxGUI.add(panel, 0);
             layerBoxGUI.revalidate();
             layerBoxGUI.repaint();
-            superAdapter.setActiveLayer(handler);
+            superAdapter.setActiveLayerHandler(handler);
             superAdapter.updateLayerDeleteStatus();
         } catch (Exception ee) {
             System.err.println("Unable to add new layer to GUI");
@@ -311,7 +311,7 @@ public class LayersPanel extends JDialog {
 
             layerBoxGUI.revalidate();
             layerBoxGUI.repaint();
-            superAdapter.setActiveLayer(mergedHandler);
+            superAdapter.setActiveLayerHandler(mergedHandler);
             superAdapter.updateLayerDeleteStatus();
         } catch (Exception ee) {
             System.err.println("Unable to add merged layer to GUI");
@@ -454,7 +454,7 @@ public class LayersPanel extends JDialog {
         writeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.setActiveLayer(handler);
+                superAdapter.setActiveLayerHandler(handler);
             }
         });
         writeButton.setToolTipText("Enable drawing of annotations to this layer; Hold down shift key, then click and drag on map");

@@ -32,12 +32,11 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.track.feature.FeatureFunction;
-import net.sf.jsi.*;
+import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
 import org.broad.igv.util.Pair;
 
 import java.awt.*;
-import java.awt.Rectangle;
 import java.util.*;
 import java.util.List;
 
@@ -253,6 +252,7 @@ public class Feature2DHandler {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
 
+
                 featureRtrees.get(key).nearestN(
                         getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
                         new TIntProcedure() {         // a procedure whose execute() method will be called with the results
@@ -263,35 +263,11 @@ public class Feature2DHandler {
                             }
                         },
                         n,                            // the number of nearby rectangles to find
-                        Float.POSITIVE_INFINITY       // Don't bother searching further than this. POSITIVE_INFINITY means search everything
+                        Float.MAX_VALUE               // Don't bother searching further than this. MAX_VALUE means search everything
                 );
 
             } else {
                 foundFeatures.addAll(allFeaturesAcrossGenome.get(key));
-            }
-        }
-        return foundFeatures;
-    }
-
-    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
-        final List<Feature2D> foundFeatures = new ArrayList<>();
-        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
-
-        if (featureRtrees.containsKey(key) && layerVisible) {
-            if (sparseFeaturePlottingEnabled) {
-                featureRtrees.get(key).intersects(
-                        selectionWindow,
-                        new TIntProcedure() {     // a procedure whose execute() method will be called with the results
-                            public boolean execute(int i) {
-                                Feature2D feature = allFeaturesAcrossGenome.get(key).get(i);
-                                foundFeatures.add(feature);
-                                return true;      // return true here to continue receiving results
-                            }
-                        }
-                );
-            } else {
-                List<Feature2D> features = allFeaturesAcrossGenome.get(key);
-                if (features != null) foundFeatures.addAll(features);
             }
         }
         return foundFeatures;

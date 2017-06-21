@@ -48,11 +48,11 @@ public class AssemblyIntermediateProcessor {
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
         AssemblyIntermediateProcessor.superAdapter = superAdapter;
-        List<Feature2DList> allFeatureLists = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+        List<Feature2DList> allFeatureLists = superAdapter.getAllLayers().get(0).getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoopLists();
         Feature2DList features = allFeatureLists.get(0);
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
-        superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+        superAdapter.getAllLayers().get(0).getAnnotationLayer().getFeatureHandler().remakeRTree();
         HiCGlobals.assemblyModeEnabled = true;
         //superAdapter.getHiC().clearMatrixZoomDataCache();
         superAdapter.refresh();
@@ -61,8 +61,11 @@ public class AssemblyIntermediateProcessor {
     private static void makeAssemblyChanges(Feature2DList features, Chromosome chromosome, String[] encodedInstructions) {
         final String key = Feature2DList.getKey(chromosome, chromosome);
 
-        features.convertFeaturesToContigs(key);
-        List<Feature2D> contigs = features.get(key);
+        List<Feature2D> contigs = new ArrayList<>();
+        for (Feature2D entry : features.get(key)) {
+            contigs.add(entry.toContig());
+        }
+        Collections.sort(contigs);
 
         for (String instruction : encodedInstructions) {
             if (instruction.startsWith("-")) {
@@ -81,6 +84,8 @@ public class AssemblyIntermediateProcessor {
         }
 
         recalculateAllAlterations(contigs);
+
+        features.setWithKey(key, contigs);
     }
 
     private static void recalculateAllAlterations(List<Feature2D> contigs) {
@@ -108,11 +113,7 @@ public class AssemblyIntermediateProcessor {
 
         //System.out.println("x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
 
-//        System.out.println(superAdapter);
-//        System.out.println(superAdapter.getContigLayer());
-//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
-//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
-        Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
+        Feature2DHandler handler = superAdapter.getAllLayers().get(0).getAnnotationLayer().getFeatureHandler();
         List<Feature2DList> allFeatureLists = handler.getAllVisibleLoopLists();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
@@ -180,6 +181,7 @@ public class AssemblyIntermediateProcessor {
 
         for (Block block : blockList) {
             List<ContactRecord> alteredContacts = new ArrayList<>();
+            System.out.println("contacts l1 " + block.getContactRecords().size());
             for (ContactRecord record : block.getContactRecords()) {
                 boolean includeXRecord = false;
                 boolean includeYRecord = false;
@@ -253,13 +255,5 @@ public class AssemblyIntermediateProcessor {
         if (growingContig != null) mergedContigs.add(growingContig);
 
         return new ArrayList<>(new HashSet<>(mergedContigs));
-    }
-
-    public static SuperAdapter getSuperAdapter() {
-        return superAdapter;
-    }
-
-    public static void setSuperAdapter(SuperAdapter newSuperAdapter) {
-        superAdapter = newSuperAdapter;
     }
 }
