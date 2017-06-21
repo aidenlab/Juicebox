@@ -1325,7 +1325,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //
 //    }
 
-    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
+//    private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
     private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
