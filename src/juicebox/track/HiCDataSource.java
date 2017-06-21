@@ -36,7 +36,7 @@ import java.util.Collection;
  *         Date: 8/1/13
  *         Time: 7:51 PM
  */
-interface HiCDataSource {
+public interface HiCDataSource {
 
     String getName();
 

@@ -171,6 +171,9 @@ public class SuperAdapter {
     }
 
     public LoadEncodeAction getEncodeAction() {
+        if (layersPanel == null){
+            layersPanel = new LayersPanel(this);
+        }
         return layersPanel.getEncodeAction();
     }
 

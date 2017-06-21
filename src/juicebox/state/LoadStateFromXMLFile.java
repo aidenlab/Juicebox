@@ -26,10 +26,7 @@ package juicebox.state;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.HiCDataTrack;
-import juicebox.track.HiCTrack;
-import juicebox.track.LoadAction;
-import juicebox.track.LoadEncodeAction;
+import juicebox.track.*;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.renderer.DataRange;
@@ -194,7 +191,8 @@ public class LoadStateFromXMLFile {
                         if (trackURLs[i].contains(loadedTrack.getName())) {
                             loadedTrack.setName(trackNames[i].trim());
                             if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
-                                HiCDataTrack hiCDataTrack = (HiCDataTrack) loadedTrack;
+                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
+                                HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, loadedTrack.getLocator(), source);
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");
                                 for (String aConfigTrackInfo : configTrackInfo) {
 
