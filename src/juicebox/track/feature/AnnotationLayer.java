@@ -52,11 +52,13 @@ public class AnnotationLayer {
     private PrintWriter tempWriter;
     private File tempFile;
     private ArrayList<String> attributeKeys;
+    private LayerType layerType;
 
     public AnnotationLayer() {
         id = i++;
         firstSave = true;
         reset();
+        layerType = LayerType.DEFAULT;
     }
 
     public AnnotationLayer(Feature2DList inputList) {
@@ -78,6 +80,14 @@ public class AnnotationLayer {
     public void clearAnnotations() {
         reset();
         deleteTempFile();
+    }
+
+    public LayerType getLayerType() {
+        return layerType;
+    }
+
+    public void setLayerType(LayerType layerType) {
+        this.layerType = layerType;
     }
 
     //add annotation to feature2D list
@@ -335,6 +345,8 @@ public class AnnotationLayer {
     public Feature2DList getFeatureList() {
         return customAnnotationRTreeHandler.getFeatureList();
     }
+
+    private enum LayerType {DEFAULT, EDIT, MAIN, GROUP}
 
 
 }
