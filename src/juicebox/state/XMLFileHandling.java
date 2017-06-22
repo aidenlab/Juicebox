@@ -105,8 +105,12 @@ public class XMLFileHandling {
             visibleLoops.add(handler.getAllVisibleLoops());
         }
         if (visibleLoops != null && !visibleLoops.isEmpty()) {
-            textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
-                    dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
+            try {
+                textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
+                        dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
+            } catch (Exception e) {
+
+            }
         }
 
         //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,
