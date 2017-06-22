@@ -26,7 +26,6 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.gui.SuperAdapter;
-import org.broad.igv.track.AbstractTrack;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
