@@ -37,6 +37,7 @@ import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
@@ -975,15 +976,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(miSelect);
         }
 
-        final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Invert");
-        mi.setSelected(straightEdgeEnabled);
-        mi.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
+        miInvert.setSelected(straightEdgeEnabled);
+        miInvert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+
+                System.out.println(selectedFeatures.size());
                 for (Feature2D feature2D : selectedFeatures) {
-                    if (feature2D instanceof Contig2D) {
-                        ((Contig2D) feature2D).toggleInversion();
-                    }
+                    Contig2D contig2D = feature2D.toContig();
+                    contig2D.toggleInversion();
                 }
 
                 //invert
@@ -991,7 +993,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // invert action here
             }
         });
-        menu.add(mi);
+        menu.add(miInvert);
 
         /* @meh what is this for?
         final JCheckBoxMenuItem mi2 = new JCheckBoxMenuItem("Send to back");
@@ -1006,8 +1008,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         */
 
         // internally, single sync = what we previously called sync
-        final JMenuItem mi3 = new JMenuItem("Exit Assembly Editing");
-        mi3.addActionListener(new ActionListener() {
+        final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
+        miExit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // assemblyMode = false;
@@ -1018,7 +1020,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 activelyEditingAssembly = false;
             }
         });
-        menu.add(mi3);
+        menu.add(miExit);
 
         return menu;
     }
@@ -1315,6 +1317,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 feature2D.setSetIsSelectedColorUpdate(status);
             }
         }
+    }
+
+    public void toggleActivelyEditingAssembly() {
+        this.activelyEditingAssembly = !this.activelyEditingAssembly;
     }
 
     //private enum AdjustAnnotation {LEFT, RIGHT, NONE}

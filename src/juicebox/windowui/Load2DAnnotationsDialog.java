@@ -31,6 +31,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
@@ -56,6 +57,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;
     private final JButton openButton;
+    private final JButton openAssemblyButton;
     private final JTextField fTextField;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
@@ -108,6 +110,19 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         add(centerPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
+
+        openAssemblyButton = new JButton("Open Assembly");
+        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.assemblyModeEnabled = Boolean.TRUE;
+                superAdapter.getHeatmapPanel().toggleActivelyEditingAssembly();
+                AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
+                safeLoadAnnotationFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                Load2DAnnotationsDialog.this.setVisible(false);
+            }
+        });
 
         openButton = new JButton("Open");
         openButton.setEnabled(false);
@@ -173,6 +188,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
                 (int) openButton.getPreferredSize().getHeight()));
 
+        buttonPanel.add(openAssemblyButton);
         buttonPanel.add(openButton);
         buttonPanel.add(urlButton);
         buttonPanel.add(cancelButton);
@@ -421,8 +437,10 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         if (node == null) return;
 
         if (node.isLeaf()) {
+            openAssemblyButton.setEnabled(true);
             openButton.setEnabled(true);
         } else {
+            openAssemblyButton.setEnabled(false);
             openButton.setEnabled(false);
         }
     }

@@ -24,7 +24,9 @@
 
 package juicebox.windowui;
 
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCTrack;
 import juicebox.track.LoadAction;
@@ -251,12 +253,10 @@ public class LayersPanel extends JDialog {
         importButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 if (load2DAnnotationsDialog == null) {
                     load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
                 }
                 load2DAnnotationsDialog.setVisible(Boolean.TRUE);
-
             }
         });
         importButton.setToolTipText("Import annotations into new layer");
