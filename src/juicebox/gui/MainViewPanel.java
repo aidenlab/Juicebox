@@ -479,7 +479,7 @@ public class MainViewPanel {
         //========= mouse hover text ======
         JPanel tooltipPanel = new JPanel(new BorderLayout());
         tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setPreferredSize(new Dimension(210, 490));
+        tooltipPanel.setPreferredSize(new Dimension(210, 700));
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
@@ -489,20 +489,29 @@ public class MainViewPanel {
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         //*Dimension prefSize = new Dimension(210, 490);
-        Dimension prefSize = new Dimension(210, 390);
+        Dimension prefSize = new Dimension(210, 210);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
         JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
         tooltipScroller.setBackground(Color.white);
         tooltipScroller.setBorder(null);
 
-        tooltipPanel.setPreferredSize(new Dimension(210, 500));
-        tooltipPanel.add(tooltipScroller);
+        JPanel annotationsLayerPanel = new JPanel(new BorderLayout());
+        annotationsLayerPanel.setBackground(Color.gray);
+        annotationsLayerPanel.setPreferredSize(new Dimension(210, 245));
+//        annotationsLayerPanel.setToolTipText("Hello!");
+
+//        tooltipPanel.setPreferredSize(new Dimension(210, 500));
+        tooltipPanel.add(tooltipScroller, BorderLayout.NORTH);
+        tooltipPanel.add(annotationsLayerPanel, BorderLayout.SOUTH);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
         tooltipPanel.setBackground(Color.white);
         tooltipPanel.setBorder(null);
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
+
+//        JPanel annotationsLayerPanel = new JPanel(new BorderLayout());
+////        annotationsLayerPanel.setBackground(Color.white);
 
         annotationsPanelToggleButton.addChangeListener(new ChangeListener() {
             @Override
