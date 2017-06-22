@@ -86,7 +86,7 @@ public class LayersPanel extends JDialog {
 
         setSize(950, 700);
         add(tabbedPane);
-        setVisible(true);
+        //setVisible(true);
 
         this.addWindowListener(new WindowListener() {
             public void windowActivated(WindowEvent e) {
@@ -118,6 +118,7 @@ public class LayersPanel extends JDialog {
     }
 
     private JPanel generate1DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
+
         final JPanel layerBoxGUI = new JPanel();
         layerBoxGUI.setLayout(new GridLayout(0, 1));
         JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
