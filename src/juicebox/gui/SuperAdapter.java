@@ -172,6 +172,7 @@ public class SuperAdapter {
     public LoadEncodeAction getEncodeAction() {
         if (layersPanel == null){
             layersPanel = new LayersPanel(this);
+            setLayersPanelVisible(false);
         }
         return layersPanel.getEncodeAction();
     }
@@ -889,6 +890,7 @@ public class SuperAdapter {
             layersPanel.setVisible(status);
         } else {
             if (status) layersPanel = new LayersPanel(this);
+            layersPanel.setVisible(status);
         }
         setLayersPanelGUIControllersSelected(status);
     }
