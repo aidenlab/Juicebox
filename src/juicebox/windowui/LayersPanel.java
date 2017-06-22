@@ -24,9 +24,8 @@
 
 package juicebox.windowui;
 
-import juicebox.HiCGlobals;
+import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCTrack;
 import juicebox.track.LoadAction;
@@ -300,6 +299,7 @@ public class LayersPanel extends JDialog {
             layerBoxGUI.repaint();
             superAdapter.setActiveLayerHandler(handler);
             superAdapter.updateLayerDeleteStatus();
+            updateMiniAnnotationsLayerPanel(superAdapter);
         } catch (Exception ee) {
             System.err.println("Unable to add new layer to GUI");
         }
@@ -363,6 +363,7 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 handler.setLayerVisibility(toggleVisibleButton.isSelected());
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -486,6 +487,7 @@ public class LayersPanel extends JDialog {
                     superAdapter.removeLayer(handler);
                     layerBoxGUI.revalidate();
                     layerBoxGUI.repaint();
+                    updateMiniAnnotationsLayerPanel(superAdapter);
                     superAdapter.repaint();
                 }
             }
@@ -502,6 +504,7 @@ public class LayersPanel extends JDialog {
                 layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -516,6 +519,7 @@ public class LayersPanel extends JDialog {
                 layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -740,6 +744,13 @@ public class LayersPanel extends JDialog {
         g.dispose();
 
         return newImage;
+    }
+
+    public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
+        MainViewPanel mainViewPanel = superAdapter.getMainViewPanel();
+        mainViewPanel.setAnnotationsLayerPanel(mainViewPanel.generate2DAnnotationsLayerSelectionPanel(superAdapter));
+        mainViewPanel.getAnnotationsLayerPanel().revalidate();
+        mainViewPanel.getAnnotationsLayerPanel().repaint();
     }
 
     public LoadAction getTrackLoadAction() {
