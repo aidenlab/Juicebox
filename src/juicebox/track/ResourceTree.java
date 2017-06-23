@@ -70,7 +70,6 @@ public class ResourceTree {
         dialog = null;
         loadedLocators = new HashSet<>();
 
-
         dialogTree = new JTree(new DefaultMutableTreeNode("Available feature sets"));
         dialogTree.setExpandsSelectedPaths(true);
         dialogTree.setCellRenderer(new NodeRenderer());
@@ -172,7 +171,6 @@ public class ResourceTree {
         JPanel buttonPanel = new JPanel();
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        JButton add1DButton = new JButton("Add Local...");
 
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -224,45 +222,7 @@ public class ResourceTree {
             }
         });
 
-        add1DButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
-
-                    if (oneDfiles != null && oneDfiles.length > 0) {
-                        for (File file : oneDfiles) {
-
-                            String path = file.getAbsolutePath();
-                            openAnnotationPath = new File(path);
-                            ResourceLocator locator = new ResourceLocator(path);
-                            locator.setName(file.getName());
-                            locator.setType(file.getName());
-                            CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                            leafResources.add(resource);
-
-
-                            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                            oneDFeatureRoot.add(treeNode);
-                            if (addedNodes == null) {
-                                addedNodes = new LinkedHashSet<>();
-                            }
-                            addedNodes.add(treeNode);
-                            ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
-                            treeNode.setUserObject(resource);
-
-                            expandTree();
-                            dialogTree.updateUI();
-
-                        }
-
-                    }
-                }
-            });
-
-
         buttonPanel.add(okButton);
-
-        buttonPanel.add(add1DButton);
         buttonPanel.add(cancelButton);
 
         dialog.add(treePanel);
@@ -274,6 +234,54 @@ public class ResourceTree {
         dialog.setLocationRelativeTo(parent);
         dialog.setVisible(true);
 
+    }
+
+    public boolean addLocalButtonActionPerformed() {
+        Boolean localFilesAdded = Boolean.FALSE;
+
+        File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
+
+        if (oneDfiles != null && oneDfiles.length > 0) {
+            for (File file : oneDfiles) {
+
+                if (file == null || !file.exists()) continue;
+
+                localFilesAdded = Boolean.TRUE;
+
+                String path = file.getAbsolutePath();
+                openAnnotationPath = new File(path);
+                ResourceLocator locator = new ResourceLocator(path);
+                locator.setName(file.getName());
+                locator.setType(file.getName());
+                CheckableResource resource = new CheckableResource(file.getName(), true, locator);
+                leafResources.add(resource);
+
+                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+                oneDFeatureRoot.add(treeNode);
+                if (addedNodes == null) {
+                    addedNodes = new LinkedHashSet<>();
+                }
+                addedNodes.add(treeNode);
+                ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
+                treeNode.setUserObject(resource);
+
+                expandTree();
+                dialogTree.updateUI();
+            }
+        }
+        return localFilesAdded;
+    }
+
+    private boolean checkDuplicates(File file) {
+        Boolean containsFile = Boolean.FALSE;
+        if (addedNodes != null) {
+            for (DefaultMutableTreeNode treeNode : addedNodes) {
+                if (((CheckableResource) treeNode.getUserObject()).getResourceLocator().getPath().equals(file.getAbsolutePath())) {
+                    containsFile = Boolean.TRUE;
+                }
+            }
+        }
+        return containsFile;
     }
 
     private void removeResourceFromLeaf(CheckableResource resource, List<CheckableResource> leafResources) {

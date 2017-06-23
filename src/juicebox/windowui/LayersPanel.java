@@ -24,12 +24,10 @@
 
 package juicebox.windowui;
 
+import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
-import juicebox.track.HiCTrack;
-import juicebox.track.LoadAction;
-import juicebox.track.LoadEncodeAction;
-import juicebox.track.TrackConfigPanel;
+import juicebox.track.*;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.color.ColorChooserPanel;
 
@@ -85,7 +83,7 @@ public class LayersPanel extends JDialog {
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        setSize(950, 700);
+        setSize(1000, 700);
         add(tabbedPane);
         //setVisible(true);
 
@@ -127,6 +125,8 @@ public class LayersPanel extends JDialog {
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
         JButton loadBasicButton = new JButton("Load Basic Annotations...");
         buttonPanel.add(loadBasicButton);
+        JButton addLocalButton = new JButton("Add Local...");
+        buttonPanel.add(addLocalButton);
         JButton loadEncodeButton = new JButton("Load ENCODE Tracks...");
         buttonPanel.add(loadEncodeButton);
         JButton loadFromURLButton = new JButton("Load from URL...");
@@ -156,6 +156,22 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 trackLoadAction.actionPerformed(e);
+            }
+        });
+
+        addLocalButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiC hiC = superAdapter.getHiC();
+                if (hiC.getResourceTree() == null) {
+//                    Document tempDocument =
+                    ResourceTree resourceTree = new ResourceTree(superAdapter.getHiC(), null);
+                    hiC.setResourceTree(resourceTree);
+                }
+                Boolean loadSuccessful = superAdapter.getHiC().getResourceTree().addLocalButtonActionPerformed();
+                if (loadSuccessful) {
+                    trackLoadAction.actionPerformed(e);
+                }
             }
         });
 

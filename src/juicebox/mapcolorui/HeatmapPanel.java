@@ -35,7 +35,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -983,11 +982,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                System.out.println(selectedFeatures.size());
-                for (Feature2D feature2D : selectedFeatures) {
-                    Contig2D contig2D = feature2D.toContig();
-                    contig2D.toggleInversion();
-                }
+//                System.out.println(selectedFeatures.size());
+//                for (Feature2D feature2D : selectedFeatures) {
+//                    Contig2D contig2D = feature2D.toContig();
+//                    contig2D.toggleInversion();
+//                }
 
                 //invert
                 // then move around
