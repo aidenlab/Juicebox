@@ -978,7 +978,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
 
         final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-        miInvert.setSelected(straightEdgeEnabled);
+//        miInvert.setSelected(straightEdgeEnabled);
         miInvert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1018,6 +1018,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (selectedFeatures != null) {
                     selectedFeatures.clear();
                 }
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 activelyEditingAssembly = false;
             }
         });
@@ -1256,7 +1257,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(feature2D.tooltipText());
-                    txt.append("Inverted: ");
+                    txt.append("Inverted = ");
                     txt.append("<b>");
                     txt.append(isInverted);
                     txt.append("</b>");
