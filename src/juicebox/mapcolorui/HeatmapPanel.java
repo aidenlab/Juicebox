@@ -1478,14 +1478,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
 
-                if (selectedFeatures == null || !selectedFeatures.isEmpty()) {
-                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                }
-
                 updateSelectedFeatures(false);
                 selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
                 updateSelectedFeatures(true);
 
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
 
