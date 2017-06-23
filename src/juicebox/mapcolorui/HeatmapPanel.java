@@ -37,7 +37,6 @@ import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
@@ -971,6 +970,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 public void actionPerformed(ActionEvent e) {
                     updateSelectedFeatures(false);
                     selectedFeatures.clear();
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 }
             });
             menu.add(miSelect);
@@ -1248,31 +1248,35 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(superAdapter.getTrackPanelPrintouts(x, y));
             }
 
-            Point currMouse = new Point(x, y);
-            double minDistance = Double.POSITIVE_INFINITY;
-            //mouseIsOverFeature = false;
-            mostRecentRectFeaturePair = null;
-
-            //List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
-            //neighbors.addAll(customFeaturePairs);
-
-
-            for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
-                if (loop.getFirst().contains(x, y)) {
-                    // TODO - why is this code duplicated in this file?
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                for (Feature2D feature2D : selectedFeatures) {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(loop.getSecond().tooltipText());
+                    txt.append(feature2D.tooltipText());
                     txt.append("</span>");
+                }
+            } else {
+                Point currMouse = new Point(x, y);
+                double minDistance = Double.POSITIVE_INFINITY;
+                //mouseIsOverFeature = false;
+                mostRecentRectFeaturePair = null;
 
-                    double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        mostRecentRectFeaturePair = loop;
+                for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
+                    if (loop.getFirst().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(loop.getSecond().tooltipText());
+                        txt.append("</span>");
+
+                        double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            mostRecentRectFeaturePair = loop;
+                        }
+                        //mouseIsOverFeature = true;
                     }
-                    //mouseIsOverFeature = true;
                 }
             }
-
+            txt.append("<br>");
             txt.append("</html>");
             return txt.toString();
         }
@@ -1469,6 +1473,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 updateSelectedFeatures(false);
                 selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
                 updateSelectedFeatures(true);
+
+                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
 
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 restoreDefaultVariables();
