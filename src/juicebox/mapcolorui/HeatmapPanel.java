@@ -56,6 +56,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -1249,9 +1250,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
             if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                Collections.sort(selectedFeatures);
                 for (Feature2D feature2D : selectedFeatures) {
+                    String isInverted = String.valueOf(feature2D.toContig().isInverted());
+                    isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(feature2D.tooltipText());
+                    txt.append("Inverted: ");
+                    txt.append("<b>");
+                    txt.append(isInverted);
+                    txt.append("</b>");
                     txt.append("</span>");
                 }
             } else {
