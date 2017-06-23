@@ -777,7 +777,7 @@ public class LayersPanel extends JDialog {
     }
 
     public void updateLayers2DPanel(SuperAdapter superAdapter) {
-        //layers2DPanel.remove(0);
+        layers2DPanel.remove(0);
         layers2DPanel.add(generateLayers2DScrollPane(superAdapter), BorderLayout.CENTER, 0);
         tabbedPane.updateUI();
         tabbedPane.repaint();
