@@ -59,7 +59,6 @@ public class AnnotationLayer {
         reset();
         layerType = LayerType.DEFAULT;
     }
-
     public AnnotationLayer(Feature2DList inputList) {
         this();
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
@@ -345,7 +344,8 @@ public class AnnotationLayer {
         return customAnnotationRTreeHandler.getFeatureList();
     }
 
-    private enum LayerType {DEFAULT, EDIT, MAIN, GROUP}
+    public enum LayerType {DEFAULT, EDIT, MAIN, GROUP}
+
 
 
 }
