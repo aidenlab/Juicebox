@@ -31,7 +31,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
@@ -116,10 +116,10 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HiCGlobals.assemblyModeEnabled = Boolean.TRUE;
-                superAdapter.getHeatmapPanel().toggleActivelyEditingAssembly();
-                AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
-                safeLoadAnnotationFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                // HiCGlobals.assemblyModeEnabled = Boolean.TRUE;
+                // superAdapter.getHeatmapPanel().toggleActivelyEditingAssembly();
+                // AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
+                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                 Load2DAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -232,6 +232,20 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         });
     }
 
+    public static TreePath getPath(TreeNode treeNode) {
+        List<Object> nodes = new ArrayList<>();
+        if (treeNode != null) {
+            nodes.add(treeNode);
+            treeNode = treeNode.getParent();
+            while (treeNode != null) {
+                nodes.add(0, treeNode);
+                treeNode = treeNode.getParent();
+            }
+        }
+
+        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
     public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
         // Get the main window
         final MainWindow window = superAdapter.getMainWindow();
@@ -285,20 +299,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         Load2DAnnotationsDialog.this.setVisible(localFilesAdded);
     }
 
-    public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<>();
-        if (treeNode != null) {
-            nodes.add(treeNode);
-            treeNode = treeNode.getParent();
-            while (treeNode != null) {
-                nodes.add(0, treeNode);
-                treeNode = treeNode.getParent();
-            }
-        }
-
-        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
-    }
-
     private void expandTree() {
         TreeNode root = (TreeNode) tree.getModel().getRoot();
         TreePath rootPath = new TreePath(root);
@@ -335,6 +335,51 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                     AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                     handler.setLayerNameAndField(info.itemName);
                     handler.loadLoopList(info.itemURL, chromosomeHandler);
+                } catch (Exception ee) {
+                    System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
+                    MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
+                    loadedAnnotationsMap.remove(path);
+                }
+            }
+        }
+    }
+
+    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
+                                       final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+            }
+        };
+        superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
+    }
+
+    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
+                                         JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        for (TreePath path : paths) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            if (node != null && node.isLeaf()) {
+                ItemInfo info = (ItemInfo) node.getUserObject();
+                try {
+                    AnnotationLayerHandler groupHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    groupHandler.setLayerNameAndField("Group");
+                    groupHandler.loadLoopList(info.itemURL, chromosomeHandler);
+                    groupHandler.setColorOfAllAnnotations(Color.blue);
+                    groupHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.GROUP);
+
+                    AnnotationLayerHandler mainHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    mainHandler.setLayerNameAndField("Main");
+                    mainHandler.loadLoopList(info.itemURL, chromosomeHandler);
+                    mainHandler.setColorOfAllAnnotations(Color.green);
+                    mainHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.MAIN);
+
+                    AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    editHandler.setColorOfAllAnnotations(Color.yellow);
+                    editHandler.setLayerNameAndField("Edit");
+                    editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+
                 } catch (Exception ee) {
                     System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
                     MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
