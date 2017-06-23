@@ -37,7 +37,6 @@ import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
@@ -57,6 +56,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -971,13 +971,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 public void actionPerformed(ActionEvent e) {
                     updateSelectedFeatures(false);
                     selectedFeatures.clear();
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 }
             });
             menu.add(miSelect);
         }
 
         final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-        miInvert.setSelected(straightEdgeEnabled);
+//        miInvert.setSelected(straightEdgeEnabled);
         miInvert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1017,6 +1018,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (selectedFeatures != null) {
                     selectedFeatures.clear();
                 }
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 activelyEditingAssembly = false;
             }
         });
@@ -1248,31 +1250,42 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(superAdapter.getTrackPanelPrintouts(x, y));
             }
 
-            Point currMouse = new Point(x, y);
-            double minDistance = Double.POSITIVE_INFINITY;
-            //mouseIsOverFeature = false;
-            mostRecentRectFeaturePair = null;
-
-            //List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), x, y, NUM_NEIGHBORS);
-            //neighbors.addAll(customFeaturePairs);
-
-
-            for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
-                if (loop.getFirst().contains(x, y)) {
-                    // TODO - why is this code duplicated in this file?
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                Collections.sort(selectedFeatures);
+                for (Feature2D feature2D : selectedFeatures) {
+                    String isInverted = String.valueOf(feature2D.toContig().isInverted());
+                    isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(loop.getSecond().tooltipText());
+                    txt.append(feature2D.tooltipText());
+                    txt.append("Inverted = ");
+                    txt.append("<b>");
+                    txt.append(isInverted);
+                    txt.append("</b>");
                     txt.append("</span>");
+                }
+            } else {
+                Point currMouse = new Point(x, y);
+                double minDistance = Double.POSITIVE_INFINITY;
+                //mouseIsOverFeature = false;
+                mostRecentRectFeaturePair = null;
 
-                    double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        mostRecentRectFeaturePair = loop;
+                for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
+                    if (loop.getFirst().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(loop.getSecond().tooltipText());
+                        txt.append("</span>");
+
+                        double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            mostRecentRectFeaturePair = loop;
+                        }
+                        //mouseIsOverFeature = true;
                     }
-                    //mouseIsOverFeature = true;
                 }
             }
-
+            txt.append("<br>");
             txt.append("</html>");
             return txt.toString();
         }
@@ -1470,9 +1483,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
                 updateSelectedFeatures(true);
 
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 restoreDefaultVariables();
-
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
                 Runnable runnable = new Runnable() {
