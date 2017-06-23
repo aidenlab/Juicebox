@@ -92,7 +92,7 @@ public class MainViewPanel {
     private JPanel tooltipPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
-    private int miniButtonSize = 25;
+    private int miniButtonSize = 22;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -590,8 +590,22 @@ public class MainViewPanel {
         final JTextField nameField = new JTextField(handler.getLayerName(), 10);
         nameField.getDocument().addDocumentListener(anyTextChangeListener(handler, nameField));
         nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
-        nameField.setMaximumSize(new Dimension(30, 20));
+        nameField.setMaximumSize(new Dimension(20, 20));
         handler.setNameTextField(nameField);
+
+        /* Sets Active Layer */
+        final JToggleButton writeButton = createToggleIconButton("/images/layer/pencil.png", "/images/layer/pencil_gray.png", handler.isActiveLayer(superAdapter));
+        handler.setActiveLayerButton(writeButton);
+        writeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setActiveLayerHandler(handler);
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
+            }
+        });
+        writeButton.setToolTipText("Changes Active Layer");
 
         /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked_green.png",
@@ -601,6 +615,7 @@ public class MainViewPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 handler.setLayerVisibility(toggleVisibleButton.isSelected());
+                updateLayers2DPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -615,6 +630,7 @@ public class MainViewPanel {
                 twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
                 twoDAnnotationsLayerSelectionPanel.revalidate();
                 twoDAnnotationsLayerSelectionPanel.repaint();
+                updateLayers2DPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -629,13 +645,14 @@ public class MainViewPanel {
                 twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
                 twoDAnnotationsLayerSelectionPanel.revalidate();
                 twoDAnnotationsLayerSelectionPanel.repaint();
+                updateLayers2DPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
         downButton.setToolTipText("Move this layer down (drawing order)");
 
         parentPanel.add(nameField);
-        Component[] allComponents = new Component[]{toggleVisibleButton, upButton, downButton};
+        Component[] allComponents = new Component[]{writeButton, toggleVisibleButton, upButton, downButton};
         for (Component component : allComponents) {
             if (component instanceof AbstractButton) {
                 component.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
@@ -1151,6 +1168,15 @@ public class MainViewPanel {
         annotationsPanelToggleButton.setSelected(status);
     }
 
+    private void updateLayers2DPanel(SuperAdapter superAdapter) {
+        superAdapter.getLayersPanel().updateLayers2DPanel(superAdapter);
+    }
+
+    public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
+        setAnnotationsLayerPanel(generate2DAnnotationsLayerSelectionPanel(superAdapter));
+        annotationsLayerPanel.revalidate();
+        annotationsLayerPanel.repaint();
+    }
 
     /*public boolean isPearsonDisplayed() {
         return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;

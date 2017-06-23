@@ -633,6 +633,10 @@ public class SuperAdapter {
         return mainWindow;
     }
 
+    public LayersPanel getLayersPanel() {
+        return layersPanel;
+    }
+
     public void revalidate() {
         mainWindow.revalidate();
     }

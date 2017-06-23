@@ -53,7 +53,6 @@ public class AnnotationLayer {
     private File tempFile;
     private ArrayList<String> attributeKeys;
     private LayerType layerType;
-
     public AnnotationLayer() {
         id = i++;
         firstSave = true;
