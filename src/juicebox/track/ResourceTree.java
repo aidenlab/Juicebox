@@ -480,6 +480,9 @@ public class ResourceTree {
             treeNode.setAllowsChildren(false);
             leafResources.add(resource);
         } else {
+            locator = new ResourceLocator(name);
+            CheckableResource resource = new CheckableResource(name, false, locator);
+            treeNode.setUserObject(resource);
             treeNode.setAllowsChildren(true);
         }
     }
@@ -537,27 +540,29 @@ public class ResourceTree {
     }
 
     public void checkTrackBoxesForReloadState(String track) {
-
         Enumeration<?> en = ((DefaultMutableTreeNode) dialogTree.getModel().getRoot()).preorderEnumeration();
         //skip root
         en.nextElement();
         while (en.hasMoreElements()) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
-            CheckableResource resource = (CheckableResource) node.getUserObject();
-            if (node.isLeaf()) {
-                if (resource.dataResourceLocator.getPath() != null) {
-                    if (resource.dataResourceLocator.getName().contains(track)) {
-                        resource.setSelected(true);
-                        resource.setEnabled(true);
-                        //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
+            try {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
+                CheckableResource resource = (CheckableResource) node.getUserObject();
+                if (node.isLeaf()) {
+                    if (resource.dataResourceLocator.getPath() != null) {
+                        if (resource.dataResourceLocator.getName().contains(track)) {
+                            resource.setSelected(true);
+                            resource.setEnabled(true);
+                            //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
+                        }
                     }
+                } else if (ResourceEditor.hasSelectedChildren(node)) {
+                    resource.setSelected(true);
+                    resource.setEnabled(true);
                 }
-            } else if (ResourceEditor.hasSelectedChildren(node)) {
-                resource.setSelected(true);
-                resource.setEnabled(true);
+            } catch (Exception e) {
+            }
             }
         }
-    }
 
 
     /**
