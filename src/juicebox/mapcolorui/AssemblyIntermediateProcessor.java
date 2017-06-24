@@ -74,8 +74,8 @@ public class AssemblyIntermediateProcessor {
                         showInvalidInstructionErrorMessage(instruction);
                         continue;
                     }
-                    Integer startIndex = Math.abs(Integer.parseInt(instruction.split(":")[0]));
-                    Integer endIndex = Math.abs(Integer.parseInt(instruction.split(":")[1]));
+                    Integer startIndex = Math.abs(Integer.parseInt(startIndexString));
+                    Integer endIndex = Math.abs(Integer.parseInt(endIndexString));
                     // Invert each of the sub-contigs
                     for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
                         invertEntryAt(contigs, currentIndex);
