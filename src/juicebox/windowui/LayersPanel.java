@@ -164,11 +164,10 @@ public class LayersPanel extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 HiC hiC = superAdapter.getHiC();
                 if (hiC.getResourceTree() == null) {
-//                    Document tempDocument =
                     ResourceTree resourceTree = new ResourceTree(superAdapter.getHiC(), null);
                     hiC.setResourceTree(resourceTree);
                 }
-                Boolean loadSuccessful = superAdapter.getHiC().getResourceTree().addLocalButtonActionPerformed();
+                Boolean loadSuccessful = superAdapter.getHiC().getResourceTree().addLocalButtonActionPerformed(superAdapter);
                 if (loadSuccessful) {
                     trackLoadAction.actionPerformed(e);
                 }

@@ -276,7 +276,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 if (loadedAnnotationsMap.containsKey(path)) {
                     if (HiCGlobals.guiIsCurrentlyActive) {
                         int dialogResult = JOptionPane.showConfirmDialog(window,
-                                "File is already loaded. Would you like to overwrite it?", "Warning",
+                                file.getName() + " is already loaded. Would you like to overwrite it?", "Warning",
                                 JOptionPane.YES_NO_OPTION);
                         if (dialogResult == JOptionPane.YES_OPTION) {
                             customAddedFeatures.remove(loadedAnnotationsMap.get(path));
