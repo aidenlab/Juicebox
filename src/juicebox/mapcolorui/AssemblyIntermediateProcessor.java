@@ -66,44 +66,50 @@ public class AssemblyIntermediateProcessor {
 
         for (String instruction : encodedInstructions) {
             if (instruction.startsWith("-")) {
-                if (instruction.contains(":")) {
-                    String[] contigIndices = instruction.split(":");
-                    String startIndexString = contigIndices[0];
-                    String endIndexString = contigIndices[1];
-                    if (!(isNumeric(startIndexString) && isNumeric(endIndexString))) {
-                        showInvalidInstructionErrorMessage(instruction);
-                        continue;
-                    }
-                    Integer startIndex = Math.abs(Integer.parseInt(startIndexString));
-                    Integer endIndex = Math.abs(Integer.parseInt(endIndexString));
-                    // Invert each of the sub-contigs
-                    for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
-                        invertEntryAt(contigs, currentIndex);
-                    }
-                    // Reverse the order of the sub-contigs
-                    for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
-                        moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
-                        moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
-                    }
-                } else {
-                    if (!isNumeric(instruction)) {
-                        showInvalidInstructionErrorMessage(instruction);
-                        continue;
-                    }
-                    invertEntryAt(contigs, Math.abs(Integer.parseInt(instruction)));
-                }
+                parseInversionInstruction(contigs, instruction);
+            } else if (instruction.contains("->")) {
+                parseTranslationInstruction(contigs, instruction);
             } else {
-                String[] indices = instruction.split("->");
-                if (!(isNumeric(indices[0]) && isNumeric(indices[1]))) {
-                    showInvalidInstructionErrorMessage(instruction);
-                    continue;
-                }
-                int currentIndex = Integer.parseInt(indices[0]);
-                int newIndex = Integer.parseInt(indices[1]);
-                moveFeatureToNewIndex(contigs, currentIndex, newIndex);
+                showInvalidInstructionErrorMessage(instruction);
             }
         }
         recalculateAllAlterations(contigs);
+    }
+
+    private static void parseInversionInstruction(List<Feature2D> contigs, String instruction) {
+        String reformattedInstruction = instruction;
+        if (!(reformattedInstruction.contains(":"))) {
+            reformattedInstruction = reformattedInstruction.concat(":").concat(reformattedInstruction);
+        }
+        String[] contigIndices = reformattedInstruction.split(":");
+        String startIndexString = contigIndices[0];
+        String endIndexString = contigIndices[1];
+        if (!(isNumeric(startIndexString) && isNumeric(endIndexString))) {
+            showInvalidInstructionErrorMessage(instruction);
+            return;
+        }
+        Integer startIndex = Math.abs(Integer.parseInt(startIndexString));
+        Integer endIndex = Math.abs(Integer.parseInt(endIndexString));
+        // Invert each of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+            invertEntryAt(contigs, currentIndex);
+        }
+        // Reverse the order of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
+        }
+    }
+
+    private static void parseTranslationInstruction(List<Feature2D> contigs, String instruction) {
+        String[] indices = instruction.split("->");
+        if (!(isNumeric(indices[0]) && isNumeric(indices[1]))) {
+            showInvalidInstructionErrorMessage(instruction);
+            return;
+        }
+        int currentIndex = Integer.parseInt(indices[0]);
+        int newIndex = Integer.parseInt(indices[1]);
+        moveFeatureToNewIndex(contigs, currentIndex, newIndex);
     }
 
     private static boolean isNumeric(String s) {
@@ -126,11 +132,17 @@ public class AssemblyIntermediateProcessor {
 
     private static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
+        if (!((currentIndex >= 0 && currentIndex < contigs.size()) && (newIndex >= 0 && newIndex < contigs.size()))) {
+            return;
+        }
         Feature2D item = contigs.remove(currentIndex);
         contigs.add(newIndex, item);
     }
 
     private static void invertEntryAt(List<Feature2D> contigs, int index) {
+        if (!(index >= 0 && index < contigs.size())) {
+            return;
+        }
         ((Contig2D) contigs.get(index)).toggleInversion();
     }
 
