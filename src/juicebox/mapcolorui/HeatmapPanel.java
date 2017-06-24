@@ -35,6 +35,7 @@ import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
@@ -1252,14 +1253,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
                 Collections.sort(selectedFeatures);
                 for (Feature2D feature2D : selectedFeatures) {
-                    String isInverted = String.valueOf(feature2D.toContig().isInverted());
-                    isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(feature2D.tooltipText());
-                    txt.append("Inverted = ");
-                    txt.append("<b>");
-                    txt.append(isInverted);
-                    txt.append("</b>");
+                    if (!(feature2D instanceof Contig2D)) {
+                        String isInverted = String.valueOf(feature2D.toContig().isInverted());
+                        isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
+                        txt.append("Inverted = ");
+                        txt.append("<b>");
+                        txt.append(isInverted);
+                        txt.append("</b>");
+                    }
                     txt.append("</span>");
                 }
             } else {

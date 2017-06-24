@@ -36,6 +36,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -65,21 +66,54 @@ public class AssemblyIntermediateProcessor {
 
         for (String instruction : encodedInstructions) {
             if (instruction.startsWith("-")) {
-                // TODO future
-                // invert selections rather than just one contig
-                // this involves inverting each of the sub contigs,
-                // but also inverting their order
-
-                invertEntryAt(contigs, Math.abs(Integer.parseInt(instruction)));
+                if (instruction.contains(":")) {
+                    String[] contigIndices = instruction.split(":");
+                    String startIndexString = contigIndices[0];
+                    String endIndexString = contigIndices[1];
+                    if (!(isNumeric(startIndexString) && isNumeric(endIndexString))) {
+                        showInvalidInstructionErrorMessage(instruction);
+                        continue;
+                    }
+                    Integer startIndex = Math.abs(Integer.parseInt(instruction.split(":")[0]));
+                    Integer endIndex = Math.abs(Integer.parseInt(instruction.split(":")[1]));
+                    // Invert each of the sub-contigs
+                    for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+                        invertEntryAt(contigs, currentIndex);
+                    }
+                    // Reverse the order of the sub-contigs
+                    for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+                        moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+                        moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
+                    }
+                } else {
+                    if (!isNumeric(instruction)) {
+                        showInvalidInstructionErrorMessage(instruction);
+                        continue;
+                    }
+                    invertEntryAt(contigs, Math.abs(Integer.parseInt(instruction)));
+                }
             } else {
                 String[] indices = instruction.split("->");
+                if (!(isNumeric(indices[0]) && isNumeric(indices[1]))) {
+                    showInvalidInstructionErrorMessage(instruction);
+                    continue;
+                }
                 int currentIndex = Integer.parseInt(indices[0]);
                 int newIndex = Integer.parseInt(indices[1]);
                 moveFeatureToNewIndex(contigs, currentIndex, newIndex);
             }
         }
-
         recalculateAllAlterations(contigs);
+    }
+
+    private static boolean isNumeric(String s) {
+        String numericRegularExpression = "[-+]?\\d*\\.?\\d+";
+        return s != null && s.matches(numericRegularExpression);
+    }
+
+    private static void showInvalidInstructionErrorMessage(String instruction) {
+        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Invalid command could not be processed: \""
+                + instruction + "\"", "Error Message", JOptionPane.ERROR_MESSAGE);
     }
 
     private static void recalculateAllAlterations(List<Feature2D> contigs) {
@@ -254,10 +288,10 @@ public class AssemblyIntermediateProcessor {
     }
 
     public static SuperAdapter getSuperAdapter() {
-        return superAdapter;
+        return AssemblyIntermediateProcessor.superAdapter;
     }
 
-    public static void setSuperAdapter(SuperAdapter newSuperAdapter) {
-        superAdapter = newSuperAdapter;
+    public static void setSuperAdapter(SuperAdapter superAdapter) {
+        AssemblyIntermediateProcessor.superAdapter = superAdapter;
     }
 }
