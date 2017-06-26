@@ -90,15 +90,7 @@ public class AssemblyIntermediateProcessor {
         }
         Integer startIndex = Math.abs(Integer.parseInt(startIndexString));
         Integer endIndex = Math.abs(Integer.parseInt(endIndexString));
-        // Invert each of the sub-contigs
-        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
-            invertEntryAt(contigs, currentIndex);
-        }
-        // Reverse the order of the sub-contigs
-        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
-            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
-            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
-        }
+        invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
     }
 
     private static void parseTranslationInstruction(List<Feature2D> contigs, String instruction) {
@@ -112,21 +104,25 @@ public class AssemblyIntermediateProcessor {
         moveFeatureToNewIndex(contigs, currentIndex, newIndex);
     }
 
-    private static boolean isNumeric(String s) {
-        String numericRegularExpression = "[-+]?\\d*\\.?\\d+";
-        return s != null && s.matches(numericRegularExpression);
+    private static void invertSingleEntryAt(List<Feature2D> contigs, int index) {
+        if (!(index >= 0 && index < contigs.size())) {
+            return;
+        }
+//        System.out.println("invert single");
+        ((Contig2D) contigs.get(index)).toggleInversion();
     }
 
-    private static void showInvalidInstructionErrorMessage(String instruction) {
-        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Invalid command could not be processed: \""
-                + instruction + "\"", "Error Message", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private static void recalculateAllAlterations(List<Feature2D> contigs) {
-        int i = 0;
-        for (Feature2D feature2D : contigs) {
-            Contig2D contig2D = feature2D.toContig();
-            i = contig2D.setNewStart(i);
+    public static void invertMultipleContiguousEntriesAt(List<Feature2D> contigs, int startIndex, int endIndex) {
+        // Invert each of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+//            System.out.println("invert mul");
+            invertSingleEntryAt(contigs, currentIndex);
+        }
+        // Reverse the order of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+//            System.out.println("translate mul");
+            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
         }
     }
 
@@ -139,11 +135,22 @@ public class AssemblyIntermediateProcessor {
         contigs.add(newIndex, item);
     }
 
-    private static void invertEntryAt(List<Feature2D> contigs, int index) {
-        if (!(index >= 0 && index < contigs.size())) {
-            return;
+    private static boolean isNumeric(String s) {
+        String numericRegularExpression = "[-+]?\\d*\\.?\\d+";
+        return s != null && s.matches(numericRegularExpression);
+    }
+
+    private static void showInvalidInstructionErrorMessage(String instruction) {
+        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Invalid command could not be processed: \""
+                + instruction + "\"", "Error Message", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void recalculateAllAlterations(List<Feature2D> contigs) {
+        int i = 0;
+        for (Feature2D feature2D : contigs) {
+            Contig2D contig2D = feature2D.toContig();
+            i = contig2D.setNewStart(i);
         }
-        ((Contig2D) contigs.get(index)).toggleInversion();
     }
 
     public static List<Contig2D> retrieveRelevantBlocks(MatrixZoomData mzd, List<Integer> blocksToLoad,
@@ -153,10 +160,6 @@ public class AssemblyIntermediateProcessor {
 
         //System.out.println("x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
 
-//        System.out.println(superAdapter);
-//        System.out.println(superAdapter.getContigLayer());
-//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
-//        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
         Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());

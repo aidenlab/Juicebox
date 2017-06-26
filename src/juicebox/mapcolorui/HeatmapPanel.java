@@ -977,20 +977,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
 
         final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-//        miInvert.setSelected(straightEdgeEnabled);
+        miInvert.setSelected(straightEdgeEnabled);
         miInvert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+                        .getAllVisibleLoops();
+                Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
 
-//                System.out.println(selectedFeatures.size());
-//                for (Feature2D feature2D : selectedFeatures) {
-//                    Contig2D contig2D = feature2D.toContig();
-//                    contig2D.toggleInversion();
-//                }
+                final String key = Feature2DList.getKey(chromosome, chromosome);
+                features.convertFeaturesToContigs(key);
+                List<Feature2D> contigs = features.get(key);
 
-                //invert
-                // then move around
-                // invert action here
+                Feature2D initialContig = selectedFeatures.get(0);
+                initialContig = initialContig.toContig();
+
+                for (int i = 0; i < contigs.size(); i++) {
+                    Feature2D currentContig = contigs.get(i);
+//                    System.out.println("Hello_1");
+                    if (currentContig.equals(initialContig)) {
+//                        System.out.println("Hello_2");
+                        Integer startIndex = i;
+                        Integer endIndex = i + selectedFeatures.size() - 1;
+                        AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
+                        AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+                        return;
+                    }
+                }
             }
         });
         menu.add(miInvert);
