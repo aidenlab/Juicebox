@@ -34,10 +34,7 @@ import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.AnnotationLayer;
-import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.track.feature.Contig2D;
-import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.*;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
@@ -85,7 +82,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
     private final HeatmapRenderer renderer;
     //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
-    private final transient List<Pair<Rectangle, Feature2D>> allFeaturePairs = new ArrayList<>();
+    private final transient List<Feature2DGuiContainer> allFeaturePairs = new ArrayList<>();
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -102,7 +99,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean showFeatureHighlight = true;
     private Feature2D highlightedFeature = null;
     private List<Feature2D> selectedFeatures = null;
-    private Pair<Rectangle, Feature2D> mostRecentRectFeaturePair = null;
+    private Feature2DGuiContainer currentFeature = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
 
@@ -437,7 +434,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     // handler.removeFromList();
 
-                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(loops, zd, binOriginX, binOriginY, scaleFactor));
+                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
                     loops.addAll(cLoopsReflected);
 
                     FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
@@ -814,7 +811,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 featureOptionMenuEnabled = false;
                 showFeatureHighlight = true;
                 hic.setShowFeatureHighlight(showFeatureHighlight);
-                highlightedFeature = mostRecentRectFeaturePair.getSecond();
+                highlightedFeature = currentFeature.getFeature2D();
                 hic.setHighlightedFeature(highlightedFeature);
                 superAdapter.repaintTrackPanels();
                 repaint();
@@ -867,7 +864,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
                 Pair<Rectangle, Feature2D> featureCopy =
-                        new Pair<>(mostRecentRectFeaturePair.getFirst(), mostRecentRectFeaturePair.getSecond());
+                        new Pair<>(currentFeature.getRectangle(), currentFeature.getFeature2D());
                 launchColorSelectionMenu(featureCopy);
             }
         });
@@ -877,7 +874,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
-                new EditFeatureAttributesDialog(mainWindow, mostRecentRectFeaturePair.getSecond(),
+                new EditFeatureAttributesDialog(mainWindow, currentFeature.getFeature2D(),
                         superAdapter.getActiveLayerHandler().getAnnotationLayer());
             }
         });
@@ -887,7 +884,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 featureOptionMenuEnabled = false;
-                Feature2D feature = mostRecentRectFeaturePair.getSecond();
+                Feature2D feature = currentFeature.getFeature2D();
                 int chr1Idx = hic.getXContext().getChromosome().getIndex();
                 int chr2Idx = hic.getYContext().getChromosome().getIndex();
                 try {
@@ -931,14 +928,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 menu.add(mi86Toggle);
             }
 
-            if (mostRecentRectFeaturePair != null) {//mouseIsOverFeature
+            if (currentFeature != null) {//mouseIsOverFeature
                 featureOptionMenuEnabled = true;
                 if (menuSeparatorNotAdded) {
                     menu.addSeparator();
                 }
 
                 if (highlightedFeature != null) {
-                    if (mostRecentRectFeaturePair.getSecond() != highlightedFeature) {
+                    if (currentFeature.getFeature2D() != highlightedFeature) {
                         configureFeatureMenu.add(mi85Highlight);
                         menu.add(mi87Remove);
                     } else {
@@ -947,6 +944,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else {
                     configureFeatureMenu.add(mi85Highlight);
                 }
+
 
                 menu.add(configureFeatureMenu);
             } else if (highlightedFeature != null) {
@@ -1270,19 +1268,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Point currMouse = new Point(x, y);
                 double minDistance = Double.POSITIVE_INFINITY;
                 //mouseIsOverFeature = false;
-                mostRecentRectFeaturePair = null;
+                currentFeature = null;
 
-                for (Pair<Rectangle, Feature2D> loop : allFeaturePairs) {
-                    if (loop.getFirst().contains(x, y)) {
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
                         // TODO - why is this code duplicated in this file?
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append(loop.getSecond().tooltipText());
+                        txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
 
-                        double distance = currMouse.distance(loop.getFirst().getX(), loop.getFirst().getY());
+                        double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
                         if (distance < minDistance) {
                             minDistance = distance;
-                            mostRecentRectFeaturePair = loop;
+                            currentFeature = loop;
                             //create new data type and add attribute for type.
                         }
                         //mouseIsOverFeature = true;
@@ -1404,7 +1402,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
-            } else if (e.isShiftDown() && superAdapter.getActiveLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.MAIN) {
+            } else if (e.isShiftDown() && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
 
                 if (!activelyEditingAssembly) {
                     boolean showWarning = false;
@@ -1427,9 +1425,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 superAdapter.getActiveLayerHandler().doPeak();
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
-            } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.MAIN) {
+            } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;
-                Feature2D loop = mostRecentRectFeaturePair.getSecond();
+                Feature2D loop = currentFeature.getFeature2D();
                 // Resizing upper left corner, keep end points stationary
                 if (adjustAnnotation == AdjustAnnotation.LEFT) {
                     superAdapter.getActiveLayerHandler().setStationaryEnd(loop.getEnd1(), loop.getEnd2());
@@ -1845,18 +1843,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 }
                 // Set check if hovering over feature corner
-                if (mostRecentRectFeaturePair != null) {
+                if (currentFeature != null) {
 
-                    Rectangle loop = mostRecentRectFeaturePair.getFirst();
+                    Rectangle loop = currentFeature.getRectangle();
                     Point mousePoint = e.getPoint();
                     int minDist = 20;
                     // Mouse near top left corner
-                    if ((Math.abs(loop.getMinX() - mousePoint.getX()) <= minDist &&
+                    boolean resizeable = currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN;
+                    if ((resizeable && Math.abs(loop.getMinX() - mousePoint.getX()) <= minDist &&
                             Math.abs(loop.getMinY() - mousePoint.getY()) <= minDist)) {
                         adjustAnnotation = AdjustAnnotation.LEFT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
                         // Mouse near bottom right corner
-                    } else if (Math.abs(loop.getMaxX() - mousePoint.getX()) <= minDist &&
+                    } else if (resizeable && Math.abs(loop.getMaxX() - mousePoint.getX()) <= minDist &&
                             Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
                         adjustAnnotation = AdjustAnnotation.RIGHT;
                         setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));

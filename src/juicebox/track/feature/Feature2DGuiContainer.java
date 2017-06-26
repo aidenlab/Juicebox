@@ -30,16 +30,21 @@ import java.awt.*;
  * Created by nathanielmusial on 6/26/17.
  */
 
-public class CurrentFeature {
+public class Feature2DGuiContainer {
 
     private Rectangle rectangle;
     private Feature2D feature2D;
-    private AnnotationLayer annotationLayer;
+    private AnnotationLayerHandler annotationLayerHandler;
     private int index;
 
-    public CurrentFeature(Rectangle rectangle, Feature2D feature2D, AnnotationLayer annotationLayer, int index) {
+    public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler) {
+        this(rectangle, feature2D, annotationLayerHandler, 0);
+    }
+
+    public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler, int index) {
         this.rectangle = rectangle;
         this.feature2D = feature2D;
+        this.annotationLayerHandler = annotationLayerHandler;
         this.index = index;
     }
 
@@ -51,11 +56,15 @@ public class CurrentFeature {
         return feature2D;
     }
 
-    public AnnotationLayer getAnnotationLayer() {
-        return annotationLayer;
+    public AnnotationLayerHandler getAnnotationLayerHandler() {
+        return annotationLayerHandler;
     }
 
     public int getIndex() {
         return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

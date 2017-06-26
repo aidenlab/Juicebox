@@ -391,6 +391,10 @@ public class AnnotationLayerHandler {
         annotationLayer.setLayerVisibility(showCustom);
     }
 
+    public AnnotationLayer.LayerType getAnnotationLayerType() {
+        return annotationLayer.getLayerType();
+    }
+
     public void clearAnnotations() {
         annotationLayer.clearAnnotations();
     }
