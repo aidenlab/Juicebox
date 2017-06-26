@@ -25,6 +25,8 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
+import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
@@ -70,7 +72,6 @@ public class ResourceTree {
         dialog = null;
         loadedLocators = new HashSet<>();
 
-
         dialogTree = new JTree(new DefaultMutableTreeNode("Available feature sets"));
         dialogTree.setExpandsSelectedPaths(true);
         dialogTree.setCellRenderer(new NodeRenderer());
@@ -105,7 +106,7 @@ public class ResourceTree {
                             menuItem.addActionListener(new ActionListener() {
                                 @Override
                                 public void actionPerformed(ActionEvent e) {
-                                    removeFeature(hic, (DefaultMutableTreeNode) selPath.getLastPathComponent());
+                                    removeFeature((DefaultMutableTreeNode) selPath.getLastPathComponent());
                                 }
                             });
                             menu.add(menuItem);
@@ -172,7 +173,6 @@ public class ResourceTree {
         JPanel buttonPanel = new JPanel();
         JButton okButton = new JButton("OK");
         JButton cancelButton = new JButton("Cancel");
-        JButton add1DButton = new JButton("Add Local...");
 
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -224,45 +224,7 @@ public class ResourceTree {
             }
         });
 
-        add1DButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
-
-                    if (oneDfiles != null && oneDfiles.length > 0) {
-                        for (File file : oneDfiles) {
-
-                            String path = file.getAbsolutePath();
-                            openAnnotationPath = new File(path);
-                            ResourceLocator locator = new ResourceLocator(path);
-                            locator.setName(file.getName());
-                            locator.setType(file.getName());
-                            CheckableResource resource = new CheckableResource(file.getName(), true, locator);
-                            leafResources.add(resource);
-
-
-                            DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
-                            oneDFeatureRoot.add(treeNode);
-                            if (addedNodes == null) {
-                                addedNodes = new LinkedHashSet<>();
-                            }
-                            addedNodes.add(treeNode);
-                            ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
-                            treeNode.setUserObject(resource);
-
-                            expandTree();
-                            dialogTree.updateUI();
-
-                        }
-
-                    }
-                }
-            });
-
-
         buttonPanel.add(okButton);
-
-        buttonPanel.add(add1DButton);
         buttonPanel.add(cancelButton);
 
         dialog.add(treePanel);
@@ -276,6 +238,77 @@ public class ResourceTree {
 
     }
 
+    public boolean addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+        Boolean localFilesAdded = Boolean.FALSE;
+
+        File oneDfiles[] = FileDialogUtils.chooseMultiple("Choose 1D Annotation file", openAnnotationPath, null);
+
+        if (oneDfiles != null && oneDfiles.length > 0) {
+            for (File file : oneDfiles) {
+
+                if (file == null || !file.exists()) continue;
+
+                localFilesAdded = Boolean.TRUE;
+
+                String path = file.getAbsolutePath();
+                openAnnotationPath = new File(path);
+
+                ResourceLocator locator = new ResourceLocator(path);
+                locator.setName(file.getName());
+                locator.setType(file.getName());
+
+                CheckableResource resource = new CheckableResource(file.getName(), true, locator);
+
+                DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(file);
+
+                treeNode.setUserObject(resource);
+
+                if (containsDuplicate(treeNode)) {
+                    if (HiCGlobals.guiIsCurrentlyActive) {
+                        int dialogResult = JOptionPane.showConfirmDialog(superAdapter.getMainWindow(),
+                                file.getName() + " is already loaded. Would you like to overwrite it?", "Warning",
+                                JOptionPane.YES_NO_OPTION);
+                        if (dialogResult == JOptionPane.YES_OPTION) {
+                            removeChildNodeFromAddedNodes(treeNode);
+                            removeChildNodeFromFeatureRoot(treeNode);
+                            removeResourceFromLeaf(resource, leafResources);
+                        } else {
+                            setSelectionForMatchingChildNodes(treeNode, Boolean.TRUE);
+                            continue;
+                        }
+                    }
+                }
+
+                leafResources.add(resource);
+
+                oneDFeatureRoot.add(treeNode);
+                ((CheckableResource) oneDFeatureRoot.getUserObject()).setSelected(true);
+
+                if (addedNodes == null) {
+                    addedNodes = new LinkedHashSet<>();
+                }
+                addedNodes.add(treeNode);
+
+                expandTree();
+                dialogTree.updateUI();
+            }
+        }
+        return localFilesAdded;
+    }
+
+    private boolean containsDuplicate(DefaultMutableTreeNode treeNode) {
+        return !getMatchingChildNodesFromAddedNodes(treeNode).isEmpty();
+    }
+
+    private void setSelectionForMatchingChildNodes(DefaultMutableTreeNode treeNode, Boolean selectionBoolean) {
+        List<DefaultMutableTreeNode> desiredChildNodes = getMatchingChildNodesFromAddedNodes(treeNode);
+        for (DefaultMutableTreeNode childNode : desiredChildNodes) {
+            if (childNode.getUserObject() instanceof CheckableResource) {
+                ((CheckableResource) childNode.getUserObject()).setSelected(selectionBoolean);
+            }
+        }
+    }
+
     private void removeResourceFromLeaf(CheckableResource resource, List<CheckableResource> leafResources) {
         List<CheckableResource> resourcesToRemove = new ArrayList<>();
         for (CheckableResource res : leafResources) {
@@ -285,7 +318,51 @@ public class ResourceTree {
         leafResources.removeAll(resourcesToRemove);
     }
 
-    private void removeFeature(HiC hic, DefaultMutableTreeNode node) {
+    private void removeChildNodeFromFeatureRoot(DefaultMutableTreeNode treeNode) {
+        List<DefaultMutableTreeNode> childNodesToRemove = new ArrayList<>();
+        if (!(treeNode.getUserObject() instanceof CheckableResource)) {
+            return;
+        }
+        String targetTreeNodePath = ((CheckableResource) treeNode.getUserObject()).getResourceLocator().getPath();
+        Enumeration<?> childNodesPresent = oneDFeatureRoot.children();
+        while (childNodesPresent.hasMoreElements()) {
+            DefaultMutableTreeNode currentChildNode = (DefaultMutableTreeNode) childNodesPresent.nextElement();
+            if (currentChildNode.getUserObject() instanceof CheckableResource) {
+                String currentChildNodePath = ((CheckableResource) currentChildNode.getUserObject()).getResourceLocator().getPath();
+                if (currentChildNodePath.equals(targetTreeNodePath)) {
+                    childNodesToRemove.add(currentChildNode);
+                }
+            }
+        }
+        for (DefaultMutableTreeNode childNode : childNodesToRemove) {
+            oneDFeatureRoot.remove(childNode);
+        }
+    }
+
+    private void removeChildNodeFromAddedNodes(DefaultMutableTreeNode treeNode) {
+        List<DefaultMutableTreeNode> childNodesToRemove = getMatchingChildNodesFromAddedNodes(treeNode);
+        for (DefaultMutableTreeNode childNode : childNodesToRemove) {
+            addedNodes.remove(childNode);
+        }
+    }
+
+    private List<DefaultMutableTreeNode> getMatchingChildNodesFromAddedNodes(DefaultMutableTreeNode treeNode) {
+        List<DefaultMutableTreeNode> matchingChildNodes = new ArrayList<>();
+        if (addedNodes != null && treeNode.getUserObject() instanceof CheckableResource) {
+            String targetPath = ((CheckableResource) treeNode.getUserObject()).getResourceLocator().getPath();
+            for (DefaultMutableTreeNode childNode : addedNodes) {
+                if (childNode.getUserObject() instanceof CheckableResource) {
+                    String childPath = ((CheckableResource) childNode.getUserObject()).getResourceLocator().getPath();
+                    if (childPath.equals(targetPath)) {
+                        matchingChildNodes.add(childNode);
+                    }
+                }
+            }
+        }
+        return matchingChildNodes;
+    }
+
+    private void removeFeature(DefaultMutableTreeNode node) {
         ((CheckableResource) node.getUserObject()).setSelected(false);
         ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
         addedNodes.remove(node);

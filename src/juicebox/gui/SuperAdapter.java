@@ -816,6 +816,10 @@ public class SuperAdapter {
         activeLayer.setActiveLayerButtonStatus(true);
     }
 
+    public AnnotationLayer.LayerType getActiveLayerType() {
+        return activeLayer.getAnnotationLayer().getLayerType();
+    }
+
     public List<AnnotationLayerHandler> getAllLayers() {
         return annotationLayerHandlers;
     }

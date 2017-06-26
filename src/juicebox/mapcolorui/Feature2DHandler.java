@@ -28,10 +28,7 @@ import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
-import juicebox.track.feature.FeatureFunction;
+import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
 import org.broad.igv.util.Pair;
@@ -87,16 +84,16 @@ public class Feature2DHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    public List<Pair<Rectangle, Feature2D>> convertFeaturesToFeaturePairs(List<Feature2D> features, MatrixZoomData zd,
-                                                                          double binOriginX, double binOriginY, double scale) {
-        final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
+    public List<Feature2DGuiContainer> convertFeaturesToFeaturePairs(AnnotationLayerHandler handler, List<Feature2D> features, MatrixZoomData zd,
+                                                                     double binOriginX, double binOriginY, double scale) {
+        final List<Feature2DGuiContainer> featurePairs = new ArrayList<>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();
         final HiCGridAxis yAxis = zd.getYGridAxis();
 
         for (Feature2D feature : features) {
-            featurePairs.add(new Pair<>(
-                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature));
+            featurePairs.add(new Feature2DGuiContainer(
+                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature, handler));
         }
 
         return featurePairs;
