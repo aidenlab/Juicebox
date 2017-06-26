@@ -629,12 +629,10 @@ public class ResourceTree {
                         if (resource.dataResourceLocator.getName().contains(track)) {
                             resource.setSelected(true);
                             resource.setEnabled(true);
+                            ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
                             //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
                         }
                     }
-                } else if (ResourceEditor.hasSelectedChildren(node)) {
-                    resource.setSelected(true);
-                    resource.setEnabled(true);
                 }
             } catch (Exception e) {
             }
