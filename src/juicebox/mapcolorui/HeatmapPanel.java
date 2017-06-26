@@ -34,6 +34,7 @@ import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
@@ -1282,6 +1283,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (distance < minDistance) {
                             minDistance = distance;
                             mostRecentRectFeaturePair = loop;
+                            //create new data type and add attribute for type.
                         }
                         //mouseIsOverFeature = true;
                     }
@@ -1402,7 +1404,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
-            } else if (e.isShiftDown()) {
+            } else if (e.isShiftDown() && superAdapter.getActiveLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.MAIN) {
 
                 if (!activelyEditingAssembly) {
                     boolean showWarning = false;
@@ -1423,10 +1425,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 dragMode = DragMode.ANNOTATE;
                 //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
                 superAdapter.getActiveLayerHandler().doPeak();
-
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
-            } else if (adjustAnnotation != AdjustAnnotation.NONE) {
+            } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;
                 Feature2D loop = mostRecentRectFeaturePair.getSecond();
                 // Resizing upper left corner, keep end points stationary

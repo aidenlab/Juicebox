@@ -231,7 +231,7 @@ public class Feature2DList {
             if (feature.getAttributeKeys() == null) {
                 for (String attribute : defaultAttributes.keySet()) {
                     feature.addStringAttribute(attribute, defaultAttributes.get(attribute));
-                    System.out.println("Added:1 " + attribute);
+                    System.out.println("Added:1 " + attribute); //TODO find out why this doesn't work
                 }
             } else {
                 List<String> featureKeys = feature.getAttributeKeys();
@@ -239,7 +239,6 @@ public class Feature2DList {
                 for (String customKey : defaultAttributes.keySet()) {
                     if (!featureKeys.contains(customKey)) {
                         feature.addStringAttribute(customKey, defaultAttributes.get(customKey));
-                        System.out.println("Added:2 " + customKey); //seems to be calling every time it adds even if already existing
                     }
                 }
             }
