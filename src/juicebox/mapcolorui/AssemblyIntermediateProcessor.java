@@ -126,6 +126,14 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
+    public static void splitContig() {
+
+    }
+
+    public static void splitGroup() {
+
+    }
+
     private static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
         if (!((currentIndex >= 0 && currentIndex < contigs.size()) && (newIndex >= 0 && newIndex < contigs.size()))) {

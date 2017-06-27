@@ -986,6 +986,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(miInvert);
 
+        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
+        miSplit.setSelected(straightEdgeEnabled);
+        miSplit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                splitMenuItemActionPerformed();
+            }
+        });
+        menu.add(miSplit);
+
         /* @meh what is this for?
         final JCheckBoxMenuItem mi2 = new JCheckBoxMenuItem("Send to back");
         mi2.setSelected(diagonalEdgeEnabled);
@@ -1044,6 +1054,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
             }
         }
+    }
+
+    private void splitMenuItemActionPerformed() {
+        //add code for setting up splitting
+        AssemblyIntermediateProcessor.splitContig(); //if single is selected
+        AssemblyIntermediateProcessor.splitGroup(); //if multiple contigs are selected
     }
 
     private String toolTipText(int x, int y) {
@@ -1289,19 +1305,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 double minDistance = Double.POSITIVE_INFINITY;
                 //mouseIsOverFeature = false;
                 currentFeature = null;
-
+                int numLayers = superAdapter.getAllLayers().size();
+                int priority = numLayers;
                 for (Feature2DGuiContainer loop : allFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
                         // TODO - why is this code duplicated in this file?
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
-
+                        int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
                         double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-                        if (distance < minDistance) {
+                        if (distance < minDistance && numLayers - layerNum < priority) {
                             minDistance = distance;
                             currentFeature = loop;
-                            //create new data type and add attribute for type.
+                            priority = numLayers - layerNum;
                         }
                         //mouseIsOverFeature = true;
                     }
