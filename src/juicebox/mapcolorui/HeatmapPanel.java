@@ -982,6 +982,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 invertMenuItemActionPerformed();
+
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
             }
         });
         menu.add(miInvert);
@@ -1521,11 +1525,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
                 updateSelectedFeatures(true);
 
+                getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
 
-                getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 restoreDefaultVariables();
 
             } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
