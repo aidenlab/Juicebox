@@ -981,29 +981,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miInvert.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
-                        .getAllVisibleLoops();
-                Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
-
-                final String key = Feature2DList.getKey(chromosome, chromosome);
-                features.convertFeaturesToContigs(key);
-                List<Feature2D> contigs = features.get(key);
-
-                Feature2D initialContig = selectedFeatures.get(0);
-                initialContig = initialContig.toContig();
-
-                for (int i = 0; i < contigs.size(); i++) {
-                    Feature2D currentContig = contigs.get(i);
-//                    System.out.println("Hello_1");
-                    if (currentContig.equals(initialContig)) {
-//                        System.out.println("Hello_2");
-                        Integer startIndex = i;
-                        Integer endIndex = i + selectedFeatures.size() - 1;
-                        AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
-                        AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
-                        return;
-                    }
-                }
+                invertMenuItemActionPerformed();
             }
         });
         menu.add(miInvert);
@@ -1037,6 +1015,35 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miExit);
 
         return menu;
+    }
+
+    private void invertMenuItemActionPerformed() {
+        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+                .getAllVisibleLoops();
+        Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
+
+        final String key = Feature2DList.getKey(chromosome, chromosome);
+        features.convertFeaturesToContigs(key);
+        List<Feature2D> contigs = features.get(key);
+
+        if (!selectedFeatures.isEmpty()) {
+            Feature2D initialFeature = selectedFeatures.get(0);
+            Contig2D initialContig = initialFeature.toContig();
+
+            for (int i = 0; i < contigs.size(); i++) {
+                Feature2D currentContig = contigs.get(i);
+                if (currentContig.equals(initialContig)) {
+                    Integer startIndex = i;
+                    Integer endIndex = i + selectedFeatures.size() - 1;
+                    AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
+                    AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+
+                    superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                    superAdapter.refresh();
+                    return;
+                }
+            }
+        }
     }
 
     private String toolTipText(int x, int y) {

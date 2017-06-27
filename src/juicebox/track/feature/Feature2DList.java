@@ -467,12 +467,12 @@ public class Feature2DList {
         for (Feature2D entry : this.get(key)) {
             // Only proceed if not instance of Contig2D
             if (entry instanceof Contig2D) {
-                return;
+                contigs.add(entry);
+            } else {
+                contigs.add(entry.toContig());
             }
-            contigs.add(entry.toContig());
         }
         Collections.sort(contigs);
-
         this.setWithKey(key, contigs);
     }
 
