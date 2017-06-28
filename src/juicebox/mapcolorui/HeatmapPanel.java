@@ -962,8 +962,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos) {
 
         JidePopupMenu menu = new JidePopupMenu();
-
-        if (selectedFeatures != null && selectedFeatures.size() > 0) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
             miSelect.addActionListener(new ActionListener() {
                 @Override
@@ -975,6 +974,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
             });
             menu.add(miSelect);
         }
+
+        final JCheckBoxMenuItem miTranslate = new JCheckBoxMenuItem("Translate");
+        miTranslate.setSelected(straightEdgeEnabled);
+        miTranslate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                translateMenuItemActionPerformed();
+            }
+        });
+        miTranslate.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        menu.add(miTranslate);
 
         final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
         miInvert.setSelected(straightEdgeEnabled);
@@ -988,6 +998,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
             }
         });
+        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
         menu.add(miInvert);
 
         final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
@@ -998,6 +1009,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 splitMenuItemActionPerformed();
             }
         });
+        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
         menu.add(miSplit);
 
         /* @meh what is this for?
@@ -1036,28 +1048,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 .getAllVisibleLoops();
         Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
 
-        final String key = Feature2DList.getKey(chromosome, chromosome);
-        features.convertFeaturesToContigs(key);
-        List<Feature2D> contigs = features.get(key);
-
-        if (!selectedFeatures.isEmpty()) {
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             Feature2D initialFeature = selectedFeatures.get(0);
             Contig2D initialContig = initialFeature.toContig();
 
-            for (int i = 0; i < contigs.size(); i++) {
-                Feature2D currentContig = contigs.get(i);
-                if (currentContig.equals(initialContig)) {
-                    Integer startIndex = i;
-                    Integer endIndex = i + selectedFeatures.size() - 1;
-                    AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
-                    AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+            Integer startIndex = features.getIndex(chromosome, chromosome, initialContig);
+            Integer endIndex = startIndex + selectedFeatures.size() - 1;
 
-                    superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-                    superAdapter.refresh();
-                    return;
-                }
-            }
+            List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
+
+            AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
+            AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+
+            superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+            superAdapter.refresh();
         }
+    }
+
+    private void translateMenuItemActionPerformed() {
+        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
+        HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
     private void splitMenuItemActionPerformed() {
@@ -1522,7 +1532,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // New annotation is added (not single click) and new feature from custom annotation
 
                 updateSelectedFeatures(false);
-                selectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                if (HiCGlobals.translationInProgress) {
+                    translationInProgressMouseReleased(newSelectedFeatures);
+                } else {
+                    selectedFeatures = newSelectedFeatures;
+                }
                 updateSelectedFeatures(true);
 
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
@@ -1604,6 +1619,36 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else {
                 setProperCursor();
             }
+        }
+
+        private void translationInProgressMouseReleased(List<Feature2D> newSelectedFeatures) {
+            Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+                    .getAllVisibleLoops();
+            Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
+
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                Feature2D featureOrigin = selectedFeatures.get(0);
+                Contig2D contigOrigin = featureOrigin.toContig();
+
+                Feature2D featureDestination = newSelectedFeatures.get(0);
+                Contig2D contigDestination = featureDestination.toContig();
+
+                Integer indexOrigin = features.getIndex(chromosome, chromosome, contigOrigin);
+                Integer indexDestination = features.getIndex(chromosome, chromosome, contigDestination);
+
+                List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
+
+                AssemblyIntermediateProcessor.moveFeatureToNewIndex(contigs, indexOrigin, indexDestination);
+                AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+
+                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
+            }
+
+            if (selectedFeatures != null && newSelectedFeatures != null) {
+                selectedFeatures.addAll(newSelectedFeatures);
+            }
+            HiCGlobals.translationInProgress = Boolean.FALSE;
         }
 
         private void restoreDefaultVariables() {

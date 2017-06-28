@@ -576,6 +576,20 @@ public class Feature2DList {
         return featureList.containsKey(key);
     }
 
+    public int getIndex(Chromosome chrX, Chromosome chrY, Feature2D feature2D) {
+        final String key = Feature2DList.getKey(chrX, chrY);
+        this.convertFeaturesToContigs(key);
+        List<Feature2D> contigs = this.get(key);
+
+        for (int i = 0; i < contigs.size(); i++) {
+            Feature2D currentContig = contigs.get(i);
+            if (currentContig.equals(feature2D)) {
+                return i;
+            }
+        }
+        return -1;  // return -1 if input feature2D object is not present for the specified chromosomes
+    }
+
     public int getNumTotalFeatures() {
         int total = 0;
         for (List<Feature2D> chrList : featureList.values()) {

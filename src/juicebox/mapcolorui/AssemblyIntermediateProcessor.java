@@ -79,7 +79,8 @@ public class AssemblyIntermediateProcessor {
     private static void parseInversionInstruction(List<Feature2D> contigs, String instruction) {
         String reformattedInstruction = instruction;
         if (!(reformattedInstruction.contains(":"))) {
-            reformattedInstruction = reformattedInstruction.concat(":").concat(reformattedInstruction);
+            reformattedInstruction = reformattedInstruction.concat(":")
+                    .concat(reformattedInstruction);
         }
         String[] contigIndices = reformattedInstruction.split(":");
         String startIndexString = contigIndices[0];
@@ -108,19 +109,16 @@ public class AssemblyIntermediateProcessor {
         if (!(index >= 0 && index < contigs.size())) {
             return;
         }
-//        System.out.println("invert single");
         ((Contig2D) contigs.get(index)).toggleInversion();
     }
 
     public static void invertMultipleContiguousEntriesAt(List<Feature2D> contigs, int startIndex, int endIndex) {
         // Invert each of the sub-contigs
         for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
-//            System.out.println("invert mul");
             invertSingleEntryAt(contigs, currentIndex);
         }
         // Reverse the order of the sub-contigs
         for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
-//            System.out.println("translate mul");
             moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
             moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
         }
@@ -134,7 +132,7 @@ public class AssemblyIntermediateProcessor {
 
     }
 
-    private static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
+    public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
         if (!((currentIndex >= 0 && currentIndex < contigs.size()) && (newIndex >= 0 && newIndex < contigs.size()))) {
             return;
@@ -165,9 +163,6 @@ public class AssemblyIntermediateProcessor {
                                                         List<Block> blockList, Chromosome chr1, Chromosome chr2,
                                                         int binX1, int binY1, int binX2, int binY2, int blockBinCount,
                                                         HiCZoom zoom, NormalizationType no) {
-
-        //System.out.println("x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
-
         Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
@@ -179,7 +174,6 @@ public class AssemblyIntermediateProcessor {
             contigs.add(entry.toContig());
         }
         Collections.sort(contigs);
-        //System.out.println("origContigs1 - "+contigs.size());
 
         List<Contig2D> actuallyNeededContigs = new ArrayList<>();
         for (Contig2D contig : contigs) {
