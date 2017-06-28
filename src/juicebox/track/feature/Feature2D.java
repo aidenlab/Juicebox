@@ -107,8 +107,20 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1;
     }
 
+    public void setStart1(int start1) {
+        this.start1 = start1;
+        if (reflection != null)
+            reflection.start2 = start1;
+    }
+
     public int getStart2() {
         return start2;
+    }
+
+    public void setStart2(int start2) {
+        this.start2 = start1;
+        if (reflection != null)
+            reflection.start1 = start2;
     }
 
     public int getEnd1() {

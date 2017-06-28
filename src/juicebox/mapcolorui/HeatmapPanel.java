@@ -1071,9 +1071,58 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void splitMenuItemActionPerformed() {
-        //add code for setting up splitting
-        AssemblyIntermediateProcessor.splitContig(); //if single is selected
-        AssemblyIntermediateProcessor.splitGroup(); //if multiple contigs are selected
+        HiCGlobals.splitModeEnabled = true;
+        Object[] options = {"Split", "Cancel"};
+        final JOptionPane optionPane = new JOptionPane(
+                "Select an Area inside a contig to split\n",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,     //do not use a custom Icon
+                options,  //the titles of buttons
+                options[0] //default button title
+        );
+
+        final JDialog dialog = optionPane.createDialog("Execute Split");
+        // the line below is added to the example from the docs
+        dialog.setModal(false); // this says not to block background components
+        dialog.setAlwaysOnTop(true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
+//          boolean split;
+        dialog.addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {// System.out.println(optionPane.getValue());
+
+                if (optionPane.getValue()
+                        == "Split") {
+
+                    System.out.println("split");
+                } else if (optionPane.getValue()
+                        == "Cancel") {
+                    HiCGlobals.splitModeEnabled = false;
+                    System.out.println("don't split");
+                } else {
+                    throw new IllegalStateException(
+                            "Unexpected Option");
+                }
+
+            }
+        });
     }
 
     private String toolTipText(int x, int y) {
@@ -1528,6 +1577,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 annotateRectangle = null;
                 setProperCursor();
                 // After popup, priority is assembly mode, highlighting those features.
+            } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
+                AssemblyIntermediateProcessor.splitContig(selectedFeatures, superAdapter, hic);
+                HiCGlobals.splitModeEnabled = false;
+                restoreDefaultVariables();
+
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
 
@@ -1601,7 +1655,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                    } else {
 //
 //                    }
-
 
 
                         Feature2D tempFeature2D = superAdapter.getActiveLayerHandler().addFeature(hic);
