@@ -445,9 +445,10 @@ public class AnnotationLayerHandler {
      * selection starts and ends in
      */
     public List<Feature2D> getSelectedFeatures(HiC hic, int lastX, int lastY) {
-        List<Feature2D> selectedFeatures = new ArrayList<Feature2D>();
+        List<Feature2D> selectedFeatures = new ArrayList<>();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
+
         // Multiple regions selected
         if (selectionRegion != null) {
             int startX, endX;
@@ -489,20 +490,9 @@ public class AnnotationLayerHandler {
             // Single region selected
         } else {
             try {
-                MatrixZoomData zd = hic.getZd();
-                final HiCGridAxis xAxis = zd.getXGridAxis();
-                final HiCGridAxis yAxis = zd.getYGridAxis();
-                final double binOriginX = hic.getXContext().getBinOrigin();
-                final double binOriginY = hic.getYContext().getBinOrigin();
-                final double scale = hic.getScaleFactor();
-
-                float x = (float) (((lastX / scale) + binOriginX) * xAxis.getBinSize());
-                float y = (float) (((lastY / scale) + binOriginY) * yAxis.getBinSize());
-                Point selectionPoint = new Point((int) x, (int) y);
-
                 // Find feature that contains selection point
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
-                selectedFeatures.addAll(selectSingleRegion(chr1Idx, chr2Idx, selectionPoint));
+                selectedFeatures.addAll(selectSingleRegion(chr1Idx, chr2Idx, lastX, lastY, hic.getZd(), hic));
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
             } catch (Exception e) {
                 System.out.println("error:" + e);
@@ -513,10 +503,20 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, Point selectionPoint) {
+    public List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
         List<Feature2D> selectedFeatures = new ArrayList<>();
-        Feature2DList features = this.getAnnotationLayer().getFeatureHandler()
-                .getAllVisibleLoops();
+
+        final HiCGridAxis xAxis = zd.getXGridAxis();
+        final HiCGridAxis yAxis = zd.getYGridAxis();
+        final double binOriginX = hic.getXContext().getBinOrigin();
+        final double binOriginY = hic.getYContext().getBinOrigin();
+        final double scale = hic.getScaleFactor();
+
+        float x = (float) (((unscaledX / scale) + binOriginX) * xAxis.getBinSize());
+        float y = (float) (((unscaledY / scale) + binOriginY) * yAxis.getBinSize());
+        Point selectionPoint = new Point((int) x, (int) y);
+
+        Feature2DList features = this.getAnnotationLayer().getFeatureHandler().getAllVisibleLoops();
         List<Feature2D> contigs = features.get(chr1Idx, chr2Idx);
         for (Feature2D feature2D : contigs) {
             Rectangle featureRectangle = new Rectangle(feature2D.getStart1(), feature2D.getStart2(), feature2D.getWidth1(), feature2D.getWidth2());
