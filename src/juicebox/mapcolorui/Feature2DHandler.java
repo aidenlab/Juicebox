@@ -255,7 +255,6 @@ public class Feature2DHandler {
 
     public List<Pair<Rectangle, Feature2D>> getNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                                                   final double binOriginX, final double binOriginY, final double scale) {
-
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
 
         if (layerVisible) {
