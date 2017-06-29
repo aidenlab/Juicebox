@@ -186,7 +186,7 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
 
                 if (customAddedFeatures == null) {
                     customAddedFeatures = new DefaultMutableTreeNode(
-                            new ItemInfo("Added 2D Features", ""), true);
+                            new ItemInfo("Added Assembly Files", ""), true);
                     root.add(customAddedFeatures);
                 }
 

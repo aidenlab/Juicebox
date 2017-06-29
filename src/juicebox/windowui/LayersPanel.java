@@ -432,7 +432,10 @@ public class LayersPanel extends JDialog {
         addLocalButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                if (loadAssemblyAnnotationsDialog == null) {
+                    loadAssemblyAnnotationsDialog = new LoadAssemblyAnnotationsDialog(LayersPanel.this, superAdapter, assemblyAnnotationsPanel);
+                }
+                loadAssemblyAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
 
