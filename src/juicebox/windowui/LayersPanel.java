@@ -59,6 +59,7 @@ public class LayersPanel extends JDialog {
     private static LoadEncodeAction encodeAction;
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
     private JPanel layers2DPanel;
+    private JPanel assemblyAnnotationsPanel;
     private JTabbedPane tabbedPane;
     private Border padding;
 
@@ -74,6 +75,9 @@ public class LayersPanel extends JDialog {
         layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         if (layers2DPanel != null) layers2DPanel.setBorder(padding);
 
+        assemblyAnnotationsPanel = generateAssemblyAnnotationsPanel(superAdapter);
+        if (assemblyAnnotationsPanel != null) assemblyAnnotationsPanel.setBorder(padding);
+
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab("1D Annotations", null, annotations1DPanel,
                 "Manage 1D Annotations");
@@ -82,6 +86,9 @@ public class LayersPanel extends JDialog {
         tabbedPane.addTab("2D Annotations", null, layers2DPanel,
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
+
+        tabbedPane.addTab("Assembly Annotations", null, assemblyAnnotationsPanel,
+                "Manage Assembly Annotations");
 
         setSize(1000, 700);
         add(tabbedPane);
@@ -326,6 +333,7 @@ public class LayersPanel extends JDialog {
         final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
         return scrollPane;
     }
+
     public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
                                                               AnnotationLayerHandler sourceHandler) {
         AnnotationLayerHandler handler = superAdapter.createNewLayer();
@@ -373,6 +381,65 @@ public class LayersPanel extends JDialog {
             System.err.println("Unable to add merged layer to GUI");
             ee.printStackTrace();
         }
+    }
+
+    private JPanel generateAssemblyAnnotationsPanel(final SuperAdapter superAdapter) {
+        final JPanel assemblyAnnotationsPanel = new JPanel();
+        assemblyAnnotationsPanel.setLayout(new GridLayout(0, 1));
+
+//        int i = 0;
+//        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+//            try {
+//                JPanel panel = createLayerPanel(handler, superAdapter, assemblyAnnotationsPanel);
+//                assemblyAnnotationsPanel.add(panel, 0);
+//            } catch (IOException e) {
+//                System.err.println("Unable to generate layer panel " + (i - 1));
+//            }
+//        }
+        final JScrollPane scrollPane = new JScrollPane(assemblyAnnotationsPanel);
+
+        JButton loadAssemblyButton = new JButton("Load Assembly");
+        JButton addLocalButton = new JButton("Add Local");
+        JButton exportAssemblyButton = new JButton("Export Assembly");
+
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+
+        buttonPanel.add(loadAssemblyButton);
+        buttonPanel.add(addLocalButton);
+        buttonPanel.add(exportAssemblyButton);
+
+        final JPanel pane = new JPanel(new BorderLayout());
+        pane.add(scrollPane, BorderLayout.CENTER);
+        pane.add(buttonPanel, BorderLayout.PAGE_END);
+
+        Dimension dim = pane.getPreferredSize();
+        dim.setSize(dim.getWidth(), dim.getHeight() * 4);
+        pane.setPreferredSize(dim);
+
+        /* Add action listeners for buttons */
+        loadAssemblyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        addLocalButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        exportAssemblyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        superAdapter.updateLayerDeleteStatus();
+        return pane;
     }
 
     /**
