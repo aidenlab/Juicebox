@@ -58,6 +58,7 @@ public class LayersPanel extends JDialog {
     private static LoadAction trackLoadAction;
     private static LoadEncodeAction encodeAction;
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
+    private static LoadAssemblyAnnotationsDialog loadAssemblyAnnotationsDialog;
     private JPanel layers2DPanel;
     private JPanel assemblyAnnotationsPanel;
     private JTabbedPane tabbedPane;
@@ -398,7 +399,7 @@ public class LayersPanel extends JDialog {
 //        }
         final JScrollPane scrollPane = new JScrollPane(assemblyAnnotationsPanel);
 
-        JButton loadAssemblyButton = new JButton("Load Assembly");
+        final JButton loadAssemblyButton = new JButton("Load Assembly");
         JButton addLocalButton = new JButton("Add Local");
         JButton exportAssemblyButton = new JButton("Export Assembly");
 
@@ -420,6 +421,10 @@ public class LayersPanel extends JDialog {
         loadAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (loadAssemblyAnnotationsDialog == null) {
+                    loadAssemblyAnnotationsDialog = new LoadAssemblyAnnotationsDialog(LayersPanel.this, superAdapter, assemblyAnnotationsPanel);
+                }
+                loadAssemblyAnnotationsDialog.setVisible(Boolean.TRUE);
 
             }
         });
