@@ -231,7 +231,7 @@ public class Feature2DList {
             if (feature.getAttributeKeys() == null) {
                 for (String attribute : defaultAttributes.keySet()) {
                     feature.addStringAttribute(attribute, defaultAttributes.get(attribute));
-                    System.out.println("Added:1 " + attribute);
+                    System.out.println("Added:1 " + attribute); //TODO find out why this doesn't work
                 }
             } else {
                 List<String> featureKeys = feature.getAttributeKeys();
@@ -239,7 +239,6 @@ public class Feature2DList {
                 for (String customKey : defaultAttributes.keySet()) {
                     if (!featureKeys.contains(customKey)) {
                         feature.addStringAttribute(customKey, defaultAttributes.get(customKey));
-                        System.out.println("Added:2 " + customKey); //seems to be calling every time it adds even if already existing
                     }
                 }
             }
@@ -468,12 +467,12 @@ public class Feature2DList {
         for (Feature2D entry : this.get(key)) {
             // Only proceed if not instance of Contig2D
             if (entry instanceof Contig2D) {
-                return;
+                contigs.add(entry);
+            } else {
+                contigs.add(entry.toContig());
             }
-            contigs.add(entry.toContig());
         }
         Collections.sort(contigs);
-
         this.setWithKey(key, contigs);
     }
 
@@ -575,6 +574,20 @@ public class Feature2DList {
      */
     public boolean containsKey(String key) {
         return featureList.containsKey(key);
+    }
+
+    public int getIndex(Chromosome chrX, Chromosome chrY, Feature2D feature2D) {
+        final String key = Feature2DList.getKey(chrX, chrY);
+        this.convertFeaturesToContigs(key);
+        List<Feature2D> contigs = this.get(key);
+
+        for (int i = 0; i < contigs.size(); i++) {
+            Feature2D currentContig = contigs.get(i);
+            if (currentContig.equals(feature2D)) {
+                return i;
+            }
+        }
+        return -1;  // return -1 if input feature2D object is not present for the specified chromosomes
     }
 
     public int getNumTotalFeatures() {

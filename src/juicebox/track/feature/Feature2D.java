@@ -59,8 +59,9 @@ public class Feature2D implements Comparable<Feature2D> {
     int start2;
     int end1;
     int end2;
+    private boolean isSelected = false;
     private Feature2D reflection = null;
-    private Color color, translucentColor;
+    private Color color, preSelectionColor, translucentColor;
     private boolean test = false;
 
     public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
@@ -106,8 +107,20 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1;
     }
 
+    public void setStart1(int start1) {
+        this.start1 = start1;
+        if (reflection != null)
+            reflection.start2 = start1;
+    }
+
     public int getStart2() {
         return start2;
+    }
+
+    public void setStart2(int start2) {
+        this.start2 = start1;
+        if (reflection != null)
+            reflection.start1 = start2;
     }
 
     public int getEnd1() {
@@ -151,7 +164,11 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getColor() {
-        return color;
+        if (isSelected) {
+            return HiCGlobals.SELECT_FEATURE_COLOR;
+        } else {
+            return color;
+        }
     }
 
 
@@ -163,7 +180,11 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public Color getTranslucentColor() {
-        return translucentColor;
+        if (isSelected) {
+            return HiCGlobals.SELECT_FEATURE_COLOR;
+        } else {
+            return translucentColor;
+        }
     }
 
     private void setTranslucentColor() {
@@ -222,6 +243,14 @@ public class Feature2D implements Comparable<Feature2D> {
             for (ArrayList<Map.Entry<String, String>> attributeCategory : sortedFeatureAttributes) {
                 if (attributeCategory.isEmpty())
                     continue;
+                //sort attributes before printing
+                Comparator<Map.Entry<String, String>> cmp = new Comparator<Map.Entry<String, String>>() {
+                    @Override
+                    public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+                        return o1.getKey().compareToIgnoreCase(o2.getKey());
+                    }
+                };
+                Collections.sort(attributeCategory, cmp);
                 for (Map.Entry<String, String> entry : attributeCategory) {
                     String tmpKey = entry.getKey();
                     txt.append("<br>");
@@ -482,6 +511,10 @@ public class Feature2D implements Comparable<Feature2D> {
             return (Contig2D) this;
         }
         return new Contig2D(featureType, chr1, start1, end1, color, attributes);
+    }
+
+    public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
+        isSelected = setIsSelectedColorUpdate;
     }
 
     public enum FeatureType {

@@ -218,6 +218,7 @@ public class LoadAction extends AbstractAction {
             if (resourceTree == null) {
                 Document tempDoc = createMasterDocument(getXmlUrl(), mainWindow);
                 resourceTree = new ResourceTree(hic, tempDoc);
+                resourceTree.checkTrackBoxesForReloadState(track.trim());
             }
         } catch (Exception e) {
             e.printStackTrace();

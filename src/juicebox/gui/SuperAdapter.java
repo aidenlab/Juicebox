@@ -172,6 +172,7 @@ public class SuperAdapter {
     public LoadEncodeAction getEncodeAction() {
         if (layersPanel == null){
             layersPanel = new LayersPanel(this);
+            setLayersPanelVisible(false);
         }
         return layersPanel.getEncodeAction();
     }
@@ -213,15 +214,6 @@ public class SuperAdapter {
         }
     }
 
-    /*
-    public void exportOverlapMIAction(CustomAnnotation customAnnotations) {
-        List<Feature2DList> loops = hic.getAllVisibleLoopLists();
-        if (loops.size() != 1)
-            JOptionPane.showMessageDialog(mainWindow, "Please merge ONE loaded set of annotations at a time.", "Error", JOptionPane.ERROR_MESSAGE);
-        else
-            new SaveAnnotationsDialog(customAnnotations, loops.get(0));
-    }
-    */
 
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayerHandler().setAnnotationLayer(
@@ -641,6 +633,10 @@ public class SuperAdapter {
         return mainWindow;
     }
 
+    public LayersPanel getLayersPanel() {
+        return layersPanel;
+    }
+
     public void revalidate() {
         mainWindow.revalidate();
     }
@@ -820,6 +816,10 @@ public class SuperAdapter {
         activeLayer.setActiveLayerButtonStatus(true);
     }
 
+    public AnnotationLayer.LayerType getActiveLayerType() {
+        return activeLayer.getAnnotationLayer().getLayerType();
+    }
+
     public List<AnnotationLayerHandler> getAllLayers() {
         return annotationLayerHandlers;
     }
@@ -898,6 +898,7 @@ public class SuperAdapter {
             layersPanel.setVisible(status);
         } else {
             if (status) layersPanel = new LayersPanel(this);
+            layersPanel.setVisible(status);
         }
         setLayersPanelGUIControllersSelected(status);
     }
