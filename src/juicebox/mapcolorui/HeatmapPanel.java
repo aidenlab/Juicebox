@@ -1036,6 +1036,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 activelyEditingAssembly = false;
+                HiCGlobals.splitModeEnabled = false;
             }
         });
         menu.add(miExit);
@@ -1066,12 +1067,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void translateMenuItemActionPerformed() {
-        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
+        //JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
         HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
     private void splitMenuItemActionPerformed() {
         HiCGlobals.splitModeEnabled = true;
+        /*
         Object[] options = {"Split", "Cancel"};
         final JOptionPane optionPane = new JOptionPane(
                 "Select an Area inside a contig to split\n",
@@ -1123,6 +1125,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             }
         });
+        */
     }
 
     private String toolTipText(int x, int y) {
@@ -1578,9 +1581,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setProperCursor();
                 // After popup, priority is assembly mode, highlighting those features.
             } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
-                AssemblyIntermediateProcessor.splitContig(selectedFeatures, superAdapter, hic);
+                AssemblyIntermediateProcessor.splitContig(selectedFeatures.get(0), superAdapter.getActiveLayerHandler().generateFeature(hic), superAdapter, hic);
                 HiCGlobals.splitModeEnabled = false;
                 restoreDefaultVariables();
+                selectedFeatures.remove(0);
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation

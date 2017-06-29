@@ -30,7 +30,7 @@ import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -126,26 +126,25 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    public static void splitContig(List<Feature2D> selectedFeatures, SuperAdapter superAdapter, HiC hic) {
 
-        Feature2D originalContig = selectedFeatures.get(0);
-        AnnotationLayerHandler annotationLayerHandler = superAdapter.getActiveLayerHandler();
-        Feature2D debrisContig = annotationLayerHandler.generateFeature(hic);
+    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
+
+        AnnotationLayer contigLayer = superAdapter.getContigLayer().getAnnotationLayer();
         Feature2D firstFragment;
         Feature2D secondFragment;
         Feature2D thirdFragment;
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
+
         if (originalContig.overlapsWith(debrisContig)) {
 
-            annotationLayerHandler.getAnnotationLayer().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, originalContig);
+            contigLayer.getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, originalContig);
 
             firstFragment = originalContig.deepCopy();
             firstFragment.setEnd1(debrisContig.getStart1());
             firstFragment.setEnd2(debrisContig.getStart2());
 
             secondFragment = originalContig.deepCopy();
-
             secondFragment.setStart1(debrisContig.getStart1());
             secondFragment.setStart2(debrisContig.getStart2());
             secondFragment.setEnd1(debrisContig.getEnd1());
@@ -155,18 +154,16 @@ public class AssemblyIntermediateProcessor {
             thirdFragment.setStart1(debrisContig.getEnd1());
             thirdFragment.setStart2(debrisContig.getEnd2());
 
-            annotationLayerHandler.getAnnotationLayer().add(chr1Idx, chr2Idx, firstFragment);
-            annotationLayerHandler.getAnnotationLayer().add(chr1Idx, chr2Idx, secondFragment);
-            annotationLayerHandler.getAnnotationLayer().add(chr1Idx, chr2Idx, thirdFragment);
+            contigLayer.add(chr1Idx, chr2Idx, firstFragment);
+            contigLayer.add(chr1Idx, chr2Idx, secondFragment);
+            contigLayer.add(chr1Idx, chr2Idx, thirdFragment);
 
             //remake tree or something
-            superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+            contigLayer.getFeatureHandler().remakeRTree();
             superAdapter.refresh();
         } else {
             System.out.println("error splitting contigs");
         }
-
-
     }
 
     public static void splitGroup() {
