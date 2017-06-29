@@ -28,7 +28,7 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyIntermediateProcessor;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;

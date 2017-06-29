@@ -200,22 +200,6 @@ public class AnnotationLayerHandler {
                 start2 = start1;
                 end2 = end1;
             }
-
-            /*
-            TODO meh - I don't think this is doing what we think it is?
-            // Snap to min of horizontal stretch and vertical stretch
-            if (width <= y) {
-                start2 = start1;
-                end2 = end1;
-            } else {
-                start2 = geneYPos(hic, y, 0);
-                end2 = geneYPos(hic, y + height, 0);
-                start1 = start2;
-                end1 = end2;
-            }
-            */
-
-            // Otherwise record as drawn
         }
 
         // Make sure bounds aren't unreasonable (out of HiC map)
@@ -246,90 +230,11 @@ public class AnnotationLayerHandler {
         lastEnds = null;
         return newFeature;
     }
+
     public Feature2D addFeature(HiC hic) {
-        if (selectionRegion == null) return null;
-
-        int start1, start2, end1, end2;
-        Feature2D newFeature;
-        setExportAbility(true);
-        setUndoAbility(true);
-        clearLastItem();
-        String chr1 = hic.getXContext().getChromosome().getName();
-        String chr2 = hic.getYContext().getChromosome().getName();
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<>();
-        int rightBound = hic.getXContext().getChromosome().getLength();
-        int bottomBound = hic.getYContext().getChromosome().getLength();
-        int leftBound = 0;
-        int x = selectionRegion.x;
-        int y = selectionRegion.y;
-        int width = selectionRegion.width;
-        int height = selectionRegion.height;
-
-        start1 = geneXPos(hic, x, 0);
-        end1 = geneXPos(hic, x + width, 0);
-        start2 = geneYPos(hic, y, 0);
-        end2 = geneYPos(hic, y + height, 0);
-
-        // Snap if close to diagonal
-        if (chr1Idx == chr2Idx && (pointsShouldSnapToDiagonal(hic, x, y, width, height)
-                || regionsOverlapSignificantly(start1, end1, start2, end2, .6))) {
-
-            if (start1 < start2) {
-                // snap to the right i.e. use y values
-                start1 = start2;
-                end1 = end2;
-            } else {
-                // snap down i.e. use x values
-                start2 = start1;
-                end2 = end1;
-            }
-
-            /*
-            TODO meh - I don't think this is doing what we think it is?
-            // Snap to min of horizontal stretch and vertical stretch
-            if (width <= y) {
-                start2 = start1;
-                end2 = end1;
-            } else {
-                start2 = geneYPos(hic, y, 0);
-                end2 = geneYPos(hic, y + height, 0);
-                start1 = start2;
-                end1 = end2;
-            }
-            */
-
-            // Otherwise record as drawn
-        }
-
-        // Make sure bounds aren't unreasonable (out of HiC map)
-//                int rightBound = hic.getChromosomes().get(0).getLength();
-//                int bottomBound = hic.getChromosomes().get(1).getLength();
-        start1 = Math.min(Math.max(start1, leftBound), rightBound);
-        start2 = Math.min(Math.max(start2, leftBound), bottomBound);
-        end1 = Math.max(Math.min(end1, rightBound), leftBound);
-        end2 = Math.max(Math.min(end2, bottomBound), leftBound);
-
-        // Check for anchored corners
-        if (lastStarts != null) {
-            if (lastStarts.getFirst() < end1 && lastStarts.getSecond() < end2) {
-                start1 = lastStarts.getFirst();
-                start2 = lastStarts.getSecond();
-            }
-        } else if (lastEnds != null) {
-            if (start1 < lastEnds.getFirst() && start2 < lastEnds.getSecond()) {
-                end1 = lastEnds.getFirst();
-                end2 = lastEnds.getSecond();
-            }
-        }
-
         // Add new feature
-        newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                defaultColor, attributes);
-        annotationLayer.add(chr1Idx, chr2Idx, newFeature);
-        lastStarts = null;
-        lastEnds = null;
+        Feature2D newFeature = generateFeature(hic);
+        annotationLayer.add(hic.getXContext().getChromosome().getIndex(), hic.getYContext().getChromosome().getIndex(), newFeature);
         return newFeature;
     }
 

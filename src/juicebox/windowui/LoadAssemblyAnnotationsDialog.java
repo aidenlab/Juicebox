@@ -28,6 +28,7 @@ import juicebox.DirectoryManager;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyFileImporter;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayer;
@@ -123,9 +124,6 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // HiCGlobals.assemblyModeEnabled = Boolean.TRUE;
-                // superAdapter.getHeatmapPanel().toggleActivelyEditingAssembly();
-                // AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
                 safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                 LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
@@ -248,35 +246,60 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
 
     private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
                                          JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        String cpropsPath = null;
+        String asmPath = null;
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                try {
-                    AnnotationLayerHandler groupHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                    groupHandler.setLayerNameAndField("Group");
-                    groupHandler.loadLoopList(info.itemURL, chromosomeHandler);
-                    groupHandler.setColorOfAllAnnotations(Color.blue);
-                    groupHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.GROUP);
-
-                    AnnotationLayerHandler mainHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                    mainHandler.setLayerNameAndField("Main");
-                    mainHandler.loadLoopList(info.itemURL, chromosomeHandler);
-                    mainHandler.setColorOfAllAnnotations(Color.green);
-                    mainHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.MAIN);
-
-                    AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                    editHandler.setColorOfAllAnnotations(Color.yellow);
-                    editHandler.setLayerNameAndField("Edit");
-                    editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
-
-                } catch (Exception ee) {
-                    System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-                    MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
-                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
-                    loadedAnnotationsMap.remove(path);
+                if (info.itemURL.endsWith("cprops")) {
+                    cpropsPath = info.itemURL;
+                } else if (info.itemURL.endsWith("asm")) {
+                    asmPath = info.itemURL;
                 }
             }
+        }
+
+        if (asmPath != null && cpropsPath != null) {
+            System.out.println("Files ok");
+            try {
+                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+                assemblyFileImporter.readFiles();
+
+                System.out.println("reading done");
+
+                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
+                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
+
+                AnnotationLayerHandler contigLayerHandler = new AnnotationLayerHandler();
+                contigLayerHandler.setAnnotationLayer(contigLayer);
+
+                AnnotationLayerHandler scaffoldLayerHandler = new AnnotationLayerHandler();
+                scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
+
+                AnnotationLayerHandler groupHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, scaffoldLayerHandler);
+                groupHandler.setLayerNameAndField("Group");
+                groupHandler.setColorOfAllAnnotations(Color.blue);
+                groupHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.GROUP);
+
+                AnnotationLayerHandler mainHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, contigLayerHandler);
+                mainHandler.setLayerNameAndField("Main");
+                mainHandler.setColorOfAllAnnotations(Color.green);
+                mainHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.MAIN);
+
+                AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                editHandler.setColorOfAllAnnotations(Color.yellow);
+                editHandler.setLayerNameAndField("Edit");
+                editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+
+            } catch (Exception ee) {
+                System.out.println("Not ok");
+//                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
+//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
+            }
+        } else {
+            System.err.println("Invalid files...");
         }
     }
 

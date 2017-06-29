@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.mapcolorui;
+package juicebox.assembly;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -30,6 +30,7 @@ import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;

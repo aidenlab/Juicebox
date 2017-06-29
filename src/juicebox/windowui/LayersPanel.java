@@ -425,7 +425,6 @@ public class LayersPanel extends JDialog {
                     loadAssemblyAnnotationsDialog = new LoadAssemblyAnnotationsDialog(LayersPanel.this, superAdapter, assemblyAnnotationsPanel);
                 }
                 loadAssemblyAnnotationsDialog.setVisible(Boolean.TRUE);
-
             }
         });
 

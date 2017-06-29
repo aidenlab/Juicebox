@@ -26,9 +26,9 @@ package juicebox.windowui;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyIntermediateProcessor;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.tools.dev.Private;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.MessageUtils;

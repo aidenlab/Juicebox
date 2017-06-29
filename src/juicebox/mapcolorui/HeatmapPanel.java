@@ -28,6 +28,7 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyIntermediateProcessor;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
@@ -1584,7 +1585,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 AssemblyIntermediateProcessor.splitContig(selectedFeatures.get(0), superAdapter.getActiveLayerHandler().generateFeature(hic), superAdapter, hic);
                 HiCGlobals.splitModeEnabled = false;
                 restoreDefaultVariables();
-                selectedFeatures.remove(0);
+                selectedFeatures.clear();
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation

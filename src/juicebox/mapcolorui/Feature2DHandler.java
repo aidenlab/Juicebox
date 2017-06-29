@@ -114,7 +114,7 @@ public class Feature2DHandler {
     }
 
 
-    protected void remakeRTree() {
+    public void remakeRTree() {
         featureRtrees.clear();
 
         loopList.processLists(new FeatureFunction() {
