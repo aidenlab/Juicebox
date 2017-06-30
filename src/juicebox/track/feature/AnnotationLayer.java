@@ -72,7 +72,7 @@ public class AnnotationLayer {
         lastItem = null;
         unsavedEdits = false;
         customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(new Feature2DList());
-        attributeKeys = new ArrayList<>();
+        attributeKeys = new ArrayList<>(); // TODO make sure attributes get copied over
     }
 
     public void clearAnnotations() {

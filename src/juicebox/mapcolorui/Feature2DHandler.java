@@ -169,7 +169,7 @@ public class Feature2DHandler {
 
     protected void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
         String hashID = feature2DList.hashCode() + "";
-        if (loopList.get(hashID) != null) {
+        if (loopList.get(hashID) == null) { // TODO make sure this boolean is correct
             //loopLists.get(hashID).setVisible(true);
             System.out.println("Making " + hashID + " visible");
         } else {

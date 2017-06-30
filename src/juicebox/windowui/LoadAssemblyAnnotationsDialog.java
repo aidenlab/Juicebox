@@ -268,16 +268,12 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
 
                 System.out.println("reading done");
 
-                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
-                System.out.println("Contig: " + contigLayer.getFeatureList().printChromosomeRegionKeys());
-                contigLayer.getFeatureHandler().remakeRTree();
-                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
 
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
-                System.out.println("Scaffold: " + scaffoldLayer.getFeatureList().printChromosomeRegionKeys());
                 scaffoldLayer.getFeatureHandler().remakeRTree();
                 scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
 
+                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
                 scaffoldLayerHandler.setLayerNameAndField("Group");
@@ -294,7 +290,6 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 editHandler.setLayerNameAndField("Edit");
                 editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
-                superAdapter.repaint();
 
             } catch (Exception ee) {
                 System.out.println("Not ok");
