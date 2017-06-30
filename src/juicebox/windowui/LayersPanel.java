@@ -402,9 +402,11 @@ public class LayersPanel extends JDialog {
 
         final JButton loadAssemblyButton = new JButton("Load Assembly");
         JButton addLocalButton = new JButton("Add Local");
-        JButton exportAssemblyButton = new JButton("Export Assembly");
+        final JButton exportAssemblyButton = new JButton("Export Assembly");
+        if (superAdapter.getAssemblyHandler() == null)
+            exportAssemblyButton.setEnabled(false);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+        final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
 
         buttonPanel.add(loadAssemblyButton);
         buttonPanel.add(addLocalButton);
@@ -442,7 +444,7 @@ public class LayersPanel extends JDialog {
         exportAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                new SaveAssemblyDialog(superAdapter.getAssemblyHandler(), "assembly"); //find how to get HiC filename
             }
         });
 
@@ -872,6 +874,17 @@ public class LayersPanel extends JDialog {
         tabbedPane.updateUI();
         tabbedPane.repaint();
         tabbedPane.revalidate();
+    }
+
+    public void updateAssemblyAnnotationsPanel(SuperAdapter superAdapter) { //todo break up Layers Panel into atleast a LayersPanel,1DTrackPanel, a 2DAnnotationsPanel, and an AssemblyPanel
+        tabbedPane.remove(assemblyAnnotationsPanel);
+        if (assemblyAnnotationsPanel != null) assemblyAnnotationsPanel.setBorder(padding);
+        tabbedPane.addTab("Assembly Annotations", null, assemblyAnnotationsPanel,
+                "Manage Assembly Annotations");
+        tabbedPane.updateUI();
+        tabbedPane.repaint();
+        tabbedPane.revalidate();
+
     }
 
     public LoadAction getTrackLoadAction() {

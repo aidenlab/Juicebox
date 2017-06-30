@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyHandler;
 import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
@@ -73,6 +74,7 @@ public class SuperAdapter {
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
+    private AssemblyHandler assemblyHandler;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
@@ -910,5 +912,13 @@ public class SuperAdapter {
 
     public void togglePanelVisible() {
         setLayersPanelVisible(!layerPanelIsVisible);
+    }
+
+    public AssemblyHandler getAssemblyHandler() {
+        return assemblyHandler;
+    }
+
+    public void setAssemblyHandler(AssemblyHandler assemblyHandler) {
+        this.assemblyHandler = assemblyHandler;
     }
 }

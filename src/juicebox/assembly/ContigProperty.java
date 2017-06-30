@@ -24,44 +24,35 @@
 
 package juicebox.assembly;
 
-import java.util.List;
 /**
- * Created by nathanielmusial on 6/29/17.
+ * Created by nathanielmusial on 6/30/17.
  */
-public class AssemblyFileExporter {
+public class ContigProperty {
 
-    private AssemblyHandler assemblyHandler;
-    private String cpropsFilePath;
-    private String asmFilePath;
-    private List<ContigProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
+    private String name;
+    private int indexId;
+    private int length;
 
-    public AssemblyFileExporter(AssemblyHandler assemblyHandler, String cpropsFilePath, String asmFilePath) {
-        this.assemblyHandler = assemblyHandler;
-        this.cpropsFilePath = cpropsFilePath;
-        this.asmFilePath = asmFilePath;
-        this.contigProperties = assemblyHandler.getContigProperties();
-        this.scaffoldProperties = assemblyHandler.getScaffoldProperties();
+    public ContigProperty(String name, int indexId, int length) {
+        this.name = name;
+        this.indexId = indexId;
+        this.length = length;
     }
 
-    public void exportContigsAndScaffolds() {
-        exportContigs();
-        exportScaffolds();
+    public String getName() {
+        return name;
     }
 
-    private void exportContigs() {
-        for (ContigProperty contigProperty : contigProperties) {
-            System.out.println(contigProperty.toString());
-        }
+    public int getIndexId() {
+        return indexId;
     }
 
-    private void exportScaffolds() {
+    public int getLength() {
+        return length;
+    }
 
-        for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                System.out.print(contigIndex + " ");
-            }
-            System.out.println();
-        }
+    @Override
+    public String toString() {
+        return name + " " + indexId + " ";
     }
 }

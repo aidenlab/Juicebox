@@ -24,16 +24,12 @@
 
 package juicebox.assembly;
 
-import javafx.util.Pair;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 /**
  * Created by ranganmostofa on 6/29/17.
@@ -43,18 +39,18 @@ public class AssemblyFileImporter {
     private String chromosomeName = "assembly";
     private String cpropsFilePath;
     private String asmFilePath;
-    private List<Pair<String, Integer>> contigProperties;
+    private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
-    private Feature2DList contigs;
-    private Feature2DList scaffolds;
+
+    private AssemblyHandler assemblyHandler;
 
     public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
         this.cpropsFilePath = cpropsFilePath;
         this.asmFilePath = asmFilePath;
         contigProperties = new ArrayList<>();
         scaffoldProperties = new ArrayList<>();
-        contigs = new Feature2DList();
-        scaffolds = new Feature2DList();
+        readFiles();
+        assemblyHandler = new AssemblyHandler(contigProperties, scaffoldProperties);
     }
 
     public void readFiles() {
@@ -62,7 +58,6 @@ public class AssemblyFileImporter {
             System.out.println("Reading Assembly Files");
             parseCpropsFile();
             parseAsmFile();
-            populateContigsAndScaffolds();
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
@@ -75,7 +70,7 @@ public class AssemblyFileImporter {
             for (String row : rawFileData) {
                 String[] splitRow = row.split(" ");
                 // splitRow[0] -> Name, splitRow[2] -> length
-                Pair<String, Integer> currentPair = new Pair<>(splitRow[0], Integer.parseInt(splitRow[2]));
+                ContigProperty currentPair = new ContigProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
                 contigProperties.add(currentPair);
             }
         } else
@@ -107,39 +102,7 @@ public class AssemblyFileImporter {
         return getAsmFilePath().endsWith(FILE_EXTENSIONS.ASM.toString());
     }
 
-    private void populateContigsAndScaffolds() {
-        int contigStartPos = 0;
-        int scaffoldStartPos = 0;
-        int scaffoldLength = 0;
-        for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                // System.out.println(contigIndex);
-                String contigName = contigProperties.get(Math.abs(contigIndex) - 1).getKey();
-                Integer contigLength = contigProperties.get(Math.abs(contigIndex) - 1).getValue();
 
-                Feature2D contig = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        new Color(0, 255, 0), new HashMap<String, String>());
-                contigs.add(1, 1, contig);
-
-//                System.out.println("Contig: "+contigIndex+"\t"+contigLength+"\t"+contigStartPos +"\t"+ (contigStartPos+contigLength));
-
-                contigStartPos += contigLength;
-                scaffoldLength += contigLength;
-            }
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    new Color(0, 0, 255), new HashMap<String, String>());
-            scaffolds.add(1, 1, scaffold);
-//            System.out.println("Scaffold: "+scaffoldStartPos +"\t"+ (scaffoldStartPos+scaffoldLength));
-
-            scaffoldStartPos += scaffoldLength;
-            scaffoldLength = 0;
-
-        }
-        System.out.println("Num Contigs: " + contigs.getNumTotalFeatures());
-        System.out.println("Num Scaffolds: " + scaffolds.getNumTotalFeatures());
-    }
 
     private boolean getIsInverted(Integer contigIndex) {
         return contigIndex < 0 ? Boolean.TRUE : Boolean.FALSE;
@@ -180,11 +143,15 @@ public class AssemblyFileImporter {
     }
 
     public Feature2DList getContigs() {
-        return this.contigs;
+        return this.assemblyHandler.getContigs();
     }
 
     public Feature2DList getScaffolds() {
-        return this.scaffolds;
+        return this.assemblyHandler.getScaffolds();
+    }
+
+    public AssemblyHandler getAssemblyHandler() {
+        return assemblyHandler;
     }
 
     private enum FILE_EXTENSIONS {

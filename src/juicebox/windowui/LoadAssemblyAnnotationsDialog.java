@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
+import juicebox.assembly.AssemblyHandler;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayer;
@@ -290,6 +291,10 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 editHandler.setLayerNameAndField("Edit");
                 editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
+
+                AssemblyHandler assemblyHandler = assemblyFileImporter.getAssemblyHandler();
+                superAdapter.setAssemblyHandler(assemblyHandler);
+                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
 
             } catch (Exception ee) {
                 System.out.println("Not ok");
