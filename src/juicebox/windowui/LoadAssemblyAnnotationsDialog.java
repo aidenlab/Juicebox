@@ -269,28 +269,32 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 System.out.println("reading done");
 
                 AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
+                System.out.println("Contig: " + contigLayer.getFeatureList().printChromosomeRegionKeys());
+                contigLayer.getFeatureHandler().remakeRTree();
+                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
+
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
+                System.out.println("Scaffold: " + scaffoldLayer.getFeatureList().printChromosomeRegionKeys());
+                scaffoldLayer.getFeatureHandler().remakeRTree();
+                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
 
-                AnnotationLayerHandler contigLayerHandler = new AnnotationLayerHandler();
-                contigLayerHandler.setAnnotationLayer(contigLayer);
-
-                AnnotationLayerHandler scaffoldLayerHandler = new AnnotationLayerHandler();
+                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
+                scaffoldLayerHandler.setLayerNameAndField("Group");
+                scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
-                AnnotationLayerHandler groupHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, scaffoldLayerHandler);
-                groupHandler.setLayerNameAndField("Group");
-                groupHandler.setColorOfAllAnnotations(Color.blue);
-                groupHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.GROUP);
 
-                AnnotationLayerHandler mainHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, contigLayerHandler);
-                mainHandler.setLayerNameAndField("Main");
-                mainHandler.setColorOfAllAnnotations(Color.green);
-                mainHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.MAIN);
+                AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                contigLayerHandler.setAnnotationLayer(contigLayer);
+                contigLayerHandler.setLayerNameAndField("Main");
+                contigLayerHandler.setColorOfAllAnnotations(Color.green);
 
                 AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 editHandler.setColorOfAllAnnotations(Color.yellow);
                 editHandler.setLayerNameAndField("Edit");
                 editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+
+                superAdapter.repaint();
 
             } catch (Exception ee) {
                 System.out.println("Not ok");

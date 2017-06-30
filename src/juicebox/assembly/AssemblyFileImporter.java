@@ -59,6 +59,7 @@ public class AssemblyFileImporter {
 
     public void readFiles() {
         try {
+            System.out.println("Reading Assembly Files");
             parseCpropsFile();
             parseAsmFile();
             populateContigsAndScaffolds();
@@ -77,7 +78,8 @@ public class AssemblyFileImporter {
                 Pair<String, Integer> currentPair = new Pair<>(splitRow[0], Integer.parseInt(splitRow[2]));
                 contigProperties.add(currentPair);
             }
-        }
+        } else
+            System.out.println("Invalid cprops file");
     }
 
     private boolean validateCpropsFile() {
@@ -89,13 +91,16 @@ public class AssemblyFileImporter {
             List<String> rawFileData = readFile(asmFilePath);
 
             for (String row : rawFileData) {
+                //   System.out.println("Scaffold: "+row);
                 List<Integer> currentContigIndices = new ArrayList<>();
                 for (String index : row.split(" ")) {
                     currentContigIndices.add(Integer.parseInt(index));
                 }
+
                 scaffoldProperties.add(currentContigIndices);
             }
-        }
+        } else
+            System.out.println("Invalid asm file");
     }
 
     private boolean validateAsmFile() {
@@ -103,27 +108,37 @@ public class AssemblyFileImporter {
     }
 
     private void populateContigsAndScaffolds() {
-        Integer contigStartPos = 0;
-        Integer scaffoldStartPos = 0;
-        Integer scaffoldLength = 0;
+        int contigStartPos = 0;
+        int scaffoldStartPos = 0;
+        int scaffoldLength = 0;
         for (List<Integer> row : scaffoldProperties) {
             for (Integer contigIndex : row) {
-                String contigName = contigProperties.get(Math.abs(contigIndex)).getKey();
-                Integer contigLength = contigProperties.get(Math.abs(contigIndex)).getValue();
+                // System.out.println(contigIndex);
+                String contigName = contigProperties.get(Math.abs(contigIndex) - 1).getKey();
+                Integer contigLength = contigProperties.get(Math.abs(contigIndex) - 1).getValue();
 
-                Feature2D contig = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, contigStartPos,
-                        chromosomeName, contigStartPos + contigLength, contigStartPos + contigLength,
+                Feature2D contig = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
+                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         new Color(0, 255, 0), new HashMap<String, String>());
                 contigs.add(1, 1, contig);
+
+//                System.out.println("Contig: "+contigIndex+"\t"+contigLength+"\t"+contigStartPos +"\t"+ (contigStartPos+contigLength));
 
                 contigStartPos += contigLength;
                 scaffoldLength += contigLength;
             }
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, scaffoldStartPos,
-                    chromosomeName, scaffoldStartPos + scaffoldLength, scaffoldStartPos + scaffoldLength,
+            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
+                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
                     new Color(0, 0, 255), new HashMap<String, String>());
             scaffolds.add(1, 1, scaffold);
+//            System.out.println("Scaffold: "+scaffoldStartPos +"\t"+ (scaffoldStartPos+scaffoldLength));
+
+            scaffoldStartPos += scaffoldLength;
+            scaffoldLength = 0;
+
         }
+        System.out.println("Num Contigs: " + contigs.getNumTotalFeatures());
+        System.out.println("Num Scaffolds: " + scaffolds.getNumTotalFeatures());
     }
 
     private boolean getIsInverted(Integer contigIndex) {
@@ -142,7 +157,7 @@ public class AssemblyFileImporter {
         Scanner scanner = new Scanner(file);
 
         while (scanner.hasNext()) {
-            fileData.add(scanner.next());
+            fileData.add(scanner.nextLine());
         }
 
         return fileData;
