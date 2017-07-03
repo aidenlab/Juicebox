@@ -126,19 +126,6 @@ public class MainViewPanel {
 //        JPanel bottomPanel = new JPanel();
 //        bottomPanel.setBackground(Color.white);
 
-        btnMenu = new JideButton();
-        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/right-arrow.gif"));
-        btnMenu.setIcon(menuIcon);
-        btnMenu.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //TODO: Open menu tab on layer 1
-                menuOpen = !menuOpen;
-            }
-        });
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, 21, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, -10, SpringLayout.EAST, bigPanel);
-        bigPanel.add(btnMenu);
-
 
         JMenuBar menuBar = null;
         try {
@@ -314,6 +301,22 @@ public class MainViewPanel {
         // splitPanel.insertPane(hiCPanel, 0);
         // splitPanel.setBackground(Color.white);
 
+        //======= Menu Tab Button ========
+        btnMenu = new JideButton();
+        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/right-arrow.gif"));
+        btnMenu.setIcon(menuIcon);
+        btnMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //TODO: Open menu tab on layer 1
+                menuOpen = !menuOpen;
+            }
+        });
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, -35, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, btnMenu, 10, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, -12, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
+        bigPanel.add(btnMenu);
+
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
         topPanel.setBackground(Color.white);
@@ -471,9 +474,12 @@ public class MainViewPanel {
         toolbarPanel.add(colorRangePanel, toolbarConstraints);
 
         goPanel = new GoToPanel(superAdapter);
-        toolbarConstraints.gridx = 5;
-        toolbarConstraints.weightx = 0.25;
-        toolbarPanel.add(goPanel, toolbarConstraints);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, goPanel, 10, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, goPanel, -170, SpringLayout.EAST, resolutionSlider);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, resolutionSlider);
+        bigPanel.add(goPanel);
+//        toolbarConstraints.gridx = 5;
         // not sure this is working
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
         toolbarPanel.setEnabled(false);
