@@ -99,27 +99,30 @@ public class MainViewPanel {
                                    Dimension bigPanelDim, Dimension panelDim) {
         contentPane.setLayout(new BorderLayout());
 
-        final JPanel mainPanel = new JPanel();
+        final JPanel mainPanel = new JPanel(); // The main content panel.
         mainPanel.setLayout(new BorderLayout());
         contentPane.add(mainPanel, BorderLayout.CENTER);
         mainPanel.setBackground(Color.white);
 
-        final JPanel toolbarPanel = new JPanel();
+        final JPanel toolbarPanel = new JPanel(); // Chromosomes, Show, Normalization, Resolution, ColorRange, Goto
+        // TODO: Get rid of toolbarPanel and move its component to each side of the bigPanel
         toolbarPanel.setBorder(null);
 
         toolbarPanel.setLayout(new GridBagLayout());
-        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
+//        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        JPanel bigPanel = new JPanel();
-        bigPanel.setLayout(new BorderLayout());
+        JPanel bigPanel = new JPanel(); //Hi-C Map
+//        bigPanel.setLayout(new BorderLayout());
         bigPanel.setBackground(Color.white);
+        SpringLayout sl_bigPanel = new SpringLayout();
+        bigPanel.setLayout(sl_bigPanel);
 
         bigPanel.setPreferredSize(new Dimension(bigPanelDim));
         bigPanel.setMaximumSize(new Dimension(bigPanelDim));
         bigPanel.setMinimumSize(new Dimension(bigPanelDim));
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setBackground(Color.white);
+//        JPanel bottomPanel = new JPanel();
+//        bottomPanel.setBackground(Color.white);
 
 
         JMenuBar menuBar = null;
@@ -276,15 +279,21 @@ public class MainViewPanel {
         hiCPanel = new JPanel();
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
-        bigPanel.add(hiCPanel, BorderLayout.CENTER);
 
-        JPanel wrapGapPanel = new JPanel();
-        wrapGapPanel.setBackground(Color.white);
-        wrapGapPanel.setMaximumSize(new Dimension(5, 5));
-        wrapGapPanel.setMinimumSize(new Dimension(5, 5));
-        wrapGapPanel.setPreferredSize(new Dimension(5, 5));
-        wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
-        bigPanel.add(wrapGapPanel, BorderLayout.EAST);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, hiCPanel, 45, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, hiCPanel, 55, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, hiCPanel, -35, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, hiCPanel, -190, SpringLayout.EAST, bigPanel);
+//        bigPanel.add(hiCPanel, BorderLayout.CENTER);
+        bigPanel.add(hiCPanel);
+
+//        JPanel wrapGapPanel = new JPanel();
+//        wrapGapPanel.setBackground(Color.BLACK);
+//        wrapGapPanel.setMaximumSize(new Dimension(5, 5));
+//        wrapGapPanel.setMinimumSize(new Dimension(5, 5));
+//        wrapGapPanel.setPreferredSize(new Dimension(5, 5));
+//        wrapGapPanel.setBorder(LineBorder.createBlackLineBorder());
+//        bigPanel.add(wrapGapPanel, BorderLayout.EAST);
 
 
         // splitPanel.insertPane(hiCPanel, 0);
@@ -430,9 +439,14 @@ public class MainViewPanel {
         resolutionSlider.setPreferredSize(new Dimension(200, 70));
         resolutionSlider.setMinimumSize(new Dimension(150, 70));
 
-        toolbarConstraints.gridx = 3;
-        toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(resolutionSlider, toolbarConstraints);
+//        toolbarConstraints.gridx = 3;
+//        toolbarConstraints.weightx = 0.1;
+//        toolbarPanel.add(resolutionSlider, toolbarConstraints);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, -70, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 10, SpringLayout.EAST, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, -10, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, resolutionSlider, -10, SpringLayout.EAST, bigPanel);
+        bigPanel.add(resolutionSlider);
 
         //======== Color Range Panel ========
         colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel, preDefMapColor);
@@ -452,7 +466,7 @@ public class MainViewPanel {
 
         //======== Right side panel ========
 
-        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
+        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout()); //Rightside tab
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
@@ -543,7 +557,7 @@ public class MainViewPanel {
         rightSidePanel.setMinimumSize(preferredSize);
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
-        mainPanel.add(rightSidePanel, BorderLayout.EAST);
+        //mainPanel.add(rightSidePanel, BorderLayout.EAST);
     }
 
     public JPanel getHiCPanel() {
