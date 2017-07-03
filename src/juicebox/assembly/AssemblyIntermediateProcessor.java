@@ -167,8 +167,10 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    public static void splitGroup() {
+    public static void splitGroup(List<Feature2D> contigs, int startIndex, int endIndex) {
+    }
 
+    public static void mergeGroup() {
     }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {

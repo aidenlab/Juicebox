@@ -24,6 +24,8 @@
 
 package juicebox.assembly;
 
+import juicebox.track.feature.Feature2D;
+
 /**
  * Created by nathanielmusial on 6/30/17.
  */
@@ -32,11 +34,13 @@ public class ContigProperty {
     private String name;
     private int indexId;
     private int length;
+    private Feature2D feature2D;
 
     public ContigProperty(String name, int indexId, int length) {
         this.name = name;
         this.indexId = indexId;
         this.length = length;
+        this.feature2D = null;
     }
 
     public String getName() {
@@ -49,6 +53,14 @@ public class ContigProperty {
 
     public int getLength() {
         return length;
+    }
+
+    public Feature2D getFeature2D() {
+        return feature2D;
+    }
+
+    public void setFeature2D(Feature2D feature2D) {
+        this.feature2D = feature2D;
     }
 
     @Override
