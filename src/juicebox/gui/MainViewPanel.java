@@ -303,7 +303,7 @@ public class MainViewPanel {
 
         //======= Menu Tab Button ========
         btnMenu = new JideButton();
-        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/right-arrow.gif"));
+        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/menu.png"));
         btnMenu.setIcon(menuIcon);
         btnMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -468,10 +468,15 @@ public class MainViewPanel {
 
         //======== Color Range Panel ========
         colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel, preDefMapColor);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, -150, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, colorRangePanel, -170, SpringLayout.EAST, resolutionSlider);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, -80, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
+        bigPanel.add(colorRangePanel);
 
         toolbarConstraints.gridx = 4;
         toolbarConstraints.weightx = 0.5;
-        toolbarPanel.add(colorRangePanel, toolbarConstraints);
+//        toolbarPanel.add(colorRangePanel, toolbarConstraints);
 
         goPanel = new GoToPanel(superAdapter);
         sl_bigPanel.putConstraint(SpringLayout.NORTH, goPanel, 10, SpringLayout.NORTH, bigPanel);
@@ -482,7 +487,7 @@ public class MainViewPanel {
 //        toolbarConstraints.gridx = 5;
         // not sure this is working
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
-        toolbarPanel.setEnabled(false);
+//        toolbarPanel.setEnabled(false);
 
 
         //======== Right side panel ========
