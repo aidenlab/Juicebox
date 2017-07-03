@@ -403,8 +403,8 @@ public class LayersPanel extends JDialog {
         final JButton loadAssemblyButton = new JButton("Load Assembly");
         JButton addLocalButton = new JButton("Add Local");
         final JButton exportAssemblyButton = new JButton("Export Assembly");
-        if (superAdapter.getAssemblyHandler() == null)
-            exportAssemblyButton.setEnabled(false);
+//        if (superAdapter.getAssemblyHandler() == null)
+//            exportAssemblyButton.setEnabled(false);
 
         final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
 

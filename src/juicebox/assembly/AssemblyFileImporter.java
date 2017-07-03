@@ -24,7 +24,6 @@
 
 package juicebox.assembly;
 
-import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Feature2DList;
 
 import java.io.File;
@@ -35,7 +34,6 @@ import java.util.*;
  * Created by ranganmostofa on 6/29/17.
  */
 public class AssemblyFileImporter {
-    private SuperAdapter superAdapter;
     private String chromosomeName = "assembly";
     private String cpropsFilePath;
     private String asmFilePath;
@@ -55,7 +53,6 @@ public class AssemblyFileImporter {
 
     public void readFiles() {
         try {
-            System.out.println("Reading Assembly Files");
             parseCpropsFile();
             parseAsmFile();
         } catch (IOException exception) {
@@ -73,8 +70,7 @@ public class AssemblyFileImporter {
                 ContigProperty currentPair = new ContigProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
                 contigProperties.add(currentPair);
             }
-        } else
-            System.out.println("Invalid cprops file");
+        } else System.out.println("Invalid cprops file");
     }
 
     private boolean validateCpropsFile() {
@@ -101,8 +97,6 @@ public class AssemblyFileImporter {
     private boolean validateAsmFile() {
         return getAsmFilePath().endsWith(FILE_EXTENSIONS.ASM.toString());
     }
-
-
 
     private boolean getIsInverted(Integer contigIndex) {
         return contigIndex < 0 ? Boolean.TRUE : Boolean.FALSE;

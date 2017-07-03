@@ -48,8 +48,6 @@ public class SaveAssemblyDialog extends JFileChooser {
         this.mapName = mapName;
         this.assemblyHandler = assemblyHandler;
         menuOptions();
-        AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyHandler, "assembly.cprops", "assembly.asm");
-        assemblyFileExporter.exportContigsAndScaffolds();
     }
 
     private void menuOptions() {
@@ -71,6 +69,8 @@ public class SaveAssemblyDialog extends JFileChooser {
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
+                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyHandler, outputPath, outputPath);
+                assemblyFileExporter.exportContigsAndScaffolds();
             }
         }
     }

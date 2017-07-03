@@ -65,6 +65,6 @@ public class ContigProperty {
 
     @Override
     public String toString() {
-        return name + " " + indexId + " ";
+        return name + " " + indexId + " " + length;
     }
 }

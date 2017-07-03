@@ -24,6 +24,9 @@
 
 package juicebox.assembly;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.List;
 /**
  * Created by nathanielmusial on 6/29/17.
@@ -45,23 +48,58 @@ public class AssemblyFileExporter {
     }
 
     public void exportContigsAndScaffolds() {
-        exportContigs();
-        exportScaffolds();
-    }
-
-    private void exportContigs() {
-        for (ContigProperty contigProperty : contigProperties) {
-            System.out.println(contigProperty.toString());
+        try {
+            exportContigs();
+            exportScaffolds();
+        } catch (IOException exception) {
+            System.out.println("Exporting failed...");
         }
     }
 
-    private void exportScaffolds() {
+    private void exportContigs() throws IOException {
+        PrintWriter contigPrintWriter = new PrintWriter(this.cpropsFilePath, "UTF-8");
+        for (ContigProperty contigProperty : contigProperties) {
+            contigPrintWriter.println(contigProperty.toString());
+        }
+        contigPrintWriter.close();
+    }
 
+    private void exportScaffolds() throws IOException {
+        PrintWriter scaffoldPrintWriter = new PrintWriter(this.asmFilePath, "UTF-8");
         for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                System.out.print(contigIndex + " ");
+            scaffoldPrintWriter.println(convertScaffoldRowToString(row));
+        }
+        scaffoldPrintWriter.close();
+    }
+
+    private String convertScaffoldRowToString(List<Integer> scaffoldRow) {
+        StringBuilder stringBuilder = new StringBuilder();
+        Iterator<Integer> iterator = scaffoldRow.iterator();
+        while (iterator.hasNext()) {
+            stringBuilder.append(iterator.next());
+            if (iterator.hasNext()) {
+                stringBuilder.append(" ");
             }
-            System.out.println();
+        }
+        return stringBuilder.toString();
+    }
+
+    private enum FILE_EXTENSIONS {
+        CPROPS("cprops"),
+        ASM("asm");
+
+        private final String extension;
+
+        FILE_EXTENSIONS(String extension) {
+            this.extension = extension;
+        }
+
+        public boolean equals(String otherExtension) {
+            return this.extension.equals(otherExtension);
+        }
+
+        public String toString() {
+            return this.extension;
         }
     }
 }

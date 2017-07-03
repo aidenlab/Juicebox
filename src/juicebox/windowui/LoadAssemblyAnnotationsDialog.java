@@ -262,13 +262,8 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
         }
 
         if (asmPath != null && cpropsPath != null) {
-            System.out.println("Files ok");
             try {
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
-                assemblyFileImporter.readFiles();
-
-                System.out.println("reading done");
-
 
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
                 scaffoldLayer.getFeatureHandler().remakeRTree();
@@ -297,7 +292,6 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
 
             } catch (Exception ee) {
-                System.out.println("Not ok");
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
 //                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
 //                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
