@@ -84,6 +84,8 @@ public class MainViewPanel {
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
+    private JideButton btnMenu;
+    private boolean menuOpen = false; //TODO : link with menu button
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -111,7 +113,7 @@ public class MainViewPanel {
         toolbarPanel.setLayout(new GridBagLayout());
 //        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        JPanel bigPanel = new JPanel(); //Hi-C Map
+        JLayeredPane bigPanel = new JLayeredPane(); //Hi-C Map
 //        bigPanel.setLayout(new BorderLayout());
         bigPanel.setBackground(Color.white);
         SpringLayout sl_bigPanel = new SpringLayout();
@@ -123,6 +125,19 @@ public class MainViewPanel {
 
 //        JPanel bottomPanel = new JPanel();
 //        bottomPanel.setBackground(Color.white);
+
+        btnMenu = new JideButton();
+        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/right-arrow.gif"));
+        btnMenu.setIcon(menuIcon);
+        btnMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //TODO: Open menu tab on layer 1
+                menuOpen = !menuOpen;
+            }
+        });
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, 21, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, -10, SpringLayout.EAST, bigPanel);
+        bigPanel.add(btnMenu);
 
 
         JMenuBar menuBar = null;
@@ -557,7 +572,7 @@ public class MainViewPanel {
         rightSidePanel.setMinimumSize(preferredSize);
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
-        //mainPanel.add(rightSidePanel, BorderLayout.EAST);
+        mainPanel.add(rightSidePanel, BorderLayout.EAST);
     }
 
     public JPanel getHiCPanel() {
