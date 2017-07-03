@@ -22,41 +22,49 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.track;
-
-import org.broad.igv.feature.Chromosome;
-import org.broad.igv.renderer.DataRange;
-import org.broad.igv.track.WindowFunction;
+package juicebox.track.feature;
 
 import java.awt.*;
-import java.util.Collection;
 
 /**
- * @author jrobinso
- *         Date: 8/1/13
- *         Time: 7:51 PM
+ * Created by nathanielmusial on 6/26/17.
  */
-public interface HiCDataSource {
 
-    String getName();
+public class Feature2DGuiContainer {
 
-    void setName(String text);
+    private Rectangle rectangle;
+    private Feature2D feature2D;
+    private AnnotationLayerHandler annotationLayerHandler;
+    private int index;
 
-    Color getPosColor();
+    public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler) {
+        this(rectangle, feature2D, annotationLayerHandler, 0);
+    }
 
-    void setColor(Color selectedColor);
+    public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler, int index) {
+        this.rectangle = rectangle;
+        this.feature2D = feature2D;
+        this.annotationLayerHandler = annotationLayerHandler;
+        this.index = index;
+    }
 
-    Color getNegColor();
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
 
-    void setNegColor(Color selectedColor);
+    public Feature2D getFeature2D() {
+        return feature2D;
+    }
 
-    DataRange getDataRange();
+    public AnnotationLayerHandler getAnnotationLayerHandler() {
+        return annotationLayerHandler;
+    }
 
-    void setDataRange(DataRange dataRange);
+    public int getIndex() {
+        return index;
+    }
 
-    boolean isLog();
-
-    HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction);
-
-    Collection<WindowFunction> getAvailableWindowFunctions();
+    public void setIndex(int index) {
+        this.index = index;
+    }
 }

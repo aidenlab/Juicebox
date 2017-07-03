@@ -29,6 +29,8 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
 import juicebox.gui.SuperAdapter;
+import juicebox.track.HiCCoverageDataSource;
+import juicebox.track.HiCDataSource;
 import juicebox.track.HiCDataTrack;
 import juicebox.track.HiCTrack;
 import juicebox.track.feature.AnnotationLayerHandler;
@@ -79,8 +81,10 @@ public class XMLFileHandling {
                 currentTrackName += track.getName() + ", ";
                 track.getLocator().getColor();
                 try {
-                    HiCDataTrack hiCDataTrack = (HiCDataTrack) track;
-                    configTrackInfo = hiCDataTrack.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
+                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
+                    HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, track.getLocator(), source);
+
+                    configTrackInfo = track.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
                             + hiCDataTrack.getNegColor().getRGB() + "," + hiCDataTrack.getDataRange().getMinimum() + ","
                             + hiCDataTrack.getDataRange().getMaximum() + "," + hiCDataTrack.getDataRange().isLog() + "**";
                     //Name, PosColor, AltColor, Min, Max, isLogScale
@@ -98,11 +102,15 @@ public class XMLFileHandling {
         // TODO this needs some major restructuring
         List<Feature2DList> visibleLoops = new ArrayList<>();
         for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
-            visibleLoops.addAll(handler.getAllVisibleLoopLists());
+            visibleLoops.add(handler.getAllVisibleLoops());
         }
         if (visibleLoops != null && !visibleLoops.isEmpty()) {
-            textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
-                    dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
+            try {
+                textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
+                        dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
+            } catch (Exception e) {
+
+            }
         }
 
         //("currentState,xChr,yChr,resolution,zoom level,xbin,ybin,scale factor,display selection,

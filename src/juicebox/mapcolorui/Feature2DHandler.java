@@ -28,10 +28,7 @@ import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
-import juicebox.track.feature.FeatureFunction;
+import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
 import org.broad.igv.util.Pair;
@@ -87,16 +84,16 @@ public class Feature2DHandler {
         return new Rectangle(x, y, w, h);
     }
 
-    public List<Pair<Rectangle, Feature2D>> convertFeaturesToFeaturePairs(List<Feature2D> features, MatrixZoomData zd,
-                                                                          double binOriginX, double binOriginY, double scale) {
-        final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
+    public List<Feature2DGuiContainer> convertFeaturesToFeaturePairs(AnnotationLayerHandler handler, List<Feature2D> features, MatrixZoomData zd,
+                                                                     double binOriginX, double binOriginY, double scale) {
+        final List<Feature2DGuiContainer> featurePairs = new ArrayList<>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();
         final HiCGridAxis yAxis = zd.getYGridAxis();
 
         for (Feature2D feature : features) {
-            featurePairs.add(new Pair<>(
-                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature));
+            featurePairs.add(new Feature2DGuiContainer(
+                    getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature, handler));
         }
 
         return featurePairs;
@@ -183,13 +180,10 @@ public class Feature2DHandler {
         }
     }
 
-    public List<Feature2DList> getAllVisibleLoopLists() {
-        List<Feature2DList> visibleLoopList = new ArrayList<>();
+    public Feature2DList getAllVisibleLoops() {
+        Feature2DList visibleLoopList = new Feature2DList();
         if (layerVisible) {
-
-            if (loopList.getNumTotalFeatures() > 0) {
-                visibleLoopList.add(loopList);
-            }
+            visibleLoopList = loopList;
         }
         return visibleLoopList;
     }
@@ -197,11 +191,9 @@ public class Feature2DHandler {
     public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
         List<Feature2D> visibleLoopList = new ArrayList<>();
         if (layerVisible) {
-
             List<Feature2D> currList = loopList.get(chrIdx1, chrIdx2);
             if (currList != null) {
                 visibleLoopList.addAll(currList);
-
             }
         }
         return visibleLoopList;
@@ -237,9 +229,32 @@ public class Feature2DHandler {
         return foundFeatures;
     }
 
+    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
+        final List<Feature2D> foundFeatures = new ArrayList<>();
+        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+
+        if (featureRtrees.containsKey(key) && layerVisible) {
+            if (sparseFeaturePlottingEnabled) {
+                featureRtrees.get(key).intersects(
+                        selectionWindow,
+                        new TIntProcedure() {     // a procedure whose execute() method will be called with the results
+                            public boolean execute(int i) {
+                                Feature2D feature = loopList.get(key).get(i);
+                                foundFeatures.add(feature);
+                                return true;      // return true here to continue receiving results
+                            }
+                        }
+                );
+            } else {
+                List<Feature2D> features = loopList.get(key);
+                if (features != null) foundFeatures.addAll(features);
+            }
+        }
+        return foundFeatures;
+    }
+
     public List<Pair<Rectangle, Feature2D>> getNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                                                   final double binOriginX, final double binOriginY, final double scale) {
-
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
 
         if (layerVisible) {

@@ -24,11 +24,13 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -36,6 +38,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 
+import javax.swing.*;
 import java.util.*;
 
 /**
@@ -48,12 +51,11 @@ public class AssemblyIntermediateProcessor {
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
         AssemblyIntermediateProcessor.superAdapter = superAdapter;
-        List<Feature2DList> allFeatureLists = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
-                .getAllVisibleLoopLists();
-        Feature2DList features = allFeatureLists.get(0);
+        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+                .getAllVisibleLoops();
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
         superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        HiCGlobals.assemblyModeEnabled = true; // todo enables assembly mode make a checkbox in gui
+        HiCGlobals.assemblyModeEnabled = true;
         //superAdapter.getHiC().clearMatrixZoomDataCache();
         superAdapter.refresh();
     }
@@ -66,24 +68,128 @@ public class AssemblyIntermediateProcessor {
 
         for (String instruction : encodedInstructions) {
             if (instruction.startsWith("-")) {
-                // TODO future
-                // invert selections rather than just one contig
-                // this involves inverting each of the sub contigs,
-                // but also inverting their order
-
-                invertEntryAt(contigs, Math.abs(Integer.parseInt(instruction)));
+                parseInversionInstruction(contigs, instruction);
+            } else if (instruction.contains("->")) {
+                parseTranslationInstruction(contigs, instruction);
             } else {
-                String[] indices = instruction.split("->");
-                int currentIndex = Integer.parseInt(indices[0]);
-                int newIndex = Integer.parseInt(indices[1]);
-                moveFeatureToNewIndex(contigs, currentIndex, newIndex);
+                showInvalidInstructionErrorMessage(instruction);
             }
         }
-
         recalculateAllAlterations(contigs);
     }
 
-    private static void recalculateAllAlterations(List<Feature2D> contigs) {
+    private static void parseInversionInstruction(List<Feature2D> contigs, String instruction) {
+        String reformattedInstruction = instruction;
+        if (!(reformattedInstruction.contains(":"))) {
+            reformattedInstruction = reformattedInstruction.concat(":")
+                    .concat(reformattedInstruction);
+        }
+        String[] contigIndices = reformattedInstruction.split(":");
+        String startIndexString = contigIndices[0];
+        String endIndexString = contigIndices[1];
+        if (!(isNumeric(startIndexString) && isNumeric(endIndexString))) {
+            showInvalidInstructionErrorMessage(instruction);
+            return;
+        }
+        Integer startIndex = Math.abs(Integer.parseInt(startIndexString));
+        Integer endIndex = Math.abs(Integer.parseInt(endIndexString));
+        invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
+    }
+
+    private static void parseTranslationInstruction(List<Feature2D> contigs, String instruction) {
+        String[] indices = instruction.split("->");
+        if (!(isNumeric(indices[0]) && isNumeric(indices[1]))) {
+            showInvalidInstructionErrorMessage(instruction);
+            return;
+        }
+        int currentIndex = Integer.parseInt(indices[0]);
+        int newIndex = Integer.parseInt(indices[1]);
+        moveFeatureToNewIndex(contigs, currentIndex, newIndex);
+    }
+
+    private static void invertSingleEntryAt(List<Feature2D> contigs, int index) {
+        if (!(index >= 0 && index < contigs.size())) {
+            return;
+        }
+        ((Contig2D) contigs.get(index)).toggleInversion();
+    }
+
+    public static void invertMultipleContiguousEntriesAt(List<Feature2D> contigs, int startIndex, int endIndex) {
+        // Invert each of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+            invertSingleEntryAt(contigs, currentIndex);
+        }
+        // Reverse the order of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
+        }
+    }
+
+
+    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
+
+        AnnotationLayer contigLayer = superAdapter.getContigLayer().getAnnotationLayer();
+        Feature2D firstFragment;
+        Feature2D secondFragment;
+        Feature2D thirdFragment;
+        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+
+        if (originalContig.overlapsWith(debrisContig)) {
+
+            contigLayer.getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, originalContig);
+
+            firstFragment = originalContig.deepCopy();
+            firstFragment.setEnd1(debrisContig.getStart1());
+            firstFragment.setEnd2(debrisContig.getStart2());
+
+            secondFragment = originalContig.deepCopy();
+            secondFragment.setStart1(debrisContig.getStart1());
+            secondFragment.setStart2(debrisContig.getStart2());
+            secondFragment.setEnd1(debrisContig.getEnd1());
+            secondFragment.setEnd2(debrisContig.getEnd2());
+
+            thirdFragment = originalContig.deepCopy();
+            thirdFragment.setStart1(debrisContig.getEnd1());
+            thirdFragment.setStart2(debrisContig.getEnd2());
+
+            contigLayer.add(chr1Idx, chr2Idx, firstFragment);
+            contigLayer.add(chr1Idx, chr2Idx, secondFragment);
+            contigLayer.add(chr1Idx, chr2Idx, thirdFragment);
+
+            //remake tree or something
+            contigLayer.getFeatureHandler().remakeRTree();
+            superAdapter.refresh();
+        } else {
+            System.out.println("error splitting contigs");
+        }
+    }
+
+    public static void splitGroup() {
+
+    }
+
+    public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
+        // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
+        if (!((currentIndex >= 0 && currentIndex < contigs.size()) && (newIndex >= 0 && newIndex < contigs.size()))) {
+            return;
+        }
+        Feature2D item = contigs.remove(currentIndex);
+        contigs.add(newIndex, item);
+    }
+
+    private static boolean isNumeric(String s) {
+        String numericRegularExpression = "[-+]?\\d*\\.?\\d+";
+        return s != null && s.matches(numericRegularExpression);
+    }
+
+    private static void showInvalidInstructionErrorMessage(String instruction) {
+        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Invalid command could not be processed: \""
+                + instruction + "\"", "Error Message", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void recalculateAllAlterations(List<Feature2D> contigs) {
         int i = 0;
         for (Feature2D feature2D : contigs) {
             Contig2D contig2D = feature2D.toContig();
@@ -91,40 +197,21 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    private static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
-        // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
-        Feature2D item = contigs.remove(currentIndex);
-        contigs.add(newIndex, item);
-    }
-
-    private static void invertEntryAt(List<Feature2D> contigs, int index) {
-        ((Contig2D) contigs.get(index)).toggleInversion();
-    }
-
     public static List<Contig2D> retrieveRelevantBlocks(MatrixZoomData mzd, List<Integer> blocksToLoad,
                                                         List<Block> blockList, Chromosome chr1, Chromosome chr2,
                                                         int binX1, int binY1, int binX2, int binY2, int blockBinCount,
                                                         HiCZoom zoom, NormalizationType no) {
-
-        //System.out.println("x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
-
-        System.out.println(superAdapter);
-        System.out.println(superAdapter.getContigLayer());
-        System.out.println(superAdapter.getContigLayer().getAnnotationLayer());
-        System.out.println(superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler());
         Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
-        List<Feature2DList> allFeatureLists = handler.getAllVisibleLoopLists();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
         handler.getContainedFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
-        Feature2DList features = allFeatureLists.get(0);
+        Feature2DList features = handler.getAllVisibleLoops();
         final String keyF = Feature2DList.getKey(chr1, chr2);
         List<Contig2D> contigs = new ArrayList<>();
         for (Feature2D entry : features.get(keyF)) {
             contigs.add(entry.toContig());
         }
         Collections.sort(contigs);
-        //System.out.println("origContigs1 - "+contigs.size());
 
         List<Contig2D> actuallyNeededContigs = new ArrayList<>();
         for (Contig2D contig : contigs) {
@@ -253,5 +340,13 @@ public class AssemblyIntermediateProcessor {
         if (growingContig != null) mergedContigs.add(growingContig);
 
         return new ArrayList<>(new HashSet<>(mergedContigs));
+    }
+
+    public static SuperAdapter getSuperAdapter() {
+        return AssemblyIntermediateProcessor.superAdapter;
+    }
+
+    public static void setSuperAdapter(SuperAdapter superAdapter) {
+        AssemblyIntermediateProcessor.superAdapter = superAdapter;
     }
 }
