@@ -28,21 +28,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+
 /**
  * Created by nathanielmusial on 6/29/17.
  */
 public class AssemblyFileExporter {
 
     private AssemblyHandler assemblyHandler;
-    private String cpropsFilePath;
-    private String asmFilePath;
+    private String outputFilePath;
     private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
 
-    public AssemblyFileExporter(AssemblyHandler assemblyHandler, String cpropsFilePath, String asmFilePath) {
+    public AssemblyFileExporter(AssemblyHandler assemblyHandler, String outputFilePath) {
         this.assemblyHandler = assemblyHandler;
-        this.cpropsFilePath = cpropsFilePath;
-        this.asmFilePath = asmFilePath;
+        this.outputFilePath = outputFilePath;
         this.contigProperties = assemblyHandler.getContigProperties();
         this.scaffoldProperties = assemblyHandler.getScaffoldProperties();
     }
@@ -57,7 +56,7 @@ public class AssemblyFileExporter {
     }
 
     private void exportContigs() throws IOException {
-        PrintWriter contigPrintWriter = new PrintWriter(this.cpropsFilePath, "UTF-8");
+        PrintWriter contigPrintWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
         for (ContigProperty contigProperty : contigProperties) {
             contigPrintWriter.println(contigProperty.toString());
         }
@@ -65,7 +64,7 @@ public class AssemblyFileExporter {
     }
 
     private void exportScaffolds() throws IOException {
-        PrintWriter scaffoldPrintWriter = new PrintWriter(this.asmFilePath, "UTF-8");
+        PrintWriter scaffoldPrintWriter = new PrintWriter(buildAsmOutputPath(), "UTF-8");
         for (List<Integer> row : scaffoldProperties) {
             scaffoldPrintWriter.println(convertScaffoldRowToString(row));
         }
@@ -82,6 +81,14 @@ public class AssemblyFileExporter {
             }
         }
         return stringBuilder.toString();
+    }
+
+    private String buildCpropsOutputPath() {
+        return this.outputFilePath + "." + FILE_EXTENSIONS.CPROPS.toString();
+    }
+
+    private String buildAsmOutputPath() {
+        return this.outputFilePath + "." + FILE_EXTENSIONS.ASM.toString();
     }
 
     private enum FILE_EXTENSIONS {

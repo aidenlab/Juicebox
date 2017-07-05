@@ -30,10 +30,7 @@ import juicebox.assembly.AssemblyFileExporter;
 import juicebox.assembly.AssemblyHandler;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by nathanielmusial on 6/30/17.
@@ -51,14 +48,7 @@ public class SaveAssemblyDialog extends JFileChooser {
     }
 
     private void menuOptions() {
-        String timeStamp = new SimpleDateFormat("yyyy.MM.dd-HH.mm").format(new Date());
-        setSelectedFile(new File(mapName + "-" + timeStamp + ".txt"));
-
-        //setCurrentDirectory(new File(System.getProperty("user.dir")));
-
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "Text Files", "txt", "text");
-        setFileFilter(filter);
+        setSelectedFile(new File(mapName));
         if (HiCGlobals.guiIsCurrentlyActive) {
             int actionDialog = showSaveDialog(MainWindow.getInstance());
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
@@ -69,7 +59,7 @@ public class SaveAssemblyDialog extends JFileChooser {
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyHandler, outputPath, outputPath);
+                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyHandler, outputPath);
                 assemblyFileExporter.exportContigsAndScaffolds();
             }
         }

@@ -257,6 +257,10 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
+                } else {
+                    JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
+                            "Error Message", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
             }
         }

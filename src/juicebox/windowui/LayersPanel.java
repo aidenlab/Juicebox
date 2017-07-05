@@ -389,22 +389,12 @@ public class LayersPanel extends JDialog {
         final JPanel assemblyAnnotationsPanel = new JPanel();
         assemblyAnnotationsPanel.setLayout(new GridLayout(0, 1));
 
-//        int i = 0;
-//        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
-//            try {
-//                JPanel panel = createLayerPanel(handler, superAdapter, assemblyAnnotationsPanel);
-//                assemblyAnnotationsPanel.add(panel, 0);
-//            } catch (IOException e) {
-//                System.err.println("Unable to generate layer panel " + (i - 1));
-//            }
-//        }
         final JScrollPane scrollPane = new JScrollPane(assemblyAnnotationsPanel);
 
         final JButton loadAssemblyButton = new JButton("Load Assembly");
         JButton addLocalButton = new JButton("Add Local");
         final JButton exportAssemblyButton = new JButton("Export Assembly");
-//        if (superAdapter.getAssemblyHandler() == null)
-//            exportAssemblyButton.setEnabled(false);
+        exportAssemblyButton.setEnabled(superAdapter.getAssemblyHandler() != null);
 
         final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
 
@@ -878,13 +868,13 @@ public class LayersPanel extends JDialog {
 
     public void updateAssemblyAnnotationsPanel(SuperAdapter superAdapter) { //todo break up Layers Panel into atleast a LayersPanel,1DTrackPanel, a 2DAnnotationsPanel, and an AssemblyPanel
         tabbedPane.remove(assemblyAnnotationsPanel);
+        assemblyAnnotationsPanel = generateAssemblyAnnotationsPanel(superAdapter);
         if (assemblyAnnotationsPanel != null) assemblyAnnotationsPanel.setBorder(padding);
         tabbedPane.addTab("Assembly Annotations", null, assemblyAnnotationsPanel,
                 "Manage Assembly Annotations");
         tabbedPane.updateUI();
         tabbedPane.repaint();
         tabbedPane.revalidate();
-
     }
 
     public LoadAction getTrackLoadAction() {
