@@ -1013,17 +1013,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
         menu.add(miSplit);
 
-        /* @meh what is this for?
-        final JCheckBoxMenuItem mi2 = new JCheckBoxMenuItem("Send to back");
-        mi2.setSelected(diagonalEdgeEnabled);
-        mi2.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem miSplitGroup = new JCheckBoxMenuItem("Split Group");
+        miSplit.setSelected(straightEdgeEnabled);
+        miSplit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // action here
+                splitGroupMenuItemActionPerformed();
             }
         });
-        menu.add(mi2);
-        */
+        miSplitGroup.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        menu.add(miSplitGroup);
+
+        final JCheckBoxMenuItem miMergeGroup = new JCheckBoxMenuItem("Merge Group");
+        miSplit.setSelected(straightEdgeEnabled);
+        miSplit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mergeGroupMenuItemActionPerformed();
+            }
+        });
+        miMergeGroup.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        menu.add(miMergeGroup);
+
 
         // internally, single sync = what we previously called sync
         final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
@@ -1074,59 +1085,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private void splitMenuItemActionPerformed() {
         HiCGlobals.splitModeEnabled = true;
-        /*
-        Object[] options = {"Split", "Cancel"};
-        final JOptionPane optionPane = new JOptionPane(
-                "Select an Area inside a contig to split\n",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,     //do not use a custom Icon
-                options,  //the titles of buttons
-                options[0] //default button title
-        );
 
-        final JDialog dialog = optionPane.createDialog("Execute Split");
-        // the line below is added to the example from the docs
-        dialog.setModal(false); // this says not to block background components
-        dialog.setAlwaysOnTop(true);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setVisible(true);
-//          boolean split;
-        dialog.addComponentListener(new ComponentListener() {
-            @Override
-            public void componentResized(ComponentEvent e) {
+    }
 
-            }
-
-            @Override
-            public void componentMoved(ComponentEvent e) {
-
-            }
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {// System.out.println(optionPane.getValue());
-
-                if (optionPane.getValue()
-                        == "Split") {
-
-                    System.out.println("split");
-                } else if (optionPane.getValue()
-                        == "Cancel") {
-                    HiCGlobals.splitModeEnabled = false;
-                    System.out.println("don't split");
-                } else {
-                    throw new IllegalStateException(
-                            "Unexpected Option");
-                }
-
-            }
-        });
-        */
+    private void splitGroupMenuItemActionPerformed() {
+        AssemblyIntermediateProcessor.splitGroup(selectedFeatures);
+    }
+    
+    private void mergeGroupMenuItemActionPerformed() {
+        AssemblyIntermediateProcessor.mergeGroup(selectedFeatures);
     }
 
     private String toolTipText(int x, int y) {

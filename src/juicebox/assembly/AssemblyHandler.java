@@ -30,10 +30,8 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by nathanielmusial on 6/30/17.
@@ -71,7 +69,7 @@ public class AssemblyHandler {
         return scaffoldProperties;
     }
 
-    private void generateContigsAndScaffolds() {
+    public void generateContigsAndScaffolds() {
         int contigStartPos = 0;
         int scaffoldStartPos = 0;
         int scaffoldLength = 0;
@@ -103,59 +101,142 @@ public class AssemblyHandler {
         }
     }
 
-    public void splitGroup(List<Feature2D> contigs, int startIndex, int endIndex) {
-
+    public void splitGroup(List<Feature2D> contigs) {
+        List<Integer> contigIds = contig2DListtoIntegerList(contigs);
+        int scaffoldRowNum = getScaffoldRow(contigIds);
+        splitGroup(contigIds, scaffoldRowNum);
     }
 
-    public void splitGroup(List<Integer> contigIds, int scaffoldId) {
-        List<Integer> tempGroup = scaffoldProperties.get(scaffoldId);
+    private List<List<Integer>> splitGroup(List<Integer> contigIds, int scaffoldRow) {
+        List<Integer> tempGroup = scaffoldProperties.get(scaffoldRow);
         int startIndex = tempGroup.indexOf(contigIds.get(0));
         int endIndex = tempGroup.indexOf(contigIds.get(contigIds.size() - 1));
+        List<List<Integer>> newGroups = new ArrayList<>();
         if (startIndex != 0) {
-            List<List<Integer>> newGroups = new ArrayList<>();
-            newGroups.add(tempGroup.subList(0, startIndex));
-            newGroups.add(tempGroup.subList(startIndex, endIndex));
-            newGroups.add(tempGroup.subList(endIndex, tempGroup.size() - 1));
-            scaffoldProperties.addAll(scaffoldId, newGroups);
-            scaffoldProperties.remove(tempGroup);
+            if (endIndex == tempGroup.size() - 1) {
+                newGroups.add(tempGroup.subList(0, startIndex));
+                newGroups.add(tempGroup.subList(startIndex, endIndex));
+                newGroups.add(tempGroup.subList(endIndex, tempGroup.size() - 1));
+            } else {
+                newGroups.add(tempGroup.subList(0, startIndex));
+                newGroups.add(tempGroup.subList(startIndex, endIndex));
+            }
         } else {
-            List<List<Integer>> newGroups = new ArrayList<>();
             newGroups.add(tempGroup.subList(0, endIndex));
             newGroups.add(tempGroup.subList(endIndex, tempGroup.size() - 1));
-            scaffoldProperties.addAll(scaffoldId, newGroups);
-            scaffoldProperties.remove(tempGroup);
         }
-
+        scaffoldProperties.addAll(scaffoldRow, newGroups);
+        scaffoldProperties.remove(tempGroup);
+        return newGroups;
     }
 
-    public void reGroup(List<Feature2D> contigs, int startIndex, int endIndex) {
-        //logic for finding two groups
+    public void mergeGroup(List<Feature2D> contigs) {
+        int scaffoldRowNum = findAdjacentGroups(contig2DListtoIntegerList(contigs));
+        mergeGroup(scaffoldRowNum);
     }
 
-    public void reGroup(int scaffoldId) {
-        List<Integer> firstGroup = scaffoldProperties.get(scaffoldId);
-        List<Integer> secondGroup = scaffoldProperties.get(scaffoldId + 1);
+    private void mergeGroup(int scaffoldRowNum) {
+        List<Integer> firstGroup = scaffoldProperties.get(scaffoldRowNum);
+        List<Integer> secondGroup = scaffoldProperties.get(scaffoldRowNum + 1);
         firstGroup.addAll(secondGroup);
         scaffoldProperties.remove(secondGroup);
     }
 
-    public void translateSelection(List<Feature2D> contigs, int startIndex, int endIndex) {
+    public void translateSelection(List<Feature2D> contigIds, int translateRow) {
+        performTranslation(contig2DListtoIntegerList(contigIds), translateRow);
+    }
+
+    private void performTranslation(List<Integer> contigIds, int translateRow) {
+        int originalRowNum = getScaffoldRow(contigIds);
+        List<Integer> originalRow = scaffoldProperties.get(originalRowNum);
+        List<List<Integer>> newGroups = splitGroup(contigIds, originalRowNum);
+        List<Integer> translateList;
+        if (newGroups.size() == 3) {
+            translateList = newGroups.get(1);// get middle group in split
+        } else if (newGroups.size() == 2) {
+
+            if (originalRow.indexOf(contigIds.get(0)) == 0) {
+                translateList = newGroups.get(0);   //get first group in split
+            } else {
+                translateList = newGroups.get(1); //get second gorup in split
+            }
+        } else {
+            System.err.println("error translating group");
+            return;
+        }
+        scaffoldProperties.remove(translateList);
+        scaffoldProperties.add(translateRow, translateList);
+    }
+
+
+    public void invertSelection(List<Feature2D> contigs) {
+        List<Integer> contigIds = contig2DListtoIntegerList(contigs);
+        invertSelection(contigIds, getScaffoldRow(contigIds));
+    }
+
+    private void invertSelection(List<Integer> contigIds, int scaffoldRow) {
+        //split group into three or two, invert selection, regroup
+        List<Integer> selectedGroup = scaffoldProperties.get(scaffoldRow);
+        int startIndex = selectedGroup.indexOf(contigIds.get(0));
+        int endIndex = selectedGroup.indexOf(contigIds.get(contigIds.size() - 1));
+        List<Integer> invertGroup = selectedGroup.subList(startIndex, endIndex);
+        Collections.reverse(invertGroup);
+
+        for (int i = startIndex; i <= endIndex; i++) {
+            selectedGroup.set(i, invertGroup.get(i));
+        }
 
     }
 
-    public void invertSelection(List<Feature2D> contigs, int startIndex, int endIndex) {
+    public int getScaffoldRow(List<Integer> contigIds) {
+        int i = 0;
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+            if (scaffoldRow.containsAll(contigIds))
+                return i;
+            i++;
+        }
+        return -1;
+    }
 
+    public int findAdjacentGroups(List<Integer> contigIds) {
+        int i = 0;
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+            if (scaffoldRow.contains(contigIds.get(0)) && scaffoldProperties.get(i + 1).contains(contigIds.get(contigIds.size() - 1)))
+                return i;
+            i++;
+        }
+        return -1;
     }
 
     public void splitConitg(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
 
     }
 
-    public ContigProperty feature2DtoContig(Feature2D feature2D) {
+    public ContigProperty contig2DtoContigProperty(Feature2D feature2D) {
         for (ContigProperty contigProperty : contigProperties) {
             if (contigProperty.getFeature2D() == feature2D) //make sure it is okay
                 return contigProperty;
         }
         return null;
+    }
+
+    public int contig2DtoIndexInteger(Feature2D feature2D) {
+        for (ContigProperty contigProperty : contigProperties) {
+            if (contigProperty.getFeature2D() == feature2D)
+                return contigProperty.getIndexId();
+        }
+        return -1;
+    }
+
+    public List<Integer> contig2DListtoIntegerList(List<Feature2D> contigs) {
+        List<Integer> contigIds = new ArrayList<Integer>();
+        for (Feature2D feature2D : contigs) {
+            int indexId = contig2DtoIndexInteger(feature2D);
+            if (indexId != -1)
+                contigIds.add(indexId);
+            else
+                System.err.println("error parsing 2DFeature");
+        }
+        return contigIds;
     }
 }

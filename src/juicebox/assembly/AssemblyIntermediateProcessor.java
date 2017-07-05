@@ -167,10 +167,14 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    public static void splitGroup(List<Feature2D> contigs, int startIndex, int endIndex) {
+    public static void splitGroup(List<Feature2D> contigs) {
+        superAdapter.getAssemblyHandler().splitGroup(contigs);
+        superAdapter.getAssemblyHandler().generateContigsAndScaffolds();
     }
 
-    public static void mergeGroup() {
+    public static void mergeGroup(List<Feature2D> contigs) {
+        superAdapter.getAssemblyHandler().mergeGroup(contigs);
+        superAdapter.getAssemblyHandler().generateContigsAndScaffolds();
     }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
