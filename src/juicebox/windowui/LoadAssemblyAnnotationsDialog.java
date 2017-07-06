@@ -29,7 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
-import juicebox.assembly.AssemblyHandler;
+import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayer;
@@ -270,15 +270,14 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
 
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
-                scaffoldLayer.getFeatureHandler().remakeRTree();
                 scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
-
                 AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
+                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
+
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
                 scaffoldLayerHandler.setLayerNameAndField("Group");
                 scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
-
 
                 AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 contigLayerHandler.setAnnotationLayer(contigLayer);
@@ -290,9 +289,8 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 editHandler.setLayerNameAndField("Edit");
                 editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
-
-                AssemblyHandler assemblyHandler = assemblyFileImporter.getAssemblyHandler();
-                superAdapter.setAssemblyHandler(assemblyHandler);
+                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyHandler(), contigLayerHandler, scaffoldLayerHandler);
+                superAdapter.setAssemblyStateTracker(assemblyStateTracker);
                 superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
 
             } catch (Exception ee) {

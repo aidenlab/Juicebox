@@ -53,6 +53,22 @@ public class AssemblyHandler {
         generateContigsAndScaffolds();
     }
 
+    public AssemblyHandler(AssemblyHandler assemblyHandler) {
+        this.contigProperties = assemblyHandler.cloneContigProperties();
+        this.scaffoldProperties = new ArrayList(assemblyHandler.scaffoldProperties);
+        this.contigs = new Feature2DList();
+        this.scaffolds = new Feature2DList();
+        generateContigsAndScaffolds();
+    }
+
+    public List<ContigProperty> cloneContigProperties() {
+        List<ContigProperty> newList = new ArrayList<>();
+        for (ContigProperty contigProperty : contigProperties) {
+            newList.add(new ContigProperty(contigProperty));
+        }
+        return newList;
+    }
+
     public Feature2DList getContigs() {
         return contigs;
     }
@@ -70,6 +86,8 @@ public class AssemblyHandler {
     }
 
     public void generateContigsAndScaffolds() {
+        contigs = new Feature2DList();
+        scaffolds = new Feature2DList();
         int contigStartPos = 0;
         int scaffoldStartPos = 0;
         int scaffoldLength = 0;
@@ -102,7 +120,7 @@ public class AssemblyHandler {
     }
 
     public void splitGroup(List<Feature2D> contigs) {
-        List<Integer> contigIds = contig2DListtoIntegerList(contigs);
+        List<Integer> contigIds = contig2DListToIntegerList(contigs);
         int scaffoldRowNum = getScaffoldRow(contigIds);
         splitGroup(contigIds, scaffoldRowNum);
     }
@@ -111,15 +129,16 @@ public class AssemblyHandler {
         List<Integer> tempGroup = scaffoldProperties.get(scaffoldRow);
         int startIndex = tempGroup.indexOf(contigIds.get(0));
         int endIndex = tempGroup.indexOf(contigIds.get(contigIds.size() - 1));
+
         List<List<Integer>> newGroups = new ArrayList<>();
         if (startIndex != 0) {
             if (endIndex == tempGroup.size() - 1) {
                 newGroups.add(tempGroup.subList(0, startIndex));
                 newGroups.add(tempGroup.subList(startIndex, endIndex));
-                newGroups.add(tempGroup.subList(endIndex, tempGroup.size() - 1));
             } else {
                 newGroups.add(tempGroup.subList(0, startIndex));
                 newGroups.add(tempGroup.subList(startIndex, endIndex));
+                newGroups.add(tempGroup.subList(endIndex, tempGroup.size() - 1));
             }
         } else {
             newGroups.add(tempGroup.subList(0, endIndex));
@@ -127,11 +146,12 @@ public class AssemblyHandler {
         }
         scaffoldProperties.addAll(scaffoldRow, newGroups);
         scaffoldProperties.remove(tempGroup);
+
         return newGroups;
     }
 
     public void mergeGroup(List<Feature2D> contigs) {
-        int scaffoldRowNum = findAdjacentGroups(contig2DListtoIntegerList(contigs));
+        int scaffoldRowNum = findAdjacentGroups(contig2DListToIntegerList(contigs));
         mergeGroup(scaffoldRowNum);
     }
 
@@ -143,7 +163,8 @@ public class AssemblyHandler {
     }
 
     public void translateSelection(List<Feature2D> contigIds, int translateRow) {
-        performTranslation(contig2DListtoIntegerList(contigIds), translateRow);
+        performTranslation(contig2DListToIntegerList(contigIds), translateRow);
+
     }
 
     private void performTranslation(List<Integer> contigIds, int translateRow) {
@@ -170,7 +191,7 @@ public class AssemblyHandler {
 
 
     public void invertSelection(List<Feature2D> contigs) {
-        List<Integer> contigIds = contig2DListtoIntegerList(contigs);
+        List<Integer> contigIds = contig2DListToIntegerList(contigs);
         invertSelection(contigIds, getScaffoldRow(contigIds));
     }
 
@@ -195,7 +216,30 @@ public class AssemblyHandler {
                 return i;
             i++;
         }
+        System.err.println("Can't Find row");
         return -1;
+    }
+
+    public List<Integer> IntegerListToScaffoldList(List<Integer> contigIds) {
+        List<Integer> absoluteValueContigs = findAbsoluteValuesList(contigIds);
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+            List<Integer> absoluteValuesOfScaffoldRow = findAbsoluteValuesList(scaffoldRow);
+            if (absoluteValuesOfScaffoldRow.containsAll(absoluteValueContigs)) {
+                int startIndex = absoluteValuesOfScaffoldRow.indexOf(absoluteValueContigs.get(0));
+                int endIndex = absoluteValuesOfScaffoldRow.indexOf(absoluteValueContigs.get(absoluteValueContigs.size() - 1));
+                return scaffoldRow.subList(startIndex, endIndex);
+            }
+        }
+        System.err.println("error Converting Int list to scaffold List");
+        return null;
+    }
+
+    public List<Integer> findAbsoluteValuesList(List<Integer> list) {
+        List<Integer> newList = new ArrayList<>();
+        for (int element : list) {
+            newList.add(Math.abs(element));
+        }
+        return newList;
     }
 
     public int findAdjacentGroups(List<Integer> contigIds) {
@@ -222,21 +266,23 @@ public class AssemblyHandler {
 
     public int contig2DtoIndexInteger(Feature2D feature2D) {
         for (ContigProperty contigProperty : contigProperties) {
-            if (contigProperty.getFeature2D() == feature2D)
+            if (contigProperty.getFeature2D().getStart1() == feature2D.getStart1())
                 return contigProperty.getIndexId();
         }
+        System.err.println("error finding corresponding contig");
         return -1;
     }
 
-    public List<Integer> contig2DListtoIntegerList(List<Feature2D> contigs) {
+    public List<Integer> contig2DListToIntegerList(List<Feature2D> contigs) {
         List<Integer> contigIds = new ArrayList<Integer>();
         for (Feature2D feature2D : contigs) {
             int indexId = contig2DtoIndexInteger(feature2D);
-            if (indexId != -1)
+            if (indexId != -1) {
                 contigIds.add(indexId);
+            }
             else
                 System.err.println("error parsing 2DFeature");
         }
-        return contigIds;
+        return IntegerListToScaffoldList(contigIds);
     }
 }

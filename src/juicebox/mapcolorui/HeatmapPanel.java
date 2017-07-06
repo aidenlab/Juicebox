@@ -1014,8 +1014,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miSplit);
 
         final JCheckBoxMenuItem miSplitGroup = new JCheckBoxMenuItem("Split Group");
-        miSplit.setSelected(straightEdgeEnabled);
-        miSplit.addActionListener(new ActionListener() {
+        miSplitGroup.setSelected(straightEdgeEnabled);
+        miSplitGroup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 splitGroupMenuItemActionPerformed();
@@ -1025,8 +1025,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miSplitGroup);
 
         final JCheckBoxMenuItem miMergeGroup = new JCheckBoxMenuItem("Merge Group");
-        miSplit.setSelected(straightEdgeEnabled);
-        miSplit.addActionListener(new ActionListener() {
+        miMergeGroup.setSelected(straightEdgeEnabled);
+        miMergeGroup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 mergeGroupMenuItemActionPerformed();
@@ -1035,6 +1035,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miMergeGroup.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
         menu.add(miMergeGroup);
 
+        final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
+        miUndo.setSelected(straightEdgeEnabled);
+        miUndo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().undo();
+            }
+        });
+        miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
+        menu.add(miUndo);
+
+
+        final JCheckBoxMenuItem miRedo = new JCheckBoxMenuItem("Redo");
+        miRedo.setSelected(straightEdgeEnabled);
+        miRedo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().redo();
+            }
+        });
+        miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
+        menu.add(miRedo);
 
         // internally, single sync = what we previously called sync
         final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
@@ -1091,7 +1113,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void splitGroupMenuItemActionPerformed() {
         AssemblyIntermediateProcessor.splitGroup(selectedFeatures);
     }
-    
+
     private void mergeGroupMenuItemActionPerformed() {
         AssemblyIntermediateProcessor.mergeGroup(selectedFeatures);
     }
@@ -1455,7 +1477,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mousePressed(final MouseEvent e) {
             featureOptionMenuEnabled = false;
-
             if (hic.isWholeGenome()) {
                 if (e.isPopupTrigger()) {
                     getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
@@ -1473,7 +1494,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
-            } else if (e.isShiftDown() && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
+            } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN)) {
 
                 if (!activelyEditingAssembly) {
                     boolean showWarning = false;

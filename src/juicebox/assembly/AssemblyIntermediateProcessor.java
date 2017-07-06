@@ -168,13 +168,15 @@ public class AssemblyIntermediateProcessor {
     }
 
     public static void splitGroup(List<Feature2D> contigs) {
-        superAdapter.getAssemblyHandler().splitGroup(contigs);
-        superAdapter.getAssemblyHandler().generateContigsAndScaffolds();
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.splitGroup(contigs);
+        superAdapter.getAssemblyStateTracker().regenerateLayers(assemblyHandler);
     }
 
     public static void mergeGroup(List<Feature2D> contigs) {
-        superAdapter.getAssemblyHandler().mergeGroup(contigs);
-        superAdapter.getAssemblyHandler().generateContigsAndScaffolds();
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.mergeGroup(contigs);
+        superAdapter.getAssemblyStateTracker().regenerateLayers(assemblyHandler);
     }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {

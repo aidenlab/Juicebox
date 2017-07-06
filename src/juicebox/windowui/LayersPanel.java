@@ -394,7 +394,11 @@ public class LayersPanel extends JDialog {
         final JButton loadAssemblyButton = new JButton("Load Assembly");
         JButton addLocalButton = new JButton("Add Local");
         final JButton exportAssemblyButton = new JButton("Export Assembly");
-        exportAssemblyButton.setEnabled(superAdapter.getAssemblyHandler() != null);
+
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            exportAssemblyButton.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            exportAssemblyButton.setEnabled(false);
 
         final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
 
@@ -434,7 +438,7 @@ public class LayersPanel extends JDialog {
         exportAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveAssemblyDialog(superAdapter.getAssemblyHandler(), "assembly"); //find how to get HiC filename
+                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), "assembly"); //find how to get HiC filename
             }
         });
 
