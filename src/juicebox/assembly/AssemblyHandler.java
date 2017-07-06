@@ -100,7 +100,7 @@ public class AssemblyHandler {
                 Feature2D contig = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         new Color(0, 255, 0), new HashMap<String, String>());
-                Map<String, String> attributes = new HashMap<String, String>();
+                Map<String, String> attributes = new HashMap<>();
                 attributes.put("Scaffold Name", contigName);
                 attributes.put("Scaffold Id", contigIndex.toString());
                 contigs.add(1, 1, contig);

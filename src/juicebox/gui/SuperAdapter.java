@@ -79,6 +79,14 @@ public class SuperAdapter {
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
 
+    public static String getDatasetTitle() {
+        return datasetTitle;
+    }
+
+    public static void setDatasetTitle(String newDatasetTitle) {
+        datasetTitle = newDatasetTitle;
+    }
+
     public HiCZoom getInitialZoom() {
         return initialZoom;
     }
@@ -132,6 +140,8 @@ public class SuperAdapter {
         }
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
@@ -148,8 +158,6 @@ public class SuperAdapter {
         controlTitle = null;
         updateTitle();
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
@@ -216,7 +224,6 @@ public class SuperAdapter {
         }
     }
 
-
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayerHandler().setAnnotationLayer(
                 new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
@@ -266,15 +273,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    public String getDescription(String item) {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
-                hic.getDefaultLocationDescription());
-    }
-
-    public void addNewStateToXML(String stateDescription) {
-        XMLFileHandling.addNewStateToXML(stateDescription, this);
-    }
-
     /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
@@ -284,6 +282,15 @@ public class SuperAdapter {
         handler.addVisibleLoops(hic);
     }
     */
+
+    public String getDescription(String item) {
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
+                hic.getDefaultLocationDescription());
+    }
+
+    public void addNewStateToXML(String stateDescription) {
+        XMLFileHandling.addNewStateToXML(stateDescription, this);
+    }
 
     public void setNormalizationDisplayState() {
         mainViewPanel.setNormalizationDisplayState(hic);

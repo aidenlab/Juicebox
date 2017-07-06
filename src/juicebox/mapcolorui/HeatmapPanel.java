@@ -1667,6 +1667,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
+        // works for only one selected contig
         private void translationInProgressMouseReleased(List<Feature2D> newSelectedFeatures) {
             Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
                     .getAllVisibleLoops();

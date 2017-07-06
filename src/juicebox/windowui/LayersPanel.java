@@ -438,7 +438,8 @@ public class LayersPanel extends JDialog {
         exportAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), "assembly"); //find how to get HiC filename
+                String mapName = SuperAdapter.getDatasetTitle();
+                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), mapName.substring(0, mapName.lastIndexOf("."))); //find how to get HiC filename
             }
         });
 

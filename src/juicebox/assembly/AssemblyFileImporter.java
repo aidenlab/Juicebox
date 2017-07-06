@@ -39,7 +39,6 @@ public class AssemblyFileImporter {
     private String asmFilePath;
     private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
-
     private AssemblyHandler assemblyHandler;
 
     public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
@@ -104,7 +103,7 @@ public class AssemblyFileImporter {
 
     public void buildContigAttributes(String contigName, Integer contigLength) {
         Map<String, String> featureAttributes = new HashMap<>();
-//        featureAttributes.put("Scaffold_ID);
+//        featureAttributes.put("Scaffold_ID", );
     }
 
     private List<String> readFile(String filePath) throws IOException {
