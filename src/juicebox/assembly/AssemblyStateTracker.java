@@ -78,7 +78,7 @@ public class AssemblyStateTracker {
     }
 
     public boolean checkUndo() {
-        return !undoStack.empty();
+        return undoStack.size() > 1;
     }
 
     public void undo() {

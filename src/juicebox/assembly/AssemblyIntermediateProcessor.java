@@ -191,9 +191,9 @@ public class AssemblyIntermediateProcessor {
     }
 
     public static void mergeGroup(List<Feature2D> contigs) {
-        String atributeName = "Scaffold Number";
+        String attributeName = "Scaffold Number";
         AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
-        int startingIndex = Integer.parseInt(contigs.get(0).getAttribute(atributeName));
+        int startingIndex = Integer.parseInt(contigs.get(0).getAttribute(attributeName));
         System.out.println(startingIndex);
         AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyHandler.mergeGroup(startingIndex, contigs);

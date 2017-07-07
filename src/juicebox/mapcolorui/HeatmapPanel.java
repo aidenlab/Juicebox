@@ -414,11 +414,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                 //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
 
-                // Only look at contig layer if we're in assembly mode
+                // Only look at assembly layers if we're in assembly mode
                 List<AnnotationLayerHandler> handlers;
                 if (activelyEditingAssembly) {
                     handlers = new ArrayList<>();
-                    handlers.add(superAdapter.getContigLayer());
+                    handlers.addAll(superAdapter.getAssemblyLayers());
                 } else {
                     handlers = superAdapter.getAllLayers();
                 }
