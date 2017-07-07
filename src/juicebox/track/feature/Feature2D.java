@@ -82,6 +82,10 @@ public class Feature2D implements Comparable<Feature2D> {
         return genericHeader;
     }
 
+    public FeatureType getFeatureType() {
+        return this.featureType;
+    }
+
     private String getFeatureName() {
         switch (featureType) {
             case PEAK:
@@ -518,6 +522,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public enum FeatureType {
-        NONE, PEAK, DOMAIN, GENERIC, CONTIG, SCAFFOLD
+        NONE, PEAK, DOMAIN, GENERIC, CONTIG, SCAFFOLD, SELECTED_GROUP
     }
 }

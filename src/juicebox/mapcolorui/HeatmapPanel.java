@@ -972,6 +972,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     updateSelectedFeatures(false);
                     selectedFeatures.clear();
                     superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+
+                    Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+                    Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+                    superAdapter.getActiveLayerHandler().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                    superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                    superAdapter.refresh();
                 }
             });
             menu.add(miSelect);
@@ -1103,7 +1109,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void translateMenuItemActionPerformed() {
-        //JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
         HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
@@ -1588,6 +1593,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     selectedFeatures = newSelectedFeatures;
                 }
                 updateSelectedFeatures(true);
+
+                superAdapter.getActiveLayerHandler().addTempSelectedGroup(selectedFeatures, hic);
 
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
 

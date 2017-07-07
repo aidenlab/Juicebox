@@ -238,6 +238,49 @@ public class AnnotationLayerHandler {
         return newFeature;
     }
 
+    private Feature2D generateTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
+        Collections.sort(selectedFeatures);
+
+        Feature2D firstSelectedContig = selectedFeatures.get(0);
+        Feature2D lastSelectedContig = selectedFeatures.get(selectedFeatures.size() - 1);
+
+        String chrX = hiC.getXContext().getChromosome().getName();
+        String chrY = hiC.getYContext().getChromosome().getName();
+
+        Integer startX = firstSelectedContig.getStart1();
+        Integer startY = firstSelectedContig.getStart2();
+        Integer endX = lastSelectedContig.getEnd1();
+        Integer endY = lastSelectedContig.getEnd2();
+
+        Color color = new Color(0, 0, 255);
+
+        HashMap<String, String> attributes = new HashMap<>();
+
+        return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, color, attributes);
+    }
+
+    public void addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
+        Feature2D tempSelectedGroup = generateTempSelectedGroup(selectedFeatures, hiC);
+        annotationLayer.add(hiC.getXContext().getChromosome().getIndex(), hiC.getYContext().getChromosome().getIndex(), tempSelectedGroup);
+    }
+
+    private List<Feature2D> getTempSelectedGroups(int chr1Idx, int chr2Idx) {
+        List<Feature2D> tempSelectedGroups = new ArrayList<>();
+        for (Feature2D feature2D : this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx))) {
+            if (feature2D.getFeatureType() == Feature2D.FeatureType.SELECTED_GROUP) {
+                tempSelectedGroups.add(feature2D);
+            }
+        }
+        return tempSelectedGroups;
+    }
+
+    public void filterTempSelectedGroup(int chr1Idx, int chr2Idx) {
+        List<Feature2D> tempSelectedGroups = getTempSelectedGroups(chr1Idx, chr2Idx);
+        for (Feature2D feature2D : tempSelectedGroups) {
+            this.getAllVisibleLoops().checkAndRemoveFeature(chr1Idx, chr2Idx, feature2D);
+        }
+    }
+
     private boolean regionsOverlapSignificantly(int start1, int end1, int start2, int end2, double tolerance) {
 
         // must cross diagonal for overlap
