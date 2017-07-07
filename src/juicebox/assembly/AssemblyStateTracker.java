@@ -33,31 +33,37 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyHandler> assemblyHandlers;
-    private Stack<AssemblyHandler> revertedChanges;
+    private Stack<AssemblyHandler> undoStack;
+    private Stack<AssemblyHandler> redoStack;
     private AnnotationLayerHandler contigLayerHandler;
     private AnnotationLayerHandler scaffoldLayerHandler;
 
     public AssemblyStateTracker(AssemblyHandler assemblyHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
 
-        assemblyHandlers = new Stack<>();
-        assemblyHandlers.push(assemblyHandler);
+        undoStack = new Stack<>();
+        undoStack.push(assemblyHandler);
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
-        revertedChanges = new Stack<AssemblyHandler>();
+        redoStack = new Stack<AssemblyHandler>();
     }
 
     public AssemblyHandler getAssemblyHandler() {
-        return assemblyHandlers.peek();
+        return undoStack.peek();
     }
 
     public AssemblyHandler getNewAssemblyHandler() {
-        AssemblyHandler newAssemblyHandler = new AssemblyHandler(assemblyHandlers.peek());
+        AssemblyHandler newAssemblyHandler = new AssemblyHandler(undoStack.peek());
         return newAssemblyHandler;
     }
 
-    public void regenerateLayers(AssemblyHandler assemblyHandler) {
-        assemblyHandlers.push(assemblyHandler);
+    public void assemblyActionPerformed(AssemblyHandler assemblyHandler) {
+        redoStack.clear();
+        undoStack.push(assemblyHandler);
+        regenerateLayers();
+    }
+
+    public void regenerateLayers() {
+        AssemblyHandler assemblyHandler = undoStack.peek();
         assemblyHandler.generateContigsAndScaffolds();
 
         AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyHandler.getScaffolds());
@@ -72,24 +78,24 @@ public class AssemblyStateTracker {
     }
 
     public boolean checkUndo() {
-        return assemblyHandlers.size() > 1;
+        return !undoStack.empty();
     }
 
     public void undo() {
         if (checkUndo()) {
-            revertedChanges.push(assemblyHandlers.pop());
-            regenerateLayers(assemblyHandlers.peek());
+            redoStack.push(undoStack.pop());
+            regenerateLayers();
         }
     }
 
     public boolean checkRedo() {
-        return !revertedChanges.empty();
+        return !redoStack.empty();
     }
 
     public void redo() {
         if (checkRedo()) {
-            assemblyHandlers.push(revertedChanges.pop());
-            regenerateLayers(assemblyHandlers.peek());
+            undoStack.push(redoStack.pop());
+            regenerateLayers();
         }
     }
 

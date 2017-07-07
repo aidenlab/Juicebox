@@ -28,6 +28,7 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyHandler;
 import juicebox.assembly.AssemblyIntermediateProcessor;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
@@ -1032,7 +1033,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 mergeGroupMenuItemActionPerformed();
             }
         });
-        miMergeGroup.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        miMergeGroup.setEnabled(superAdapter.getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP && selectedFeatures != null && !selectedFeatures.isEmpty());
         menu.add(miMergeGroup);
 
         final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
@@ -1092,11 +1093,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
+            AssemblyHandler assemblyHandler = AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
             AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
 
             superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
             superAdapter.refresh();
+//            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler); TODO if you uncomment this line the heatmap doesn't update
         }
     }
 

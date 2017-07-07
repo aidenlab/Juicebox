@@ -31,10 +31,7 @@ import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.track.feature.AnnotationLayer;
-import juicebox.track.feature.Contig2D;
-import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
+import juicebox.track.feature.*;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -127,6 +124,26 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
+    public static AssemblyHandler invertMultipleContiguousEntriesAt(List<Feature2D> selectedFeatures, List<Feature2D> contigs, int startIndex, int endIndex) {
+
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.invertSelection(selectedFeatures);
+
+        // Invert each of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+            invertSingleEntryAt(contigs, currentIndex);
+        }
+
+        // Reverse the order of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
+        }
+
+        return assemblyHandler;
+    }
+
+
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
 
@@ -170,13 +187,18 @@ public class AssemblyIntermediateProcessor {
     public static void splitGroup(List<Feature2D> contigs) {
         AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyHandler.splitGroup(contigs);
-        superAdapter.getAssemblyStateTracker().regenerateLayers(assemblyHandler);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
     }
 
     public static void mergeGroup(List<Feature2D> contigs) {
+        String atributeName = "Scaffold Number";
+        AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
+        int startingIndex = Integer.parseInt(contigs.get(0).getAttribute(atributeName));
+        System.out.println(startingIndex);
         AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.mergeGroup(contigs);
-        superAdapter.getAssemblyStateTracker().regenerateLayers(assemblyHandler);
+        assemblyHandler.mergeGroup(startingIndex, contigs);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+
     }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
