@@ -834,8 +834,7 @@ public class SuperAdapter {
     }
 
     // mhoeger - Used for contig layer, currently returns the first element
-    public List<AnnotationLayerHandler> getAssemblyLayers() {
-//        return annotationLayerHandlers.get(0);
+    public List<AnnotationLayerHandler> getAssemblyLayerHandlers() {
         List<AnnotationLayerHandler> handlers = new ArrayList<>();
         for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
             if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
@@ -847,6 +846,16 @@ public class SuperAdapter {
         }
         return handlers;
     }
+
+    public AnnotationLayerHandler getAssemblyLayerHandler(AnnotationLayer.LayerType layerType) {
+        for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers()) {
+            if (annotationLayerHandler.getAnnotationLayerType() == layerType) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
     public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
 //        return annotationLayerHandlers.get(0);
 //        List<AnnotationLayerHandler> handlers = new ArrayList<>();

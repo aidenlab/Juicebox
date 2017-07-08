@@ -418,7 +418,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 List<AnnotationLayerHandler> handlers;
                 if (activelyEditingAssembly) {
                     handlers = new ArrayList<>();
-                    handlers.addAll(superAdapter.getAssemblyLayers());
+                    handlers.addAll(superAdapter.getAssemblyLayerHandlers());
                 } else {
                     handlers = superAdapter.getAllLayers();
                 }
@@ -975,7 +975,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
                     Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-                    superAdapter.getActiveLayerHandler().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                    superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                     superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                     superAdapter.refresh();
                 }
@@ -1026,6 +1026,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 splitGroupMenuItemActionPerformed();
+                repaint();
             }
         });
         miSplitGroup.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
@@ -1594,7 +1595,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 updateSelectedFeatures(true);
 
-                superAdapter.getActiveLayerHandler().addTempSelectedGroup(selectedFeatures, hic);
+                superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
 
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
 

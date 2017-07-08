@@ -32,6 +32,7 @@ import juicebox.assembly.AssemblyFileImporter;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -287,6 +288,7 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 editHandler.setColorOfAllAnnotations(Color.yellow);
                 editHandler.setLayerNameAndField("Edit");
+                editHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
                 editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
                 AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyHandler(), contigLayerHandler, scaffoldLayerHandler);

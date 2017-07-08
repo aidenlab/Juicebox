@@ -227,7 +227,7 @@ public class AssemblyHandler {
         //split group into three or two, invert selection, regroup
         List<Integer> selectedGroup = scaffoldProperties.get(scaffoldRow);
         int startIndex = selectedGroup.indexOf(contigIds.get(0));
-        int endIndex = startIndex + contigIds.size() + 1;
+        int endIndex = startIndex + contigIds.size();
 //        System.out.println("Start Index "+startIndex+" EndIndex "+endIndex);
         List<Integer> invertGroup = selectedGroup.subList(startIndex, endIndex);
 //        System.out.println("Test 1 "+invertGroup);
@@ -238,7 +238,7 @@ public class AssemblyHandler {
             i++;
         }
 
-//        System.out.println(invertGroup);
+        System.out.println(invertGroup);
     }
 
     public int getScaffoldRow(List<Integer> contigIds) {

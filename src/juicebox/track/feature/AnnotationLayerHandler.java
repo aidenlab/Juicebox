@@ -59,6 +59,7 @@ public class AnnotationLayerHandler {
     private AnnotationLayer annotationLayer;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
+    private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
     private JToggleButton activeLayerButton;
@@ -252,11 +253,9 @@ public class AnnotationLayerHandler {
         Integer endX = lastSelectedContig.getEnd1();
         Integer endY = lastSelectedContig.getEnd2();
 
-        Color color = new Color(0, 0, 255);
-
         HashMap<String, String> attributes = new HashMap<>();
 
-        return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, color, attributes);
+        return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, getDefaultColor(), attributes);
     }
 
     public void addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
@@ -728,6 +727,14 @@ public class AnnotationLayerHandler {
 
     public void setIsSparse(boolean isSparse) {
         annotationLayer.setIsSparse(isSparse);
+    }
+
+    public FeatureRenderer.LineStyle getLineStyle() {
+        return this.lineStyle;
+    }
+
+    public void setLineStyle(FeatureRenderer.LineStyle lineStyle) {
+        this.lineStyle = lineStyle;
     }
 
     public void duplicateDetailsFrom(AnnotationLayerHandler handlerOriginal) {
