@@ -34,9 +34,8 @@ public class ZoomStateTracker {
     private Stack<ZoomState> undoZoomStates = new Stack<>();
     private Stack<ZoomState> redoZoomStates = new Stack<>();
 
-    public ZoomStateTracker(ZoomState currentZoomState) {
-        this.currentZoomState = currentZoomState;
-        undoZoomStates.add(currentZoomState);
+    public ZoomStateTracker() {
+
     }
 
     public void undoZoom() {
@@ -63,6 +62,7 @@ public class ZoomStateTracker {
 
     public void addZoomState(ZoomState newZoomState) {
         undoZoomStates.add(newZoomState);
+        setCurrentZoomState(undoZoomStates.peek());
         redoZoomStates.clear();
     }
 
@@ -86,7 +86,7 @@ public class ZoomStateTracker {
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ZoomStateTracker deepCopy() {
-        return new ZoomStateTracker(this.currentZoomState);
+        return new ZoomStateTracker();
     }
 
     public ZoomState getCurrentZoomState() {

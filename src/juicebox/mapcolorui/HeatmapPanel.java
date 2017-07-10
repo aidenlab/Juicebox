@@ -1067,7 +1067,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void translateMenuItemActionPerformed() {
-        //JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
         HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
@@ -1502,6 +1501,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 }
                 // Alt down for zoom
+            } else if (e.isAltDown() && e.isShiftDown()) {
+                System.out.println("Undo/Redo Zoom");
+                hic.undoZoomState();
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
@@ -1901,8 +1903,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
+                boolean zoomSuccessful = hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
                         HiC.ZoomCallType.STANDARD, true);
+                if (zoomSuccessful) {
+                    hic.addZoomState("", "", newZoom, xGenome, yGenome, -1, false,
+                            HiC.ZoomCallType.STANDARD, true);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

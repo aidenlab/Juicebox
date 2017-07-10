@@ -88,39 +88,39 @@ public class ZoomState {
                 resetZoom, zoomCallType, allowLocationBroadcast);
     }
 
-    private String getChromosomeX() {
+    public String getChromosomeX() {
         return this.chromosomeX;
     }
 
-    private String getChromosomeY() {
+    public String getChromosomeY() {
         return this.chromosomeY;
     }
 
-    private HiCZoom getHiCZoom() {
+    public HiCZoom getHiCZoom() {
         return this.hiCZoom;
     }
 
-    private int getGenomeX() {
+    public int getGenomeX() {
         return this.genomeX;
     }
 
-    private int getGenomeY() {
+    public int getGenomeY() {
         return this.genomeY;
     }
 
-    private double getScaleFactor() {
+    public double getScaleFactor() {
         return this.scaleFactor;
     }
 
-    private boolean getResetZoom() {
+    public boolean getResetZoom() {
         return this.resetZoom;
     }
 
-    private HiC.ZoomCallType getZoomCallType() {
+    public HiC.ZoomCallType getZoomCallType() {
         return this.zoomCallType;
     }
 
-    private boolean getAllowLocationBroadcast() {
+    public boolean getAllowLocationBroadcast() {
         return this.allowLocationBroadcast;
     }
 }

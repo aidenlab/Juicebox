@@ -91,7 +91,7 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private ZoomStateTracker zoomStateTracker;
+    private ZoomStateTracker zoomStateTracker = new ZoomStateTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -101,6 +101,7 @@ public class HiC {
         m_displayOptionChanged = false;
         m_normalizationTypeChanged = false;
         initBinSizeDictionary();
+//        initializeZoomStateTracker();
     }
 
     /**
@@ -158,20 +159,33 @@ public class HiC {
     public void initializeZoomStateTracker() {
         String chromosomeX = xContext.getChromosome().getName();
         String chromosomeY = yContext.getChromosome().getName();
-
-//        this.zoomStateTracker = new ZoomStateTracker();
+        ZoomState initialZoomState = new ZoomState(chromosomeX, chromosomeY, null, 0, 0,
+                -1, true, ZoomCallType.STANDARD, false);
+        this.zoomStateTracker = new ZoomStateTracker();
     }
 
     public void undoZoomState() {
         zoomStateTracker.undoZoom();
         ZoomState currentZoomState = zoomStateTracker.getCurrentZoomState();
-
+        unsafeActuallySetZoomAndLocation(currentZoomState.getChromosomeX(), currentZoomState.getChromosomeY(),
+                currentZoomState.getHiCZoom(), currentZoomState.getGenomeX(), currentZoomState.getGenomeY(),
+                currentZoomState.getScaleFactor(), currentZoomState.getResetZoom(), currentZoomState.getZoomCallType(),
+                currentZoomState.getAllowLocationBroadcast());
     }
 
     public void redoZoomState() {
         zoomStateTracker.redoZoom();
         ZoomState currentZoomState = zoomStateTracker.getCurrentZoomState();
-        
+        unsafeActuallySetZoomAndLocation(currentZoomState.getChromosomeX(), currentZoomState.getChromosomeY(),
+                currentZoomState.getHiCZoom(), currentZoomState.getGenomeX(), currentZoomState.getGenomeY(),
+                currentZoomState.getScaleFactor(), currentZoomState.getResetZoom(), currentZoomState.getZoomCallType(),
+                currentZoomState.getAllowLocationBroadcast());
+    }
+
+    public void addZoomState(String chrXName, String chrYName, HiCZoom newZoom, int genomeX, int genomeY,
+                             double scaleFactor, boolean resetZoom, ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
+        ZoomState newZoomState = new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
+        this.zoomStateTracker.addZoomState(newZoomState);
     }
 
     public double getScaleFactor() {
@@ -669,8 +683,12 @@ public class HiC {
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(HiC.valueOfUnit(unitName), binSize);
         }
-        unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+        boolean zoomSuccessful = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
                 true, zoomCallType, allowLocationBroadcast);
+        if (zoomSuccessful) {
+            addZoomState(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor, true,
+                    zoomCallType, allowLocationBroadcast);
+        }
     }
 
     private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
@@ -691,6 +709,9 @@ public class HiC {
             public void run() {
                 returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
                         resetZoom, zoomCallType, allowLocationBroadcast);
+                if (returnVal[0]) {
+                    addZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
+                }
             }
         }, message);
         return returnVal[0];
@@ -1233,6 +1254,10 @@ public class HiC {
 
     public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
+    }
+
+    public ZoomStateTracker getZoomStateTracker() {
+        return this.zoomStateTracker;
     }
 
     public void clearMatrixZoomDataCache() {
