@@ -1495,14 +1495,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             // Priority is right click
             if (e.isPopupTrigger()) {
-                if (activelyEditingAssembly) {
+                if (e.isAltDown() && e.isShiftDown()) {
+                    System.out.println("Redo Zoom");
+                    hic.redoZoomState();
+                } else if (activelyEditingAssembly) {
                     getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 } else {
                     getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 }
                 // Alt down for zoom
             } else if (e.isAltDown() && e.isShiftDown()) {
-                System.out.println("Undo/Redo Zoom");
+                System.out.println("Undo Zoom");
                 hic.undoZoomState();
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
@@ -1903,12 +1906,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                boolean zoomSuccessful = hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
+                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
                         HiC.ZoomCallType.STANDARD, true);
-                if (zoomSuccessful) {
-                    hic.addZoomState("", "", newZoom, xGenome, yGenome, -1, false,
-                            HiC.ZoomCallType.STANDARD, true);
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

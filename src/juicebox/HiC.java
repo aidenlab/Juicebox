@@ -182,12 +182,6 @@ public class HiC {
                 currentZoomState.getAllowLocationBroadcast());
     }
 
-    public void addZoomState(String chrXName, String chrYName, HiCZoom newZoom, int genomeX, int genomeY,
-                             double scaleFactor, boolean resetZoom, ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
-        ZoomState newZoomState = new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
-        this.zoomStateTracker.addZoomState(newZoomState);
-    }
-
     public double getScaleFactor() {
         return scaleFactor;
     }
@@ -683,12 +677,8 @@ public class HiC {
         if (currentZoom.getBinSize() != binSize) {
             newZoom = new HiCZoom(HiC.valueOfUnit(unitName), binSize);
         }
-        boolean zoomSuccessful = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
+        unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
                 true, zoomCallType, allowLocationBroadcast);
-        if (zoomSuccessful) {
-            addZoomState(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor, true,
-                    zoomCallType, allowLocationBroadcast);
-        }
     }
 
     private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
@@ -709,9 +699,6 @@ public class HiC {
             public void run() {
                 returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
                         resetZoom, zoomCallType, allowLocationBroadcast);
-                if (returnVal[0]) {
-                    addZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
-                }
             }
         }, message);
         return returnVal[0];
@@ -802,7 +789,6 @@ public class HiC {
                                                     HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
                                                     boolean resetZoom, ZoomCallType zoomCallType,
                                                     boolean allowLocationBroadcast) {
-
 
         if (dataset == null) return false;  // No data in view
         //Check this zoom operation is possible, if not, fail it here:
@@ -907,6 +893,15 @@ public class HiC {
              previousZoomState = tempZoomState;
          }
          */
+
+        ZoomState newZoomState = new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
+
+        if (zoomStateTracker.getCurrentZoomState() == null) {
+            this.zoomStateTracker.addZoomState(newZoomState);
+        } else if (!zoomStateTracker.getCurrentZoomState().equals(new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY,
+                scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast))) {
+            this.zoomStateTracker.addZoomState(newZoomState);
+        }
 
         return true;
     }

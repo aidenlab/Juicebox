@@ -364,10 +364,7 @@ public class SuperAdapter {
             }
 
         }
-        boolean zoomSuccessful = hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
-        if (zoomSuccessful) {
-            hic.addZoomState("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
-        }
+        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
     }
 
     public void refresh() {
