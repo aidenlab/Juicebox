@@ -30,11 +30,40 @@ import java.util.Stack;
  * Created by ranganmostofa on 7/8/17.
  */
 public class ZoomStateTracker {
-    Stack<ZoomState> undoZoomStates = new Stack<>();
-    Stack<ZoomState> redoZoomStates = new Stack<>();
+    private ZoomState currentZoomState;
+    private Stack<ZoomState> undoZoomStates = new Stack<>();
+    private Stack<ZoomState> redoZoomStates = new Stack<>();
 
-    public ZoomStateTracker() {
+    public ZoomStateTracker(ZoomState currentZoomState) {
+        this.currentZoomState = currentZoomState;
+        undoZoomStates.add(currentZoomState);
+    }
 
+    public void undoZoom() {
+        if (validateUndoZoom()) {
+            redoZoomStates.push(undoZoomStates.pop());
+            setCurrentZoomState(undoZoomStates.peek());
+        }
+    }
+
+    public void redoZoom() {
+        if (validateRedoZoom()) {
+            undoZoomStates.push(redoZoomStates.pop());
+            setCurrentZoomState(undoZoomStates.peek());
+        }
+    }
+
+    private boolean validateUndoZoom() {
+        return undoZoomStates.size() > 1;
+    }
+
+    private boolean validateRedoZoom() {
+        return !redoZoomStates.isEmpty();
+    }
+
+    public void addZoomState(ZoomState newZoomState) {
+        undoZoomStates.add(newZoomState);
+        redoZoomStates.clear();
     }
 
     public boolean equals(ZoomStateTracker other) {
@@ -42,7 +71,9 @@ public class ZoomStateTracker {
         if (other != null) {
             if (this.undoZoomStates.equals(other.getUndoZoomStates())) {
                 if (this.redoZoomStates.equals(other.getRedoZoomStates())) {
-                    return true;
+                    if (this.currentZoomState.equals(other.getCurrentZoomState())) {
+                        return true;
+                    }
                 }
             }
         }
@@ -53,8 +84,17 @@ public class ZoomStateTracker {
         return this == other;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ZoomStateTracker deepCopy() {
-        return new ZoomStateTracker();
+        return new ZoomStateTracker(this.currentZoomState);
+    }
+
+    public ZoomState getCurrentZoomState() {
+        return this.currentZoomState;
+    }
+
+    private void setCurrentZoomState(ZoomState zoomState) {
+        this.currentZoomState = zoomState;
     }
 
     private Stack<ZoomState> getUndoZoomStates() {

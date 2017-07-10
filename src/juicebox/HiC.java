@@ -29,6 +29,8 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.ZoomState;
+import juicebox.mapcolorui.ZoomStateTracker;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
@@ -89,6 +91,7 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
+    private ZoomStateTracker zoomStateTracker;
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -150,6 +153,25 @@ public class HiC {
     private void clearFeatures() {
         trackManager.clearTracks();
         // feature2DHandler.clearLists();
+    }
+
+    public void initializeZoomStateTracker() {
+        String chromosomeX = xContext.getChromosome().getName();
+        String chromosomeY = yContext.getChromosome().getName();
+
+//        this.zoomStateTracker = new ZoomStateTracker();
+    }
+
+    public void undoZoomState() {
+        zoomStateTracker.undoZoom();
+        ZoomState currentZoomState = zoomStateTracker.getCurrentZoomState();
+
+    }
+
+    public void redoZoomState() {
+        zoomStateTracker.redoZoom();
+        ZoomState currentZoomState = zoomStateTracker.getCurrentZoomState();
+        
     }
 
     public double getScaleFactor() {
@@ -762,7 +784,6 @@ public class HiC {
 
 
         if (dataset == null) return false;  // No data in view
-
         //Check this zoom operation is possible, if not, fail it here:
 //        if (superAdapter.testNewZoom(newZoom))
 //        {

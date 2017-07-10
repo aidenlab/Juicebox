@@ -31,11 +31,9 @@ import juicebox.windowui.HiCZoom;
  * Created by ranganmostofa on 7/8/17.
  */
 public class ZoomState {
-    private String chromosomeX;
-    private String chromosomeY;
+    private String chromosomeX, chromosomeY;
     private HiCZoom hiCZoom;
-    private int genomeX;
-    private int genomeY;
+    private int genomeX, genomeY;
     private double scaleFactor;
     private boolean resetZoom;
     private HiC.ZoomCallType zoomCallType;
@@ -84,6 +82,7 @@ public class ZoomState {
         return this == other;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ZoomState deepCopy() {
         return new ZoomState(chromosomeX, chromosomeY, hiCZoom, genomeX, genomeY, scaleFactor,
                 resetZoom, zoomCallType, allowLocationBroadcast);
