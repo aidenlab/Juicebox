@@ -24,10 +24,53 @@
 
 package juicebox.assembly;
 
+import juicebox.HiC;
+import juicebox.gui.SuperAdapter;
+import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Feature2D;
+
+import java.util.List;
+
 /**
  * Created by nathanielmusial on 7/10/17.
  */
 public class AssemblyOperationExecutor {
 
+    private static SuperAdapter superAdapter;
 
+    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.editContig(originalContig, debrisContig);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    }
+
+
+    public static void splitGroup(List<Feature2D> selectedFeatures) {
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.splitGroup(selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    }
+
+    public static void mergeGroup(List<Feature2D> selectedFeatures) {
+        String attributeName = "Scaffold Number";
+        AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
+        int startingIndex = Integer.parseInt(selectedFeatures.get(0).getAttribute(attributeName));
+        System.out.println(startingIndex);
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.mergeGroup(startingIndex, selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    }
+
+    public static void invertSelection(List<Feature2D> selectedFeatures) {
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.invertSelection(selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+
+    }
+
+    public static void moveSelectedFeatures(List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.translateSelection(selectedFeatures, featureOrigin);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    }
 }

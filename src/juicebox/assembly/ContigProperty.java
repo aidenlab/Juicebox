@@ -47,7 +47,8 @@ public class ContigProperty {
         this.name = contigProperty.name;
         this.indexId = contigProperty.indexId;
         this.length = contigProperty.length;
-        this.feature2D = contigProperty.feature2D.deepCopy();
+        if (this.feature2D != null)
+            this.feature2D = contigProperty.feature2D.deepCopy();
     }
 
     public String getName() {

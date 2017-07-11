@@ -24,14 +24,12 @@
 
 package juicebox.assembly;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -127,10 +125,8 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    public static AssemblyHandler invertMultipleContiguousEntriesAt(List<Feature2D> selectedFeatures, List<Feature2D> contigs, int startIndex, int endIndex) {
+    public static void invertMultipleContiguousEntriesAt(List<Feature2D> selectedFeatures, List<Feature2D> contigs, int startIndex, int endIndex) {
 
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.invertSelection(selectedFeatures);
 
         // Invert each of the sub-contigs
         for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
@@ -143,35 +139,8 @@ public class AssemblyIntermediateProcessor {
             moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
         }
 
-        return assemblyHandler;
     }
 
-
-
-    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
-
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.editContig(originalContig, debrisContig);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
-
-    }
-
-    public static void splitGroup(List<Feature2D> contigs) {
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.splitGroup(contigs);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
-    }
-
-    public static void mergeGroup(List<Feature2D> contigs) {
-        String attributeName = "Scaffold Number";
-        AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
-        int startingIndex = Integer.parseInt(contigs.get(0).getAttribute(attributeName));
-        System.out.println(startingIndex);
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.mergeGroup(startingIndex, contigs);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
-
-    }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist

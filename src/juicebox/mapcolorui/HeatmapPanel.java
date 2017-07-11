@@ -28,8 +28,8 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.assembly.AssemblyHandler;
 import juicebox.assembly.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.MatrixZoomData;
@@ -1101,12 +1101,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyHandler assemblyHandler = AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
+            AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
             AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
 
             superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
             superAdapter.refresh();
-//            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler); TODO if you uncomment this line the heatmap doesn't update
         }
     }
 
@@ -1120,11 +1119,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void splitGroupMenuItemActionPerformed() {
-        AssemblyIntermediateProcessor.splitGroup(selectedFeatures);
+        AssemblyOperationExecutor.splitGroup(selectedFeatures);
     }
 
     private void mergeGroupMenuItemActionPerformed() {
-        AssemblyIntermediateProcessor.mergeGroup(selectedFeatures);
+        AssemblyOperationExecutor.mergeGroup(selectedFeatures);
     }
 
     private String toolTipText(int x, int y) {
@@ -1579,7 +1578,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setProperCursor();
                 // After popup, priority is assembly mode, highlighting those features.
             } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
-                AssemblyIntermediateProcessor.splitContig(selectedFeatures.get(0), superAdapter.getActiveLayerHandler().generateFeature(hic), superAdapter, hic);
+                AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), superAdapter.getActiveLayerHandler().generateFeature(hic), superAdapter, hic);
                 HiCGlobals.splitModeEnabled = false;
                 restoreDefaultVariables();
                 selectedFeatures.clear();
@@ -1696,6 +1695,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Integer indexDestination = features.getIndex(chromosome, chromosome, contigDestination);
 
                 List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
+
+//                AssemblyOperationExecutor.moveSelectedFeatures(selectedFeatures,featureOrigin);
 
                 AssemblyIntermediateProcessor.moveFeatureToNewIndex(contigs, indexOrigin, indexDestination);
                 AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
