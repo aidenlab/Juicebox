@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Created by nathanielmusial on 6/30/17.
  */
-public class AssemblyHandler {
+public class AssemblyFragmentHandler {
 
     private final String contigName = "Contig Name";
     private final String scaffoldIndexId = "Scaffold Index";
@@ -46,7 +46,7 @@ public class AssemblyHandler {
     private String chromosomeName = "assembly";
 
 
-    public AssemblyHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
+    public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
         contigs = new Feature2DList();
@@ -54,9 +54,9 @@ public class AssemblyHandler {
         generateContigsAndScaffolds();
     }
 
-    public AssemblyHandler(AssemblyHandler assemblyHandler) {
-        this.contigProperties = assemblyHandler.cloneContigProperties();
-        this.scaffoldProperties = assemblyHandler.cloneScaffoldProperties();
+    public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
+        this.contigProperties = assemblyFragmentHandler.cloneContigProperties();
+        this.scaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
         this.contigs = new Feature2DList();
         this.scaffolds = new Feature2DList();
         generateContigsAndScaffolds();
@@ -357,22 +357,26 @@ public class AssemblyHandler {
     }
 
 
-    public void translateSelection(List<Feature2D> contigIds, Feature2D featureOrigin) {
+    public void translateSelection(List<Feature2D> selectedFeatures, Feature2D featureDestination) {
         int destinationRow;
         int destinationPos;
         List<Feature2D> tempList = new ArrayList<Feature2D>();
-        tempList.add(featureOrigin);
+        tempList.add(featureDestination);
         List<Integer> destinationIndexId = contig2DListToIntegerList(tempList);
         destinationRow = getScaffoldRow(destinationIndexId);
         destinationPos = scaffoldProperties.get(destinationRow).indexOf(destinationIndexId.get(0));
+        System.out.println(destinationPos);
 
-        performTranslation(contig2DListToIntegerList(contigIds), destinationRow, destinationPos);
+        performTranslation(contig2DListToIntegerList(selectedFeatures), destinationRow, destinationPos);
 
     }
 
     private void performTranslation(List<Integer> contigIds, int translateRow, int translatePos) {
         int originalRowNum = getScaffoldRow(contigIds);
         List<Integer> originalRow = scaffoldProperties.get(originalRowNum);
+        for (Integer integer : contigIds) {
+            System.out.println(integer);
+        }
         originalRow.removeAll(contigIds);
         scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
     }

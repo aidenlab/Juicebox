@@ -33,44 +33,44 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyHandler> undoStack;
-    private Stack<AssemblyHandler> redoStack;
+    private Stack<AssemblyFragmentHandler> undoStack;
+    private Stack<AssemblyFragmentHandler> redoStack;
     private AnnotationLayerHandler contigLayerHandler;
     private AnnotationLayerHandler scaffoldLayerHandler;
 
-    public AssemblyStateTracker(AssemblyHandler assemblyHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
+    public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
 
         undoStack = new Stack<>();
-        undoStack.push(assemblyHandler);
+        undoStack.push(assemblyFragmentHandler);
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
-        redoStack = new Stack<AssemblyHandler>();
+        redoStack = new Stack<AssemblyFragmentHandler>();
     }
 
-    public AssemblyHandler getAssemblyHandler() {
+    public AssemblyFragmentHandler getAssemblyHandler() {
         return undoStack.peek();
     }
 
-    public AssemblyHandler getNewAssemblyHandler() {
-        AssemblyHandler newAssemblyHandler = new AssemblyHandler(undoStack.peek());
-        return newAssemblyHandler;
+    public AssemblyFragmentHandler getNewAssemblyHandler() {
+        AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
+        return newAssemblyFragmentHandler;
     }
 
-    public void assemblyActionPerformed(AssemblyHandler assemblyHandler) {
+    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
         redoStack.clear();
-        undoStack.push(assemblyHandler);
+        undoStack.push(assemblyFragmentHandler);
         regenerateLayers();
     }
 
     public void regenerateLayers() {
-        AssemblyHandler assemblyHandler = undoStack.peek();
-        assemblyHandler.generateContigsAndScaffolds();
+        AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
+        assemblyFragmentHandler.generateContigsAndScaffolds();
 
-        AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyHandler.getScaffolds());
+        AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFragmentHandler.getScaffolds());
         scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
         scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
 
-        AnnotationLayer contigLayer = new AnnotationLayer(assemblyHandler.getContigs());
+        AnnotationLayer contigLayer = new AnnotationLayer(assemblyFragmentHandler.getContigs());
         contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
         contigLayerHandler.setAnnotationLayer(contigLayer);
 

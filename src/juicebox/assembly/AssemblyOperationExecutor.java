@@ -39,38 +39,38 @@ public class AssemblyOperationExecutor {
     private static SuperAdapter superAdapter;
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.editContig(originalContig, debrisContig);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.editContig(originalContig, debrisContig);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 
 
-    public static void splitGroup(List<Feature2D> selectedFeatures) {
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.splitGroup(selectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    public static void splitGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.splitGroup(selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 
-    public static void mergeGroup(List<Feature2D> selectedFeatures) {
+    public static void mergeGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
         String attributeName = "Scaffold Number";
         AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
         int startingIndex = Integer.parseInt(selectedFeatures.get(0).getAttribute(attributeName));
         System.out.println(startingIndex);
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.mergeGroup(startingIndex, selectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.mergeGroup(startingIndex, selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 
-    public static void invertSelection(List<Feature2D> selectedFeatures) {
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.invertSelection(selectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.invertSelection(selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
 
     }
 
-    public static void moveSelectedFeatures(List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
-        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyHandler.translateSelection(selectedFeatures, featureOrigin);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
+    public static void moveSelectedFeatures(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.translateSelection(selectedFeatures, featureOrigin);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 }

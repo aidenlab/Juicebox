@@ -34,16 +34,16 @@ import java.util.List;
  */
 public class AssemblyFileExporter {
 
-    private AssemblyHandler assemblyHandler;
+    private AssemblyFragmentHandler assemblyFragmentHandler;
     private String outputFilePath;
     private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
 
-    public AssemblyFileExporter(AssemblyHandler assemblyHandler, String outputFilePath) {
-        this.assemblyHandler = assemblyHandler;
+    public AssemblyFileExporter(AssemblyFragmentHandler assemblyFragmentHandler, String outputFilePath) {
+        this.assemblyFragmentHandler = assemblyFragmentHandler;
         this.outputFilePath = outputFilePath;
-        this.contigProperties = assemblyHandler.getContigProperties();
-        this.scaffoldProperties = assemblyHandler.getScaffoldProperties();
+        this.contigProperties = assemblyFragmentHandler.getContigProperties();
+        this.scaffoldProperties = assemblyFragmentHandler.getScaffoldProperties();
     }
 
     public void exportContigsAndScaffolds() {

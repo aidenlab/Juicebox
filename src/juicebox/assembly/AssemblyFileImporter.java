@@ -39,7 +39,7 @@ public class AssemblyFileImporter {
     private String asmFilePath;
     private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
-    private AssemblyHandler assemblyHandler;
+    private AssemblyFragmentHandler assemblyFragmentHandler;
 
     public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
         this.cpropsFilePath = cpropsFilePath;
@@ -47,7 +47,7 @@ public class AssemblyFileImporter {
         contigProperties = new ArrayList<>();
         scaffoldProperties = new ArrayList<>();
         readFiles();
-        assemblyHandler = new AssemblyHandler(contigProperties, scaffoldProperties);
+        assemblyFragmentHandler = new AssemblyFragmentHandler(contigProperties, scaffoldProperties);
     }
 
     public void readFiles() {
@@ -136,15 +136,15 @@ public class AssemblyFileImporter {
     }
 
     public Feature2DList getContigs() {
-        return this.assemblyHandler.getContigs();
+        return this.assemblyFragmentHandler.getContigs();
     }
 
     public Feature2DList getScaffolds() {
-        return this.assemblyHandler.getScaffolds();
+        return this.assemblyFragmentHandler.getScaffolds();
     }
 
-    public AssemblyHandler getAssemblyHandler() {
-        return assemblyHandler;
+    public AssemblyFragmentHandler getAssemblyFragmentHandler() {
+        return assemblyFragmentHandler;
     }
 
     private enum FILE_EXTENSIONS {
