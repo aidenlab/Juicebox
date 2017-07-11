@@ -265,9 +265,12 @@ public class AnnotationLayerHandler {
 
     private List<Feature2D> getTempSelectedGroups(int chr1Idx, int chr2Idx) {
         List<Feature2D> tempSelectedGroups = new ArrayList<>();
-        for (Feature2D feature2D : this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx))) {
-            if (feature2D.getFeatureType() == Feature2D.FeatureType.SELECTED_GROUP) {
-                tempSelectedGroups.add(feature2D);
+        List<Feature2D> allVisibleLoops = this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx));
+        if (allVisibleLoops != null) {
+            for (Feature2D feature2D : this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx))) {
+                if (feature2D.getFeatureType() == Feature2D.FeatureType.SELECTED_GROUP) {
+                    tempSelectedGroups.add(feature2D);
+                }
             }
         }
         return tempSelectedGroups;

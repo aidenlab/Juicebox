@@ -982,6 +982,66 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(miSelect);
         }
 
+        final JMenuItem jumpToDiagonalUp = new JMenuItem("Jump to diagonal (Up)");
+        jumpToDiagonalUp.setSelected(straightEdgeEnabled);
+        jumpToDiagonalUp.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int deltaX = 0;
+                int deltaY = yMousePos - xMousePos;
+                double deltaXBins = -deltaX / hic.getScaleFactor();
+                double deltaYBins = -deltaY / hic.getScaleFactor();
+                hic.moveBy(deltaXBins, deltaYBins);
+            }
+        });
+
+        final JMenuItem jumpToDiagonalDown = new JMenuItem("Jump to diagonal (Down)");
+        jumpToDiagonalDown.setSelected(straightEdgeEnabled);
+        jumpToDiagonalDown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int deltaX = 0;
+                int deltaY = xMousePos - yMousePos;
+                double deltaXBins = -deltaX / hic.getScaleFactor();
+                double deltaYBins = -deltaY / hic.getScaleFactor();
+                hic.moveBy(deltaXBins, deltaYBins);
+            }
+        });
+
+        final JMenuItem jumpToDiagonalLeft = new JMenuItem("Jump to diagonal (Left)");
+        jumpToDiagonalLeft.setSelected(straightEdgeEnabled);
+        jumpToDiagonalLeft.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int deltaX = xMousePos - yMousePos;
+                int deltaY = 0;
+                double deltaXBins = -deltaX / hic.getScaleFactor();
+                double deltaYBins = -deltaY / hic.getScaleFactor();
+                hic.moveBy(deltaXBins, deltaYBins);
+            }
+        });
+
+        final JMenuItem jumpToDiagonalRight = new JMenuItem("Jump to diagonal (Right)");
+        jumpToDiagonalRight.setSelected(straightEdgeEnabled);
+        jumpToDiagonalRight.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int deltaX = yMousePos - xMousePos;
+                int deltaY = 0;
+                double deltaXBins = -deltaX / hic.getScaleFactor();
+                double deltaYBins = -deltaY / hic.getScaleFactor();
+                hic.moveBy(deltaXBins, deltaYBins);
+            }
+        });
+
+        if (xMousePos > yMousePos) {
+            menu.add(jumpToDiagonalLeft);
+            menu.add(jumpToDiagonalDown);
+        } else if (xMousePos < yMousePos) {
+            menu.add(jumpToDiagonalUp);
+            menu.add(jumpToDiagonalRight);
+        }
+
         final JCheckBoxMenuItem miTranslate = new JCheckBoxMenuItem("Translate");
         miTranslate.setSelected(straightEdgeEnabled);
         miTranslate.addActionListener(new ActionListener() {
@@ -1592,6 +1652,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     selectedFeatures = newSelectedFeatures;
                 }
                 updateSelectedFeatures(true);
+
+                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                    Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+                    Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+                    superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                    repaint();
+                }
 
                 superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
 
