@@ -28,7 +28,7 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.assembly.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
@@ -694,7 +694,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.assemblyModeEnabled = true;
                 activelyEditingAssembly = true;
-                AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
+                AssemblyHeatmapHandler.setSuperAdapter(superAdapter);
             }
         });
         menu.add(mi_0);
@@ -1099,8 +1099,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
-            AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+            AssemblyHeatmapHandler.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
+            AssemblyHeatmapHandler.recalculateAllAlterations(contigs);
 
             repaint();
         }
@@ -1116,11 +1116,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void splitGroupMenuItemActionPerformed() {
-        AssemblyOperationExecutor.splitGroup(selectedFeatures);
+        AssemblyOperationExecutor.splitGroup(superAdapter, selectedFeatures);
     }
 
     private void mergeGroupMenuItemActionPerformed() {
-        AssemblyOperationExecutor.mergeGroup(selectedFeatures);
+        AssemblyOperationExecutor.mergeGroup(superAdapter, selectedFeatures);
     }
 
     private String toolTipText(int x, int y) {
@@ -1693,10 +1693,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-//                AssemblyOperationExecutor.moveSelectedFeatures(selectedFeatures,featureOrigin);
+                AssemblyOperationExecutor.moveSelectedFeatures(superAdapter, selectedFeatures, featureDestination);
 
-                AssemblyIntermediateProcessor.moveFeatureToNewIndex(contigs, indexOrigin, indexDestination);
-                AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
+//                AssemblyHeatmapHandler.moveFeatureToNewIndex(contigs, indexOrigin, indexDestination);
+//                AssemblyHeatmapHandler.recalculateAllAlterations(contigs);
 
                 repaint();
             }

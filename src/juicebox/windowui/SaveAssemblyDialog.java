@@ -27,7 +27,7 @@ package juicebox.windowui;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileExporter;
-import juicebox.assembly.AssemblyHandler;
+import juicebox.assembly.AssemblyFragmentHandler;
 
 import javax.swing.*;
 import java.io.File;
@@ -37,13 +37,13 @@ import java.io.File;
  */
 public class SaveAssemblyDialog extends JFileChooser {
 
-    private AssemblyHandler assemblyHandler;
+    private AssemblyFragmentHandler assemblyFragmentHandler;
     private String mapName;
 
-    public SaveAssemblyDialog(AssemblyHandler assemblyHandler, String mapName) {
+    public SaveAssemblyDialog(AssemblyFragmentHandler assemblyFragmentHandler, String mapName) {
         super();
         this.mapName = mapName;
-        this.assemblyHandler = assemblyHandler;
+        this.assemblyFragmentHandler = assemblyFragmentHandler;
         menuOptions();
     }
 
@@ -59,7 +59,7 @@ public class SaveAssemblyDialog extends JFileChooser {
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyHandler, outputPath);
+                AssemblyFileExporter assemblyFileExporter = new AssemblyFileExporter(assemblyFragmentHandler, outputPath);
                 assemblyFileExporter.exportContigsAndScaffolds();
             }
         }

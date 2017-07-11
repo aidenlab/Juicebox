@@ -27,7 +27,7 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.assembly.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -499,7 +499,7 @@ public class MainMenuBar {
             public void actionPerformed(ActionEvent e) {
                 String newURL = MessageUtils.showInputDialog("Specify reassembling");
                 if (newURL != null) {
-                    AssemblyIntermediateProcessor.makeChanges(newURL.split(","), superAdapter);
+                    AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
                 }
             }
         });

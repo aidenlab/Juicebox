@@ -28,7 +28,7 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.assembly.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
@@ -217,7 +217,7 @@ public class MatrixZoomData {
         List<Contig2D> contigs = new ArrayList<>();
 
         if (HiCGlobals.assemblyModeEnabled) {
-            contigs.addAll(AssemblyIntermediateProcessor.retrieveRelevantBlocks(this, blocksToLoad, blockList,
+            contigs.addAll(AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
                     chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
         }
 
@@ -277,7 +277,7 @@ public class MatrixZoomData {
         Set<Block> blockSet = new HashSet<>(blockList);
 
         if (HiCGlobals.assemblyModeEnabled) {
-            return AssemblyIntermediateProcessor.filterBlockList(contigs, blockSet, zoom.getBinSize());
+            return AssemblyHeatmapHandler.filterBlockList(contigs, blockSet, zoom.getBinSize());
         }
 
         return new ArrayList<>(blockSet);

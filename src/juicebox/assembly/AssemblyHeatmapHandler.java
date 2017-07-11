@@ -43,13 +43,13 @@ import java.util.*;
 /**
  * Created by muhammadsaadshamim on 4/17/17.
  */
-public class AssemblyIntermediateProcessor {
+public class AssemblyHeatmapHandler {
 
     private static SuperAdapter superAdapter;
 
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
-        AssemblyIntermediateProcessor.superAdapter = superAdapter;
+        AssemblyHeatmapHandler.superAdapter = superAdapter;
         Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoops();
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
@@ -225,7 +225,6 @@ public class AssemblyIntermediateProcessor {
     }
 
     /**
-     *
      * @param preMergeContigs
      * @param blockList
      * @param binSize
@@ -315,10 +314,10 @@ public class AssemblyIntermediateProcessor {
     }
 
     public static SuperAdapter getSuperAdapter() {
-        return AssemblyIntermediateProcessor.superAdapter;
+        return AssemblyHeatmapHandler.superAdapter;
     }
 
     public static void setSuperAdapter(SuperAdapter superAdapter) {
-        AssemblyIntermediateProcessor.superAdapter = superAdapter;
+        AssemblyHeatmapHandler.superAdapter = superAdapter;
     }
 }
