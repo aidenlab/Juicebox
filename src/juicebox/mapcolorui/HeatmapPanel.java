@@ -1150,10 +1150,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyHeatmapHandler.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
-            AssemblyHeatmapHandler.recalculateAllAlterations(contigs);
-
-            repaint();
+            AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures, contigs, startIndex, endIndex);
         }
     }
 
