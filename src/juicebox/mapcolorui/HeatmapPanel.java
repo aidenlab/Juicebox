@@ -976,8 +976,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
                     Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
                     superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-                    superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-                    superAdapter.refresh();
                     repaint();
                 }
             });
@@ -1104,8 +1102,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             AssemblyIntermediateProcessor.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
             AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
 
-            superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-            superAdapter.refresh();
+            repaint();
         }
     }
 
@@ -1701,8 +1698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 AssemblyIntermediateProcessor.moveFeatureToNewIndex(contigs, indexOrigin, indexDestination);
                 AssemblyIntermediateProcessor.recalculateAllAlterations(contigs);
 
-                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-                superAdapter.refresh();
+                repaint();
             }
 
             if (selectedFeatures != null && newSelectedFeatures != null) {
