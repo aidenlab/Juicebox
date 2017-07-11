@@ -982,16 +982,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(miSelect);
         }
 
+        final int binX = (int) (hic.getXContext().getBinOrigin() + xMousePos / hic.getScaleFactor());
+        final int binY = (int) (hic.getYContext().getBinOrigin() + yMousePos / hic.getScaleFactor());
+
         final JMenuItem jumpToDiagonalUp = new JMenuItem("Jump to diagonal (Up)");
         jumpToDiagonalUp.setSelected(straightEdgeEnabled);
         jumpToDiagonalUp.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int deltaX = 0;
-                int deltaY = yMousePos - xMousePos;
-                double deltaXBins = -deltaX / hic.getScaleFactor();
-                double deltaYBins = -deltaY / hic.getScaleFactor();
-                hic.moveBy(deltaXBins, deltaYBins);
+                hic.moveBy(0, binX - binY);
+                repaint();
             }
         });
 
@@ -1000,11 +1000,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         jumpToDiagonalDown.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int deltaX = 0;
-                int deltaY = xMousePos - yMousePos;
-                double deltaXBins = -deltaX / hic.getScaleFactor();
-                double deltaYBins = -deltaY / hic.getScaleFactor();
-                hic.moveBy(deltaXBins, deltaYBins);
+                hic.moveBy(0, binX - binY);
+                repaint();
             }
         });
 
@@ -1013,11 +1010,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         jumpToDiagonalLeft.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int deltaX = xMousePos - yMousePos;
-                int deltaY = 0;
-                double deltaXBins = -deltaX / hic.getScaleFactor();
-                double deltaYBins = -deltaY / hic.getScaleFactor();
-                hic.moveBy(deltaXBins, deltaYBins);
+                hic.moveBy(binY - binX, 0);
+                repaint();
             }
         });
 
@@ -1026,18 +1020,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
         jumpToDiagonalRight.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int deltaX = yMousePos - xMousePos;
-                int deltaY = 0;
-                double deltaXBins = -deltaX / hic.getScaleFactor();
-                double deltaYBins = -deltaY / hic.getScaleFactor();
-                hic.moveBy(deltaXBins, deltaYBins);
+                hic.moveBy(binY - binX, 0);
+                repaint();
             }
         });
 
-        if (xMousePos > yMousePos) {
+        if (binX > binY) {
             menu.add(jumpToDiagonalLeft);
             menu.add(jumpToDiagonalDown);
-        } else if (xMousePos < yMousePos) {
+        } else if (binX < binY) {
             menu.add(jumpToDiagonalUp);
             menu.add(jumpToDiagonalRight);
         }
@@ -1653,12 +1644,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
                 updateSelectedFeatures(true);
 
-                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                    Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-                    Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-                    superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-                    repaint();
-                }
+                Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+                Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+                superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                repaint();
 
                 superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
 
