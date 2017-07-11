@@ -31,7 +31,10 @@ import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.track.feature.*;
+import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Contig2D;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -147,41 +150,10 @@ public class AssemblyIntermediateProcessor {
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
 
-        AnnotationLayer contigLayer = superAdapter.getContigLayer().getAnnotationLayer();
-        Feature2D firstFragment;
-        Feature2D secondFragment;
-        Feature2D thirdFragment;
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+        AssemblyHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyHandler.editContig(originalContig, debrisContig);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyHandler);
 
-        if (originalContig.overlapsWith(debrisContig)) {
-
-            contigLayer.getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, originalContig);
-
-            firstFragment = originalContig.deepCopy();
-            firstFragment.setEnd1(debrisContig.getStart1());
-            firstFragment.setEnd2(debrisContig.getStart2());
-
-            secondFragment = originalContig.deepCopy();
-            secondFragment.setStart1(debrisContig.getStart1());
-            secondFragment.setStart2(debrisContig.getStart2());
-            secondFragment.setEnd1(debrisContig.getEnd1());
-            secondFragment.setEnd2(debrisContig.getEnd2());
-
-            thirdFragment = originalContig.deepCopy();
-            thirdFragment.setStart1(debrisContig.getEnd1());
-            thirdFragment.setStart2(debrisContig.getEnd2());
-
-            contigLayer.add(chr1Idx, chr2Idx, firstFragment);
-            contigLayer.add(chr1Idx, chr2Idx, secondFragment);
-            contigLayer.add(chr1Idx, chr2Idx, thirdFragment);
-
-            //remake tree or something
-            contigLayer.getFeatureHandler().remakeRTree();
-            superAdapter.refresh();
-        } else {
-            System.out.println("error splitting contigs");
-        }
     }
 
     public static void splitGroup(List<Feature2D> contigs) {

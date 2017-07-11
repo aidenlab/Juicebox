@@ -978,6 +978,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                     superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                     superAdapter.refresh();
+                    repaint();
                 }
             });
             menu.add(miSelect);
@@ -1582,6 +1583,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 HiCGlobals.splitModeEnabled = false;
                 restoreDefaultVariables();
                 selectedFeatures.clear();
+                repaint();
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation

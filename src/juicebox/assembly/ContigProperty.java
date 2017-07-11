@@ -54,8 +54,39 @@ public class ContigProperty {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getOriginalContigName() {
+        if (name.contains(":::")) {
+            return name.split(":::")[0];
+        } else {
+            return name;
+        }
+    }
+
+    public int getFragmentNumber() {
+        if (name.contains(":::")) {
+            if (name.contains(":::debris")) {
+                String temp = name.split("_")[1];
+                return Integer.parseInt(temp.split(":::")[0]);
+            } else {
+                return Integer.parseInt(name.split("_")[1]); //can just parse int from string
+            }
+        } else {
+            System.err.println("can't find fragment num");
+            return -1;
+
+        }
+    }
+
     public int getIndexId() {
         return indexId;
+    }
+
+    public void setIndexId(int indexId) {
+        this.indexId = indexId;
     }
 
     public int getLength() {
@@ -74,4 +105,5 @@ public class ContigProperty {
     public String toString() {
         return name + " " + indexId + " " + length;
     }
+
 }

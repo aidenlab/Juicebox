@@ -294,6 +294,12 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
                 AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyHandler(), contigLayerHandler, scaffoldLayerHandler);
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
                 superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+                for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
+                    if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
+                        superAdapter.removeLayer(annotationLayerHandler);
+                    superAdapter.setActiveLayerHandler(contigLayerHandler);
+                    superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                }
 
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
