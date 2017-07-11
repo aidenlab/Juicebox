@@ -149,6 +149,15 @@ public class AssemblyHandler {
         addScaffoldProperties(indexId, inverted, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
     }
 
+    public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
+        for (ContigProperty contigProperty : contigProperties) {
+            if (contigProperty.getFeature2D().getStart1() == feature2D.getStart1())
+                return contigProperty;
+        }
+        System.err.println("error finding corresponding contig");
+        return null;
+    }
+
     public List<ContigProperty> splitContig(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
         List<ContigProperty> splitContig = new ArrayList<>();
 
@@ -170,22 +179,12 @@ public class AssemblyHandler {
                 splitContig.add(new ContigProperty(newContigNames.get(0), (originalIndexId + 2), originalEnd - debrisEnd));
                 splitContig.add(new ContigProperty(newContigNames.get(1), (originalIndexId + 1), debrisEnd - debrisStart));
                 splitContig.add(new ContigProperty(newContigNames.get(2), originalIndexId, debrisStart - originalStart));
-
             }
             return splitContig;
         } else {
             System.out.println("error splitting contigs");
             return null;
         }
-    }
-
-    public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
-        for (ContigProperty contigProperty : contigProperties) {
-            if (contigProperty.getFeature2D().getStart1() == feature2D.getStart1())
-                return contigProperty;
-        }
-        System.err.println("error finding corresponding contig");
-        return null;
     }
 
     public List<String> getNewContigNames(ContigProperty contigProperty) {
@@ -219,7 +218,6 @@ public class AssemblyHandler {
             multiplier = 1;
 
         for (ContigProperty contigProperty : splitContigs) {
-            System.out.println("add cprops " + contigProperty.getIndexId());
             splitContigsIds.add(multiplier * contigProperty.getIndexId());
 
         }
@@ -228,19 +226,13 @@ public class AssemblyHandler {
         }
         System.out.println();
         shiftScaffoldProperties(splitIndex);
-        System.out.println(scaffoldProperties.get(rowNum));
 
-        Integer originalIndexNum = scaffoldProperties.get(rowNum).get(posNum);
-//        scaffoldProperties.get(rowNum).set(posNum,splitContigsIds.get(0));
-//        splitContigs.remove(0);
         scaffoldProperties.get(rowNum).addAll(posNum, splitContigsIds);
         scaffoldProperties.get(rowNum).remove(posNum + 3);
-        System.out.println(scaffoldProperties.get(rowNum));
     }
 
     public void shiftScaffoldProperties(int splitIndex) {
         int i;
-        System.out.println("s index " + splitIndex);
 
         for (List<Integer> scaffoldRow : scaffoldProperties) {
             i = 0;
@@ -261,6 +253,9 @@ public class AssemblyHandler {
         shiftContigIndices(splitContigIndex);
 
         List<ContigProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
+        for (ContigProperty contigProperty : fromInitialContig) {
+            System.out.println(contigProperty);
+        }
         if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) {
             List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
             for (ContigProperty contigProperty : shiftedContigs) {
@@ -271,17 +266,19 @@ public class AssemblyHandler {
                     newContigName = newContigName.replaceFirst("_\\d+", "_" + (contigProperty.getFragmentNumber() + 2));
                 }
                 contigProperty.setName(newContigName);
+                System.out.println(contigProperty);
             }
 
         } else {
+
             System.out.println("error adding edited contigs"); //todo fix if statement
         }
+
         contigProperties.addAll(splitContigIndex, splitContig);
         contigProperties.remove(originalContig);
     }
 
     public void shiftContigIndices(int splitIndexId) {
-        System.out.println("Split INdex id testing " + splitIndexId);
         for (ContigProperty contigProperty : contigProperties) {
             if (Math.abs(contigProperty.getIndexId()) > (Math.abs(splitIndexId) + 1)) {
                 contigProperty.setIndexId(contigProperty.getIndexId() + 1);
@@ -292,6 +289,7 @@ public class AssemblyHandler {
     public List<ContigProperty> findContigsSplitFromInitial(ContigProperty originalContig) {
         List<ContigProperty> contigPropertiesFromSameInitial = new ArrayList<>();
         String originalContigName = originalContig.getOriginalContigName();
+        System.out.println(originalContigName);
 
         for (ContigProperty contigProperty : contigProperties) {
             if (contigProperty.getName().contains(originalContigName))
@@ -359,32 +357,24 @@ public class AssemblyHandler {
     }
 
 
-    public void translateSelection(List<Feature2D> contigIds, int translateRow) {
-        performTranslation(contig2DListToIntegerList(contigIds), translateRow);
+    public void translateSelection(List<Feature2D> contigIds, Feature2D featureOrigin) {
+        int destinationRow;
+        int destinationPos;
+        List<Feature2D> tempList = new ArrayList<Feature2D>();
+        tempList.add(featureOrigin);
+        List<Integer> destinationIndexId = contig2DListToIntegerList(tempList);
+        destinationRow = getScaffoldRow(destinationIndexId);
+        destinationPos = scaffoldProperties.get(destinationRow).indexOf(destinationIndexId.get(0));
+
+        performTranslation(contig2DListToIntegerList(contigIds), destinationRow, destinationPos);
 
     }
 
-    private void performTranslation(List<Integer> contigIds, int translateRow) {
+    private void performTranslation(List<Integer> contigIds, int translateRow, int translatePos) {
         int originalRowNum = getScaffoldRow(contigIds);
         List<Integer> originalRow = scaffoldProperties.get(originalRowNum);
-        List<List<Integer>> newGroups = splitGroup(contigIds, originalRowNum);
-        List<Integer> translateList;
-        if (newGroups.size() == 3) {
-            translateList = newGroups.get(1);// get middle group in split
-        } else if (newGroups.size() == 2) {
-
-            if (originalRow.indexOf(contigIds.get(0)) == 0) {
-                translateList = newGroups.get(0);   //get first group in split
-            } else {
-                translateList = newGroups.get(1); //get second gorup in split
-            }
-        } else {
-            System.err.println("error translating group");
-            return;
-        }
-
-        scaffoldProperties.add(translateRow, translateList);
-        scaffoldProperties.remove(translateList);
+        originalRow.removeAll(contigIds);
+        scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
     }
 
 
