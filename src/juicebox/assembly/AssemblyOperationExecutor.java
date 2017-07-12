@@ -76,7 +76,7 @@ public class AssemblyOperationExecutor {
 
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.invertSelection(duplicateSelectedFeatures);
-//        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler, false);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler, true);
     }
 
     public static void moveSelectedFeatures(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {

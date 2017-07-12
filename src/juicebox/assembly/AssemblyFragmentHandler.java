@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 
@@ -110,9 +111,16 @@ public class AssemblyFragmentHandler {
                 Map<String, String> attributes = new HashMap<String, String>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
-                Feature2D contig = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
+                //put attribute here
+                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        new Color(0, 255, 0), attributes);
+                        new Color(0, 255, 0), attributes); //todo
+
+                Contig2D contig = feature2D.toContig();
+                if (contigProperty.isInverted()) {
+                    contig.toggleInversion(); //assuming intial contig2D inverted = false
+                }
+
 
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
@@ -179,6 +187,12 @@ public class AssemblyFragmentHandler {
                 splitContig.add(new ContigProperty(newContigNames.get(0), (originalIndexId + 2), originalEnd - debrisEnd));
                 splitContig.add(new ContigProperty(newContigNames.get(1), (originalIndexId + 1), debrisEnd - debrisStart));
                 splitContig.add(new ContigProperty(newContigNames.get(2), originalIndexId, debrisStart - originalStart));
+
+            }
+            if (originalContig.isInverted()) {
+                for (ContigProperty contigProperty : splitContig) {
+                    contigProperty.toggleInversion(); //if inverted then make sure that
+                }
             }
             return splitContig;
         } else {
@@ -386,6 +400,11 @@ public class AssemblyFragmentHandler {
 
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
         System.out.println("contig 1 " + contigIds);
+        //invert selected contig properties
+        List<ContigProperty> selectedContigProperties = contig2DListToContigPropertyList(contigs);
+        for (ContigProperty contigProperty : selectedContigProperties) {
+            contigProperty.toggleInversion();
+        }
         invertSelection(contigIds, getScaffoldRow(contigIds));
         System.out.println("test 1");
     }
@@ -436,4 +455,23 @@ public class AssemblyFragmentHandler {
         }
         return contigIds;
     }
+
+    public List<ContigProperty> contig2DListToContigPropertyList(List<Feature2D> contigs) {
+        List<ContigProperty> newList = new ArrayList<ContigProperty>();
+        for (Feature2D feature2D : contigs) {
+            newList.add(contig2DToContigProperty(feature2D));
+        }
+        return newList;
+    }
+
+    public ContigProperty contig2DToContigProperty(Feature2D feature2D) {
+        for (ContigProperty contigProperty : contigProperties) {
+            if (contigProperty.getFeature2D().equals(feature2D)) { //make sure it is okay
+
+                return contigProperty;
+            }
+        }
+        return null;
+    }
+
 }
