@@ -81,8 +81,6 @@ public class AssemblyStateTracker {
         AnnotationLayer contigLayer = new AnnotationLayer(assemblyFragmentHandler.getContigs());
         contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
         contigLayerHandler.setAnnotationLayer(contigLayer);
-
-
     }
 
     public boolean checkUndo() {

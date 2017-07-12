@@ -1099,6 +1099,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
+                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
             }
         });
         miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
@@ -1111,6 +1113,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
+                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
             }
         });
         miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
@@ -1150,7 +1154,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures, contigs, startIndex, endIndex);
+            AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
         }
     }
 

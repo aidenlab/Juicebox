@@ -73,6 +73,11 @@ public class Contig2D extends Feature2D {
         return newEnd;
     }
 
+    public void setInitialState(String initialChr, int initialStart, int initialEnd) {
+        this.initialChr = initialChr;
+        this.initialStart = initialStart;
+        this.initialEnd = initialEnd;
+    }
     private int getTrueWidth() {
         return initialEnd - initialStart;
     }

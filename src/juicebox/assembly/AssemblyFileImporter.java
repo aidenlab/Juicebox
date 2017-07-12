@@ -48,6 +48,7 @@ public class AssemblyFileImporter {
         scaffoldProperties = new ArrayList<>();
         readFiles();
         assemblyFragmentHandler = new AssemblyFragmentHandler(contigProperties, scaffoldProperties);
+        assemblyFragmentHandler.generateInitialContigsAndScaffolds();
     }
 
     public void readFiles() {

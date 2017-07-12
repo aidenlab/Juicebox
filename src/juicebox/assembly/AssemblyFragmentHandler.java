@@ -45,14 +45,14 @@ public class AssemblyFragmentHandler {
     private Feature2DList contigs;
     private Feature2DList scaffolds;
     private String chromosomeName = "assembly";
-
-
+    private OperationType operationType;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         generateContigsAndScaffolds();
+        this.operationType = OperationType.NONE;
     }
 
     public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
@@ -61,6 +61,10 @@ public class AssemblyFragmentHandler {
         this.contigs = new Feature2DList();
         this.scaffolds = new Feature2DList();
         generateContigsAndScaffolds();
+    }
+
+    public OperationType getOperationType() {
+        return this.operationType;
     }
 
     public List<ContigProperty> cloneContigProperties() {
@@ -83,6 +87,10 @@ public class AssemblyFragmentHandler {
         return contigs;
     }
 
+    public void setContigs(Feature2DList contigs) {
+        this.contigs = contigs;
+    }
+
     public Feature2DList getScaffolds() {
         return scaffolds;
     }
@@ -93,6 +101,58 @@ public class AssemblyFragmentHandler {
 
     public List<List<Integer>> getScaffoldProperties() {
         return scaffoldProperties;
+    }
+
+    public void generateInitialContigsAndScaffolds() {
+        contigs = new Feature2DList();
+        scaffolds = new Feature2DList();
+        int contigStartPos = 0;
+        int scaffoldStartPos = 0;
+        int scaffoldLength = 0;
+        Integer rowNum = 0;
+        for (List<Integer> row : scaffoldProperties) {
+            for (Integer contigIndex : row) {
+                ContigProperty contigProperty = contigProperties.get(Math.abs(contigIndex) - 1);
+                String contigName = contigProperty.getName();
+                Integer contigLength = contigProperty.getLength();
+
+                Map<String, String> attributes = new HashMap<String, String>();
+                attributes.put(this.contigName, contigName);
+                attributes.put(scaffoldIndexId, contigIndex.toString());
+                //put attribute here
+                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
+                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
+                        new Color(0, 255, 0), attributes); //todo
+
+                Contig2D contig = feature2D.toContig();
+                if (contigProperty.isInverted()) {
+                    contig.toggleInversion(); //assuming initial contig2D inverted = false
+                }
+
+
+                contigProperty.setIntialState(chromosomeName, contigStartPos, (contigStartPos + contigLength));
+
+                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd());
+
+
+                contigs.add(1, 1, contig);
+                contigProperty.setFeature2D(contig);
+
+                contigStartPos += contigLength;
+                scaffoldLength += contigLength;
+            }
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put(scaffoldNum, rowNum.toString());
+
+            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
+                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
+                    new Color(0, 0, 255), attributes);
+            scaffolds.add(1, 1, scaffold);
+
+            scaffoldStartPos += scaffoldLength;
+            scaffoldLength = 0;
+            rowNum++;
+        }
     }
 
     public void generateContigsAndScaffolds() {
@@ -118,9 +178,10 @@ public class AssemblyFragmentHandler {
 
                 Contig2D contig = feature2D.toContig();
                 if (contigProperty.isInverted()) {
-                    contig.toggleInversion(); //assuming intial contig2D inverted = false
+                    contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
 
+                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd());
 
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
@@ -143,16 +204,19 @@ public class AssemblyFragmentHandler {
     }
 
     public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
+        operationType = OperationType.EDIT;
         ArrayList<Feature2D> contigs = new ArrayList<>();
         contigs.add(originalFeature);
         int scaffoldRowNum = getScaffoldRow(contig2DListToIntegerList(contigs));
         boolean inverted = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
 
-
         ContigProperty originalContig = feature2DtoContigProperty(originalFeature);
         int indexId = Integer.parseInt(originalFeature.getAttribute(scaffoldIndexId));
         List<ContigProperty> splitContigs = splitContig(originalFeature, debrisContig, originalContig);
 
+        for (ContigProperty contigProperty : splitContigs) {
+            System.out.println(contigProperty);
+        }
         addContigProperties(originalContig, splitContigs);
         addScaffoldProperties(indexId, inverted, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
     }
@@ -167,37 +231,96 @@ public class AssemblyFragmentHandler {
     }
 
     public List<ContigProperty> splitContig(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
-        List<ContigProperty> splitContig = new ArrayList<>();
 
-        List<String> newContigNames = getNewContigNames(originalContig);
-        int originalIndexId = originalContig.getIndexId();
         boolean inverted = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
 
         if (originalFeature.overlapsWith(debrisFeature)) {
-            int originalStart = originalFeature.getStart1();
-            int debrisStart = debrisFeature.getStart1();
-            int originalEnd = originalFeature.getEnd2();
-            int debrisEnd = debrisFeature.getEnd1();
-
-            if (!inverted) { //do I need plus 1 ?
-                splitContig.add(new ContigProperty(newContigNames.get(0), originalIndexId, debrisStart - originalStart));
-                splitContig.add(new ContigProperty(newContigNames.get(1), (originalIndexId + 1), debrisEnd - debrisStart));
-                splitContig.add(new ContigProperty(newContigNames.get(2), (originalIndexId + 2), originalEnd - debrisEnd));
-            } else { //is inverted so flip order of contigs
-                splitContig.add(new ContigProperty(newContigNames.get(0), (originalIndexId + 2), originalEnd - debrisEnd));
-                splitContig.add(new ContigProperty(newContigNames.get(1), (originalIndexId + 1), debrisEnd - debrisStart));
-                splitContig.add(new ContigProperty(newContigNames.get(2), originalIndexId, debrisStart - originalStart));
-
-            }
-            if (originalContig.isInverted()) {
-                for (ContigProperty contigProperty : splitContig) {
-                    contigProperty.toggleInversion(); //if inverted then make sure that
-                }
-            }
-            return splitContig;
+            if (!inverted)  //not inverted
+                return generateNormalSplit(originalFeature, debrisFeature, originalContig);
+            else  //is inverted so flip order of contigs
+                return generateInvertedSplit(originalFeature, debrisFeature, originalContig);
         } else {
             System.out.println("error splitting contigs");
             return null;
+        }
+    }
+
+    public List<ContigProperty> generateNormalSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+        List<ContigProperty> splitContig = new ArrayList<>();
+        List<String> newContigNames = getNewContigNames(originalContig);
+
+        int originalIndexId = originalContig.getIndexId();
+        int originalStart = originalFeature.getStart1();
+        int debrisStart = debrisFeature.getStart1();
+        int originalEnd = originalFeature.getEnd2();
+        int debrisEnd = debrisFeature.getEnd1();
+        int length;
+
+        length = debrisStart - originalStart;
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length);
+        splitContig.add(firstFragment);
+
+        length = debrisEnd - debrisStart;
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
+        splitContig.add(secondFragment);
+
+        length = originalEnd - debrisEnd;
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length);
+        splitContig.add(thirdFragment);
+
+        setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
+        return splitContig;
+    }
+
+    public List<ContigProperty> generateInvertedSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+        List<ContigProperty> splitContig = new ArrayList<>();
+        List<String> newContigNames = getNewContigNames(originalContig);
+
+        int originalIndexId = originalContig.getIndexId();
+        int originalStart = originalFeature.getStart1();
+        int debrisStart = debrisFeature.getStart1();
+        int originalEnd = originalFeature.getEnd2();
+        int debrisEnd = debrisFeature.getEnd1();
+        int length;
+
+        length = originalEnd - debrisEnd;
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length);
+        splitContig.add(firstFragment);
+
+        length = debrisEnd - debrisStart;
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
+        splitContig.add(secondFragment);
+
+        length = debrisStart - originalStart;
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length);
+        splitContig.add(thirdFragment);
+
+        setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
+        return splitContig;
+    }
+
+    public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig) {
+        int newInitialStart;
+        int newInitialEnd;
+        if (originalContig.isInverted()) {
+            newInitialEnd = originalContig.getInitialEnd();
+            newInitialStart = newInitialEnd;
+            for (ContigProperty contigProperty : splitContig) {
+                //    50-100, 40-50, 0-40
+                newInitialStart = newInitialStart - contigProperty.getLength();
+                contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
+                contigProperty.toggleInversion(); //toggles inversion of split contig
+                newInitialEnd = newInitialStart;
+            }
+        } else { //not inverted
+            newInitialStart = originalContig.getInitialStart();
+            newInitialEnd = newInitialStart;
+            //    0-40, 40-50, 50-100
+            for (ContigProperty contigProperty : splitContig) {
+                newInitialEnd = newInitialEnd + contigProperty.getLength();
+                contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
+                newInitialStart = newInitialEnd;
+            }
         }
     }
 
@@ -313,6 +436,7 @@ public class AssemblyFragmentHandler {
     }
 
     public void splitGroup(List<Feature2D> contigs) {
+        operationType = OperationType.GROUP;
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
         int scaffoldRowNum = getScaffoldRow(contigIds);
         splitGroup(contigIds, scaffoldRowNum);
@@ -344,13 +468,13 @@ public class AssemblyFragmentHandler {
     }
 
     public void mergeGroup(int startingIndex, List<Feature2D> contigs) {
+        operationType = OperationType.GROUP;
         if (contigs.size() > 1) {
             mergeGroup(startingIndex, contigs.size());
         } else
             System.err.println("not enough many selected");
 
     }
-
 
     private void mergeGroup(int scaffoldRowNum, int length) {
         List<Integer> newGroup = new ArrayList<>();
@@ -370,8 +494,8 @@ public class AssemblyFragmentHandler {
         }
     }
 
-
     public void translateSelection(List<Feature2D> selectedFeatures, Feature2D featureDestination) {
+        operationType = OperationType.TRANSLATE;
         int destinationRow;
         int destinationPos;
         List<Feature2D> tempList = new ArrayList<Feature2D>();
@@ -395,9 +519,8 @@ public class AssemblyFragmentHandler {
         scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
     }
 
-
     public void invertSelection(List<Feature2D> contigs) {
-
+        operationType = OperationType.INVERT;
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
         System.out.println("contig 1 " + contigIds);
         //invert selected contig properties
@@ -447,7 +570,6 @@ public class AssemblyFragmentHandler {
         return newList;
     }
 
-
     public List<Integer> contig2DListToIntegerList(List<Feature2D> contigs) {
         List<Integer> contigIds = new ArrayList<Integer>();
         for (Feature2D feature2D : contigs) {
@@ -473,5 +595,7 @@ public class AssemblyFragmentHandler {
         }
         return null;
     }
+
+    public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 
 }

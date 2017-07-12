@@ -29,7 +29,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2D;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,26 +61,19 @@ public class AssemblyOperationExecutor {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 
-    public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, List<Feature2D> contigs, int startIndex, int endIndex) {
-        List<Feature2D> duplicateSelectedFeatures = new ArrayList<>();
-        for (Feature2D feature2D : selectedFeatures) {
-            duplicateSelectedFeatures.add(feature2D.deepCopy());
-        }
-
-        AssemblyHeatmapHandler.invertMultipleContiguousEntriesAt(contigs, startIndex, endIndex);
-        AssemblyHeatmapHandler.recalculateAllAlterations(contigs);
-
-        superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        superAdapter.refresh();
+    public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
 
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.invertSelection(duplicateSelectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler, true);
+        assemblyFragmentHandler.invertSelection(selectedFeatures);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.refresh();
     }
 
     public static void moveSelectedFeatures(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.translateSelection(selectedFeatures, featureOrigin);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+        superAdapter.refresh();
     }
 }
