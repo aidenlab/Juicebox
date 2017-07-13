@@ -820,13 +820,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         mi85Highlight.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                featureOptionMenuEnabled = false;
-                showFeatureHighlight = true;
-                hic.setShowFeatureHighlight(showFeatureHighlight);
                 highlightedFeature = currentFeature.getFeature2D();
-                hic.setHighlightedFeature(highlightedFeature);
-                superAdapter.repaintTrackPanels();
-                repaint();
+                addHighlightedFeature(highlightedFeature);
+
             }
         });
 
@@ -845,11 +841,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         mi87Remove.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                featureOptionMenuEnabled = false;
-                highlightedFeature = null;
-                hic.setHighlightedFeature(highlightedFeature);
-                superAdapter.repaintTrackPanels();
-                repaint();
+                removeHighlightedFeature();
             }
         });
 
@@ -971,6 +963,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     }
 
+    private void addHighlightedFeature(Feature2D feature2D) {
+        highlightedFeature = feature2D;
+        featureOptionMenuEnabled = false;
+        showFeatureHighlight = true;
+        hic.setShowFeatureHighlight(showFeatureHighlight);
+        hic.setHighlightedFeature(highlightedFeature);
+        superAdapter.repaintTrackPanels();
+        repaint();
+    }
+
+    private void removeHighlightedFeature() {
+        featureOptionMenuEnabled = false;
+        highlightedFeature = null;
+        hic.setHighlightedFeature(highlightedFeature);
+        superAdapter.repaintTrackPanels();
+        repaint();
+    }
+
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos) {
 
         JidePopupMenu menu = new JidePopupMenu();
@@ -981,7 +991,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 public void actionPerformed(ActionEvent e) {
                     updateSelectedFeatures(false);
                     selectedFeatures.clear();
+                    HiCGlobals.splitModeEnabled = false;
                     superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                    removeHighlightedFeature();
 
                     Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
                     Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
@@ -1638,12 +1650,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 annotateRectangle = null;
                 setProperCursor();
                 // After popup, priority is assembly mode, highlighting those features.
-            } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
-                AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), superAdapter.getActiveLayerHandler().generateFeature(hic), superAdapter, hic);
-                HiCGlobals.splitModeEnabled = false;
-                restoreDefaultVariables();
-                selectedFeatures.clear();
-                repaint();
+
+            } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly) {
+                if (dragMode == DragMode.ANNOTATE) {
+                    Feature2D feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
+                    if (feature2D != null) {
+                        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
+                        HiCGlobals.splitModeEnabled = false;
+                        restoreDefaultVariables();
+                        selectedFeatures.clear();
+                        repaint();
+                    } else {
+                        int x = (int) lastMousePoint.getX();
+                        int y = (int) lastMousePoint.getY();
+                        Rectangle annotateRectangle = new Rectangle(x, y, 1, 1);
+                        superAdapter.getActiveLayerHandler().updateSelectionRegion(annotateRectangle);
+                        feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
+                        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
+                        HiCGlobals.splitModeEnabled = false;
+                        restoreDefaultVariables();
+                        selectedFeatures.clear();
+                        repaint();
+
+
+                    }
+                }
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
@@ -1662,7 +1693,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                 repaint();
 
-                superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
+                Feature2D tempSelectedGroup = superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
+
+                addHighlightedFeature(tempSelectedGroup);
 
                 getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
 

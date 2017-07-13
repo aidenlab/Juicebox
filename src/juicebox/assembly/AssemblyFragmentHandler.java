@@ -393,7 +393,7 @@ public class AssemblyFragmentHandler {
         for (ContigProperty contigProperty : fromInitialContig) {
             System.out.println(contigProperty);
         }
-        if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) {
+        if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are framents past the one you are splitting
             List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
             for (ContigProperty contigProperty : shiftedContigs) {
                 String newContigName = contigProperty.getName();
@@ -405,10 +405,6 @@ public class AssemblyFragmentHandler {
                 contigProperty.setName(newContigName);
                 System.out.println(contigProperty);
             }
-
-        } else {
-
-            System.out.println("error adding edited contigs"); //todo fix if statement
         }
 
         contigProperties.addAll(splitContigIndex, splitContig);

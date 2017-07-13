@@ -25,6 +25,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
@@ -188,6 +189,9 @@ public class AnnotationLayerHandler {
         start2 = geneYPos(hic, y, 0);
         end2 = geneYPos(hic, y + height, 0);
 
+        System.out.println(start1 + "\t" + end1);
+
+
         // Snap if close to diagonal
         if (chr1Idx == chr2Idx && (pointsShouldSnapToDiagonal(hic, x, y, width, height)
                 || regionsOverlapSignificantly(start1, end1, start2, end2, .6))) {
@@ -225,6 +229,8 @@ public class AnnotationLayerHandler {
         }
 
         // Add new feature
+        if (HiCGlobals.splitModeEnabled == true) {
+        }
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
         lastStarts = null;
@@ -258,9 +264,10 @@ public class AnnotationLayerHandler {
         return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, getDefaultColor(), attributes);
     }
 
-    public void addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
+    public Feature2D addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
         Feature2D tempSelectedGroup = generateTempSelectedGroup(selectedFeatures, hiC);
         annotationLayer.add(hiC.getXContext().getChromosome().getIndex(), hiC.getYContext().getChromosome().getIndex(), tempSelectedGroup);
+        return tempSelectedGroup;
     }
 
     private List<Feature2D> getTempSelectedGroups(int chr1Idx, int chr2Idx) {
