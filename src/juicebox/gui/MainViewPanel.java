@@ -25,6 +25,7 @@
 package juicebox.gui;
 
 import com.jidesoft.swing.JideButton;
+import com.jidesoft.swing.JideLabel;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -123,7 +124,7 @@ public class MainViewPanel {
         toolbarPanel.setLayout(new GridBagLayout());
 //        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
-        JLayeredPane bigPanel = new JLayeredPane(); //Hi-C Map
+        final JLayeredPane bigPanel = new JLayeredPane(); //Hi-C Map
 //        bigPanel.setLayout(new BorderLayout());
         bigPanel.setBackground(Color.white);
         SpringLayout sl_bigPanel = new SpringLayout();
@@ -572,17 +573,20 @@ public class MainViewPanel {
         rightSidePanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
 
 
-        //======= Menu Tab ========
+        //======= Menu Tab =======
         menuTabPanel = new JPanel();
-        SpringLayout sl_menuTab = new SpringLayout();
-        menuTabPanel.setLayout(new SpringLayout());
-        //TODO add chrSelectionPanel/displayOptionPanel/normalizationComboBox
+        SpringLayout sl_menuTabPanel = new SpringLayout();
+        menuTabPanel.setLayout(sl_menuTabPanel);
+        menuTabPanel.setBackground(new Color(239, 239, 239));
+
         sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 237, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 151, SpringLayout.WEST, bigPanel);
-        bigPanel.add(menuTabPanel, 1);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 256, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 210, SpringLayout.WEST, bigPanel);
+        bigPanel.setLayer(menuTabPanel, 1);
+        bigPanel.add(menuTabPanel);
 
+        menuTabPanel.setVisible(false);
 
         //======= Menu Tab Button ========
         btnMenu = new JideButton();
@@ -590,9 +594,9 @@ public class MainViewPanel {
         btnMenu.setIcon(menuIcon);
         btnMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //TODO: Open menu tab on layer 1 of bigPanel
                 menuTabOpen = !menuTabOpen;
                 menuTabPanel.setVisible(menuTabOpen);
+                btnMenu.setEnabled(false);
             }
         });
         sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, -35, SpringLayout.NORTH, hiCPanel);
@@ -600,6 +604,44 @@ public class MainViewPanel {
         sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, -12, SpringLayout.NORTH, hiCPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
         bigPanel.add(btnMenu);
+
+        //====== Menu Tab Components ========
+
+        //TODO add chrSelectionPanel/displayOptionPanel/normalizationPanel
+        JideButton btnClose = new JideButton();
+        ImageIcon closeIcon = new ImageIcon(getClass().getResource("/images/close.png"));
+        btnClose.setIcon(closeIcon);
+        btnClose.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                menuTabOpen = !menuTabOpen;
+                menuTabPanel.setVisible(menuTabOpen);
+                btnMenu.setEnabled(true);
+            }
+        });
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, btnClose, 10, SpringLayout.NORTH, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, btnClose, 10, SpringLayout.WEST, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, btnClose, 33, SpringLayout.NORTH, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, btnClose, 33, SpringLayout.WEST, menuTabPanel);
+        menuTabPanel.add(btnClose);
+
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, chrSelectionPanel, 13, SpringLayout.SOUTH, btnClose);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, chrSelectionPanel, 0, SpringLayout.WEST, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, chrSelectionPanel, 83, SpringLayout.SOUTH, btnClose);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, chrSelectionPanel, 210, SpringLayout.WEST, menuTabPanel);
+        menuTabPanel.add(chrSelectionPanel);
+
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, displayOptionPanel, 0, SpringLayout.SOUTH, chrSelectionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, displayOptionPanel, 0, SpringLayout.WEST, chrSelectionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, displayOptionPanel, 70, SpringLayout.SOUTH, chrSelectionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, displayOptionPanel, 0, SpringLayout.EAST, chrSelectionPanel);
+        menuTabPanel.add(displayOptionPanel);
+
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, normalizationPanel, 0, SpringLayout.SOUTH, displayOptionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, normalizationPanel, 0, SpringLayout.WEST, displayOptionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, normalizationPanel, 70, SpringLayout.SOUTH, displayOptionPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, normalizationPanel, 0, SpringLayout.EAST, displayOptionPanel);
+        menuTabPanel.add(normalizationPanel);
+
 
         // compute preferred size
         Dimension preferredSize = new Dimension();
