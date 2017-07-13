@@ -436,4 +436,73 @@ public class AssemblyFragmentHandler {
         }
         return contigIds;
     }
+
+    public void toggleGroup(Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
+        int id1=Integer.parseInt(upstreamFeature2D.getAttribute(scaffoldIndexId));
+        int id2=Integer.parseInt(downstreamFeature2D.getAttribute(scaffoldIndexId));
+
+        //should not happen, other sanity checks?
+        if (id1==id2){
+            return;
+        }
+
+        int gr1 = getGroupID(id1);
+        int gr2 = getGroupID(id2);
+
+
+//        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
+        if (gr1==gr2){
+//            System.out.println("calling split");
+            newSplitGroup(gr1, id1);
+//            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
+        }else {
+
+//            System.out.println("calling merge");
+            newMergeGroup(gr1, gr2);
+//            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
+        };
+
+    }
+
+    private void newMergeGroup(int gid1, int gid2) {
+        List<List<Integer>> newGroups = new ArrayList<>();
+        for (int i=0; i<=scaffoldProperties.size()-1; i++){
+            if (i==gid2){
+                newGroups.get(gid1).addAll(scaffoldProperties.get(gid2));
+            } else {
+                newGroups.add(scaffoldProperties.get(i));
+            }
+        }
+        scaffoldProperties.clear();
+        scaffoldProperties.addAll(newGroups);
+        return;
+    }
+
+    private void newSplitGroup(int gid1, int id1) {
+        List<List<Integer>> newGroups = new ArrayList<>();
+        for (int i=0; i<=scaffoldProperties.size()-1; i++){
+            if (i==gid1){
+                newGroups.add(scaffoldProperties.get(gid1).subList(0, 1 + scaffoldProperties.get(gid1).indexOf(id1)));
+                newGroups.add(scaffoldProperties.get(gid1).subList(1 + scaffoldProperties.get(gid1).indexOf(id1), scaffoldProperties.get(gid1).size()));
+            } else {
+                newGroups.add(scaffoldProperties.get(i));
+            }
+        }
+        scaffoldProperties.clear();
+        scaffoldProperties.addAll(newGroups);
+        return;
+    }
+
+    private int getGroupID(int id1) {
+        int i = 0;
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+            List<Integer> absoluteRow = findAbsoluteValuesList(scaffoldRow);
+            if (absoluteRow.contains(id1)) {
+                return i;
+            }
+            i++;
+        }
+        System.err.println("Can't Find row");
+        return -1;
+    }
 }

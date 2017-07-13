@@ -73,4 +73,10 @@ public class AssemblyOperationExecutor {
         assemblyFragmentHandler.translateSelection(selectedFeatures, featureOrigin);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
+
+    public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+    }
 }

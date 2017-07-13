@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 
@@ -73,8 +74,6 @@ public class AssemblyStateTracker {
         AnnotationLayer contigLayer = new AnnotationLayer(assemblyFragmentHandler.getContigs());
         contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
         contigLayerHandler.setAnnotationLayer(contigLayer);
-
-
     }
 
     public boolean checkUndo() {

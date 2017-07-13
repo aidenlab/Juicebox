@@ -866,6 +866,24 @@ public class SuperAdapter {
             return annotationLayerHandlers.get(0);
     }
 
+    public AnnotationLayerHandler getMainLayer() {
+        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
+    public AnnotationLayerHandler getGroupLayer() {
+        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
     public AnnotationLayerHandler createNewLayer() {
         activeLayer = new AnnotationLayerHandler();
         annotationLayerHandlers.add(activeLayer);

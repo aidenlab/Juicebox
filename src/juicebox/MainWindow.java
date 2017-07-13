@@ -54,6 +54,9 @@ public class MainWindow extends JFrame {
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
+    public static Cursor pasteNECursor;
+    public static Cursor pasteSWCursor;
+    public static Cursor invertCursor;
     public static Color hicMapColor = Color.red;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
@@ -166,8 +169,21 @@ public class MainWindow extends JFrame {
         g = handImage.createGraphics();
         g.drawImage(IconFactory.getInstance().getIcon(IconFactory.IconID.FIST).getImage(), 0, 0, null);
         fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
-    }
 
+        // Additional cursors for assembly
+        // Insert (paste) prompts
+        BufferedImage pasteImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = pasteImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = pasteImage.createGraphics();
+        g.drawImage(IconFactory.getInstance().getIcon(IconFactory.IconID.DRAG_AND_DROP).getImage(), 0, 0, null);
+        pasteNECursor = getToolkit().createCustomCursor(pasteImage, new Point(8, 6), "PasteNE");
+        pasteSWCursor = getToolkit().createCustomCursor(pasteImage, new Point(8, 6), "PasteSW");
+        // TODO: Invert prompt
+
+    }
 
     public void exitActionPerformed() {
         setVisible(false);
