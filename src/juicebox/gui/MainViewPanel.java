@@ -117,12 +117,12 @@ public class MainViewPanel {
         contentPane.add(mainPanel, BorderLayout.CENTER);
         mainPanel.setBackground(Color.white);
 
-        final JPanel toolbarPanel = new JPanel(); // Chromosomes, Show, Normalization, Resolution, ColorRange, Goto
-        // TODO: Get rid of toolbarPanel and move its component to each side of the bigPanel
-        toolbarPanel.setBorder(null);
-
-        toolbarPanel.setLayout(new GridBagLayout());
-//        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
+//        final JPanel toolbarPanel = new JPanel(); // Chromosomes, Show, Normalization, Resolution, ColorRange, Goto
+//        // TODO: Get rid of toolbarPanel and move its component to each side of the bigPanel
+//        toolbarPanel.setBorder(null);
+//
+//        toolbarPanel.setLayout(new GridBagLayout());
+////        mainPanel.add(toolbarPanel, BorderLayout.NORTH);
 
         final JLayeredPane bigPanel = new JLayeredPane(); //Hi-C Map
 //        bigPanel.setLayout(new BorderLayout());
@@ -156,7 +156,7 @@ public class MainViewPanel {
 
         // --- Chromosome panel ---
         JPanel chrSelectionPanel = new JPanel();
-        toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
+//        toolbarPanel.add(chrSelectionPanel, toolbarConstraints);
 
         chrSelectionPanel.setBorder(LineBorder.createGrayLineBorder());
 
@@ -249,7 +249,7 @@ public class MainViewPanel {
 
         toolbarConstraints.gridx = 1;
         toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(displayOptionPanel, toolbarConstraints);
+//        toolbarPanel.add(displayOptionPanel, toolbarConstraints);
         displayOptionComboBox.setEnabled(false);
 
         //======== Normalization Panel ========
@@ -285,7 +285,7 @@ public class MainViewPanel {
 
         toolbarConstraints.gridx = 2;
         toolbarConstraints.weightx = 0.1;
-        toolbarPanel.add(normalizationPanel, toolbarConstraints);
+//        toolbarPanel.add(normalizationPanel, toolbarConstraints);
         normalizationComboBox.setEnabled(false);
 
         //======== Resolution Panel ========
