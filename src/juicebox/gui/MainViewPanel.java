@@ -36,18 +36,24 @@ import juicebox.mapcolorui.ResolutionControl;
 import juicebox.mapcolorui.ThumbnailPanel;
 import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
+import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.*;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,10 +88,14 @@ public class MainViewPanel {
     private static JPanel chrSidePanel;
     private static JPanel chrSidePanel3;
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
+    private JPanel annotationsLayerPanel;
+    private JPanel tooltipPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
+    private int miniButtonSize = 22;
     private JideButton btnMenu;
-    private boolean menuOpen = false; //TODO : link with menu button
+    private JPanel menuTabPanel;
+    private boolean menuTabOpen = false;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -301,21 +311,6 @@ public class MainViewPanel {
         // splitPanel.insertPane(hiCPanel, 0);
         // splitPanel.setBackground(Color.white);
 
-        //======= Menu Tab Button ========
-        btnMenu = new JideButton();
-        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/menu.png"));
-        btnMenu.setIcon(menuIcon);
-        btnMenu.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                //TODO: Open menu tab on layer 1
-                menuOpen = !menuOpen;
-            }
-        });
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, -35, SpringLayout.NORTH, hiCPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, btnMenu, 10, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, -12, SpringLayout.NORTH, hiCPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
-        bigPanel.add(btnMenu);
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
@@ -492,7 +487,7 @@ public class MainViewPanel {
 
         //======== Right side panel ========
 
-        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout()); //Rightside tab
+        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
@@ -517,9 +512,9 @@ public class MainViewPanel {
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mouse hover text ======
-        JPanel tooltipPanel = new JPanel(new BorderLayout());
+        tooltipPanel = new JPanel(new BorderLayout());
         tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setPreferredSize(new Dimension(210, 490));
+        tooltipPanel.setPreferredSize(new Dimension(210, 700));
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
@@ -529,15 +524,21 @@ public class MainViewPanel {
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         //*Dimension prefSize = new Dimension(210, 490);
-        Dimension prefSize = new Dimension(210, 390);
+        Dimension prefSize = new Dimension(210, 210);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
         JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
         tooltipScroller.setBackground(Color.white);
         tooltipScroller.setBorder(null);
 
-        tooltipPanel.setPreferredSize(new Dimension(210, 500));
-        tooltipPanel.add(tooltipScroller);
+        annotationsLayerPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
+        annotationsLayerPanel.setBackground(Color.gray);
+        annotationsLayerPanel.setPreferredSize(new Dimension(210, 160));
+//        annotationsLayerPanel.setToolTipText("Hello!");
+
+//        tooltipPanel.setPreferredSize(new Dimension(210, 500));
+        tooltipPanel.add(tooltipScroller, BorderLayout.NORTH);
+        tooltipPanel.add(annotationsLayerPanel, BorderLayout.SOUTH);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
         tooltipPanel.setBackground(Color.white);
         tooltipPanel.setBorder(null);
@@ -570,6 +571,36 @@ public class MainViewPanel {
         annotationsPanelToggleButton.setEnabled(false);
         rightSidePanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
 
+
+        //======= Menu Tab ========
+        menuTabPanel = new JPanel();
+        SpringLayout sl_menuTab = new SpringLayout();
+        menuTabPanel.setLayout(new SpringLayout());
+        //TODO add chrSelectionPanel/displayOptionPanel/normalizationComboBox
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 237, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 151, SpringLayout.WEST, bigPanel);
+        bigPanel.add(menuTabPanel, 1);
+
+
+        //======= Menu Tab Button ========
+        btnMenu = new JideButton();
+        ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/menu.png"));
+        btnMenu.setIcon(menuIcon);
+        btnMenu.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //TODO: Open menu tab on layer 1 of bigPanel
+                menuTabOpen = !menuTabOpen;
+                menuTabPanel.setVisible(menuTabOpen);
+            }
+        });
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, -35, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, btnMenu, 10, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, -12, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
+        bigPanel.add(btnMenu);
+
         // compute preferred size
         Dimension preferredSize = new Dimension();
         for (int i = 0; i < rightSidePanel.getComponentCount(); i++) {
@@ -584,6 +615,195 @@ public class MainViewPanel {
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
+    }
+
+    public JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
+        JPanel twoDAnnotationsLayerSelectionPanel = new JPanel();
+
+        int i = 0;
+        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+            try {
+                JPanel panel = createLayerPanel(handler, superAdapter, twoDAnnotationsLayerSelectionPanel);
+                //layerPanels.add(panel);
+                twoDAnnotationsLayerSelectionPanel.add(panel, 0);
+            } catch (IOException e) {
+                System.err.println("Unable to generate layer panel " + (i - 1));
+                //e.printStackTrace();
+            }
+        }
+        return twoDAnnotationsLayerSelectionPanel;
+    }
+
+    public JPanel createLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter,
+                                   final JPanel twoDAnnotationsLayerSelectionPanel) throws IOException {
+        final JPanel parentPanel = new JPanel();
+        parentPanel.setLayout(new FlowLayout());
+
+        /* layer name */
+        final JTextField nameField = new JTextField(handler.getLayerName(), 10);
+        nameField.getDocument().addDocumentListener(anyTextChangeListener(handler, nameField));
+        nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+        nameField.setMaximumSize(new Dimension(20, 20));
+        handler.setNameTextField(nameField);
+
+        /* Sets Active Layer */
+        final JToggleButton writeButton = createToggleIconButton("/images/layer/pencil.png", "/images/layer/pencil_gray.png", handler.isActiveLayer(superAdapter));
+        handler.setActiveLayerButton(writeButton);
+        writeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setActiveLayerHandler(handler);
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
+            }
+        });
+        writeButton.setToolTipText("Changes Active Layer");
+
+        /* show/hide annotations for this layer */
+        final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked_green.png",
+                "/images/layer/eye_clicked.png", handler.getLayerVisibility());
+        toggleVisibleButton.setSelected(handler.getLayerVisibility());
+        toggleVisibleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.setLayerVisibility(toggleVisibleButton.isSelected());
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
+            }
+        });
+        toggleVisibleButton.setToolTipText("Toggle visibility of this layer");
+
+        JButton upButton = createIconButton("/images/layer/up.png");
+        upButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                twoDAnnotationsLayerSelectionPanel.remove(parentPanel);
+                int index = superAdapter.moveUpIndex(handler);
+                twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
+                twoDAnnotationsLayerSelectionPanel.revalidate();
+                twoDAnnotationsLayerSelectionPanel.repaint();
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
+            }
+        });
+        upButton.setToolTipText("Move this layer up (drawing order)");
+
+        JButton downButton = createIconButton("/images/layer/down.png");
+        downButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                twoDAnnotationsLayerSelectionPanel.remove(parentPanel);
+                int index = superAdapter.moveDownIndex(handler);
+                twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
+                twoDAnnotationsLayerSelectionPanel.revalidate();
+                twoDAnnotationsLayerSelectionPanel.repaint();
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
+            }
+        });
+        downButton.setToolTipText("Move this layer down (drawing order)");
+
+        parentPanel.add(nameField);
+        Component[] allComponents = new Component[]{writeButton, toggleVisibleButton, upButton, downButton};
+        for (Component component : allComponents) {
+            if (component instanceof AbstractButton) {
+                component.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
+            }
+            parentPanel.add(component);
+        }
+        return parentPanel;
+    }
+
+    private DocumentListener anyTextChangeListener(final AnnotationLayerHandler handler,
+                                                   final JTextField nameField) {
+        return new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                handler.setLayerName(nameField.getText());
+                nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+            }
+        };
+    }
+
+    private JToggleButton createToggleIconButton(String url1, String url2, boolean activatedStatus) throws IOException {
+
+        // image when button is active/selected (is the darkest shade/color)
+        //BufferedImage imageActive = ImageIO.read(getClass().getResource(url1));
+        ImageIcon iconActive = new ImageIcon(ImageIO.read(getClass().getResource(url1)));
+
+        // image when button is inactive/transitioning (lighter shade/color)
+        ImageIcon iconTransitionDown = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.6f));
+        ImageIcon iconTransitionUp = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url1)), 0.6f));
+        ImageIcon iconInactive = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.2f));
+        ImageIcon iconDisabled = new ImageIcon(translucentImage(ImageIO.read(getClass().getResource(url2)), 0.1f));
+
+        JToggleButton toggleButton = new JToggleButton(iconInactive);
+        toggleButton.setRolloverIcon(iconTransitionDown);
+        toggleButton.setPressedIcon(iconDisabled);
+        toggleButton.setSelectedIcon(iconActive);
+        toggleButton.setRolloverSelectedIcon(iconTransitionUp);
+        toggleButton.setDisabledIcon(iconDisabled);
+        toggleButton.setDisabledSelectedIcon(iconDisabled);
+
+        toggleButton.setBorderPainted(false);
+        toggleButton.setSelected(activatedStatus);
+        toggleButton.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
+
+        return toggleButton;
+    }
+
+    private Image translucentImage(BufferedImage originalImage, float alpha) {
+
+        int width = originalImage.getWidth(), height = originalImage.getHeight();
+
+        BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = newImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g.drawImage(originalImage, 0, 0, width, height, null);
+        g.dispose();
+
+        return newImage;
+    }
+
+    private JButton createIconButton(String url) throws IOException {
+        BufferedImage imageActive = ImageIO.read(getClass().getResource(url));
+        ImageIcon iconActive = new ImageIcon(imageActive);
+
+        // image when button is inactive/transitioning (lighter shade/color)
+        ImageIcon iconTransition = new ImageIcon(translucentImage(imageActive, 0.6f));
+        ImageIcon iconInactive = new ImageIcon(translucentImage(imageActive, 0.2f));
+
+        JButton button = new JButton(iconActive);
+        button.setRolloverIcon(iconTransition);
+        button.setPressedIcon(iconInactive);
+        button.setBorderPainted(false);
+        button.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
+        return button;
+    }
+
+    public JPanel getAnnotationsLayerPanel() {
+        return this.annotationsLayerPanel;
+    }
+
+    public void setAnnotationsLayerPanel(JPanel annotationsLayerPanel) {
+        tooltipPanel.remove(this.annotationsLayerPanel);
+        this.annotationsLayerPanel = annotationsLayerPanel;
+        this.annotationsLayerPanel.setBackground(Color.gray);
+        this.annotationsLayerPanel.setPreferredSize(new Dimension(210, 160));
+        tooltipPanel.add(this.annotationsLayerPanel, BorderLayout.SOUTH);
     }
 
     public JPanel getHiCPanel() {
@@ -848,17 +1068,17 @@ public class MainViewPanel {
         chrSidePanel3.invalidate();
     }
 
-    public void setShowGridLines(boolean status) {
-        if (heatmapPanel != null) {
-            heatmapPanel.setShowGridLines(status);
-        }
-    }
-
     public boolean getShowGridLines() {
         if (heatmapPanel != null) {
             return heatmapPanel.getShowGridLines();
         }
         return true; // when starting from scratch, the gridlines option is set to true
+    }
+
+    public void setShowGridLines(boolean status) {
+        if (heatmapPanel != null) {
+            heatmapPanel.setShowGridLines(status);
+        }
     }
 
     public String getToolTip() {
@@ -1001,6 +1221,15 @@ public class MainViewPanel {
         annotationsPanelToggleButton.setSelected(status);
     }
 
+    private void updateLayers2DPanel(SuperAdapter superAdapter) {
+        superAdapter.getLayersPanel().updateLayers2DPanel(superAdapter);
+    }
+
+    public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
+        setAnnotationsLayerPanel(generate2DAnnotationsLayerSelectionPanel(superAdapter));
+        annotationsLayerPanel.revalidate();
+        annotationsLayerPanel.repaint();
+    }
 
     /*public boolean isPearsonDisplayed() {
         return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;
