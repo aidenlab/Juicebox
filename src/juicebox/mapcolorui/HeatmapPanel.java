@@ -1127,7 +1127,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
                 removeSelection();
-                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });
@@ -1142,7 +1142,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
                 removeSelection();
-                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });
@@ -1182,7 +1182,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void invertMenuItemActionPerformed() {
-        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+        Feature2DList features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoops();
         Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
 

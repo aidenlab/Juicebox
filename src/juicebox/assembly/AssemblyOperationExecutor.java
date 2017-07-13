@@ -73,7 +73,7 @@ public class AssemblyOperationExecutor {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.translateSelection(selectedFeatures, featureOrigin);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-        superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
     }
 

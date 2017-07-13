@@ -50,7 +50,7 @@ public class AssemblyHeatmapHandler {
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
         AssemblyHeatmapHandler.superAdapter = superAdapter;
-        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+        Feature2DList features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoops();
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
         superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
@@ -173,7 +173,7 @@ public class AssemblyHeatmapHandler {
                                                         List<Block> blockList, Chromosome chr1, Chromosome chr2,
                                                         int binX1, int binY1, int binX2, int binY2, int blockBinCount,
                                                         HiCZoom zoom, NormalizationType no) {
-        Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
+        Feature2DHandler handler = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
         handler.getContainedFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
