@@ -35,12 +35,17 @@ public class ContigProperty {
     private int indexId;
     private int length;
     private Feature2D feature2D;
+    private boolean inverted;
+    private String initialChr;
+    private int initialStart;
+    private int initialEnd;
 
     public ContigProperty(String name, int indexId, int length) {
         this.name = name;
         this.indexId = indexId;
         this.length = length;
         this.feature2D = null;
+        this.inverted = false;
     }
 
     public ContigProperty(ContigProperty contigProperty) {
@@ -49,6 +54,40 @@ public class ContigProperty {
         this.length = contigProperty.length;
         if (this.feature2D != null)
             this.feature2D = contigProperty.feature2D.deepCopy();
+        this.inverted = contigProperty.inverted;
+        this.initialChr = contigProperty.initialChr;
+        this.initialStart = contigProperty.initialStart;
+        this.initialEnd = contigProperty.initialEnd;
+    }
+
+    public void setIntialState(String initialChr, int initialStart, int initialEnd) {
+        this.initialChr = initialChr;
+        this.initialStart = initialStart;
+        this.initialEnd = initialEnd;
+    }
+
+    public int getInitialEnd() {
+        return initialEnd;
+    }
+
+    public int getInitialStart() {
+        return initialStart;
+    }
+
+    public String getInitialChr() {
+        return initialChr;
+    }
+
+    public void toggleInversion() {
+        inverted = !inverted;
+    }
+
+    public boolean isInverted() {
+        return inverted;
+    }
+
+    public void setInverted(boolean inverted) {
+        this.inverted = inverted;
     }
 
     public String getName() {

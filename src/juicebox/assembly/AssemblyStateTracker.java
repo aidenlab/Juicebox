@@ -57,6 +57,14 @@ public class AssemblyStateTracker {
         return newAssemblyFragmentHandler;
     }
 
+    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler, boolean regenerateLayers) {
+        redoStack.clear();
+        undoStack.push(assemblyFragmentHandler);
+        if (regenerateLayers) {
+            regenerateLayers();
+        }
+    }
+
     public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
         redoStack.clear();
         undoStack.push(assemblyFragmentHandler);
