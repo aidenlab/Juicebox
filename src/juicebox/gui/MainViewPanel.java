@@ -44,6 +44,7 @@ import org.broad.igv.feature.Chromosome;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -118,7 +119,6 @@ public class MainViewPanel {
         mainPanel.setBackground(Color.white);
 
 //        final JPanel toolbarPanel = new JPanel(); // Chromosomes, Show, Normalization, Resolution, ColorRange, Goto
-//        // TODO: Get rid of toolbarPanel and move its component to each side of the bigPanel
 //        toolbarPanel.setBorder(null);
 //
 //        toolbarPanel.setLayout(new GridBagLayout());
@@ -577,12 +577,13 @@ public class MainViewPanel {
         menuTabPanel = new JPanel();
         SpringLayout sl_menuTabPanel = new SpringLayout();
         menuTabPanel.setLayout(sl_menuTabPanel);
-        menuTabPanel.setBackground(new Color(239, 239, 239));
+        menuTabPanel.setBackground(Color.WHITE);
+        menuTabPanel.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 
         sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 256, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 210, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 260, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 215, SpringLayout.WEST, bigPanel);
         bigPanel.setLayer(menuTabPanel, 1);
         bigPanel.add(menuTabPanel);
 
@@ -606,8 +607,6 @@ public class MainViewPanel {
         bigPanel.add(btnMenu);
 
         //====== Menu Tab Components ========
-
-        //TODO add chrSelectionPanel/displayOptionPanel/normalizationPanel
         JideButton btnClose = new JideButton();
         ImageIcon closeIcon = new ImageIcon(getClass().getResource("/images/close.png"));
         btnClose.setIcon(closeIcon);
@@ -641,6 +640,10 @@ public class MainViewPanel {
         sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, normalizationPanel, 70, SpringLayout.SOUTH, displayOptionPanel);
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, normalizationPanel, 0, SpringLayout.EAST, displayOptionPanel);
         menuTabPanel.add(normalizationPanel);
+
+        //TODO cleaner GUI for chrSelectionPanel/displayOptionPanel/normalizationPanel
+
+
 
 
         // compute preferred size
