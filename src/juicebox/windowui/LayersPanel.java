@@ -24,12 +24,10 @@
 
 package juicebox.windowui;
 
+import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
-import juicebox.track.HiCTrack;
-import juicebox.track.LoadAction;
-import juicebox.track.LoadEncodeAction;
-import juicebox.track.TrackConfigPanel;
+import juicebox.track.*;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.color.ColorChooserPanel;
 
@@ -60,20 +58,23 @@ public class LayersPanel extends JDialog {
     private static LoadAction trackLoadAction;
     private static LoadEncodeAction encodeAction;
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
+    private JPanel layers2DPanel;
+    private JTabbedPane tabbedPane;
+    private Border padding;
 
     public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
         rootPane.setGlassPane(disabledGlassPane);
 
-        Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
+        padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
         JPanel annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
         if (annotations1DPanel != null) annotations1DPanel.setBorder(padding);
 
-        JPanel layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
+        layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         if (layers2DPanel != null) layers2DPanel.setBorder(padding);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane();
         tabbedPane.addTab("1D Annotations", null, annotations1DPanel,
                 "Manage 1D Annotations");
         //tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
@@ -82,9 +83,9 @@ public class LayersPanel extends JDialog {
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        setSize(950, 700);
+        setSize(1000, 700);
         add(tabbedPane);
-        setVisible(true);
+        //setVisible(true);
 
         this.addWindowListener(new WindowListener() {
             public void windowActivated(WindowEvent e) {
@@ -116,6 +117,7 @@ public class LayersPanel extends JDialog {
     }
 
     private JPanel generate1DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
+
         final JPanel layerBoxGUI = new JPanel();
         layerBoxGUI.setLayout(new GridLayout(0, 1));
         JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
@@ -123,6 +125,8 @@ public class LayersPanel extends JDialog {
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
         JButton loadBasicButton = new JButton("Load Basic Annotations...");
         buttonPanel.add(loadBasicButton);
+        JButton addLocalButton = new JButton("Add Local...");
+        buttonPanel.add(addLocalButton);
         JButton loadEncodeButton = new JButton("Load ENCODE Tracks...");
         buttonPanel.add(loadEncodeButton);
         JButton loadFromURLButton = new JButton("Load from URL...");
@@ -152,6 +156,21 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 trackLoadAction.actionPerformed(e);
+            }
+        });
+
+        addLocalButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiC hiC = superAdapter.getHiC();
+                if (hiC.getResourceTree() == null) {
+                    ResourceTree resourceTree = new ResourceTree(superAdapter.getHiC(), null);
+                    hiC.setResourceTree(resourceTree);
+                }
+                Boolean loadSuccessful = superAdapter.getHiC().getResourceTree().addLocalButtonActionPerformed(superAdapter);
+                if (loadSuccessful) {
+                    trackLoadAction.actionPerformed(e);
+                }
             }
         });
 
@@ -251,12 +270,10 @@ public class LayersPanel extends JDialog {
         importButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
                 if (load2DAnnotationsDialog == null) {
                     load2DAnnotationsDialog = new Load2DAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI);
                 }
                 load2DAnnotationsDialog.setVisible(Boolean.TRUE);
-
             }
         });
         importButton.setToolTipText("Import annotations into new layer");
@@ -289,6 +306,26 @@ public class LayersPanel extends JDialog {
         return pane;
     }
 
+    public JScrollPane generateLayers2DScrollPane(SuperAdapter superAdapter) {
+        final JPanel layerBoxGUI = new JPanel();
+        //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
+        layerBoxGUI.setLayout(new GridLayout(0, 1));
+        //initialize here
+
+        int i = 0;
+        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+            try {
+                JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
+                //layerPanels.add(panel);
+                layerBoxGUI.add(panel, 0);
+            } catch (IOException e) {
+                System.err.println("Unable to generate layer panel " + (i - 1));
+                //e.printStackTrace();
+            }
+        }
+        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
+        return scrollPane;
+    }
     public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
                                                               AnnotationLayerHandler sourceHandler) {
         AnnotationLayerHandler handler = superAdapter.createNewLayer();
@@ -300,6 +337,7 @@ public class LayersPanel extends JDialog {
             layerBoxGUI.repaint();
             superAdapter.setActiveLayerHandler(handler);
             superAdapter.updateLayerDeleteStatus();
+            updateMiniAnnotationsLayerPanel(superAdapter);
         } catch (Exception ee) {
             System.err.println("Unable to add new layer to GUI");
         }
@@ -363,6 +401,7 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 handler.setLayerVisibility(toggleVisibleButton.isSelected());
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -473,6 +512,9 @@ public class LayersPanel extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.setActiveLayerHandler(handler);
+                updateMiniAnnotationsLayerPanel(superAdapter);
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
             }
         });
         writeButton.setToolTipText("Enable drawing of annotations to this layer; Hold down shift key, then click and drag on map");
@@ -486,6 +528,7 @@ public class LayersPanel extends JDialog {
                     superAdapter.removeLayer(handler);
                     layerBoxGUI.revalidate();
                     layerBoxGUI.repaint();
+                    updateMiniAnnotationsLayerPanel(superAdapter);
                     superAdapter.repaint();
                 }
             }
@@ -502,6 +545,7 @@ public class LayersPanel extends JDialog {
                 layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -516,6 +560,7 @@ public class LayersPanel extends JDialog {
                 layerBoxGUI.add(parentPanel, index);
                 layerBoxGUI.revalidate();
                 layerBoxGUI.repaint();
+                updateMiniAnnotationsLayerPanel(superAdapter);
                 superAdapter.repaint();
             }
         });
@@ -740,6 +785,18 @@ public class LayersPanel extends JDialog {
         g.dispose();
 
         return newImage;
+    }
+
+    private void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
+        superAdapter.getMainViewPanel().updateMiniAnnotationsLayerPanel(superAdapter);
+    }
+
+    public void updateLayers2DPanel(SuperAdapter superAdapter) {
+        layers2DPanel.remove(0);
+        layers2DPanel.add(generateLayers2DScrollPane(superAdapter), BorderLayout.CENTER, 0);
+        tabbedPane.updateUI();
+        tabbedPane.repaint();
+        tabbedPane.revalidate();
     }
 
     public LoadAction getTrackLoadAction() {

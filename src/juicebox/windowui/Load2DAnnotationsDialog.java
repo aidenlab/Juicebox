@@ -31,6 +31,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
@@ -56,6 +57,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;
     private final JButton openButton;
+    private final JButton openAssemblyButton;
     private final JTextField fTextField;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
@@ -108,6 +110,19 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         add(centerPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
+
+        openAssemblyButton = new JButton("Open Assembly");
+        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // HiCGlobals.assemblyModeEnabled = Boolean.TRUE;
+                // superAdapter.getHeatmapPanel().toggleActivelyEditingAssembly();
+                // AssemblyIntermediateProcessor.setSuperAdapter(superAdapter);
+                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                Load2DAnnotationsDialog.this.setVisible(false);
+            }
+        });
 
         openButton = new JButton("Open");
         openButton.setEnabled(false);
@@ -173,6 +188,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
                 (int) openButton.getPreferredSize().getHeight()));
 
+        buttonPanel.add(openAssemblyButton);
         buttonPanel.add(openButton);
         buttonPanel.add(urlButton);
         buttonPanel.add(cancelButton);
@@ -216,6 +232,20 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         });
     }
 
+    public static TreePath getPath(TreeNode treeNode) {
+        List<Object> nodes = new ArrayList<>();
+        if (treeNode != null) {
+            nodes.add(treeNode);
+            treeNode = treeNode.getParent();
+            while (treeNode != null) {
+                nodes.add(0, treeNode);
+                treeNode = treeNode.getParent();
+            }
+        }
+
+        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
     public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
         // Get the main window
         final MainWindow window = superAdapter.getMainWindow();
@@ -246,7 +276,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                 if (loadedAnnotationsMap.containsKey(path)) {
                     if (HiCGlobals.guiIsCurrentlyActive) {
                         int dialogResult = JOptionPane.showConfirmDialog(window,
-                                "File is already loaded. Would you like to overwrite it?", "Warning",
+                                file.getName() + " is already loaded. Would you like to overwrite it?", "Warning",
                                 JOptionPane.YES_NO_OPTION);
                         if (dialogResult == JOptionPane.YES_OPTION) {
                             customAddedFeatures.remove(loadedAnnotationsMap.get(path));
@@ -267,20 +297,6 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
             expandTree();
         }
         Load2DAnnotationsDialog.this.setVisible(localFilesAdded);
-    }
-
-    public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<>();
-        if (treeNode != null) {
-            nodes.add(treeNode);
-            treeNode = treeNode.getParent();
-            while (treeNode != null) {
-                nodes.add(0, treeNode);
-                treeNode = treeNode.getParent();
-            }
-        }
-
-        return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
     private void expandTree() {
@@ -319,6 +335,51 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                     AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                     handler.setLayerNameAndField(info.itemName);
                     handler.loadLoopList(info.itemURL, chromosomeHandler);
+                } catch (Exception ee) {
+                    System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
+                    MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
+                    loadedAnnotationsMap.remove(path);
+                }
+            }
+        }
+    }
+
+    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
+                                       final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+            }
+        };
+        superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
+    }
+
+    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
+                                         JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        for (TreePath path : paths) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            if (node != null && node.isLeaf()) {
+                ItemInfo info = (ItemInfo) node.getUserObject();
+                try {
+                    AnnotationLayerHandler groupHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    groupHandler.setLayerNameAndField("Group");
+                    groupHandler.loadLoopList(info.itemURL, chromosomeHandler);
+                    groupHandler.setColorOfAllAnnotations(Color.blue);
+                    groupHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.GROUP);
+
+                    AnnotationLayerHandler mainHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    mainHandler.setLayerNameAndField("Main");
+                    mainHandler.loadLoopList(info.itemURL, chromosomeHandler);
+                    mainHandler.setColorOfAllAnnotations(Color.green);
+                    mainHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.MAIN);
+
+                    AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                    editHandler.setColorOfAllAnnotations(Color.yellow);
+                    editHandler.setLayerNameAndField("Edit");
+                    editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+
                 } catch (Exception ee) {
                     System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
                     MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
@@ -421,8 +482,10 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         if (node == null) return;
 
         if (node.isLeaf()) {
+            openAssemblyButton.setEnabled(true);
             openButton.setEnabled(true);
         } else {
+            openAssemblyButton.setEnabled(false);
             openButton.setEnabled(false);
         }
     }

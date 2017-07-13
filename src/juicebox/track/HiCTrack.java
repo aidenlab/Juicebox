@@ -39,7 +39,7 @@ import java.awt.event.ActionListener;
  *         Date: 9/10/12
  *         Time: 3:15 PM
  */
-public abstract class HiCTrack {
+public abstract class HiCTrack{
 
     private static int height = 25;
     private final ResourceLocator locator;

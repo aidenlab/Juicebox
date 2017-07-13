@@ -40,8 +40,12 @@ import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,7 +74,6 @@ public class MainWindow extends JFrame {
         initComponents();
         createCursors();
         pack();
-
         DropTarget target = new DropTarget(this, new FileDropTargetListener(superAdapter));
         setDropTarget(target);
 
@@ -79,6 +82,7 @@ public class MainWindow extends JFrame {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(superAdapter.getNewHiCKeyDispatcher());
 
         hicMapColor = Color.red;
+
     }
 
     private static MainWindow createMainWindow() {
@@ -107,6 +111,39 @@ public class MainWindow extends JFrame {
             }
         };
         SwingUtilities.invokeAndWait(runnable);
+        URL url;
+        try {
+            url = new URL("https://s3.amazonaws.com/hicfiles.tc4ga.com/juicebox.version");
+            InputStream is = url.openConnection().getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String latestVersion = reader.readLine();
+            String[] latest = latestVersion.split("\\.");
+            String[] current = new String(HiCGlobals.versionNum).split("\\.");
+            boolean isOutdated = false;
+            if (Integer.valueOf(current[0]) < Integer.valueOf(latest[0])) {
+                isOutdated = true;
+            } else if (Integer.valueOf(current[0]) == Integer.valueOf(latest[0])) {
+                if (Integer.valueOf(current[1]) < Integer.valueOf(latest[1])) {
+                    isOutdated = true;
+                } else if (Integer.valueOf(current[1]) == Integer.valueOf(latest[1])) {
+                    if (Integer.valueOf(current[2]) < Integer.valueOf(latest[2])) {
+                        isOutdated = true;
+                    }
+
+                }
+            }
+            if (isOutdated) {
+                JPanel textPanel = new JPanel(new GridLayout(0, 1));
+                textPanel.add(new JLabel("<html><p> You are using Juicebox " + HiCGlobals.versionNum + "<br>The lastest version is "
+                        + latestVersion + "<br>To download the lastest version, go to</p><br></html>"));
+                JTextField textField = new JTextField("https://github.com/theaidenlab/juicebox/wiki/Download");
+                textField.setEditable(false);
+                textPanel.add(textField);
+                JOptionPane.showMessageDialog(superAdapter.getMainWindow(), textPanel, "Update Information", JOptionPane.PLAIN_MESSAGE);
+            }
+
+        } catch (Exception e) {
+        }
 
     }
 
