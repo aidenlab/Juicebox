@@ -28,7 +28,6 @@ import com.jidesoft.swing.JidePopupMenu;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.data.ChromosomeHandler;
@@ -1110,7 +1109,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
-                repaint();
+                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
             }
         });
         miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
@@ -1123,7 +1123,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
-                repaint();
+                superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
             }
         });
         miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
@@ -1163,10 +1164,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
 
-            AssemblyHeatmapHandler.invertMultipleContiguousEntriesAt(selectedFeatures, contigs, startIndex, endIndex);
-            AssemblyHeatmapHandler.recalculateAllAlterations(contigs);
-
-            repaint();
+            AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
         }
     }
 
@@ -2035,7 +2033,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 else if (promptedAssemblyAction == PromptedAssemblyAction.REGROUP){
                     AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(),currentDownstreamFeature.getFeature2D());
                     repaint();
-                };
+                }
             }
         }
 
