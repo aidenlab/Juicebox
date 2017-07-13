@@ -418,7 +418,7 @@ public class AssemblyFragmentHandler {
     public void shiftContigIndices(int splitIndexId) {
         for (ContigProperty contigProperty : contigProperties) {
             if (Math.abs(contigProperty.getIndexId()) > (Math.abs(splitIndexId) + 1)) {
-                contigProperty.setIndexId(contigProperty.getIndexId() + 1);
+                contigProperty.setIndexId(contigProperty.getIndexId() + 2);
             }
         }
     }
@@ -516,6 +516,8 @@ public class AssemblyFragmentHandler {
             System.out.println(integer);
         }
         originalRow.removeAll(contigIds);
+        if (originalRow.size() == 0)
+            scaffoldProperties.remove(originalRowNum);
         scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
     }
 
@@ -596,9 +598,6 @@ public class AssemblyFragmentHandler {
         return null;
     }
 
-    public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
-
-
     public void toggleGroup(Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         int id1=Integer.parseInt(upstreamFeature2D.getAttribute(scaffoldIndexId));
         int id2=Integer.parseInt(downstreamFeature2D.getAttribute(scaffoldIndexId));
@@ -624,7 +623,7 @@ public class AssemblyFragmentHandler {
             operationType = OperationType.GROUP; //This is new?
             newMergeGroup(gr1, gr2);
 //            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
-        };
+        }
 
     }
 
@@ -669,4 +668,6 @@ public class AssemblyFragmentHandler {
         System.err.println("Can't Find row");
         return -1;
     }
+
+    public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }
