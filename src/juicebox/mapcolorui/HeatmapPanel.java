@@ -989,16 +989,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             miSelect.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    updateSelectedFeatures(false);
-                    selectedFeatures.clear();
-                    HiCGlobals.splitModeEnabled = false;
-                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                    removeHighlightedFeature();
-
-                    Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-                    Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-                    superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-                    repaint();
+                    removeSelection();
                 }
             });
             menu.add(miSelect);
@@ -1121,6 +1112,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
+                removeSelection();
                 superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
@@ -1135,6 +1127,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
+                removeSelection();
                 superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
@@ -1160,6 +1153,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miExit);
 
         return menu;
+    }
+
+    private void removeSelection() {
+        updateSelectedFeatures(false);
+        selectedFeatures.clear();
+        HiCGlobals.splitModeEnabled = false;
+        superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+        removeHighlightedFeature();
+
+        Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+        Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+        superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+        repaint();
     }
 
     private void invertMenuItemActionPerformed() {
@@ -1656,10 +1662,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     Feature2D feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
                     if (feature2D != null) {
                         AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
-                        HiCGlobals.splitModeEnabled = false;
-                        restoreDefaultVariables();
-                        selectedFeatures.clear();
-                        repaint();
                     } else {
                         int x = (int) lastMousePoint.getX();
                         int y = (int) lastMousePoint.getY();
@@ -1667,13 +1669,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         superAdapter.getActiveLayerHandler().updateSelectionRegion(annotateRectangle);
                         feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
                         AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
+                    }
                         HiCGlobals.splitModeEnabled = false;
                         restoreDefaultVariables();
-                        selectedFeatures.clear();
+                    removeSelection();
                         repaint();
-
-
-                    }
                 }
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
@@ -1787,6 +1787,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Feature2D featureOrigin = selectedFeatures.get(0);
                 Contig2D contigOrigin = featureOrigin.toContig();
 
+
                 Feature2D featureDestination = newSelectedFeatures.get(0);
                 Contig2D contigDestination = featureDestination.toContig();
 
@@ -1807,6 +1808,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 selectedFeatures.addAll(newSelectedFeatures);
             }
             HiCGlobals.translationInProgress = Boolean.FALSE;
+            removeSelection(); //TODO fix this so that highlight moves with translated selection
+
         }
 
         private void restoreDefaultVariables() {
