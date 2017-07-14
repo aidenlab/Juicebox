@@ -32,6 +32,7 @@ import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
+import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
@@ -1002,15 +1003,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(miSelect);
         }
 
-        final int clickedBinX = (int) (hic.getXContext().getBinOrigin() + xMousePos / hic.getScaleFactor());
-        final int clickedBinY = (int) (hic.getYContext().getBinOrigin() + yMousePos / hic.getScaleFactor());
+        final double preJumpBinOriginX = hic.getXContext().getBinOrigin();
+        final double preJumpBinOriginY = hic.getYContext().getBinOrigin();
 
-//        final int centerBinX = (int) (hic.getXContext().getBinOrigin() + (this.getWidth() / 2) / hic.getScaleFactor());
-//        final int centerBinY = (int) (hic.getYContext().getBinOrigin() + (this.getHeight() / 2) / hic.getScaleFactor());
-//
+        // xMousePos and yMousePos coordinates are relative to the heatmap panel and not the screen
+        final int clickedBinX = (int) (preJumpBinOriginX + xMousePos / hic.getScaleFactor());
+        final int clickedBinY = (int) (preJumpBinOriginY + yMousePos / hic.getScaleFactor());
+
         // these coordinates are relative to the screen and not the heatmap panel
-        final int pointerX = (int) (getLocationOnScreen().getX() + xMousePos);
-        final int pointerY = (int) (getLocationOnScreen().getY() + yMousePos);
+        final int defaultPointerDestinationX = (int) (getLocationOnScreen().getX() + xMousePos);
+        final int defaultPointerDestinationY = (int) (getLocationOnScreen().getY() + yMousePos);
+
+        // get maximum number of bins on the X and Y axes
+        Matrix matrix = hic.getDataset().getMatrix(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
+        MatrixZoomData matrixZoomData = matrix.getZoomData(hic.getZoom());
+        final int binCountX = matrixZoomData.getXGridAxis().getBinCount();
+        final int binCountY = matrixZoomData.getYGridAxis().getBinCount();
 
         if (clickedBinX > clickedBinY) {
 
@@ -1019,8 +1027,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             jumpToDiagonalLeft.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    double postJumpBinOriginX = preJumpBinOriginX - (clickedBinX - clickedBinY);
                     hic.moveBy(clickedBinY - clickedBinX, 0);
-                    heatmapMouseBot.mouseMove(pointerX, pointerY);
+                    if (postJumpBinOriginX < 0) {
+                        heatmapMouseBot.mouseMove((int) (defaultPointerDestinationX + postJumpBinOriginX * hic.getScaleFactor()), defaultPointerDestinationY);
+                        return;
+                    }
+                    heatmapMouseBot.mouseMove(defaultPointerDestinationX, defaultPointerDestinationY);
                 }
             });
             menu.add(jumpToDiagonalLeft);
@@ -1030,8 +1043,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             jumpToDiagonalDown.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    double postJumpBinOriginY = preJumpBinOriginY + (clickedBinX - clickedBinY);
                     hic.moveBy(0, clickedBinX - clickedBinY);
-                    heatmapMouseBot.mouseMove(pointerX, pointerY);
+                    if (postJumpBinOriginY + getHeight() / hic.getScaleFactor() > binCountY) {
+                        heatmapMouseBot.mouseMove(defaultPointerDestinationX, (int) (defaultPointerDestinationY + (postJumpBinOriginY + getHeight() / hic.getScaleFactor() - binCountY)));
+                        return;
+                    }
+                    heatmapMouseBot.mouseMove(defaultPointerDestinationX, defaultPointerDestinationY);
                 }
             });
             menu.add(jumpToDiagonalDown);
@@ -1043,8 +1061,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             jumpToDiagonalUp.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    double postJumpBinOriginY = preJumpBinOriginY - (clickedBinY - clickedBinX);
                     hic.moveBy(0, clickedBinX - clickedBinY);
-                    heatmapMouseBot.mouseMove(pointerX, pointerY);
+                    if (postJumpBinOriginY < 0) {
+                        heatmapMouseBot.mouseMove(defaultPointerDestinationX, (int) (defaultPointerDestinationY + postJumpBinOriginY * hic.getScaleFactor()));
+                        return;
+                    }
+                    heatmapMouseBot.mouseMove(defaultPointerDestinationX, defaultPointerDestinationY);
                 }
             });
             menu.add(jumpToDiagonalUp);
@@ -1054,8 +1077,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             jumpToDiagonalRight.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    double postJumpBinOriginX = preJumpBinOriginX + (clickedBinY - clickedBinX);
                     hic.moveBy(clickedBinY - clickedBinX, 0);
-                    heatmapMouseBot.mouseMove(pointerX, pointerY);
+                    if (postJumpBinOriginX + getWidth() / hic.getScaleFactor() > binCountX) {
+                        heatmapMouseBot.mouseMove((int) (defaultPointerDestinationX + (postJumpBinOriginX + getWidth() / hic.getScaleFactor() - binCountX)), defaultPointerDestinationY);
+                        return;
+                    }
+                    heatmapMouseBot.mouseMove(defaultPointerDestinationX, defaultPointerDestinationY);
                 }
             });
             menu.add(jumpToDiagonalRight);
