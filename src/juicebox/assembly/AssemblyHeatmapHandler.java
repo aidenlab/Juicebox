@@ -177,51 +177,14 @@ public class AssemblyHeatmapHandler {
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
                 binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
         handler.getContainedFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
-        Feature2DList features = handler.getAllVisibleLoops();
-        final String keyF = Feature2DList.getKey(chr1, chr2);
+
+        List<Feature2D> intersectingFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
         List<Contig2D> contigs = new ArrayList<>();
-        for (Feature2D entry : features.get(keyF)) {
-            contigs.add(entry.toContig());
+        for (Feature2D feature2D : intersectingFeatures) {
+            contigs.add(feature2D.toContig());
         }
         Collections.sort(contigs);
-
-        List<Contig2D> actuallyNeededContigs = new ArrayList<>();
-        for (Contig2D contig : contigs) {
-            int cStart = contig.getStart1() / zoom.getBinSize();
-            int cEnd = contig.getEnd1() / zoom.getBinSize();
-            //System.out.println("c "+cStart+" "+cEnd);
-
-            if (cEnd < binX1 && cEnd < binY1) {
-                continue;
-            }
-            if (cStart > binX2 && cStart > binY2) {
-                break;
-            }
-
-            if ((cStart >= binX1 && cStart <= binX2)
-                    || (cEnd >= binX1 && cEnd <= binX2)
-                    || (cStart >= binY1 && cStart <= binY2)
-                    || (cEnd >= binY1 && cEnd <= binY2)) {
-                actuallyNeededContigs.add(contig);
-            }
-        }
-
-        for (Contig2D contig1 : actuallyNeededContigs) {
-            for (Contig2D contig2 : actuallyNeededContigs) {
-                int cStart1 = contig1.getStart1() / zoom.getBinSize() / blockBinCount;
-                int cEnd1 = contig1.getEnd1() / zoom.getBinSize() / blockBinCount;
-                int cStart2 = contig2.getStart1() / zoom.getBinSize() / blockBinCount;
-                int cEnd2 = contig2.getEnd1() / zoom.getBinSize() / blockBinCount;
-
-                for (int r = cStart1; r <= cEnd1; r++) {
-                    for (int c = cStart2; c <= cEnd2; c++) {
-                        mzd.populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
-                    }
-                }
-            }
-        }
-
-        return actuallyNeededContigs;
+        return contigs;
     }
 
     /**

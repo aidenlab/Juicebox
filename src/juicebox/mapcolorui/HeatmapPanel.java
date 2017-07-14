@@ -1617,6 +1617,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 superAdapter.getActiveLayerHandler().doPeak();
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
+
+                List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                    HiCGlobals.splitModeEnabled = true;
+                }
             } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;
                 Feature2D loop = currentFeature.getFeature2D();
@@ -1692,8 +1697,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                 // New annotation is added (not single click) and new feature from custom annotation
 
+
                 updateSelectedFeatures(false);
                 List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+
                 if (HiCGlobals.translationInProgress) {
                     translationInProgressMouseReleased(newSelectedFeatures);
                 } else {

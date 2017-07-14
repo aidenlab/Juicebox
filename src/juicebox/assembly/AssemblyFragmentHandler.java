@@ -514,7 +514,13 @@ public class AssemblyFragmentHandler {
         originalRow.removeAll(contigIds);
         if (originalRow.size() == 0)
             scaffoldProperties.remove(originalRowNum);
-        scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
+        if (translatePos == 0) {
+            List<Integer> newRow = new ArrayList<>();
+            newRow.addAll(contigIds);
+            scaffoldProperties.add(translateRow - 1, newRow);
+        } else {
+            scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
+        }
     }
 
     public void invertSelection(List<Feature2D> contigs) {

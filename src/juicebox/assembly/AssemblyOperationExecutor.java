@@ -66,6 +66,7 @@ public class AssemblyOperationExecutor {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.invertSelection(selectedFeatures);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
     }
 
