@@ -517,7 +517,7 @@ public class AssemblyFragmentHandler {
         if (translatePos == 0) {
             List<Integer> newRow = new ArrayList<>();
             newRow.addAll(contigIds);
-            scaffoldProperties.add(translateRow - 1, newRow);
+            scaffoldProperties.add(translateRow, newRow);
         } else {
             scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
         }

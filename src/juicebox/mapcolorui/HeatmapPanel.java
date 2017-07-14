@@ -101,6 +101,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      */
     private boolean showFeatureHighlight = true;
     private Feature2D highlightedFeature = null;
+    private Feature2D debrisFeature = null;
     private List<Feature2D> selectedFeatures = null;
     private Feature2DGuiContainer currentFeature = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
@@ -1204,8 +1205,24 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void splitMenuItemActionPerformed() {
-        HiCGlobals.splitModeEnabled = true;
+        executeSplitMenuAction(selectedFeatures.get(0), debrisFeature);
 
+        //        HiCGlobals.splitModeEnabled = true;
+
+    }
+
+    private void executeSplitMenuAction(Feature2D selectedFeature, Feature2D debrisContig) {
+
+        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), debrisContig, superAdapter, hic);
+        HiCGlobals.splitModeEnabled = false;
+        Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+        Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+        superAdapter.getEditLayer().getAnnotationLayer().getFeatureList().checkAndRemoveFeature(chrX.getIndex(), chrY.getIndex(), debrisContig);
+        debrisFeature = null;
+
+
+        removeSelection();
+        repaint();
     }
 
     private void splitGroupMenuItemActionPerformed() {
@@ -1678,20 +1695,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
             } else if (HiCGlobals.splitModeEnabled && activelyEditingAssembly) {
                 if (dragMode == DragMode.ANNOTATE) {
                     Feature2D feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
-                    if (feature2D != null) {
-                        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
-                    } else {
+                    if (feature2D == null) {
                         int x = (int) lastMousePoint.getX();
                         int y = (int) lastMousePoint.getY();
                         Rectangle annotateRectangle = new Rectangle(x, y, 1, 1);
                         superAdapter.getActiveLayerHandler().updateSelectionRegion(annotateRectangle);
                         feature2D = superAdapter.getActiveLayerHandler().generateFeature(hic); //TODO can modify split to wait for user to accept split
-                        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), feature2D, superAdapter, hic);
                     }
-                        HiCGlobals.splitModeEnabled = false;
-                        restoreDefaultVariables();
-                    removeSelection();
-                        repaint();
+                    AnnotationLayerHandler editLayerHandler = superAdapter.getEditLayer();
+                    debrisFeature = feature2D;
+//                    editLayerHandler.getAnnotationLayer().add(Hic.);
+                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
+//                    executeSplitMenuAction(selectedFeatures.get(0),debrisFeature);
+                    editLayerHandler.getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
+                    restoreDefaultVariables();
+
                 }
 
             } else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {

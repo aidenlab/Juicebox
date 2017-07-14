@@ -884,6 +884,15 @@ public class SuperAdapter {
         return null;
     }
 
+    public AnnotationLayerHandler getEditLayer() {
+        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
     public AnnotationLayerHandler createNewLayer() {
         activeLayer = new AnnotationLayerHandler();
         annotationLayerHandlers.add(activeLayer);
