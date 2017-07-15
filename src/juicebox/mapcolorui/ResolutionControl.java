@@ -252,12 +252,15 @@ public class ResolutionControl extends JPanel {
                     } catch (Exception ee) {
                     }
 
+                    final String chrXName = hic.getXContext().getChromosome().toString();
+                    final String chrYName = hic.getYContext().getChromosome().toString();
+
                     if (zd == null) {
-                        hic.unsafeActuallySetZoomAndLocation("", "", zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
+                        hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
                                 true);
                     } else {
 
-                        if (hic.unsafeActuallySetZoomAndLocation("", "", zoom, xGenome, yGenome, -1, true,
+                        if (hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, xGenome, yGenome, -1, true,
                                 HiC.ZoomCallType.STANDARD, true)) {
                             lastValue = resolutionSlider.getValue();
                         } else {

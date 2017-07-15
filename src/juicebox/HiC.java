@@ -684,8 +684,8 @@ public class HiC {
     private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
                                                    boolean resetZoom, ZoomCallType zoomCallType, String message,
                                                    boolean allowLocationBroadcast) {
-        return safeActuallySetZoomAndLocation("", "", newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType,
-                message, allowLocationBroadcast);
+        return safeActuallySetZoomAndLocation(xContext.getChromosome().toString(), yContext.getChromosome().toString(),
+                newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, message, allowLocationBroadcast);
     }
 
     private boolean safeActuallySetZoomAndLocation(final String chrXName, final String chrYName,
@@ -801,7 +801,7 @@ public class HiC {
         //String chr2OriginalName = yContext.getChromosome().getName();
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
-            //We might end with All->All view, make sure normalization state is updates accordingly...
+            //We might end with All->All view, make sure normalization state is updated accordingly...
             superAdapter.getMainViewPanel().setNormalizationDisplayState(superAdapter.getHiC());
         }
 
@@ -809,9 +809,13 @@ public class HiC {
             System.err.println("Invalid zoom " + newZoom);
         }
 
-        Chromosome chr1 = xContext.getChromosome();
-        Chromosome chr2 = yContext.getChromosome();
-        final Matrix matrix = dataset.getMatrix(chr1, chr2);
+        Chromosome chrX = chromosomeHandler.getChr(chrXName);
+        Chromosome chrY = chromosomeHandler.getChr(chrYName);
+
+        System.out.println(chrX);
+        System.out.println(chrY);
+
+        final Matrix matrix = dataset.getMatrix(chrX, chrY);
 
         if (matrix == null) {
             superAdapter.launchGenericMessageDialog("Sorry, this region is not available", "Matrix unavailable",
@@ -820,7 +824,7 @@ public class HiC {
         }
 
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
-        if (ChromosomeHandler.isAllByAll(chr1)) {
+        if (ChromosomeHandler.isAllByAll(chrX)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
         }
 

@@ -75,7 +75,6 @@ public class Dataset {
         normalizationTypes = new ArrayList<>();
     }
 
-
     public Matrix getMatrix(Chromosome chr1, Chromosome chr2) {
 
         // order is arbitrary, convention is lower # chr first

@@ -1903,10 +1903,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
             try {
+                final String chrXName = hic.getXContext().getChromosome().toString();
+                final String chrYName = hic.getYContext().getChromosome().toString();
+
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
+                hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
                         HiC.ZoomCallType.STANDARD, true);
             } catch (Exception e) {
                 e.printStackTrace();
