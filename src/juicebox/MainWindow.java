@@ -56,7 +56,8 @@ public class MainWindow extends JFrame {
     public static Cursor fistCursor;
     public static Cursor pasteNECursor;
     public static Cursor pasteSWCursor;
-    public static Cursor invertCursor;
+    public static Cursor invertNECursor;
+    public static Cursor invertSWCursor;
     public static Color hicMapColor = Color.red;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
@@ -171,17 +172,53 @@ public class MainWindow extends JFrame {
         fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
 
         // Additional cursors for assembly
+        ImageIcon imageIcon;
+
         // Insert (paste) prompts
-        BufferedImage pasteImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        g = pasteImage.createGraphics();
+        BufferedImage pasteNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = pasteNEImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
         rect = new Rectangle2D.Double(0, 0, 32, 32);
         g.fill(rect);
-        g = pasteImage.createGraphics();
-        g.drawImage(IconFactory.getInstance().getIcon(IconFactory.IconID.DRAG_AND_DROP).getImage(), 0, 0, null);
-        pasteNECursor = getToolkit().createCustomCursor(pasteImage, new Point(8, 6), "PasteNE");
-        pasteSWCursor = getToolkit().createCustomCursor(pasteImage, new Point(8, 6), "PasteSW");
-        // TODO: Invert prompt
+        g = pasteNEImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-paste.png"), "paste");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        pasteNECursor = getToolkit().createCustomCursor(pasteNEImage, new Point(8, 6), "PasteNE");
+
+        // Additional cursors for assembly
+        // Insert (paste) prompts
+        BufferedImage pasteSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = pasteSWImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = pasteSWImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-paste.png"), "paste");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        pasteSWCursor = getToolkit().createCustomCursor(pasteSWImage, new Point(8, 6), "PasteSW");
+
+        // Insert (paste) prompts
+        BufferedImage invertNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = invertNEImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = invertNEImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-ne-invert.png"), "invert");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        invertNECursor = getToolkit().createCustomCursor(invertNEImage, new Point(8, 6), "InvertNE");
+
+        // Additional cursors for assembly
+        // Insert (paste) prompts
+        BufferedImage invertSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = invertSWImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = invertSWImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-sw-invert.png"), "invert");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        invertSWCursor = getToolkit().createCustomCursor(invertSWImage, new Point(8, 6), "InvertSW");
 
     }
 

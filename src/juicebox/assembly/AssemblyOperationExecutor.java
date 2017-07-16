@@ -44,23 +44,6 @@ public class AssemblyOperationExecutor {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
 
-
-    public static void splitGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.splitGroup(selectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-    }
-
-    public static void mergeGroup(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
-        String attributeName = "Scaffold Number";
-        AnnotationLayerHandler groupLayer = superAdapter.getActiveLayerHandler(); //todo make check for group layer
-        int startingIndex = Integer.parseInt(selectedFeatures.get(0).getAttribute(attributeName));
-        System.out.println(startingIndex);
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.mergeGroup(startingIndex, selectedFeatures);
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-    }
-
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
 
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
@@ -70,9 +53,9 @@ public class AssemblyOperationExecutor {
         superAdapter.refresh();
     }
 
-    public static void moveSelectedFeatures(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
+    public static void moveSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.translateSelection(selectedFeatures, featureOrigin);
+        assemblyFragmentHandler.moveSelection(selectedFeatures, featureOrigin);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
         superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();

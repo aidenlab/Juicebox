@@ -203,6 +203,8 @@ public class AssemblyFragmentHandler {
         }
     }
 
+    //**** Splitting ****//
+
     public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
         operationType = OperationType.EDIT;
         ArrayList<Feature2D> contigs = new ArrayList<>();
@@ -328,7 +330,7 @@ public class AssemblyFragmentHandler {
         String fragmentString = ":::fragment_";
         String contigName = contigProperty.getName();
         List<String> newNames = new ArrayList<String>();
-        if (contigName.contains(":::")) {         //        Hmel202003:::fragment_2
+        if (contigName.contains(":::")) {
             if (contigName.contains("debris")) {
                 System.err.println("cannot split a debris fragment");
             } else {
@@ -338,7 +340,7 @@ public class AssemblyFragmentHandler {
                 newNames.add(originalContigName + fragmentString + (fragmentNum + 1) + ":::debris");
                 newNames.add(originalContigName + fragmentString + (fragmentNum + 2));
             }
-        } else {  //        Hmel202003
+        } else {
             newNames.add(contigName + fragmentString + "1");
             newNames.add(contigName + fragmentString + "2:::debris");
             newNames.add(contigName + fragmentString + "3");
@@ -431,97 +433,7 @@ public class AssemblyFragmentHandler {
         return contigPropertiesFromSameInitial;
     }
 
-    public void splitGroup(List<Feature2D> contigs) {
-        operationType = OperationType.GROUP;
-        List<Integer> contigIds = contig2DListToIntegerList(contigs);
-        int scaffoldRowNum = getScaffoldRow(contigIds);
-        splitGroup(contigIds, scaffoldRowNum);
-    }
-
-    private List<List<Integer>> splitGroup(List<Integer> contigIds, int scaffoldRow) {
-        List<Integer> tempGroup = scaffoldProperties.get(scaffoldRow);
-        int startIndex = tempGroup.indexOf(contigIds.get(0));
-        int endIndex = startIndex + contigIds.size();
-
-        List<List<Integer>> newGroups = new ArrayList<>();
-        if (startIndex != 0) {
-            if (endIndex == tempGroup.size()) {
-                newGroups.add(tempGroup.subList(0, startIndex));
-                newGroups.add(tempGroup.subList(startIndex, endIndex));
-            } else {
-                newGroups.add(tempGroup.subList(0, startIndex));
-                newGroups.add(tempGroup.subList(startIndex, endIndex));
-                newGroups.add(tempGroup.subList(endIndex, tempGroup.size()));
-            }
-        } else {
-            newGroups.add(tempGroup.subList(0, endIndex));
-            newGroups.add(tempGroup.subList(endIndex, tempGroup.size()));
-        }
-        scaffoldProperties.addAll(scaffoldRow, newGroups);
-        scaffoldProperties.remove(tempGroup);
-
-        return newGroups;
-    }
-
-    public void mergeGroup(int startingIndex, List<Feature2D> contigs) {
-        operationType = OperationType.GROUP;
-        if (contigs.size() > 1) {
-            mergeGroup(startingIndex, contigs.size());
-        } else
-            System.err.println("not enough many selected");
-
-    }
-
-    private void mergeGroup(int scaffoldRowNum, int length) {
-        List<Integer> newGroup = new ArrayList<>();
-        List<List<Integer>> removeGroup = new ArrayList<>();
-        for (int i = 0; i < length; i++) {
-            List<Integer> currentGroup = scaffoldProperties.get(scaffoldRowNum + i);
-            for (Integer element : currentGroup) {
-                newGroup.add(element);
-            }
-            removeGroup.add(currentGroup);
-        }
-
-        scaffoldProperties.set(scaffoldRowNum, newGroup);
-        removeGroup.remove(0);
-        for (List<Integer> removeList : removeGroup) {
-            scaffoldProperties.remove(removeList);
-        }
-    }
-
-    public void translateSelection(List<Feature2D> selectedFeatures, Feature2D featureDestination) {
-        operationType = OperationType.TRANSLATE;
-        int destinationRow;
-        int destinationPos;
-        List<Feature2D> tempList = new ArrayList<Feature2D>();
-        tempList.add(featureDestination);
-        List<Integer> destinationIndexId = contig2DListToIntegerList(tempList);
-        destinationRow = getScaffoldRow(destinationIndexId);
-        destinationPos = scaffoldProperties.get(destinationRow).indexOf(destinationIndexId.get(0));
-        System.out.println(destinationPos);
-
-        performTranslation(contig2DListToIntegerList(selectedFeatures), destinationRow, destinationPos);
-
-    }
-
-    private void performTranslation(List<Integer> contigIds, int translateRow, int translatePos) {
-        int originalRowNum = getScaffoldRow(contigIds);
-        List<Integer> originalRow = scaffoldProperties.get(originalRowNum);
-        for (Integer integer : contigIds) {
-            System.out.println(integer);
-        }
-        originalRow.removeAll(contigIds);
-        if (originalRow.size() == 0)
-            scaffoldProperties.remove(originalRowNum);
-        if (translatePos == 0) {
-            List<Integer> newRow = new ArrayList<>();
-            newRow.addAll(contigIds);
-            scaffoldProperties.add(translateRow, newRow);
-        } else {
-            scaffoldProperties.get(translateRow).addAll(translatePos, contigIds);
-        }
-    }
+    //**** Inversion ****//
 
     public void invertSelection(List<Feature2D> contigs) {
         operationType = OperationType.INVERT;
@@ -600,6 +512,99 @@ public class AssemblyFragmentHandler {
         return null;
     }
 
+    //**** Move toggle ****//
+
+    public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature){
+
+        operationType = OperationType.TRANSLATE;
+        int id1 = Integer.parseInt(selectedFeatures.get(0).getAttribute(scaffoldIndexId));
+        int id2 = Integer.parseInt(selectedFeatures.get(selectedFeatures.size()-1).getAttribute(scaffoldIndexId));
+        int id3 = Integer.parseInt(upstreamFeature.getAttribute(scaffoldIndexId));
+
+        System.out.println("id1: "+id1);
+
+        int gid1 = getGroupID(id1);
+        int gid2 = getGroupID(id2);
+        int gid3 = getGroupID(id3);
+
+        System.out.println("gid1: "+gid1);
+
+        // check if selectedFeatures span multiple groups paste split at destination
+        if (gid1!=gid2 & scaffoldProperties.get(gid3).indexOf(id3)!=scaffoldProperties.get(gid3).size()-1){
+            newSplitGroup(gid3,id3);
+            gid1 = getGroupID(id1);
+            gid2 = getGroupID(id2);
+            gid3 = getGroupID(id3);
+        }
+
+        List<List<Integer>> newGroups = new ArrayList<>();
+        List<List<Integer>> tempGroups = new ArrayList<>();
+        List<Integer> truncatedGroup = new ArrayList<Integer>();
+        int shiftGroup=0;
+
+        for (int i=0; i<=scaffoldProperties.size()-1; i++){
+            if (i==gid1 && i==gid2){
+
+                tempGroups.add(scaffoldProperties.get(gid1).subList(scaffoldProperties.get(gid1).indexOf(id1), scaffoldProperties.get(gid2).indexOf(id2)+1));
+
+                if (scaffoldProperties.get(gid1).indexOf(id1)!=0) {
+                    truncatedGroup.addAll(scaffoldProperties.get(gid1).subList(0, scaffoldProperties.get(gid1).indexOf(id1)));
+                }
+                if (scaffoldProperties.get(gid2).indexOf(id2)!=scaffoldProperties.get(gid2).size()-1) {
+                    truncatedGroup.addAll(scaffoldProperties.get(gid2).subList(1 + scaffoldProperties.get(gid2).indexOf(id2), scaffoldProperties.get(gid2).size()));
+                }
+
+                if (truncatedGroup!=null){
+                    newGroups.add(truncatedGroup);
+                } else {
+                    shiftGroup++;
+                }
+
+            } else if (gid1!=gid2 && i==gid1){
+                tempGroups.add(scaffoldProperties.get(gid1).subList(scaffoldProperties.get(gid1).indexOf(id1), scaffoldProperties.get(gid1).size()));
+                if (scaffoldProperties.get(gid1).indexOf(id1)!=0) {
+                    newGroups.add(scaffoldProperties.get(gid1).subList(0, scaffoldProperties.get(gid1).indexOf(id1)));
+                }else{
+                    shiftGroup++;
+                }
+            } else if (gid1!=gid2 && i > gid1 && i < gid2){
+                tempGroups.add(scaffoldProperties.get(i));
+                shiftGroup++;
+            } else if (gid1!=gid2 && i==gid2){
+                tempGroups.add(scaffoldProperties.get(gid2).subList(0, 1 + scaffoldProperties.get(gid2).indexOf(id2)));
+                if (scaffoldProperties.get(gid2).indexOf(id2)!=scaffoldProperties.get(gid2).size()-1){
+                    newGroups.add(scaffoldProperties.get(gid2).subList(1 + scaffoldProperties.get(gid2).indexOf(id2), scaffoldProperties.get(gid2).size()));
+                }else{
+                    shiftGroup++;
+                }
+            } else {
+                newGroups.add(scaffoldProperties.get(i));
+            }
+        }
+
+        int newgid3=gid3;
+        if (gid3 > gid2){
+            newgid3-=shiftGroup;
+        }
+
+        if (scaffoldProperties.get(gid3).indexOf(id3) == scaffoldProperties.get(gid3).size()-1) {
+            newGroups.addAll(newgid3 + 1, tempGroups);
+        } else {
+            int pasteIndex = scaffoldProperties.get(gid3).indexOf(id3);
+            if (gid1 == gid3 && gid2 == gid3 && scaffoldProperties.get(gid3).indexOf(id3) > scaffoldProperties.get(gid3).indexOf(id2)){
+                pasteIndex-=scaffoldProperties.get(gid3).size()-truncatedGroup.size();
+            }
+            newGroups.get(newgid3).addAll(pasteIndex+1,tempGroups.get(0));
+        }
+
+        scaffoldProperties.clear();
+        scaffoldProperties.addAll(newGroups);
+
+        return;
+    }
+
+    //**** Group toggle ****//
+
     public void toggleGroup(Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         int id1=Integer.parseInt(upstreamFeature2D.getAttribute(scaffoldIndexId));
         int id2=Integer.parseInt(downstreamFeature2D.getAttribute(scaffoldIndexId));
@@ -611,7 +616,6 @@ public class AssemblyFragmentHandler {
 
         int gr1 = getGroupID(id1);
         int gr2 = getGroupID(id2);
-
 
 //        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         if (gr1==gr2){
@@ -658,11 +662,12 @@ public class AssemblyFragmentHandler {
         return;
     }
 
+    //**** Utility functions ****//
+
     private int getGroupID(int id1) {
         int i = 0;
         for (List<Integer> scaffoldRow : scaffoldProperties) {
-            List<Integer> absoluteRow = findAbsoluteValuesList(scaffoldRow);
-            if (absoluteRow.contains(id1)) {
+            if (scaffoldRow.contains(id1)) {
                 return i;
             }
             i++;
@@ -670,6 +675,7 @@ public class AssemblyFragmentHandler {
         System.err.println("Can't Find row");
         return -1;
     }
+
 
     public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }
