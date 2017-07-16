@@ -436,34 +436,56 @@ public class AssemblyFragmentHandler {
     //**** Inversion ****//
 
     public void invertSelection(List<Feature2D> contigs) {
+
         operationType = OperationType.INVERT;
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
-        System.out.println("contig 1 " + contigIds);
+
+        int id1 = contigIds.get(0);
+        int id2 = contigIds.get(contigIds.size()-1);
+        int gid1 = getGroupID(id1);
+        int gid2 = getGroupID(id2);
+
+        if (gid1!=gid2 && scaffoldProperties.get(gid1).indexOf(id1)!=0){
+            newSplitGroup(gid1, scaffoldProperties.get(gid1).get(scaffoldProperties.get(gid1).indexOf(id1)-1));
+            gid1 = getGroupID(id1);
+            gid2 = getGroupID(id2);
+        }
+        if (gid1!=gid2 && scaffoldProperties.get(gid2).indexOf(id2)!=scaffoldProperties.get(gid2).size()-1){
+            newSplitGroup(gid2, id2);
+            gid1 = getGroupID(id1);
+            gid2 = getGroupID(id2);
+        }
+
         //invert selected contig properties
         List<ContigProperty> selectedContigProperties = contig2DListToContigPropertyList(contigs);
         for (ContigProperty contigProperty : selectedContigProperties) {
             contigProperty.toggleInversion();
         }
-        invertSelection(contigIds, getScaffoldRow(contigIds));
-        System.out.println("test 1");
-    }
 
-    private void invertSelection(List<Integer> contigIds, int scaffoldRow) {
-        //split group into three or two, invert selection, regroup
-        List<Integer> selectedGroup = scaffoldProperties.get(scaffoldRow);
-        int startIndex = selectedGroup.indexOf(contigIds.get(0));
-        int endIndex = startIndex + contigIds.size();
-//        System.out.println("Start Index "+startIndex+" EndIndex "+endIndex);
-        List<Integer> invertGroup = selectedGroup.subList(startIndex, endIndex);
-//        System.out.println("Test 1 "+invertGroup);
-        Collections.reverse(invertGroup);
-        int i = 0;
-        for (int element : invertGroup) {
-            invertGroup.set(i, element * -1);
-            i++;
+        if (gid1==gid2){
+            Collections.reverse(scaffoldProperties.get(gid1).subList(scaffoldProperties.get(gid1).indexOf(id1),scaffoldProperties.get(gid2).indexOf(id2)+1));
+            for(int i=scaffoldProperties.get(gid1).indexOf(id2); i<=scaffoldProperties.get(gid2).indexOf(id1); i++){
+                scaffoldProperties.get(gid1).set(i,-1*scaffoldProperties.get(gid1).get(i));
+            }
+        } else {
+            List<List<Integer>> newGroups = new ArrayList<>();
+            for (int i=0; i<=scaffoldProperties.size()-1; i++ ){
+                if(i>=gid1&&i<=gid2){
+                    newGroups.add(scaffoldProperties.get(gid2-i+gid1));
+                    Collections.reverse(newGroups.get(i));
+                    for(int j=0; j<=newGroups.get(i).size()-1;j++){
+                        newGroups.get(i).set(j, -1*newGroups.get(i).get(j));
+                    }
+                } else{
+                    newGroups.add(scaffoldProperties.get(i));
+                }
+            }
+            scaffoldProperties.clear();
+            scaffoldProperties.addAll(newGroups);
         }
 
-        System.out.println(invertGroup);
+        return;
+
     }
 
     public int getScaffoldRow(List<Integer> contigIds) {
@@ -521,13 +543,9 @@ public class AssemblyFragmentHandler {
         int id2 = Integer.parseInt(selectedFeatures.get(selectedFeatures.size()-1).getAttribute(scaffoldIndexId));
         int id3 = Integer.parseInt(upstreamFeature.getAttribute(scaffoldIndexId));
 
-        System.out.println("id1: "+id1);
-
         int gid1 = getGroupID(id1);
         int gid2 = getGroupID(id2);
         int gid3 = getGroupID(id3);
-
-        System.out.println("gid1: "+gid1);
 
         // check if selectedFeatures span multiple groups paste split at destination
         if (gid1!=gid2 & scaffoldProperties.get(gid3).indexOf(id3)!=scaffoldProperties.get(gid3).size()-1){
