@@ -218,9 +218,9 @@ public class JColorRangePanel extends JPanel {
         add(sliderPanel, BorderLayout.PAGE_END);
 
 
-//        setBorder(LineBorder.createGrayLineBorder());
+        setBorder(LineBorder.createGrayLineBorder());
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(0, 0, 0,0));
+//        setBorder(new EmptyBorder(0, 0, 0,0));
         setMinimumSize(new Dimension(96, 70));
         setPreferredSize(new Dimension(202, 70));
         setMaximumSize(new Dimension(32769, 70));

@@ -86,9 +86,9 @@ public class ResolutionControl extends JPanel {
         this.hic = superAdapter.getHiC();
         this.heatmapPanel = superAdapter.getHeatmapPanel();
 
-//        this.setBorder(LineBorder.createGrayLineBorder());
+        this.setBorder(LineBorder.createGrayLineBorder());
         this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(0, 0, 0,0));
+//        this.setBorder(new EmptyBorder(0, 0, 0,0));
         this.setBackground(Color.WHITE);
 
 

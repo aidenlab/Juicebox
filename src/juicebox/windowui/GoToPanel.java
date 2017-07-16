@@ -99,9 +99,9 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         goButtonPanel.add(goButton);
 
 //        setBackground(new Color(238, 238, 238));
-//        setBorder(LineBorder.createGrayLineBorder());
+        setBorder(LineBorder.createGrayLineBorder());
         setBackground(Color.WHITE);
-        setBorder(new EmptyBorder(0, 0, 0,0));
+//        setBorder(new EmptyBorder(0, 0, 0,0));
 
         setLayout(new BorderLayout());
         add(goLabelPanel, BorderLayout.PAGE_START);

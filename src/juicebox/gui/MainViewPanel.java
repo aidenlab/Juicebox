@@ -26,6 +26,7 @@ package juicebox.gui;
 
 import com.jidesoft.swing.JideButton;
 import com.jidesoft.swing.JideLabel;
+import com.jidesoft.swing.JideToggleButton;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
@@ -54,6 +55,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,7 +100,9 @@ public class MainViewPanel {
     private int miniButtonSize = 22;
     private JideButton btnMenu;
     private JPanel menuTabPanel;
+    private JideButton btnRightPnl;
     private boolean menuTabOpen = false;
+    private boolean rightPnlOpen = false;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -165,13 +170,15 @@ public class MainViewPanel {
         JPanel chrLabelPanel = new JPanel();
         JLabel chrLabel = new JLabel("Chromosomes");
         chrLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
+//        chrLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        chrLabelPanel.setBackground(Color.WHITE);
         chrLabelPanel.setLayout(new BorderLayout());
         chrLabelPanel.add(chrLabel, BorderLayout.CENTER);
         chrSelectionPanel.add(chrLabelPanel, BorderLayout.PAGE_START);
 
         JPanel chrButtonPanel = new JPanel();
-        chrButtonPanel.setBackground(new Color(238, 238, 238));
+//        chrButtonPanel.setBackground(new Color(238, 238, 238));
+        chrButtonPanel.setBackground(Color.WHITE);
         chrButtonPanel.setLayout(new BoxLayout(chrButtonPanel, BoxLayout.X_AXIS));
 
         //---- chrBox1 ----
@@ -218,12 +225,15 @@ public class MainViewPanel {
 
         //======== Display Option Panel ========
         JPanel displayOptionPanel = new JPanel();
-        displayOptionPanel.setBackground(new Color(238, 238, 238));
+//        displayOptionPanel.setBackground(new Color(238, 238, 238));
+        displayOptionPanel.setBackground(Color.WHITE);
         displayOptionPanel.setBorder(LineBorder.createGrayLineBorder());
         displayOptionPanel.setLayout(new BorderLayout());
         JPanel displayOptionLabelPanel = new JPanel();
-        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
+//        displayOptionLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        displayOptionLabelPanel.setBackground(Color.WHITE);
         displayOptionLabelPanel.setLayout(new BorderLayout());
+
 
         JLabel displayOptionLabel = new JLabel("Show");
         displayOptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -242,6 +252,7 @@ public class MainViewPanel {
             }
         });
         displayOptionButtonPanel.add(displayOptionComboBox);
+        displayOptionButtonPanel.setBackground(Color.WHITE);
         displayOptionPanel.add(displayOptionButtonPanel, BorderLayout.CENTER);
         displayOptionPanel.setMinimumSize(new Dimension(140, 70));
         displayOptionPanel.setPreferredSize(new Dimension(140, 70));
@@ -254,12 +265,14 @@ public class MainViewPanel {
 
         //======== Normalization Panel ========
         JPanel normalizationPanel = new JPanel();
-        normalizationPanel.setBackground(new Color(238, 238, 238));
+//        normalizationPanel.setBackground(new Color(238, 238, 238));
+        normalizationPanel.setBackground(Color.WHITE);
         normalizationPanel.setBorder(LineBorder.createGrayLineBorder());
         normalizationPanel.setLayout(new BorderLayout());
 
         JPanel normalizationLabelPanel = new JPanel();
-        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
+//        normalizationLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        normalizationLabelPanel.setBackground(Color.WHITE);
         normalizationLabelPanel.setLayout(new BorderLayout());
 
         JLabel normalizationLabel = new JLabel("Normalization");
@@ -278,6 +291,7 @@ public class MainViewPanel {
             }
         });
         normalizationButtonPanel.add(normalizationComboBox);
+        normalizationButtonPanel.setBackground(Color.WHITE);
         normalizationPanel.add(normalizationButtonPanel, BorderLayout.CENTER);
         normalizationPanel.setPreferredSize(new Dimension(180, 70));
         normalizationPanel.setMinimumSize(new Dimension(140, 70));
@@ -293,10 +307,10 @@ public class MainViewPanel {
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
 
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, hiCPanel, 45, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, hiCPanel, 55, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, hiCPanel, -35, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, hiCPanel, -190, SpringLayout.EAST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, hiCPanel, 10, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, hiCPanel, 33, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, hiCPanel, -7, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, hiCPanel, -30, SpringLayout.EAST, bigPanel);
 //        bigPanel.add(hiCPanel, BorderLayout.CENTER);
         bigPanel.add(hiCPanel);
 
@@ -456,30 +470,30 @@ public class MainViewPanel {
 //        toolbarConstraints.gridx = 3;
 //        toolbarConstraints.weightx = 0.1;
 //        toolbarPanel.add(resolutionSlider, toolbarConstraints);
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, -70, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 10, SpringLayout.EAST, hiCPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, -10, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, resolutionSlider, -10, SpringLayout.EAST, bigPanel);
-        bigPanel.add(resolutionSlider);
+//        sl_bigPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, -70, SpringLayout.SOUTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 10, SpringLayout.EAST, hiCPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, -10, SpringLayout.SOUTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.EAST, resolutionSlider, -10, SpringLayout.EAST, bigPanel);
+//        bigPanel.add(resolutionSlider);
 
         //======== Color Range Panel ========
         colorRangePanel = new JColorRangePanel(superAdapter, heatmapPanel, preDefMapColor);
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, -150, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, colorRangePanel, -170, SpringLayout.EAST, resolutionSlider);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, -80, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
-        bigPanel.add(colorRangePanel);
+//        sl_bigPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, -150, SpringLayout.SOUTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.WEST, colorRangePanel, -170, SpringLayout.EAST, resolutionSlider);
+//        sl_bigPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, -80, SpringLayout.SOUTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
+//        bigPanel.add(colorRangePanel);
 
         toolbarConstraints.gridx = 4;
         toolbarConstraints.weightx = 0.5;
 //        toolbarPanel.add(colorRangePanel, toolbarConstraints);
 
         goPanel = new GoToPanel(superAdapter);
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, goPanel, 10, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, goPanel, -170, SpringLayout.EAST, resolutionSlider);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, resolutionSlider);
-        bigPanel.add(goPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.NORTH, goPanel, 10, SpringLayout.NORTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.WEST, goPanel, -170, SpringLayout.EAST, resolutionSlider);
+//        sl_bigPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.NORTH, bigPanel);
+//        sl_bigPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, resolutionSlider);
+//        bigPanel.add(goPanel);
 //        toolbarConstraints.gridx = 5;
         // not sure this is working
         //toolbarPanel.setPreferredSize(new Dimension(panelHeight,100));
@@ -488,7 +502,7 @@ public class MainViewPanel {
 
         //======== Right side panel ========
 
-        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
+        final JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
         rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
@@ -582,7 +596,7 @@ public class MainViewPanel {
 
         sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 260, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 260 + 70 + 70 + 70, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 215, SpringLayout.WEST, bigPanel);
         bigPanel.setLayer(menuTabPanel, 1);
         bigPanel.add(menuTabPanel);
@@ -600,9 +614,9 @@ public class MainViewPanel {
                 btnMenu.setEnabled(false);
             }
         });
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, -35, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, 10, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, btnMenu, 10, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, -12, SpringLayout.NORTH, hiCPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, 33, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
         bigPanel.add(btnMenu);
 
@@ -641,8 +655,59 @@ public class MainViewPanel {
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, normalizationPanel, 0, SpringLayout.EAST, displayOptionPanel);
         menuTabPanel.add(normalizationPanel);
 
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, 0, SpringLayout.SOUTH, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 0, SpringLayout.WEST, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, 70, SpringLayout.SOUTH, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, resolutionSlider, 0, SpringLayout.EAST, normalizationPanel);
+        menuTabPanel.add(resolutionSlider);
+
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, 0, SpringLayout.SOUTH, resolutionSlider);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, colorRangePanel, 0, SpringLayout.WEST, resolutionSlider);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, 70, SpringLayout.SOUTH, resolutionSlider);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
+        menuTabPanel.add(colorRangePanel);
+
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, goPanel, 0, SpringLayout.SOUTH, colorRangePanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, goPanel, 0, SpringLayout.WEST, colorRangePanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.SOUTH, colorRangePanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, colorRangePanel);
+        menuTabPanel.add(goPanel);
+
+
         //TODO cleaner GUI for chrSelectionPanel/displayOptionPanel/normalizationPanel
 
+        //==== Right Panel open/close tab ====
+        btnRightPnl = new JideButton();
+        btnRightPnl.setBorderPainted(true);
+        final ImageIcon openRightPnl = new ImageIcon(getClass().getResource("/images/pen.png"));
+        btnRightPnl.setIcon(openRightPnl);
+        btnRightPnl.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                rightPnlOpen = !rightPnlOpen;
+                btnRightPnl.setEnabled(false);
+                JFrame rightPnlFrame = new JFrame();
+                rightPnlFrame.setSize(290, 1000);
+                rightPnlFrame.setLayout(new BorderLayout());
+                rightPnlFrame.add(rightSidePanel, BorderLayout.CENTER);
+                rightPnlFrame.setPreferredSize(rightSidePanel.getPreferredSize());
+                rightPnlFrame.setMaximumSize(rightSidePanel.getMaximumSize());
+                rightPnlFrame.setVisible(true);
+                rightPnlFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        rightPnlOpen = !rightPnlOpen;
+                        btnRightPnl.setEnabled(true);
+                    }
+                });
+                rightPnlFrame.setResizable(false);
+            }
+        });
+
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnRightPnl, 10, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, btnRightPnl, -28, SpringLayout.EAST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnRightPnl, 33, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, btnRightPnl, -5, SpringLayout.EAST, bigPanel);
+        bigPanel.add(btnRightPnl);
 
 
 
@@ -659,7 +724,8 @@ public class MainViewPanel {
         rightSidePanel.setMinimumSize(preferredSize);
         rightSidePanel.setPreferredSize(preferredSize);
         mainPanel.add(bigPanel, BorderLayout.CENTER);
-        mainPanel.add(rightSidePanel, BorderLayout.EAST);
+//        mainPanel.add(rightSidePanel, BorderLayout.EAST);
+//        rightSidePanel.setVisible(false);
     }
 
     public JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
