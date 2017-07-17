@@ -34,6 +34,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.feature.Feature;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -1096,16 +1097,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(jumpToDiagonalRight);
         }
 
-        final JCheckBoxMenuItem miTranslate = new JCheckBoxMenuItem("Translate");
-        miTranslate.setSelected(straightEdgeEnabled);
-        miTranslate.addActionListener(new ActionListener() {
+        final JCheckBoxMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
+        miMoveToDebris.setSelected(false);
+        miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        miMoveToDebris.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                translateMenuItemActionPerformed();
+                AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, allMainFeaturePairs.get(allMainFeaturePairs.size()-1).getFeature2D());
+                removeSelection();
+                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
             }
         });
-        miTranslate.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miTranslate);
+        menu.add(miMoveToDebris);
 
         final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
         miInvert.setSelected(straightEdgeEnabled);
@@ -1212,10 +1216,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    private void translateMenuItemActionPerformed() {
-        HiCGlobals.translationInProgress = Boolean.TRUE;
-    }
-
     private void splitMenuItemActionPerformed() {
         executeSplitMenuAction(selectedFeatures.get(0), debrisFeature);
 
@@ -1226,14 +1226,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void executeSplitMenuAction(Feature2D selectedFeature, Feature2D debrisContig) {
 
         AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), debrisContig, superAdapter, hic);
+
         HiCGlobals.splitModeEnabled = false;
         Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
         Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
         superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
         superAdapter.getEditLayer().clearAnnotations();
-        //superAdapter.getEditLayer().getAnnotationLayer().getFeatureList().checkAndRemoveFeature(chrX.getIndex(), chrY.getIndex(), debrisContig);
-        debrisFeature = null;
         superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
+        debrisFeature = null;
         removeSelection();
         repaint();
     }

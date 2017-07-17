@@ -694,6 +694,7 @@ public class AssemblyFragmentHandler {
         return -1;
     }
 
+    //**** For debugging ****//
     public void printAssembly(){
         System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         return;

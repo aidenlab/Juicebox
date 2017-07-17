@@ -42,6 +42,8 @@ public class AssemblyOperationExecutor {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.editContig(originalContig, debrisContig);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+        superAdapter.refresh();
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
