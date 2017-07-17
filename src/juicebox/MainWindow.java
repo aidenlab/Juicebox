@@ -58,6 +58,7 @@ public class MainWindow extends JFrame {
     public static Cursor pasteSWCursor;
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
+    public static Cursor scissorCursor;
     public static Color hicMapColor = Color.red;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
@@ -185,7 +186,6 @@ public class MainWindow extends JFrame {
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         pasteNECursor = getToolkit().createCustomCursor(pasteNEImage, new Point(8, 6), "PasteNE");
 
-        // Additional cursors for assembly
         // Insert (paste) prompts
         BufferedImage pasteSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         g = pasteSWImage.createGraphics();
@@ -197,7 +197,7 @@ public class MainWindow extends JFrame {
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         pasteSWCursor = getToolkit().createCustomCursor(pasteSWImage, new Point(8, 6), "PasteSW");
 
-        // Insert (paste) prompts
+        // Invert prompts
         BufferedImage invertNEImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         g = invertNEImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -208,8 +208,7 @@ public class MainWindow extends JFrame {
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         invertNECursor = getToolkit().createCustomCursor(invertNEImage, new Point(8, 6), "InvertNE");
 
-        // Additional cursors for assembly
-        // Insert (paste) prompts
+        // Invert prompts
         BufferedImage invertSWImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         g = invertSWImage.createGraphics();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
@@ -220,6 +219,16 @@ public class MainWindow extends JFrame {
         g.drawImage(imageIcon.getImage(), 0, 0, null);
         invertSWCursor = getToolkit().createCustomCursor(invertSWImage, new Point(8, 6), "InvertSW");
 
+        // Cut prompts
+        BufferedImage scissorImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        g = scissorImage.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        rect = new Rectangle2D.Double(0, 0, 32, 32);
+        g.fill(rect);
+        g = scissorImage.createGraphics();
+        imageIcon = new ImageIcon(this.getClass().getResource("/images/assembly/small-scissors.png"), "invert");
+        g.drawImage(imageIcon.getImage(), 0, 0, null);
+        scissorCursor = getToolkit().createCustomCursor(scissorImage, new Point(8, 6), "Scissors");
     }
 
     public void exitActionPerformed() {
