@@ -677,6 +677,22 @@ public class MainViewPanel {
         //TODO cleaner GUI for chrSelectionPanel/displayOptionPanel/normalizationPanel
 
         //==== Right Panel open/close tab ====
+        final JFrame rightPnlFrame = new JFrame();
+        rightPnlFrame.setSize(290, 700);
+        rightPnlFrame.setLayout(new BorderLayout());
+        rightPnlFrame.add(rightSidePanel, BorderLayout.CENTER);
+        rightPnlFrame.setPreferredSize(rightSidePanel.getPreferredSize());
+        rightPnlFrame.setMaximumSize(rightSidePanel.getMaximumSize());
+        rightPnlFrame.setVisible(false);
+        rightPnlFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                rightPnlOpen = !rightPnlOpen;
+                btnRightPnl.setEnabled(true);
+            }
+        });
+
+        rightPnlFrame.setResizable(false);
         btnRightPnl = new JideButton();
         btnRightPnl.setBorderPainted(true);
         final ImageIcon openRightPnl = new ImageIcon(getClass().getResource("/images/pen.png"));
@@ -685,21 +701,7 @@ public class MainViewPanel {
             public void actionPerformed(ActionEvent e) {
                 rightPnlOpen = !rightPnlOpen;
                 btnRightPnl.setEnabled(false);
-                JFrame rightPnlFrame = new JFrame();
-                rightPnlFrame.setSize(290, 1000);
-                rightPnlFrame.setLayout(new BorderLayout());
-                rightPnlFrame.add(rightSidePanel, BorderLayout.CENTER);
-                rightPnlFrame.setPreferredSize(rightSidePanel.getPreferredSize());
-                rightPnlFrame.setMaximumSize(rightSidePanel.getMaximumSize());
-                rightPnlFrame.setVisible(true);
-                rightPnlFrame.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        rightPnlOpen = !rightPnlOpen;
-                        btnRightPnl.setEnabled(true);
-                    }
-                });
-                rightPnlFrame.setResizable(false);
+                rightPnlFrame.setVisible(rightPnlOpen);
             }
         });
 
