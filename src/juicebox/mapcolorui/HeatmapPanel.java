@@ -2099,6 +2099,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         default:
                             break;
                     }
+                    superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
                 } else if (eF.getClickCount() == 2) {
 
                     // Double click,  zoom and center on click location

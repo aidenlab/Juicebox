@@ -572,7 +572,7 @@ public class AssemblyFragmentHandler {
                     truncatedGroup.addAll(scaffoldProperties.get(gid2).subList(1 + scaffoldProperties.get(gid2).indexOf(id2), scaffoldProperties.get(gid2).size()));
                 }
 
-                if (truncatedGroup!=null){
+                if (!truncatedGroup.isEmpty()){
                     newGroups.add(truncatedGroup);
                 } else {
                     shiftGroup++;
@@ -694,6 +694,10 @@ public class AssemblyFragmentHandler {
         return -1;
     }
 
+    public void printAssembly(){
+        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
+        return;
+    }
 
     public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }
