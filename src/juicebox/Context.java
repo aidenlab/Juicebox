@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,13 @@ public class Context {
 
     public Context(Chromosome chromosome) {
         this.chromosome = chromosome;
+    }
+
+    public Context deepCopy() {
+        Context copy = new Context(getChromosome());
+        copy.setBinOrigin(getBinOrigin());
+        copy.setZoom(getZoom());
+        return copy;
     }
 
     public double getBinOrigin() {

@@ -52,11 +52,11 @@ public class ZoomStateTracker {
         }
     }
 
-    private boolean validateUndoZoom() {
-        return undoZoomStates.size() > 1;
+    public boolean validateUndoZoom() {
+        return undoZoomStates.size() > 0;
     }
 
-    private boolean validateRedoZoom() {
+    public boolean validateRedoZoom() {
         return !redoZoomStates.isEmpty();
     }
 
@@ -64,6 +64,10 @@ public class ZoomStateTracker {
         undoZoomStates.add(newZoomState);
         setCurrentZoomState(undoZoomStates.peek());
         redoZoomStates.clear();
+    }
+
+    private void loadCurrentZoomState() {
+
     }
 
     public boolean equals(ZoomStateTracker other) {

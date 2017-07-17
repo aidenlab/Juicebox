@@ -686,6 +686,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         */
 
+        final JMenuItem miUndoZoom = new JMenuItem("Undo Zoom");
+        miUndoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.undoZoomState();
+            }
+        });
+        miUndoZoom.setEnabled(hic.getZoomStateTracker().validateUndoZoom());
+        menu.add(miUndoZoom);
+
+        final JMenuItem miRedoZoom = new JMenuItem("Redo Zoom");
+        miRedoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.redoZoomState();
+            }
+        });
+        miRedoZoom.setEnabled(hic.getZoomStateTracker().validateRedoZoom());
+        menu.add(miRedoZoom);
+
         final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
         mi_0.addActionListener(new ActionListener() {
             @Override
@@ -1958,6 +1978,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
                             hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
                             mainWindow.repaint();
+
+                            ZoomState newZoomState = hic.getZoomStateTracker().getCurrentZoomState().deepCopy();
+                            newZoomState.setScaleFactor(newScaleFactor);
+                            hic.getZoomStateTracker().addZoomState(newZoomState);
+
                         } else {
                             Runnable runnable = new Runnable() {
                                 public void run() {

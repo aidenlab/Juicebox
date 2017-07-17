@@ -797,8 +797,6 @@ public class HiC {
 //            return false;
 //        }
 
-        //String chr1OriginalName = xContext.getChromosome().getName();
-        //String chr2OriginalName = yContext.getChromosome().getName();
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
             //We might end with All->All view, make sure normalization state is updated accordingly...
@@ -812,9 +810,6 @@ public class HiC {
         Chromosome chrX = chromosomeHandler.getChr(chrXName);
         Chromosome chrY = chromosomeHandler.getChr(chrYName);
 
-        System.out.println(chrX);
-        System.out.println(chrY);
-
         final Matrix matrix = dataset.getMatrix(chrX, chrY);
 
         if (matrix == null) {
@@ -824,6 +819,7 @@ public class HiC {
         }
 
         MatrixZoomData newZD = matrix.getZoomData(newZoom);
+
         if (ChromosomeHandler.isAllByAll(chrX)) {
             newZD = matrix.getFirstZoomData(Unit.BP);
         }
@@ -834,16 +830,20 @@ public class HiC {
             return false;
         }
 
-        /* TODO Undo Zoom implementation mss2 _UZI
-        if(currentZoom != null) {
-            tempZoomState = new ZoomState(chr1OriginalName, chr2OriginalName, currentZoom.clone(), (int) xContext.getBinOrigin(),
-                    (int) yContext.getBinOrigin(), getScaleFactor(), resetZoom, ZoomCallType.GOTO);
-        }
-        */
+        Context preZoomXContext = xContext.deepCopy();
+        Context preZoomYContext = yContext.deepCopy();
 
-        currentZoom = newZoom;
-        xContext.setZoom(currentZoom);
-        yContext.setZoom(currentZoom);
+        double preZoomScaleFactor = getScaleFactor();
+
+        Matrix preZoomMatrix = getMatrix();
+
+        HiCZoom preZoomHiCZoom = currentZoom;
+
+        if (zoomCallType != ZoomCallType.UNDO) {
+            currentZoom = newZoom;
+            xContext.setZoom(currentZoom);
+            yContext.setZoom(currentZoom);
+        }
 
         if (scaleFactor > 0) {
             setScaleFactor(scaleFactor);
@@ -868,6 +868,32 @@ public class HiC {
                 xContext.setBinOrigin(genomeX);
                 yContext.setBinOrigin(genomeY);
                 break;
+            case UNDO:
+                if (preZoomHiCZoom != null) {
+                    double preZoomCenterBinX = preZoomXContext.getBinOrigin();
+                    double preZoomCenterBinY = preZoomYContext.getBinOrigin();
+
+                    int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
+                    int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
+
+                    System.out.println("Pre Zoom:");
+                    System.out.println(preZoomCenterBinX);
+                    System.out.println(preZoomCenterBinY);
+                    System.out.println(preZoomBinCountX);
+                    System.out.println(preZoomBinCountY);
+
+                    int postZoomBinCountX = newZD.getXGridAxis().getBinCount();
+                    int postZoomBinCountY = newZD.getYGridAxis().getBinCount();
+
+                    System.out.println("Post Zoom:");
+                    System.out.println(postZoomBinCountX);
+                    System.out.println(postZoomBinCountY);
+
+                    xContext.setBinOrigin(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX);
+                    yContext.setBinOrigin(preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
+                }
+
+                break;
         }
 
         // Notify HeatmapPanel render that zoom has changed. Render should update zoom slider once with previous range values
@@ -883,28 +909,16 @@ public class HiC {
         if (linkedMode && allowLocationBroadcast) {
             broadcastLocation();
         }
-        /*
-         TODO Undo Zoom implementation mss2 _UZI
-         if(zoomCallType == ZoomCallType.INITIAL || tempZoomState == null || chrXName.equals(Globals.CHR_ALL) || chrYName.equals(Globals.CHR_ALL)
-                 || tempZoomState.chr1Name.equals(Globals.CHR_ALL) || tempZoomState.chr2Name.equals(Globals.CHR_ALL)){
-             canRedoZoomChange = false;
-             canUndoZoomChange = false;
-         }
-         else {
-             // defauts for a normal zoom operation
-             canRedoZoomChange = false;
-             canUndoZoomChange = true;
-             previousZoomState = tempZoomState;
-         }
-         */
 
-        ZoomState newZoomState = new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast);
+        if (zoomCallType != ZoomCallType.UNDO) {
+            ZoomState newZoomState = new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, ZoomCallType.UNDO, allowLocationBroadcast);
 
-        if (zoomStateTracker.getCurrentZoomState() == null) {
-            this.zoomStateTracker.addZoomState(newZoomState);
-        } else if (!zoomStateTracker.getCurrentZoomState().equals(new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY,
-                scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast))) {
-            this.zoomStateTracker.addZoomState(newZoomState);
+            if (zoomStateTracker.getCurrentZoomState() == null) {
+                this.zoomStateTracker.addZoomState(newZoomState);
+            } else if (!zoomStateTracker.getCurrentZoomState().equals(new ZoomState(chrXName, chrYName, newZoom, genomeX, genomeY,
+                    scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast))) {
+                this.zoomStateTracker.addZoomState(newZoomState);
+            }
         }
 
         return true;
@@ -1272,7 +1286,7 @@ public class HiC {
         return feature2DHandler;
     }*/
 
-    public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
+    public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL, UNDO}
 
     public enum Unit {BP, FRAG}
 }

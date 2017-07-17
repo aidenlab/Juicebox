@@ -112,6 +112,10 @@ public class ZoomState {
         return this.scaleFactor;
     }
 
+    public void setScaleFactor(double newScaleFactor) {
+        this.scaleFactor = newScaleFactor;
+    }
+
     public boolean getResetZoom() {
         return this.resetZoom;
     }
@@ -123,4 +127,5 @@ public class ZoomState {
     public boolean getAllowLocationBroadcast() {
         return this.allowLocationBroadcast;
     }
+
 }
