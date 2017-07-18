@@ -797,6 +797,9 @@ public class HiC {
 //            return false;
 //        }
 
+        boolean isInterchromosomalZoom = !(xContext.getChromosome().equals(chromosomeHandler.getChr(chrXName)) &&
+                yContext.getChromosome().equals(chromosomeHandler.getChr(chrYName)));
+
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
             //We might end with All->All view, make sure normalization state is updated accordingly...
@@ -838,6 +841,7 @@ public class HiC {
         currentZoom = newZoom;
         xContext.setZoom(currentZoom);
         yContext.setZoom(currentZoom);
+
         if (scaleFactor > 0) {
             setScaleFactor(scaleFactor);
         } else {
@@ -862,18 +866,24 @@ public class HiC {
                 yContext.setBinOrigin(genomeY);
                 break;
             case UNDO:
-                if (preZoomHiCZoom != null) {
-                    double preZoomCenterBinX = preZoomXContext.getBinOrigin() + (superAdapter.getHeatmapPanel().getWidth() / 2) / getScaleFactor();
-                    double preZoomCenterBinY = preZoomYContext.getBinOrigin() + (superAdapter.getHeatmapPanel().getHeight() / 2) / getScaleFactor();
+                if (!isInterchromosomalZoom) {
+                    if (preZoomHiCZoom != null) {
+                        double preZoomHeatmapPanelBinCountX = superAdapter.getHeatmapPanel().getWidth() / getScaleFactor();
+                        double preZoomHeatmapPanelBinCountY = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();
+                        double preZoomCenterBinX = preZoomXContext.getBinOrigin() + preZoomHeatmapPanelBinCountX / 2;
+                        double preZoomCenterBinY = preZoomYContext.getBinOrigin() + preZoomHeatmapPanelBinCountY / 2;
 
-                    int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
-                    int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
+                        int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
+                        int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
 
-                    int postZoomBinCountX = newZD.getXGridAxis().getBinCount();
-                    int postZoomBinCountY = newZD.getYGridAxis().getBinCount();
+                        int postZoomBinCountX = newZD.getXGridAxis().getBinCount();
+                        int postZoomBinCountY = newZD.getYGridAxis().getBinCount();
 
-                    center(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX,
-                            preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
+                        center(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX,
+                                preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
+                    }
+                } else {
+                    center(binX, binY);
                 }
 
                 break;

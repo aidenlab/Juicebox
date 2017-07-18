@@ -42,13 +42,6 @@ public class Context {
         this.chromosome = chromosome;
     }
 
-    public Context deepCopy() {
-        Context copy = new Context(getChromosome());
-        copy.setBinOrigin(getBinOrigin());
-        copy.setZoom(getZoom());
-        return copy;
-    }
-
     public double getBinOrigin() {
         return binOrigin;
     }

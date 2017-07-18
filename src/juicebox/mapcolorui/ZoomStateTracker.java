@@ -53,7 +53,7 @@ public class ZoomStateTracker {
     }
 
     public boolean validateUndoZoom() {
-        return undoZoomStates.size() > 0;
+        return undoZoomStates.size() > 1;
     }
 
     public boolean validateRedoZoom() {
