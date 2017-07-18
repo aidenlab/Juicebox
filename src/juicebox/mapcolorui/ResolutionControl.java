@@ -259,7 +259,6 @@ public class ResolutionControl extends JPanel {
                         hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
                                 true);
                     } else {
-
                         if (hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, xGenome, yGenome, -1, true,
                                 HiC.ZoomCallType.STANDARD, true)) {
                             lastValue = resolutionSlider.getValue();

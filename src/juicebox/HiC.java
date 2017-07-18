@@ -830,21 +830,14 @@ public class HiC {
             return false;
         }
 
-        Context preZoomXContext = xContext.deepCopy();
-        Context preZoomYContext = yContext.deepCopy();
-
-        double preZoomScaleFactor = getScaleFactor();
-
         Matrix preZoomMatrix = getMatrix();
-
+        Context preZoomXContext = xContext;
+        Context preZoomYContext = yContext;
         HiCZoom preZoomHiCZoom = currentZoom;
 
-        if (zoomCallType != ZoomCallType.UNDO) {
-            currentZoom = newZoom;
-            xContext.setZoom(currentZoom);
-            yContext.setZoom(currentZoom);
-        }
-
+        currentZoom = newZoom;
+        xContext.setZoom(currentZoom);
+        yContext.setZoom(currentZoom);
         if (scaleFactor > 0) {
             setScaleFactor(scaleFactor);
         } else {
@@ -870,27 +863,17 @@ public class HiC {
                 break;
             case UNDO:
                 if (preZoomHiCZoom != null) {
-                    double preZoomCenterBinX = preZoomXContext.getBinOrigin();
-                    double preZoomCenterBinY = preZoomYContext.getBinOrigin();
+                    double preZoomCenterBinX = preZoomXContext.getBinOrigin() + (superAdapter.getHeatmapPanel().getWidth() / 2) / getScaleFactor();
+                    double preZoomCenterBinY = preZoomYContext.getBinOrigin() + (superAdapter.getHeatmapPanel().getHeight() / 2) / getScaleFactor();
 
                     int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
                     int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
 
-                    System.out.println("Pre Zoom:");
-                    System.out.println(preZoomCenterBinX);
-                    System.out.println(preZoomCenterBinY);
-                    System.out.println(preZoomBinCountX);
-                    System.out.println(preZoomBinCountY);
-
                     int postZoomBinCountX = newZD.getXGridAxis().getBinCount();
                     int postZoomBinCountY = newZD.getYGridAxis().getBinCount();
 
-                    System.out.println("Post Zoom:");
-                    System.out.println(postZoomBinCountX);
-                    System.out.println(postZoomBinCountY);
-
-                    xContext.setBinOrigin(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX);
-                    yContext.setBinOrigin(preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
+                    center(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX,
+                            preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
                 }
 
                 break;
