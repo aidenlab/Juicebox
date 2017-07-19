@@ -216,9 +216,7 @@ public class AssemblyFragmentHandler {
         int indexId = Integer.parseInt(originalFeature.getAttribute(scaffoldIndexId));
         List<ContigProperty> splitContigs = splitContig(originalFeature, debrisContig, originalContig);
 
-        for (ContigProperty contigProperty : splitContigs) {
-            System.out.println(contigProperty);
-        }
+
         addContigProperties(originalContig, splitContigs);
         addScaffoldProperties(indexId, inverted, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
     }
@@ -360,10 +358,7 @@ public class AssemblyFragmentHandler {
             splitContigsIds.add(multiplier * contigProperty.getIndexId());
 
         }
-        for (int i : splitContigsIds) {
-            System.out.print(i + "\t");
-        }
-        System.out.println();
+
         shiftScaffoldProperties(splitIndex);
 
         scaffoldProperties.get(rowNum).addAll(posNum, splitContigsIds);
@@ -393,7 +388,6 @@ public class AssemblyFragmentHandler {
 
         List<ContigProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
         for (ContigProperty contigProperty : fromInitialContig) {
-            System.out.println(contigProperty);
         }
         if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are framents past the one you are splitting
             List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
@@ -405,7 +399,6 @@ public class AssemblyFragmentHandler {
                     newContigName = newContigName.replaceFirst("_\\d+", "_" + (contigProperty.getFragmentNumber() + 2));
                 }
                 contigProperty.setName(newContigName);
-                System.out.println(contigProperty);
             }
         }
 
@@ -424,7 +417,6 @@ public class AssemblyFragmentHandler {
     public List<ContigProperty> findContigsSplitFromInitial(ContigProperty originalContig) {
         List<ContigProperty> contigPropertiesFromSameInitial = new ArrayList<>();
         String originalContigName = originalContig.getOriginalContigName();
-        System.out.println(originalContigName);
 
         for (ContigProperty contigProperty : contigProperties) {
             if (contigProperty.getName().contains(originalContigName))

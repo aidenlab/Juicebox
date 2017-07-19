@@ -34,7 +34,6 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.ExpectedValueFunction;
 import juicebox.data.Matrix;
 import juicebox.data.MatrixZoomData;
-import juicebox.data.feature.Feature;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -58,7 +57,6 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -1188,13 +1186,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void removeSelection() {
         updateSelectedFeatures(false);
         selectedFeatures.clear();
+        superAdapter.getEditLayer().clearAnnotations();
+        if (superAdapter.getActiveLayerHandler() != superAdapter.getMainLayer()) {
+            superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
+            superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+        }
         HiCGlobals.splitModeEnabled = false;
         superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
         removeHighlightedFeature();
 
         Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
         Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-        superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+        superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
         repaint();
     }
 
@@ -1642,6 +1645,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Corners for resize annotation
 
                 List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                    HiCGlobals.splitModeEnabled = false;
+                    superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
+                    superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                    superAdapter.getEditLayer().clearAnnotations();
+                }
                 if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
                     HiCGlobals.splitModeEnabled = true;
                 }
@@ -1735,10 +1744,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
                 Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-                superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                 repaint();
 
-                Feature2D tempSelectedGroup = superAdapter.getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT).addTempSelectedGroup(selectedFeatures, hic);
+                Feature2D tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
 
                 addHighlightedFeature(tempSelectedGroup);
 
@@ -2162,7 +2171,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (currentFeature != null) {
 
                     boolean resizeable = (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) && (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.GROUP);
-                    if (activelyEditingAssembly){resizeable=(resizeable && HiCGlobals.splitModeEnabled);};
+                    if (activelyEditingAssembly) {
+                        resizeable = (resizeable && HiCGlobals.splitModeEnabled);
+                    }
                     if (resizeable) {
                         Rectangle loop = currentFeature.getRectangle();
                         Point mousePoint = e.getPoint();
@@ -2258,7 +2269,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         y - asmFragment.getRectangle().getMinY() > RESIZE_SNAP + 1 &&
                                         asmFragment.getRectangle().getMaxY() - y > RESIZE_SNAP + 1){
                                     setCursor(MainWindow.scissorCursor);
-                                    promptedAssemblyAction = promptedAssemblyAction.ANNOTATE;
+                                    promptedAssemblyAction = PromptedAssemblyAction.ANNOTATE;
                                 }
                             }
                         }
@@ -2276,7 +2287,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     debrisFeatureCotainer.getRectangle().getY() - y < minDist){
                             //TODO: accept cut here
                             //setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-                            promptedAssemblyAction = promptedAssemblyAction.CUT;
+                            promptedAssemblyAction = PromptedAssemblyAction.CUT;
                         }
                     }
                 }

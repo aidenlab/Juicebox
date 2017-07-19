@@ -26,7 +26,6 @@ package juicebox.assembly;
 
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2D;
 
 import java.util.List;
@@ -35,8 +34,6 @@ import java.util.List;
  * Created by nathanielmusial on 7/10/17.
  */
 public class AssemblyOperationExecutor {
-
-    private static SuperAdapter superAdapter;
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();

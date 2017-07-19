@@ -183,7 +183,41 @@ public class AssemblyHeatmapHandler {
         for (Feature2D feature2D : intersectingFeatures) {
             contigs.add(feature2D.toContig());
         }
+//        System.out.println(contigs.size());
         Collections.sort(contigs);
+
+        /* Testing for Tile issue  */
+//        contigs = mergeRedundantContiguousContigs(new ArrayList<>(new HashSet(contigs)));
+
+//        Set<Pair<Integer,Integer>> tilesToLoad = new HashSet<Pair<Integer,Integer>>();
+
+//        System.out.println(contigs.size());
+
+        /*
+        for (int i=0 ;i<contigs.size();i++) {
+
+            for (int j=i; j<contigs.size();j++) {
+                int cStart1 = contigs.get(i).getStart1() / zoom.getBinSize() / blockBinCount;
+                int cEnd1 = contigs.get(i).getEnd1() / zoom.getBinSize() / blockBinCount;
+                int cStart2 = contigs.get(j).getStart1() / zoom.getBinSize() / blockBinCount;
+                int cEnd2 = contigs.get(j).getEnd1() / zoom.getBinSize() / blockBinCount;
+
+                for (int r = cStart1; r <= cEnd1; r++) {
+                    for (int c = cStart2; c <= cEnd2; c++) {
+//                        System.out.println(r+" "+c);
+                        tilesToLoad.add(new Pair<Integer,Integer>(r,c));
+//                        mzd.populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+                    }
+                }
+            }
+        }
+//        List<Pair<Integer,Integer>> tempList= new ArrayList<Pair<Integer,Integer>>(tilesToLoad);
+        for(Pair<Integer,Integer> tileToLoad : tilesToLoad){
+            System.out.println(tileToLoad.getFirst()+" "+tileToLoad.getSecond());
+            mzd.populateBlocksToLoad(tileToLoad.getFirst(), tileToLoad.getSecond(), no, blockList, blocksToLoad);
+        }
+//        */
+
         return contigs;
     }
 

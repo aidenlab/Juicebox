@@ -847,7 +847,7 @@ public class SuperAdapter {
         return handlers;
     }
 
-    public AnnotationLayerHandler getAssemblyLayerHandler(AnnotationLayer.LayerType layerType) {
+    private AnnotationLayerHandler getAssemblyLayerHandler(AnnotationLayer.LayerType layerType) {
         for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers()) {
             if (annotationLayerHandler.getAnnotationLayerType() == layerType) {
                 return annotationLayerHandler;
@@ -867,30 +867,15 @@ public class SuperAdapter {
     }
 
     public AnnotationLayerHandler getMainLayer() {
-        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
-            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN) {
-                return annotationLayerHandler;
-            }
-        }
-        return null;
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.MAIN);
     }
 
     public AnnotationLayerHandler getGroupLayer() {
-        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
-            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP) {
-                return annotationLayerHandler;
-            }
-        }
-        return null;
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.GROUP);
     }
 
     public AnnotationLayerHandler getEditLayer() {
-        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
-            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
-                return annotationLayerHandler;
-            }
-        }
-        return null;
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT);
     }
 
     public AnnotationLayerHandler createNewLayer() {
