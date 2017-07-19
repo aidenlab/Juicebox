@@ -690,20 +690,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miUndoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                hic.undoZoomState();
+                hic.undoZoomAction();
             }
         });
-        miUndoZoom.setEnabled(hic.getZoomStateTracker().validateUndoZoom());
+        miUndoZoom.setEnabled(hic.getZoomActionTracker().validateUndoZoom());
         menu.add(miUndoZoom);
 
         final JMenuItem miRedoZoom = new JMenuItem("Redo Zoom");
         miRedoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                hic.redoZoomState();
+                hic.redoZoomAction();
             }
         });
-        miRedoZoom.setEnabled(hic.getZoomStateTracker().validateRedoZoom());
+        miRedoZoom.setEnabled(hic.getZoomActionTracker().validateRedoZoom());
         menu.add(miRedoZoom);
 
         final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
@@ -1517,7 +1517,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (e.isPopupTrigger()) {
                 if (e.isAltDown() && e.isShiftDown()) {
                     System.out.println("Redo Zoom");
-                    hic.redoZoomState();
+                    hic.redoZoomAction();
                 } else if (activelyEditingAssembly) {
                     getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 } else {
@@ -1526,7 +1526,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Alt down for zoom
             } else if (e.isAltDown() && e.isShiftDown()) {
                 System.out.println("Undo Zoom");
-                hic.undoZoomState();
+                hic.undoZoomAction();
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
@@ -1974,14 +1974,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (newZoom.equals(currentZoom)) {
                             double mult = eF.isAltDown() ? 0.5 : 2.0;
                             double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
+
+                            String chrXName = hic.getXContext().getChromosome().getName();
+                            String chrYName = hic.getYContext().getChromosome().getName();
+
+                            int genomeX = hic.getXContext().getGenomicPositionOrigin();
+                            int genomeY = hic.getYContext().getGenomicPositionOrigin();
+
+                            boolean resetZoom = Boolean.TRUE;
+                            boolean allowLocationBraodcast = Boolean.TRUE;
+
+//                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
+//                                    newScaleFactor, resetZoom, HiC.ZoomCallType.STANDARD, allowLocationBraodcast);
                             hic.setScaleFactor(newScaleFactor);
                             hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
                             hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
                             mainWindow.repaint();
-
-                            ZoomState newZoomState = hic.getZoomStateTracker().getCurrentZoomState().deepCopy();
-                            newZoomState.setScaleFactor(newScaleFactor);
-                            hic.getZoomStateTracker().addZoomState(newZoomState);
+//
+                            ZoomAction newZoomAction = hic.getZoomActionTracker().getCurrentZoomAction().deepCopy();
+                            newZoomAction.setScaleFactor(newScaleFactor);
+                            hic.getZoomActionTracker().addZoomState(newZoomAction);
 
                         } else {
                             Runnable runnable = new Runnable() {

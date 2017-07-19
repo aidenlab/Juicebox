@@ -30,7 +30,7 @@ import juicebox.windowui.HiCZoom;
 /**
  * Created by ranganmostofa on 7/8/17.
  */
-public class ZoomState {
+public class ZoomAction {
     private String chromosomeX, chromosomeY;
     private HiCZoom hiCZoom;
     private int genomeX, genomeY;
@@ -39,8 +39,8 @@ public class ZoomState {
     private HiC.ZoomCallType zoomCallType;
     private boolean allowLocationBroadcast;
 
-    public ZoomState(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
-                     double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
+    public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
+                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
         this.chromosomeX = chromosomeX;
         this.chromosomeY = chromosomeY;
         this.hiCZoom = hiCZoom;
@@ -52,7 +52,7 @@ public class ZoomState {
         this.allowLocationBroadcast = allowLocationBroadcast;
     }
 
-    public boolean equals(ZoomState other) {
+    public boolean equals(ZoomAction other) {
         if (sameObject(other)) return true;
         if (other != null) {
             if (this.chromosomeX.equals(other.getChromosomeX())) {
@@ -78,13 +78,12 @@ public class ZoomState {
         return false;
     }
 
-    public boolean sameObject(ZoomState other) {
+    public boolean sameObject(ZoomAction other) {
         return this == other;
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public ZoomState deepCopy() {
-        return new ZoomState(chromosomeX, chromosomeY, hiCZoom, genomeX, genomeY, scaleFactor,
+    public ZoomAction deepCopy() {
+        return new ZoomAction(chromosomeX, chromosomeY, hiCZoom, genomeX, genomeY, scaleFactor,
                 resetZoom, zoomCallType, allowLocationBroadcast);
     }
 
