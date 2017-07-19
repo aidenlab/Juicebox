@@ -109,7 +109,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
-  
+
     /**
      * Initialize heatmap panel
      *
@@ -690,6 +690,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miUndoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
                 hic.undoZoomAction();
             }
         });
@@ -1526,6 +1527,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 // Alt down for zoom
             } else if (e.isAltDown() && e.isShiftDown()) {
                 System.out.println("Undo Zoom");
+                hic.setCursorPoint(new Point(e.getX(), e.getY()));
                 hic.undoZoomAction();
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
@@ -1930,7 +1932,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
                 hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
-                        HiC.ZoomCallType.STANDARD, true);
+                        HiC.ZoomCallType.STANDARD, true, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }

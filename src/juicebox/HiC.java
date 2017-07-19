@@ -161,7 +161,7 @@ public class HiC {
         unsafeActuallySetZoomAndLocation(currentZoomAction.getChromosomeX(), currentZoomAction.getChromosomeY(),
                 currentZoomAction.getHiCZoom(), currentZoomAction.getGenomeX(), currentZoomAction.getGenomeY(),
                 currentZoomAction.getScaleFactor(), currentZoomAction.getResetZoom(), currentZoomAction.getZoomCallType(),
-                currentZoomAction.getAllowLocationBroadcast());
+                currentZoomAction.getAllowLocationBroadcast(), false);
     }
 
     public void redoZoomAction() {
@@ -170,7 +170,7 @@ public class HiC {
         unsafeActuallySetZoomAndLocation(currentZoomAction.getChromosomeX(), currentZoomAction.getChromosomeY(),
                 currentZoomAction.getHiCZoom(), currentZoomAction.getGenomeX(), currentZoomAction.getGenomeY(),
                 currentZoomAction.getScaleFactor(), currentZoomAction.getResetZoom(), currentZoomAction.getZoomCallType(),
-                currentZoomAction.getAllowLocationBroadcast());
+                currentZoomAction.getAllowLocationBroadcast(), false);
     }
 
     public double getScaleFactor() {
@@ -669,7 +669,7 @@ public class HiC {
             newZoom = new HiCZoom(HiC.valueOfUnit(unitName), binSize);
         }
         unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, (int) xOrigin, (int) yOrigin, scaleFactor,
-                true, zoomCallType, allowLocationBroadcast);
+                true, zoomCallType, allowLocationBroadcast, true);
     }
 
     private boolean safeActuallySetZoomAndLocation(HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
@@ -689,7 +689,7 @@ public class HiC {
             @Override
             public void run() {
                 returnVal[0] = unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                        resetZoom, zoomCallType, allowLocationBroadcast);
+                        resetZoom, zoomCallType, allowLocationBroadcast, true);
             }
         }, message);
         return returnVal[0];
@@ -774,12 +774,13 @@ public class HiC {
      * @param genomeX
      * @param genomeY
      * @param scaleFactor (pass -1 if scaleFactor should be calculated)
+     * @param storeZoomAction (pass false if function is being used to undo/redo zoom, true otherwise)
      * @return
      */
     public boolean unsafeActuallySetZoomAndLocation(String chrXName, String chrYName,
                                                     HiCZoom newZoom, int genomeX, int genomeY, double scaleFactor,
                                                     boolean resetZoom, ZoomCallType zoomCallType,
-                                                    boolean allowLocationBroadcast) {
+                                                    boolean allowLocationBroadcast, boolean storeZoomAction) {
 
         if (dataset == null) return false;  // No data in view
         //Check this zoom operation is possible, if not, fail it here:
@@ -825,6 +826,7 @@ public class HiC {
         }
 
         Matrix preZoomMatrix = getMatrix();
+        double preZoomScaleFactor = getScaleFactor();
         Context preZoomXContext = xContext;
         Context preZoomYContext = yContext;
         HiCZoom preZoomHiCZoom = currentZoom;
@@ -843,30 +845,20 @@ public class HiC {
 
         int binX = newZD.getXGridAxis().getBinNumberForGenomicPosition(genomeX);
         int binY = newZD.getYGridAxis().getBinNumberForGenomicPosition(genomeY);
+
         switch (zoomCallType) {
             case INITIAL:
             case STANDARD:
-                center(binX, binY);
-                break;
-            case DRAG:
-                xContext.setBinOrigin(binX);
-                yContext.setBinOrigin(binY);
-                break;
-            case DIRECT:
-                xContext.setBinOrigin(genomeX);
-                yContext.setBinOrigin(genomeY);
-                break;
-            case REVERSE:
-                if (isInterchromosomalZoom) {
+                if (storeZoomAction || isInterchromosomalZoom) {
                     center(binX, binY);
                     break;
                 }
-
                 if (preZoomHiCZoom != null) {
-                    double preZoomHeatmapPanelBinCountX = superAdapter.getHeatmapPanel().getWidth() / getScaleFactor();
-                    double preZoomHeatmapPanelBinCountY = superAdapter.getHeatmapPanel().getHeight() / getScaleFactor();
-                    double preZoomCenterBinX = preZoomXContext.getBinOrigin() + preZoomHeatmapPanelBinCountX / 2;
-                    double preZoomCenterBinY = preZoomYContext.getBinOrigin() + preZoomHeatmapPanelBinCountY / 2;
+
+                    double xMousePos = getCursorPoint().getX();
+                    double yMousePos = getCursorPoint().getY();
+                    double preZoomCenterBinX = preZoomXContext.getBinOrigin() + xMousePos / preZoomScaleFactor;
+                    double preZoomCenterBinY = preZoomYContext.getBinOrigin() + yMousePos / preZoomScaleFactor;
 
                     int preZoomBinCountX = preZoomMatrix.getZoomData(preZoomHiCZoom).getXGridAxis().getBinCount();
                     int preZoomBinCountY = preZoomMatrix.getZoomData(preZoomHiCZoom).getYGridAxis().getBinCount();
@@ -876,8 +868,15 @@ public class HiC {
 
                     center(preZoomCenterBinX / preZoomBinCountX * postZoomBinCountX,
                             preZoomCenterBinY / preZoomBinCountY * postZoomBinCountY);
+                    break;
                 }
-
+            case DRAG:
+                xContext.setBinOrigin(binX);
+                yContext.setBinOrigin(binY);
+                break;
+            case DIRECT:
+                xContext.setBinOrigin(genomeX);
+                yContext.setBinOrigin(genomeY);
                 break;
         }
 
@@ -895,15 +894,10 @@ public class HiC {
             broadcastLocation();
         }
 
-        if (zoomCallType != ZoomCallType.REVERSE) {
-            ZoomAction newZoomAction = new ZoomAction(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor, resetZoom, ZoomCallType.REVERSE, allowLocationBroadcast);
-
-            if (zoomActionTracker.getCurrentZoomAction() == null) {
-                this.zoomActionTracker.addZoomState(newZoomAction);
-            } else if (!zoomActionTracker.getCurrentZoomAction().equals(new ZoomAction(chrXName, chrYName, newZoom, genomeX, genomeY,
-                    scaleFactor, resetZoom, zoomCallType, allowLocationBroadcast))) {
-                this.zoomActionTracker.addZoomState(newZoomAction);
-            }
+        if (storeZoomAction) {
+            ZoomAction newZoomAction = new ZoomAction(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
+                    resetZoom, zoomCallType, allowLocationBroadcast);
+            this.zoomActionTracker.addZoomState(newZoomAction);
         }
 
         return true;

@@ -365,7 +365,7 @@ public class SuperAdapter {
 
         }
         hic.unsafeActuallySetZoomAndLocation(hic.getXContext().getChromosome().toString(), hic.getYContext().getChromosome().toString(),
-                initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
+                initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true, true);
     }
 
     public void refresh() {
