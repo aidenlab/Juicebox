@@ -845,6 +845,7 @@ public class HiC {
         } else {
             int maxBinCount = Math.max(newZD.getXGridAxis().getBinCount(), newZD.getYGridAxis().getBinCount());
             double defaultScaleFactor = Math.max(1.0, (double) superAdapter.getHeatmapPanel().getMinimumDimension() / maxBinCount);
+            System.out.println(defaultScaleFactor);
             setScaleFactor(defaultScaleFactor);
         }
 

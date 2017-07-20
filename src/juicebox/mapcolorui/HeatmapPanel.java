@@ -1969,11 +1969,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
                         final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
-                        // perform superzoom
+                        // perform superzoom / normal zoom / reverse-superzoom
                         if (newZoom.equals(currentZoom)) {
                             double mult = eF.isAltDown() ? 0.5 : 2.0;
-                            System.out.println(mult);
-                            double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
+                            // if newScaleFactor > 1.0, performs superzoom
+                            // if newScaleFactor = 1.0, performs normal zoom
+                            // if newScaleFactor < 1.0, performs reverse superzoom
+                            double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
+
+                            System.out.println(newScaleFactor);
 
                             String chrXName = hic.getXContext().getChromosome().getName();
                             String chrYName = hic.getYContext().getChromosome().getName();
