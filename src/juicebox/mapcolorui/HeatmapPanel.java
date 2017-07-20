@@ -1978,20 +1978,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             String chrXName = hic.getXContext().getChromosome().getName();
                             String chrYName = hic.getYContext().getChromosome().getName();
 
-                            int genomeX = hic.getXContext().getGenomicPositionOrigin();
-                            int genomeY = hic.getYContext().getGenomicPositionOrigin();
+                            int genomeX = Math.max(0, (int) (centerBinX) * newZoom.getBinSize());
+                            int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
 
                             hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
                                     newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, true);
-
-//                            hic.setScaleFactor(newScaleFactor);
-//                            hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
-//                            hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
-//                            mainWindow.repaint();
-//
-//                            ZoomAction newZoomAction = hic.getZoomActionTracker().getCurrentZoomAction().deepCopy();
-//                            newZoomAction.setScaleFactor(newScaleFactor);
-//                            hic.getZoomActionTracker().addZoomState(newZoomAction);
 
                         } else {
                             Runnable runnable = new Runnable() {
