@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.mapcolorui;
+package juicebox.data;
 
 import juicebox.HiC;
 import juicebox.windowui.HiCZoom;
@@ -37,10 +37,9 @@ public class ZoomAction {
     private double scaleFactor;
     private boolean resetZoom;
     private HiC.ZoomCallType zoomCallType;
-    private boolean allowLocationBroadcast;
 
     public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
-                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, boolean allowLocationBroadcast) {
+                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType) {
         this.chromosomeX = chromosomeX;
         this.chromosomeY = chromosomeY;
         this.hiCZoom = hiCZoom;
@@ -49,7 +48,6 @@ public class ZoomAction {
         this.scaleFactor = scaleFactor;
         this.resetZoom = resetZoom;
         this.zoomCallType = zoomCallType;
-        this.allowLocationBroadcast = allowLocationBroadcast;
     }
 
     public boolean equals(ZoomAction other) {
@@ -63,9 +61,7 @@ public class ZoomAction {
                                 if (this.scaleFactor == other.getScaleFactor()) {
                                     if (this.resetZoom == other.getResetZoom()) {
                                         if (this.zoomCallType == other.getZoomCallType()) {
-                                            if (this.allowLocationBroadcast == other.getAllowLocationBroadcast()) {
                                                 return true;
-                                            }
                                         }
                                     }
                                 }
@@ -83,8 +79,8 @@ public class ZoomAction {
     }
 
     public ZoomAction deepCopy() {
-        return new ZoomAction(chromosomeX, chromosomeY, hiCZoom, genomeX, genomeY, scaleFactor,
-                resetZoom, zoomCallType, allowLocationBroadcast);
+        return new ZoomAction(chromosomeX, chromosomeY, hiCZoom.clone(), genomeX, genomeY, scaleFactor,
+                resetZoom, zoomCallType);
     }
 
     public String getChromosomeX() {
@@ -121,10 +117,6 @@ public class ZoomAction {
 
     public HiC.ZoomCallType getZoomCallType() {
         return this.zoomCallType;
-    }
-
-    public boolean getAllowLocationBroadcast() {
-        return this.allowLocationBroadcast;
     }
 
 }

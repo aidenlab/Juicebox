@@ -29,8 +29,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.ZoomAction;
-import juicebox.mapcolorui.ZoomActionTracker;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
@@ -131,6 +129,7 @@ public class HiC {
         resourceTree = null;
         encodeAction = null;
         normalizationType = NormalizationType.NONE;
+        zoomActionTracker.clear();
         clearFeatures();
     }
 
@@ -155,22 +154,28 @@ public class HiC {
         // feature2DHandler.clearLists();
     }
 
+    /**
+     * Use setCursorPoint() to set cursorPoint to the last known mouse click position before calling this method
+     */
     public void undoZoomAction() {
         zoomActionTracker.undoZoom();
         ZoomAction currentZoomAction = zoomActionTracker.getCurrentZoomAction();
         unsafeActuallySetZoomAndLocation(currentZoomAction.getChromosomeX(), currentZoomAction.getChromosomeY(),
                 currentZoomAction.getHiCZoom(), currentZoomAction.getGenomeX(), currentZoomAction.getGenomeY(),
                 currentZoomAction.getScaleFactor(), currentZoomAction.getResetZoom(), currentZoomAction.getZoomCallType(),
-                currentZoomAction.getAllowLocationBroadcast(), false);
+                true, false);
     }
 
+    /**
+     * Use setCursorPoint() to set cursorPoint to the last known mouse click position before calling this method
+     */
     public void redoZoomAction() {
         zoomActionTracker.redoZoom();
         ZoomAction currentZoomAction = zoomActionTracker.getCurrentZoomAction();
         unsafeActuallySetZoomAndLocation(currentZoomAction.getChromosomeX(), currentZoomAction.getChromosomeY(),
                 currentZoomAction.getHiCZoom(), currentZoomAction.getGenomeX(), currentZoomAction.getGenomeY(),
                 currentZoomAction.getScaleFactor(), currentZoomAction.getResetZoom(), currentZoomAction.getZoomCallType(),
-                currentZoomAction.getAllowLocationBroadcast(), false);
+                true, false);
     }
 
     public double getScaleFactor() {
@@ -789,7 +794,7 @@ public class HiC {
 //            return false;
 //        }
 
-        boolean isInterchromosomalZoom = !(xContext.getChromosome().equals(chromosomeHandler.getChr(chrXName)) &&
+        boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChr(chrXName)) &&
                 yContext.getChromosome().equals(chromosomeHandler.getChr(chrYName)));
 
         if (chrXName.length() > 0 && chrYName.length() > 0) {
@@ -849,14 +854,15 @@ public class HiC {
         switch (zoomCallType) {
             case INITIAL:
             case STANDARD:
-                if (storeZoomAction || isInterchromosomalZoom) {
+                if (storeZoomAction || chromosomesChanged) {
                     center(binX, binY);
                     break;
                 }
-                if (preZoomHiCZoom != null) {
 
-                    double xMousePos = getCursorPoint().getX();
-                    double yMousePos = getCursorPoint().getY();
+                if (preZoomHiCZoom != null && getCursorPoint() != null) {
+
+                    double xMousePos = cursorPoint.getX();
+                    double yMousePos = cursorPoint.getY();
                     double preZoomCenterBinX = preZoomXContext.getBinOrigin() + xMousePos / preZoomScaleFactor;
                     double preZoomCenterBinY = preZoomYContext.getBinOrigin() + yMousePos / preZoomScaleFactor;
 
@@ -896,8 +902,12 @@ public class HiC {
 
         if (storeZoomAction) {
             ZoomAction newZoomAction = new ZoomAction(chrXName, chrYName, newZoom, genomeX, genomeY, scaleFactor,
-                    resetZoom, zoomCallType, allowLocationBroadcast);
-            this.zoomActionTracker.addZoomState(newZoomAction);
+                    resetZoom, zoomCallType);
+            if (zoomActionTracker.getCurrentZoomAction() == null) {
+                this.zoomActionTracker.addZoomState(newZoomAction);
+            } else if (!zoomActionTracker.getCurrentZoomAction().equals(newZoomAction)) {
+                this.zoomActionTracker.addZoomState(newZoomAction);
+            }
         }
 
         return true;

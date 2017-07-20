@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.mapcolorui;
+package juicebox.data;
 
 import java.util.Stack;
 
@@ -30,6 +30,7 @@ import java.util.Stack;
  * Created by ranganmostofa on 7/8/17.
  */
 public class ZoomActionTracker {
+    private final int stackSizeLimit = 100;
     private ZoomAction currentZoomAction;
     private Stack<ZoomAction> undoZoomActions = new Stack<>();
     private Stack<ZoomAction> redoZoomActions = new Stack<>();
@@ -64,6 +65,15 @@ public class ZoomActionTracker {
         undoZoomActions.add(newZoomAction);
         setCurrentZoomAction(undoZoomActions.peek());
         redoZoomActions.clear();
+        if (undoZoomActions.size() > stackSizeLimit) {
+            undoZoomActions.remove(0);
+        }
+    }
+
+    public void clear() {
+        this.currentZoomAction = null;
+        this.undoZoomActions.clear();
+        this.redoZoomActions.clear();
     }
 
     public boolean equals(ZoomActionTracker other) {
@@ -125,5 +135,9 @@ public class ZoomActionTracker {
 
     private void setRedoZoomActions(Stack<ZoomAction> redoZoomActions) {
         this.redoZoomActions = redoZoomActions;
+    }
+
+    private int getStackSizeLimit() {
+        return this.stackSizeLimit;
     }
 }

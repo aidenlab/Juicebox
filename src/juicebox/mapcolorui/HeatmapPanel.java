@@ -690,6 +690,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miUndoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("Undo Zoom");
                 hic.setCursorPoint(new Point(xMousePos, yMousePos));
                 hic.undoZoomAction();
             }
@@ -701,6 +702,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miRedoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("Redo Zoom");
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
                 hic.redoZoomAction();
             }
         });
@@ -1516,19 +1519,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             // Priority is right click
             if (e.isPopupTrigger()) {
-                if (e.isAltDown() && e.isShiftDown()) {
-                    System.out.println("Redo Zoom");
-                    hic.redoZoomAction();
-                } else if (activelyEditingAssembly) {
+                if (activelyEditingAssembly) {
                     getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 } else {
                     getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 }
                 // Alt down for zoom
-            } else if (e.isAltDown() && e.isShiftDown()) {
-                System.out.println("Undo Zoom");
-                hic.setCursorPoint(new Point(e.getX(), e.getY()));
-                hic.undoZoomAction();
             } else if (e.isAltDown()) {
                 dragMode = DragMode.ZOOM;
                 // Shift down for custom annotations
@@ -1962,7 +1958,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 } else if (eF.getClickCount() == 2) {
 
-                    // Double click,  zoom and center on click location
+                    // Double click, zoom and center on click location
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
                         final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
@@ -1973,8 +1969,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
                         final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
+                        // perform superzoom
                         if (newZoom.equals(currentZoom)) {
                             double mult = eF.isAltDown() ? 0.5 : 2.0;
+                            System.out.println(mult);
                             double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
 
                             String chrXName = hic.getXContext().getChromosome().getName();
@@ -1983,19 +1981,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             int genomeX = hic.getXContext().getGenomicPositionOrigin();
                             int genomeY = hic.getYContext().getGenomicPositionOrigin();
 
-                            boolean resetZoom = Boolean.TRUE;
-                            boolean allowLocationBraodcast = Boolean.TRUE;
+                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
+                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, true);
 
-//                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
-//                                    newScaleFactor, resetZoom, HiC.ZoomCallType.STANDARD, allowLocationBraodcast);
-                            hic.setScaleFactor(newScaleFactor);
-                            hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
-                            hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
-                            mainWindow.repaint();
+//                            hic.setScaleFactor(newScaleFactor);
+//                            hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
+//                            hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
+//                            mainWindow.repaint();
 //
-                            ZoomAction newZoomAction = hic.getZoomActionTracker().getCurrentZoomAction().deepCopy();
-                            newZoomAction.setScaleFactor(newScaleFactor);
-                            hic.getZoomActionTracker().addZoomState(newZoomAction);
+//                            ZoomAction newZoomAction = hic.getZoomActionTracker().getCurrentZoomAction().deepCopy();
+//                            newZoomAction.setScaleFactor(newScaleFactor);
+//                            hic.getZoomActionTracker().addZoomState(newZoomAction);
 
                         } else {
                             Runnable runnable = new Runnable() {
