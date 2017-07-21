@@ -309,7 +309,8 @@ public class AssemblyFragmentHandler {
                 //    50-100, 40-50, 0-40
                 newInitialStart = newInitialStart - contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                contigProperty.toggleInversion(); //toggles inversion of split contig
+                if (contigProperty.isInverted())
+                    contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialEnd = newInitialStart;
             }
         } else { //not inverted
@@ -319,6 +320,8 @@ public class AssemblyFragmentHandler {
             for (ContigProperty contigProperty : splitContig) {
                 newInitialEnd = newInitialEnd + contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
+                if (contigProperty.isInverted())
+                    contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialStart = newInitialEnd;
             }
         }
