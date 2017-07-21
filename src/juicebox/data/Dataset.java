@@ -275,8 +275,13 @@ public class Dataset {
         return restrictionEnzyme;
     }
 
-    public void setRestrictionEnzyme(int nSites) {
+    void setRestrictionEnzyme(int nSites) {
         restrictionEnzyme = findRestrictionEnzyme(nSites);
+    }
+
+    private String getSoftware() {
+        if (attributes != null) return attributes.get("software");
+        else return null;
     }
 
     public String getStatistics() {
@@ -338,6 +343,10 @@ public class Dataset {
             if (!value.isEmpty())
                 newStats += "<tr><td>Experiment Description:</td><td>" + value + "</td></tr>";
         }
+        if (getSoftware() != null)  {
+            newStats += "<tr> <td> Software: </td><td>" + getSoftware() + "</td></tr>";
+        }
+
         newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
                 "        <tr> <td> Reference Genome:</td>";
         newStats += "<td>" + genomeId + "</td></tr>";
@@ -345,6 +354,8 @@ public class Dataset {
         if (mapq30) newStats += "30";
         else newStats += "1";
         newStats += "</td></tr>";
+
+
 
       /*  <table>
         <tr>

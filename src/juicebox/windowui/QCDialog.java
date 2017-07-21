@@ -86,11 +86,14 @@ public class QCDialog extends JDialog {
             textDescription = text.substring(0, split);
             textStatistics = text.substring(split);
             description = new JTextPane();
+            description.setPreferredSize(new Dimension(400,400));
             description.setEditable(false);
             description.setContentType("text/html");
             description.setEditorKit(kit);
+
             description.setText(textDescription);
-            tabbedPane.addTab("About Library", description);
+            JScrollPane pane1 = new JScrollPane(description, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            tabbedPane.addTab("About Library", pane1);
 
 
             JTextPane textPane = new JTextPane();
@@ -99,7 +102,7 @@ public class QCDialog extends JDialog {
 
             textPane.setEditorKit(kit);
             textPane.setText(textStatistics);
-            JScrollPane pane = new JScrollPane(textPane);
+            JScrollPane pane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             tabbedPane.addTab("Statistics", pane);
         }
         boolean success = true;
