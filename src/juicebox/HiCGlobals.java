@@ -79,6 +79,7 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
+    public static boolean heatmapCaptureModeEnabled = false;
     public static boolean assemblyModeEnabled = false;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;

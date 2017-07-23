@@ -59,6 +59,7 @@ public class MainWindow extends JFrame {
     public static Cursor invertNECursor;
     public static Cursor invertSWCursor;
     public static Cursor scissorCursor;
+    public static Cursor screenshotCursor;
     public static Color hicMapColor = Color.red;
     private static MainWindow theInstance;
     private final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
@@ -171,6 +172,19 @@ public class MainWindow extends JFrame {
         g = handImage.createGraphics();
         g.drawImage(IconFactory.getInstance().getIcon(IconFactory.IconID.FIST).getImage(), 0, 0, null);
         fistCursor = getToolkit().createCustomCursor(handImage, new Point(8, 6), "Move");
+
+        // Cursor for image capturing
+        BufferedImage crosshairImage = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D crosshairImageGraphics = crosshairImage.createGraphics();
+        crosshairImageGraphics.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
+        Rectangle2D.Double crosshairImageRect = new Rectangle2D.Double(0, 0, 32, 32);
+        crosshairImageGraphics.fill(crosshairImageRect);
+
+        crosshairImageGraphics = crosshairImage.createGraphics();
+        ImageIcon crosshairImageIcon = new ImageIcon(this.getClass().getResource("/images/image_capture_crosshair.png"), "Heatmap Image Capture");
+        crosshairImageGraphics.drawImage(crosshairImageIcon.getImage(), 0, 0, null);
+        screenshotCursor = getToolkit().createCustomCursor(crosshairImage, new Point(8, 6), "Screenshot Cursor");
 
         // Additional cursors for assembly
         ImageIcon imageIcon;

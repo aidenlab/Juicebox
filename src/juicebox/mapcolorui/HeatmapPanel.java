@@ -48,12 +48,15 @@ import org.broad.igv.ui.FontManager;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.Pair;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -131,11 +134,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.hic = superAdapter.getHiC();
         renderer = new HeatmapRenderer();
         superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
+
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
         addMouseWheelListener(mouseHandler);
+
+        final HeatmapKeyHandler keyHandler = new HeatmapKeyHandler(this);
+        keyHandler.createKeyBindings();
+
         this.firstAnnotation = true;
+
         try {
             heatmapMouseBot = new Robot();
         } catch (AWTException exception) {
@@ -148,6 +157,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     public int getMinimumDimension() {
         return Math.min(getWidth(), getHeight());
+    }
+
+
+    public void captureHeatmapImage(boolean captureEntirePanel) {
+        if (captureEntirePanel) {
+            captureHeatmapImage((int) (getLocationOnScreen().getX()), (int) (getLocationOnScreen().getY()), getWidth(), getHeight());
+        }
+    }
+
+    public void captureHeatmapImage(int startPixelX, int startPixelY, int width, int height) {
+        if (heatmapMouseBot != null) {
+            try {
+                BufferedImage bufferedImage = heatmapMouseBot.createScreenCapture(new Rectangle(startPixelX, startPixelY, width, height));
+                File outputFile = new File("saved.png");
+                ImageIO.write(bufferedImage, "png", outputFile);
+            } catch (IOException exception) {
+                JOptionPane.showMessageDialog(this, "Failed to create image", "Error Message", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     @Override
@@ -1536,7 +1564,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void setProperCursor() {
-        if (straightEdgeEnabled || diagonalEdgeEnabled) {
+        if (straightEdgeEnabled || diagonalEdgeEnabled || HiCGlobals.heatmapCaptureModeEnabled) {
             setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         } else {
             setCursor(Cursor.getDefaultCursor());
@@ -2108,7 +2136,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         default:
                             break;
                     }
-                    superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+//                    superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
                 } else if (eF.getClickCount() == 2) {
 
                     // Double click,  zoom and center on click location
@@ -2166,7 +2194,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 }
                 // Set check if hovering over feature corner
-                setCursor(Cursor.getDefaultCursor());
+                if (!HiCGlobals.heatmapCaptureModeEnabled) {
+                    setCursor(Cursor.getDefaultCursor());
+                }
                 int minDist = 20;
                 if (currentFeature != null) {
 
@@ -2301,7 +2331,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     hic.setGWCursorPoint(null);
                 }
 
-                if (straightEdgeEnabled || e.isShiftDown()) {
+                if (HiCGlobals.heatmapCaptureModeEnabled) {
+                    setCursor(MainWindow.screenshotCursor);
+                } else if (straightEdgeEnabled || e.isShiftDown()) {
                     synchronized (this) {
                         hic.setCursorPoint(e.getPoint());
                         superAdapter.repaintTrackPanels();
@@ -2332,4 +2364,5 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
     }
+
 }
