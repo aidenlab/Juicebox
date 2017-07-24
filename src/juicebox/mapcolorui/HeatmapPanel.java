@@ -690,7 +690,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miUndoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Undo Zoom");
                 hic.setCursorPoint(new Point(xMousePos, yMousePos));
                 hic.undoZoomAction();
             }
@@ -702,7 +701,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miRedoZoom.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Redo Zoom");
                 hic.setCursorPoint(new Point(xMousePos, yMousePos));
                 hic.redoZoomAction();
             }
@@ -1928,7 +1926,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
                 hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
-                        HiC.ZoomCallType.STANDARD, true, true);
+                        HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1977,8 +1975,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             // if newScaleFactor < 1.0, performs reverse superzoom
                             double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
 
-                            System.out.println(newScaleFactor);
-
                             String chrXName = hic.getXContext().getChromosome().getName();
                             String chrYName = hic.getYContext().getChromosome().getName();
 
@@ -1986,7 +1982,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
 
                             hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
-                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, true);
+                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
 
                         } else {
                             Runnable runnable = new Runnable() {

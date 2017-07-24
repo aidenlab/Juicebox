@@ -178,8 +178,7 @@ public class ResolutionControl extends JPanel {
         lockButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                resolutionLocked = !resolutionLocked;
-                lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
+                toggleLockButton();
             }
         });
         sliderPanel.add(lockButton);
@@ -257,10 +256,10 @@ public class ResolutionControl extends JPanel {
 
                     if (zd == null) {
                         hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
-                                true, true);
+                                true, isResolutionLocked() ? 1 : 0, true);
                     } else {
                         if (hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, xGenome, yGenome, -1, true,
-                                HiC.ZoomCallType.STANDARD, true, true)) {
+                                HiC.ZoomCallType.STANDARD, true, isResolutionLocked() ? 1 : 0, true)) {
                             lastValue = resolutionSlider.getValue();
                         } else {
                             resolutionSlider.setValue(lastValue);
@@ -367,7 +366,21 @@ public class ResolutionControl extends JPanel {
         }
     }
 
+    public void toggleLockButton() {
+        setResolutionLocked(!resolutionLocked);
+        updateLockButton();
+    }
+
+    public void updateLockButton() {
+        lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
+    }
+
     public boolean isResolutionLocked() {
         return resolutionLocked;
+    }
+
+    public void setResolutionLocked(boolean resolutionLocked) {
+        this.resolutionLocked = resolutionLocked;
+        updateLockButton();
     }
 }

@@ -37,9 +37,10 @@ public class ZoomAction {
     private double scaleFactor;
     private boolean resetZoom;
     private HiC.ZoomCallType zoomCallType;
+    private int resolutionLocked;
 
     public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
-                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType) {
+                      double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, int resolutionLocked) {
         this.chromosomeX = chromosomeX;
         this.chromosomeY = chromosomeY;
         this.hiCZoom = hiCZoom;
@@ -48,6 +49,7 @@ public class ZoomAction {
         this.scaleFactor = scaleFactor;
         this.resetZoom = resetZoom;
         this.zoomCallType = zoomCallType;
+        this.resolutionLocked = resolutionLocked;
     }
 
     public boolean equals(ZoomAction other) {
@@ -61,7 +63,9 @@ public class ZoomAction {
                                 if (this.scaleFactor == other.getScaleFactor()) {
                                     if (this.resetZoom == other.getResetZoom()) {
                                         if (this.zoomCallType == other.getZoomCallType()) {
+                                            if (this.resolutionLocked == other.getResolutionLocked()) {
                                                 return true;
+                                            }
                                         }
                                     }
                                 }
@@ -80,7 +84,7 @@ public class ZoomAction {
 
     public ZoomAction deepCopy() {
         return new ZoomAction(chromosomeX, chromosomeY, hiCZoom.clone(), genomeX, genomeY, scaleFactor,
-                resetZoom, zoomCallType);
+                resetZoom, zoomCallType, resolutionLocked);
     }
 
     public String getChromosomeX() {
@@ -117,6 +121,10 @@ public class ZoomAction {
 
     public HiC.ZoomCallType getZoomCallType() {
         return this.zoomCallType;
+    }
+
+    public int getResolutionLocked() {
+        return this.resolutionLocked;
     }
 
 }
