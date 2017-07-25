@@ -82,6 +82,7 @@ public class HiCGlobals {
     public static boolean assemblyModeEnabled = false;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
+    public static boolean displayTiles = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

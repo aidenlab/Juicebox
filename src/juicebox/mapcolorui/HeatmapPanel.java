@@ -285,7 +285,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     //TODO ******** UNCOMMENT *******
                     //Uncomment to draw tile grid (for debugging)
-                    //g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
+                    if (HiCGlobals.displayTiles) {
+                        g.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
+                    }
 
                 }
             }
