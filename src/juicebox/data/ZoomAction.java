@@ -55,25 +55,10 @@ public class ZoomAction {
     public boolean equals(ZoomAction other) {
         if (sameObject(other)) return true;
         if (other != null) {
-            if (this.chromosomeX.equals(other.getChromosomeX())) {
-                if (this.chromosomeY.equals(other.getChromosomeY())) {
-                    if (this.hiCZoom.equals(other.getHiCZoom())) {
-                        if (this.genomeX == other.getGenomeX()) {
-                            if (this.genomeY == other.getGenomeY()) {
-                                if (this.scaleFactor == other.getScaleFactor()) {
-                                    if (this.resetZoom == other.getResetZoom()) {
-                                        if (this.zoomCallType == other.getZoomCallType()) {
-                                            if (this.resolutionLocked == other.getResolutionLocked()) {
-                                                return true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            return chromosomeX.equals(other.getChromosomeX()) && chromosomeY.equals(other.getChromosomeY()) &&
+                    hiCZoom.equals(other.getHiCZoom()) && genomeX == other.getGenomeX() && genomeY == other.getGenomeY()
+                    && scaleFactor == other.getScaleFactor() && resetZoom == other.getResetZoom() &&
+                    zoomCallType == other.getZoomCallType() && resolutionLocked == other.getResolutionLocked();
         }
         return false;
     }
