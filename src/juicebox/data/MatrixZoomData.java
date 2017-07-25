@@ -42,8 +42,8 @@ import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.linear.RealVector;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
@@ -59,7 +59,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    private static final Logger log = Logger.getLogger(MatrixZoomData.class);
     private final Chromosome chr1;  // Chromosome on the X axis
     private final Chromosome chr2;  // Chromosome on the Y axis
     private final HiCZoom zoom;    // Unit and bin size
@@ -123,12 +122,19 @@ public class MatrixZoomData {
         } else {
             this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr1Sites, chr1.getLength());
             this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr2Sites, chr2.getLength());
-
         }
 
         pearsonsMap = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
+
+    // IMPORTANT
+    // Only to be used for Custom Chromosome
+    //public MatrixZoomData(Chromosome chr1, HiCZoom zoom, DatasetReader reader) {
+    //    this.chr1 = chr1;
+    //    this.chr2 = chr1;
+    //    this.zoom = zoom;
+    //}
 
     public Chromosome getChr1() {
         return chr1;
@@ -213,23 +219,22 @@ public class MatrixZoomData {
     public List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                  final NormalizationType no) {
 
-        List<Integer> blocksToLoad = new ArrayList<>();
-        List<Contig2D> contigs = new ArrayList<>();
-
-        if (HiCGlobals.assemblyModeEnabled) {
-            contigs.addAll(AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
-                    chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
-        }
-
         // have to do this regardless (just in case)
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
         int col2 = binX2 / blockBinCount;
         int row2 = binY2 / blockBinCount;
+        List<Integer> blocksToLoad = new ArrayList<>();
+        Pair<List<Contig2D>, List<Contig2D>> contigs = null;
 
-        for (int r = row1; r <= row2; r++) {
-            for (int c = col1; c <= col2; c++) {
-                populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+        if (HiCGlobals.assemblyModeEnabled) {
+            contigs = AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
+                    chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no);
+        } else {
+            for (int r = row1; r <= row2; r++) {
+                for (int c = col1; c <= col2; c++) {
+                    populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
+                }
             }
         }
 
@@ -275,9 +280,12 @@ public class MatrixZoomData {
         }
 
         Set<Block> blockSet = new HashSet<>(blockList);
-
-        if (HiCGlobals.assemblyModeEnabled) {
-            return AssemblyHeatmapHandler.filterBlockList(contigs, blockSet, zoom.getBinSize());
+        if (contigs != null && binX2 != binX1) {
+            if (contigs.getFirst().size() + contigs.getSecond().size() > 2)
+                System.out.println("Sizes " + blockList.size() + " " + contigs.getFirst().size() + " " + contigs.getSecond().size());
+        }
+        if (HiCGlobals.assemblyModeEnabled && contigs != null) {
+            return AssemblyHeatmapHandler.filterBlockList(contigs, blockSet, zoom.getBinSize(), blockBinCount, blockColumnCount);
         }
 
         return new ArrayList<>(blockSet);
@@ -418,7 +426,7 @@ public class MatrixZoomData {
                 pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
             } catch (IOException e) {
                 pearsons = null;
-                log.error(e.getMessage());
+                System.err.println(e.getMessage());
             }
             if (pearsons != null) {
                 // put it back in the map.
@@ -881,6 +889,15 @@ public class MatrixZoomData {
         blockCache.clear();
     }
 
+
+    public MatrixZoomData toCustomZD(Chromosome customChr) {
+        //return new CustomMatrixZoomData(customChr, customChr, zoom, reader);
+        return null;
+    }
+
+
+
+
     /**
      * Class for iterating over the contact records
      */
@@ -926,7 +943,7 @@ public class MatrixZoomData {
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;
                     } catch (IOException e) {
-                        log.error("Error fetching block ", e);
+                        System.err.println("Error fetching block " + e.getMessage());
                         return false;
                     }
                 }

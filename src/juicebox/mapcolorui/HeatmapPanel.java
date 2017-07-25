@@ -2108,7 +2108,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         default:
                             break;
                     }
-                    superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+
+                    if (HiCGlobals.printVerboseComments) {
+                        try {
+                            superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+                        } catch (Exception e) {
+                            System.err.println("Unable to print assembly state");
+                        }
+                    }
+
                 } else if (eF.getClickCount() == 2) {
 
                     // Double click,  zoom and center on click location
