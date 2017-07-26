@@ -109,7 +109,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
-  
+
     /**
      * Initialize heatmap panel
      *
@@ -686,6 +686,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
         */
 
+        final JMenuItem miUndoZoom = new JMenuItem("Undo Zoom");
+        miUndoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
+                hic.undoZoomAction();
+            }
+        });
+        miUndoZoom.setEnabled(hic.getZoomActionTracker().validateUndoZoom());
+        menu.add(miUndoZoom);
+
+        final JMenuItem miRedoZoom = new JMenuItem("Redo Zoom");
+        miRedoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
+                hic.redoZoomAction();
+            }
+        });
+        miRedoZoom.setEnabled(hic.getZoomActionTracker().validateRedoZoom());
+        menu.add(miRedoZoom);
+
         final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
         mi_0.addActionListener(new ActionListener() {
             @Override
@@ -1067,7 +1089,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void translateMenuItemActionPerformed() {
-        //JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Please select feature to translate to");
         HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
@@ -1898,11 +1919,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
             try {
+                final String chrXName = hic.getXContext().getChromosome().toString();
+                final String chrYName = hic.getYContext().getChromosome().toString();
+
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
-                        HiC.ZoomCallType.STANDARD, true);
+                hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
+                        HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1932,7 +1956,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     }
                 } else if (eF.getClickCount() == 2) {
 
-                    // Double click,  zoom and center on click location
+                    // Double click, zoom and center on click location
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
                         final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
@@ -1943,13 +1967,23 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
                         final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
+                        // perform superzoom / normal zoom / reverse-superzoom
                         if (newZoom.equals(currentZoom)) {
                             double mult = eF.isAltDown() ? 0.5 : 2.0;
-                            double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
-                            hic.setScaleFactor(newScaleFactor);
-                            hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
-                            hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
-                            mainWindow.repaint();
+                            // if newScaleFactor > 1.0, performs superzoom
+                            // if newScaleFactor = 1.0, performs normal zoom
+                            // if newScaleFactor < 1.0, performs reverse superzoom
+                            double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
+
+                            String chrXName = hic.getXContext().getChromosome().getName();
+                            String chrYName = hic.getYContext().getChromosome().getName();
+
+                            int genomeX = Math.max(0, (int) (centerBinX) * newZoom.getBinSize());
+                            int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
+
+                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
+                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
+
                         } else {
                             Runnable runnable = new Runnable() {
                                 public void run() {
