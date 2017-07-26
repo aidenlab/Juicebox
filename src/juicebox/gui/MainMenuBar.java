@@ -141,7 +141,7 @@ public class MainMenuBar {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-                //initProperties();         // don't know why we're doing this here
+//                initProperties();         // don't know why we're doing this here
                 superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
             }
         };
