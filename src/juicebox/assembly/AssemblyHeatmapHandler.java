@@ -275,28 +275,7 @@ public class AssemblyHeatmapHandler {
         List<Block> alteredBlockList = new ArrayList<>();
         AssemblyFragmentHandler aFragHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
         for (Block block : blockList) {
-            //TODO: do some filtering here
-            List<ContactRecord> alteredContacts = new ArrayList<>();
-            for (ContactRecord record : block.getContactRecords()) {
-
-                int currentGenomeX = getAlteredASMCoordinate(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
-                int currentGenomeY = getAlteredASMCoordinate(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
-
-                if (currentGenomeX == -1 || currentGenomeY == -1) {
-                    alteredContacts.add(record);
-                } else {
-                    if (currentGenomeX > currentGenomeY) {
-                        alteredContacts.add(new ContactRecord(
-                                (currentGenomeY - 1) / binSize,
-                                (currentGenomeX - 1) / binSize, record.getCounts()));
-                    } else {
-                        alteredContacts.add(new ContactRecord(
-                                (currentGenomeX - 1) / binSize,
-                                (currentGenomeY - 1) / binSize, record.getCounts()));
-                    }
-                }
-            }
-            alteredBlockList.add(new Block(block.getNumber(), alteredContacts));
+            alteredBlockList.add(modifyBlock(block, binSize, chr1Idx, chr2Idx, aFragHandler));
         }
         Set<Block> alteredBlockSet = new HashSet<>(alteredBlockList);
         return alteredBlockSet;
@@ -305,9 +284,35 @@ public class AssemblyHeatmapHandler {
     private static int getAlteredASMCoordinate(int chr1Idx, int chr2Idx, int binVal, int binSize,
                                                AssemblyFragmentHandler aFragHandler) {
         int originalGenomeVal = binVal * binSize + 1;
-        Contig2D contig2D = aFragHandler.liftOriginalAsmCoordinateToFragment(chr1Idx, chr2Idx, originalGenomeVal);
+        Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalGenomeVal);
         int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalGenomeVal);
         int currentGenomeVal = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
         return currentGenomeVal;
+    }
+
+    public static Block modifyBlock(Block block, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
+        //TODO: do some filtering here
+        List<ContactRecord> alteredContacts = new ArrayList<>();
+        for (ContactRecord record : block.getContactRecords()) {
+
+            int currentGenomeX = getAlteredASMCoordinate(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
+            int currentGenomeY = getAlteredASMCoordinate(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+
+            if (currentGenomeX == -1 || currentGenomeY == -1) {
+                alteredContacts.add(record);
+            } else {
+                if (currentGenomeX > currentGenomeY) {
+                    alteredContacts.add(new ContactRecord(
+                            (currentGenomeY - 1) / binSize,
+                            (currentGenomeX - 1) / binSize, record.getCounts()));
+                } else {
+                    alteredContacts.add(new ContactRecord(
+                            (currentGenomeX - 1) / binSize,
+                            (currentGenomeY - 1) / binSize, record.getCounts()));
+                }
+            }
+        }
+        block = new Block(block.getNumber(), alteredContacts);
+        return block;
     }
 }

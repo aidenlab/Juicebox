@@ -120,6 +120,16 @@ public class Contig2D extends Feature2D {
         return translatedPos / binSize;
     }
 
+    public boolean nowContains(int coordinate) {
+        Contig2D contig = this;
+        return contig.getStart1() < coordinate && contig.getEnd1() >= coordinate;
+    }
+
+    public boolean iniContains(int coordinate) {
+        Contig2D contig = this;
+        return contig.getInitialStart() < coordinate && contig.getInitialEnd() >= coordinate;
+    }
+
     @Override
     public Feature2D deepCopy() {
         Map<String, String> attrClone = new HashMap<>();

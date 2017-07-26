@@ -46,6 +46,7 @@ public class AssemblyFragmentHandler {
     private Feature2DList scaffolds;
     private String chromosomeName = "assembly";
     private OperationType operationType;
+    private Contig2D guessContig = null;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
@@ -695,11 +696,7 @@ public class AssemblyFragmentHandler {
         return;
     }
 
-    //TODO: add scaling, check +/-1
     public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
-
-        //contigs.convertFeaturesToContigs(key);
-        //List<Feature2D> contigs = contigs.get(key);
 
         for (Feature2D contig : contigs.get(chrId1, chrId2)) {
             if (contig.getStart1() < asmCoordinate && contig.getEnd1() >= asmCoordinate) {
@@ -726,20 +723,38 @@ public class AssemblyFragmentHandler {
 
     // TODO use rtree
     // TODO likely should be renamed - this is a search function?
-    public Contig2D liftOriginalAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
-        //System.out.println(contigs.get(chrId1, chrId2).size());
-        //       for (Feature2D contig: originalContigs.get(chrId1, chrId2)) {
-        for (Feature2D feature : contigs.get(chrId1, chrId2)) {
-            Contig2D contig = feature.toContig();
-            if (contig.getInitialStart() < asmCoordinate && contig.getInitialEnd() >= asmCoordinate) {
-                return contig;
+    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate, guessContig);
+    }
+
+    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate, Contig2D guessContig) {
+        if (guessContig != null) {
+            if (guessContig.iniContains(asmCoordinate)) {
+                return guessContig;
             }
+        } else {
+            for (Feature2D feature : contigs.get(chrId1, chrId2)) {
+                Contig2D contig = feature.toContig();
+                if (contig.iniContains(asmCoordinate)) {
+                    guessContig = contig;
+                    return contig;
+                }
+            }
+//        List<Feature2D> allContigs = contigs.get(chrId1, chrId2);
+//        int iniIndex = allContigs.indexOf(iniGuess);
+//        if (iniIndex!=allContigs.size() && allContigs.get(iniIndex+1).toContig().iniContains(asmCoordinate)){
+//            return allContigs.get(iniIndex+1).toContig();
+//        }
+//        if (iniIndex!=0 && allContigs.get(iniIndex-1).toContig().iniContains(asmCoordinate)){
+//            return allContigs.get(iniIndex-1).toContig();
+//        }
+
         }
         return null;
     }
 
     public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-        Contig2D contig = liftOriginalAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
+        Contig2D contig = lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
         return liftOriginalAsmCoordinateToFragmentCoordinate(contig, asmCoordinate);
     }
 

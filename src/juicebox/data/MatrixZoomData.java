@@ -281,15 +281,30 @@ public class MatrixZoomData {
                         xContig.getInitialStart(),
                         xContig.getInitialEnd(),
                         yContig.getInitialStart(),
-                        yContig.getInitialEnd()};
-                blocksToLoad.addAll(getBlockNumbersForRegionFromGenomePosition(genomePosition));
+                        yContig.getInitialEnd()
+                };
+                List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
+                for (int blockNumber : tempBlockNumbers) {
+                    if (blocksToLoad.contains(blockNumber)) {
+                        continue;
+                    } else {
+                        String key = getKey() + "_" + blockNumber + "_" + no;
+                        Block b;
+                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
+                            b = blockCache.get(key);
+                            blockList.add(b);
+                        } else {
+                            blocksToLoad.add(blockNumber);
+                        }
+                    }
+                }
             }
         }
 
         // Remove duplicates here
         blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
 
-        // Actually load
+        // Actually load new
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
         Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
