@@ -309,7 +309,8 @@ public class AssemblyFragmentHandler {
                 //    50-100, 40-50, 0-40
                 newInitialStart = newInitialStart - contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                contigProperty.toggleInversion(); //toggles inversion of split contig
+                if (contigProperty.isInverted())
+                    contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialEnd = newInitialStart;
             }
         } else { //not inverted
@@ -319,6 +320,8 @@ public class AssemblyFragmentHandler {
             for (ContigProperty contigProperty : splitContig) {
                 newInitialEnd = newInitialEnd + contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
+                if (contigProperty.isInverted())
+                    contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialStart = newInitialEnd;
             }
         }
@@ -691,6 +694,82 @@ public class AssemblyFragmentHandler {
         System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         return;
     }
+
+    //TODO: add scaling, check +/-1
+    public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
+
+        //contigs.convertFeaturesToContigs(key);
+        //List<Feature2D> contigs = contigs.get(key);
+
+        for (Feature2D contig : contigs.get(chrId1, chrId2)) {
+            if (contig.getStart1() < asmCoordinate && contig.getEnd1() >= asmCoordinate) {
+                return contig.toContig();
+            }
+        }
+        return null;
+    }
+
+    public int liftAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        Contig2D contig = liftAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
+        if (contig == null) {
+            return -1;
+        }
+        int newCoordinate;
+        boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");
+        if (inverted) {
+            newCoordinate = contig.getEnd1() - asmCoordinate + 1;
+        } else {
+            newCoordinate = asmCoordinate - contig.getStart1();
+        }
+        return newCoordinate;
+    }
+
+    public Contig2D liftOriginalAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
+        //System.out.println(contigs.get(chrId1, chrId2).size());
+        //       for (Feature2D contig: originalContigs.get(chrId1, chrId2)) {
+        for (Feature2D feature : contigs.get(chrId1, chrId2)) {
+            Contig2D contig = feature.toContig();
+            if (contig.getInitialStart() < asmCoordinate && contig.getInitialEnd() >= asmCoordinate) {
+                return contig;
+            }
+        }
+        return null;
+    }
+
+    public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        Contig2D contig = liftOriginalAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
+        int newCoordinate;
+        boolean inverted = contig.getInitialInvert();
+        if (inverted) {
+            newCoordinate = contig.getInitialEnd() - asmCoordinate + 1;
+        } else {
+            newCoordinate = asmCoordinate - contig.getInitialStart();
+        }
+        return newCoordinate;
+    }
+
+    //TODO: add scaling, check +/-1
+    public int liftFragmentCoordinateToAsmCoordinate(Contig2D contig, int fragmentCoordinate) {
+        boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+        int newCoordinate;
+        if (inverted) {
+            newCoordinate = contig.getEnd1() - fragmentCoordinate + 1;
+        } else {
+            newCoordinate = contig.getStart1() + fragmentCoordinate;
+        }
+        return newCoordinate;
+    }
+
+//    public int liftFragmentCoordinateToOriginalAsmCoordinate (Contig2D contig, int fragmentCoordinate) {
+//        boolean inverted = contig.getInitialInvert();  //if contains a negative then it is inverted
+//        int newCoordinate;
+//        if (inverted) {
+//            newCoordinate = contig.getInitialEnd() - fragmentCoordinate + 1;
+//        }else{
+//            newCoordinate = contig.getInitialStart() + fragmentCoordinate;
+//        }
+//        return newCoordinate;
+//    }
 
     public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }

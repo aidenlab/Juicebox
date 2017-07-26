@@ -29,12 +29,15 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
+import juicebox.gui.SuperAdapter;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Contig2D;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -189,10 +192,14 @@ public class MatrixZoomData {
      * @return List of overlapping blocks, normalized
      */
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
-        int maxSize = ((binX2 - binX1) / blockBinCount + 1) * ((binY2 - binY1) / blockBinCount + 1);
-        final List<Block> blockList = new ArrayList<>(maxSize);
-
-        return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
+        //int maxSize = ((binX2 - binX1) / blockBinCount + 1) * ((binY2 - binY1) / blockBinCount + 1);
+        //final List<Block> blockList = new ArrayList<>(maxSize);
+        final List<Block> blockList = new ArrayList<>();
+        if (HiCGlobals.assemblyModeEnabled) {
+            return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
+        } else {
+            return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
+        }
     }
 
     public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, List<Integer> blocksToLoad) {
@@ -219,6 +226,8 @@ public class MatrixZoomData {
     public List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                  final NormalizationType no) {
 
+        List<Integer> blocksToLoad = new ArrayList<>();
+      
         // have to do this regardless (just in case)
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
@@ -280,6 +289,40 @@ public class MatrixZoomData {
         }
 
         Set<Block> blockSet = new HashSet<>(blockList);
+        return new ArrayList<>(blockSet);
+    }
+
+    public List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
+                                                         final NormalizationType no) {
+        List<Integer> blocksToLoad = new ArrayList<>();
+
+        // translate window into original assembly intervals
+        // for now keep as pairs of contigs {c1, c2}
+
+        SuperAdapter superAdapter = AssemblyHeatmapHandler.getSuperAdapter();
+        Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
+        final String key = Feature2DList.getKey(chromosome, chromosome);
+        Feature2DList features = null;
+        features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoops();
+        features.convertFeaturesToContigs(key);
+        List<Feature2D> allContigs = features.get(key);
+
+        List<Contig2D> xContigs = new ArrayList<>();
+        List<Contig2D> yContigs = new ArrayList<>();
+
+        for (Feature2D contig : allContigs) {
+
+            int cStart = contig.getStart1() / zoom.getBinSize();
+            int cEnd = contig.getEnd1() / zoom.getBinSize();
+
+            if (cEnd < binX1) {
+                continue;
+            }
+            if (cStart < binX2) {
+                xContigs.add(contig.toContig());
+            } else {
+                break;
+            }
         if (contigs != null && binX2 != binX1) {
             if (contigs.getFirst().size() + contigs.getSecond().size() > 2)
                 System.out.println("Sizes " + blockList.size() + " " + contigs.getFirst().size() + " " + contigs.getSecond().size());
@@ -287,7 +330,108 @@ public class MatrixZoomData {
         if (HiCGlobals.assemblyModeEnabled && contigs != null) {
             return AssemblyHeatmapHandler.filterBlockList(contigs, blockSet, zoom.getBinSize(), blockBinCount, blockColumnCount);
         }
+        for (Feature2D contig : allContigs) {
 
+            int cStart = contig.getStart1() / zoom.getBinSize();
+            int cEnd = contig.getEnd1() / zoom.getBinSize();
+
+            if (cEnd < binY1) {
+                continue;
+            }
+            if (cStart < binY2) {
+                yContigs.add(contig.toContig());
+            } else {
+                break;
+            }
+        }
+
+//        List<String>contigIds = new ArrayList<>();
+//        for(Contig2D contig : xContigs){
+//            contigIds.add(contig.getAttribute("Scaffold Index"));
+//        }
+//        System.out.println("x contigs: "+contigIds.toString());
+//        contigIds.clear();
+//        for(Contig2D contig : yContigs){
+//            contigIds.add(contig.getAttribute("Scaffold Index"));
+//        }
+//        System.out.println("y contigs: "+contigIds.toString());
+
+
+//        List<Contig2D> contigs = new ArrayList<>();
+//        contigs.addAll(AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
+//                chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
+
+        // Here: for each pair of contigs grad relevant block
+
+        for (Contig2D xContig : xContigs) {
+            for (Contig2D yContig : yContigs) {
+                int[] genomePosition = new int[4];
+                genomePosition[0] = xContig.getInitialStart();
+                genomePosition[1] = xContig.getInitialEnd();
+                genomePosition[2] = yContig.getInitialStart();
+                genomePosition[3] = yContig.getInitialEnd();
+                blocksToLoad.addAll(getBlockNumbersForRegionFromGenomePosition(genomePosition));
+            }
+        }
+
+        //System.out.println("before: "+blocksToLoad.toString());
+
+        // Remove duplicates here
+        blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
+
+        //System.out.println("after: "+blocksToLoad.toString());
+
+        // Actually load
+        final AtomicInteger errorCounter = new AtomicInteger();
+
+        List<Thread> threads = new ArrayList<>();
+        for (final int blockNumber : blocksToLoad) {
+            Runnable loader = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String key = getKey() + "_" + blockNumber + "_" + no;
+                        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
+                        // TODO: modify block here?
+                        if (b == null) {
+                            b = new Block(blockNumber);   // An empty block
+                        }
+                        if (HiCGlobals.useCache) {
+                            blockCache.put(key, b);
+                        }
+                        blockList.add(b);
+                    } catch (IOException e) {
+                        errorCounter.incrementAndGet();
+                    }
+                }
+            };
+
+            Thread t = new Thread(loader);
+            threads.add(t);
+            t.start();
+        }
+
+        // Wait for all threads to complete
+        for (Thread t : threads) {
+            try {
+                t.join();
+            } catch (InterruptedException ignore) {
+            }
+        }
+        if (errorCounter.get() > 0) {
+            System.err.println(errorCounter.get() + " errors while reading blocks");
+        }
+
+        Set<Block> blockSet = new HashSet<>(blockList);
+
+        // modify block record entries
+//        List <Contig2D> allPariticipating = new ArrayList<>();
+//        allPariticipating.addAll(xContigs);
+//        allPariticipating.addAll(yContigs);
+//        Collections.sort(allPariticipating);
+//        Set<Contig2D> allPariticipatingSet = new HashSet<>(allPariticipating);
+//        AssemblyHeatmapHandler.filterBlockList(new ArrayList(allPariticipatingSet), blockSet, zoom.getBinSize());
+        blockSet = AssemblyHeatmapHandler.modifyBlockList(blockSet);
         return new ArrayList<>(blockSet);
     }
 

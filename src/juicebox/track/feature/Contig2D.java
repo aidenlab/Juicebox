@@ -78,6 +78,20 @@ public class Contig2D extends Feature2D {
         this.initialStart = initialStart;
         this.initialEnd = initialEnd;
     }
+
+
+    public int getInitialStart() {
+        return initialStart;
+    }
+
+    public int getInitialEnd() {
+        return initialEnd;
+    }
+
+    public boolean getInitialInvert() {
+        return false;
+    } //TODO: generalize!
+
     private int getTrueWidth() {
         return initialEnd - initialStart;
     }
@@ -150,4 +164,5 @@ public class Contig2D extends Feature2D {
     private boolean withinTolerance(int val1, int val2) {
         return Math.abs(val1 - val2) < 2;
     }
+
 }
