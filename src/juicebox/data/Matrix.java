@@ -142,4 +142,17 @@ public class Matrix {
     public boolean isIntra() {
         return chr1 == chr2;
     }
+
+    public Matrix createCustomChromosomeMatrix(int index) {
+        List<MatrixZoomData> customZDs = new ArrayList<>();
+
+        for (MatrixZoomData zd : bpZoomData) {
+            //customZDs.add(zd.toCustomZD());
+        }
+        for (MatrixZoomData zd : fragZoomData) {
+            //customZDs.add(zd.toCustomZD());
+        }
+
+        return new Matrix(index, index, customZDs);
+    }
 }
