@@ -24,13 +24,16 @@
 
 package juicebox.windowui;
 
-import com.jidesoft.swing.JideBoxLayout;
 import juicebox.DirectoryManager;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyFileImporter;
+import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.FeatureRenderer;
+import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
@@ -41,27 +44,36 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
-class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
+
+/**
+ * Created by nathanielmusial on 6/29/17.
+ */
+
+class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
     private final JTree tree;
-    private final JButton openButton;
-    private final JTextField fTextField;
+    private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
-    public Load2DAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
-        super(superAdapter.getMainWindow(), "Select 2D annotation file(s) to open");
+    public LoadAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
+        super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
 
         final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
         final MainWindow window = superAdapter.getMainWindow();
@@ -90,11 +102,11 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                             TreePath[] paths = new TreePath[1];
                             paths[0] = selPath;
                             try {
-                                safeLoadAnnotationFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                                safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                             } catch (Exception e) {
                                 MessageUtils.showErrorMessage("Unable to load file", e);
                             }
-                            Load2DAnnotationsDialog.this.setVisible(false);
+                            LoadAssemblyAnnotationsDialog.this.setVisible(false);
                         }
                     }
                 }
@@ -109,72 +121,28 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
         JPanel buttonPanel = new JPanel();
 
-        openButton = new JButton("Open");
-        openButton.setEnabled(false);
-        openButton.addActionListener(new ActionListener() {
+        openAssemblyButton = new JButton("Open Assembly");
+        openAssemblyButton.setEnabled(Boolean.FALSE);
+        openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                safeLoadAnnotationFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
-                Load2DAnnotationsDialog.this.setVisible(false);
+                safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
 
-        JButton urlButton = new JButton("URL...");
-        urlButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                String url = JOptionPane.showInputDialog("Enter URL: ");
-
-                if (url != null && url.length() > 0) {
-                    url = url.trim();
-
-                    if (customAddedFeatures == null) {
-                        customAddedFeatures = new DefaultMutableTreeNode(
-                                new ItemInfo("Added 2D Features", ""), true);
-                        top.add(customAddedFeatures);
-                    }
-
-                    if (loadedAnnotationsMap.containsKey(url)) {
-                        if (HiCGlobals.guiIsCurrentlyActive) {
-                            int dialogResult = JOptionPane.showConfirmDialog(window,
-                                    "File is already loaded. Would you like to overwrite it?", "Warning",
-                                    JOptionPane.YES_NO_OPTION);
-                            if (dialogResult == JOptionPane.YES_OPTION) {
-                                customAddedFeatures.remove(loadedAnnotationsMap.get(url));
-                                loadedAnnotationsMap.remove(url);
-                            } else {
-                                return;
-                            }
-                        }
-                    }
-
-                    DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(
-                            new ItemInfo(url, url), false);
-
-                    loadedAnnotationsMap.put(url, treeNode);
-                    customAddedFeatures.add(treeNode);
-                    expandTree();
-                    tree.updateUI();
-                }
-            }
-        });
-        urlButton.setPreferredSize(new Dimension((int) urlButton.getPreferredSize().getWidth(),
-                (int) openButton.getPreferredSize().getHeight()));
-        //setVisible(false);
 
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Load2DAnnotationsDialog.this.setVisible(false);
+                LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
-                (int) openButton.getPreferredSize().getHeight()));
+                (int) openAssemblyButton.getPreferredSize().getHeight()));
 
-        buttonPanel.add(openButton);
-        buttonPanel.add(urlButton);
+        buttonPanel.add(openAssemblyButton);
         buttonPanel.add(cancelButton);
 
         add(buttonPanel, BorderLayout.SOUTH);
@@ -182,42 +150,10 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         setMinimumSize(minimumSize);
         setLocation(100, 100);
         pack();
-
-        final JLabel fLabel = new JLabel();
-        fTextField = new JTextField();
-        fLabel.setText("Filter:");
-        fTextField.setToolTipText("Case Sensitive Search");
-        fTextField.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(), (int) openButton.getPreferredSize().getHeight()));
-        buttonPanel.add(fLabel, JideBoxLayout.FIX);
-        buttonPanel.add(fTextField, JideBoxLayout.VARY);
-
-        //*********************SEARCH FILTER*******************************
-
-        fTextField.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                collapseAll(tree);
-                @SuppressWarnings("unchecked")
-                Enumeration<DefaultMutableTreeNode> en = (Enumeration<DefaultMutableTreeNode>) top.preorderEnumeration();
-                if (!fTextField.getText().isEmpty()) {
-                    String[] searchStrings = fTextField.getText().split(",");
-                    colorSearchStrings(searchStrings); //Coloring text that matches input
-                    while (en.hasMoreElements()) {
-                        DefaultMutableTreeNode leaf = en.nextElement();
-                        String str = leaf.toString();
-                        for (String term : searchStrings) {
-                            if (str.contains(term)) {
-                                expandToWantedNode(leaf);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        });
     }
 
     public static TreePath getPath(TreeNode treeNode) {
-        List<Object> nodes = new ArrayList<>();
+        java.util.List<Object> nodes = new ArrayList<>();
         if (treeNode != null) {
             nodes.add(treeNode);
             treeNode = treeNode.getParent();
@@ -250,7 +186,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
                 if (customAddedFeatures == null) {
                     customAddedFeatures = new DefaultMutableTreeNode(
-                            new ItemInfo("Added 2D Features", ""), true);
+                            new ItemInfo("Added Assembly Files", ""), true);
                     root.add(customAddedFeatures);
                 }
 
@@ -280,7 +216,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
             model.reload(root);
             expandTree();
         }
-        Load2DAnnotationsDialog.this.setVisible(localFilesAdded);
+        LoadAssemblyAnnotationsDialog.this.setVisible(localFilesAdded);
     }
 
     private void expandTree() {
@@ -298,34 +234,80 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         }
     }
 
-    private void safeLoadAnnotationFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
-                                         final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
+
+    private void safeLoadAssemblyFiles(final TreePath[] paths, final LayersPanel layersPanel, final SuperAdapter superAdapter,
+                                       final JPanel layerBoxGUI, final ChromosomeHandler chromosomeHandler) {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                unsafeLoadAnnotationFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
+                unsafeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
             }
         };
         superAdapter.executeLongRunningTask(runnable, "load 2d annotation files");
     }
 
-    private void unsafeLoadAnnotationFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
-                                           JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+    private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
+                                         JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        String cpropsPath = null;
+        String asmPath = null;
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                try {
-                    AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                    handler.setLayerNameAndField(info.itemName);
-                    handler.loadLoopList(info.itemURL, chromosomeHandler);
-                } catch (Exception ee) {
-                    System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-                    MessageUtils.showMessage("Could not load loop selection: the loop list in" + info.itemName + "does not correspond to the genome");
-                    customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
-                    loadedAnnotationsMap.remove(path);
+                if (info.itemURL.endsWith("cprops")) {
+                    cpropsPath = info.itemURL;
+                } else if (info.itemURL.endsWith("asm")) {
+                    asmPath = info.itemURL;
+                } else {
+                    JOptionPane.showMessageDialog(layersPanel, "Unable to load invalid file!",
+                            "Error Message", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
             }
+        }
+
+        if (asmPath != null && cpropsPath != null) {
+            try {
+                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+
+                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
+                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
+                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
+                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
+
+                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
+                scaffoldLayerHandler.setLayerNameAndField("Group");
+                scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
+
+                AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                contigLayerHandler.setAnnotationLayer(contigLayer);
+                contigLayerHandler.setLayerNameAndField("Main");
+                contigLayerHandler.setColorOfAllAnnotations(Color.green);
+
+                AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                editHandler.setColorOfAllAnnotations(Color.yellow);
+                editHandler.setLayerNameAndField("Edit");
+                editHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
+                editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+
+                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyFragmentHandler(), contigLayerHandler, scaffoldLayerHandler);
+                superAdapter.setAssemblyStateTracker(assemblyStateTracker);
+                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+                for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
+                    if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
+                        superAdapter.removeLayer(annotationLayerHandler);
+                    superAdapter.setActiveLayerHandler(contigLayerHandler);
+                    superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                }
+
+            } catch (Exception ee) {
+//                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
+//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
+            }
+        } else {
+            System.err.println("Invalid files...");
         }
     }
 
@@ -421,9 +403,9 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
         if (node == null) return;
 
         if (node.isLeaf()) {
-            openButton.setEnabled(true);
+            openAssemblyButton.setEnabled(true);
         } else {
-            openButton.setEnabled(false);
+            openAssemblyButton.setEnabled(false);
         }
     }
 

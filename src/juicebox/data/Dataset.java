@@ -77,6 +77,7 @@ public class Dataset {
 
     public Matrix getMatrix(Chromosome chr1, Chromosome chr2) {
 
+
         // order is arbitrary, convention is lower # chr first
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
@@ -86,8 +87,23 @@ public class Dataset {
 
         if (m == null && reader != null) {
             try {
-                m = reader.readMatrix(key);
+                // custom chromosome is handled as separate case
+                if (ChromosomeHandler.isCustomChromosome(chr1) || ChromosomeHandler.isCustomChromosome(chr2)) {
+                    // get info from chromosome 1
+                    // TODO this is just temporary, not best policy
+                    // edge case includes MBR19 where Chr1 not available()
+                    String keyChrI1 = Matrix.generateKey(1, 1);
+                    Matrix mI1 = matrices.get(keyChrI1);
+                    if (mI1 == null) {
+                        mI1 = reader.readMatrix(keyChrI1);
+                        matrices.put(keyChrI1, mI1);
+                    }
+                    m = mI1.createCustomChromosomeMatrix(t2);
+                } else {
+                    m = reader.readMatrix(key);
+                }
                 matrices.put(key, m);
+
             } catch (IOException e) {
                 log.error("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName(), e);
             }

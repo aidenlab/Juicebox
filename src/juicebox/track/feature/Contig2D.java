@@ -73,6 +73,25 @@ public class Contig2D extends Feature2D {
         return newEnd;
     }
 
+    public void setInitialState(String initialChr, int initialStart, int initialEnd) {
+        this.initialChr = initialChr;
+        this.initialStart = initialStart;
+        this.initialEnd = initialEnd;
+    }
+
+
+    public int getInitialStart() {
+        return initialStart;
+    }
+
+    public int getInitialEnd() {
+        return initialEnd;
+    }
+
+    public boolean getInitialInvert() {
+        return false;
+    } //TODO: generalize!
+
     private int getTrueWidth() {
         return initialEnd - initialStart;
     }
@@ -99,6 +118,16 @@ public class Contig2D extends Feature2D {
             translatedPos = processInversionPlotting(translatedPos, start1, end1);
         }
         return translatedPos / binSize;
+    }
+
+    public boolean nowContains(int coordinate) {
+        Contig2D contig = this;
+        return contig.getStart1() < coordinate && contig.getEnd1() >= coordinate;
+    }
+
+    public boolean iniContains(int coordinate) {
+        Contig2D contig = this;
+        return contig.getInitialStart() < coordinate && contig.getInitialEnd() >= coordinate;
     }
 
     @Override
@@ -145,4 +174,5 @@ public class Contig2D extends Feature2D {
     private boolean withinTolerance(int val1, int val2) {
         return Math.abs(val1 - val2) < 2;
     }
+
 }

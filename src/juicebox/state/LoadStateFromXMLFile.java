@@ -169,11 +169,11 @@ public class LoadStateFromXMLFile {
                     String currentTrack = trackURLs[i].trim();
                     if (!currentTrack.isEmpty()) {
                         if (currentTrack.equals("Eigenvector")) {
-                            createDatasetResourcetree(superAdapter, currentTrack);
+                            loadAction.checkBoxesForReload(trackNames[i].trim());
                             hic.loadEigenvectorTrack();
                         } else if (currentTrack.toLowerCase().contains("coverage") || currentTrack.toLowerCase().contains("balanced")
                                 || currentTrack.equals("Loaded")) {
-                            createDatasetResourcetree(superAdapter, currentTrack);
+                            loadAction.checkBoxesForReload(trackNames[i].trim());
                             hic.loadCoverageTrack(NormalizationType.enumValueFromString(currentTrack));
                         } else if (currentTrack.contains("peaks") || currentTrack.contains("blocks") || currentTrack.contains("superloop")) {
                             hic.getResourceTree().checkTrackBoxesForReloadState(currentTrack.trim());
@@ -224,11 +224,6 @@ public class LoadStateFromXMLFile {
 
         superAdapter.updateTrackPanel();
 
-    }
-    private static void createDatasetResourcetree(SuperAdapter superAdapter, String currentTrack) {
-        //creates a resource tree for 1D dataset specific features
-        ResourceTree resourceTree = new ResourceTree(superAdapter.getHiC(), null);
-        resourceTree.checkTrackBoxesForReloadState(currentTrack.trim());
     }
 
 }

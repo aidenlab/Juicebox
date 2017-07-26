@@ -25,6 +25,7 @@
 package juicebox.track.feature;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
@@ -59,6 +60,7 @@ public class AnnotationLayerHandler {
     private AnnotationLayer annotationLayer;
     private String layerName;
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
+    private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
     private JToggleButton activeLayerButton;
@@ -187,6 +189,9 @@ public class AnnotationLayerHandler {
         start2 = geneYPos(hic, y, 0);
         end2 = geneYPos(hic, y + height, 0);
 
+        System.out.println(start1 + "\t" + end1);
+
+
         // Snap if close to diagonal
         if (chr1Idx == chr2Idx && (pointsShouldSnapToDiagonal(hic, x, y, width, height)
                 || regionsOverlapSignificantly(start1, end1, start2, end2, .6))) {
@@ -200,22 +205,6 @@ public class AnnotationLayerHandler {
                 start2 = start1;
                 end2 = end1;
             }
-
-            /*
-            TODO meh - I don't think this is doing what we think it is?
-            // Snap to min of horizontal stretch and vertical stretch
-            if (width <= y) {
-                start2 = start1;
-                end2 = end1;
-            } else {
-                start2 = geneYPos(hic, y, 0);
-                end2 = geneYPos(hic, y + height, 0);
-                start1 = start2;
-                end1 = end2;
-            }
-            */
-
-            // Otherwise record as drawn
         }
 
         // Make sure bounds aren't unreasonable (out of HiC map)
@@ -240,97 +229,65 @@ public class AnnotationLayerHandler {
         }
 
         // Add new feature
+        if (HiCGlobals.splitModeEnabled == true) {
+        }
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
         lastStarts = null;
         lastEnds = null;
         return newFeature;
     }
+
     public Feature2D addFeature(HiC hic) {
-        if (selectionRegion == null) return null;
-
-        int start1, start2, end1, end2;
-        Feature2D newFeature;
-        setExportAbility(true);
-        setUndoAbility(true);
-        clearLastItem();
-        String chr1 = hic.getXContext().getChromosome().getName();
-        String chr2 = hic.getYContext().getChromosome().getName();
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-        HashMap<String, String> attributes = new HashMap<>();
-        int rightBound = hic.getXContext().getChromosome().getLength();
-        int bottomBound = hic.getYContext().getChromosome().getLength();
-        int leftBound = 0;
-        int x = selectionRegion.x;
-        int y = selectionRegion.y;
-        int width = selectionRegion.width;
-        int height = selectionRegion.height;
-
-        start1 = geneXPos(hic, x, 0);
-        end1 = geneXPos(hic, x + width, 0);
-        start2 = geneYPos(hic, y, 0);
-        end2 = geneYPos(hic, y + height, 0);
-
-        // Snap if close to diagonal
-        if (chr1Idx == chr2Idx && (pointsShouldSnapToDiagonal(hic, x, y, width, height)
-                || regionsOverlapSignificantly(start1, end1, start2, end2, .6))) {
-
-            if (start1 < start2) {
-                // snap to the right i.e. use y values
-                start1 = start2;
-                end1 = end2;
-            } else {
-                // snap down i.e. use x values
-                start2 = start1;
-                end2 = end1;
-            }
-
-            /*
-            TODO meh - I don't think this is doing what we think it is?
-            // Snap to min of horizontal stretch and vertical stretch
-            if (width <= y) {
-                start2 = start1;
-                end2 = end1;
-            } else {
-                start2 = geneYPos(hic, y, 0);
-                end2 = geneYPos(hic, y + height, 0);
-                start1 = start2;
-                end1 = end2;
-            }
-            */
-
-            // Otherwise record as drawn
-        }
-
-        // Make sure bounds aren't unreasonable (out of HiC map)
-//                int rightBound = hic.getChromosomes().get(0).getLength();
-//                int bottomBound = hic.getChromosomes().get(1).getLength();
-        start1 = Math.min(Math.max(start1, leftBound), rightBound);
-        start2 = Math.min(Math.max(start2, leftBound), bottomBound);
-        end1 = Math.max(Math.min(end1, rightBound), leftBound);
-        end2 = Math.max(Math.min(end2, bottomBound), leftBound);
-
-        // Check for anchored corners
-        if (lastStarts != null) {
-            if (lastStarts.getFirst() < end1 && lastStarts.getSecond() < end2) {
-                start1 = lastStarts.getFirst();
-                start2 = lastStarts.getSecond();
-            }
-        } else if (lastEnds != null) {
-            if (start1 < lastEnds.getFirst() && start2 < lastEnds.getSecond()) {
-                end1 = lastEnds.getFirst();
-                end2 = lastEnds.getSecond();
-            }
-        }
-
         // Add new feature
-        newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
-                defaultColor, attributes);
-        annotationLayer.add(chr1Idx, chr2Idx, newFeature);
-        lastStarts = null;
-        lastEnds = null;
+        Feature2D newFeature = generateFeature(hic);
+        annotationLayer.add(hic.getXContext().getChromosome().getIndex(), hic.getYContext().getChromosome().getIndex(), newFeature);
         return newFeature;
+    }
+
+    private Feature2D generateTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
+        Collections.sort(selectedFeatures);
+
+        Feature2D firstSelectedContig = selectedFeatures.get(0);
+        Feature2D lastSelectedContig = selectedFeatures.get(selectedFeatures.size() - 1);
+
+        String chrX = hiC.getXContext().getChromosome().getName();
+        String chrY = hiC.getYContext().getChromosome().getName();
+
+        Integer startX = firstSelectedContig.getStart1();
+        Integer startY = firstSelectedContig.getStart2();
+        Integer endX = lastSelectedContig.getEnd1();
+        Integer endY = lastSelectedContig.getEnd2();
+
+        HashMap<String, String> attributes = new HashMap<>();
+
+        return new Feature2D(Feature2D.FeatureType.SELECTED_GROUP, chrX, startX, endX, chrY, startY, endY, getDefaultColor(), attributes);
+    }
+
+    public Feature2D addTempSelectedGroup(List<Feature2D> selectedFeatures, HiC hiC) {
+        Feature2D tempSelectedGroup = generateTempSelectedGroup(selectedFeatures, hiC);
+        annotationLayer.add(hiC.getXContext().getChromosome().getIndex(), hiC.getYContext().getChromosome().getIndex(), tempSelectedGroup);
+        return tempSelectedGroup;
+    }
+
+    private List<Feature2D> getTempSelectedGroups(int chr1Idx, int chr2Idx) {
+        List<Feature2D> tempSelectedGroups = new ArrayList<>();
+        List<Feature2D> allVisibleLoops = this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx));
+        if (allVisibleLoops != null) {
+            for (Feature2D feature2D : this.getAllVisibleLoops().getFeatureList(Feature2DList.getKey(chr1Idx, chr2Idx))) {
+                if (feature2D.getFeatureType() == Feature2D.FeatureType.SELECTED_GROUP) {
+                    tempSelectedGroups.add(feature2D);
+                }
+            }
+        }
+        return tempSelectedGroups;
+    }
+
+    public void filterTempSelectedGroup(int chr1Idx, int chr2Idx) {
+        List<Feature2D> tempSelectedGroups = getTempSelectedGroups(chr1Idx, chr2Idx);
+        for (Feature2D feature2D : tempSelectedGroups) {
+            this.getAllVisibleLoops().checkAndRemoveFeature(chr1Idx, chr2Idx, feature2D);
+        }
     }
 
     private boolean regionsOverlapSignificantly(int start1, int end1, int start2, int end2, double tolerance) {
@@ -780,6 +737,14 @@ public class AnnotationLayerHandler {
 
     public void setIsSparse(boolean isSparse) {
         annotationLayer.setIsSparse(isSparse);
+    }
+
+    public FeatureRenderer.LineStyle getLineStyle() {
+        return this.lineStyle;
+    }
+
+    public void setLineStyle(FeatureRenderer.LineStyle lineStyle) {
+        this.lineStyle = lineStyle;
     }
 
     public void duplicateDetailsFrom(AnnotationLayerHandler handlerOriginal) {

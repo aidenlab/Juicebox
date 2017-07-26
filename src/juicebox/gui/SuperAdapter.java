@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
@@ -73,9 +74,18 @@ public class SuperAdapter {
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
+    private AssemblyStateTracker assemblyStateTracker;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
+
+    public static String getDatasetTitle() {
+        return datasetTitle;
+    }
+
+    public static void setDatasetTitle(String newDatasetTitle) {
+        datasetTitle = newDatasetTitle;
+    }
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -130,6 +140,8 @@ public class SuperAdapter {
         }
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
@@ -146,8 +158,6 @@ public class SuperAdapter {
         controlTitle = null;
         updateTitle();
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
@@ -214,7 +224,6 @@ public class SuperAdapter {
         }
     }
 
-
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayerHandler().setAnnotationLayer(
                 new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
@@ -264,15 +273,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    public String getDescription(String item) {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
-                hic.getDefaultLocationDescription());
-    }
-
-    public void addNewStateToXML(String stateDescription) {
-        XMLFileHandling.addNewStateToXML(stateDescription, this);
-    }
-
     /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
@@ -282,6 +282,15 @@ public class SuperAdapter {
         handler.addVisibleLoops(hic);
     }
     */
+
+    public String getDescription(String item) {
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
+                hic.getDefaultLocationDescription());
+    }
+
+    public void addNewStateToXML(String stateDescription) {
+        XMLFileHandling.addNewStateToXML(stateDescription, this);
+    }
 
     public void setNormalizationDisplayState() {
         mainViewPanel.setNormalizationDisplayState(hic);
@@ -826,8 +835,48 @@ public class SuperAdapter {
     }
 
     // mhoeger - Used for contig layer, currently returns the first element
+    public List<AnnotationLayerHandler> getAssemblyLayerHandlers() {
+        List<AnnotationLayerHandler> handlers = new ArrayList<>();
+        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
+                handlers.add(annotationLayerHandler);
+            }
+        }
+        if (handlers.size() == 0) {
+            handlers.add(annotationLayerHandlers.get(0));
+        }
+        return handlers;
+    }
+
+    private AnnotationLayerHandler getAssemblyLayerHandler(AnnotationLayer.LayerType layerType) {
+        for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers()) {
+            if (annotationLayerHandler.getAnnotationLayerType() == layerType) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
     public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
-        return annotationLayerHandlers.get(0);
+//        return annotationLayerHandlers.get(0);
+//        List<AnnotationLayerHandler> handlers = new ArrayList<>();
+//        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
+        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP)) {
+            return getActiveLayerHandler();
+        } else
+            return annotationLayerHandlers.get(0);
+    }
+
+    public AnnotationLayerHandler getMainLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.MAIN);
+    }
+
+    public AnnotationLayerHandler getGroupLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.GROUP);
+    }
+
+    public AnnotationLayerHandler getEditLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT);
     }
 
     public AnnotationLayerHandler createNewLayer() {
@@ -911,5 +960,13 @@ public class SuperAdapter {
 
     public void togglePanelVisible() {
         setLayersPanelVisible(!layerPanelIsVisible);
+    }
+
+    public AssemblyStateTracker getAssemblyStateTracker() {
+        return assemblyStateTracker;
+    }
+
+    public void setAssemblyStateTracker(AssemblyStateTracker assemblyStateTracker) {
+        this.assemblyStateTracker = assemblyStateTracker;
     }
 }

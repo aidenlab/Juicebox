@@ -27,7 +27,7 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -475,6 +475,18 @@ public class MainMenuBar {
         figureMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
+
+        final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
+        displayTiles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.displayTiles = !HiCGlobals.displayTiles;
+                superAdapter.getHeatmapPanel().repaint();
+            }
+        });
+        displayTiles.setSelected(HiCGlobals.displayTiles);
+        devMenu.add(displayTiles);
+
         JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {
             @Override
@@ -499,7 +511,7 @@ public class MainMenuBar {
             public void actionPerformed(ActionEvent e) {
                 String newURL = MessageUtils.showInputDialog("Specify reassembling");
                 if (newURL != null) {
-                    AssemblyIntermediateProcessor.makeChanges(newURL.split(","), superAdapter);
+                    AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
                 }
             }
         });

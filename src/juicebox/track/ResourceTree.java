@@ -629,6 +629,7 @@ public class ResourceTree {
                         if (resource.dataResourceLocator.getName().contains(track)) {
                             resource.setSelected(true);
                             resource.setEnabled(true);
+                            loadedLocators.add(resource.getResourceLocator());
                             ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
                             //System.out.println("name: "+resource.dataResourceLocator.getName()); for debugging
                         }
