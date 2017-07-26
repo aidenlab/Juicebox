@@ -759,6 +759,9 @@ public class AssemblyFragmentHandler {
     }
 
     public int liftOriginalAsmCoordinateToFragmentCoordinate(Contig2D contig, int asmCoordinate) {
+        if (contig == null) {
+            return -1;
+        }
         int newCoordinate;
         boolean inverted = contig.getInitialInvert();
         if (inverted) {
@@ -771,6 +774,9 @@ public class AssemblyFragmentHandler {
 
     //TODO: add scaling, check +/-1
     public int liftFragmentCoordinateToAsmCoordinate(Contig2D contig, int fragmentCoordinate) {
+        if (contig == null) {
+            return -1;
+        }
         boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
         int newCoordinate;
         if (inverted) {
