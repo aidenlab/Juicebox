@@ -484,7 +484,7 @@ public class AnnotationLayerHandler {
     }
 
     /*
-     * Gets the contained featuers within the selction region, including the features that the
+     * Gets the contained features within the selection region, including the features that the
      * selection starts and ends in
      */
     public List<Feature2D> getSelectedFeatures(HiC hic, int lastX, int lastY) {

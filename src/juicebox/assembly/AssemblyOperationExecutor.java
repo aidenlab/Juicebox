@@ -60,6 +60,14 @@ public class AssemblyOperationExecutor {
         superAdapter.refresh();
     }
 
+    public static void moveDebrisToEnd(SuperAdapter superAdapter) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.moveDebrisToEnd();
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+        superAdapter.refresh();
+    }
+
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
