@@ -724,6 +724,8 @@ public class AssemblyFragmentHandler {
         return newCoordinate;
     }
 
+    // TODO use rtree
+    // TODO likely should be renamed - this is a search function?
     public Contig2D liftOriginalAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
         //System.out.println(contigs.get(chrId1, chrId2).size());
         //       for (Feature2D contig: originalContigs.get(chrId1, chrId2)) {
@@ -738,6 +740,10 @@ public class AssemblyFragmentHandler {
 
     public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
         Contig2D contig = liftOriginalAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
+        return liftOriginalAsmCoordinateToFragmentCoordinate(contig, asmCoordinate);
+    }
+
+    public int liftOriginalAsmCoordinateToFragmentCoordinate(Contig2D contig, int asmCoordinate) {
         int newCoordinate;
         boolean inverted = contig.getInitialInvert();
         if (inverted) {

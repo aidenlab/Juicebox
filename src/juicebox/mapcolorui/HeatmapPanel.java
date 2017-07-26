@@ -1656,15 +1656,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
 
-                List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
-                if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
-                    HiCGlobals.splitModeEnabled = false;
-                    superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
-                    superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
-                    superAdapter.getEditLayer().clearAnnotations();
-                }
-                if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
-                    HiCGlobals.splitModeEnabled = true;
+                try {
+                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                    if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                        HiCGlobals.splitModeEnabled = false;
+                        superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
+                        superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                        superAdapter.getEditLayer().clearAnnotations();
+                    }
+                    if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                        HiCGlobals.splitModeEnabled = true;
+                    }
+                } catch (Exception ee) {
+
                 }
             } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;

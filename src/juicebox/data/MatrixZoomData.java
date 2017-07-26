@@ -29,7 +29,7 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyHeatmapHandler;
-import juicebox.gui.SuperAdapter;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
@@ -37,16 +37,15 @@ import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
-import juicebox.track.feature.Feature2DList;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
+import net.sf.jsi.Rectangle;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.linear.RealVector;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
 
 import java.io.IOException;
@@ -233,150 +232,86 @@ public class MatrixZoomData {
         int row1 = binY1 / blockBinCount;
         int col2 = binX2 / blockBinCount;
         int row2 = binY2 / blockBinCount;
-//        List<Integer> blocksToLoad = new ArrayList<>();
-        Pair<List<Contig2D>, List<Contig2D>> contigs = null;
 
-        if (HiCGlobals.assemblyModeEnabled) {
-            contigs = AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
-                    chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no);
-        } else {
-            for (int r = row1; r <= row2; r++) {
-                for (int c = col1; c <= col2; c++) {
-                    populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
-                }
+        for (int r = row1; r <= row2; r++) {
+            for (int c = col1; c <= col2; c++) {
+                populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
             }
         }
 
-        blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
+        actuallyLoadGivenBlocks(blockList, new ArrayList<>(new HashSet<>(blocksToLoad)), no);
 
-        final AtomicInteger errorCounter = new AtomicInteger();
-
-        List<Thread> threads = new ArrayList<>();
-        for (final int blockNumber : blocksToLoad) {
-            Runnable loader = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String key = getKey() + "_" + blockNumber + "_" + no;
-                        Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
-                        if (b == null) {
-                            b = new Block(blockNumber);   // An empty block
-                        }
-                        if (HiCGlobals.useCache) {
-                            blockCache.put(key, b);
-                        }
-                        blockList.add(b);
-                    } catch (IOException e) {
-                        errorCounter.incrementAndGet();
-                    }
-                }
-            };
-
-            Thread t = new Thread(loader);
-            threads.add(t);
-            t.start();
-        }
-
-        // Wait for all threads to complete
-        for (Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignore) {
-            }
-        }
-        if (errorCounter.get() > 0) {
-            System.err.println(errorCounter.get() + " errors while reading blocks");
-        }
-
-        Set<Block> blockSet = new HashSet<>(blockList);
-        return new ArrayList<>(blockSet);
+        return new ArrayList<>(new HashSet<>(blockList));
     }
 
     public List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                          final NormalizationType no) {
         List<Integer> blocksToLoad = new ArrayList<>();
+        Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
 
-        // translate window into original assembly intervals
-        // for now keep as pairs of contigs {c1, c2}
+        // enable sparse plotting options
+        boolean previousStatus = handler.getIsSparsePlottingEnabled();
 
-        SuperAdapter superAdapter = AssemblyHeatmapHandler.getSuperAdapter();
-        Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
-        final String key = Feature2DList.getKey(chromosome, chromosome);
-        Feature2DList features = null;
-        features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoops();
-        features.convertFeaturesToContigs(key);
-        List<Feature2D> allContigs = features.get(key);
+        // Get features that are both contained by and touching (nearest single neighbor)
+        // the selection rectangle
+        handler.setSparsePlottingEnabled(true);
 
-        List<Contig2D> xContigs = new ArrayList<>();
-        List<Contig2D> yContigs = new ArrayList<>();
-
-        for (Feature2D contig : allContigs) {
-
-            int cStart = contig.getStart1() / zoom.getBinSize();
-            int cEnd = contig.getEnd1() / zoom.getBinSize();
-
-            if (cEnd < binX1) {
-                continue;
-            }
-            if (cStart < binX2) {
-                xContigs.add(contig.toContig());
-            } else {
-                break;
-            }
-        }
-
-        for (Feature2D contig : allContigs) {
-
-            int cStart = contig.getStart1() / zoom.getBinSize();
-            int cEnd = contig.getEnd1() / zoom.getBinSize();
-
-            if (cEnd < binY1) {
-                continue;
-            }
-            if (cStart < binY2) {
-                yContigs.add(contig.toContig());
-            } else {
-                break;
-            }
-        }
-
-//        List<String>contigIds = new ArrayList<>();
-//        for(Contig2D contig : xContigs){
-//            contigIds.add(contig.getAttribute("Scaffold Index"));
-//        }
-//        System.out.println("x contigs: "+contigIds.toString());
-//        contigIds.clear();
-//        for(Contig2D contig : yContigs){
-//            contigIds.add(contig.getAttribute("Scaffold Index"));
-//        }
-//        System.out.println("y contigs: "+contigIds.toString());
+        // x window binNumber * binSize
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
+                binX1 * zoom.getBinSize(),
+                binX1 * zoom.getBinSize(),
+                binX2 * zoom.getBinSize(),
+                binX2 * zoom.getBinSize());
+        List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
 
 
-//        List<Contig2D> contigs = new ArrayList<>();
-//        contigs.addAll(AssemblyHeatmapHandler.retrieveRelevantBlocks(this, blocksToLoad, blockList,
-//                chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
+        // y window
+        currentWindow = new net.sf.jsi.Rectangle(
+                binY1 * zoom.getBinSize(),
+                binY1 * zoom.getBinSize(),
+                binY2 * zoom.getBinSize(),
+                binY2 * zoom.getBinSize());
+        List<Contig2D> yAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
+        // restore sparse plotting options
+        handler.setSparsePlottingEnabled(previousStatus);
 
-        // Here: for each pair of contigs grad relevant block
-
-        for (Contig2D xContig : xContigs) {
-            for (Contig2D yContig : yContigs) {
-                int[] genomePosition = new int[4];
-                genomePosition[0] = xContig.getInitialStart();
-                genomePosition[1] = xContig.getInitialEnd();
-                genomePosition[2] = yContig.getInitialStart();
-                genomePosition[3] = yContig.getInitialEnd();
+        for (Contig2D xContig : xAxisContigs) {
+            for (Contig2D yContig : yAxisContigs) {
+                int[] genomePosition = new int[]{
+                        xContig.getInitialStart(),
+                        xContig.getInitialEnd(),
+                        yContig.getInitialStart(),
+                        yContig.getInitialEnd()};
                 blocksToLoad.addAll(getBlockNumbersForRegionFromGenomePosition(genomePosition));
             }
         }
 
-        //System.out.println("before: "+blocksToLoad.toString());
-
         // Remove duplicates here
         blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
 
-        //System.out.println("after: "+blocksToLoad.toString());
-
         // Actually load
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
+
+        Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
+                chr1.getIndex(), chr2.getIndex());
+
+        //Set<Block> blockSet = AssemblyHeatmapHandler.filterBlockList(new Pair<>(xAxisContigs, yAxisContigs), new HashSet<>(blockList), getBinSize());
+
+        return new ArrayList<>(blockSet);
+    }
+
+    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
+        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
+        List<Contig2D> axisContigs = new ArrayList<>();
+        for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
+            axisContigs.add(feature2D.toContig());
+        }
+        Collections.sort(axisContigs);
+        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
+    }
+
+    private void actuallyLoadGivenBlocks(final List<Block> blockList, List<Integer> blocksToLoad,
+                                         final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<>();
@@ -387,7 +322,6 @@ public class MatrixZoomData {
                     try {
                         String key = getKey() + "_" + blockNumber + "_" + no;
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
-                        // TODO: modify block here?
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
                         }
@@ -416,18 +350,6 @@ public class MatrixZoomData {
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
-
-        Set<Block> blockSet = new HashSet<>(blockList);
-
-        // modify block record entries
-//        List <Contig2D> allPariticipating = new ArrayList<>();
-//        allPariticipating.addAll(xContigs);
-//        allPariticipating.addAll(yContigs);
-//        Collections.sort(allPariticipating);
-//        Set<Contig2D> allPariticipatingSet = new HashSet<>(allPariticipating);
-//        AssemblyHeatmapHandler.filterBlockList(new ArrayList(allPariticipatingSet), blockSet, zoom.getBinSize());
-        blockSet = AssemblyHeatmapHandler.modifyBlockList(blockSet);
-        return new ArrayList<>(blockSet);
     }
 
 
