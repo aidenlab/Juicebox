@@ -233,7 +233,7 @@ public class MatrixZoomData {
         int row1 = binY1 / blockBinCount;
         int col2 = binX2 / blockBinCount;
         int row2 = binY2 / blockBinCount;
-        List<Integer> blocksToLoad = new ArrayList<>();
+//        List<Integer> blocksToLoad = new ArrayList<>();
         Pair<List<Contig2D>, List<Contig2D>> contigs = null;
 
         if (HiCGlobals.assemblyModeEnabled) {
@@ -323,13 +323,8 @@ public class MatrixZoomData {
             } else {
                 break;
             }
-        if (contigs != null && binX2 != binX1) {
-            if (contigs.getFirst().size() + contigs.getSecond().size() > 2)
-                System.out.println("Sizes " + blockList.size() + " " + contigs.getFirst().size() + " " + contigs.getSecond().size());
         }
-        if (HiCGlobals.assemblyModeEnabled && contigs != null) {
-            return AssemblyHeatmapHandler.filterBlockList(contigs, blockSet, zoom.getBinSize(), blockBinCount, blockColumnCount);
-        }
+
         for (Feature2D contig : allContigs) {
 
             int cStart = contig.getStart1() / zoom.getBinSize();
