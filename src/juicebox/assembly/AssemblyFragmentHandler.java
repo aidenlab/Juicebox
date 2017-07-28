@@ -47,13 +47,14 @@ public class AssemblyFragmentHandler {
     private String chromosomeName = "assembly";
     private OperationType operationType;
     private Contig2D guessContig = null;
+    private Integer debrisContigIndex;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         generateContigsAndScaffolds();
-        this.operationType = OperationType.NONE;
+        debrisContigIndex = null;
     }
 
     public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
@@ -61,12 +62,14 @@ public class AssemblyFragmentHandler {
         this.scaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
         this.contigs = new Feature2DList();
         this.scaffolds = new Feature2DList();
+        if (assemblyFragmentHandler.debrisContigIndex == null) {
+            this.debrisContigIndex = null;
+        } else {
+            this.debrisContigIndex = new Integer(assemblyFragmentHandler.debrisContigIndex);
+        }
         generateContigsAndScaffolds();
     }
 
-    public OperationType getOperationType() {
-        return this.operationType;
-    }
 
     public List<ContigProperty> cloneContigProperties() {
         List<ContigProperty> newList = new ArrayList<>();
@@ -207,7 +210,6 @@ public class AssemblyFragmentHandler {
     //**** Splitting ****//
 
     public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
-        operationType = OperationType.EDIT;
         ArrayList<Feature2D> contigs = new ArrayList<>();
         contigs.add(originalFeature);
         int scaffoldRowNum = getScaffoldRow(contig2DListToIntegerList(contigs));
@@ -217,9 +219,12 @@ public class AssemblyFragmentHandler {
         int indexId = Integer.parseInt(originalFeature.getAttribute(scaffoldIndexId));
         List<ContigProperty> splitContigs = splitContig(originalFeature, debrisContig, originalContig);
 
-
         addContigProperties(originalContig, splitContigs);
         addScaffoldProperties(indexId, inverted, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
+
+        debrisContigIndex = splitContigs.get(1).getIndexId();
+        debrisContigIndex = findInvertedContigIndex(debrisContigIndex);
+//        System.out.println("dindex "+debrisContigIndex);
     }
 
     public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
@@ -259,14 +264,15 @@ public class AssemblyFragmentHandler {
 
         length = debrisStart - originalStart;
         ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length);
-        splitContig.add(firstFragment);
 
         length = debrisEnd - debrisStart;
         ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
-        splitContig.add(secondFragment);
 
         length = originalEnd - debrisEnd;
         ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length);
+
+        splitContig.add(firstFragment);
+        splitContig.add(secondFragment);
         splitContig.add(thirdFragment);
 
         setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
@@ -286,15 +292,16 @@ public class AssemblyFragmentHandler {
 
         length = originalEnd - debrisEnd;
         ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length);
-        splitContig.add(firstFragment);
 
         length = debrisEnd - debrisStart;
         ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
-        splitContig.add(secondFragment);
 
         length = debrisStart - originalStart;
         ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length);
+
         splitContig.add(thirdFragment);
+        splitContig.add(secondFragment);
+        splitContig.add(firstFragment);
 
         setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
         return splitContig;
@@ -310,8 +317,7 @@ public class AssemblyFragmentHandler {
                 //    50-100, 40-50, 0-40
                 newInitialStart = newInitialStart - contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                if (contigProperty.isInverted())
-                    contigProperty.toggleInversion(); //toggles inversion of split contig
+                contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialEnd = newInitialStart;
             }
         } else { //not inverted
@@ -321,8 +327,6 @@ public class AssemblyFragmentHandler {
             for (ContigProperty contigProperty : splitContig) {
                 newInitialEnd = newInitialEnd + contigProperty.getLength();
                 contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                if (contigProperty.isInverted())
-                    contigProperty.toggleInversion(); //toggles inversion of split contig
                 newInitialStart = newInitialEnd;
             }
         }
@@ -391,8 +395,6 @@ public class AssemblyFragmentHandler {
         shiftContigIndices(splitContigIndex);
 
         List<ContigProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
-        for (ContigProperty contigProperty : fromInitialContig) {
-        }
         if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are framents past the one you are splitting
             List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
             for (ContigProperty contigProperty : shiftedContigs) {
@@ -433,7 +435,6 @@ public class AssemblyFragmentHandler {
 
     public void invertSelection(List<Feature2D> contigs) {
 
-        operationType = OperationType.INVERT;
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
 
         int id1 = contigIds.get(0);
@@ -533,11 +534,40 @@ public class AssemblyFragmentHandler {
     //**** Move toggle ****//
 
     public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature){
-
-        operationType = OperationType.TRANSLATE;
         int id1 = Integer.parseInt(selectedFeatures.get(0).getAttribute(scaffoldIndexId));
         int id2 = Integer.parseInt(selectedFeatures.get(selectedFeatures.size()-1).getAttribute(scaffoldIndexId));
         int id3 = Integer.parseInt(upstreamFeature.getAttribute(scaffoldIndexId));
+        moveSelection(id1, id2, id3);
+    }
+
+    public void moveDebrisToEnd() {
+        if (debrisContigIndex != null) {
+            int id1 = debrisContigIndex;
+            int id2 = debrisContigIndex;
+            int counter = 0;
+
+            List<Integer> lastRow = scaffoldProperties.get(scaffoldProperties.size() - 1);
+
+            int id3 = lastRow.get(lastRow.size() - 1);
+            moveSelection(id1, id2, id3);
+            debrisContigIndex = null;
+        }
+    }
+
+    public int findInvertedContigIndex(int id1) {
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+
+            for (int index : scaffoldRow) {
+                if (Math.abs(index) == Math.abs(id1))
+                    return index;
+            }
+        }
+        System.err.println("error finding contigID");
+        return -1;
+    }
+
+    public void moveSelection(int id1, int id2, int id3) {
+
 
         int gid1 = getGroupID(id1);
         int gid2 = getGroupID(id2);
@@ -634,24 +664,22 @@ public class AssemblyFragmentHandler {
 //        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         if (gr1==gr2){
 //            System.out.println("calling split");
-            operationType = OperationType.GROUP; //This is new?
             newSplitGroup(gr1, id1);
 //            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }else {
 
 //            System.out.println("calling merge");
-            operationType = OperationType.GROUP; //This is new?
             newMergeGroup(gr1, gr2);
 //            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }
 
     }
 
-    private void newMergeGroup(int gid1, int gid2) {
+    private void newMergeGroup(int groupId1, int groupId2) {
         List<List<Integer>> newGroups = new ArrayList<>();
         for (int i=0; i<=scaffoldProperties.size()-1; i++){
-            if (i==gid2){
-                newGroups.get(gid1).addAll(scaffoldProperties.get(gid2));
+            if (i == groupId2) {
+                newGroups.get(groupId1).addAll(scaffoldProperties.get(groupId2));
             } else {
                 newGroups.add(scaffoldProperties.get(i));
             }
@@ -661,12 +689,12 @@ public class AssemblyFragmentHandler {
         return;
     }
 
-    private void newSplitGroup(int gid1, int id1) {
+    private void newSplitGroup(int groupId1, int id1) {
         List<List<Integer>> newGroups = new ArrayList<>();
         for (int i=0; i<=scaffoldProperties.size()-1; i++){
-            if (i==gid1){
-                newGroups.add(scaffoldProperties.get(gid1).subList(0, 1 + scaffoldProperties.get(gid1).indexOf(id1)));
-                newGroups.add(scaffoldProperties.get(gid1).subList(1 + scaffoldProperties.get(gid1).indexOf(id1), scaffoldProperties.get(gid1).size()));
+            if (i == groupId1) {
+                newGroups.add(scaffoldProperties.get(groupId1).subList(0, 1 + scaffoldProperties.get(groupId1).indexOf(id1)));
+                newGroups.add(scaffoldProperties.get(groupId1).subList(1 + scaffoldProperties.get(groupId1).indexOf(id1), scaffoldProperties.get(groupId1).size()));
             } else {
                 newGroups.add(scaffoldProperties.get(i));
             }
@@ -680,9 +708,12 @@ public class AssemblyFragmentHandler {
 
     private int getGroupID(int id1) {
         int i = 0;
+//        System.out.println(id1);
         for (List<Integer> scaffoldRow : scaffoldProperties) {
-            if (scaffoldRow.contains(id1)) {
-                return i;
+
+            for (int index : scaffoldRow) {
+                if (Math.abs(index) == Math.abs(id1))
+                    return i;
             }
             i++;
         }
