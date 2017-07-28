@@ -28,6 +28,7 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.matrix.BasicMatrix;
@@ -239,7 +240,7 @@ public class MatrixZoomData {
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, new ArrayList<>(new HashSet<>(blocksToLoad)), no);
+        actuallyLoadGivenBlocks(blockList, new ArrayList<>(new HashSet<>(blocksToLoad)), no, null);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
@@ -301,18 +302,14 @@ public class MatrixZoomData {
             }
         }
 
-        // Remove duplicates here
+        // Remove basic duplicates here
         blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
+        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
-        // Actually load new
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
+        // Actually load new blocks
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
 
-        Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
-                chr1.getIndex(), chr2.getIndex());
-
-        //Set<Block> blockSet = AssemblyHeatmapHandler.filterBlockList(new Pair<>(xAxisContigs, yAxisContigs), new HashSet<>(blockList), getBinSize());
-
-        return new ArrayList<>(blockSet);
+        return new ArrayList<>(new HashSet<>(blockList));
     }
 
     private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
@@ -326,10 +323,15 @@ public class MatrixZoomData {
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, List<Integer> blocksToLoad,
-                                         final NormalizationType no) {
+                                         final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<>();
+
+        final int binSize = getBinSize();
+        final int chr1Index = chr1.getIndex();
+        final int chr2Index = chr2.getIndex();
+
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
                 @Override
@@ -339,6 +341,10 @@ public class MatrixZoomData {
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
+                        }
+                        //Run out of memory if do it here
+                        if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
+                            b = AssemblyHeatmapHandler.modifyBlock(b, binSize, chr1Index, chr2Index, aFragHandler);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);

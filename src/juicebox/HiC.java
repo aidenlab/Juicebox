@@ -1278,18 +1278,21 @@ public class HiC {
         return this.zoomActionTracker;
     }
 
-    public void clearMatrixZoomDataCache() {
-        try {
-            getZd().clearCache();
-            getControlZd().clearCache();
+  public void clearAllMatrixZoomDataCache() {
+        clearAllCacheForDataset(dataset);
+        if (isControlLoaded()) {
+            clearAllCacheForDataset(controlDataset);
         } catch (Exception e) {
             System.err.println("Unable to clear matrixZoomData cache");
         }
     }
 
-    /*public Feature2DHandler getFeature2DHandler() {
-        return feature2DHandler;
-    }*/
+    private void clearAllCacheForDataset(Dataset ds) {
+        Matrix matrix = ds.getMatrix(xContext.getChromosome(), yContext.getChromosome());
+        for (HiCZoom zoom : ds.getBpZooms()) {
+            matrix.getZoomData(zoom).clearCache();
+        }
+    }
 
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {

@@ -384,6 +384,11 @@ public class SuperAdapter {
         //System.err.println(heatmapPanel.getSize());
     }
 
+    public void clearAllMatrixZoomCache() {
+        //not sure if this is a right place for this
+        hic.clearAllMatrixZoomDataCache();
+    }
+
     private void refreshMainOnly() {
         mainViewPanel.getHeatmapPanel().clearTileCache();
         mainWindow.repaint();
