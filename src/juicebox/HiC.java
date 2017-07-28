@@ -1282,8 +1282,6 @@ public class HiC {
         clearAllCacheForDataset(dataset);
         if (isControlLoaded()) {
             clearAllCacheForDataset(controlDataset);
-        } catch (Exception e) {
-            System.err.println("Unable to clear matrixZoomData cache");
         }
     }
 
