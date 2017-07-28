@@ -373,7 +373,8 @@ public class SuperAdapter {
             }
 
         }
-        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
+        hic.unsafeActuallySetZoomAndLocation(hic.getXContext().getChromosome().toString(), hic.getYContext().getChromosome().toString(),
+                initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true, isResolutionLocked() ? 1 : 0, true);
     }
 
     public void refresh() {
@@ -381,6 +382,11 @@ public class SuperAdapter {
         mainWindow.repaint();
         mainViewPanel.updateThumbnail(hic);
         //System.err.println(heatmapPanel.getSize());
+    }
+
+    public void clearAllMatrixZoomCache() {
+        //not sure if this is a right place for this
+        hic.clearAllMatrixZoomDataCache();
     }
 
     private void refreshMainOnly() {

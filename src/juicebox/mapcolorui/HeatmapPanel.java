@@ -119,7 +119,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
-  
+
     /**
      * Initialize heatmap panel
      *
@@ -285,7 +285,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                     //TODO ******** UNCOMMENT *******
                     //Uncomment to draw tile grid (for debugging)
-                    //g.drawRect((int) xDest0, (int) yDest0, (int) (xDest1 - xDest0), (int) (yDest1 - yDest0));
+                    if (HiCGlobals.displayTiles) {
+                        g.drawRect(xDest0, yDest0, (xDest1 - xDest0), (yDest1 - yDest0));
+                    }
 
                 }
             }
@@ -711,6 +713,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(mi0UndoOrRedo);
         }
         */
+
+        final JMenuItem miUndoZoom = new JMenuItem("Undo Zoom");
+        miUndoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
+                hic.undoZoomAction();
+            }
+        });
+        miUndoZoom.setEnabled(hic.getZoomActionTracker().validateUndoZoom());
+        menu.add(miUndoZoom);
+
+        final JMenuItem miRedoZoom = new JMenuItem("Redo Zoom");
+        miRedoZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hic.setCursorPoint(new Point(xMousePos, yMousePos));
+                hic.redoZoomAction();
+            }
+        });
+        miRedoZoom.setEnabled(hic.getZoomActionTracker().validateRedoZoom());
+        menu.add(miRedoZoom);
 
         final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
         mi_0.addActionListener(new ActionListener() {
@@ -1216,6 +1240,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+    private void translateMenuItemActionPerformed() {
+        HiCGlobals.translationInProgress = Boolean.TRUE;
+    }
+
+
     private void splitMenuItemActionPerformed() {
         executeSplitMenuAction();
     }
@@ -1657,9 +1686,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
                 // Corners for resize annotation
 
-                List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
-                if (newSelectedFeatures.size() != 0 && selectedFeatures != null && selectedFeatures.size() != 0) {
-                    if (!(selectedFeatures.get(0).equals(newSelectedFeatures.get(0)))) {
+                try {
+                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                    if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+
                         HiCGlobals.splitModeEnabled = false;
                         superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
                         superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
@@ -1668,6 +1698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
                         HiCGlobals.splitModeEnabled = true;
                     }
+                } catch (Exception ee) {
                 }
             } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;
@@ -2055,11 +2086,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
             try {
+                final String chrXName = hic.getXContext().getChromosome().toString();
+                final String chrYName = hic.getYContext().getChromosome().toString();
+
                 final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
                 final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
 
-                hic.unsafeActuallySetZoomAndLocation("", "", newZoom, xGenome, yGenome, -1, false,
-                        HiC.ZoomCallType.STANDARD, true);
+                hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
+                        HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2118,10 +2152,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         default:
                             break;
                     }
-//                    superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+                    if (HiCGlobals.printVerboseComments) {
+                        try {
+                            superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+                        } catch (Exception e) {
+                            System.err.println("Unable to print assembly state");
+                        }
+                    }
                 } else if (eF.getClickCount() == 2) {
 
-                    // Double click,  zoom and center on click location
+                    // Double click, zoom and center on click location
                     try {
                         final HiCZoom currentZoom = hic.getZd().getZoom();
                         final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
@@ -2132,13 +2172,23 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
                         final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
 
+                        // perform superzoom / normal zoom / reverse-superzoom
                         if (newZoom.equals(currentZoom)) {
                             double mult = eF.isAltDown() ? 0.5 : 2.0;
-                            double newScaleFactor = Math.max(1.0, hic.getScaleFactor() * mult);
-                            hic.setScaleFactor(newScaleFactor);
-                            hic.getXContext().setBinOrigin(Math.max(0, (int) (centerBinX - (getWidth() / (2 * newScaleFactor)))));
-                            hic.getYContext().setBinOrigin(Math.max(0, (int) (centerBinY - (getHeight() / (2 * newScaleFactor)))));
-                            mainWindow.repaint();
+                            // if newScaleFactor > 1.0, performs superzoom
+                            // if newScaleFactor = 1.0, performs normal zoom
+                            // if newScaleFactor < 1.0, performs reverse superzoom
+                            double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
+
+                            String chrXName = hic.getXContext().getChromosome().getName();
+                            String chrYName = hic.getYContext().getChromosome().getName();
+
+                            int genomeX = Math.max(0, (int) (centerBinX) * newZoom.getBinSize());
+                            int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
+
+                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
+                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
+
                         } else {
                             Runnable runnable = new Runnable() {
                                 public void run() {

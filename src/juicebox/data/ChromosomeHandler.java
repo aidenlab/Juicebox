@@ -49,6 +49,7 @@ public class ChromosomeHandler {
                 genomeLength += c.getLength();
         }
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
+        chromosomes.add(new Chromosome(chromosomes.size(), "Custom", (int) (genomeLength / 1000)));
 
         this.cleanedChromosomes = new ArrayList<>();
 
@@ -89,6 +90,14 @@ public class ChromosomeHandler {
 
     public static boolean isAllByAll(String name) {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
+    }
+
+    public static boolean isCustomChromosome(Chromosome chromosome) {
+        return isCustomChromosome(chromosome.getName());
+    }
+
+    public static boolean isCustomChromosome(String name) {
+        return cleanUpName(name).equalsIgnoreCase("custom");
     }
 
     private void initializeInternalVariables() {

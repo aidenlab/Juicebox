@@ -37,6 +37,8 @@ import java.io.File;
  */
 public class SaveAssemblyDialog extends JFileChooser {
 
+    private static final long serialVersionUID = 18237123123L;
+
     private AssemblyFragmentHandler assemblyFragmentHandler;
     private String mapName;
 

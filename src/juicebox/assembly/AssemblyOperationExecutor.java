@@ -50,6 +50,7 @@ public class AssemblyOperationExecutor {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
         superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
     }
 
     public static void moveSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
@@ -58,6 +59,7 @@ public class AssemblyOperationExecutor {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
         superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
     }
 
     public static void moveDebrisToEnd(SuperAdapter superAdapter) {
@@ -73,4 +75,5 @@ public class AssemblyOperationExecutor {
         assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
+
 }

@@ -45,6 +45,8 @@ public class AssemblyFragmentHandler {
     private Feature2DList contigs;
     private Feature2DList scaffolds;
     private String chromosomeName = "assembly";
+    private OperationType operationType;
+    private Contig2D guessContig = null;
     private Integer debrisContigIndex;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
@@ -724,6 +726,108 @@ public class AssemblyFragmentHandler {
         System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         return;
     }
+
+    public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
+
+        for (Feature2D contig : contigs.get(chrId1, chrId2)) {
+            if (contig.getStart1() < asmCoordinate && contig.getEnd1() >= asmCoordinate) {
+                return contig.toContig();
+            }
+        }
+        return null;
+    }
+
+    public int liftAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        Contig2D contig = liftAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
+        if (contig == null) {
+            return -1;
+        }
+        int newCoordinate;
+        boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");
+        if (inverted) {
+            newCoordinate = contig.getEnd1() - asmCoordinate + 1;
+        } else {
+            newCoordinate = asmCoordinate - contig.getStart1();
+        }
+        return newCoordinate;
+    }
+
+    // TODO use rtree
+    // TODO likely should be renamed - this is a search function?
+    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate, guessContig);
+    }
+
+    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate, Contig2D guessContig) {
+        if (guessContig != null) {
+            if (guessContig.iniContains(asmCoordinate)) {
+                return guessContig;
+            }
+        } else {
+            for (Feature2D feature : contigs.get(chrId1, chrId2)) {
+                Contig2D contig = feature.toContig();
+                if (contig.iniContains(asmCoordinate)) {
+                    guessContig = contig;
+                    return contig;
+                }
+            }
+//        List<Feature2D> allContigs = contigs.get(chrId1, chrId2);
+//        int iniIndex = allContigs.indexOf(iniGuess);
+//        if (iniIndex!=allContigs.size() && allContigs.get(iniIndex+1).toContig().iniContains(asmCoordinate)){
+//            return allContigs.get(iniIndex+1).toContig();
+//        }
+//        if (iniIndex!=0 && allContigs.get(iniIndex-1).toContig().iniContains(asmCoordinate)){
+//            return allContigs.get(iniIndex-1).toContig();
+//        }
+
+        }
+        return null;
+    }
+
+    public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+        Contig2D contig = lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
+        return liftOriginalAsmCoordinateToFragmentCoordinate(contig, asmCoordinate);
+    }
+
+    public int liftOriginalAsmCoordinateToFragmentCoordinate(Contig2D contig, int asmCoordinate) {
+        if (contig == null) {
+            return -1;
+        }
+        int newCoordinate;
+        boolean inverted = contig.getInitialInvert();
+        if (inverted) {
+            newCoordinate = contig.getInitialEnd() - asmCoordinate + 1;
+        } else {
+            newCoordinate = asmCoordinate - contig.getInitialStart();
+        }
+        return newCoordinate;
+    }
+
+    //TODO: add scaling, check +/-1
+    public int liftFragmentCoordinateToAsmCoordinate(Contig2D contig, int fragmentCoordinate) {
+        if (contig == null) {
+            return -1;
+        }
+        boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+        int newCoordinate;
+        if (inverted) {
+            newCoordinate = contig.getEnd1() - fragmentCoordinate + 1;
+        } else {
+            newCoordinate = contig.getStart1() + fragmentCoordinate;
+        }
+        return newCoordinate;
+    }
+
+//    public int liftFragmentCoordinateToOriginalAsmCoordinate (Contig2D contig, int fragmentCoordinate) {
+//        boolean inverted = contig.getInitialInvert();  //if contains a negative then it is inverted
+//        int newCoordinate;
+//        if (inverted) {
+//            newCoordinate = contig.getInitialEnd() - fragmentCoordinate + 1;
+//        }else{
+//            newCoordinate = contig.getInitialStart() + fragmentCoordinate;
+//        }
+//        return newCoordinate;
+//    }
 
     public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }

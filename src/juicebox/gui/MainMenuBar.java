@@ -141,7 +141,7 @@ public class MainMenuBar {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-                //initProperties();         // don't know why we're doing this here
+//                initProperties();         // don't know why we're doing this here
                 superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
             }
         };
@@ -475,6 +475,18 @@ public class MainMenuBar {
         figureMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
+
+        final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
+        displayTiles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.displayTiles = !HiCGlobals.displayTiles;
+                superAdapter.getHeatmapPanel().repaint();
+            }
+        });
+        displayTiles.setSelected(HiCGlobals.displayTiles);
+        devMenu.add(displayTiles);
+
         JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {
             @Override
