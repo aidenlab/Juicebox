@@ -385,12 +385,7 @@ public class SuperAdapter {
 
     public void clearAllMatrixZoomCache() {
         //not sure if this is a right place for this
-        Dataset ds = hic.getDataset();
-        List<HiCZoom> zoomList = ds.getBpZooms();
-        Matrix matrix = ds.getMatrix(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
-        for (HiCZoom zoom : zoomList) {
-            matrix.getZoomData(zoom).clearCache();
-        }
+        hic.clearAllMatrixZoomDataCache();
     }
 
     private void refreshMainOnly() {

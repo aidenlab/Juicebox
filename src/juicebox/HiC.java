@@ -1214,20 +1214,19 @@ public class HiC {
         this.chromosomeHandler = chromosomeHandler;
     }
 
-    public void clearMatrixZoomDataCache() {
-        try {
-            getZd().clearCache();
-            if (isControlLoaded()) {
-                getControlZd().clearCache();
-            }
-        } catch (Exception e) {
-            System.err.println("Unable to clear matrixZoomData cache");
+    public void clearAllMatrixZoomDataCache() {
+        clearAllCacheForDataset(dataset);
+        if (isControlLoaded()) {
+            clearAllCacheForDataset(controlDataset);
         }
     }
 
-    /*public Feature2DHandler getFeature2DHandler() {
-        return feature2DHandler;
-    }*/
+    private void clearAllCacheForDataset(Dataset ds) {
+        Matrix matrix = ds.getMatrix(xContext.getChromosome(), yContext.getChromosome());
+        for (HiCZoom zoom : ds.getBpZooms()) {
+            matrix.getZoomData(zoom).clearCache();
+        }
+    }
 
     public enum ZoomCallType {STANDARD, DRAG, DIRECT, INITIAL}
 
