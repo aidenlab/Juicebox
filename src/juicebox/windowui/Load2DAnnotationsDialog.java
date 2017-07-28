@@ -321,7 +321,7 @@ class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
                     handler.loadLoopList(info.itemURL, chromosomeHandler);
                 } catch (Exception ee) {
                     System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-                    MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+                    MessageUtils.showMessage("Could not load loop selection: the loop list in" + info.itemName + "does not correspond to the genome");
                     customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genome
                     loadedAnnotationsMap.remove(path);
                 }
