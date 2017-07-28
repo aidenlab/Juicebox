@@ -1217,7 +1217,9 @@ public class HiC {
     public void clearMatrixZoomDataCache() {
         try {
             getZd().clearCache();
-            getControlZd().clearCache();
+            if (isControlLoaded()) {
+                getControlZd().clearCache();
+            }
         } catch (Exception e) {
             System.err.println("Unable to clear matrixZoomData cache");
         }

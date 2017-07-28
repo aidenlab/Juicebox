@@ -383,6 +383,16 @@ public class SuperAdapter {
         //System.err.println(heatmapPanel.getSize());
     }
 
+    public void clearAllMatrixZoomCache() {
+        //not sure if this is a right place for this
+        Dataset ds = hic.getDataset();
+        List<HiCZoom> zoomList = ds.getBpZooms();
+        Matrix matrix = ds.getMatrix(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
+        for (HiCZoom zoom : zoomList) {
+            matrix.getZoomData(zoom).clearCache();
+        }
+    }
+
     private void refreshMainOnly() {
         mainViewPanel.getHeatmapPanel().clearTileCache();
         mainWindow.repaint();

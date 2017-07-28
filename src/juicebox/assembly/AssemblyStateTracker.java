@@ -24,7 +24,6 @@
 
 package juicebox.assembly;
 
-import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 
@@ -90,6 +89,7 @@ public class AssemblyStateTracker {
 
     public void undo() {
         if (checkUndo()) {
+            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             redoStack.push(undoStack.pop());
             regenerateLayers();
         }
@@ -101,6 +101,7 @@ public class AssemblyStateTracker {
 
     public void redo() {
         if (checkRedo()) {
+            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             undoStack.push(redoStack.pop());
             regenerateLayers();
         }

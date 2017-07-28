@@ -28,6 +28,7 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.matrix.BasicMatrix;
@@ -307,9 +308,10 @@ public class MatrixZoomData {
         // Actually load new
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
-        Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
-                chr1.getIndex(), chr2.getIndex());
+        //Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
+        //        chr1.getIndex(), chr2.getIndex());
 
+        Set<Block> blockSet = new HashSet<>(blockList);
         //Set<Block> blockSet = AssemblyHeatmapHandler.filterBlockList(new Pair<>(xAxisContigs, yAxisContigs), new HashSet<>(blockList), getBinSize());
 
         return new ArrayList<>(blockSet);
@@ -339,6 +341,11 @@ public class MatrixZoomData {
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
+                        }
+                        //Run out of memory if do it here
+                        if (HiCGlobals.assemblyModeEnabled) {
+                            AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
+                            b = AssemblyHeatmapHandler.modifyBlock(b, getBinSize(), chr1.getIndex(), chr2.getIndex(), aFragHandler);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
