@@ -53,10 +53,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -100,11 +97,15 @@ public class MainViewPanel {
     private int miniButtonSize = 22;
     private JideButton btnMenu;
     private JPanel menuTabPanel;
-    private JideButton btnRightPnl;
+    private JideToggleButton btnRightPnl;
     private boolean menuTabOpen = false;
     private boolean rightPnlOpen = false;
+    private JPanel sliderPanel;
 
-    public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
+
+    public void setIgnoreUpdateThumbnail(boolean flag) {
+        ignoreUpdateThumbnail = true;
+    }
 
     public JComboBox<Chromosome> getChrBox2() {
         return chrBox2;
@@ -513,18 +514,18 @@ public class MainViewPanel {
         thumbPanel.setLayout(new BorderLayout());
 
         //---- thumbnailPanel ----
-        thumbnailPanel = new ThumbnailPanel(superAdapter);
-        thumbnailPanel.setBackground(Color.white);
-        thumbnailPanel.setMaximumSize(new Dimension(210, 210));
-        thumbnailPanel.setMinimumSize(new Dimension(210, 210));
-        thumbnailPanel.setPreferredSize(new Dimension(210, 210));
-
-//        JPanel gapPanel = new JPanel();
-//        gapPanel.setMaximumSize(new Dimension(1, 1));
-//        rightSidePanel.add(gapPanel,BorderLayout.WEST);
-        thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
-        thumbPanel.setBackground(Color.white);
-        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
+//        thumbnailPanel = new ThumbnailPanel(superAdapter);
+//        thumbnailPanel.setBackground(Color.white);
+//        thumbnailPanel.setMaximumSize(new Dimension(210, 210));
+//        thumbnailPanel.setMinimumSize(new Dimension(210, 210));
+//        thumbnailPanel.setPreferredSize(new Dimension(210, 210));
+//
+////        JPanel gapPanel = new JPanel();
+////        gapPanel.setMaximumSize(new Dimension(1, 1));
+////        rightSidePanel.add(gapPanel,BorderLayout.WEST);
+//        thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
+//        thumbPanel.setBackground(Color.white);
+//        rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mouse hover text ======
         tooltipPanel = new JPanel(new BorderLayout());
@@ -596,7 +597,7 @@ public class MainViewPanel {
 
         sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 260 + 70 + 70 + 70, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 50 + 70 * 4, SpringLayout.NORTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 215, SpringLayout.WEST, bigPanel);
         bigPanel.setLayer(menuTabPanel, 1);
         bigPanel.add(menuTabPanel);
@@ -655,24 +656,112 @@ public class MainViewPanel {
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, normalizationPanel, 0, SpringLayout.EAST, displayOptionPanel);
         menuTabPanel.add(normalizationPanel);
 
-        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, 0, SpringLayout.SOUTH, normalizationPanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 0, SpringLayout.WEST, normalizationPanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, 70, SpringLayout.SOUTH, normalizationPanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.EAST, resolutionSlider, 0, SpringLayout.EAST, normalizationPanel);
-        menuTabPanel.add(resolutionSlider);
-
-        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, 0, SpringLayout.SOUTH, resolutionSlider);
-        sl_menuTabPanel.putConstraint(SpringLayout.WEST, colorRangePanel, 0, SpringLayout.WEST, resolutionSlider);
-        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, 70, SpringLayout.SOUTH, resolutionSlider);
-        sl_menuTabPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
-        menuTabPanel.add(colorRangePanel);
-
-        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, goPanel, 0, SpringLayout.SOUTH, colorRangePanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.WEST, goPanel, 0, SpringLayout.WEST, colorRangePanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.SOUTH, colorRangePanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, colorRangePanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, goPanel, 0, SpringLayout.SOUTH, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.WEST, goPanel, 0, SpringLayout.WEST, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, goPanel, 70, SpringLayout.SOUTH, normalizationPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, normalizationPanel);
         menuTabPanel.add(goPanel);
 
+        //======= Slider Tab Button ========
+        JideLabel sliderLbl = new JideLabel();
+        ImageIcon sliderIcon = new ImageIcon(getClass().getResource("/images/sliders.png"));
+        sliderLbl.setIcon(sliderIcon);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, sliderLbl, -33, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, sliderLbl, -28, SpringLayout.EAST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, sliderLbl, -10, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, sliderLbl, -5, SpringLayout.EAST, bigPanel);
+        bigPanel.add(sliderLbl);
+
+        sliderLbl.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //no-op
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                //no-op
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                //no-op
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                sliderPanel.setVisible(true);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                //no-op
+            }
+        });
+
+        //=======Slider Panel=====
+        sliderPanel = new JPanel();
+        SpringLayout sl_sliderPanel = new SpringLayout();
+        sliderPanel.setLayout(sl_sliderPanel);
+        sliderPanel.setBackground(Color.WHITE);
+        sliderPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
+        sliderPanel.setVisible(false);
+
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, sliderPanel, -70 * 2 - 30, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, sliderPanel, -215, SpringLayout.EAST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, 0, SpringLayout.SOUTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.EAST, sliderPanel, 0, SpringLayout.EAST, bigPanel);
+        bigPanel.setLayer(sliderPanel, 1);
+        bigPanel.add(sliderPanel);
+
+        JideLabel sliderCloseLbl = new JideLabel();
+        ImageIcon sliderCloseIcon = new ImageIcon(getClass().getResource("/images/close.png"));
+        sliderCloseLbl.setIcon(sliderCloseIcon);
+        sl_sliderPanel.putConstraint(SpringLayout.NORTH, sliderCloseLbl, -28, SpringLayout.SOUTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.WEST, sliderCloseLbl, 5, SpringLayout.WEST, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, sliderCloseLbl, -5, SpringLayout.SOUTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.EAST, sliderCloseLbl, 28, SpringLayout.WEST, sliderPanel);
+        sliderPanel.add(sliderCloseLbl);
+
+        sliderCloseLbl.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                sliderPanel.setVisible(false);
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
+
+
+        sl_sliderPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, 0, SpringLayout.NORTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 0, SpringLayout.WEST, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, 70, SpringLayout.NORTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.EAST, resolutionSlider, 0, SpringLayout.EAST, sliderPanel);
+        sliderPanel.add(resolutionSlider);
+
+        sl_sliderPanel.putConstraint(SpringLayout.NORTH, colorRangePanel, 0, SpringLayout.SOUTH, resolutionSlider);
+        sl_sliderPanel.putConstraint(SpringLayout.WEST, colorRangePanel, 0, SpringLayout.WEST, resolutionSlider);
+        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, colorRangePanel, 70, SpringLayout.SOUTH, resolutionSlider);
+        sl_sliderPanel.putConstraint(SpringLayout.EAST, colorRangePanel, 0, SpringLayout.EAST, resolutionSlider);
+        sliderPanel.add(colorRangePanel);
 
         //TODO cleaner GUI for chrSelectionPanel/displayOptionPanel/normalizationPanel
 
@@ -688,19 +777,19 @@ public class MainViewPanel {
             @Override
             public void windowClosing(WindowEvent e) {
                 rightPnlOpen = !rightPnlOpen;
-                btnRightPnl.setEnabled(true);
+//                btnRightPnl.setEnabled(true);
+                btnRightPnl.setSelected(false);
             }
         });
 
-        rightPnlFrame.setResizable(false);
-        btnRightPnl = new JideButton();
+//        rightPnlFrame.setResizable(false);
+        btnRightPnl = new JideToggleButton();
         btnRightPnl.setBorderPainted(true);
         final ImageIcon openRightPnl = new ImageIcon(getClass().getResource("/images/pen.png"));
         btnRightPnl.setIcon(openRightPnl);
         btnRightPnl.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 rightPnlOpen = !rightPnlOpen;
-                btnRightPnl.setEnabled(false);
                 rightPnlFrame.setVisible(rightPnlOpen);
             }
         });

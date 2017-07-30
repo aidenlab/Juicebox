@@ -125,6 +125,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
         addMouseWheelListener(mouseHandler);
+        if (System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0) {
+            //TODO
+        }
         this.firstAnnotation = true;
     }
 
@@ -2047,5 +2050,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 //
             }
         }
+
+//        @Override
+//        public void mouseZoomIn(TouchEvent e) {
+//            try {
+//                int zoom = e.getTouchCount();
+//
+//            } catch (Exception e2) {
+//                //
+//            }
+//        }
     }
 }
