@@ -125,8 +125,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
         addMouseWheelListener(mouseHandler);
-        if (System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0) {
-            //TODO
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            //TODO add pinch zoom in when converted to javafx
+
         }
         this.firstAnnotation = true;
     }
