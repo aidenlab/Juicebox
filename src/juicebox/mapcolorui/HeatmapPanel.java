@@ -670,49 +670,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    /*// Launches assembly mode
-    private void launchAssemblyMode(){
-        // TODO: in the future this will launch dialog to load specific assembly annotation file, do
-        // validation checks on that, and so on.
-        // confirm that we're on assembly vs. assembly
-        assemblyMode = true;
-        Feature2DList temp = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().getAllVisibleLoops().get(0);
-        final String key = Feature2DList.getKey(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
-        temp.convertFeaturesToContigs(key);
-        repaint();
-        superAdapter.repaintTrackPanels();
-    }*/
 
     private JidePopupMenu getPopupMenu(final int xMousePos, final int yMousePos) {
 
         JidePopupMenu menu = new JidePopupMenu();
 
-        /* Undo Zoom implementation _UZI
-        if(hic.isCanRedoZoomChangeAvailable() || hic.isCanUndoZoomChangeAvailable()) {
-            String title = "Undo Zoom";
-            final boolean timeToUndoZoom;
-            if(hic.isCanRedoZoomChangeAvailable()){
-                timeToUndoZoom = false;
-                title = "Redo Zoom";
-            }
-            else {
-                timeToUndoZoom = true;
-            }
-            final JMenuItem mi0UndoOrRedo = new JMenuItem(title);
-            mi0UndoOrRedo.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if(timeToUndoZoom){
-                        hic.undoZoomChange();
-                    }
-                    else {
-                        hic.redoZoomChange();
-                    }
-                }
-            });
-            menu.add(mi0UndoOrRedo);
-        }
-        */
 
         final JMenuItem miUndoZoom = new JMenuItem("Undo Zoom");
         miUndoZoom.addActionListener(new ActionListener() {
@@ -1210,7 +1172,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         superAdapter.getEditLayer().clearAnnotations();
         if (superAdapter.getActiveLayerHandler() != superAdapter.getMainLayer()) {
             superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
-            superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+            superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
         }
         HiCGlobals.splitModeEnabled = false;
         superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
@@ -1692,7 +1654,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                         HiCGlobals.splitModeEnabled = false;
                         superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
-                        superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                        superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
                         superAdapter.getEditLayer().clearAnnotations();
                     }
                     if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {

@@ -37,6 +37,7 @@ public class AssemblyStateTracker {
     private Stack<AssemblyFragmentHandler> redoStack;
     private AnnotationLayerHandler contigLayerHandler;
     private AnnotationLayerHandler scaffoldLayerHandler;
+    private AssemblyFragmentHandler initialAssemblyFragmentHandler;
 
     public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
 
@@ -45,6 +46,7 @@ public class AssemblyStateTracker {
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
         redoStack = new Stack<AssemblyFragmentHandler>();
+        this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
     }
 
     public AssemblyFragmentHandler getAssemblyHandler() {
@@ -56,12 +58,12 @@ public class AssemblyStateTracker {
         return newAssemblyFragmentHandler;
     }
 
-    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler, boolean regenerateLayers) {
+    public void resetState() {
+        undoStack.clear();
         redoStack.clear();
-        undoStack.push(assemblyFragmentHandler);
-        if (regenerateLayers) {
-            regenerateLayers();
-        }
+        undoStack.push(initialAssemblyFragmentHandler);
+        AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
+        regenerateLayers();
     }
 
     public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {

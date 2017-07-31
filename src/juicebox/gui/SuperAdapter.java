@@ -652,6 +652,10 @@ public class SuperAdapter {
         return layersPanel;
     }
 
+    public MainMenuBar getMainMenuBar() {
+        return mainMenuBar;
+    }
+
     public void revalidate() {
         mainWindow.revalidate();
     }
@@ -956,6 +960,10 @@ public class SuperAdapter {
             layersPanel.setVisible(status);
         }
         setLayersPanelGUIControllersSelected(status);
+    }
+
+    public void intializeLayersPanel() {
+        layersPanel = new LayersPanel(this);
     }
 
     public void setLayersPanelGUIControllersSelected(boolean status) {

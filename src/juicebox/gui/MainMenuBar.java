@@ -32,7 +32,9 @@ import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCRulerPanel;
+import juicebox.windowui.LoadAssemblyAnnotationsDialog;
 import juicebox.windowui.RecentMenu;
+import juicebox.windowui.SaveAssemblyDialog;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -67,6 +69,10 @@ public class MainMenuBar {
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
+    private static JMenu assemblyMenu;
+    private static JMenuItem exportAssembly;
+    private static JMenuItem resetAssembly;
+
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
@@ -550,11 +556,60 @@ public class MainMenuBar {
             }
         });
 
+        assemblyMenu = new JMenu("Assembly");
+        assemblyMenu.setEnabled(false);
+
+        resetAssembly = new JMenuItem("Reset assembly");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            resetAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            resetAssembly.setEnabled(false);
+        resetAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().resetState();
+                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+                superAdapter.refresh();
+            }
+        });
+
+        exportAssembly = new JMenuItem("Export assembly");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            exportAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            exportAssembly.setEnabled(false);
+        exportAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String mapName = SuperAdapter.getDatasetTitle();
+                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), mapName.substring(0, mapName.lastIndexOf("."))); //find how to get HiC filename
+
+            }
+        });
+
+        final JMenuItem importAssembly = new JMenuItem("Import assembly");
+
+        importAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                LoadAssemblyAnnotationsDialog loadAssemblyDialog;
+                loadAssemblyDialog = new LoadAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
+                loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
+            }
+        });
+        assemblyMenu.add(resetAssembly);
+        assemblyMenu.add(importAssembly);
+        assemblyMenu.add(exportAssembly);
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(figureMenu);
         menuBar.add(devMenu);
+        menuBar.add(assemblyMenu);
         return menuBar;
     }
 
@@ -564,11 +619,16 @@ public class MainMenuBar {
 
     public void setEnableForAllElements(boolean status) {
         annotationsMenu.setEnabled(status);
+        assemblyMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);
     }
 
+    public void enableAssemblyResetandExport() {
+        resetAssembly.setEnabled(true);
+        exportAssembly.setEnabled(true);
+    }
 
     public void updatePrevStateNameFromImport(String path) {
         previousStates.updateNamesFromImport(path);

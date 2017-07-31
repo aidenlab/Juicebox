@@ -882,12 +882,16 @@ public class LayersPanel extends JDialog {
         tabbedPane.revalidate();
     }
 
-    public void updatebothLayersPanels(SuperAdapter superAdapter) {
+    public void updateBothLayersPanels(SuperAdapter superAdapter) {
         updateMiniAnnotationsLayerPanel(superAdapter);
         updateLayers2DPanel(superAdapter);
     }
 
     public LoadAction getTrackLoadAction() {
         return trackLoadAction;
+    }
+
+    public JPanel getLayerBoxGUI2DAnnotations() {
+        return layerBoxGUI2DAnnotations;
     }
 }
