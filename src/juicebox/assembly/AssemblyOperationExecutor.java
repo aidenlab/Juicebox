@@ -68,6 +68,7 @@ public class AssemblyOperationExecutor {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
         superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
     }
 
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
