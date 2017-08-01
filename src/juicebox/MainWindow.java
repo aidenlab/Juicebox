@@ -38,6 +38,8 @@ import org.broad.igv.ui.util.IconFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -45,6 +47,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -134,11 +138,22 @@ public class MainWindow extends JFrame {
             }
             if (isOutdated) {
                 JPanel textPanel = new JPanel(new GridLayout(0, 1));
-                textPanel.add(new JLabel("<html><p> You are using Juicebox " + HiCGlobals.versionNum + "<br>The lastest version is "
-                        + latestVersion + "<br>To download the lastest version, go to</p><br></html>"));
-                JTextField textField = new JTextField("https://github.com/theaidenlab/juicebox/wiki/Download");
-                textField.setEditable(false);
-                textPanel.add(textField);
+                JLabel label = new JLabel("<html><p> You are using Juicebox " + HiCGlobals.versionNum + "<br>The lastest version is "
+                        + latestVersion + "<br>To download the lastest version, go to</p></html>");
+                JLabel label2 = new JLabel("<html><a href=\"https://github.com/theaidenlab/juicebox/wiki/Download\"> https://github.com/theaidenlab/juicebox/wiki/Download </a></html>");
+                textPanel.add(label);
+                textPanel.add(label2);
+                label2.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                label2.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        try {
+                            Desktop.getDesktop().browse(new URI("https://github.com/theaidenlab/juicebox/wiki/Download"));
+                        } catch (URISyntaxException | IOException ex) {
+                            //It looks like there's a problem
+                        }
+                    }
+                });
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), textPanel, "Update Information", JOptionPane.PLAIN_MESSAGE);
             }
 
