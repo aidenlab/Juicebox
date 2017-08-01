@@ -72,6 +72,7 @@ public class MainMenuBar {
     private static JMenu assemblyMenu;
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
+    private static JCheckBoxMenuItem enableAssembly;
 
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
@@ -559,6 +560,22 @@ public class MainMenuBar {
         assemblyMenu = new JMenu("Assembly");
         assemblyMenu.setEnabled(false);
 
+        enableAssembly = new JCheckBoxMenuItem("Enable edits");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            enableAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            enableAssembly.setEnabled(false);
+        enableAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (enableAssembly.isSelected()) {
+                    superAdapter.getHeatmapPanel().enableAssemblyEditing();
+                } else {
+                    superAdapter.getHeatmapPanel().disableAssemblyEditing();
+                }
+            }
+        });
+
         resetAssembly = new JMenuItem("Reset assembly");
         if (superAdapter.getAssemblyStateTracker() != null) {
             resetAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
@@ -600,6 +617,7 @@ public class MainMenuBar {
                 loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
+        assemblyMenu.add(enableAssembly);
         assemblyMenu.add(resetAssembly);
         assemblyMenu.add(importAssembly);
         assemblyMenu.add(exportAssembly);
@@ -608,8 +626,8 @@ public class MainMenuBar {
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(figureMenu);
-        menuBar.add(devMenu);
         menuBar.add(assemblyMenu);
+        menuBar.add(devMenu);
         return menuBar;
     }
 
@@ -625,9 +643,10 @@ public class MainMenuBar {
         saveLocationList.setEnabled(status);
     }
 
-    public void enableAssemblyResetandExport() {
+    public void enableAssemblyResetAndExport() {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
+        enableAssembly.setEnabled(true);
     }
 
     public void updatePrevStateNameFromImport(String path) {

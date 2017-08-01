@@ -698,6 +698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         miRedoZoom.setEnabled(hic.getZoomActionTracker().validateRedoZoom());
         menu.add(miRedoZoom);
 
+        /*
         final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
         mi_0.addActionListener(new ActionListener() {
             @Override
@@ -705,9 +706,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 HiCGlobals.assemblyModeEnabled = true;
                 activelyEditingAssembly = true;
                 AssemblyHeatmapHandler.setSuperAdapter(superAdapter);
+                enableAssemblyEditing();
             }
         });
         menu.add(mi_0);
+        */
 
         final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
         mi.setSelected(straightEdgeEnabled);
@@ -963,6 +966,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     }
 
+    public void enableAssemblyEditing() {
+        HiCGlobals.assemblyModeEnabled = true;
+        activelyEditingAssembly = true;
+        AssemblyHeatmapHandler.setSuperAdapter(superAdapter);
+    }
+
+    public void disableAssemblyEditing() {
+        updateSelectedFeatures(false);
+        if (selectedFeatures != null) {
+            selectedFeatures.clear();
+        }
+        superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+        activelyEditingAssembly = false;
+        HiCGlobals.splitModeEnabled = false;
+    }
+
     private void addHighlightedFeature(Feature2D feature2D) {
         highlightedFeature = feature2D;
         featureOptionMenuEnabled = false;
@@ -1148,20 +1167,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miRedo);
 
         // internally, single sync = what we previously called sync
+        /*
         final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
         miExit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateSelectedFeatures(false);
-                if (selectedFeatures != null) {
-                    selectedFeatures.clear();
-                }
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                activelyEditingAssembly = false;
-                HiCGlobals.splitModeEnabled = false;
+                disableAssemblyEditing();
             }
         });
         menu.add(miExit);
+        */
 
         return menu;
     }
@@ -1213,7 +1228,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private void executeSplitMenuAction() {
 
-        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), debrisFeature, superAdapter, hic);
+        AssemblyOperationExecutor.splitContig(selectedFeatures.get(0), debrisFeature, superAdapter, hic, true);
 
         HiCGlobals.splitModeEnabled = false;
         Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
@@ -1224,21 +1239,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
         debrisFeature = null;
         moveDebrisToEnd();
         removeSelection();
-        repaint();
     }
 
     private void moveSelectionToEnd() {
         AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, allMainFeaturePairs.get(allMainFeaturePairs.size() - 1).getFeature2D());
         removeSelection();
-        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        superAdapter.refresh();
     }
 
     private void moveDebrisToEnd() {
         AssemblyOperationExecutor.moveDebrisToEnd(superAdapter);
         removeSelection();
-        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        superAdapter.refresh();
     }
     private String toolTipText(int x, int y) {
         // Update popup text
@@ -1489,17 +1499,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 for (Feature2DGuiContainer loop : allFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
                         // TODO - why is this code duplicated in this file?
-                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append(loop.getFeature2D().tooltipText());
-                        txt.append("</span>");
-                        int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
-                        double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-                        if (distance < minDistance && numLayers - layerNum < priority) {
-                            minDistance = distance;
-                            currentFeature = loop;
-                            priority = numLayers - layerNum;
+                        if (loop.getAnnotationLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.GROUP) { //ignore group layer
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(loop.getFeature2D().tooltipText());
+                            txt.append("</span>");
+                            int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
+                            double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
+                            if (distance < minDistance && numLayers - layerNum < priority) {
+                                minDistance = distance;
+                                currentFeature = loop;
+                                priority = numLayers - layerNum;
+                            }
+                            //mouseIsOverFeature = true;
                         }
-                        //mouseIsOverFeature = true;
                     }
                 //}
             }

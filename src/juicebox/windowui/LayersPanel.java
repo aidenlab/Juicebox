@@ -60,7 +60,7 @@ public class LayersPanel extends JDialog {
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
     private static LoadAssemblyAnnotationsDialog loadAssemblyAnnotationsDialog;
     private JPanel layers2DPanel;
-    private JPanel assemblyAnnotationsPanel;
+    //    private JPanel assemblyAnnotationsPanel;
     private JPanel layerBoxGUI2DAnnotations;
     private JTabbedPane tabbedPane;
     private Border padding;
@@ -77,8 +77,8 @@ public class LayersPanel extends JDialog {
         layers2DPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         if (layers2DPanel != null) layers2DPanel.setBorder(padding);
 
-        assemblyAnnotationsPanel = generateAssemblyAnnotationsPanel(superAdapter);
-        if (assemblyAnnotationsPanel != null) assemblyAnnotationsPanel.setBorder(padding);
+//        assemblyAnnotationsPanel = generateAssemblyAnnotationsPanel(superAdapter);
+//        if (assemblyAnnotationsPanel != null) assemblyAnnotationsPanel.setBorder(padding);
 
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab("1D Annotations", null, annotations1DPanel,
@@ -89,8 +89,8 @@ public class LayersPanel extends JDialog {
                 "Manage 2D Annotations");
         //tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        tabbedPane.addTab("Assembly Annotations", null, assemblyAnnotationsPanel,
-                "Manage Assembly Annotations");
+//        tabbedPane.addTab("Assembly Annotations", null, assemblyAnnotationsPanel,
+//                "Manage Assembly Annotations");
 
         setSize(1000, 700);
         add(tabbedPane);
@@ -385,67 +385,6 @@ public class LayersPanel extends JDialog {
         }
     }
 
-    private JPanel generateAssemblyAnnotationsPanel(final SuperAdapter superAdapter) {
-        final JPanel assemblyAnnotationsPanel = new JPanel();
-        assemblyAnnotationsPanel.setLayout(new GridLayout(0, 1));
-
-        final JScrollPane scrollPane = new JScrollPane(assemblyAnnotationsPanel);
-
-        final JButton loadAssemblyButton = new JButton("Load Assembly");
-        JButton addLocalButton = new JButton("Add Local");
-        final JButton exportAssemblyButton = new JButton("Export Assembly");
-
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            exportAssemblyButton.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            exportAssemblyButton.setEnabled(false);
-
-        final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
-
-        buttonPanel.add(loadAssemblyButton);
-        buttonPanel.add(addLocalButton);
-        buttonPanel.add(exportAssemblyButton);
-
-        final JPanel pane = new JPanel(new BorderLayout());
-        pane.add(scrollPane, BorderLayout.CENTER);
-        pane.add(buttonPanel, BorderLayout.PAGE_END);
-
-        Dimension dim = pane.getPreferredSize();
-        dim.setSize(dim.getWidth(), dim.getHeight() * 4);
-        pane.setPreferredSize(dim);
-
-        /* Add action listeners for buttons */
-        loadAssemblyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (loadAssemblyAnnotationsDialog == null) {
-                    loadAssemblyAnnotationsDialog = new LoadAssemblyAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI2DAnnotations);
-                }
-                loadAssemblyAnnotationsDialog.setVisible(Boolean.TRUE);
-            }
-        });
-
-        addLocalButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (loadAssemblyAnnotationsDialog == null) {
-                    loadAssemblyAnnotationsDialog = new LoadAssemblyAnnotationsDialog(LayersPanel.this, superAdapter, layerBoxGUI2DAnnotations);
-                }
-                loadAssemblyAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
-            }
-        });
-
-        exportAssemblyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String mapName = SuperAdapter.getDatasetTitle();
-                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), mapName.substring(0, mapName.lastIndexOf("."))); //find how to get HiC filename
-            }
-        });
-
-        superAdapter.updateLayerDeleteStatus();
-        return pane;
-    }
 
     /**
      * @param handler
@@ -684,8 +623,8 @@ public class LayersPanel extends JDialog {
         };
     }
 
-    private JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
-                                                        final SuperAdapter superAdapter) throws IOException {
+    public JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
+                                                       final SuperAdapter superAdapter) throws IOException {
 
         // triple state toggle button
         String url1 = "/images/layer/full_clicked.png";
@@ -870,6 +809,7 @@ public class LayersPanel extends JDialog {
         tabbedPane.repaint();
         tabbedPane.revalidate();
     }
+    /*
 
     public void updateAssemblyAnnotationsPanel(SuperAdapter superAdapter) { //todo break up Layers Panel into atleast a LayersPanel,1DTrackPanel, a 2DAnnotationsPanel, and an AssemblyPanel
         tabbedPane.remove(assemblyAnnotationsPanel);
@@ -881,6 +821,7 @@ public class LayersPanel extends JDialog {
         tabbedPane.repaint();
         tabbedPane.revalidate();
     }
+    */
 
     public void updateBothLayersPanels(SuperAdapter superAdapter) {
         updateMiniAnnotationsLayerPanel(superAdapter);
