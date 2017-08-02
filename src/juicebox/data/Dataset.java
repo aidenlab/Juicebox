@@ -75,8 +75,8 @@ public class Dataset {
         normalizationTypes = new ArrayList<>();
     }
 
-
     public Matrix getMatrix(Chromosome chr1, Chromosome chr2) {
+
 
         // order is arbitrary, convention is lower # chr first
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
@@ -87,8 +87,23 @@ public class Dataset {
 
         if (m == null && reader != null) {
             try {
-                m = reader.readMatrix(key);
+                // custom chromosome is handled as separate case
+                if (ChromosomeHandler.isCustomChromosome(chr1) || ChromosomeHandler.isCustomChromosome(chr2)) {
+                    // get info from chromosome 1
+                    // TODO this is just temporary, not best policy
+                    // edge case includes MBR19 where Chr1 not available()
+                    String keyChrI1 = Matrix.generateKey(1, 1);
+                    Matrix mI1 = matrices.get(keyChrI1);
+                    if (mI1 == null) {
+                        mI1 = reader.readMatrix(keyChrI1);
+                        matrices.put(keyChrI1, mI1);
+                    }
+                    m = mI1.createCustomChromosomeMatrix(t2);
+                } else {
+                    m = reader.readMatrix(key);
+                }
                 matrices.put(key, m);
+
             } catch (IOException e) {
                 log.error("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName(), e);
             }
@@ -275,8 +290,13 @@ public class Dataset {
         return restrictionEnzyme;
     }
 
-    public void setRestrictionEnzyme(int nSites) {
+    void setRestrictionEnzyme(int nSites) {
         restrictionEnzyme = findRestrictionEnzyme(nSites);
+    }
+
+    private String getSoftware() {
+        if (attributes != null) return attributes.get("software");
+        else return null;
     }
 
     public String getStatistics() {
@@ -338,6 +358,10 @@ public class Dataset {
             if (!value.isEmpty())
                 newStats += "<tr><td>Experiment Description:</td><td>" + value + "</td></tr>";
         }
+        if (getSoftware() != null)  {
+            newStats += "<tr> <td> Software: </td><td>" + getSoftware() + "</td></tr>";
+        }
+
         newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
                 "        <tr> <td> Reference Genome:</td>";
         newStats += "<td>" + genomeId + "</td></tr>";
@@ -345,6 +369,8 @@ public class Dataset {
         if (mapq30) newStats += "30";
         else newStats += "1";
         newStats += "</td></tr>";
+
+
 
       /*  <table>
         <tr>

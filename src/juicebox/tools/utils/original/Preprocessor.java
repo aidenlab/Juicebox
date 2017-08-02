@@ -320,12 +320,14 @@ public class Preprocessor {
 
         // Attribute dictionary
         int nAttributes;
-        if (stats != null && graphs != null) nAttributes = 2;
-        else if (stats != null) nAttributes = 1;
-        else if (graphs != null) nAttributes = 1;
-        else nAttributes = 0;
+        if (stats != null && graphs != null) nAttributes = 3;
+        else if (stats != null) nAttributes = 2;
+        else if (graphs != null) nAttributes = 2;
+        else nAttributes = 1;
 
         los.writeInt(nAttributes);
+        los.writeString("software");
+        los.writeString("Juicer Tools Version " + HiCGlobals.versionNum);
         if (stats != null) {
             los.writeString("statistics");
             los.writeString(stats);
