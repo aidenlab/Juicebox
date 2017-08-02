@@ -147,7 +147,7 @@ public class Feature2DHandler {
             color = newList.extractSingleFeature().getColor();
             attributes = newList.extractSingleFeature().getAttributeKeys();
             loopList = newList;
-            Map<String, String> defaultAttributes = new HashMap<String, String>(); //creates defaultAttributes map
+            Map<String, String> defaultAttributes = new HashMap<>(); //creates defaultAttributes map
             for (String attribute : attributes) {
                 defaultAttributes.put(attribute, null);
             }

@@ -40,13 +40,13 @@ public class AssemblyFragmentHandler {
     private final String contigName = "Contig Name";
     private final String scaffoldIndexId = "Scaffold Index";
     private final String scaffoldNum = "Scaffold Number";
-    private List<ContigProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
+    private final List<ContigProperty> contigProperties;
+    private final List<List<Integer>> scaffoldProperties;
+    private final String chromosomeName = "assembly";
+    private final Contig2D guessContig = null;
     private Feature2DList contigs;
     private Feature2DList scaffolds;
-    private String chromosomeName = "assembly";
     private OperationType operationType;
-    private Contig2D guessContig = null;
     private Integer debrisContigIndex;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
@@ -65,13 +65,13 @@ public class AssemblyFragmentHandler {
         if (assemblyFragmentHandler.debrisContigIndex == null) {
             this.debrisContigIndex = null;
         } else {
-            this.debrisContigIndex = new Integer(assemblyFragmentHandler.debrisContigIndex);
+            this.debrisContigIndex = assemblyFragmentHandler.debrisContigIndex;
         }
         generateContigsAndScaffolds();
     }
 
 
-    public List<ContigProperty> cloneContigProperties() {
+    private List<ContigProperty> cloneContigProperties() {
         List<ContigProperty> newList = new ArrayList<>();
         for (ContigProperty contigProperty : contigProperties) {
             newList.add(new ContigProperty(contigProperty));
@@ -79,10 +79,10 @@ public class AssemblyFragmentHandler {
         return newList;
     }
 
-    public List<List<Integer>> cloneScaffoldProperties() {
+    private List<List<Integer>> cloneScaffoldProperties() {
         List<List<Integer>> newList = new ArrayList<>();
         for (List<Integer> scaffoldRow : scaffoldProperties) {
-            newList.add(new ArrayList<Integer>(scaffoldRow));
+            newList.add(new ArrayList<>(scaffoldRow));
         }
         return newList;
     }
@@ -120,7 +120,7 @@ public class AssemblyFragmentHandler {
                 String contigName = contigProperty.getName();
                 Integer contigLength = contigProperty.getLength();
 
-                Map<String, String> attributes = new HashMap<String, String>();
+                Map<String, String> attributes = new HashMap<>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
                 //put attribute here
@@ -139,7 +139,7 @@ public class AssemblyFragmentHandler {
                 contigStartPos += contigLength;
                 scaffoldLength += contigLength;
             }
-            Map<String, String> attributes = new HashMap<String, String>();
+            Map<String, String> attributes = new HashMap<>();
             attributes.put(scaffoldNum, rowNum.toString());
 
             Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
@@ -166,7 +166,7 @@ public class AssemblyFragmentHandler {
                 String contigName = contigProperty.getName();
                 Integer contigLength = contigProperty.getLength();
 
-                Map<String, String> attributes = new HashMap<String, String>();
+                Map<String, String> attributes = new HashMap<>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
                 //put attribute here
@@ -187,7 +187,7 @@ public class AssemblyFragmentHandler {
                 contigStartPos += contigLength;
                 scaffoldLength += contigLength;
             }
-            Map<String, String> attributes = new HashMap<String, String>();
+            Map<String, String> attributes = new HashMap<>();
             attributes.put(scaffoldNum, rowNum.toString());
 
             Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
@@ -221,7 +221,7 @@ public class AssemblyFragmentHandler {
 //        System.out.println("dindex "+debrisContigIndex);
     }
 
-    public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
+    private ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
         for (ContigProperty contigProperty : contigProperties) {
             if (contigProperty.getFeature2D().getStart1() == feature2D.getStart1())
                 return contigProperty;
@@ -230,7 +230,7 @@ public class AssemblyFragmentHandler {
         return null;
     }
 
-    public List<ContigProperty> splitContig(boolean invertedInAsm, Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+    private List<ContigProperty> splitContig(boolean invertedInAsm, Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
 
 
         if (originalFeature.overlapsWith(debrisFeature)) {
@@ -244,7 +244,7 @@ public class AssemblyFragmentHandler {
         }
     }
 
-    public List<ContigProperty> generateNormalSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+    private List<ContigProperty> generateNormalSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
         List<ContigProperty> splitContig = new ArrayList<>();
         List<String> newContigNames = getNewContigNames(originalContig);
 
@@ -273,7 +273,7 @@ public class AssemblyFragmentHandler {
         return splitContig;
     }
 
-    public List<ContigProperty> generateInvertedSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+    private List<ContigProperty> generateInvertedSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
         List<ContigProperty> splitContig = new ArrayList<>();
         List<String> newContigNames = getNewContigNames(originalContig);
 
@@ -302,7 +302,7 @@ public class AssemblyFragmentHandler {
         return splitContig;
     }
 
-    public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
+    private void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
         int newInitialStart;
         int newInitialEnd;
         System.out.println("Initially inverted: " + originalContig.wasIntiallyInverted());
@@ -329,10 +329,10 @@ public class AssemblyFragmentHandler {
         }
     }
 
-    public List<String> getNewContigNames(ContigProperty contigProperty) {
+    private List<String> getNewContigNames(ContigProperty contigProperty) {
         String fragmentString = ":::fragment_";
         String contigName = contigProperty.getName();
-        List<String> newNames = new ArrayList<String>();
+        List<String> newNames = new ArrayList<>();
         if (contigName.contains(":::")) {
             if (contigName.contains("debris")) {
                 System.err.println("cannot split a debris fragment");
@@ -351,7 +351,7 @@ public class AssemblyFragmentHandler {
         return newNames;
     }
 
-    public void addScaffoldProperties(int splitIndex, boolean invertedInAsm, List<ContigProperty> splitContigs, int rowNum, int posNum) {
+    private void addScaffoldProperties(int splitIndex, boolean invertedInAsm, List<ContigProperty> splitContigs, int rowNum, int posNum) {
         List<Integer> splitContigsIds = new ArrayList<>();
         int multiplier;
         if (invertedInAsm)
@@ -370,7 +370,7 @@ public class AssemblyFragmentHandler {
         scaffoldProperties.get(rowNum).remove(posNum + 3);
     }
 
-    public void shiftScaffoldProperties(int splitIndex) {
+    private void shiftScaffoldProperties(int splitIndex) {
         int i;
 
         for (List<Integer> scaffoldRow : scaffoldProperties) {
@@ -387,7 +387,7 @@ public class AssemblyFragmentHandler {
         }
     }
 
-    public void addContigProperties(ContigProperty originalContig, List<ContigProperty> splitContig) {
+    private void addContigProperties(ContigProperty originalContig, List<ContigProperty> splitContig) {
         int splitContigIndex = contigProperties.indexOf(originalContig);
         shiftContigIndices(splitContigIndex);
 
@@ -409,7 +409,7 @@ public class AssemblyFragmentHandler {
         contigProperties.remove(originalContig);
     }
 
-    public void shiftContigIndices(int splitIndexId) {
+    private void shiftContigIndices(int splitIndexId) {
         for (ContigProperty contigProperty : contigProperties) {
             if (Math.abs(contigProperty.getIndexId()) > (Math.abs(splitIndexId) + 1)) {
                 contigProperty.setIndexId(contigProperty.getIndexId() + 2);
@@ -417,7 +417,7 @@ public class AssemblyFragmentHandler {
         }
     }
 
-    public List<ContigProperty> findContigsSplitFromInitial(ContigProperty originalContig) {
+    private List<ContigProperty> findContigsSplitFromInitial(ContigProperty originalContig) {
         List<ContigProperty> contigPropertiesFromSameInitial = new ArrayList<>();
         String originalContigName = originalContig.getOriginalContigName();
 
@@ -478,11 +478,9 @@ public class AssemblyFragmentHandler {
             scaffoldProperties.addAll(newGroups);
         }
 
-        return;
-
     }
 
-    public int getScaffoldRow(List<Integer> contigIds) {
+    private int getScaffoldRow(List<Integer> contigIds) {
         int i = 0;
         for (List<Integer> scaffoldRow : scaffoldProperties) {
             List<Integer> absoluteRow = findAbsoluteValuesList(scaffoldRow);
@@ -494,7 +492,7 @@ public class AssemblyFragmentHandler {
         return -1;
     }
 
-    public List<Integer> findAbsoluteValuesList(List<Integer> list) {
+    private List<Integer> findAbsoluteValuesList(List<Integer> list) {
         List<Integer> newList = new ArrayList<>();
         for (int element : list) {
             newList.add(Math.abs(element));
@@ -502,23 +500,23 @@ public class AssemblyFragmentHandler {
         return newList;
     }
 
-    public List<Integer> contig2DListToIntegerList(List<Feature2D> contigs) {
-        List<Integer> contigIds = new ArrayList<Integer>();
+    private List<Integer> contig2DListToIntegerList(List<Feature2D> contigs) {
+        List<Integer> contigIds = new ArrayList<>();
         for (Feature2D feature2D : contigs) {
             contigIds.add(Integer.parseInt(feature2D.getAttribute(scaffoldIndexId)));
         }
         return contigIds;
     }
 
-    public List<ContigProperty> contig2DListToContigPropertyList(List<Feature2D> contigs) {
-        List<ContigProperty> newList = new ArrayList<ContigProperty>();
+    private List<ContigProperty> contig2DListToContigPropertyList(List<Feature2D> contigs) {
+        List<ContigProperty> newList = new ArrayList<>();
         for (Feature2D feature2D : contigs) {
             newList.add(contig2DToContigProperty(feature2D));
         }
         return newList;
     }
 
-    public ContigProperty contig2DToContigProperty(Feature2D feature2D) {
+    private ContigProperty contig2DToContigProperty(Feature2D feature2D) {
         for (ContigProperty contigProperty : contigProperties) {
             if (contigProperty.getFeature2D().equals(feature2D)) { //make sure it is okay
 
@@ -551,7 +549,7 @@ public class AssemblyFragmentHandler {
         }
     }
 
-    public int findInvertedContigIndex(int id1) {
+    private int findInvertedContigIndex(int id1) {
         for (List<Integer> scaffoldRow : scaffoldProperties) {
 
             for (int index : scaffoldRow) {
@@ -563,7 +561,7 @@ public class AssemblyFragmentHandler {
         return -1;
     }
 
-    public void moveSelection(int id1, int id2, int id3) {
+    private void moveSelection(int id1, int id2, int id3) {
 
 
         int gid1 = getGroupID(id1);
@@ -580,7 +578,7 @@ public class AssemblyFragmentHandler {
 
         List<List<Integer>> newGroups = new ArrayList<>();
         List<List<Integer>> tempGroups = new ArrayList<>();
-        List<Integer> truncatedGroup = new ArrayList<Integer>();
+        List<Integer> truncatedGroup = new ArrayList<>();
         int shiftGroup=0;
 
         for (int i=0; i<=scaffoldProperties.size()-1; i++){
@@ -641,7 +639,6 @@ public class AssemblyFragmentHandler {
         scaffoldProperties.clear();
         scaffoldProperties.addAll(newGroups);
 
-        return;
     }
 
     //**** Group toggle ****//
@@ -683,7 +680,6 @@ public class AssemblyFragmentHandler {
         }
         scaffoldProperties.clear();
         scaffoldProperties.addAll(newGroups);
-        return;
     }
 
     private void newSplitGroup(int groupId1, int id1) {
@@ -698,7 +694,6 @@ public class AssemblyFragmentHandler {
         }
         scaffoldProperties.clear();
         scaffoldProperties.addAll(newGroups);
-        return;
     }
 
     //**** Utility functions ****//
@@ -721,10 +716,9 @@ public class AssemblyFragmentHandler {
     //**** For debugging ****//
     public void printAssembly(){
         System.out.println(Arrays.toString(scaffoldProperties.toArray()));
-        return;
     }
 
-    public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
+    private Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
 
         for (Feature2D contig : contigs.get(chrId1, chrId2)) {
             if (contig.getStart1() < asmCoordinate && contig.getEnd1() >= asmCoordinate) {
@@ -755,7 +749,7 @@ public class AssemblyFragmentHandler {
         return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate, guessContig);
     }
 
-    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate, Contig2D guessContig) {
+    private Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate, Contig2D guessContig) {
         if (guessContig != null) {
             if (guessContig.iniContains(asmCoordinate)) {
                 return guessContig;

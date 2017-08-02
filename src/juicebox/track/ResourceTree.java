@@ -598,7 +598,7 @@ public class ResourceTree {
                     resource.setSelected(true);
                     ResourceEditor.checkOrUncheckParentNodesRecursively(node, true);
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
     }
@@ -635,7 +635,7 @@ public class ResourceTree {
                         }
                     }
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             }
         }

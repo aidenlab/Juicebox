@@ -139,8 +139,8 @@ public class Matrix {
         return (unit == HiC.Unit.BP) ? bpZoomData.size() : fragZoomData.size();
     }
 
-    public boolean isIntra() {
-        return chr1 == chr2;
+    public boolean isNotIntra() {
+        return chr1 != chr2;
     }
 
     public Matrix createCustomChromosomeMatrix(int index) {

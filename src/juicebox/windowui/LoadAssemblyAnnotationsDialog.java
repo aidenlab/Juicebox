@@ -385,7 +385,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     subParent.add(node);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         if (customAddedFeatures != null) {

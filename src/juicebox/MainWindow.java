@@ -127,7 +127,7 @@ public class MainWindow extends JFrame {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String latestVersion = reader.readLine();
             String[] latest = latestVersion.split("\\.");
-            String[] current = new String(HiCGlobals.versionNum).split("\\.");
+            String[] current = HiCGlobals.versionNum.split("\\.");
             boolean isOutdated = false;
             if (Integer.valueOf(current[0]) < Integer.valueOf(latest[0])) {
                 isOutdated = true;
@@ -162,7 +162,7 @@ public class MainWindow extends JFrame {
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), textPanel, "Update Information", JOptionPane.PLAIN_MESSAGE);
             }
 
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
     }
@@ -311,12 +311,10 @@ public class MainWindow extends JFrame {
                 try {
                     runnable.run();
                     return "done";
-                }
-                catch (Exception error) {
+                } catch (Exception error) {
                     error.printStackTrace();
                     return "error";
-                }
-                finally {
+                } finally {
                     MainWindow.this.hideDisabledGlassPane(caller);
                 }
             }

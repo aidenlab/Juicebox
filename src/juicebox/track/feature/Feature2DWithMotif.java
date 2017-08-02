@@ -279,7 +279,7 @@ public class Feature2DWithMotif extends Feature2D {
                         }
                     }
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
             if (lenientEqualityEnabled) {
                 // assuming this is B, obj is reference

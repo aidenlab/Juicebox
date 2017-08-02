@@ -34,10 +34,10 @@ import java.util.List;
  */
 public class AssemblyFileExporter {
 
-    private AssemblyFragmentHandler assemblyFragmentHandler;
-    private String outputFilePath;
-    private List<ContigProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
+    private final AssemblyFragmentHandler assemblyFragmentHandler;
+    private final String outputFilePath;
+    private final List<ContigProperty> contigProperties;
+    private final List<List<Integer>> scaffoldProperties;
 
     public AssemblyFileExporter(AssemblyFragmentHandler assemblyFragmentHandler, String outputFilePath) {
         this.assemblyFragmentHandler = assemblyFragmentHandler;

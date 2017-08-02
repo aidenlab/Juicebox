@@ -34,12 +34,12 @@ import java.util.*;
  * Created by ranganmostofa on 6/29/17.
  */
 public class AssemblyFileImporter {
+    private final List<ContigProperty> contigProperties;
+    private final List<List<Integer>> scaffoldProperties;
+    private final AssemblyFragmentHandler assemblyFragmentHandler;
     private String chromosomeName = "assembly";
     private String cpropsFilePath;
     private String asmFilePath;
-    private List<ContigProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
-    private AssemblyFragmentHandler assemblyFragmentHandler;
 
     public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
         this.cpropsFilePath = cpropsFilePath;
@@ -51,7 +51,7 @@ public class AssemblyFileImporter {
         assemblyFragmentHandler.generateInitialContigsAndScaffolds();
     }
 
-    public void readFiles() {
+    private void readFiles() {
         try {
             parseAsmFile();
             parseCpropsFile();

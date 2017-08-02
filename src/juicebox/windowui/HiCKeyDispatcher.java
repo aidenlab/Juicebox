@@ -74,7 +74,7 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
                 for (AnnotationLayerHandler handler : handlersPreviouslyHidden) {
                     try {
                         handler.setLayerVisibility(true);
-                    } catch (Exception ee) {
+                    } catch (Exception ignored) {
                     }
                 }
                 superAdapter.repaint();

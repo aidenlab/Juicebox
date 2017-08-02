@@ -139,12 +139,12 @@ public class LoadStateFromXMLFile {
         String[] temp = mapNames.split("\\(control=");
         String mainMapNames = temp[0];
 
-        List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));
+        List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));//TODO confirm there are no redundant escape chars here
         superAdapter.unsafeLoadWithTitleFix(urls, false, mainMapNames, true);
 
         if (!controlURLs.contains("null") && temp.length > 1) {
             String ctrlMapNames = temp[1].substring(0, temp[1].length() - 1);
-            List<String> ctrlURLs = Arrays.asList(controlURLs.split("\\#\\#"));
+            List<String> ctrlURLs = Arrays.asList(controlURLs.split("\\#\\#"));//TODO confirm there are no redundant escape chars here
             superAdapter.unsafeLoadWithTitleFix(ctrlURLs, true, ctrlMapNames, true);
         }
 
@@ -163,7 +163,7 @@ public class LoadStateFromXMLFile {
         // TODO - do not erase previous tracks, rather check if some may already be loaded
         try {
             if (tracks.length > 0 && !tracks[1].contains("none")) {
-                String[] trackURLs = tracks[0].split("\\,");
+                String[] trackURLs = tracks[0].split("\\,");//TODO confirm there are no redundant escape chars here
                 String[] trackNames = tracks[1].split("\\,");
                 for (int i = 0; i < trackURLs.length; i++) {
                     String currentTrack = trackURLs[i].trim();

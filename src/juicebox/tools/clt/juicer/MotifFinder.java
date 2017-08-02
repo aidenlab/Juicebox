@@ -60,7 +60,7 @@ public class MotifFinder extends JuicerCLT {
         MotifAnchor.uniquenessShouldSupercedeConvergentRule = true;
     }
 
-    public static GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(ChromosomeHandler handler, List<String> bedFiles) {
+    private static GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(ChromosomeHandler handler, List<String> bedFiles) {
         GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFiles.get(0));
         for (int i = 1; i < bedFiles.size(); i++) {
             GenomeWideList<MotifAnchor> nextProteinList = MotifAnchorParser.loadFromBEDFile(handler, bedFiles.get(i));

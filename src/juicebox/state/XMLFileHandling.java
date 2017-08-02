@@ -108,7 +108,7 @@ public class XMLFileHandling {
             try {
                 textToWrite += "$$" + dataset.getPeaks().toString() + "$$" +
                         dataset.getBlocks().toString() + "$$" + dataset.getSuperLoops().toString();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
         }

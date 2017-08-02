@@ -105,7 +105,7 @@ public class Contig2D extends Feature2D {
         return super.tooltipText();
     }
 
-    public boolean isInverted() {
+    private boolean isInverted() {
         return isInverted;
     }
 

@@ -33,11 +33,11 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyFragmentHandler> undoStack;
-    private Stack<AssemblyFragmentHandler> redoStack;
-    private AnnotationLayerHandler contigLayerHandler;
-    private AnnotationLayerHandler scaffoldLayerHandler;
-    private AssemblyFragmentHandler initialAssemblyFragmentHandler;
+    private final Stack<AssemblyFragmentHandler> undoStack;
+    private final Stack<AssemblyFragmentHandler> redoStack;
+    private final AnnotationLayerHandler contigLayerHandler;
+    private final AnnotationLayerHandler scaffoldLayerHandler;
+    private final AssemblyFragmentHandler initialAssemblyFragmentHandler;
 
     public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
 
@@ -45,7 +45,7 @@ public class AssemblyStateTracker {
         undoStack.push(assemblyFragmentHandler);
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
-        redoStack = new Stack<AssemblyFragmentHandler>();
+        redoStack = new Stack<>();
         this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
     }
 
@@ -54,8 +54,7 @@ public class AssemblyStateTracker {
     }
 
     public AssemblyFragmentHandler getNewAssemblyHandler() {
-        AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
-        return newAssemblyFragmentHandler;
+        return new AssemblyFragmentHandler(undoStack.peek());
     }
 
     public void resetState() {
@@ -72,7 +71,7 @@ public class AssemblyStateTracker {
         regenerateLayers();
     }
 
-    public void regenerateLayers() {
+    private void regenerateLayers() {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
         assemblyFragmentHandler.generateContigsAndScaffolds();
 

@@ -374,7 +374,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         g.drawLine(xpos, h - 10, xpos, h - 2);
                         nTick++;
                     }
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             }
         }

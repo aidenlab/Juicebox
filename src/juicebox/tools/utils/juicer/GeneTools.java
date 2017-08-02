@@ -35,7 +35,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ import java.util.Map;
 public class GeneTools {
 
 
-    public static BufferedReader getStreamToGeneFile(String genomeID) throws MalformedURLException {
+    public static BufferedReader getStreamToGeneFile(String genomeID) {
         String path = extractProperGeneFilePath(genomeID);
         try {
             return new BufferedReader(new FileReader(path));
@@ -98,8 +97,7 @@ public class GeneTools {
         return new GenomeWideList<>(handler, allGenes);
     }
 
-    private static List<MotifAnchor> extractAllGenes(BufferedReader reader, ChromosomeHandler handler)
-            throws IOException {
+    private static List<MotifAnchor> extractAllGenes(BufferedReader reader, ChromosomeHandler handler) {
         List<MotifAnchor> genes = new ArrayList<>();
 
         String nextLine;

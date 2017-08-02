@@ -90,7 +90,7 @@ public class ZoomActionTracker {
         return false;
     }
 
-    public boolean sameObject(ZoomActionTracker other) {
+    private boolean sameObject(ZoomActionTracker other) {
         return this == other;
     }
 

@@ -28,7 +28,6 @@ import juicebox.Context;
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import org.broad.igv.renderer.DataRange;
-import org.broad.igv.track.AbstractTrack;
 import org.broad.igv.track.WindowFunction;
 import org.broad.igv.util.ResourceLocator;
 

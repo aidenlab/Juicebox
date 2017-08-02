@@ -241,14 +241,14 @@ public class ResolutionControl extends JPanel {
                         if (scaledXWidth > hic.getZd().getXGridAxis().getBinCount()) {
                             xGenome = hic.getXContext().getChrLength() / 2;
                         }
-                    } catch (Exception ee) {
+                    } catch (Exception ignored) {
                     }
 
                     try {
                         if (scaledYHeight > hic.getZd().getYGridAxis().getBinCount()) {
                             yGenome = hic.getYContext().getChrLength() / 2;
                         }
-                    } catch (Exception ee) {
+                    } catch (Exception ignored) {
                     }
 
                     final String chrXName = hic.getXContext().getChromosome().toString();
@@ -366,12 +366,12 @@ public class ResolutionControl extends JPanel {
         }
     }
 
-    public void toggleLockButton() {
+    private void toggleLockButton() {
         setResolutionLocked(!resolutionLocked);
         updateLockButton();
     }
 
-    public void updateLockButton() {
+    private void updateLockButton() {
         lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
     }
 

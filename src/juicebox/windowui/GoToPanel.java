@@ -145,7 +145,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         //Expected format 1: <chr>:<start>-<end>:<resolution>
         //Expected format 2: <chr>:<midpt>:<resolution>
 
-        String delimiters = "\\s+|:\\s*|\\-\\s*";
+        String delimiters = "\\s+|:\\s*|\\-\\s*";//TODO confirm there are no redundant escape chars here
         String dashDelimiters = "\\s+|\\-\\s*";
 
         String[] leftChrTokens = positionChrLeft.getText().split(delimiters);

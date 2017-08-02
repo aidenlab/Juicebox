@@ -88,11 +88,11 @@ public class MainViewPanel {
     private static JPanel chrSidePanel;
     private static JPanel chrSidePanel3;
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
+    private final int miniButtonSize = 22;
     private JPanel annotationsLayerPanel;
     private JPanel tooltipPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
-    private int miniButtonSize = 22;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
@@ -564,7 +564,7 @@ public class MainViewPanel {
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
     }
 
-    public JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
+    private JPanel generate2DAnnotationsLayerSelectionPanel(final SuperAdapter superAdapter) {
         JPanel twoDAnnotationsLayerSelectionPanel = new JPanel();
 
         int i = 0;
@@ -581,8 +581,8 @@ public class MainViewPanel {
         return twoDAnnotationsLayerSelectionPanel;
     }
 
-    public JPanel createLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter,
-                                   final JPanel twoDAnnotationsLayerSelectionPanel) throws IOException {
+    private JPanel createLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter,
+                                    final JPanel twoDAnnotationsLayerSelectionPanel) throws IOException {
         final JPanel parentPanel = new JPanel();
         parentPanel.setLayout(new FlowLayout());
 
@@ -732,7 +732,7 @@ public class MainViewPanel {
         return this.annotationsLayerPanel;
     }
 
-    public void setAnnotationsLayerPanel(JPanel annotationsLayerPanel) {
+    private void setAnnotationsLayerPanel(JPanel annotationsLayerPanel) {
         tooltipPanel.remove(this.annotationsLayerPanel);
         this.annotationsLayerPanel = annotationsLayerPanel;
         this.annotationsLayerPanel.setBackground(Color.gray);
@@ -882,7 +882,7 @@ public class MainViewPanel {
             text = trackPanelY.tooltipText(x, y, false);
             if (text != null) trackToolTip += "<span style='color:" + HiCGlobals.leftChromosomeColor +
                     "; font-family: arial; font-size: 12pt; '>" + text + "</span>";
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return trackToolTip;
     }
@@ -1003,10 +1003,7 @@ public class MainViewPanel {
     }
 
     public boolean getShowGridLines() {
-        if (heatmapPanel != null) {
-            return heatmapPanel.getShowGridLines();
-        }
-        return true; // when starting from scratch, the gridlines option is set to true
+        return heatmapPanel == null || heatmapPanel.getShowGridLines();
     }
 
     public void setShowGridLines(boolean status) {

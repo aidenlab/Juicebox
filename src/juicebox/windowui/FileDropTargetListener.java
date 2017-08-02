@@ -47,8 +47,7 @@ public class FileDropTargetListener implements DropTargetListener {
     }
 
     public void dragEnter(DropTargetDragEvent event) {
-
-        if (!isDragAcceptable(event)) {
+        if (isDragNotAcceptable(event)) {
             event.rejectDrag();
         }
     }
@@ -61,7 +60,7 @@ public class FileDropTargetListener implements DropTargetListener {
     }
 
     public void dropActionChanged(DropTargetDragEvent event) {
-        if (!isDragAcceptable(event)) {
+        if (isDragNotAcceptable(event)) {
             event.rejectDrag();
         }
     }
@@ -101,10 +100,10 @@ public class FileDropTargetListener implements DropTargetListener {
         event.dropComplete(true);
     }
 
-    private boolean isDragAcceptable(DropTargetDragEvent event) {
+    private boolean isDragNotAcceptable(DropTargetDragEvent event) {
         //  Check the  available data flavors here
         //  Currently accepting all flavors
-        return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
+        return (event.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) == 0;
     }
 
     private boolean isDropAcceptable(DropTargetDropEvent event) {

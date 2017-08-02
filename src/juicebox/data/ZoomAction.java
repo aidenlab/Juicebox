@@ -31,13 +31,15 @@ import juicebox.windowui.HiCZoom;
  * Created by ranganmostofa on 7/8/17.
  */
 public class ZoomAction {
-    private String chromosomeX, chromosomeY;
-    private HiCZoom hiCZoom;
-    private int genomeX, genomeY;
+    private final String chromosomeX;
+    private final String chromosomeY;
+    private final HiCZoom hiCZoom;
+    private final int genomeX;
+    private final int genomeY;
+    private final boolean resetZoom;
+    private final HiC.ZoomCallType zoomCallType;
+    private final int resolutionLocked;
     private double scaleFactor;
-    private boolean resetZoom;
-    private HiC.ZoomCallType zoomCallType;
-    private int resolutionLocked;
 
     public ZoomAction(String chromosomeX, String chromosomeY, HiCZoom hiCZoom, int genomeX, int genomeY,
                       double scaleFactor, boolean resetZoom, HiC.ZoomCallType zoomCallType, int resolutionLocked) {
@@ -54,16 +56,13 @@ public class ZoomAction {
 
     public boolean equals(ZoomAction other) {
         if (sameObject(other)) return true;
-        if (other != null) {
-            return chromosomeX.equals(other.getChromosomeX()) && chromosomeY.equals(other.getChromosomeY()) &&
-                    hiCZoom.equals(other.getHiCZoom()) && genomeX == other.getGenomeX() && genomeY == other.getGenomeY()
-                    && scaleFactor == other.getScaleFactor() && resetZoom == other.getResetZoom() &&
-                    zoomCallType == other.getZoomCallType() && resolutionLocked == other.getResolutionLocked();
-        }
-        return false;
+        return other != null && chromosomeX.equals(other.getChromosomeX()) && chromosomeY.equals(other.getChromosomeY())
+                && hiCZoom.equals(other.getHiCZoom()) && genomeX == other.getGenomeX() && genomeY == other.getGenomeY()
+                && scaleFactor == other.getScaleFactor() && resetZoom == other.getResetZoom()
+                && zoomCallType == other.getZoomCallType() && resolutionLocked == other.getResolutionLocked();
     }
 
-    public boolean sameObject(ZoomAction other) {
+    private boolean sameObject(ZoomAction other) {
         return this == other;
     }
 

@@ -592,7 +592,7 @@ public class SuperAdapter {
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
 
         if (MatrixType.isVSTypeDisplay(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
@@ -600,7 +600,7 @@ public class SuperAdapter {
         }
 
         if (MatrixType.isPearsonType(option)) {
-            if (!hic.getMatrix().isIntra()) {
+            if (hic.getMatrix().isNotIntra()) {
                 JOptionPane.showMessageDialog(mainWindow, "Pearson's matrix is not available for inter-chr views.");
                 mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
                 return false;
@@ -719,14 +719,14 @@ public class SuperAdapter {
         String fileVersions = "";
         try {
             fileVersions += hic.getDataset().getVersion() + "";
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         if (controlTitle != null && controlTitle.length() > 0) {
             newTitle += "  (control=" + controlTitle + ")";
             try {
                 fileVersions += "/" + hic.getControlDataset().getVersion();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + "<" + fileVersions + ">: " + newTitle);

@@ -137,7 +137,7 @@ public class HiCFileLoader {
                 try {
                     loadPropertiesViaURL(HiCGlobals.defaultPropertiesURL);
                     fileFailedToLoad = false;
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                 }
             }
             if (fileFailedToLoad) {

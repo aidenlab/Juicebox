@@ -96,7 +96,7 @@ public class ChromosomeHandler {
         return isCustomChromosome(chromosome.getName());
     }
 
-    public static boolean isCustomChromosome(String name) {
+    private static boolean isCustomChromosome(String name) {
         return cleanUpName(name).equalsIgnoreCase("custom");
     }
 

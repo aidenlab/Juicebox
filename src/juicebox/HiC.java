@@ -66,6 +66,7 @@ public class HiC {
     private final SuperAdapter superAdapter;
     private final String eigString = "Eigenvector";
     private final String ctrlEigString = "Ctrl_Eigenvector";
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
     private double scaleFactor;
     private String xPosition;
     private String yPosition;
@@ -89,7 +90,6 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -182,7 +182,7 @@ public class HiC {
         return scaleFactor;
     }
 
-    public void setScaleFactor(double scaleFactor) {
+    private void setScaleFactor(double scaleFactor) {
         this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 
@@ -1246,7 +1246,7 @@ public class HiC {
                 default:
                     return getZd().getKey() + displayOption;
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return null;
     }

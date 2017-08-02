@@ -154,7 +154,7 @@ public class JColorRangePanel extends JPanel {
                 String key = "";
                 try {
                     key = HeatmapRenderer.getColorScaleCacheKey(hic.getZd(), hic.getDisplayOption());
-                } catch (Exception e2) {
+                } catch (Exception ignored) {
                 }
 
                 heatmapPanel.setNewDisplayRange(hic.getDisplayOption(), min, max, key);

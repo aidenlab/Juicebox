@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,7 +79,7 @@ public class XMLFileWriter {
 
         String[] elements = s.split("\\$\\$");
         String[] title = elements[0].split("--");
-        String[] mapName = elements[1].split("\\@\\@");
+        String[] mapName = elements[1].split("\\@\\@"); //TODO confirm there are no redundant escape chars here
         Element e0 = xmlDoc.createElement("STATE");
         e0.setAttribute("SelectedPath", title[0]);
 

@@ -226,7 +226,7 @@ public class Feature2DList {
         }
     }
 
-    public Feature2D updateAttributeForFeature(Feature2D feature) {
+    private Feature2D updateAttributeForFeature(Feature2D feature) {
         if (defaultAttributes != null) {
             if (feature.getAttributeKeys() == null) {
                 for (String attribute : defaultAttributes.keySet()) {
@@ -246,7 +246,7 @@ public class Feature2DList {
         return feature;
     }
 
-    public List<Feature2D> updateAttributes(List<Feature2D> features) {
+    private List<Feature2D> updateAttributes(List<Feature2D> features) {
         processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
@@ -258,10 +258,11 @@ public class Feature2DList {
         return features;
     }
 
-    public void putFeature(String key, List<Feature2D> loops) {
+    private void putFeature(String key, List<Feature2D> loops) {
         featureList.put(key, loops);
     }
-    public void setWithKey(String key, List<Feature2D> features) {
+
+    private void setWithKey(String key, List<Feature2D> features) {
         featureList.put(key, features);
     }
 
@@ -504,7 +505,7 @@ public class Feature2DList {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
                 for (Feature2D feature : feature2DList) {
-                    if (!feature.containsAttributeKey(newAttributeName))
+                    if (feature.doesNotContainAttributeKey(newAttributeName))
                         feature.addStringAttribute(newAttributeName, newAttributeValue);
                 }
             }

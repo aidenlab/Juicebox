@@ -27,7 +27,7 @@ package juicebox.data.feature;
 /**
  * Created by muhammadsaadshamim on 7/21/17.
  */
-public class CustomMatrixZoomData {//extends MatrixZoomData {
+class CustomMatrixZoomData {//extends MatrixZoomData {
     /**
      * Constructor, sets the grid axes.  Called when read from file.
      *  @param chr1             Chromosome 1

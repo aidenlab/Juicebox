@@ -202,7 +202,7 @@ public class MatrixZoomData {
         }
     }
 
-    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, List<Integer> blocksToLoad) {
+    private void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, List<Integer> blocksToLoad) {
         int blockNumber = r * getBlockColumnCount() + c;
         String key = getKey() + "_" + blockNumber + "_" + no;
         Block b;
@@ -245,8 +245,8 @@ public class MatrixZoomData {
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
-    public List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                         final NormalizationType no) {
+    private List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
+                                                          final NormalizationType no) {
         List<Integer> blocksToLoad = new ArrayList<>();
         Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
 
@@ -286,9 +286,7 @@ public class MatrixZoomData {
                 };
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
-                    if (blocksToLoad.contains(blockNumber)) {
-                        continue;
-                    } else {
+                    if (!blocksToLoad.contains(blockNumber)) {
                         String key = getKey() + "_" + blockNumber + "_" + no;
                         Block b;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
@@ -881,7 +879,7 @@ public class MatrixZoomData {
 
     public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, int binStartPosition,
                                               boolean isIntraChromosomal, int[] regionBinIndices,
-                                              NormalizationType norm, MatrixType matrixType) throws IOException {
+                                              NormalizationType norm, MatrixType matrixType) {
 
         if (!MatrixType.isObservedOrControl(matrixType)) {
             System.out.println("This feature is only available for Observed or Control views");

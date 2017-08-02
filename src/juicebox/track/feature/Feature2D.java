@@ -418,8 +418,8 @@ public class Feature2D implements Comparable<Feature2D> {
         return chr1.equals(chr2) && start2 < start1;
     }
 
-    public boolean containsAttributeKey(String attribute) {
-        return attributes.containsKey(attribute);
+    public boolean doesNotContainAttributeKey(String attribute) {
+        return !attributes.containsKey(attribute);
     }
 
     public boolean containsAttributeValue(String attribute) {

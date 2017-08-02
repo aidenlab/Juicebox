@@ -138,7 +138,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.firstAnnotation = true;
         try {
             heatmapMouseBot = new Robot();
-        } catch (AWTException exception) {
+        } catch (AWTException ignored) {
         }
     }
 
@@ -1672,7 +1672,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
                         HiCGlobals.splitModeEnabled = true;
                     }
-                } catch (Exception ee) {
+                } catch (Exception ignored) {
                 }
             } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
                 dragMode = DragMode.RESIZE;

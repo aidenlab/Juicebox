@@ -229,7 +229,7 @@ public class AnnotationLayerHandler {
         }
 
         // Add new feature
-        if (HiCGlobals.splitModeEnabled == true) {
+        if (HiCGlobals.splitModeEnabled) {
         }
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
@@ -461,7 +461,7 @@ public class AnnotationLayerHandler {
                 binOriginX, binOriginY, scaleFactor);
     }
 
-    public List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
+    private List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
         return annotationLayer.getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
     }
 
@@ -546,7 +546,7 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
+    private List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
         List<Feature2D> selectedFeatures = new ArrayList<>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();

@@ -59,11 +59,11 @@ public class LayersPanel extends JDialog {
     private static LoadEncodeAction encodeAction;
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
     private static LoadAssemblyAnnotationsDialog loadAssemblyAnnotationsDialog;
-    private JPanel layers2DPanel;
+    private final JPanel layers2DPanel;
+    private final JTabbedPane tabbedPane;
+    private final Border padding;
     //    private JPanel assemblyAnnotationsPanel;
     private JPanel layerBoxGUI2DAnnotations;
-    private JTabbedPane tabbedPane;
-    private Border padding;
 
     public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
@@ -315,7 +315,7 @@ public class LayersPanel extends JDialog {
         return pane;
     }
 
-    public JScrollPane generateLayers2DScrollPane(SuperAdapter superAdapter) {
+    private JScrollPane generateLayers2DScrollPane(SuperAdapter superAdapter) {
         final JPanel layerBoxGUI = new JPanel();
         //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
         layerBoxGUI.setLayout(new GridLayout(0, 1));
@@ -332,8 +332,7 @@ public class LayersPanel extends JDialog {
                 //e.printStackTrace();
             }
         }
-        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
-        return scrollPane;
+        return new JScrollPane(layerBoxGUI);
     }
 
     public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
@@ -623,8 +622,8 @@ public class LayersPanel extends JDialog {
         };
     }
 
-    public JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
-                                                       final SuperAdapter superAdapter) throws IOException {
+    private JButton createTogglePlottingStyleIconButton(final AnnotationLayerHandler handler,
+                                                        final SuperAdapter superAdapter) throws IOException {
 
         // triple state toggle button
         String url1 = "/images/layer/full_clicked.png";

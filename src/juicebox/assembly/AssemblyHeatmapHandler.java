@@ -113,7 +113,7 @@ public class AssemblyHeatmapHandler {
         ((Contig2D) contigs.get(index)).toggleInversion();
     }
 
-    public static void invertMultipleContiguousEntriesAt(List<Feature2D> contigs, int startIndex, int endIndex) {
+    private static void invertMultipleContiguousEntriesAt(List<Feature2D> contigs, int startIndex, int endIndex) {
         // Invert each of the sub-contigs
         for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
             invertSingleEntryAt(contigs, currentIndex);
@@ -142,7 +142,7 @@ public class AssemblyHeatmapHandler {
     }
 
 
-    public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
+    private static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
         if (!((currentIndex >= 0 && currentIndex < contigs.size()) && (newIndex >= 0 && newIndex < contigs.size()))) {
             return;
@@ -161,7 +161,7 @@ public class AssemblyHeatmapHandler {
                 + instruction + "\"", "Error Message", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static void recalculateAllAlterations(List<Feature2D> contigs) {
+    private static void recalculateAllAlterations(List<Feature2D> contigs) {
         int i = 0;
         for (Feature2D feature2D : contigs) {
             Contig2D contig2D = feature2D.toContig();
@@ -202,7 +202,6 @@ public class AssemblyHeatmapHandler {
                 if (alteredY == -1) {
                     //System.err.println("aXY "+alteredX+" "+alteredY+" ");
                     alteredContacts.add(record);
-                    continue;
                 } else {
                     //System.out.println("altered ax "+includeXRecord+" "+aX+" and ay "+includeYRecord+" "+aY);
                     if (alteredX > alteredY) {
@@ -245,14 +244,12 @@ public class AssemblyHeatmapHandler {
         for (Contig2D contig : currentContigs) {
             if (growingContig == null) {
                 growingContig = contig.deepCopy().toContig();
-                continue;
             } else {
                 Contig2D result = growingContig.mergeContigs(contig);
                 if (result == null) {
                     // cannot be merged
                     if (growingContig != null) mergedContigs.add(growingContig);
                     growingContig = contig.deepCopy().toContig();
-                    continue;
                 } else {
                     growingContig = result;
                 }

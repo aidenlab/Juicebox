@@ -31,12 +31,12 @@ import juicebox.track.feature.Feature2D;
  */
 public class ContigProperty {
 
+    private final int length;
+    private final boolean initiallyInverted;
     private String name;
     private int indexId;
-    private int length;
     private Feature2D feature2D;
     private boolean inverted;
-    private boolean initiallyInverted;
     private String initialChr;
     private int initialStart;
     private int initialEnd;
