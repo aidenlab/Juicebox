@@ -35,7 +35,7 @@ public class Contig2D extends Feature2D {
 
     private String initialChr;
     private int initialStart, initialEnd;
-    //    private boolean initiallyInverted;
+    private boolean initialInvert = false;
     private boolean isInverted = false;
 
     public Contig2D(FeatureType featureType, String chr1, int start1, int end1, Color c, Map<String, String> attributes) {
@@ -74,10 +74,11 @@ public class Contig2D extends Feature2D {
         return newEnd;
     }
 
-    public void setInitialState(String initialChr, int initialStart, int initialEnd) {
+    public void setInitialState(String initialChr, int initialStart, int initialEnd, boolean initialInvert) {
         this.initialChr = initialChr;
         this.initialStart = initialStart;
         this.initialEnd = initialEnd;
+        this.initialInvert = initialInvert;
     }
 
 
@@ -90,7 +91,7 @@ public class Contig2D extends Feature2D {
     }
 
     public boolean getInitialInvert() {
-        return false;
+        return initialInvert;
     } //TODO: generalize!
 
     private int getTrueWidth() {
