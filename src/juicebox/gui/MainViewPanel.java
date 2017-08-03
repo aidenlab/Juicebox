@@ -101,6 +101,7 @@ public class MainViewPanel {
     private boolean menuTabOpen = false;
     private boolean rightPnlOpen = false;
     private JPanel sliderPanel;
+    private final JideLabel sliderLbl = new JideLabel();
 
 
     public void setIgnoreUpdateThumbnail(boolean flag) {
@@ -448,6 +449,8 @@ public class MainViewPanel {
         heatmapPanel.setMinimumSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setPreferredSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setBackground(Color.white);
+        SpringLayout sl_heatmapPanel = new SpringLayout();
+        heatmapPanel.setLayout(sl_heatmapPanel);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
 
@@ -662,15 +665,15 @@ public class MainViewPanel {
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, goPanel, 0, SpringLayout.EAST, normalizationPanel);
         menuTabPanel.add(goPanel);
 
-        //======= Slider Tab Button ========
-        JideLabel sliderLbl = new JideLabel();
+        //======= Slider Tab Button =======
         ImageIcon sliderIcon = new ImageIcon(getClass().getResource("/images/sliders.png"));
         sliderLbl.setIcon(sliderIcon);
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, sliderLbl, -33, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, sliderLbl, -28, SpringLayout.EAST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, sliderLbl, -10, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, sliderLbl, -5, SpringLayout.EAST, bigPanel);
-        bigPanel.add(sliderLbl);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderLbl, -33, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderLbl, -28, SpringLayout.EAST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderLbl, -10, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderLbl, -5, SpringLayout.EAST, heatmapPanel);
+        heatmapPanel.add(sliderLbl);
+        sliderLbl.setVisible(false);
 
         sliderLbl.addMouseListener(new MouseListener() {
             @Override
@@ -691,6 +694,7 @@ public class MainViewPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 sliderPanel.setVisible(true);
+                sliderLbl.setVisible(false);
             }
 
             @Override
@@ -707,12 +711,12 @@ public class MainViewPanel {
         sliderPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
         sliderPanel.setVisible(false);
 
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, sliderPanel, -70 * 2 - 30, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, sliderPanel, -215, SpringLayout.EAST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, 0, SpringLayout.SOUTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, sliderPanel, 0, SpringLayout.EAST, bigPanel);
-        bigPanel.setLayer(sliderPanel, 1);
-        bigPanel.add(sliderPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderPanel, -70 * 2 - 30, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderPanel, -215, SpringLayout.EAST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, 0, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderPanel, 0, SpringLayout.EAST, heatmapPanel);
+//        heatmapPanel.setLayer(sliderPanel, 1);
+        heatmapPanel.add(sliderPanel);
 
         JideLabel sliderCloseLbl = new JideLabel();
         ImageIcon sliderCloseIcon = new ImageIcon(getClass().getResource("/images/close.png"));
@@ -742,6 +746,7 @@ public class MainViewPanel {
             @Override
             public void mouseEntered(MouseEvent e) {
                 sliderPanel.setVisible(false);
+                sliderLbl.setVisible(true);
             }
 
             @Override
@@ -1431,6 +1436,10 @@ public class MainViewPanel {
         setAnnotationsLayerPanel(generate2DAnnotationsLayerSelectionPanel(superAdapter));
         annotationsLayerPanel.revalidate();
         annotationsLayerPanel.repaint();
+    }
+
+    public void showSliders() {
+        sliderLbl.setVisible(true);
     }
 
     /*public boolean isPearsonDisplayed() {

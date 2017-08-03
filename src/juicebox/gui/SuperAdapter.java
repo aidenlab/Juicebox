@@ -489,6 +489,7 @@ public class SuperAdapter {
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
+        showSliders();
         return true;
     }
 
@@ -910,5 +911,9 @@ public class SuperAdapter {
 
     public void togglePanelVisible() {
         setLayersPanelVisible(!layerPanelIsVisible);
+    }
+
+    public void showSliders() {
+        mainViewPanel.showSliders();
     }
 }
