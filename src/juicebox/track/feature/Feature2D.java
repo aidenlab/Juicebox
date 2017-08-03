@@ -496,8 +496,8 @@ public class Feature2D implements Comparable<Feature2D> {
         } else {
             List<Feature2D> emptyList = new ArrayList<>();
 
-            anchors.add(new MotifAnchor(handler.getChr(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
-            anchors.add(new MotifAnchor(handler.getChr(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
+            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
+            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
         }
         return anchors;
     }

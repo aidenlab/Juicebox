@@ -1027,7 +1027,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         final int defaultPointerDestinationY = (int) (getLocationOnScreen().getY() + yMousePos);
 
         // get maximum number of bins on the X and Y axes
-        Matrix matrix = hic.getDataset().getMatrix(hic.getXContext().getChromosome(), hic.getYContext().getChromosome());
+        Matrix matrix = hic.getMatrix();
         MatrixZoomData matrixZoomData = matrix.getZoomData(hic.getZoom());
         final int binCountX = matrixZoomData.getXGridAxis().getBinCount();
         final int binCountY = matrixZoomData.getYGridAxis().getBinCount();
@@ -1278,13 +1278,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             Chromosome yChrom = null;
             for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (xChrom == null && chromosomeBoundaries[i] > xGenomeStart) {
-                    xChrom = hic.getChromosomeHandler().get(i + 1);
+                    xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
                     break;
                 }
             }
             for (int i = 0; i < chromosomeBoundaries.length; i++) {
                 if (yChrom == null && chromosomeBoundaries[i] > yGenomeStart) {
-                    yChrom = hic.getChromosomeHandler().get(i + 1);
+                    yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
                     break;
                 }
             }
@@ -1742,8 +1742,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     AnnotationLayerHandler editLayerHandler = superAdapter.getEditLayer();
                     debrisFeature = feature2D;
 //                    editLayerHandler.getAnnotationLayer().add(Hic.);
-                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                    int chr1Idx = hic.getXContext().getChromosomeFromName().getIndex();
+                    int chr2Idx = hic.getYContext().getChromosomeFromName().getIndex();
 //                    executeSplitMenuAction(selectedFeatures.get(0),debrisFeature);
                     editLayerHandler.getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
                     restoreDefaultVariables();
@@ -2043,10 +2043,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
                 for (int i = 0; i < chromosomeBoundaries.length; i++) {
                     if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                        xChrom = hic.getChromosomeHandler().get(i + 1);
+                        xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
                     }
                     if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                        yChrom = hic.getChromosomeHandler().get(i + 1);
+                        yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
                     }
                 }
             } catch (Exception ex) {

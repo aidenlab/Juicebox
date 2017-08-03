@@ -899,13 +899,19 @@ public class MainViewPanel {
             MatrixZoomData zdControl = null;
             if (hic.getControlMatrix() != null)
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
-            Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
-                    thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
-                    hic.getDisplayOption(), hic.getNormalizationType());
-            if (thumbnail != null) {
-                thumbnailPanel.setImage(thumbnail);
+            try {
+                Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
+                        thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
+                        hic.getDisplayOption(), hic.getNormalizationType());
+                if (thumbnail != null) {
+                    thumbnailPanel.setImage(thumbnail);
+                    thumbnailPanel.repaint();
+                }
+            } catch (Exception ignored) {
+                thumbnailPanel.setImage(null);
                 thumbnailPanel.repaint();
             }
+
         } else {
             thumbnailPanel.setImage(null);
         }

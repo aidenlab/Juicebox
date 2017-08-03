@@ -62,9 +62,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    private final Chromosome chr1;  // Chromosome on the X axis
-    private final Chromosome chr2;  // Chromosome on the Y axis
-    private final HiCZoom zoom;    // Unit and bin size
+    protected final Chromosome chr1;  // Chromosome on the X axis
+    protected final Chromosome chr2;  // Chromosome on the Y axis
+    protected final HiCZoom zoom;    // Unit and bin size
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
@@ -101,20 +101,22 @@ public class MatrixZoomData {
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
                           int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
-
-        this.reader = reader;
-
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.zoom = zoom;
+        this.reader = reader;
         this.blockBinCount = blockBinCount;
         this.blockColumnCount = blockColumnCount;
 
         int correctedBinCount = blockBinCount;
         if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
             boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
-            int len1 = isFrag ? (chr1Sites.length + 1) : chr1.getLength();
-            int len2 = isFrag ? (chr2Sites.length + 1) : chr2.getLength();
+            int len1 = chr1.getLength();
+            int len2 = chr2.getLength();
+            if (chr1Sites != null && chr2Sites != null && isFrag) {
+                len1 = chr1Sites.length + 1;
+                len2 = chr2Sites.length + 1;
+            }
             int nBinsX = Math.max(len1, len2) / zoom.getBinSize() + 1;
             correctedBinCount = nBinsX / blockColumnCount + 1;
         }
@@ -658,7 +660,7 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    private List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
         int[] regionBinIndices = new int[4];
         for (int i = 0; i < regionBinIndices.length; i++) {
@@ -667,7 +669,7 @@ public class MatrixZoomData {
         return getBlockNumbersForRegionFromBinPosition(regionBinIndices);
     }
 
-    private List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
+    protected List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
 
         int col1 = regionIndices[0] / blockBinCount;
         int col2 = (regionIndices[1] + 1) / blockBinCount;
@@ -970,14 +972,6 @@ public class MatrixZoomData {
     public void clearCache() {
         blockCache.clear();
     }
-
-
-    public MatrixZoomData toCustomZD(Chromosome customChr) {
-        //return new CustomMatrixZoomData(customChr, customChr, zoom, reader);
-        return null;
-    }
-
-
 
 
     /**

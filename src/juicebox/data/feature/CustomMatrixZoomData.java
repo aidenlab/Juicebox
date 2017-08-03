@@ -24,54 +24,72 @@
 
 package juicebox.data.feature;
 
+import juicebox.data.Block;
+import juicebox.data.ChromosomeHandler;
+import juicebox.data.DatasetReader;
+import juicebox.data.MatrixZoomData;
+import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by muhammadsaadshamim on 7/21/17.
  */
-public class CustomMatrixZoomData {//extends MatrixZoomData {
-    /**
-     * Constructor, sets the grid axes.  Called when read from file.
-     *  @param chr1             Chromosome 1
-     * @param chr2             Chromosome 2
-     * @param zoom             Zoom (bin size and BP or FRAG)
-     * @param reader           Pointer to file reader
-     */
-    /*
-    public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom,
-                                DatasetReader reader) {
-        //super(chr1, chr2, zoom, reader);
+public class CustomMatrixZoomData extends MatrixZoomData {
+
+    private Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
+    private ChromosomeHandler handler;
+
+    public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler, String regionKey, MatrixZoomData zd, DatasetReader reader) {
+        super(chr1, chr2, zd.getZoom(), -1, -1,
+                new int[0], new int[0], reader);
+        this.handler = handler;
+        expandAvailableZoomDatas(regionKey, zd);
     }
 
     @Override
     public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+        /*
         int maxSize = ((binX2 - binX1) / blockBinCount + 1) * ((binY2 - binY1) / blockBinCount + 1);
         final List<Block> blockList = new ArrayList<>(maxSize);
 
         return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
+        */
+        return new ArrayList<>();
     }
 
 
     @Override
     public List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                  final NormalizationType no) {
-
+        return new ArrayList<>();
     }
 
     @Override
     public void printDescription() {
-        System.out.println("Chromosomes: " + chr1.getName() + " - " + chr2.getName());
+        System.out.println("Custom Chromosome: " + chr1.getName() + " - " + chr2.getName());
         System.out.println("unit: " + zoom.getUnit());
         System.out.println("binSize (bp): " + zoom.getBinSize());
-        System.out.println("blockBinCount (bins): " + blockBinCount);
-        System.out.println("blockColumnCount (columns): " + blockColumnCount);
-
-        System.out.println("Block size (bp): " + blockBinCount * zoom.getBinSize());
-        System.out.println("");
 
     }
 
     @Override
-    private List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
+    protected List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
+        return new ArrayList<>();
+    }
 
-    }*/
+    @Override
+    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+        return new ArrayList<>();
+    }
 
+    public void expandAvailableZoomDatas(String regionKey, MatrixZoomData zd) {
+        if (getZoom().equals(zd.getZoom())) {
+            zoomDatasForDifferentRegions.put(regionKey, zd);
+        }
+    }
 }

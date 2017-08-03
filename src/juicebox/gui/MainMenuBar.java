@@ -418,8 +418,16 @@ public class MainMenuBar {
         bookmarksMenu.add(exportSavedStateMenuItem);
         bookmarksMenu.add(importMapAsFile);
 
-        //---Figure Menu-----
-        JMenu figureMenu = new JMenu("View");
+        //---View Menu-----
+        JMenu viewMenu = new JMenu("View");
+
+        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome...");
+        addCustomChromosome.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.createCustomChromosomes();
+            }
+        });
+        viewMenu.add(addCustomChromosome);
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -431,7 +439,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(axisEndpoint);
+        viewMenu.add(axisEndpoint);
 
         //---ShowChromosomeFig mode-----
         //drawLine, drawArc or draw polygon// draw round rect
@@ -445,7 +453,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(showChromosomeFig);
+        viewMenu.add(showChromosomeFig);
 
         //---Grids mode-----
         // turn grids on/off
@@ -458,28 +466,26 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(showGrids);
+        viewMenu.add(showGrids);
 
-        figureMenu.addSeparator();
+        viewMenu.addSeparator();
 
         //---Export Image Menu-----
-        JMenuItem saveToPDF = new JMenuItem();
-        saveToPDF.setText("Export PDF Figure...");
+        JMenuItem saveToPDF = new JMenuItem("Export PDF Figure...");
         saveToPDF.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportPDF();
             }
         });
-        figureMenu.add(saveToPDF);
+        viewMenu.add(saveToPDF);
 
-        JMenuItem saveToSVG = new JMenuItem();
-        saveToSVG.setText("Export SVG Figure...");
+        JMenuItem saveToSVG = new JMenuItem("Export SVG Figure...");
         saveToSVG.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportSVG();
             }
         });
-        figureMenu.add(saveToSVG);
+        viewMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
 
@@ -625,7 +631,7 @@ public class MainMenuBar {
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
-        menuBar.add(figureMenu);
+        menuBar.add(viewMenu);
         menuBar.add(assemblyMenu);
         menuBar.add(devMenu);
         return menuBar;

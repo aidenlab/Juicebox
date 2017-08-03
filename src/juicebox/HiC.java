@@ -389,18 +389,8 @@ public class HiC {
     }
 
     public Matrix getMatrix() {
-        if (dataset == null) {
-            //System.err.println("Dataset is null");
-            return null;
-        } else if (xContext == null) {
-            //System.err.println("xContext is null");
-            return null;
-        } else if (yContext == null) {
-            //System.err.println("yContext is null");
-            return null;
-        }
+        if (dataset == null || xContext == null || yContext == null) return null;
         return dataset.getMatrix(xContext.getChromosome(), yContext.getChromosome());
-
     }
 
     public void setSelectedBin(Point point) {
@@ -578,12 +568,12 @@ public class HiC {
         if (isControl) {
             if (controlDataset == null) return null;
 
-            Chromosome chr = chromosomeHandler.get(chrIdx);
+            Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
             return controlDataset.getEigenvector(chr, currentZoom, n, normalizationType);
         } else {
             if (dataset == null) return null;
 
-            Chromosome chr = chromosomeHandler.get(chrIdx);
+            Chromosome chr = chromosomeHandler.getChromosomeFromIndex(chrIdx);
             return dataset.getEigenvector(chr, currentZoom, n, normalizationType);
         }
     }
@@ -795,8 +785,8 @@ public class HiC {
 //            return false;
 //        }
 
-        boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChr(chrXName)) &&
-                yContext.getChromosome().equals(chromosomeHandler.getChr(chrYName)));
+        boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrXName)) &&
+                yContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrYName)));
 
         if (chrXName.length() > 0 && chrYName.length() > 0) {
             setChromosomesFromBroadcast(chrXName, chrYName);
@@ -808,9 +798,8 @@ public class HiC {
             System.err.println("Invalid zoom " + newZoom);
         }
 
-        Chromosome chrX = chromosomeHandler.getChr(chrXName);
-        Chromosome chrY = chromosomeHandler.getChr(chrYName);
-
+        Chromosome chrX = chromosomeHandler.getChromosomeFromName(chrXName);
+        Chromosome chrY = chromosomeHandler.getChromosomeFromName(chrYName);
         final Matrix matrix = dataset.getMatrix(chrX, chrY);
 
         if (matrix == null) {
@@ -931,8 +920,8 @@ public class HiC {
 
     private void setChromosomesFromBroadcast(String chrXName, String chrYName) {
         if (!chrXName.equals(xContext.getChromosome().getName()) || !chrYName.equals(yContext.getChromosome().getName())) {
-            Chromosome chrX = chromosomeHandler.getChr(chrXName);
-            Chromosome chrY = chromosomeHandler.getChr(chrYName);
+            Chromosome chrX = chromosomeHandler.getChromosomeFromName(chrXName);
+            Chromosome chrY = chromosomeHandler.getChromosomeFromName(chrYName);
 
             if (chrX == null || chrY == null) {
                 //log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
