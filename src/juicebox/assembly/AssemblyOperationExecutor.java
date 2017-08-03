@@ -35,12 +35,15 @@ import java.util.List;
  */
 public class AssemblyOperationExecutor {
 
-    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
+    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic, boolean moveTo) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.editContig(originalContig, debrisContig);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
-        superAdapter.refresh();
+
+        if (!moveTo) { //needs to be done but only once if auto move to then this is not needed
+            superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
+            superAdapter.refresh();
+        }
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
@@ -48,16 +51,24 @@ public class AssemblyOperationExecutor {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.invertSelection(selectedFeatures);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
     }
 
     public static void moveSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.moveSelection(selectedFeatures, featureOrigin);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-        superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
         superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
+    }
+
+    public static void moveDebrisToEnd(SuperAdapter superAdapter) {
+        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyFragmentHandler.moveDebrisToEnd();
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        superAdapter.refresh();
+        superAdapter.clearAllMatrixZoomCache();
     }
 
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
@@ -65,4 +76,5 @@ public class AssemblyOperationExecutor {
         assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
     }
+
 }

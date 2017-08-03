@@ -562,8 +562,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
-        Chromosome chr1 = dataset.getChromosomeHandler().get(c1);
-        Chromosome chr2 = dataset.getChromosomeHandler().get(c2);
+        Chromosome chr1 = dataset.getChromosomeHandler().getChromosomeFromIndex(c1);
+        Chromosome chr2 = dataset.getChromosomeHandler().getChromosomeFromIndex(c2);
 
         // # of resolution levels (bp and frags)
         int nResolutions = dis.readInt();

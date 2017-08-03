@@ -53,8 +53,8 @@ public class AssemblyFileImporter {
 
     public void readFiles() {
         try {
-            parseCpropsFile();
             parseAsmFile();
+            parseCpropsFile();
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
@@ -67,7 +67,19 @@ public class AssemblyFileImporter {
             for (String row : rawFileData) {
                 String[] splitRow = row.split(" ");
                 // splitRow[0] -> Name, splitRow[2] -> length
-                ContigProperty currentPair = new ContigProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
+
+                boolean initiallyInverted = false;
+                for (List<Integer> scaffoldRow : scaffoldProperties) {
+                    for (int element : scaffoldRow) {
+                        if (Math.abs(element) == Math.abs(Integer.parseInt(splitRow[1]))) { //can make
+                            if (Math.abs(element) != element) { //if negative
+                                initiallyInverted = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+                ContigProperty currentPair = new ContigProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]), initiallyInverted);
                 contigProperties.add(currentPair);
             }
         } else System.out.println("Invalid cprops file");

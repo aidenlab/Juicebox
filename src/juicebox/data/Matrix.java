@@ -26,12 +26,14 @@
 package juicebox.data;
 
 import juicebox.HiC;
+import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.feature.CustomMatrixZoomData;
+import juicebox.data.feature.FeatureFunction;
+import juicebox.data.feature.GenomeWideList;
 import juicebox.windowui.HiCZoom;
+import org.broad.igv.feature.Chromosome;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author jrobinso
@@ -59,6 +61,78 @@ public class Matrix {
 
     public static String generateKey(int chr1, int chr2) {
         return "" + chr1 + "_" + chr2;
+    }
+
+    public static Matrix createCustomChromosomeMatrix(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
+                                                      final Map<String, Matrix> matrices, DatasetReader reader) {
+
+        List<Chromosome> indicesForChr1 = getIndicesFromSubChromosomes(handler, chr1);
+        List<Chromosome> indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
+
+        Chromosome newChr1 = chr1, newChr2 = chr2;
+        if (indicesForChr1.get(0).getIndex() > indicesForChr2.get(0).getIndex()) {
+            newChr1 = chr2;
+            newChr2 = chr1;
+        }
+
+        Map<HiCZoom, MatrixZoomData> customZDs = new HashMap<>();
+
+        // ensure all regions loaded
+        for (Chromosome i : indicesForChr1) {
+            for (Chromosome j : indicesForChr2) {
+
+                String key = Matrix.generateKey(i, j);
+                try {
+                    Matrix m = matrices.get(key);
+                    if (m == null) {
+                        m = reader.readMatrix(key);
+                        matrices.put(key, m);
+                    }
+                    for (MatrixZoomData zd : m.bpZoomData) {
+                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+                    }
+                    for (MatrixZoomData zd : m.fragZoomData) {
+                        updateCustomZoomDataRegions(newChr1, newChr2, handler, key, zd, customZDs, reader);
+                    }
+                } catch (Exception ee) {
+                    System.err.println("Custom Chr Region Missing " + key);
+                    ee.printStackTrace();
+                }
+            }
+        }
+        return new Matrix(chr1.getIndex(), chr2.getIndex(), new ArrayList<>(customZDs.values()));
+    }
+
+    private static List<Chromosome> getIndicesFromSubChromosomes(final ChromosomeHandler handler, Chromosome chr) {
+        final List<Chromosome> indices = new ArrayList<>();
+        if (handler.isCustomChromosome(chr)) {
+            GenomeWideList<MotifAnchor> regions = handler.getListOfRegionsInCustomChromosome(chr.getIndex());
+            regions.processLists(new FeatureFunction<MotifAnchor>() {
+                @Override
+                public void process(String chr, List<MotifAnchor> featureList) {
+                    if (featureList.size() > 0) indices.add(handler.getChromosomeFromName(chr));
+                }
+            });
+        } else {
+            indices.add(chr);
+        }
+        return indices;
+    }
+
+    private static void updateCustomZoomDataRegions(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
+                                                    String regionKey, MatrixZoomData zd,
+                                                    Map<HiCZoom, MatrixZoomData> customZDs, DatasetReader reader) {
+        if (customZDs.containsKey(zd.getZoom())) {
+            ((CustomMatrixZoomData) customZDs.get(zd.getZoom())).expandAvailableZoomDatas(regionKey, zd);
+        } else {
+            customZDs.put(zd.getZoom(), new CustomMatrixZoomData(chr1, chr2, handler, regionKey, zd, reader));
+        }
+    }
+
+    public static String generateKey(Chromosome chr1, Chromosome chr2) {
+        int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
+        int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
+        return generateKey(t1, t2);
     }
 
     public String getKey() {
@@ -91,9 +165,9 @@ public class Matrix {
 
     public MatrixZoomData getFirstZoomData(HiC.Unit unit) {
         if (unit == HiC.Unit.BP) {
-            return bpZoomData != null ? bpZoomData.get(0) : null;
+            return bpZoomData != null && bpZoomData.size() > 0 ? bpZoomData.get(0) : null;
         } else {
-            return fragZoomData != null ? fragZoomData.get(0) : null;
+            return fragZoomData != null && fragZoomData.size() > 0 ? fragZoomData.get(0) : null;
         }
     }
 
@@ -141,18 +215,5 @@ public class Matrix {
 
     public boolean isIntra() {
         return chr1 == chr2;
-    }
-
-    public Matrix createCustomChromosomeMatrix(int index) {
-        List<MatrixZoomData> customZDs = new ArrayList<>();
-
-        for (MatrixZoomData zd : bpZoomData) {
-            //customZDs.add(zd.toCustomZD());
-        }
-        for (MatrixZoomData zd : fragZoomData) {
-            //customZDs.add(zd.toCustomZD());
-        }
-
-        return new Matrix(index, index, customZDs);
     }
 }

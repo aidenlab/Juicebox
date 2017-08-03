@@ -80,7 +80,7 @@ public class Eigenvector extends JuiceboxCLT {
             System.err.println("Unknown chromosome: " + args[3]);
             System.exit(18);
         }
-        chromosome1 = chromosomeHandler.getChr(args[3]);
+        chromosome1 = chromosomeHandler.getChromosomeFromName(args[3]);
 
         try {
             unit = HiC.valueOfUnit(args[4]);

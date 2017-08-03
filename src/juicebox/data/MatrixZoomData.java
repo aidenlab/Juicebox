@@ -28,6 +28,7 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.matrix.BasicMatrix;
@@ -61,9 +62,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    private final Chromosome chr1;  // Chromosome on the X axis
-    private final Chromosome chr2;  // Chromosome on the Y axis
-    private final HiCZoom zoom;    // Unit and bin size
+    protected final Chromosome chr1;  // Chromosome on the X axis
+    protected final Chromosome chr2;  // Chromosome on the Y axis
+    protected final HiCZoom zoom;    // Unit and bin size
     private final HiCGridAxis xGridAxis;
     private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
@@ -100,20 +101,22 @@ public class MatrixZoomData {
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
                           int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
-
-        this.reader = reader;
-
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.zoom = zoom;
+        this.reader = reader;
         this.blockBinCount = blockBinCount;
         this.blockColumnCount = blockColumnCount;
 
         int correctedBinCount = blockBinCount;
         if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
             boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
-            int len1 = isFrag ? (chr1Sites.length + 1) : chr1.getLength();
-            int len2 = isFrag ? (chr2Sites.length + 1) : chr2.getLength();
+            int len1 = chr1.getLength();
+            int len2 = chr2.getLength();
+            if (chr1Sites != null && chr2Sites != null && isFrag) {
+                len1 = chr1Sites.length + 1;
+                len2 = chr2Sites.length + 1;
+            }
             int nBinsX = Math.max(len1, len2) / zoom.getBinSize() + 1;
             correctedBinCount = nBinsX / blockColumnCount + 1;
         }
@@ -239,7 +242,7 @@ public class MatrixZoomData {
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, new ArrayList<>(new HashSet<>(blocksToLoad)), no);
+        actuallyLoadGivenBlocks(blockList, new ArrayList<>(new HashSet<>(blocksToLoad)), no, null);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
@@ -301,18 +304,14 @@ public class MatrixZoomData {
             }
         }
 
-        // Remove duplicates here
+        // Remove basic duplicates here
         blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
+        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
-        // Actually load new
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
+        // Actually load new blocks
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
 
-        Set<Block> blockSet = AssemblyHeatmapHandler.modifyBlockList(new HashSet<>(blockList), getBinSize(),
-                chr1.getIndex(), chr2.getIndex());
-
-        //Set<Block> blockSet = AssemblyHeatmapHandler.filterBlockList(new Pair<>(xAxisContigs, yAxisContigs), new HashSet<>(blockList), getBinSize());
-
-        return new ArrayList<>(blockSet);
+        return new ArrayList<>(new HashSet<>(blockList));
     }
 
     private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
@@ -326,10 +325,15 @@ public class MatrixZoomData {
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, List<Integer> blocksToLoad,
-                                         final NormalizationType no) {
+                                         final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<>();
+
+        final int binSize = getBinSize();
+        final int chr1Index = chr1.getIndex();
+        final int chr2Index = chr2.getIndex();
+
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
                 @Override
@@ -339,6 +343,10 @@ public class MatrixZoomData {
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
+                        }
+                        //Run out of memory if do it here
+                        if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
+                            b = AssemblyHeatmapHandler.modifyBlock(b, binSize, chr1Index, chr2Index, aFragHandler);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -652,7 +660,7 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    private List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
         int[] regionBinIndices = new int[4];
         for (int i = 0; i < regionBinIndices.length; i++) {
@@ -661,7 +669,7 @@ public class MatrixZoomData {
         return getBlockNumbersForRegionFromBinPosition(regionBinIndices);
     }
 
-    private List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
+    protected List<Integer> getBlockNumbersForRegionFromBinPosition(int[] regionIndices) {
 
         int col1 = regionIndices[0] / blockBinCount;
         int col2 = (regionIndices[1] + 1) / blockBinCount;
@@ -964,14 +972,6 @@ public class MatrixZoomData {
     public void clearCache() {
         blockCache.clear();
     }
-
-
-    public MatrixZoomData toCustomZD(Chromosome customChr) {
-        //return new CustomMatrixZoomData(customChr, customChr, zoom, reader);
-        return null;
-    }
-
-
 
 
     /**

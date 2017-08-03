@@ -44,6 +44,7 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.FileDialogUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -52,6 +53,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -384,6 +386,11 @@ public class SuperAdapter {
         //System.err.println(heatmapPanel.getSize());
     }
 
+    public void clearAllMatrixZoomCache() {
+        //not sure if this is a right place for this
+        hic.clearAllMatrixZoomDataCache();
+    }
+
     private void refreshMainOnly() {
         mainViewPanel.getHeatmapPanel().clearTileCache();
         mainWindow.repaint();
@@ -645,6 +652,10 @@ public class SuperAdapter {
 
     public LayersPanel getLayersPanel() {
         return layersPanel;
+    }
+
+    public MainMenuBar getMainMenuBar() {
+        return mainMenuBar;
     }
 
     public void revalidate() {
@@ -953,6 +964,10 @@ public class SuperAdapter {
         setLayersPanelGUIControllersSelected(status);
     }
 
+    public void intializeLayersPanel() {
+        layersPanel = new LayersPanel(this);
+    }
+
     public void setLayersPanelGUIControllersSelected(boolean status) {
         mainViewPanel.setAnnotationsPanelToggleButtonSelected(status);
         mainMenuBar.setAnnotationPanelMenuItemSelected(status);
@@ -968,5 +983,24 @@ public class SuperAdapter {
 
     public void setAssemblyStateTracker(AssemblyStateTracker assemblyStateTracker) {
         this.assemblyStateTracker = assemblyStateTracker;
+    }
+
+    public void createCustomChromosomes() {
+
+        FilenameFilter bedFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".bed");
+            }
+        };
+
+        File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
+                LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+        if (files != null && files.length > 0) {
+            for (File f : files) {
+                Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
+                mainViewPanel.getChrBox1().addItem(custom);
+                mainViewPanel.getChrBox2().addItem(custom);
+            }
+        }
     }
 }

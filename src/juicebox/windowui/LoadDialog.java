@@ -43,6 +43,7 @@ import java.util.List;
 public class LoadDialog extends JDialog implements TreeSelectionListener, ActionListener {
 
     private static final long serialVersionUID = 3238446384712613064L;
+    public static File LAST_LOADED_HIC_FILE_PATH = DirectoryManager.getUserDirectory();
     private static boolean actionLock = false;
     private final boolean success;
     private final String[] searchHighlightColors = {"#ff0000", "#00ff00", "#0000ff", "#ff00ff", "#00ffff", "#ff9900", "#ff66ff", "#ffff00"};
@@ -55,7 +56,6 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
     private JButton urlButton;
     private JTextField fTextField;
     private boolean control;
-    private File openHiCPath = DirectoryManager.getUserDirectory();
 
     public LoadDialog(MainWindow mainWindow, Properties properties, SuperAdapter superAdapter) {
         super(mainWindow, "Select file(s) to open");
@@ -319,7 +319,7 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
                 } else if (e.getSource() == openButton30) {
                     loadFiles(tree.getSelectionPaths(), "30");
                 } else if (e.getSource() == localButton) {
-                    openHiCPath = HiCFileLoader.loadMenuItemActionPerformed(superAdapter, control, openHiCPath);
+                    LAST_LOADED_HIC_FILE_PATH = HiCFileLoader.loadMenuItemActionPerformed(superAdapter, control, LAST_LOADED_HIC_FILE_PATH);
                     setVisible(false);
                 } else if (e.getSource() == urlButton) {
                     HiCFileLoader.loadFromURLActionPerformed(superAdapter, control);

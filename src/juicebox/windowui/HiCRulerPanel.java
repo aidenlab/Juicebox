@@ -261,7 +261,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     g.setColor(tColor);
 
                     double binOrigin = context.getBinOrigin();
-                    Chromosome c = handler.get(i);
+                    Chromosome c = handler.getChromosomeFromIndex(i);
                     genomeCoord += (c.getLength() / 1000);
 
                     int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);

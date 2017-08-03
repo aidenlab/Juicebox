@@ -24,7 +24,6 @@
 
 package juicebox.assembly;
 
-import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 
@@ -38,6 +37,7 @@ public class AssemblyStateTracker {
     private Stack<AssemblyFragmentHandler> redoStack;
     private AnnotationLayerHandler contigLayerHandler;
     private AnnotationLayerHandler scaffoldLayerHandler;
+    private AssemblyFragmentHandler initialAssemblyFragmentHandler;
 
     public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
 
@@ -46,6 +46,7 @@ public class AssemblyStateTracker {
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
         redoStack = new Stack<AssemblyFragmentHandler>();
+        this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
     }
 
     public AssemblyFragmentHandler getAssemblyHandler() {
@@ -57,12 +58,12 @@ public class AssemblyStateTracker {
         return newAssemblyFragmentHandler;
     }
 
-    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler, boolean regenerateLayers) {
+    public void resetState() {
+        undoStack.clear();
         redoStack.clear();
-        undoStack.push(assemblyFragmentHandler);
-        if (regenerateLayers) {
-            regenerateLayers();
-        }
+        undoStack.push(initialAssemblyFragmentHandler);
+        AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
+        regenerateLayers();
     }
 
     public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
@@ -90,6 +91,7 @@ public class AssemblyStateTracker {
 
     public void undo() {
         if (checkUndo()) {
+            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             redoStack.push(undoStack.pop());
             regenerateLayers();
         }
@@ -101,6 +103,7 @@ public class AssemblyStateTracker {
 
     public void redo() {
         if (checkRedo()) {
+            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             undoStack.push(redoStack.pop());
             regenerateLayers();
         }

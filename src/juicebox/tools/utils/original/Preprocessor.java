@@ -93,7 +93,7 @@ public class Preprocessor {
         this.chromosomeHandler = chromosomeHandler;
         chromosomeIndexes = new Hashtable<>();
         for (int i = 0; i < chromosomeHandler.size(); i++) {
-            chromosomeIndexes.put(chromosomeHandler.get(i).getName(), i);
+            chromosomeIndexes.put(chromosomeHandler.getChromosomeFromIndex(i).getName(), i);
         }
 
         compressor = new Deflater();
@@ -413,8 +413,8 @@ public class Preprocessor {
                 // Filters
                 if (diagonalsOnly && chr1 != chr2) continue;
                 if (includedChromosomes != null && chr1 != 0) {
-                    String c1Name = chromosomeHandler.get(chr1).getName();
-                    String c2Name = chromosomeHandler.get(chr2).getName();
+                    String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                    String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
                     if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
                         continue;
                     }
@@ -472,7 +472,7 @@ public class Preprocessor {
         MatrixPP matrix;
         // NOTE: always true that c1 <= c2
 
-        int genomeLength = chromosomeHandler.get(0).getLength();  // <= whole genome in KB
+        int genomeLength = chromosomeHandler.getChromosomeFromIndex(0).getLength();  // <= whole genome in KB
         int binSize = genomeLength / 500;
         if (binSize == 0) binSize = 1;
         int nBinsX = genomeLength / binSize + 1;
@@ -511,8 +511,8 @@ public class Preprocessor {
                     int pos1, pos2;
                     if (diagonalsOnly && chr1 != chr2) continue;
                     if (includedChromosomes != null && chr1 != 0) {
-                        String c1Name = chromosomeHandler.get(chr1).getName();
-                        String c2Name = chromosomeHandler.get(chr2).getName();
+                        String c1Name = chromosomeHandler.getChromosomeFromIndex(chr1).getName();
+                        String c2Name = chromosomeHandler.getChromosomeFromIndex(chr2).getName();
                         if (!(includedChromosomes.contains(c1Name) || includedChromosomes.contains(c2Name))) {
                             continue;
                         }
@@ -556,7 +556,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     private int getGenomicPosition(int chr, int pos) {
         long len = 0;
         for (int i = 1; i < chr; i++) {
-            len += chromosomeHandler.get(i).getLength();
+            len += chromosomeHandler.getChromosomeFromIndex(i).getLength();
         }
         len += pos;
 
@@ -1152,8 +1152,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             int zoom = 0; //
             for (int idx = 0; idx < bpBinSizes.length; idx++) {
                 int binSize = bpBinSizes[zoom];
-                Chromosome chrom1 = chromosomeHandler.get(chr1Idx);
-                Chromosome chrom2 = chromosomeHandler.get(chr2Idx);
+                Chromosome chrom1 = chromosomeHandler.getChromosomeFromIndex(chr1Idx);
+                Chromosome chrom2 = chromosomeHandler.getChromosomeFromIndex(chr2Idx);
 
                 // Size block (submatrices) to be ~500 bins wide.
                 int len = Math.max(chrom1.getLength(), chrom2.getLength());
@@ -1165,8 +1165,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             }
 
             if (fragmentCalculation != null) {
-                Chromosome chrom1 = chromosomeHandler.get(chr1Idx);
-                Chromosome chrom2 = chromosomeHandler.get(chr2Idx);
+                Chromosome chrom1 = chromosomeHandler.getChromosomeFromIndex(chr1Idx);
+                Chromosome chrom2 = chromosomeHandler.getChromosomeFromIndex(chr2Idx);
                 int nFragBins1 = Math.max(fragmentCalculation.getNumberFragments(chrom1.getName()),
                         fragmentCalculation.getNumberFragments(chrom2.getName()));
 
@@ -1193,7 +1193,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             this.chr1Idx = chr1Idx;
             this.chr2Idx = chr2Idx;
             zoomData = new MatrixZoomDataPP[1];
-            zoomData[0] = new MatrixZoomDataPP(chromosomeHandler.get(chr1Idx), chromosomeHandler.get(chr2Idx),
+            zoomData[0] = new MatrixZoomDataPP(chromosomeHandler.getChromosomeFromIndex(chr1Idx), chromosomeHandler.getChromosomeFromIndex(chr2Idx),
                     binSize, blockColumnCount, 0, false);
 
         }

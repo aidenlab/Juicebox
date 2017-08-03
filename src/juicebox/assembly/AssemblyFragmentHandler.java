@@ -40,20 +40,21 @@ public class AssemblyFragmentHandler {
     private final String contigName = "Contig Name";
     private final String scaffoldIndexId = "Scaffold Index";
     private final String scaffoldNum = "Scaffold Number";
+    private final String initiallyInvertedStatus = "Initially Inverted";
     private List<ContigProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
     private Feature2DList contigs;
     private Feature2DList scaffolds;
     private String chromosomeName = "assembly";
-    private OperationType operationType;
     private Contig2D guessContig = null;
+    private Integer debrisContigIndex;
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         generateContigsAndScaffolds();
-        this.operationType = OperationType.NONE;
+        debrisContigIndex = null;
     }
 
     public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
@@ -61,12 +62,14 @@ public class AssemblyFragmentHandler {
         this.scaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
         this.contigs = new Feature2DList();
         this.scaffolds = new Feature2DList();
+        if (assemblyFragmentHandler.debrisContigIndex == null) {
+            this.debrisContigIndex = null;
+        } else {
+            this.debrisContigIndex = new Integer(assemblyFragmentHandler.debrisContigIndex);
+        }
         generateContigsAndScaffolds();
     }
 
-    public OperationType getOperationType() {
-        return this.operationType;
-    }
 
     public List<ContigProperty> cloneContigProperties() {
         List<ContigProperty> newList = new ArrayList<>();
@@ -120,21 +123,16 @@ public class AssemblyFragmentHandler {
                 Map<String, String> attributes = new HashMap<String, String>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
+                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
                 //put attribute here
                 Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         new Color(0, 255, 0), attributes); //todo
 
                 Contig2D contig = feature2D.toContig();
-                if (contigProperty.isInverted()) {
-                    contig.toggleInversion(); //assuming initial contig2D inverted = false
-                }
 
-
-                contigProperty.setIntialState(chromosomeName, contigStartPos, (contigStartPos + contigLength));
-
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd());
-
+                contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
+                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
 
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
@@ -172,6 +170,7 @@ public class AssemblyFragmentHandler {
                 Map<String, String> attributes = new HashMap<String, String>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
+                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
                 //put attribute here
                 Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         chromosomeName, contigStartPos, (contigStartPos + contigLength),
@@ -182,7 +181,7 @@ public class AssemblyFragmentHandler {
                     contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
 
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd());
+                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
 
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
@@ -207,19 +206,21 @@ public class AssemblyFragmentHandler {
     //**** Splitting ****//
 
     public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
-        operationType = OperationType.EDIT;
         ArrayList<Feature2D> contigs = new ArrayList<>();
         contigs.add(originalFeature);
         int scaffoldRowNum = getScaffoldRow(contig2DListToIntegerList(contigs));
-        boolean inverted = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+        boolean invertedInAsm = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
 
         ContigProperty originalContig = feature2DtoContigProperty(originalFeature);
         int indexId = Integer.parseInt(originalFeature.getAttribute(scaffoldIndexId));
-        List<ContigProperty> splitContigs = splitContig(originalFeature, debrisContig, originalContig);
-
+        List<ContigProperty> splitContigs = splitContig(invertedInAsm, originalFeature, debrisContig, originalContig);
 
         addContigProperties(originalContig, splitContigs);
-        addScaffoldProperties(indexId, inverted, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
+        addScaffoldProperties(indexId, invertedInAsm, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
+
+        debrisContigIndex = splitContigs.get(1).getIndexId();
+        debrisContigIndex = findInvertedContigIndex(debrisContigIndex);
+//        System.out.println("dindex "+debrisContigIndex);
     }
 
     public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
@@ -231,12 +232,11 @@ public class AssemblyFragmentHandler {
         return null;
     }
 
-    public List<ContigProperty> splitContig(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+    public List<ContigProperty> splitContig(boolean invertedInAsm, Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
 
-        boolean inverted = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
 
         if (originalFeature.overlapsWith(debrisFeature)) {
-            if (!inverted)  //not inverted
+            if (!invertedInAsm)  //not inverted
                 return generateNormalSplit(originalFeature, debrisFeature, originalContig);
             else  //is inverted so flip order of contigs
                 return generateInvertedSplit(originalFeature, debrisFeature, originalContig);
@@ -256,20 +256,22 @@ public class AssemblyFragmentHandler {
         int originalEnd = originalFeature.getEnd2();
         int debrisEnd = debrisFeature.getEnd1();
         int length;
+        boolean initiallyInverted = originalContig.wasIntiallyInverted();
 
         length = debrisStart - originalStart;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length);
-        splitContig.add(firstFragment);
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length, initiallyInverted);
 
         length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
-        splitContig.add(secondFragment);
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
 
         length = originalEnd - debrisEnd;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length);
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length, initiallyInverted);
+
+        splitContig.add(firstFragment);
+        splitContig.add(secondFragment);
         splitContig.add(thirdFragment);
 
-        setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
+        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, false);
         return splitContig;
     }
 
@@ -283,35 +285,39 @@ public class AssemblyFragmentHandler {
         int originalEnd = originalFeature.getEnd2();
         int debrisEnd = debrisFeature.getEnd1();
         int length;
+        boolean initiallyInverted = originalContig.wasIntiallyInverted();
 
         length = originalEnd - debrisEnd;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length);
-        splitContig.add(firstFragment);
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length, initiallyInverted);
 
         length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length);
-        splitContig.add(secondFragment);
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
 
         length = debrisStart - originalStart;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length);
-        splitContig.add(thirdFragment);
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length, initiallyInverted);
 
-        setInitialStatesBasedOnOriginalContig(originalContig, splitContig);
+        splitContig.add(thirdFragment);
+        splitContig.add(secondFragment);
+        splitContig.add(firstFragment);
+
+        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, true);
         return splitContig;
     }
 
-    public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig) {
+    public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
         int newInitialStart;
         int newInitialEnd;
-        if (originalContig.isInverted()) {
+        System.out.println("Initially inverted: " + originalContig.wasIntiallyInverted());
+        boolean initiallyInverted = originalContig.wasIntiallyInverted();
+
+        if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) {
             newInitialEnd = originalContig.getInitialEnd();
             newInitialStart = newInitialEnd;
             for (ContigProperty contigProperty : splitContig) {
                 //    50-100, 40-50, 0-40
                 newInitialStart = newInitialStart - contigProperty.getLength();
-                contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                if (contigProperty.isInverted())
-                    contigProperty.toggleInversion(); //toggles inversion of split contig
+                contigProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInverted());
+
                 newInitialEnd = newInitialStart;
             }
         } else { //not inverted
@@ -320,9 +326,7 @@ public class AssemblyFragmentHandler {
             //    0-40, 40-50, 50-100
             for (ContigProperty contigProperty : splitContig) {
                 newInitialEnd = newInitialEnd + contigProperty.getLength();
-                contigProperty.setIntialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd);
-                if (contigProperty.isInverted())
-                    contigProperty.toggleInversion(); //toggles inversion of split contig
+                contigProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInverted());
                 newInitialStart = newInitialEnd;
             }
         }
@@ -350,10 +354,10 @@ public class AssemblyFragmentHandler {
         return newNames;
     }
 
-    public void addScaffoldProperties(int splitIndex, boolean inverted, List<ContigProperty> splitContigs, int rowNum, int posNum) {
+    public void addScaffoldProperties(int splitIndex, boolean invertedInAsm, List<ContigProperty> splitContigs, int rowNum, int posNum) {
         List<Integer> splitContigsIds = new ArrayList<>();
         int multiplier;
-        if (inverted)
+        if (invertedInAsm)
             multiplier = -1;
         else
             multiplier = 1;
@@ -391,8 +395,6 @@ public class AssemblyFragmentHandler {
         shiftContigIndices(splitContigIndex);
 
         List<ContigProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
-        for (ContigProperty contigProperty : fromInitialContig) {
-        }
         if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are framents past the one you are splitting
             List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
             for (ContigProperty contigProperty : shiftedContigs) {
@@ -433,7 +435,6 @@ public class AssemblyFragmentHandler {
 
     public void invertSelection(List<Feature2D> contigs) {
 
-        operationType = OperationType.INVERT;
         List<Integer> contigIds = contig2DListToIntegerList(contigs);
 
         int id1 = contigIds.get(0);
@@ -533,11 +534,40 @@ public class AssemblyFragmentHandler {
     //**** Move toggle ****//
 
     public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature){
-
-        operationType = OperationType.TRANSLATE;
         int id1 = Integer.parseInt(selectedFeatures.get(0).getAttribute(scaffoldIndexId));
         int id2 = Integer.parseInt(selectedFeatures.get(selectedFeatures.size()-1).getAttribute(scaffoldIndexId));
         int id3 = Integer.parseInt(upstreamFeature.getAttribute(scaffoldIndexId));
+        moveSelection(id1, id2, id3);
+    }
+
+    public void moveDebrisToEnd() {
+        if (debrisContigIndex != null) {
+            int id1 = debrisContigIndex;
+            int id2 = debrisContigIndex;
+            int counter = 0;
+
+            List<Integer> lastRow = scaffoldProperties.get(scaffoldProperties.size() - 1);
+
+            int id3 = lastRow.get(lastRow.size() - 1);
+            moveSelection(id1, id2, id3);
+            debrisContigIndex = null;
+        }
+    }
+
+    public int findInvertedContigIndex(int id1) {
+        for (List<Integer> scaffoldRow : scaffoldProperties) {
+
+            for (int index : scaffoldRow) {
+                if (Math.abs(index) == Math.abs(id1))
+                    return index;
+            }
+        }
+        System.err.println("error finding contigID");
+        return -1;
+    }
+
+    public void moveSelection(int id1, int id2, int id3) {
+
 
         int gid1 = getGroupID(id1);
         int gid2 = getGroupID(id2);
@@ -634,24 +664,22 @@ public class AssemblyFragmentHandler {
 //        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         if (gr1==gr2){
 //            System.out.println("calling split");
-            operationType = OperationType.GROUP; //This is new?
             newSplitGroup(gr1, id1);
 //            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }else {
 
 //            System.out.println("calling merge");
-            operationType = OperationType.GROUP; //This is new?
             newMergeGroup(gr1, gr2);
 //            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }
 
     }
 
-    private void newMergeGroup(int gid1, int gid2) {
+    private void newMergeGroup(int groupId1, int groupId2) {
         List<List<Integer>> newGroups = new ArrayList<>();
         for (int i=0; i<=scaffoldProperties.size()-1; i++){
-            if (i==gid2){
-                newGroups.get(gid1).addAll(scaffoldProperties.get(gid2));
+            if (i == groupId2) {
+                newGroups.get(groupId1).addAll(scaffoldProperties.get(groupId2));
             } else {
                 newGroups.add(scaffoldProperties.get(i));
             }
@@ -661,12 +689,12 @@ public class AssemblyFragmentHandler {
         return;
     }
 
-    private void newSplitGroup(int gid1, int id1) {
+    private void newSplitGroup(int groupId1, int id1) {
         List<List<Integer>> newGroups = new ArrayList<>();
         for (int i=0; i<=scaffoldProperties.size()-1; i++){
-            if (i==gid1){
-                newGroups.add(scaffoldProperties.get(gid1).subList(0, 1 + scaffoldProperties.get(gid1).indexOf(id1)));
-                newGroups.add(scaffoldProperties.get(gid1).subList(1 + scaffoldProperties.get(gid1).indexOf(id1), scaffoldProperties.get(gid1).size()));
+            if (i == groupId1) {
+                newGroups.add(scaffoldProperties.get(groupId1).subList(0, 1 + scaffoldProperties.get(groupId1).indexOf(id1)));
+                newGroups.add(scaffoldProperties.get(groupId1).subList(1 + scaffoldProperties.get(groupId1).indexOf(id1), scaffoldProperties.get(groupId1).size()));
             } else {
                 newGroups.add(scaffoldProperties.get(i));
             }
@@ -680,9 +708,12 @@ public class AssemblyFragmentHandler {
 
     private int getGroupID(int id1) {
         int i = 0;
+//        System.out.println(id1);
         for (List<Integer> scaffoldRow : scaffoldProperties) {
-            if (scaffoldRow.contains(id1)) {
-                return i;
+
+            for (int index : scaffoldRow) {
+                if (Math.abs(index) == Math.abs(id1))
+                    return i;
             }
             i++;
         }
@@ -723,20 +754,15 @@ public class AssemblyFragmentHandler {
 
     // TODO use rtree
     // TODO likely should be renamed - this is a search function?
-    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-        return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate, guessContig);
-    }
+//    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+//        return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
+//    }
 
-    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate, Contig2D guessContig) {
-        if (guessContig != null) {
-            if (guessContig.iniContains(asmCoordinate)) {
-                return guessContig;
-            }
-        } else {
+    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
+
             for (Feature2D feature : contigs.get(chrId1, chrId2)) {
                 Contig2D contig = feature.toContig();
                 if (contig.iniContains(asmCoordinate)) {
-                    guessContig = contig;
                     return contig;
                 }
             }
@@ -749,7 +775,6 @@ public class AssemblyFragmentHandler {
 //            return allContigs.get(iniIndex-1).toContig();
 //        }
 
-        }
         return null;
     }
 
@@ -763,8 +788,9 @@ public class AssemblyFragmentHandler {
             return -1;
         }
         int newCoordinate;
-        boolean inverted = contig.getInitialInvert();
-        if (inverted) {
+        boolean invertedInitially = contig.getInitialInvert();
+
+        if (invertedInitially) {
             newCoordinate = contig.getInitialEnd() - asmCoordinate + 1;
         } else {
             newCoordinate = asmCoordinate - contig.getInitialStart();
@@ -777,9 +803,10 @@ public class AssemblyFragmentHandler {
         if (contig == null) {
             return -1;
         }
-        boolean inverted = contig.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+        boolean invertedInAsm = contig.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+
         int newCoordinate;
-        if (inverted) {
+        if (invertedInAsm) {
             newCoordinate = contig.getEnd1() - fragmentCoordinate + 1;
         } else {
             newCoordinate = contig.getStart1() + fragmentCoordinate;
@@ -798,5 +825,4 @@ public class AssemblyFragmentHandler {
 //        return newCoordinate;
 //    }
 
-    public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }

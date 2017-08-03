@@ -36,16 +36,18 @@ public class ContigProperty {
     private int length;
     private Feature2D feature2D;
     private boolean inverted;
+    private boolean initiallyInverted;
     private String initialChr;
     private int initialStart;
     private int initialEnd;
 
-    public ContigProperty(String name, int indexId, int length) {
+    public ContigProperty(String name, int indexId, int length, boolean initiallyInverted) {
         this.name = name;
         this.indexId = indexId;
         this.length = length;
         this.feature2D = null;
         this.inverted = false;
+        this.initiallyInverted = initiallyInverted;
     }
 
     public ContigProperty(ContigProperty contigProperty) {
@@ -58,12 +60,14 @@ public class ContigProperty {
         this.initialChr = contigProperty.initialChr;
         this.initialStart = contigProperty.initialStart;
         this.initialEnd = contigProperty.initialEnd;
+        this.initiallyInverted = contigProperty.initiallyInverted;
     }
 
-    public void setIntialState(String initialChr, int initialStart, int initialEnd) {
+    public void setInitialState(String initialChr, int initialStart, int initialEnd, boolean inverted) {
         this.initialChr = initialChr;
         this.initialStart = initialStart;
         this.initialEnd = initialEnd;
+        this.inverted = inverted;
     }
 
     public int getInitialEnd() {
@@ -82,12 +86,20 @@ public class ContigProperty {
         inverted = !inverted;
     }
 
+    public void setInversion(boolean inverted) {
+        this.inverted = inverted;
+    }
+
     public boolean isInverted() {
         return inverted;
     }
 
     public void setInverted(boolean inverted) {
         this.inverted = inverted;
+    }
+
+    public boolean wasIntiallyInverted() {
+        return initiallyInverted;
     }
 
     public String getName() {

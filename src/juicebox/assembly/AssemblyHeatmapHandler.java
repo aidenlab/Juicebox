@@ -316,8 +316,8 @@ public class AssemblyHeatmapHandler {
         return block;
     }
 
-    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binVal, int binSize, AssemblyFragmentHandler aFragHandler) {
-        int originalBinCenterCoordinate = binVal * binSize + binSize / 2;
+    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
+        int originalBinCenterCoordinate = binValue * binSize + binSize / 2;
         Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
         int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
         int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);

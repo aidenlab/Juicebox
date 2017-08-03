@@ -62,7 +62,7 @@ import java.util.Map;
  * Created by nathanielmusial on 6/29/17.
  */
 
-class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
+public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
@@ -293,12 +293,14 @@ class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionList
 
                 AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyFragmentHandler(), contigLayerHandler, scaffoldLayerHandler);
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
-                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+//                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+                superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
+                superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
                         superAdapter.removeLayer(annotationLayerHandler);
                     superAdapter.setActiveLayerHandler(contigLayerHandler);
-                    superAdapter.getLayersPanel().updatebothLayersPanels(superAdapter);
+                    superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
                 }
 
             } catch (Exception ee) {
