@@ -2314,6 +2314,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         asmFragment.getRectangle().getMaxY() - y > RESIZE_SNAP + 1){
                                     setCursor(MainWindow.scissorCursor);
                                     promptedAssemblyAction = PromptedAssemblyAction.ANNOTATE;
+
+                                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                                    superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
+
+                                    debrisFeature = generateDebrisFeature(e);
+
+                                    superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
                                 }
                             }
                         }
