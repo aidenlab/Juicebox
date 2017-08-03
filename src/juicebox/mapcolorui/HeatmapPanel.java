@@ -103,6 +103,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean showFeatureHighlight = true;
     private Feature2D highlightedFeature = null;
     private Feature2D debrisFeature = null;
+    private Feature2D tempSelectedGroup = null;
     private List<Feature2D> selectedFeatures = null;
     private Feature2DGuiContainer currentFeature = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
@@ -1184,6 +1185,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void removeSelection() {
         updateSelectedFeatures(false);
         selectedFeatures.clear();
+        tempSelectedGroup = null;
         superAdapter.getEditLayer().clearAnnotations();
         if (superAdapter.getActiveLayerHandler() != superAdapter.getMainLayer()) {
             superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
@@ -1767,7 +1769,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                 repaint();
 
-                Feature2D tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
+                tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
 
                 addHighlightedFeature(tempSelectedGroup);
 
@@ -2297,16 +2299,17 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (!HiCGlobals.splitModeEnabled && selectedFeatures!=null && !selectedFeatures.isEmpty()){
 
                         for (Feature2DGuiContainer asmFragment : allEditFeaturePairs) {
-                            if (asmFragment.getRectangle().contains(mousePoint)) {
+                            if (asmFragment.getFeature2D().equals(tempSelectedGroup) && asmFragment.getRectangle().contains(mousePoint) && !asmFragment.getFeature2D().equals(debrisFeature)) {
                                 if (Math.abs(asmFragment.getRectangle().getMaxX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMinY()-mousePoint.getY())<minDist) {
                                     setCursor(MainWindow.invertSWCursor);
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (Math.abs(asmFragment.getRectangle().getMinX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMaxY()-mousePoint.getY())<minDist) {
+                                    System.out.println(asmFragment.getRectangle().getMinX() + "\t" + mousePoint.getX());
                                     setCursor(MainWindow.invertNECursor);
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
-                                } else if (Math.abs(x-(y + binOriginY - binOriginX) * scaleFactor)<minDist &&
+                                } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + binOriginY - binOriginX) * scaleFactor) < minDist &&
                                         Math.abs(y-(x + binOriginX - binOriginY) * scaleFactor)<minDist &&
                                         x - asmFragment.getRectangle().getMinX() > RESIZE_SNAP + 1 &&
                                         asmFragment.getRectangle().getMaxX() - x > RESIZE_SNAP + 1 &&
@@ -2318,9 +2321,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
                                     superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
-
-                                    debrisFeature = generateDebrisFeature(e);
-
+                                    generateDebrisFeature(e);
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
                                 }
                             }

@@ -189,7 +189,7 @@ public class AnnotationLayerHandler {
         start2 = geneYPos(hic, y, 0);
         end2 = geneYPos(hic, y + height, 0);
 
-        System.out.println(start1 + "\t" + end1);
+//        System.out.println(start1 + "\t" + end1);
 
 
         // Snap if close to diagonal

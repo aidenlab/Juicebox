@@ -832,5 +832,4 @@ public class AssemblyFragmentHandler {
 //        return newCoordinate;
 //    }
 
-    public enum OperationType {EDIT, INVERT, TRANSLATE, GROUP, NONE}
 }
