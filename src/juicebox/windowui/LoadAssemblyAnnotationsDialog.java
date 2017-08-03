@@ -295,6 +295,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
 //                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
                 superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
+                superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
                         superAdapter.removeLayer(annotationLayerHandler);

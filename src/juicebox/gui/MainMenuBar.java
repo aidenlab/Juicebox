@@ -649,6 +649,11 @@ public class MainMenuBar {
         enableAssembly.setEnabled(true);
     }
 
+    public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
+        enableAssembly.setState(true);
+        superAdapter.getHeatmapPanel().enableAssemblyEditing();
+    }
+
     public void updatePrevStateNameFromImport(String path) {
         previousStates.updateNamesFromImport(path);
     }
