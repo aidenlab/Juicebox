@@ -22,12 +22,8 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.data.feature;
+package juicebox.data;
 
-import juicebox.data.Block;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.DatasetReader;
-import juicebox.data.MatrixZoomData;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
 

@@ -27,7 +27,6 @@ package juicebox.data;
 
 import juicebox.HiC;
 import juicebox.data.anchor.MotifAnchor;
-import juicebox.data.feature.CustomMatrixZoomData;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
 import juicebox.windowui.HiCZoom;
