@@ -2306,7 +2306,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (Math.abs(asmFragment.getRectangle().getMinX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMaxY()-mousePoint.getY())<minDist) {
-                                    System.out.println(asmFragment.getRectangle().getMinX() + "\t" + mousePoint.getX());
                                     setCursor(MainWindow.invertNECursor);
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + binOriginY - binOriginX) * scaleFactor) < minDist &&
@@ -2323,6 +2322,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     generateDebrisFeature(e);
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
+                                } else if (debrisFeature != null) {
+                                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                                    superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                 }
                             }
                         }
