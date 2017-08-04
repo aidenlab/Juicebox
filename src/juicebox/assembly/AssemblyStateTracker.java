@@ -24,7 +24,6 @@
 
 package juicebox.assembly;
 
-import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
 
 import java.util.Stack;
@@ -75,14 +74,8 @@ public class AssemblyStateTracker {
     public void regenerateLayers() {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
         assemblyFragmentHandler.generateContigsAndScaffolds();
-
-        AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFragmentHandler.getScaffolds());
-        scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
-        scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-
-        AnnotationLayer contigLayer = new AnnotationLayer(assemblyFragmentHandler.getContigs());
-        contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
-        contigLayerHandler.setAnnotationLayer(contigLayer);
+        scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffolds(), true);
+        contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getContigs(), true);
     }
 
     public boolean checkUndo() {

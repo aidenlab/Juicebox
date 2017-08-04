@@ -1145,7 +1145,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
                 removeSelection();
-                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });
@@ -1160,7 +1159,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
                 removeSelection();
-                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });

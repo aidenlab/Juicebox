@@ -591,7 +591,6 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().resetState();
-                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });

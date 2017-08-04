@@ -766,14 +766,6 @@ public class AssemblyFragmentHandler {
                     return contig;
                 }
             }
-//        List<Feature2D> allContigs = contigs.get(chrId1, chrId2);
-//        int iniIndex = allContigs.indexOf(iniGuess);
-//        if (iniIndex!=allContigs.size() && allContigs.get(iniIndex+1).toContig().iniContains(asmCoordinate)){
-//            return allContigs.get(iniIndex+1).toContig();
-//        }
-//        if (iniIndex!=0 && allContigs.get(iniIndex-1).toContig().iniContains(asmCoordinate)){
-//            return allContigs.get(iniIndex-1).toContig();
-//        }
 
         return null;
     }
@@ -813,16 +805,5 @@ public class AssemblyFragmentHandler {
         }
         return newCoordinate;
     }
-
-//    public int liftFragmentCoordinateToOriginalAsmCoordinate (Contig2D contig, int fragmentCoordinate) {
-//        boolean inverted = contig.getInitialInvert();  //if contains a negative then it is inverted
-//        int newCoordinate;
-//        if (inverted) {
-//            newCoordinate = contig.getInitialEnd() - fragmentCoordinate + 1;
-//        }else{
-//            newCoordinate = contig.getInitialStart() + fragmentCoordinate;
-//        }
-//        return newCoordinate;
-//    }
 
 }
