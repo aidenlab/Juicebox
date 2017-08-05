@@ -261,7 +261,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int blockBinCount = dis.readInt();
         int blockColumnCount = dis.readInt();
 
-        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites, this);
+        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites,
+                this);
 
         int nBlocks = dis.readInt();
         HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<>(nBlocks);
@@ -562,6 +563,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
+
+        //TODO interesting bug with local k562 file; likely bug in hic file, but need to figure out how it happened
+        //System.err.println("read in mtrx indcs "+c1+ "  " +c2+"  key  "+key+"    idx "+idx.position+"   sz  "+idx.size);
+
         Chromosome chr1 = dataset.getChromosomeHandler().getChromosomeFromIndex(c1);
         Chromosome chr2 = dataset.getChromosomeHandler().getChromosomeFromIndex(c2);
 

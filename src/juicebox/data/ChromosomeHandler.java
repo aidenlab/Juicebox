@@ -40,7 +40,6 @@ import java.util.*;
 public class ChromosomeHandler {
     private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
-    private final List<String> chrIndices = new ArrayList<>();
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
@@ -53,7 +52,7 @@ public class ChromosomeHandler {
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
         initializeCleanedChromosomesList(chromosomes);
-        resetInternalVariables();
+        initializeInternalVariables();
     }
 
     public static String cleanUpName(String name) {
@@ -96,7 +95,7 @@ public class ChromosomeHandler {
         customChromosomeRegions.put(newIndex, regionsInCustomChromosome);
         Chromosome newChr = new Chromosome(newIndex, cleanedUpName, size);
         cleanedChromosomes.add(newChr);
-        resetInternalVariables();
+        chromosomeMap.put(newChr.getName(), newChr);
         return newChr;
     }
 
@@ -109,17 +108,13 @@ public class ChromosomeHandler {
         }
     }
 
-    private void resetInternalVariables() {
+    private void initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
             chromosomeMap.put(c.getName(), c);
             if (c.getName().equalsIgnoreCase("MT")) {
                 chromosomeMap.put("M", c); // special case for mitochondria
             }
-        }
-
-        for (Chromosome chr : cleanedChromosomes) {
-            chrIndices.add("" + chr.getIndex());
         }
 
         // for all-by-all view
@@ -164,11 +159,8 @@ public class ChromosomeHandler {
     }
 
     public Chromosome getChromosomeFromName(String name) {
-        return chromosomeMap.get(cleanUpName(name));
-    }
-
-    public List<String> getChrIndices() {
-        return chrIndices;
+        Chromosome c = chromosomeMap.get(cleanUpName(name));
+        return c;
     }
 
     public boolean containsChromosome(String name) {

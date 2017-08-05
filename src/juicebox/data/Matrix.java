@@ -65,9 +65,11 @@ public class Matrix {
     public static Matrix createCustomChromosomeMatrix(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler,
                                                       final Map<String, Matrix> matrices, DatasetReader reader) {
 
+        // TODO some weird null error when X chr in bed file?
         List<Chromosome> indicesForChr1 = getIndicesFromSubChromosomes(handler, chr1);
         List<Chromosome> indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
 
+        // TODO need to sort first!!
         Chromosome newChr1 = chr1, newChr2 = chr2;
         if (indicesForChr1.get(0).getIndex() > indicesForChr2.get(0).getIndex()) {
             newChr1 = chr2;
@@ -80,6 +82,7 @@ public class Matrix {
         for (Chromosome i : indicesForChr1) {
             for (Chromosome j : indicesForChr2) {
 
+                //System.out.println("from mtrx");
                 String key = Matrix.generateKey(i, j);
                 try {
                     Matrix m = matrices.get(key);
@@ -129,6 +132,7 @@ public class Matrix {
     }
 
     public static String generateKey(Chromosome chr1, Chromosome chr2) {
+        //System.out.println("c1 "+chr1 + " c2 "+chr2);
         int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
         int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
         return generateKey(t1, t2);

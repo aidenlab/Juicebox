@@ -29,7 +29,6 @@ import juicebox.HiC;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -49,10 +48,7 @@ import java.util.*;
  */
 public class Dataset {
 
-    private static final Logger log = Logger.getLogger(Dataset.class);
-
-    // private boolean caching = true;
-    private final Map<String, Matrix> matrices = new HashMap<>(25 * 25);
+    private final Map<String, Matrix> matrices = new HashMap<>(625);
     private final DatasetReader reader;
     private final LRUCache<String, double[]> eigenvectorCache;
     private final LRUCache<String, NormalizationVector> normalizationVectorCache;
@@ -70,14 +66,17 @@ public class Dataset {
 
     public Dataset(DatasetReader reader) {
         this.reader = reader;
-        eigenvectorCache = new LRUCache<>(20);
-        normalizationVectorCache = new LRUCache<>(20);
+        eigenvectorCache = new LRUCache<>(25);
+        normalizationVectorCache = new LRUCache<>(25);
         normalizationTypes = new ArrayList<>();
     }
 
     public Matrix getMatrix(Chromosome chr1, Chromosome chr2) {
 
         // order is arbitrary, convention is lower # chr first
+        if (chr1 == null || chr2 == null) return null;
+
+        //System.out.println("from dataset");
         String key = Matrix.generateKey(chr1, chr2);
         Matrix m = matrices.get(key);
 
@@ -92,8 +91,9 @@ public class Dataset {
                 }
                 matrices.put(key, m);
 
-            } catch (IOException e) {
-                log.error("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName(), e);
+            } catch (Exception e) {
+                System.err.println("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName());
+                e.printStackTrace();
             }
         }
 
@@ -317,8 +317,8 @@ public class Dataset {
             String current = lines.nextToken();
             StringTokenizer colon = new StringTokenizer(current, ":");
             if (colon.countTokens() != 2) {
-                log.error("Incorrect form in original statistics attribute. Offending line:");
-                log.error(current);
+                System.err.println("Incorrect form in original statistics attribute. Offending line:");
+                System.err.println(current);
             } else { // Appears to be correct format, convert files as appropriate
                 String label = colon.nextToken();
                 String value = colon.nextToken();
