@@ -88,7 +88,16 @@ public class Matrix {
                 try {
                     Matrix m = matrices.get(key);
                     if (m == null) {
-                        m = reader.readMatrix(key);
+                        // TODO sometimes this fails once or twice, but later succeeds -
+                        // TODO high priority, needs to be fixed
+                        int numAttempts = 0;
+                        while (m == null && numAttempts < 3) {
+                            try {
+                                m = reader.readMatrix(key);
+                            } catch (Exception ignored) {
+                                numAttempts++;
+                            }
+                        }
                         matrices.put(key, m);
                     }
                     for (MatrixZoomData zd : m.bpZoomData) {

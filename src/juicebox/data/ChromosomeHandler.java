@@ -89,7 +89,6 @@ public class ChromosomeHandler {
         GenomeWideList<MotifAnchor> regionsInCustomChromosome =
                 MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
         int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
-        System.out.println("Length is " + size);
         String cleanedUpName = cleanUpName(file.getName());
         int newIndex = cleanedChromosomes.size();
         customChromosomeRegions.put(newIndex, regionsInCustomChromosome);

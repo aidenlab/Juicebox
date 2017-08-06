@@ -291,19 +291,35 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     }
 
 
+    private final List<Integer> boundariesOfCustomChromosomeX = new ArrayList<>();
+    private final List<Integer> boundariesOfCustomChromosomeY = new ArrayList<>();
+
     /**
      * @param handler
      */
     private void initializeRTree(ChromosomeHandler handler) {
         regionsRtree.clear();
         allRegionsForChr.clear();
+        boundariesOfCustomChromosomeX.clear();
+        boundariesOfCustomChromosomeY.clear();
 
-        populateRTreeWithRegions(chr1, handler);
-        if (chr1.getIndex() != chr2.getIndex())
-            populateRTreeWithRegions(chr2, handler);
+        populateRTreeWithRegions(chr1, handler, boundariesOfCustomChromosomeX);
+        if (chr1.getIndex() != chr2.getIndex()) {
+            populateRTreeWithRegions(chr2, handler, boundariesOfCustomChromosomeY);
+        } else {
+            boundariesOfCustomChromosomeY.addAll(boundariesOfCustomChromosomeX);
+        }
     }
 
-    private void populateRTreeWithRegions(Chromosome chr, ChromosomeHandler handler) {
+    public List<Integer> getBoundariesOfCustomChromosomeX() {
+        return boundariesOfCustomChromosomeX;
+    }
+
+    public List<Integer> getBoundariesOfCustomChromosomeY() {
+        return boundariesOfCustomChromosomeY;
+    }
+
+    private void populateRTreeWithRegions(Chromosome chr, ChromosomeHandler handler, List<Integer> boundaries) {
         int chrIndex = chr.getIndex();
         Pair<List<MotifAnchor>, List<MotifAnchor>> allRegionsInfo = getAllRegionsFromSubChromosomes(handler, chr);
 
@@ -315,6 +331,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             for (int i = 0; i < translatedRegions.size(); i++) {
                 MotifAnchor anchor = translatedRegions.get(i);
                 if (isImportant) System.out.println("ztM11 " + anchor.toString());
+                boundaries.add(anchor.getX2() / zoom.getBinSize());
                 si.add(new net.sf.jsi.Rectangle((float) anchor.getX1(), (float) anchor.getX1(),
                         (float) anchor.getX2(), (float) anchor.getX2()), i);
             }
