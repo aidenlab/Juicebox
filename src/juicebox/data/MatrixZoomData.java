@@ -65,8 +65,8 @@ public class MatrixZoomData {
     protected final Chromosome chr1;  // Chromosome on the X axis
     protected final Chromosome chr2;  // Chromosome on the Y axis
     protected final HiCZoom zoom;    // Unit and bin size
-    private final HiCGridAxis xGridAxis;
-    private final HiCGridAxis yGridAxis;
+    protected final HiCGridAxis xGridAxis;
+    protected final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
     protected final int blockBinCount;   // block size in bins
     protected final int blockColumnCount;     // number of block columns
@@ -121,7 +121,10 @@ public class MatrixZoomData {
             correctedBinCount = nBinsX / blockColumnCount + 1;
         }
 
-        if (zoom.getUnit() == HiC.Unit.BP) {
+        if (this instanceof CustomMatrixZoomData) {
+            this.xGridAxis = new HiCFixedGridAxis(chr1.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
+            this.yGridAxis = new HiCFixedGridAxis(chr2.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
+        } else if (zoom.getUnit() == HiC.Unit.BP) {
             this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr1Sites);
             this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr2Sites);
         } else {
@@ -191,9 +194,11 @@ public class MatrixZoomData {
      * @param binX2 rightmost position in "bins"
      * @param binY2 bottom position in "bins"
      * @param no    normalization type
+     * @param isImportant used for debugging
      * @return List of overlapping blocks, normalized
      */
-    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no,
+                                                      boolean isImportant) {
         final List<Block> blockList = new ArrayList<>();
         if (HiCGlobals.assemblyModeEnabled) {
             return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
@@ -393,7 +398,7 @@ public class MatrixZoomData {
             }
         }
 
-        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType);
+        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType, false);
         if (blocks == null) return 0;
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {

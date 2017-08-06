@@ -564,8 +564,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int c1 = dis.readInt();
         int c2 = dis.readInt();
 
-        //TODO interesting bug with local k562 file; likely bug in hic file, but need to figure out how it happened
-        //System.err.println("read in mtrx indcs "+c1+ "  " +c2+"  key  "+key+"    idx "+idx.position+"   sz  "+idx.size);
+        // TODO weird bug
+        // interesting bug with local files; difficult to reliably repeat, but just occurs on loading a region
+        // indices that are read (c1, c2) seem to be excessively large / wrong
+        // maybe some int overflow is occurring?
+        // uncomment next line to help debug
+        // System.err.println("read in mtrx indcs "+c1+ "  " +c2+"  key  "+key+"    idx "+idx.position+ "   sz  "+idx.size+ " "+stream.getSource()+" "+stream.position()+" "+stream );
 
         Chromosome chr1 = dataset.getChromosomeHandler().getChromosomeFromIndex(c1);
         Chromosome chr2 = dataset.getChromosomeHandler().getChromosomeFromIndex(c2);

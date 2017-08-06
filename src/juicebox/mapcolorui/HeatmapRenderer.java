@@ -133,7 +133,8 @@ class HeatmapRenderer {
                           final NormalizationType normalizationType,
                           final ExpectedValueFunction df,
                           final ExpectedValueFunction controlDF,
-                          Graphics2D g) {
+                          Graphics2D g,
+                          boolean isImportant) {
 
 
         g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
@@ -206,17 +207,31 @@ class HeatmapRenderer {
                 pearsonColorScale.setMinMax(key, min, max);
             }
 
-
             renderPearsonMatrix(bm1, bm2, originX, originY, width, height, pearsonColorScale, key, g);
         } else {
             // Iterate through blocks overlapping visible region
+            if (HiCGlobals.printVerboseComments && isImportant)
+                System.out.println("the sys x " + x + " " + maxX + " y " + y + " " + maxY);
+
+            List<Block> blocks = null;
+            try {
+                blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+            } catch (Exception ignored) {
+            }
+
+            List<Block> ctrlBlocks = null;
+            try {
+                ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+            } catch (Exception ignored) {
+            }
+
+            if (blocks == null && ctrlBlocks == null) {
+                System.err.println("everything null...?");
+                return false;
+            }
 
             if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
-                if (controlZD != null) {
-                    List<Block> ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                    if (ctrlBlocks == null) {
-                        return false;
-                    }
+                if (controlZD != null && ctrlBlocks != null) {
 
                     String key = controlZD.getKey() + displayOption;
                     ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks);
@@ -262,20 +277,16 @@ class HeatmapRenderer {
                             }
                         }
                     }
+                } else {
+                    return false;
                 }
             } else if (displayOption == MatrixType.VS || displayOption == MatrixType.OEVS) {
 
                 List<Block> comboBlocks = new ArrayList<>();
 
-                List<Block> blocks =  zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
                 if (blocks != null) comboBlocks.addAll(blocks);
-
-                blocks =  controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                if (blocks != null)  comboBlocks.addAll(blocks);
-
-                if(comboBlocks.isEmpty()){
-                    return false;
-                }
+                if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
+                if (comboBlocks.isEmpty()) return false;
 
                 String key = zd.getKey() + displayOption;
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
@@ -285,10 +296,7 @@ class HeatmapRenderer {
                 double averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
 
 
-                if (zd != null) {
-                    blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                    //zd.
-                    if (blocks != null) {
+                if (zd != null && blocks != null) {
                         for (Block b : blocks) {
 
                             Collection<ContactRecord> recs = b.getContactRecords();
@@ -324,13 +332,9 @@ class HeatmapRenderer {
                                 }
                             }
                         }
-                    }
                 }
-                if (controlZD != null) {
-                    List<Block> ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                    if (ctrlBlocks != null) {
+                if (controlZD != null && ctrlBlocks != null) {
                         for (Block b : ctrlBlocks) {
-
                             Collection<ContactRecord> recs = b.getContactRecords();
                             if (recs != null) {
                                 for (ContactRecord rec : recs) {
@@ -364,21 +368,13 @@ class HeatmapRenderer {
                                 }
                             }
                         }
-                    }
                 }
             } else {
 
-                List<Block> blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                //System.out.println("b1 - "+blocks.size());
-                if (blocks == null) {
-                    return false;
-                }
-
-                boolean hasControl = controlZD != null && MatrixType.isSimpleControlType(displayOption);
+                boolean hasControl = controlZD != null && ctrlBlocks != null && MatrixType.isSimpleControlType(displayOption);
                 Map<Integer, Block> controlBlocks = new HashMap<>();
                 if (hasControl) {
-                    List<Block> ctrls = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType);
-                    for (Block b : ctrls) {
+                    for (Block b : ctrlBlocks) {
                         controlBlocks.put(b.getNumber(), b);
                     }
                 }

@@ -92,20 +92,32 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         }
     }
 
-    public static Block modifyBlock(Block block, int binSize, int chr1Idx, int chr2Idx, RegionPair rp) {
+    private boolean isImportant = false;
+
+    public void expandAvailableZoomDatas(String regionKey, MatrixZoomData zd) {
+        if (getZoom().equals(zd.getZoom())) {
+            zoomDatasForDifferentRegions.put(regionKey, zd);
+        }
+    }
+
+    public static Block modifyBlock(Block block, MatrixZoomData zd, RegionPair rp) {
+        int binSize = zd.getBinSize();
+        int chr1Idx = zd.getChr1Idx();
+        int chr2Idx = zd.getChr2Idx();
+
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
             int newX = record.getBinX();
-            if (newX >= rp.xRegion.getX1() / binSize && newX <= rp.xRegion.getX2() / binSize) {
-                newX = rp.xTransRegion.getX1() + (newX - (rp.xRegion.getX1() / binSize));
+            if (newX >= rp.xRegion.getX1() / binSize && newX <= rp.xRegion.getX2() / binSize + 1) {
+                newX = rp.xTransRegion.getX1() / binSize + (newX - (rp.xRegion.getX1() / binSize));
             } else {
                 continue;
             }
 
             int newY = record.getBinY();
-            if (newY >= rp.yRegion.getX1() / binSize && newY <= rp.yRegion.getX2() / binSize) {
-                newY = rp.yTransRegion.getX1() + (newY - (rp.yRegion.getX1() / binSize));
+            if (newY >= rp.yRegion.getX1() / binSize && newY <= rp.yRegion.getX2() / binSize + 1) {
+                newY = rp.yTransRegion.getX1() / binSize + (newY - (rp.yRegion.getX1() / binSize));
             } else {
                 continue;
             }
@@ -116,19 +128,18 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                 alteredContacts.add(new ContactRecord(newX, newY, record.getCounts()));
             }
         }
-        block = new Block(block.getNumber(), alteredContacts);
+        //System.out.println("num orig records "+block.getContactRecords().size()+ " after alter "+alteredContacts.size()+" bnum "+block.getNumber());
+        int newID = -(block.getNumber() + 10000 * chr1Idx + 300407 * chr2Idx);
+        block = new Block(newID, alteredContacts);
         return block;
     }
 
-    public void expandAvailableZoomDatas(String regionKey, MatrixZoomData zd) {
-        if (getZoom().equals(zd.getZoom())) {
-            zoomDatasForDifferentRegions.put(regionKey, zd);
-        }
-    }
-
     @Override
-    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType norm) {
-        int resolution = zoom.getBinSize();
+    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2,
+                                                      final NormalizationType norm, boolean isImportant) {
+        this.isImportant = isImportant;
+        float resolution = zoom.getBinSize();
+        //if(isImportant) System.out.println("zt12 "+resolution+" --x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
         return addNormalizedBlocksToListByGenomeCoordinates(
                 binX1 * resolution, binY1 * resolution, binX2 * resolution, binY2 * resolution, norm);
     }
@@ -140,11 +151,10 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         System.out.println("binSize (bp): " + zoom.getBinSize());
     }
 
-    private List<Block> addNormalizedBlocksToListByGenomeCoordinates(int gx1, int gy1, int gx2, int gy2,
+    private List<Block> addNormalizedBlocksToListByGenomeCoordinates(float gx1, float gy1, float gx2, float gy2,
                                                                      final NormalizationType no) {
         List<Block> blockList = new ArrayList<>();
-        Map<MatrixZoomData, Set<Pair<Integer, RegionPair>>>
-                blocksNumsToLoadForZd = new HashMap<>();
+        Map<MatrixZoomData, Set<Pair<Integer, RegionPair>>> blocksNumsToLoadForZd = new HashMap<>();
         // remember these are pseudo genome coordinates
 
         // x window
@@ -155,26 +165,41 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
         List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = getIntersectingFeatures(chr2.getIndex(), currentWindow);
 
+        if (isImportant) {
+            //System.out.println("num x regions " + xAxisRegions.size()+ " num y regions " + yAxisRegions.size());
+        }
+
         for (Pair<MotifAnchor, MotifAnchor> xRegion : xAxisRegions) {
             for (Pair<MotifAnchor, MotifAnchor> yRegion : yAxisRegions) {
 
                 Pair<MotifAnchor, MotifAnchor> xLocalRegion = xRegion;
                 Pair<MotifAnchor, MotifAnchor> yLocalRegion = yRegion;
-
+                /*if(isImportant) {
+                    System.out.println("xr " + xRegion.getFirst() + " yr " + yRegion.getFirst());
+                    System.out.println("xr2 " + xRegion.getSecond() + " yr2 " + yRegion.getSecond());
+                }*/
                 int xI = xLocalRegion.getFirst().getChr();
                 int yI = yLocalRegion.getFirst().getChr();
-                MatrixZoomData zd = zoomDatasForDifferentRegions.get(Matrix.generateKey(xI, yI));
 
-                if (zd.getChr1Idx() == xI && zd.getChr2Idx() == yI) {
+                int sortedXI = xI, sortedYI = yI;
+                if (xI <= yI) {
                     // this is the current assumption
-                } else if (zd.getChr2Idx() == xI && zd.getChr1Idx() == yI) {
+                    //if(isImportant) System.out.println("was already ok");
+                } else {
                     // flip order
+                    //if(isImportant) System.out.println("flipped order");
                     xLocalRegion = yRegion;
                     yLocalRegion = xRegion;
-                } else {
-                    System.err.println("Error in getting proper region...");
-                    continue;
+                    sortedXI = yI;
+                    sortedYI = xI;
                 }
+
+                String keyI = Matrix.generateKey(sortedXI, sortedYI);
+                MatrixZoomData zd = zoomDatasForDifferentRegions.get(keyI);
+                //System.out.println("key is "+keyI+"  --- zd is "+zd);
+
+                RegionPair rp = new RegionPair(zd.getChr1Idx(), xLocalRegion, zd.getChr2Idx(), yLocalRegion);
+
                 int[] originalGenomePosition = new int[]{
                         xLocalRegion.getFirst().getX1(), xLocalRegion.getFirst().getX2(),
                         yLocalRegion.getFirst().getX1(), yLocalRegion.getFirst().getX2()};
@@ -185,27 +210,28 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                         blocksNumsToLoadForZd.put(zd, new HashSet<Pair<Integer, RegionPair>>());
                     }
 
-                    if (blocksNumsToLoadForZd.get(zd).contains(blockNumber)) {
+                    Pair<Integer, RegionPair> blockRegionPair = new Pair<>(blockNumber, rp);
+
+                    if (blocksNumsToLoadForZd.get(zd).contains(blockRegionPair)) {
                         continue;
                     } else {
-                        String key = getBlockKey(zd.getChr1Idx(), zd.getChr2Idx(), blockNumber, no);
+                        String key = getBlockKey(zd, blockNumber, no);
                         Block b;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             b = blockCache.get(key);
                             blockList.add(b);
                         } else {
-                            blocksNumsToLoadForZd.get(zd).add(new Pair<>(blockNumber,
-                                    new RegionPair(zd.getChr1Idx(), xLocalRegion, zd.getChr2Idx(), yLocalRegion)));
+                            blocksNumsToLoadForZd.get(zd).add(blockRegionPair);
                         }
                     }
                 }
             }
         }
-
         // Actually load new blocks
         actuallyLoadGivenBlocks(blockList, no, blocksNumsToLoadForZd);
+        //System.out.println("num blocks post "+blockList.size());
 
-        return new ArrayList<>(new HashSet<>(blockList));
+        return blockList;
     }
 
     /**
@@ -221,24 +247,19 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
         List<Thread> threads = new ArrayList<>();
 
-        final int binSize = getBinSize();
-
         for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
-            final int chr1Index = zd.getChr1Idx();
-            final int chr2Index = zd.getChr2Idx();
-            for (final Pair<Integer, RegionPair> blockNumberObj
-                    : blocksNumsToLoadForZd.get(zd)) {
+            for (final Pair<Integer, RegionPair> blockNumberObj : blocksNumsToLoadForZd.get(zd)) {
                 Runnable loader = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            String key = getBlockKey(chr1Index, chr2Index, blockNumberObj.getFirst(), no);
+                            //TODO blocknums may cause incident down the road
+                            String key = getBlockKey(zd, blockNumberObj.getFirst(), no);
                             Block b = reader.readNormalizedBlock(blockNumberObj.getFirst(), zd, no);
                             if (b == null) {
                                 b = new Block(blockNumberObj.getFirst());   // An empty block
                             } else {
-
-                                b = modifyBlock(b, binSize, chr1Index, chr2Index, blockNumberObj.getSecond());
+                                b = modifyBlock(b, zd, blockNumberObj.getSecond());
                             }
 
                             if (HiCGlobals.useCache) {
@@ -269,6 +290,10 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         }
     }
 
+
+    /**
+     * @param handler
+     */
     private void initializeRTree(ChromosomeHandler handler) {
         regionsRtree.clear();
         allRegionsForChr.clear();
@@ -289,6 +314,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             List<MotifAnchor> translatedRegions = allRegionsInfo.getSecond();
             for (int i = 0; i < translatedRegions.size(); i++) {
                 MotifAnchor anchor = translatedRegions.get(i);
+                if (isImportant) System.out.println("ztM11 " + anchor.toString());
                 si.add(new net.sf.jsi.Rectangle((float) anchor.getX1(), (float) anchor.getX1(),
                         (float) anchor.getX2(), (float) anchor.getX2()), i);
             }
@@ -319,8 +345,8 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         return foundFeatures;
     }
 
-    public String getBlockKey(int xChrIndx, int yChrIndx, int blockNumber, NormalizationType no) {
-        return getKey() + "_" + xChrIndx + "-" + yChrIndx + "_" + blockNumber + "_" + no;
+    public String getBlockKey(MatrixZoomData zd, int blockNumber, NormalizationType no) {
+        return getKey() + "_" + zd.getChr1Idx() + "-" + zd.getChr2Idx() + "_" + blockNumber + "_" + no;
     }
 
     private class RegionPair {

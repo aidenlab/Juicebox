@@ -59,6 +59,7 @@ public class Matrix {
     }
 
     public static String generateKey(int chr1, int chr2) {
+        if (chr2 < chr1) return "" + chr2 + "_" + chr1;
         return "" + chr1 + "_" + chr2;
     }
 
