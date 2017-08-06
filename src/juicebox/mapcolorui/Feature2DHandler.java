@@ -167,7 +167,7 @@ public class Feature2DHandler {
         remakeRTree();
     }
 
-    protected void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
+    public void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
             loopList = feature2DList;
         if (remakeTree) {
             remakeRTree();

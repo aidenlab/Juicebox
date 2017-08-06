@@ -361,7 +361,7 @@ public class HiCFileTools {
         int numDataReadingErrors = 0;
 
         try {
-            zd.addNormalizedBlocksToList(blocks, binXStart, binYStart, binXEnd, binYEnd, normalizationType);
+            blocks.addAll(zd.getNormalizedBlocksOverlapping(binXStart, binYStart, binXEnd, binYEnd, normalizationType, false));
         } catch (Exception e) {
             triggerNormError(normalizationType);
             if (HiCGlobals.printVerboseComments) {

@@ -1133,6 +1133,7 @@ public class HiC {
 
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
                                             int binStartPosition) throws IOException {
+        // todo could crash with custom chromosomes - so make sure this doesn't get called on those chromosomes
         int resolution = getZoom().getBinSize();
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
             Matrix matrix = null;

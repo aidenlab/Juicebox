@@ -30,10 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
-import juicebox.data.ChromosomeHandler;
-import juicebox.data.ExpectedValueFunction;
-import juicebox.data.Matrix;
-import juicebox.data.MatrixZoomData;
+import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
@@ -326,6 +323,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (isWholeGenome) {
                 Color color = g.getColor();
                 g.setColor(Color.LIGHT_GRAY);
+                int maxDimension = chromosomeBoundaries[chromosomeBoundaries.length - 1];
 
                 // Draw grid lines only if option is selected
                 if (showGridLines) {
@@ -333,12 +331,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         // vertical lines
                         int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(bound);
                         int x = (int) ((xBin - binOriginX) * scaleFactor);
-                        g.drawLine(x, 0, x, getTickHeight(zd));
+                        g.drawLine(x, 0, x, getGridLineHeightLimit(zd, maxDimension));
 
                         // horizontal lines
                         int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(bound);
                         int y = (int) ((yBin - binOriginY) * scaleFactor);
-                        g.drawLine(0, y, getTickWidth(zd), y);
+                        g.drawLine(0, y, getGridLineWidthLimit(zd, maxDimension), y);
                     }
                 }
 
@@ -346,9 +344,37 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 //Cover gray background for the empty parts of the matrix:
                 g.setColor(Color.white);
-                g.fillRect(getTickHeight(zd), 0, getHeight(), getWidth());
-                g.fillRect(0, getTickWidth(zd), getHeight(), getWidth());
-                g.fillRect(getTickHeight(zd), getTickWidth(zd), getHeight(), getWidth());
+                g.fillRect(getGridLineHeightLimit(zd, maxDimension), 0, getHeight(), getWidth());
+                g.fillRect(0, getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
+                g.fillRect(getGridLineHeightLimit(zd, maxDimension), getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
+            } else {
+                if (showGridLines) {
+                    Color color = g.getColor();
+                    g.setColor(Color.BLACK);
+                    if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr1())) {
+                        if (zd instanceof CustomMatrixZoomData) {
+                            List<Integer> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
+                            //int maxSize = xBins.get(xBins.size() - 1);
+                            int maxSize = zd.getChr2().getLength() / zd.getBinSize();
+                            for (int xBin : xBins) {
+                                int x = (int) ((xBin - binOriginX) * scaleFactor);
+                                g.drawLine(x, 0, x, maxSize);
+                            }
+                        }
+                    }
+                    if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr2())) {
+                        if (zd instanceof CustomMatrixZoomData) {
+                            List<Integer> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
+                            //int maxSize = yBins.get(yBins.size() - 1);
+                            int maxSize = zd.getChr1().getLength() / zd.getBinSize();
+                            for (int yBin : yBins) {
+                                int y = (int) ((yBin - binOriginY) * scaleFactor);
+                                g.drawLine(0, y, maxSize, y);
+                            }
+                        }
+                    }
+                    g.setColor(color);
+                }
             }
 
             Point cursorPoint = hic.getCursorPoint();
@@ -525,36 +551,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 normalizationType,
                 hic.getExpectedValues(),
                 hic.getExpectedControlValues(),
-                g);
+                g, false);
 
         g.scale(1, 1);
         g.translate(0, 0);
     }
 
-    private int getTickWidth(MatrixZoomData zd) {
-
+    private int getGridLineWidthLimit(MatrixZoomData zd, int maxPosition) {
         int w = getWidth();
-        //int h = getHeight();
-
         if (w < 50 || hic.getScaleFactor() == 0) {
             return 0;
         }
-
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(chromosomeBoundaries[chromosomeBoundaries.length - 1]);
+        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(maxPosition);
         return (int) (xBin * hic.getScaleFactor());
     }
 
-    private int getTickHeight(MatrixZoomData zd) {
-
+    private int getGridLineHeightLimit(MatrixZoomData zd, int maxPosition) {
         int h = getHeight();
-        //int w = getWidth();
-
         if (h < 50 || hic.getScaleFactor() == 0) {
             return 0;
         }
-
-        int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(chromosomeBoundaries[chromosomeBoundaries.length - 1]);
-        return (int) (xBin * hic.getScaleFactor());
+        int yBin = zd.getYGridAxis().getBinNumberForGenomicPosition(maxPosition);
+        return (int) (yBin * hic.getScaleFactor());
     }
 
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
@@ -584,7 +602,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 normalizationType,
                 hic.getExpectedValues(),
                 hic.getExpectedControlValues(),
-                g);
+                g, false);
 
         if (!success) return null;
 
@@ -637,7 +655,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     normalizationType,
                     hic.getExpectedValues(),
                     hic.getExpectedControlValues(),
-                    g2D)) {
+                    g2D, true)) {
                 return null;
             }
 
@@ -1145,7 +1163,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().undo();
                 removeSelection();
-                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });
@@ -1160,7 +1177,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.getAssemblyStateTracker().redo();
                 removeSelection();
-                superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
                 superAdapter.refresh();
             }
         });
@@ -2306,7 +2322,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (Math.abs(asmFragment.getRectangle().getMinX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMaxY()-mousePoint.getY())<minDist) {
-                                    System.out.println(asmFragment.getRectangle().getMinX() + "\t" + mousePoint.getX());
                                     setCursor(MainWindow.invertNECursor);
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + binOriginY - binOriginX) * scaleFactor) < minDist &&
@@ -2323,6 +2338,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     generateDebrisFeature(e);
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
+                                } else if (debrisFeature != null) {
+                                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                                    superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                 }
                             }
                         }
