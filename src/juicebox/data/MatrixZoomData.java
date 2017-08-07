@@ -70,10 +70,10 @@ public class MatrixZoomData {
     // Observed values are organized into sub-matrices ("blocks")
     protected final int blockBinCount;   // block size in bins
     protected final int blockColumnCount;     // number of block columns
-    private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
-    private final HashSet<NormalizationType> missingPearsonFiles;
     // Cache the last 20 blocks loaded
     protected final LRUCache<String, Block> blockCache = new LRUCache<>(20);
+    private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
+    private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
 //    private static final SuperAdapter superAdapter = new SuperAdapter();
@@ -317,7 +317,7 @@ public class MatrixZoomData {
     }
 
     private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
+        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
         List<Contig2D> axisContigs = new ArrayList<>();
         for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
             axisContigs.add(feature2D.toContig());

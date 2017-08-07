@@ -1784,13 +1784,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
                 superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                 repaint();
-
-                tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-
-                addHighlightedFeature(tempSelectedGroup);
-
-                //getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
-
+                if (superAdapter.getMainLayer().getLayerVisibility()) {
+                    tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
+                    addHighlightedFeature(tempSelectedGroup);
+                }
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
@@ -1832,25 +1829,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         superAdapter.getActiveLayerHandler().removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
                                 hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
-                        //                    // Snap to nearest neighbor, if close enough
-//                    MatrixZoomData zd = null;
-//                    try {
-//                        zd = hic.getZd();
-//                    } catch (Exception exception) {
-//                        exception.printStackTrace();
-//                    }
-//                    List<Pair<Rectangle, Feature2D>> neighbors = hic.findNearbyFeaturePairs(zd, zd.getChr1Idx(), zd.getChr2Idx(), e.getX(), e.getY(), NUM_NEIGHBORS);
-//                    // Look for left neighbors
-//                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
-//                        for (Pair<Rectangle, Feature2D> neighbor : neighbors){
-//                            double neighborEdge = neighbor.getFirst().getX() + neighbor.getFirst().getWidth();
-//
-//                        }
-//                    // Look for right neighbors
-//                    } else {
-//
-//                    }
-
 
                         Feature2D tempFeature2D = superAdapter.getActiveLayerHandler().addFeature(hic);
                         superAdapter.getActiveLayerHandler().setLastItem(idx1, idx2, secondLoop);
@@ -2135,6 +2113,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             debrisFeature = generateDebrisFeature(eF);
                             int chr1Idx = hic.getXContext().getChromosome().getIndex();
                             int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                            if (debrisFeature != null) {
+                                superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
+                            }
                             superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
                             HiCGlobals.splitModeEnabled=true;
                             superAdapter.setActiveLayerHandler(superAdapter.getEditLayer());
@@ -2319,10 +2300,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                 if (Math.abs(asmFragment.getRectangle().getMaxX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMinY()-mousePoint.getY())<minDist) {
                                     setCursor(MainWindow.invertSWCursor);
+                                    if (debrisFeature != null) {
+                                        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                                        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                                        superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
+                                    }
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (Math.abs(asmFragment.getRectangle().getMinX()-mousePoint.getX())<minDist &&
                                         Math.abs(asmFragment.getRectangle().getMaxY()-mousePoint.getY())<minDist) {
                                     setCursor(MainWindow.invertNECursor);
+                                    if (debrisFeature != null) {
+                                        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                                        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                                        superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
+                                    }
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + binOriginY - binOriginX) * scaleFactor) < minDist &&
                                         Math.abs(y-(x + binOriginX - binOriginY) * scaleFactor)<minDist &&
