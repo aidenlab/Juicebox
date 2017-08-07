@@ -731,6 +731,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(mi_0);
         */
 
+        // add Jump to Diagonal menu items
+        addJumpToDiagonalMenuItems(menu, xMousePos, yMousePos);
+
         final JCheckBoxMenuItem mi = new JCheckBoxMenuItem("Enable straight edge");
         mi.setSelected(straightEdgeEnabled);
         mi.addActionListener(new ActionListener() {
@@ -1033,6 +1036,90 @@ public class HeatmapPanel extends JComponent implements Serializable {
             menu.add(miSelect);
         }
 
+        // add Jump to Diagonal menu items
+        addJumpToDiagonalMenuItems(menu, xMousePos, yMousePos);
+
+        final JCheckBoxMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
+        miMoveToDebris.setSelected(false);
+        miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        miMoveToDebris.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                moveSelectionToEnd();
+            }
+        });
+        menu.add(miMoveToDebris);
+
+        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
+        miInvert.setSelected(straightEdgeEnabled);
+        miInvert.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                invertMenuItemActionPerformed();
+
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
+                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+            }
+        });
+        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        menu.add(miInvert);
+
+        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
+        miSplit.setSelected(straightEdgeEnabled);
+        miSplit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                splitMenuItemActionPerformed();
+            }
+        });
+        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+        menu.add(miSplit);
+
+        final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
+        miUndo.setSelected(straightEdgeEnabled);
+        miUndo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().undo();
+                removeSelection();
+                superAdapter.refresh();
+            }
+        });
+        miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
+        menu.add(miUndo);
+
+
+        final JCheckBoxMenuItem miRedo = new JCheckBoxMenuItem("Redo");
+        miRedo.setSelected(straightEdgeEnabled);
+        miRedo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().redo();
+                removeSelection();
+                superAdapter.refresh();
+            }
+        });
+        miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
+        menu.add(miRedo);
+
+        // internally, single sync = what we previously called sync
+        /*
+        final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
+        miExit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                disableAssemblyEditing();
+            }
+        });
+        menu.add(miExit);
+        */
+
+        return menu;
+    }
+
+    private void addJumpToDiagonalMenuItems(JidePopupMenu menu, int xMousePos, int yMousePos) {
+
         final double preJumpBinOriginX = hic.getXContext().getBinOrigin();
         final double preJumpBinOriginY = hic.getYContext().getBinOrigin();
 
@@ -1118,84 +1205,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             });
             menu.add(jumpToDiagonalRight);
         }
-
-        final JCheckBoxMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
-        miMoveToDebris.setSelected(false);
-        miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        miMoveToDebris.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                moveSelectionToEnd();
-            }
-        });
-        menu.add(miMoveToDebris);
-
-        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-        miInvert.setSelected(straightEdgeEnabled);
-        miInvert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                invertMenuItemActionPerformed();
-
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-            }
-        });
-        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miInvert);
-
-        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
-        miSplit.setSelected(straightEdgeEnabled);
-        miSplit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                splitMenuItemActionPerformed();
-            }
-        });
-        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miSplit);
-
-        final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
-        miUndo.setSelected(straightEdgeEnabled);
-        miUndo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.getAssemblyStateTracker().undo();
-                removeSelection();
-                superAdapter.refresh();
-            }
-        });
-        miUndo.setEnabled(superAdapter.getAssemblyStateTracker().checkUndo());
-        menu.add(miUndo);
-
-
-        final JCheckBoxMenuItem miRedo = new JCheckBoxMenuItem("Redo");
-        miRedo.setSelected(straightEdgeEnabled);
-        miRedo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.getAssemblyStateTracker().redo();
-                removeSelection();
-                superAdapter.refresh();
-            }
-        });
-        miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
-        menu.add(miRedo);
-
-        // internally, single sync = what we previously called sync
-        /*
-        final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
-        miExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                disableAssemblyEditing();
-            }
-        });
-        menu.add(miExit);
-        */
-
-        return menu;
     }
 
     private void removeSelection() {
@@ -1784,10 +1793,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
                 superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
                 repaint();
-                if (superAdapter.getMainLayer().getLayerVisibility()) {
-                    tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-                    addHighlightedFeature(tempSelectedGroup);
+
+                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                    if (superAdapter.getMainLayer().getLayerVisibility()) {
+                        tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
+                        addHighlightedFeature(tempSelectedGroup);
+                    }
+                } else {
+                    removeHighlightedFeature();
                 }
+
+                //getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                 superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
@@ -2241,6 +2258,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     double binOriginY = hic.getYContext().getBinOrigin();
 
                     Point mousePoint = e.getPoint();
+//                    Point mousePoint = new Point((int) (e.getX() / scaleFactor), (int) (e.getY() / scaleFactor));
                     double x = mousePoint.getX();
                     double y = mousePoint.getY();
 
@@ -2296,9 +2314,19 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (!HiCGlobals.splitModeEnabled && selectedFeatures!=null && !selectedFeatures.isEmpty()){
 
                         for (Feature2DGuiContainer asmFragment : allEditFeaturePairs) {
+                            System.out.println(asmFragment.getRectangle().contains(mousePoint));
                             if (asmFragment.getFeature2D().equals(tempSelectedGroup) && asmFragment.getRectangle().contains(mousePoint) && !asmFragment.getFeature2D().equals(debrisFeature)) {
-                                if (Math.abs(asmFragment.getRectangle().getMaxX()-mousePoint.getX())<minDist &&
-                                        Math.abs(asmFragment.getRectangle().getMinY()-mousePoint.getY())<minDist) {
+
+//                                System.out.println(Math.abs(asmFragment.getRectangle().getMaxX()-mousePoint.getX())<minDist);
+//                                System.out.println(Math.abs(asmFragment.getRectangle().getMinY()-mousePoint.getY())<minDist);
+
+//                                System.out.println(asmFragment.getRectangle().x);
+//                                System.out.println(asmFragment.getRectangle().width);
+//                                System.out.println(asmFragment.getRectangle().getMaxX());
+//                                System.out.println(mousePoint.getX());
+//                                System.out.println();
+                                if (Math.abs(asmFragment.getRectangle().getMaxX() - mousePoint.getX() / scaleFactor) < minDist &&
+                                        Math.abs(asmFragment.getRectangle().getMinY() - mousePoint.getY() / scaleFactor) < minDist) {
                                     setCursor(MainWindow.invertSWCursor);
                                     if (debrisFeature != null) {
                                         int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -2306,8 +2334,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     }
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
-                                } else if (Math.abs(asmFragment.getRectangle().getMinX()-mousePoint.getX())<minDist &&
-                                        Math.abs(asmFragment.getRectangle().getMaxY()-mousePoint.getY())<minDist) {
+                                } else if (Math.abs(asmFragment.getRectangle().getMinX() - mousePoint.getX()) < minDist &&
+                                        Math.abs(asmFragment.getRectangle().getMaxY() - mousePoint.getY()) < minDist) {
                                     setCursor(MainWindow.invertNECursor);
                                     if (debrisFeature != null) {
                                         int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -2315,8 +2343,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     }
                                     promptedAssemblyAction = PromptedAssemblyAction.INVERT;
-                                } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + binOriginY - binOriginX) * scaleFactor) < minDist &&
-                                        Math.abs(y-(x + binOriginX - binOriginY) * scaleFactor)<minDist &&
+                                } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + (binOriginY - binOriginX) * scaleFactor)) < minDist &&
+                                        Math.abs(y - (x + (binOriginX - binOriginY) * scaleFactor)) < minDist &&
                                         x - asmFragment.getRectangle().getMinX() > RESIZE_SNAP + 1 &&
                                         asmFragment.getRectangle().getMaxX() - x > RESIZE_SNAP + 1 &&
                                         y - asmFragment.getRectangle().getMinY() > RESIZE_SNAP + 1 &&
