@@ -75,6 +75,7 @@ public class HiCGlobals {
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
     public static int MAX_PEARSON_ZOOM = 500000;
     // whether MatrixZoomData should cache or not
+    public static double hicMapScale = 1; //TODO implement Map scaling with this global variable
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;

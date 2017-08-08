@@ -27,7 +27,6 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -73,6 +72,8 @@ public class MainMenuBar {
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
     private static JCheckBoxMenuItem enableAssembly;
+    private static JMenuItem setScale;
+    private static JMenuItem importModifiedAssembly;
 
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
@@ -518,18 +519,6 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
-        JMenuItem assemblyMode = new JMenuItem("Launch assembly mode editor...");
-        assemblyMode.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String newURL = MessageUtils.showInputDialog("Specify reassembling");
-                if (newURL != null) {
-                    AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
-                }
-            }
-        });
-        devMenu.add(assemblyMode);
-
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
@@ -567,10 +556,6 @@ public class MainMenuBar {
         assemblyMenu.setEnabled(false);
 
         enableAssembly = new JCheckBoxMenuItem("Enable edits");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            enableAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            enableAssembly.setEnabled(false);
         enableAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -583,23 +568,20 @@ public class MainMenuBar {
         });
 
         resetAssembly = new JMenuItem("Reset assembly");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            resetAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            resetAssembly.setEnabled(false);
+
         resetAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.getAssemblyStateTracker().resetState();
-                superAdapter.refresh();
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+                if (option == 0) { //The ISSUE is here
+                    superAdapter.getAssemblyStateTracker().resetState();
+                    superAdapter.refresh();
+                    System.out.print("yes");
+                }
             }
         });
 
         exportAssembly = new JMenuItem("Export assembly");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            exportAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            exportAssembly.setEnabled(false);
         exportAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -609,9 +591,8 @@ public class MainMenuBar {
             }
         });
 
-        final JMenuItem importAssembly = new JMenuItem("Import assembly");
-
-        importAssembly.addActionListener(new ActionListener() {
+        final JMenuItem importMapAssembly = new JMenuItem("Import Map assembly");
+        importMapAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.getLayersPanel() == null) {
@@ -622,10 +603,56 @@ public class MainMenuBar {
                 loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
+
+        importModifiedAssembly = new JMenuItem("Import Modified assembly");
+        importModifiedAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                LoadAssemblyAnnotationsDialog loadAssemblyDialog;
+                loadAssemblyDialog = new LoadAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
+                loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
+            }
+        });
+
+        setScale = new JMenuItem("Set scale");
+        setScale.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                double scale;
+                String newURL = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                try {
+                    scale = Double.parseDouble(newURL);
+                    if (scale == 0.0) { //scale cannot be zero
+                        scale = 1.0;
+                    }
+                    HiCGlobals.hicMapScale = scale;
+                } catch (NumberFormatException t) {
+                    JOptionPane.showMessageDialog(null, "Value must be an integer!");
+                }
+            }
+        });
+
+        boolean enabled;
+        if (superAdapter.getAssemblyStateTracker() != null)
+            enabled = superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
+        else
+            enabled = false;
+
+        exportAssembly.setEnabled(enabled);
+        resetAssembly.setEnabled(enabled);
+        enableAssembly.setEnabled(enabled);
+        setScale.setEnabled(enabled);
+        importModifiedAssembly.setEnabled(enabled);
+
         assemblyMenu.add(enableAssembly);
         assemblyMenu.add(resetAssembly);
-        assemblyMenu.add(importAssembly);
+        assemblyMenu.add(importMapAssembly);
+        assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        assemblyMenu.add(setScale);
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
@@ -652,6 +679,8 @@ public class MainMenuBar {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
         enableAssembly.setEnabled(true);
+        setScale.setEnabled(true);
+        importModifiedAssembly.setEnabled(true);
     }
 
     public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
@@ -670,7 +699,7 @@ public class MainMenuBar {
         showStats.setEnabled(status);
     }
 
-    public void updateContolMapHasBeenLoaded(boolean status) {
+    public void updateControlMapHasBeenLoaded(boolean status) {
         showControlStats.setEnabled(status);
     }
 
