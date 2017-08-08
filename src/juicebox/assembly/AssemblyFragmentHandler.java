@@ -48,12 +48,13 @@ public class AssemblyFragmentHandler {
     private String chromosomeName = "assembly";
     private Contig2D guessContig = null;
     private Integer debrisContigIndex;
+
     public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
-        generateContigsAndScaffolds();
+        generateContigsAndScaffolds(false, false, this);
         debrisContigIndex = null;
     }
 
@@ -67,7 +68,7 @@ public class AssemblyFragmentHandler {
         } else {
             this.debrisContigIndex = new Integer(assemblyFragmentHandler.debrisContigIndex);
         }
-        generateContigsAndScaffolds();
+        generateContigsAndScaffolds(false, false, assemblyFragmentHandler);
     }
 
 
@@ -107,54 +108,7 @@ public class AssemblyFragmentHandler {
         return scaffoldProperties;
     }
 
-    public void generateInitialContigsAndScaffolds() {
-        contigs = new Feature2DList();
-        scaffolds = new Feature2DList();
-        int contigStartPos = 0;
-        int scaffoldStartPos = 0;
-        int scaffoldLength = 0;
-        Integer rowNum = 0;
-        for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                ContigProperty contigProperty = contigProperties.get(Math.abs(contigIndex) - 1);
-                String contigName = contigProperty.getName();
-                Integer contigLength = contigProperty.getLength();
-
-                Map<String, String> attributes = new HashMap<String, String>();
-                attributes.put(this.contigName, contigName);
-                attributes.put(scaffoldIndexId, contigIndex.toString());
-                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
-                //put attribute here
-                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        new Color(0, 255, 0), attributes); //todo
-
-                Contig2D contig = feature2D.toContig();
-
-                contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
-
-                contigs.add(1, 1, contig);
-                contigProperty.setFeature2D(contig);
-
-                contigStartPos += contigLength;
-                scaffoldLength += contigLength;
-            }
-            Map<String, String> attributes = new HashMap<String, String>();
-            attributes.put(scaffoldNum, rowNum.toString());
-
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    new Color(0, 0, 255), attributes);
-            scaffolds.add(1, 1, scaffold);
-
-            scaffoldStartPos += scaffoldLength;
-            scaffoldLength = 0;
-            rowNum++;
-        }
-    }
-
-    public void generateContigsAndScaffolds() {
+    public void generateContigsAndScaffolds(boolean initialGeneration, boolean modifiedGeneration, AssemblyFragmentHandler originalAssemblyFragmentHandler) {
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         int contigStartPos = 0;
@@ -180,9 +134,15 @@ public class AssemblyFragmentHandler {
                 if (contigProperty.isInverted()) {
                     contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
+                if (initialGeneration && !modifiedGeneration) {
+                    contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
+                }
+                if (modifiedGeneration) {
+                    ContigProperty originalContigProperty = getOriginalContigProperty(originalAssemblyFragmentHandler, contigProperty);
 
+                    contigProperty.setInitialState(chromosomeName, originalContigProperty.getInitialStart(), originalContigProperty.getInitialEnd(), originalContigProperty.isInverted());
+                }
                 contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
-
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
 
@@ -203,6 +163,15 @@ public class AssemblyFragmentHandler {
         }
     }
 
+    public ContigProperty getOriginalContigProperty(AssemblyFragmentHandler originalAssemblyFragmentHandler, ContigProperty lookupContigProperty) {
+        List<ContigProperty> originalContigProperties = originalAssemblyFragmentHandler.getContigProperties();
+        for (ContigProperty contigProperty : originalContigProperties) {
+            if (contigProperty.getFragmentNumber() == lookupContigProperty.getFragmentNumber()) {
+                return contigProperty;
+            }
+        }
+        return null;
+    }
     //**** Splitting ****//
 
     public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
@@ -806,4 +775,19 @@ public class AssemblyFragmentHandler {
         return newCoordinate;
     }
 
+    @Override
+    public String toString() {
+        String s = "CPROPS\n";
+        for (ContigProperty contigProperty : contigProperties) {
+            s += contigProperty.toString() + "\n";
+        }
+        s += "ASM\n";
+        for (List<Integer> row : scaffoldProperties) {
+            for (int id : row) {
+                s += id + " ";
+            }
+            s += "\n";
+        }
+        return s;
+    }
 }

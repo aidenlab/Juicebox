@@ -30,10 +30,7 @@ import juicebox.ProcessHelper;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
-import juicebox.windowui.HiCRulerPanel;
-import juicebox.windowui.LoadAssemblyAnnotationsDialog;
-import juicebox.windowui.RecentMenu;
-import juicebox.windowui.SaveAssemblyDialog;
+import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -611,9 +608,9 @@ public class MainMenuBar {
                 if (superAdapter.getLayersPanel() == null) {
                     superAdapter.intializeLayersPanel();
                 }
-                LoadAssemblyAnnotationsDialog loadAssemblyDialog;
-                loadAssemblyDialog = new LoadAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
-                loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
+                LoadModifiedAssemblyAnnotationsDialog loadModifiedAssemblyAnnotationsDialog;
+                loadModifiedAssemblyAnnotationsDialog = new LoadModifiedAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
+                loadModifiedAssemblyAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
 
