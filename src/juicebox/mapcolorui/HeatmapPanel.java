@@ -1229,16 +1229,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private void invertMenuItemActionPerformed() {
         Feature2DList features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoops();
-        Chromosome chromosome = superAdapter.getHiC().getXContext().getChromosome();
+        Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+        Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
 
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             Feature2D initialFeature = selectedFeatures.get(0);
             Contig2D initialContig = initialFeature.toContig();
 
-            Integer startIndex = features.getIndex(chromosome, chromosome, initialContig);
-            Integer endIndex = startIndex + selectedFeatures.size() - 1;
-
-            List<Feature2D> contigs = features.get(chromosome.getIndex(), chromosome.getIndex());
+            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
 
             AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
         }

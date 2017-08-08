@@ -34,7 +34,6 @@ import java.util.*;
  * Created by ranganmostofa on 6/29/17.
  */
 public class AssemblyFileImporter {
-    private String chromosomeName = "assembly";
     private String cpropsFilePath;
     private String asmFilePath;
     private List<ContigProperty> contigProperties;
