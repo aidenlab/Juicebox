@@ -121,10 +121,23 @@ public class AssemblyFragmentHandler {
                 String contigName = contigProperty.getName();
                 Integer contigLength = contigProperty.getLength();
 
+                if (initialGeneration && !modifiedGeneration) {
+                    contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
+                }
+                if (modifiedGeneration) {
+                    ContigProperty originalContigProperty = getOriginalContigProperty(originalAssemblyFragmentHandler, contigProperty);
+                    boolean invertedInAsm = false;
+                    if (contigProperty.getIndexId() != originalContigProperty.getIndexId()) {
+                        invertedInAsm = true;
+                    }
+                    contigProperty.setInitialState(chromosomeName, originalContigProperty.getInitialStart(), originalContigProperty.getInitialEnd(), invertedInAsm);
+                    contigProperty.setInitiallyInverted(originalContigProperty.wasInitiallyInverted());
+                }
+
                 Map<String, String> attributes = new HashMap<String, String>();
                 attributes.put(this.contigName, contigName);
                 attributes.put(scaffoldIndexId, contigIndex.toString());
-                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
+                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasInitiallyInverted()));
                 //put attribute here
                 Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
                         chromosomeName, contigStartPos, (contigStartPos + contigLength),
@@ -134,15 +147,7 @@ public class AssemblyFragmentHandler {
                 if (contigProperty.isInverted()) {
                     contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
-                if (initialGeneration && !modifiedGeneration) {
-                    contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
-                }
-                if (modifiedGeneration) {
-                    ContigProperty originalContigProperty = getOriginalContigProperty(originalAssemblyFragmentHandler, contigProperty);
-
-                    contigProperty.setInitialState(chromosomeName, originalContigProperty.getInitialStart(), originalContigProperty.getInitialEnd(), originalContigProperty.isInverted());
-                }
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
+                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasInitiallyInverted());
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
 
@@ -166,7 +171,7 @@ public class AssemblyFragmentHandler {
     public ContigProperty getOriginalContigProperty(AssemblyFragmentHandler originalAssemblyFragmentHandler, ContigProperty lookupContigProperty) {
         List<ContigProperty> originalContigProperties = originalAssemblyFragmentHandler.getContigProperties();
         for (ContigProperty contigProperty : originalContigProperties) {
-            if (contigProperty.getFragmentNumber() == lookupContigProperty.getFragmentNumber()) {
+            if (Math.abs(contigProperty.getIndexId()) == Math.abs(lookupContigProperty.getIndexId())) {
                 return contigProperty;
             }
         }
@@ -225,7 +230,7 @@ public class AssemblyFragmentHandler {
         int originalEnd = originalFeature.getEnd2();
         int debrisEnd = debrisFeature.getEnd1();
         int length;
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
+        boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         length = debrisStart - originalStart;
         ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length, initiallyInverted);
@@ -254,7 +259,7 @@ public class AssemblyFragmentHandler {
         int originalEnd = originalFeature.getEnd2();
         int debrisEnd = debrisFeature.getEnd1();
         int length;
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
+        boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         length = originalEnd - debrisEnd;
         ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length, initiallyInverted);
@@ -276,8 +281,8 @@ public class AssemblyFragmentHandler {
     public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
         int newInitialStart;
         int newInitialEnd;
-        System.out.println("Initially inverted: " + originalContig.wasIntiallyInverted());
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
+        System.out.println("Initially inverted: " + originalContig.wasInitiallyInverted());
+        boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) {
             newInitialEnd = originalContig.getInitialEnd();

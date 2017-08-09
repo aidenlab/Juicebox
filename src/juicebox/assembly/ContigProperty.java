@@ -86,10 +86,6 @@ public class ContigProperty {
         inverted = !inverted;
     }
 
-    public void setInversion(boolean inverted) {
-        this.inverted = inverted;
-    }
-
     public boolean isInverted() {
         return inverted;
     }
@@ -98,8 +94,12 @@ public class ContigProperty {
         this.inverted = inverted;
     }
 
-    public boolean wasIntiallyInverted() {
+    public boolean wasInitiallyInverted() {
         return initiallyInverted;
+    }
+
+    public void setInitiallyInverted(boolean initiallyInverted) {
+        this.initiallyInverted = initiallyInverted;
     }
 
     public String getName() {
