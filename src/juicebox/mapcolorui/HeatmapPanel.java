@@ -36,7 +36,6 @@ import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
 import juicebox.windowui.EditFeatureAttributesDialog;
-import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
@@ -65,19 +64,20 @@ import static java.awt.Toolkit.getDefaultToolkit;
  */
 public class HeatmapPanel extends JComponent implements Serializable {
 
+    //    public static final int clickDelay1 = (Integer) Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
+    public static final int clickDelay = 500;
     private static final long serialVersionUID = -8017012290342597941L;
-
     // used for finding nearby features
     private static final int NUM_NEIGHBORS = 7;
     /**
      * Image tile width in pixels
      */
     private static final int imageTileWidth = 500;
+    public final int RESIZE_SNAP = 5;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
     private final SuperAdapter superAdapter;
-    private final int RESIZE_SNAP = 5;
     private final ObjectCache<String, ImageTile> tileCache = new ObjectCache<>(26);
     private final HeatmapRenderer renderer;
     //private final transient List<Pair<Rectangle, Feature2D>> drawnLoopFeatures;
@@ -107,16 +107,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private boolean changedSize = false;
     private Feature2DGuiContainer currentUpstreamFeature = null;
     private Feature2DGuiContainer currentDownstreamFeature = null;
-
-    private boolean activelyEditingAssembly = false;
-    private PromptedAssemblyAction promptedAssemblyAction = PromptedAssemblyAction.NONE;
-
-    private Robot heatmapMouseBot;
-
     /**
      * Heatmap grids variables
      */
     private boolean showGridLines = true;
+    /**
+     * Heatmap mouse variables
+     */
+    private Robot heatmapMouseBot;
+    private boolean activelyEditingAssembly = false;
+    private PromptedAssemblyAction promptedAssemblyAction = PromptedAssemblyAction.NONE;
 
     /**
      * Initialize heatmap panel
@@ -130,14 +130,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
         renderer = new HeatmapRenderer();
         superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
+        final HeatmapClickListener clickListener = new HeatmapClickListener(superAdapter);
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
+        addMouseListener(clickListener);
         addMouseWheelListener(mouseHandler);
         this.firstAnnotation = true;
         try {
             heatmapMouseBot = new Robot();
         } catch (AWTException exception) {
         }
+    }
+
+    public int[] getChromosomeBoundaries() {
+        return this.chromosomeBoundaries;
     }
 
     public void setChromosomeBoundaries(int[] chromosomeBoundaries) {
@@ -1207,7 +1213,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    private void removeSelection() {
+    void removeSelection() {
         updateSelectedFeatures(false);
         selectedFeatures.clear();
         tempSelectedGroup = null;
@@ -1593,6 +1599,25 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     //private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
+    public PromptedAssemblyAction getPromptedAssemblyAction() {
+        return this.promptedAssemblyAction;
+    }
+
+    public void setDebrisFeauture(Feature2D debrisFeature) {
+        this.debrisFeature = debrisFeature;
+    }
+
+    public List<Feature2D> getSelectedFeatures() {
+        return this.selectedFeatures;
+    }
+
+    public Feature2DGuiContainer getCurrentUpstreamFeature() {
+        return this.currentUpstreamFeature;
+    }
+
+    public Feature2DGuiContainer getCurrentDownstreamFeature() {
+        return this.currentDownstreamFeature;
+    }
 
     private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
@@ -1604,7 +1629,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
-    private enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, ANNOTATE, CUT, CANCEL, NONE}
+    public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, ANNOTATE, CUT, CANCEL, NONE}
 
     static class ImageTile {
         final int bLeft;
@@ -2038,159 +2063,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
-        private void unsafeMouseClickSubActionA(final MouseEvent eF) {
-            double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
-            double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
-
-
-            Chromosome xChrom = null;
-            Chromosome yChrom = null;
-
-            try {
-                int xGenome = hic.getZd().getXGridAxis().getGenomicMid(binX);
-                int yGenome = hic.getZd().getYGridAxis().getGenomicMid(binY);
-                for (int i = 0; i < chromosomeBoundaries.length; i++) {
-                    if (xChrom == null && chromosomeBoundaries[i] > xGenome) {
-                        xChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                    }
-                    if (yChrom == null && chromosomeBoundaries[i] > yGenome) {
-                        yChrom = hic.getChromosomeHandler().getChromosomeFromIndex(i + 1);
-                    }
-                }
-            } catch (Exception ex) {
-                // do nothing, leave chromosomes null
-            }
-            if (xChrom != null && yChrom != null) {
-                superAdapter.unsafeSetSelectedChromosomes(xChrom, yChrom);
-            }
-
-            //Only if zoom is changed All->Chr:
-            superAdapter.updateThumbnail();
-        }
-
-        private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
-            try {
-                final String chrXName = hic.getXContext().getChromosome().toString();
-                final String chrYName = hic.getYContext().getChromosome().toString();
-
-                final int xGenome = hic.getZd().getXGridAxis().getGenomicMid(centerBinX);
-                final int yGenome = hic.getZd().getYGridAxis().getGenomicMid(centerBinY);
-
-                hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, xGenome, yGenome, -1, false,
-                        HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void safeMouseClicked(final MouseEvent eF) {
-
-            if (!eF.isPopupTrigger() && eF.getButton() == MouseEvent.BUTTON1 && !eF.isControlDown()) {
-
-                try {
-                    hic.getZd();
-                } catch (Exception e) {
-                    return;
-                }
-
-                if (hic.isWholeGenome()) {
-                    //avoid double click...
-                    if (eF.getClickCount() == 1) {
-
-                        Runnable runnable = new Runnable() {
-                            public void run() {
-                                unsafeMouseClickSubActionA(eF);
-                            }
-                        };
-                        mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
-                    }
-                } else if (eF.getClickCount() == 1){
-                    switch (promptedAssemblyAction){
-                        case REGROUP:
-                            AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
-                            repaint();
-                            mouseMoved(eF);
-                            break;
-                        case PASTE:
-                            AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
-                            removeSelection(); //TODO fix this so that highlight moves with translated selection
-                            repaint();
-                            mouseMoved(eF);
-                            break;
-                        case INVERT:
-                            AssemblyOperationExecutor.invertSelection(superAdapter,selectedFeatures);
-                            removeSelection(); //TODO fix this so that highlight moves with translated selection
-                            repaint();
-                            mouseMoved(eF);
-                            break;
-                        case ANNOTATE:
-                            debrisFeature = generateDebrisFeature(eF);
-                            int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                            int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                            if (debrisFeature != null) {
-                                superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
-                            }
-                            superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
-                            HiCGlobals.splitModeEnabled=true;
-                            superAdapter.setActiveLayerHandler(superAdapter.getEditLayer());
-                            restoreDefaultVariables();
-                            repaint();
-                            break;
-                        default:
-                            break;
-                    }
-                    if (HiCGlobals.printVerboseComments) {
-                        try {
-                            superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
-                        } catch (Exception e) {
-                            System.err.println("Unable to print assembly state");
-                        }
-                    }
-                } else if (eF.getClickCount() == 2) {
-
-                    // Double click, zoom and center on click location
-                    try {
-                        final HiCZoom currentZoom = hic.getZd().getZoom();
-                        final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !eF.isAltDown());
-                        final HiCZoom newZoom = hic.isResolutionLocked() ||
-                                hic.isPearsonEdgeCaseEncountered(nextPotentialZoom) ? currentZoom : nextPotentialZoom;
-
-                        // If newZoom == currentZoom adjust scale factor (no change in resolution)
-                        final double centerBinX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
-                        final double centerBinY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
-
-                        // perform superzoom / normal zoom / reverse-superzoom
-                        if (newZoom.equals(currentZoom)) {
-                            double mult = eF.isAltDown() ? 0.5 : 2.0;
-                            // if newScaleFactor > 1.0, performs superzoom
-                            // if newScaleFactor = 1.0, performs normal zoom
-                            // if newScaleFactor < 1.0, performs reverse superzoom
-                            double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
-
-                            String chrXName = hic.getXContext().getChromosome().getName();
-                            String chrYName = hic.getYContext().getChromosome().getName();
-
-                            int genomeX = Math.max(0, (int) (centerBinX) * newZoom.getBinSize());
-                            int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
-
-                            hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
-                                    newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
-
-                        } else {
-                            Runnable runnable = new Runnable() {
-                                public void run() {
-                                    unsafeMouseClickSubActionB(centerBinX, centerBinY, newZoom);
-                                }
-                            };
-                            mainWindow.executeLongRunningTask(runnable, "Mouse Click Zoom");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
         public Feature2D generateDebrisFeature(final MouseEvent eF) {
             final double scaleFactor = hic.getScaleFactor();
             double binOriginX = hic.getXContext().getBinOrigin();
@@ -2199,13 +2071,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
             debrisFeature = superAdapter.getEditLayer().generateFeature(hic);
             return debrisFeature;
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-
-            if (hic == null) return;
-            safeMouseClicked(e);
         }
 
         @Override
