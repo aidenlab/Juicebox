@@ -266,7 +266,6 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         if (asmPath != null && cpropsPath != null) {
             try {
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
-                System.out.println(assemblyFileImporter.getAssemblyFragmentHandler().toString());
                 AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
                 AssemblyFragmentHandler initialAssemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getInitialAssemblyFragmentHandler();
                 modifiedAssemblyFragmentHandler.generateContigsAndScaffolds(true, true, initialAssemblyFragmentHandler);

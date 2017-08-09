@@ -109,6 +109,7 @@ public class AssemblyFragmentHandler {
     }
 
     public void generateContigsAndScaffolds(boolean initialGeneration, boolean modifiedGeneration, AssemblyFragmentHandler originalAssemblyFragmentHandler) {
+        Map<ContigProperty, List<ContigProperty>> splitFragments = new HashMap<>();
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         int contigStartPos = 0;
@@ -132,6 +133,13 @@ public class AssemblyFragmentHandler {
                     }
                     contigProperty.setInitialState(chromosomeName, originalContigProperty.getInitialStart(), originalContigProperty.getInitialEnd(), invertedInAsm);
                     contigProperty.setInitiallyInverted(originalContigProperty.wasInitiallyInverted());
+
+                    if (contigProperty.getName().contains("fragment")) {
+                        if (!splitFragments.containsKey(originalContigProperty)) {
+                            splitFragments.put(originalContigProperty, new ArrayList<ContigProperty>());
+                        }
+                        splitFragments.get(originalContigProperty).add(contigProperty);
+                    }
                 }
 
                 Map<String, String> attributes = new HashMap<String, String>();
@@ -166,16 +174,27 @@ public class AssemblyFragmentHandler {
             scaffoldLength = 0;
             rowNum++;
         }
+        if (modifiedGeneration && !splitFragments.isEmpty()) {
+            fixInitialStateForEditedContigs(splitFragments);
+        }
     }
 
     public ContigProperty getOriginalContigProperty(AssemblyFragmentHandler originalAssemblyFragmentHandler, ContigProperty lookupContigProperty) {
         List<ContigProperty> originalContigProperties = originalAssemblyFragmentHandler.getContigProperties();
         for (ContigProperty contigProperty : originalContigProperties) {
-            if (Math.abs(contigProperty.getIndexId()) == Math.abs(lookupContigProperty.getIndexId())) {
+            if (contigProperty.getName().equals(lookupContigProperty.getOriginalContigName())) { //does not account for if original cprops and asm contains a fragment
                 return contigProperty;
             }
         }
         return null;
+    }
+
+    public void fixInitialStateForEditedContigs(Map<ContigProperty, List<ContigProperty>> splitFragments) {
+        for (ContigProperty originalContigProperty : splitFragments.keySet()) {
+            List<ContigProperty> splitFragmentList = splitFragments.get(originalContigProperty);
+            //reconstruct from here
+            setInitialStatesBasedOnOriginalContig(originalContigProperty, splitFragmentList, originalContigProperty.wasInitiallyInverted());
+        }
     }
     //**** Splitting ****//
 
