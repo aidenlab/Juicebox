@@ -32,7 +32,6 @@ import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -61,7 +60,6 @@ public class JColorRangePanel extends JPanel {
         setLayout(new BorderLayout());
         JPanel sliderPanel = new JPanel();
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
-        sliderPanel.setBackground(Color.WHITE);
 
         colorRangeSlider = new RangeSlider();
 
@@ -133,8 +131,7 @@ public class JColorRangePanel extends JPanel {
         });
 
         JPanel colorLabelPanel = new JPanel();
-//        colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
-        colorLabelPanel.setBackground(Color.WHITE);
+        colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
         colorLabelPanel.setLayout(new BorderLayout());
         colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
 
@@ -164,12 +161,9 @@ public class JColorRangePanel extends JPanel {
                 colorRangeSliderUpdateToolTip(hic);
             }
         });
-
-        colorRangeSlider.setBackground(Color.WHITE);
         sliderPanel.add(colorRangeSlider);
         JPanel plusMinusPanel = new JPanel();
         plusMinusPanel.setLayout(new BoxLayout(plusMinusPanel, BoxLayout.Y_AXIS));
-        plusMinusPanel.setBackground(Color.WHITE);
 
         plusButton = new JideButton();
         plusButton.setIcon(new ImageIcon(getClass().getResource("/images/zoom-plus.png")));
@@ -219,8 +213,6 @@ public class JColorRangePanel extends JPanel {
 
 
         setBorder(LineBorder.createGrayLineBorder());
-        setBackground(Color.WHITE);
-//        setBorder(new EmptyBorder(0, 0, 0,0));
         setMinimumSize(new Dimension(96, 70));
         setPreferredSize(new Dimension(202, 70));
         setMaximumSize(new Dimension(32769, 70));
