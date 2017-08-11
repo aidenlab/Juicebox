@@ -27,13 +27,14 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.mapcolorui.AssemblyIntermediateProcessor;
+import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
-import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCRulerPanel;
+import juicebox.windowui.LoadAssemblyAnnotationsDialog;
 import juicebox.windowui.RecentMenu;
+import juicebox.windowui.SaveAssemblyDialog;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -68,6 +69,11 @@ public class MainMenuBar {
     private static File temp;
     private static boolean unsavedEdits;
     private static JMenu annotationsMenu;
+    private static JMenu assemblyMenu;
+    private static JMenuItem exportAssembly;
+    private static JMenuItem resetAssembly;
+    private static JCheckBoxMenuItem enableAssembly;
+
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
@@ -142,7 +148,7 @@ public class MainMenuBar {
                 String delimiter = "@@";
                 String[] temp;
                 temp = mapPath.split(delimiter);
-                //initProperties();         // don't know why we're doing this here
+//                initProperties();         // don't know why we're doing this here
                 superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), false);
             }
         };
@@ -412,8 +418,16 @@ public class MainMenuBar {
         bookmarksMenu.add(exportSavedStateMenuItem);
         bookmarksMenu.add(importMapAsFile);
 
-        //---Figure Menu-----
-        JMenu figureMenu = new JMenu("View");
+        //---View Menu-----
+        JMenu viewMenu = new JMenu("View");
+
+        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome...");
+        addCustomChromosome.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.createCustomChromosomes();
+            }
+        });
+        viewMenu.add(addCustomChromosome);
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -425,7 +439,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(axisEndpoint);
+        viewMenu.add(axisEndpoint);
 
         //---ShowChromosomeFig mode-----
         //drawLine, drawArc or draw polygon// draw round rect
@@ -439,7 +453,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(showChromosomeFig);
+        viewMenu.add(showChromosomeFig);
 
         //---Grids mode-----
         // turn grids on/off
@@ -452,30 +466,40 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        figureMenu.add(showGrids);
+        viewMenu.add(showGrids);
 
-        figureMenu.addSeparator();
+        viewMenu.addSeparator();
 
         //---Export Image Menu-----
-        JMenuItem saveToPDF = new JMenuItem();
-        saveToPDF.setText("Export PDF Figure...");
+        JMenuItem saveToPDF = new JMenuItem("Export PDF Figure...");
         saveToPDF.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportPDF();
             }
         });
-        figureMenu.add(saveToPDF);
+        viewMenu.add(saveToPDF);
 
-        JMenuItem saveToSVG = new JMenuItem();
-        saveToSVG.setText("Export SVG Figure...");
+        JMenuItem saveToSVG = new JMenuItem("Export SVG Figure...");
         saveToSVG.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.launchExportSVG();
             }
         });
-        figureMenu.add(saveToSVG);
+        viewMenu.add(saveToSVG);
 
         final JMenu devMenu = new JMenu("Dev");
+
+        final JCheckBoxMenuItem displayTiles = new JCheckBoxMenuItem("Display Tiles");
+        displayTiles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.displayTiles = !HiCGlobals.displayTiles;
+                superAdapter.getHeatmapPanel().repaint();
+            }
+        });
+        displayTiles.setSelected(HiCGlobals.displayTiles);
+        devMenu.add(displayTiles);
+
         JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {
             @Override
@@ -500,7 +524,7 @@ public class MainMenuBar {
             public void actionPerformed(ActionEvent e) {
                 String newURL = MessageUtils.showInputDialog("Specify reassembling");
                 if (newURL != null) {
-                    AssemblyIntermediateProcessor.makeChanges(newURL.split(","), superAdapter);
+                    AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
                 }
             }
         });
@@ -539,10 +563,75 @@ public class MainMenuBar {
             }
         });
 
+        assemblyMenu = new JMenu("Assembly");
+        assemblyMenu.setEnabled(false);
+
+        enableAssembly = new JCheckBoxMenuItem("Enable edits");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            enableAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            enableAssembly.setEnabled(false);
+        enableAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (enableAssembly.isSelected()) {
+                    superAdapter.getHeatmapPanel().enableAssemblyEditing();
+                } else {
+                    superAdapter.getHeatmapPanel().disableAssemblyEditing();
+                }
+            }
+        });
+
+        resetAssembly = new JMenuItem("Reset assembly");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            resetAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            resetAssembly.setEnabled(false);
+        resetAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.getAssemblyStateTracker().resetState();
+                superAdapter.refresh();
+            }
+        });
+
+        exportAssembly = new JMenuItem("Export assembly");
+        if (superAdapter.getAssemblyStateTracker() != null) {
+            exportAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
+        } else
+            exportAssembly.setEnabled(false);
+        exportAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String mapName = SuperAdapter.getDatasetTitle();
+                new SaveAssemblyDialog(superAdapter.getAssemblyStateTracker().getAssemblyHandler(), mapName.substring(0, mapName.lastIndexOf("."))); //find how to get HiC filename
+
+            }
+        });
+
+        final JMenuItem importAssembly = new JMenuItem("Import assembly");
+
+        importAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                LoadAssemblyAnnotationsDialog loadAssemblyDialog;
+                loadAssemblyDialog = new LoadAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
+                loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
+            }
+        });
+        assemblyMenu.add(enableAssembly);
+        assemblyMenu.add(resetAssembly);
+        assemblyMenu.add(importAssembly);
+        assemblyMenu.add(exportAssembly);
+
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
-        menuBar.add(figureMenu);
+        menuBar.add(viewMenu);
+        menuBar.add(assemblyMenu);
         menuBar.add(devMenu);
         return menuBar;
     }
@@ -553,11 +642,22 @@ public class MainMenuBar {
 
     public void setEnableForAllElements(boolean status) {
         annotationsMenu.setEnabled(status);
+        assemblyMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);
         saveLocationList.setEnabled(status);
     }
 
+    public void enableAssemblyResetAndExport() {
+        resetAssembly.setEnabled(true);
+        exportAssembly.setEnabled(true);
+        enableAssembly.setEnabled(true);
+    }
+
+    public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
+        enableAssembly.setState(true);
+        superAdapter.getHeatmapPanel().enableAssemblyEditing();
+    }
 
     public void updatePrevStateNameFromImport(String path) {
         previousStates.updateNamesFromImport(path);

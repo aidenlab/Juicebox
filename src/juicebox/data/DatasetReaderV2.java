@@ -261,7 +261,8 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int blockBinCount = dis.readInt();
         int blockColumnCount = dis.readInt();
 
-        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites, this);
+        MatrixZoomData zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites,
+                this);
 
         int nBlocks = dis.readInt();
         HashMap<Integer, Preprocessor.IndexEntry> blockIndex = new HashMap<>(nBlocks);
@@ -562,8 +563,21 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
         int c1 = dis.readInt();
         int c2 = dis.readInt();
-        Chromosome chr1 = dataset.getChromosomeHandler().get(c1);
-        Chromosome chr2 = dataset.getChromosomeHandler().get(c2);
+
+        // TODO weird bug
+        // interesting bug with local files; difficult to reliably repeat, but just occurs on loading a region
+        // indices that are read (c1, c2) seem to be excessively large / wrong
+        // maybe some int overflow is occurring?
+        // uncomment next 2 lines to help debug
+        // System.err.println("read in mtrx indcs "+c1+ "  " +c2+"  key  "+key+"    idx "+idx.position+
+        //         " sz  "+idx.size+ " "+stream.getSource()+" "+stream.position()+" "+stream );
+        if (c1 < 0 || c1 > dataset.getChromosomeHandler().getChromosomeArray().length ||
+                c2 < 0 || c2 > dataset.getChromosomeHandler().getChromosomeArray().length) {
+            return null;
+        }
+
+        Chromosome chr1 = dataset.getChromosomeHandler().getChromosomeFromIndex(c1);
+        Chromosome chr2 = dataset.getChromosomeHandler().getChromosomeFromIndex(c2);
 
         // # of resolution levels (bp and frags)
         int nResolutions = dis.readInt();

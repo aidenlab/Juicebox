@@ -24,40 +24,34 @@
 
 package juicebox.data;
 
+import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.feature.FeatureFunction;
+import juicebox.data.feature.GenomeWideList;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
 import java.util.*;
 
 /**
  * Created by muhammadsaadshamim on 8/3/16.
  */
 public class ChromosomeHandler {
-    private final List<Chromosome> cleanedChromosomes;
+    private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
-    private final List<String> chrIndices = new ArrayList<>();
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
+    private Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
         // set the global chromosome list
-        long genomeLength = 0;
-        for (Chromosome c : chromosomes) {
-            if (c != null)
-                genomeLength += c.getLength();
-        }
+        long genomeLength = getTotalLengthOfAllChromosomes(chromosomes);
         chromosomes.set(0, new Chromosome(0, Globals.CHR_ALL, (int) (genomeLength / 1000)));
 
-        this.cleanedChromosomes = new ArrayList<>();
-
-        for (Chromosome c : chromosomes) {
-            String cleanName = cleanUpName(c.getName());
-            Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
-            cleanedChromosomes.add(cleanChromosome);
-        }
-
+        initializeCleanedChromosomesList(chromosomes);
         initializeInternalVariables();
     }
 
@@ -91,6 +85,28 @@ public class ChromosomeHandler {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
     }
 
+    public Chromosome addCustomChromosome(File file) {
+        GenomeWideList<MotifAnchor> regionsInCustomChromosome =
+                MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
+        int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
+        String cleanedUpName = cleanUpName(file.getName());
+        int newIndex = cleanedChromosomes.size();
+        customChromosomeRegions.put(newIndex, regionsInCustomChromosome);
+        Chromosome newChr = new Chromosome(newIndex, cleanedUpName, size);
+        cleanedChromosomes.add(newChr);
+        chromosomeMap.put(newChr.getName(), newChr);
+        return newChr;
+    }
+
+    private void initializeCleanedChromosomesList(List<Chromosome> chromosomes) {
+        cleanedChromosomes.clear();
+        for (Chromosome c : chromosomes) {
+            String cleanName = cleanUpName(c.getName());
+            Chromosome cleanChromosome = new Chromosome(c.getIndex(), cleanName, c.getLength());
+            cleanedChromosomes.add(cleanChromosome);
+        }
+    }
+
     private void initializeInternalVariables() {
 
         for (Chromosome c : cleanedChromosomes) {
@@ -98,10 +114,6 @@ public class ChromosomeHandler {
             if (c.getName().equalsIgnoreCase("MT")) {
                 chromosomeMap.put("M", c); // special case for mitochondria
             }
-        }
-
-        for (Chromosome chr : cleanedChromosomes) {
-            chrIndices.add("" + chr.getIndex());
         }
 
         // for all-by-all view
@@ -120,12 +132,34 @@ public class ChromosomeHandler {
         System.arraycopy(chromosomesArray, 1, chromosomeArrayWithoutAllByAll, 0, chromosomesArray.length - 1);
     }
 
-    public Chromosome getChr(String name) {
-        return chromosomeMap.get(cleanUpName(name));
+    private long getTotalLengthOfAllChromosomes(List<Chromosome> chromosomes) {
+        long genomeLength = 0;
+        for (Chromosome c : chromosomes) {
+            if (c != null) genomeLength += c.getLength();
+        }
+        return genomeLength;
     }
 
-    public List<String> getChrIndices() {
-        return chrIndices;
+    private int getTotalLengthOfAllRegionsInBedFile(GenomeWideList<MotifAnchor> regionsInCustomChromosome) {
+        final int[] customGenomeLength = new int[]{0};
+        regionsInCustomChromosome.processLists(new FeatureFunction<MotifAnchor>() {
+            @Override
+            public void process(String chr, List<MotifAnchor> featureList) {
+                for (MotifAnchor c : featureList) {
+                    if (c != null) customGenomeLength[0] += c.getWidth();
+                }
+            }
+        });
+        return customGenomeLength[0];
+    }
+
+    public boolean isCustomChromosome(Chromosome chromosome) {
+        return customChromosomeRegions.containsKey(chromosome.getIndex());
+    }
+
+    public Chromosome getChromosomeFromName(String name) {
+        Chromosome c = chromosomeMap.get(cleanUpName(name));
+        return c;
     }
 
     public boolean containsChromosome(String name) {
@@ -144,15 +178,19 @@ public class ChromosomeHandler {
         return chromosomesArray;
     }
 
-    public Chromosome get(int indx) {
+    public Chromosome getChromosomeFromIndex(int indx) {
         return chromosomesArray[indx];
     }
 
     public ChromosomeHandler getIntersetionWith(ChromosomeHandler handler2) {
-        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(this.cleanedChromosomes, handler2.cleanedChromosomes)));
+        return new ChromosomeHandler(new ArrayList<>(getSetIntersection(cleanedChromosomes, handler2.cleanedChromosomes)));
     }
 
     public Chromosome[] getChromosomeArrayWithoutAllByAll() {
         return chromosomeArrayWithoutAllByAll;
+    }
+
+    public GenomeWideList<MotifAnchor> getListOfRegionsInCustomChromosome(Integer index) {
+        return customChromosomeRegions.get(index);
     }
 }

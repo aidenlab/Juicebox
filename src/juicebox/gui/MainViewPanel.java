@@ -498,7 +498,7 @@ public class MainViewPanel {
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         //*Dimension prefSize = new Dimension(210, 490);
-        Dimension prefSize = new Dimension(210, 210);
+        Dimension prefSize = new Dimension(210, 250);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
         JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
@@ -593,20 +593,6 @@ public class MainViewPanel {
         nameField.setMaximumSize(new Dimension(20, 20));
         handler.setNameTextField(nameField);
 
-        /* Sets Active Layer */
-        final JToggleButton writeButton = createToggleIconButton("/images/layer/pencil.png", "/images/layer/pencil_gray.png", handler.isActiveLayer(superAdapter));
-        handler.setActiveLayerButton(writeButton);
-        writeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.setActiveLayerHandler(handler);
-                updateLayers2DPanel(superAdapter);
-                superAdapter.repaint();
-                updateMiniAnnotationsLayerPanel(superAdapter);
-            }
-        });
-        writeButton.setToolTipText("Changes Active Layer");
-
         /* show/hide annotations for this layer */
         final JToggleButton toggleVisibleButton = createToggleIconButton("/images/layer/eye_clicked_green.png",
                 "/images/layer/eye_clicked.png", handler.getLayerVisibility());
@@ -652,7 +638,7 @@ public class MainViewPanel {
         downButton.setToolTipText("Move this layer down (drawing order)");
 
         parentPanel.add(nameField);
-        Component[] allComponents = new Component[]{writeButton, toggleVisibleButton, upButton, downButton};
+        Component[] allComponents = new Component[]{toggleVisibleButton, upButton, downButton};
         for (Component component : allComponents) {
             if (component instanceof AbstractButton) {
                 component.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));
@@ -711,6 +697,7 @@ public class MainViewPanel {
 
         return toggleButton;
     }
+
 
     private Image translucentImage(BufferedImage originalImage, float alpha) {
 
@@ -912,13 +899,19 @@ public class MainViewPanel {
             MatrixZoomData zdControl = null;
             if (hic.getControlMatrix() != null)
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
-            Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
-                    thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
-                    hic.getDisplayOption(), hic.getNormalizationType());
-            if (thumbnail != null) {
-                thumbnailPanel.setImage(thumbnail);
+            try {
+                Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
+                        thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
+                        hic.getDisplayOption(), hic.getNormalizationType());
+                if (thumbnail != null) {
+                    thumbnailPanel.setImage(thumbnail);
+                    thumbnailPanel.repaint();
+                }
+            } catch (Exception ignored) {
+                thumbnailPanel.setImage(null);
                 thumbnailPanel.repaint();
             }
+
         } else {
             thumbnailPanel.setImage(null);
         }

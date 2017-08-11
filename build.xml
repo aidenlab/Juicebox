@@ -275,7 +275,8 @@
       <zipfileset src="${basedir}/lib/general/jsi1.1.jar" excludes="META-INF/*.SF,META-INF/*.DSA,META-INF/*.RSA"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
       <zipfileset src="${basedir}/lib/general/guava-18.0.jar"/>
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
@@ -294,7 +295,8 @@
       <zipfileset src="${basedir}/lib/general/VectorGraphics2D-0.11.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/igv.jar"/>
       <zipfileset src="${basedir}/lib/broadinstitute/htsjdk-1.139.jar"/>
-      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>
+      <zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>
       <zipfileset src="${basedir}/lib/jcuda/jcudaUtils-0.0.4.jar"/>
     </jar>
     <copy file="${temp.jar.path.juicer_tools.jar}" tofile="${artifact.temp.output.juicer_tools:jar}/juicer_tools.jar"/>

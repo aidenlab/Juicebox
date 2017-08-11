@@ -160,14 +160,14 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         ChromosomeHandler handler = hic.getDataset().getChromosomeHandler();
 
-        Chromosome topChr = handler.getChr(topChrTokens[0]);
+        Chromosome topChr = handler.getChromosomeFromName(topChrTokens[0]);
         if (topChr == null) {
             positionChrTop.setBackground(Color.yellow);
             log.error("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
             return;
         }
 
-        Chromosome leftChr = handler.getChr(leftChrTokens[0]);
+        Chromosome leftChr = handler.getChromosomeFromName(leftChrTokens[0]);
         if (leftChr == null) {
             positionChrLeft.setBackground(Color.yellow);
             log.error("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
