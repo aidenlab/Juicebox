@@ -36,6 +36,7 @@ import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -72,7 +73,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         goLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         JPanel goLabelPanel = new JPanel();
-        goLabelPanel.setBackground(HiCGlobals.backgroundColor);
+//        goLabelPanel.setBackground(HiCGlobals.backgroundColor);
+        goLabelPanel.setBackground(Color.WHITE);
         goLabelPanel.setLayout(new BorderLayout());
         goLabelPanel.add(goLabel, BorderLayout.CENTER);
 
@@ -81,6 +83,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         JPanel goPositionPanel = new JPanel();
         goPositionPanel.setLayout(new BorderLayout());
+        goPositionPanel.setBackground(Color.WHITE);
         goPositionPanel.add(positionChrTop, BorderLayout.PAGE_START);
         goPositionPanel.add(positionChrLeft, BorderLayout.PAGE_END);
 
@@ -90,13 +93,16 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         goButton.addActionListener(this);
 
         JPanel goButtonPanel = new JPanel();
-        goButtonPanel.setBackground(new Color(238, 238, 238));
+        goButtonPanel.setBackground(Color.WHITE);
         goButtonPanel.setLayout(new BoxLayout(goButtonPanel, BoxLayout.X_AXIS));
         goButtonPanel.add(goPositionPanel, BorderLayout.PAGE_START);
         goButtonPanel.add(goButton);
 
-        setBackground(new Color(238, 238, 238));
+//        setBackground(new Color(238, 238, 238));
         setBorder(LineBorder.createGrayLineBorder());
+        setBackground(Color.WHITE);
+//        setBorder(new EmptyBorder(0, 0, 0,0));
+
         setLayout(new BorderLayout());
         add(goLabelPanel, BorderLayout.PAGE_START);
         add(goButtonPanel);
