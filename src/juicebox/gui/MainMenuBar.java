@@ -626,10 +626,14 @@ public class MainMenuBar {
                     }
                     HiCGlobals.hicMapScale = scale;
 
-                    // Scale resolution slider labels
+                    // Rescale resolution slider labels
                     superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-                    // Scale assembly annotations
+                    // Rescale axis tick labels
+                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                    // Rescale assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
                         superAdapter.getAssemblyStateTracker().regenerateLayers();
                         superAdapter.refresh();
