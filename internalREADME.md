@@ -151,7 +151,7 @@ or
   this creates a new folder
 - Move everything in this newly made folder to the folder above it
   (e.g. path should be ~/lib/jcuda/jcuda-0.7.5.jar, NOT ~/lib/jcuda/Archive.JCuda.0.7.5/jcuda-0.7.0.jar)
-- For JCuda 0.8, you should define if this is for x86 or ppc (Power8) architecture and add those natives: jcuda-natives-0.8.0-linux-ppc_64.jar or  jcuda-natives-0.8.0-linux-x86_64.jar
+
 
 The jars are really the ones that matter, but I think it's easier to update everything here (especially if testing GPU stuff from within IntelliJ)
 

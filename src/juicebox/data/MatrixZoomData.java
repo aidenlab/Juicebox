@@ -28,24 +28,21 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.assembly.AssemblyFragmentHandler;
-import juicebox.assembly.AssemblyHeatmapHandler;
-import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.mapcolorui.AssemblyIntermediateProcessor;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.Contig2D;
-import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import net.sf.jsi.Rectangle;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.linear.RealVector;
+import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.collections.LRUCache;
 
@@ -62,18 +59,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    protected final Chromosome chr1;  // Chromosome on the X axis
-    protected final Chromosome chr2;  // Chromosome on the Y axis
-    protected final HiCZoom zoom;    // Unit and bin size
-    protected final HiCGridAxis xGridAxis;
-    protected final HiCGridAxis yGridAxis;
+    private static final Logger log = Logger.getLogger(MatrixZoomData.class);
+    private final Chromosome chr1;  // Chromosome on the X axis
+    private final Chromosome chr2;  // Chromosome on the Y axis
+    private final HiCZoom zoom;    // Unit and bin size
+    private final HiCGridAxis xGridAxis;
+    private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
-    protected final int blockBinCount;   // block size in bins
-    protected final int blockColumnCount;     // number of block columns
+    private final int blockBinCount;   // block size in bins
+    private final int blockColumnCount;     // number of block columns
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
     // Cache the last 20 blocks loaded
-    protected final LRUCache<String, Block> blockCache = new LRUCache<>(20);
+    private final LRUCache<String, Block> blockCache = new LRUCache<>(20);
     DatasetReader reader;
     private double averageCount = -1;
 //    private static final SuperAdapter superAdapter = new SuperAdapter();
@@ -101,48 +99,36 @@ public class MatrixZoomData {
      */
     public MatrixZoomData(Chromosome chr1, Chromosome chr2, HiCZoom zoom, int blockBinCount, int blockColumnCount,
                           int[] chr1Sites, int[] chr2Sites, DatasetReader reader) {
+
+        this.reader = reader;
+
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.zoom = zoom;
-        this.reader = reader;
         this.blockBinCount = blockBinCount;
         this.blockColumnCount = blockColumnCount;
 
         int correctedBinCount = blockBinCount;
         if (reader.getVersion() < 8 && chr1.getLength() < chr2.getLength()) {
             boolean isFrag = zoom.getUnit() == HiC.Unit.FRAG;
-            int len1 = chr1.getLength();
-            int len2 = chr2.getLength();
-            if (chr1Sites != null && chr2Sites != null && isFrag) {
-                len1 = chr1Sites.length + 1;
-                len2 = chr2Sites.length + 1;
-            }
+            int len1 = isFrag ? (chr1Sites.length + 1) : chr1.getLength();
+            int len2 = isFrag ? (chr2Sites.length + 1) : chr2.getLength();
             int nBinsX = Math.max(len1, len2) / zoom.getBinSize() + 1;
             correctedBinCount = nBinsX / blockColumnCount + 1;
         }
 
-        if (this instanceof CustomMatrixZoomData) {
-            this.xGridAxis = new HiCFixedGridAxis(chr1.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
-            this.yGridAxis = new HiCFixedGridAxis(chr2.getLength() / zoom.getBinSize() + 1, zoom.getBinSize(), null);
-        } else if (zoom.getUnit() == HiC.Unit.BP) {
+        if (zoom.getUnit() == HiC.Unit.BP) {
             this.xGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr1Sites);
             this.yGridAxis = new HiCFixedGridAxis(correctedBinCount * blockColumnCount, zoom.getBinSize(), chr2Sites);
         } else {
             this.xGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr1Sites, chr1.getLength());
             this.yGridAxis = new HiCFragmentAxis(zoom.getBinSize(), chr2Sites, chr2.getLength());
+
         }
 
         pearsonsMap = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
-
-    // IMPORTANT
-    // Only to be used for Custom Chromosome
-    //public MatrixZoomData(Chromosome chr1, HiCZoom zoom, DatasetReader reader) {
-    //    this.chr1 = chr1;
-    //    this.chr2 = chr1;
-    //    this.zoom = zoom;
-    //}
 
     public Chromosome getChr1() {
         return chr1;
@@ -194,20 +180,16 @@ public class MatrixZoomData {
      * @param binX2 rightmost position in "bins"
      * @param binY2 bottom position in "bins"
      * @param no    normalization type
-     * @param isImportant used for debugging
      * @return List of overlapping blocks, normalized
      */
-    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no,
-                                                      boolean isImportant) {
-        final List<Block> blockList = new ArrayList<>();
-        if (HiCGlobals.assemblyModeEnabled) {
-            return addNormalizedBlocksToListAssembly(blockList, binX1, binY1, binX2, binY2, no);
-        } else {
-            return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
-        }
+    public List<Block> getNormalizedBlocksOverlapping(int binX1, int binY1, int binX2, int binY2, final NormalizationType no) {
+        int maxSize = ((binX2 - binX1) / blockBinCount + 1) * ((binY2 - binY1) / blockBinCount + 1);
+        final List<Block> blockList = new ArrayList<>(maxSize);
+
+        return addNormalizedBlocksToList(blockList, binX1, binY1, binX2, binY2, no);
     }
 
-    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
+    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, List<Integer> blocksToLoad) {
         int blockNumber = r * getBlockColumnCount() + c;
         String key = getKey() + "_" + blockNumber + "_" + no;
         Block b;
@@ -228,11 +210,17 @@ public class MatrixZoomData {
      * @param no    normalization type
      * @return List of overlapping blocks, normalized
      */
-    private List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                  final NormalizationType no) {
+    public List<Block> addNormalizedBlocksToList(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
+                                                 final NormalizationType no) {
 
-        Set<Integer> blocksToLoad = new HashSet<>();
-      
+        List<Integer> blocksToLoad = new ArrayList<>();
+        List<Contig2D> contigs = new ArrayList<>();
+
+        if (HiCGlobals.assemblyModeEnabled) {
+            contigs.addAll(AssemblyIntermediateProcessor.retrieveRelevantBlocks(this, blocksToLoad, blockList,
+                    chr1, chr2, binX1, binY1, binX2, binY2, blockBinCount, zoom, no));
+        }
+
         // have to do this regardless (just in case)
         int col1 = binX1 / blockBinCount;
         int row1 = binY1 / blockBinCount;
@@ -245,97 +233,11 @@ public class MatrixZoomData {
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, null);
+        blocksToLoad = new ArrayList<>(new HashSet<>(blocksToLoad));
 
-        return new ArrayList<>(new HashSet<>(blockList));
-    }
-
-    private List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
-                                                          final NormalizationType no) {
-        Set<Integer> blocksToLoad = new HashSet<>();
-        Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
-
-        // enable sparse plotting options
-        boolean previousStatus = handler.getIsSparsePlottingEnabled();
-
-        // Get features that are both contained by and touching (nearest single neighbor)
-        // the selection rectangle
-        handler.setSparsePlottingEnabled(true);
-
-        // x window binNumber * binSize
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
-                binX1 * zoom.getBinSize(),
-                binX1 * zoom.getBinSize(),
-                binX2 * zoom.getBinSize(),
-                binX2 * zoom.getBinSize());
-        List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
-
-
-        // y window
-        currentWindow = new net.sf.jsi.Rectangle(
-                binY1 * zoom.getBinSize(),
-                binY1 * zoom.getBinSize(),
-                binY2 * zoom.getBinSize(),
-                binY2 * zoom.getBinSize());
-        List<Contig2D> yAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
-        // restore sparse plotting options
-        handler.setSparsePlottingEnabled(previousStatus);
-
-        for (Contig2D xContig : xAxisContigs) {
-            for (Contig2D yContig : yAxisContigs) {
-                int[] genomePosition = new int[]{
-                        xContig.getInitialStart(),
-                        xContig.getInitialEnd(),
-                        yContig.getInitialStart(),
-                        yContig.getInitialEnd()
-                };
-                List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
-                for (int blockNumber : tempBlockNumbers) {
-                    if (blocksToLoad.contains(blockNumber)) {
-                        continue;
-                    } else {
-                        String key = getKey() + "_" + blockNumber + "_" + no;
-                        Block b;
-                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
-                            b = blockCache.get(key);
-                            blockList.add(b);
-                        } else {
-                            blocksToLoad.add(blockNumber);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Remove basic duplicates here
-        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
-
-        // Actually load new blocks
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
-
-        return new ArrayList<>(new HashSet<>(blockList));
-    }
-
-    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
-        List<Contig2D> axisContigs = new ArrayList<>();
-        for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
-            axisContigs.add(feature2D.toContig());
-        }
-        Collections.sort(axisContigs);
-        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
-    }
-
-    private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
-                                         final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<>();
-
-        final int binSize = getBinSize();
-        final int chr1Index = chr1.getIndex();
-        final int chr2Index = chr2.getIndex();
-
         for (final int blockNumber : blocksToLoad) {
             Runnable loader = new Runnable() {
                 @Override
@@ -345,10 +247,6 @@ public class MatrixZoomData {
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
                         if (b == null) {
                             b = new Block(blockNumber);   // An empty block
-                        }
-                        //Run out of memory if do it here
-                        if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, binSize, chr1Index, chr2Index, aFragHandler);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -375,6 +273,14 @@ public class MatrixZoomData {
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
+
+        Set<Block> blockSet = new HashSet<>(blockList);
+
+        if (HiCGlobals.assemblyModeEnabled) {
+            return AssemblyIntermediateProcessor.filterBlockList(contigs, blockSet, zoom.getBinSize());
+        }
+
+        return new ArrayList<>(blockSet);
     }
 
 
@@ -398,7 +304,7 @@ public class MatrixZoomData {
             }
         }
 
-        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType, false);
+        List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType);
         if (blocks == null) return 0;
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {
@@ -512,7 +418,7 @@ public class MatrixZoomData {
                 pearsons = reader.readPearsons(chr1.getName(), chr2.getName(), zoom, df.getNormalizationType());
             } catch (IOException e) {
                 pearsons = null;
-                System.err.println(e.getMessage());
+                log.error(e.getMessage());
             }
             if (pearsons != null) {
                 // put it back in the map.
@@ -662,7 +568,7 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+    private List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
         int[] regionBinIndices = new int[4];
         for (int i = 0; i < regionBinIndices.length; i++) {
@@ -975,7 +881,6 @@ public class MatrixZoomData {
         blockCache.clear();
     }
 
-
     /**
      * Class for iterating over the contact records
      */
@@ -1021,7 +926,7 @@ public class MatrixZoomData {
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;
                     } catch (IOException e) {
-                        System.err.println("Error fetching block " + e.getMessage());
+                        log.error("Error fetching block ", e);
                         return false;
                     }
                 }

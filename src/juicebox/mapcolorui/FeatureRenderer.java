@@ -43,10 +43,6 @@ public class FeatureRenderer {
                               double binOriginX, double binOriginY, double scaleFactor,
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
-        if (annotationHandler.getLineStyle() == LineStyle.DASHED) {
-            Stroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{30}, 0.0f);
-            g2.setStroke(dashed);
-        }
 
         Feature2DHandler feature2DHandler = annotationHandler.getFeatureHandler();
         PlottingOption enablePlottingOption = annotationHandler.getPlottingStyle();
@@ -160,5 +156,5 @@ public class FeatureRenderer {
 
     public enum PlottingOption {ONLY_LOWER_LEFT, ONLY_UPPER_RIGHT, EVERYTHING}
 
-    public enum LineStyle {DASHED, SOLID}
+
 }

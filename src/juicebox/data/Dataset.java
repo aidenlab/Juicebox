@@ -29,6 +29,7 @@ import juicebox.HiC;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -48,7 +49,10 @@ import java.util.*;
  */
 public class Dataset {
 
-    private final Map<String, Matrix> matrices = new HashMap<>(625);
+    private static final Logger log = Logger.getLogger(Dataset.class);
+
+    // private boolean caching = true;
+    private final Map<String, Matrix> matrices = new HashMap<>(25 * 25);
     private final DatasetReader reader;
     private final LRUCache<String, double[]> eigenvectorCache;
     private final LRUCache<String, NormalizationVector> normalizationVectorCache;
@@ -66,34 +70,27 @@ public class Dataset {
 
     public Dataset(DatasetReader reader) {
         this.reader = reader;
-        eigenvectorCache = new LRUCache<>(25);
-        normalizationVectorCache = new LRUCache<>(25);
+        eigenvectorCache = new LRUCache<>(20);
+        normalizationVectorCache = new LRUCache<>(20);
         normalizationTypes = new ArrayList<>();
     }
+
 
     public Matrix getMatrix(Chromosome chr1, Chromosome chr2) {
 
         // order is arbitrary, convention is lower # chr first
-        if (chr1 == null || chr2 == null) return null;
+        int t1 = Math.min(chr1.getIndex(), chr2.getIndex());
+        int t2 = Math.max(chr1.getIndex(), chr2.getIndex());
 
-        //System.out.println("from dataset");
-        String key = Matrix.generateKey(chr1, chr2);
+        String key = Matrix.generateKey(t1, t2);
         Matrix m = matrices.get(key);
 
         if (m == null && reader != null) {
             try {
-                // custom chromosome is handled as separate case
-                if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
-                    System.err.println("Index key is " + key);
-                    m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
-                } else {
-                    m = reader.readMatrix(key);
-                }
+                m = reader.readMatrix(key);
                 matrices.put(key, m);
-
-            } catch (Exception e) {
-                System.err.println("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName());
-                e.printStackTrace();
+            } catch (IOException e) {
+                log.error("Error fetching matrix for: " + chr1.getName() + "-" + chr2.getName(), e);
             }
         }
 
@@ -278,13 +275,8 @@ public class Dataset {
         return restrictionEnzyme;
     }
 
-    void setRestrictionEnzyme(int nSites) {
+    public void setRestrictionEnzyme(int nSites) {
         restrictionEnzyme = findRestrictionEnzyme(nSites);
-    }
-
-    private String getSoftware() {
-        if (attributes != null) return attributes.get("software");
-        else return null;
     }
 
     public String getStatistics() {
@@ -317,8 +309,8 @@ public class Dataset {
             String current = lines.nextToken();
             StringTokenizer colon = new StringTokenizer(current, ":");
             if (colon.countTokens() != 2) {
-                System.err.println("Incorrect form in original statistics attribute. Offending line:");
-                System.err.println(current);
+                log.error("Incorrect form in original statistics attribute. Offending line:");
+                log.error(current);
             } else { // Appears to be correct format, convert files as appropriate
                 String label = colon.nextToken();
                 String value = colon.nextToken();
@@ -346,10 +338,6 @@ public class Dataset {
             if (!value.isEmpty())
                 newStats += "<tr><td>Experiment Description:</td><td>" + value + "</td></tr>";
         }
-        if (getSoftware() != null)  {
-            newStats += "<tr> <td> Software: </td><td>" + getSoftware() + "</td></tr>";
-        }
-
         newStats += "<tr><th colspan=2>Alignment Information</th></tr>\n" +
                 "        <tr> <td> Reference Genome:</td>";
         newStats += "<td>" + genomeId + "</td></tr>";
@@ -357,8 +345,6 @@ public class Dataset {
         if (mapq30) newStats += "30";
         else newStats += "1";
         newStats += "</td></tr>";
-
-
 
       /*  <table>
         <tr>

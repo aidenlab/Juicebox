@@ -67,7 +67,7 @@ public class HiCGlobals {
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.8.3";
+    public static final String versionNum = "1.7.4";
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
@@ -82,7 +82,6 @@ public class HiCGlobals {
     public static boolean assemblyModeEnabled = false;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
-    public static boolean displayTiles = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

@@ -87,7 +87,7 @@ public class Dump extends JuiceboxCLT {
         // This matrix should not in general be exposed since it is arbitrairily binned
         // If in the future we wish to expose, we should use a more reasonable flag.
         if (zoom.getBinSize() == 6197 || zoom.getBinSize() == 6191) {
-            Chromosome chr = chromosomeHandler.getChromosomeFromName("All");
+            Chromosome chr = chromosomeHandler.getChr("All");
             Matrix matrix =  dataset.getMatrix(chr, chr);
             if (matrix == null) {
                 System.err.println("No All vs. All matrix");
@@ -180,7 +180,7 @@ public class Dump extends JuiceboxCLT {
 
     private void dumpGeneralVector() throws IOException {
 
-        Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chr1);
+        Chromosome chromosome = chromosomeHandler.getChr(chr1);
 
         if (matrixType == MatrixType.NORM) {
             NormalizationVector nv = dataset.getNormalizationVector(chromosome.getIndex(), zoom, norm);
@@ -226,8 +226,8 @@ public class Dump extends JuiceboxCLT {
      */
     private void dumpMatrix() throws IOException {
 
-        Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
-        Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
+        Chromosome chromosome1 = chromosomeHandler.getChr(chr1);
+        Chromosome chromosome2 = chromosomeHandler.getChr(chr2);
 
         Matrix matrix = dataset.getMatrix(chromosome1, chromosome2);
         if (matrix == null) {
@@ -450,7 +450,7 @@ public class Dump extends JuiceboxCLT {
                 }
             }
         } else {
-            Chromosome chromosome1 = chromosomeHandler.getChromosomeFromName(chr1);
+            Chromosome chromosome1 = chromosomeHandler.getChr(chr1);
             regionIndices[0] = 0;
             regionIndices[1] = chromosome1.getLength();
         }
@@ -473,7 +473,7 @@ public class Dump extends JuiceboxCLT {
                 }
             }
         } else {
-            Chromosome chromosome2 = chromosomeHandler.getChromosomeFromName(chr2);
+            Chromosome chromosome2 = chromosomeHandler.getChr(chr2);
             regionIndices[2] = 0;
             regionIndices[3] = chromosome2.getLength();
         }

@@ -183,7 +183,8 @@ public class ResolutionControl extends JPanel {
         lockButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                toggleLockButton();
+                resolutionLocked = !resolutionLocked;
+                lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
             }
         });
         sliderPanel.add(lockButton);
@@ -257,15 +258,13 @@ public class ResolutionControl extends JPanel {
                     } catch (Exception ee) {
                     }
 
-                    final String chrXName = hic.getXContext().getChromosome().toString();
-                    final String chrYName = hic.getYContext().getChromosome().toString();
-
                     if (zd == null) {
-                        hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
-                                true, isResolutionLocked() ? 1 : 0, true);
+                        hic.unsafeActuallySetZoomAndLocation("", "", zoom, 0, 0, -1, true, HiC.ZoomCallType.STANDARD,
+                                true);
                     } else {
-                        if (hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, zoom, xGenome, yGenome, -1, true,
-                                HiC.ZoomCallType.STANDARD, true, isResolutionLocked() ? 1 : 0, true)) {
+
+                        if (hic.unsafeActuallySetZoomAndLocation("", "", zoom, xGenome, yGenome, -1, true,
+                                HiC.ZoomCallType.STANDARD, true)) {
                             lastValue = resolutionSlider.getValue();
                         } else {
                             resolutionSlider.setValue(lastValue);
@@ -372,21 +371,7 @@ public class ResolutionControl extends JPanel {
         }
     }
 
-    public void toggleLockButton() {
-        setResolutionLocked(!resolutionLocked);
-        updateLockButton();
-    }
-
-    public void updateLockButton() {
-        lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
-    }
-
     public boolean isResolutionLocked() {
         return resolutionLocked;
-    }
-
-    public void setResolutionLocked(boolean resolutionLocked) {
-        this.resolutionLocked = resolutionLocked;
-        updateLockButton();
     }
 }
