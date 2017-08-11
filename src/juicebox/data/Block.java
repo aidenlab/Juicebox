@@ -39,7 +39,6 @@ import java.util.List;
 public class Block {
 
     private final int number;
-
     private final List<ContactRecord> records;
 
     public Block(int number) {

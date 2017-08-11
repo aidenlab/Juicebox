@@ -22,36 +22,35 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.mapcolorui;
+package juicebox.assembly;
 
-import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
-import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
-import juicebox.windowui.HiCZoom;
-import juicebox.windowui.NormalizationType;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.util.Pair;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 4/17/17.
  */
-public class AssemblyIntermediateProcessor {
+public class AssemblyHeatmapHandler {
 
     private static SuperAdapter superAdapter;
 
     public static void makeChanges(String[] encodedInstructions, SuperAdapter superAdapter) {
 
-        AssemblyIntermediateProcessor.superAdapter = superAdapter;
-        Feature2DList features = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler()
+        AssemblyHeatmapHandler.superAdapter = superAdapter;
+        Feature2DList features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler()
                 .getAllVisibleLoops();
         makeAssemblyChanges(features, superAdapter.getHiC().getXContext().getChromosome(), encodedInstructions);
         superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler().remakeRTree();
@@ -126,49 +125,22 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
+    public static void invertMultipleContiguousEntriesAt(List<Feature2D> selectedFeatures, List<Feature2D> contigs, int startIndex, int endIndex) {
 
-    public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic) {
 
-        AnnotationLayer contigLayer = superAdapter.getContigLayer().getAnnotationLayer();
-        Feature2D firstFragment;
-        Feature2D secondFragment;
-        Feature2D thirdFragment;
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-
-        if (originalContig.overlapsWith(debrisContig)) {
-
-            contigLayer.getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, originalContig);
-
-            firstFragment = originalContig.deepCopy();
-            firstFragment.setEnd1(debrisContig.getStart1());
-            firstFragment.setEnd2(debrisContig.getStart2());
-
-            secondFragment = originalContig.deepCopy();
-            secondFragment.setStart1(debrisContig.getStart1());
-            secondFragment.setStart2(debrisContig.getStart2());
-            secondFragment.setEnd1(debrisContig.getEnd1());
-            secondFragment.setEnd2(debrisContig.getEnd2());
-
-            thirdFragment = originalContig.deepCopy();
-            thirdFragment.setStart1(debrisContig.getEnd1());
-            thirdFragment.setStart2(debrisContig.getEnd2());
-
-            contigLayer.add(chr1Idx, chr2Idx, firstFragment);
-            contigLayer.add(chr1Idx, chr2Idx, secondFragment);
-            contigLayer.add(chr1Idx, chr2Idx, thirdFragment);
-
-            //remake tree or something
-            contigLayer.getFeatureHandler().remakeRTree();
-            superAdapter.refresh();
-        } else {
-            System.out.println("error splitting contigs");
+        // Invert each of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex <= endIndex; currentIndex++) {
+            invertSingleEntryAt(contigs, currentIndex);
         }
+
+        // Reverse the order of the sub-contigs
+        for (int currentIndex = startIndex; currentIndex < (startIndex + endIndex) / 2.0; currentIndex++) {
+            moveFeatureToNewIndex(contigs, currentIndex, startIndex + endIndex - currentIndex);
+            moveFeatureToNewIndex(contigs, startIndex + endIndex - currentIndex - 1, currentIndex);
+        }
+
     }
 
-    public static void splitGroup() {
-
-    }
 
     public static void moveFeatureToNewIndex(List<Feature2D> contigs, int currentIndex, int newIndex) {
         // http://stackoverflow.com/questions/4938626/moving-items-around-in-an-arraylist
@@ -197,107 +169,46 @@ public class AssemblyIntermediateProcessor {
         }
     }
 
-    public static List<Contig2D> retrieveRelevantBlocks(MatrixZoomData mzd, List<Integer> blocksToLoad,
-                                                        List<Block> blockList, Chromosome chr1, Chromosome chr2,
-                                                        int binX1, int binY1, int binX2, int binY2, int blockBinCount,
-                                                        HiCZoom zoom, NormalizationType no) {
-        Feature2DHandler handler = superAdapter.getContigLayer().getAnnotationLayer().getFeatureHandler();
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(binX1 * zoom.getBinSize(),
-                binY1 * zoom.getBinSize(), binX2 * zoom.getBinSize(), binY2 * zoom.getBinSize());
-        handler.getContainedFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow);
-        Feature2DList features = handler.getAllVisibleLoops();
-        final String keyF = Feature2DList.getKey(chr1, chr2);
-        List<Contig2D> contigs = new ArrayList<>();
-        for (Feature2D entry : features.get(keyF)) {
-            contigs.add(entry.toContig());
-        }
-        Collections.sort(contigs);
-
-        List<Contig2D> actuallyNeededContigs = new ArrayList<>();
-        for (Contig2D contig : contigs) {
-            int cStart = contig.getStart1() / zoom.getBinSize();
-            int cEnd = contig.getEnd1() / zoom.getBinSize();
-            //System.out.println("c "+cStart+" "+cEnd);
-
-            if (cEnd < binX1 && cEnd < binY1) {
-                continue;
-            }
-            if (cStart > binX2 && cStart > binY2) {
-                break;
-            }
-
-            if ((cStart >= binX1 && cStart <= binX2)
-                    || (cEnd >= binX1 && cEnd <= binX2)
-                    || (cStart >= binY1 && cStart <= binY2)
-                    || (cEnd >= binY1 && cEnd <= binY2)) {
-                actuallyNeededContigs.add(contig);
-            }
-        }
-
-        for (Contig2D contig1 : actuallyNeededContigs) {
-            for (Contig2D contig2 : actuallyNeededContigs) {
-                int cStart1 = contig1.getStart1() / zoom.getBinSize() / blockBinCount;
-                int cEnd1 = contig1.getEnd1() / zoom.getBinSize() / blockBinCount;
-                int cStart2 = contig2.getStart1() / zoom.getBinSize() / blockBinCount;
-                int cEnd2 = contig2.getEnd1() / zoom.getBinSize() / blockBinCount;
-
-                for (int r = cStart1; r <= cEnd1; r++) {
-                    for (int c = cStart2; c <= cEnd2; c++) {
-                        mzd.populateBlocksToLoad(r, c, no, blockList, blocksToLoad);
-                    }
-                }
-            }
-        }
-
-        return actuallyNeededContigs;
-    }
-
     /**
-     *
-     * @param preMergeContigs
+     * @param mergedContigs
      * @param blockList
      * @param binSize
      * @return
      */
-    public static List<Block> filterBlockList(List<Contig2D> preMergeContigs, Set<Block> blockList, int binSize) {
-        List<Contig2D> contigs = mergeRedundantContiguousContigs(preMergeContigs);
+    public static Set<Block> filterBlockList(Pair<List<Contig2D>, List<Contig2D>> mergedContigs,
+                                             Set<Block> blockList, int binSize) {
 
-        List<Block> alteredBlockList = new ArrayList<>();
-        if (contigs.size() < 1) return alteredBlockList;
+        List<Contig2D> xMergedContigs = mergedContigs.getFirst();
+        List<Contig2D> yMergedContigs = mergedContigs.getSecond();
+
+        Set<Block> alteredBlockList = new HashSet<>();
+        if (xMergedContigs.size() < 1 || yMergedContigs.size() < 1) {
+            System.err.println("filter limit " + xMergedContigs.size() + " " + yMergedContigs.size());
+            return alteredBlockList;
+        }
 
         for (Block block : blockList) {
             List<ContactRecord> alteredContacts = new ArrayList<>();
             for (ContactRecord record : block.getContactRecords()) {
-                boolean includeXRecord = false;
-                boolean includeYRecord = false;
-                int aX = -1, aY = -1;
 
-                int genomeX = record.getBinX() * binSize;
-                int genomeY = record.getBinY() * binSize;
+                int alteredX = getAlteredPositionIfContigOverlapExists(record.getBinX(), binSize, xMergedContigs);
+                if (alteredX == -1) {
+                    //System.err.println("aXY "+alteredX+" "+alteredY+" ");
+                    alteredContacts.add(record);
+                    continue;
+                }
 
-                for (Contig2D contig : contigs) {
-                    //System.out.println("contig "+contig);
-
-                    if (contig.hasSomeOriginalOverlapWith(genomeX)) {
-                        includeXRecord = true;
-                        aX = contig.getAlteredBinIndex(record.getBinX(), binSize);
-                        //System.out.println("axed "+record.getBinX()+" "+binSize+" "+aX);
-                    }
-
-                    if (contig.hasSomeOriginalOverlapWith(genomeY)) {
-                        includeYRecord = true;
-                        aY = contig.getAlteredBinIndex(record.getBinY(), binSize);
-                        //System.out.println("ayed "+record.getBinY()+" "+binSize+" "+aY);
-                    }
-
-                    if (includeXRecord && includeYRecord) {
-                        //System.out.println("altered ax and ay ");
-                        if (aX > aY) {
-                            alteredContacts.add(new ContactRecord(aY, aX, record.getCounts()));
-                        } else {
-                            alteredContacts.add(new ContactRecord(aX, aY, record.getCounts()));
-                        }
-                        break;
+                int alteredY = getAlteredPositionIfContigOverlapExists(record.getBinY(), binSize, yMergedContigs);
+                if (alteredY == -1) {
+                    //System.err.println("aXY "+alteredX+" "+alteredY+" ");
+                    alteredContacts.add(record);
+                    continue;
+                } else {
+                    //System.out.println("altered ax "+includeXRecord+" "+aX+" and ay "+includeYRecord+" "+aY);
+                    if (alteredX > alteredY) {
+                        alteredContacts.add(new ContactRecord(alteredY, alteredX, record.getCounts()));
+                    } else {
+                        alteredContacts.add(new ContactRecord(alteredX, alteredY, record.getCounts()));
                     }
                 }
             }
@@ -305,6 +216,16 @@ public class AssemblyIntermediateProcessor {
         }
         //System.out.println("num alters "+alteredBlockList.size());
         return alteredBlockList;
+    }
+
+    private static int getAlteredPositionIfContigOverlapExists(int binVal, int binSize, List<Contig2D> xMergedContigs) {
+        int genomeVal = binVal * binSize;
+        for (Contig2D contig : xMergedContigs) {
+            if (contig.hasSomeOriginalOverlapWith(genomeVal)) {
+                return contig.getAlteredBinIndex(binVal, binSize);
+            }
+        }
+        return -1;
     }
 
 
@@ -316,7 +237,7 @@ public class AssemblyIntermediateProcessor {
      * @param currentContigs
      * @return mergedContigs
      */
-    private static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
+    public static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
 
         List<Contig2D> mergedContigs = new ArrayList<>();
         Contig2D growingContig = null;
@@ -343,10 +264,67 @@ public class AssemblyIntermediateProcessor {
     }
 
     public static SuperAdapter getSuperAdapter() {
-        return AssemblyIntermediateProcessor.superAdapter;
+        return AssemblyHeatmapHandler.superAdapter;
     }
 
     public static void setSuperAdapter(SuperAdapter superAdapter) {
-        AssemblyIntermediateProcessor.superAdapter = superAdapter;
+        AssemblyHeatmapHandler.superAdapter = superAdapter;
+    }
+
+    public static Set<Block> modifyBlockList(Set<Block> blockList, int binSize, int chr1Idx, int chr2Idx) {
+        List<Block> alteredBlockList = new ArrayList<>();
+        AssemblyFragmentHandler aFragHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+        for (Block block : blockList) {
+            alteredBlockList.add(modifyBlock(block, binSize, chr1Idx, chr2Idx, aFragHandler));
+        }
+        Set<Block> alteredBlockSet = new HashSet<>(alteredBlockList);
+        return alteredBlockSet;
+    }
+
+//    private static int getAlteredAsmCoordinate(int chr1Idx, int chr2Idx, int binVal, int binSize,
+//                                               AssemblyFragmentHandler aFragHandler) {
+//        int originalGenomeVal = binVal * binSize + 1;
+//        Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalGenomeVal);
+//        int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalGenomeVal);
+//        int currentGenomeVal = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
+//        return currentGenomeVal;
+//    }
+
+    public static Block modifyBlock(Block block, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
+        //TODO: do some filtering here
+        List<ContactRecord> alteredContacts = new ArrayList<>();
+        for (ContactRecord record : block.getContactRecords()) {
+
+            int alteredAsmBinX = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
+            int alteredAsmBinY = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+
+            if (alteredAsmBinX == -1 || alteredAsmBinY == -1) {
+                alteredContacts.add(record);
+            } else {
+                if (alteredAsmBinX > alteredAsmBinY) {
+                    alteredContacts.add(new ContactRecord(
+                            alteredAsmBinY,
+                            alteredAsmBinX, record.getCounts()));
+                } else {
+                    alteredContacts.add(new ContactRecord(
+                            alteredAsmBinX,
+                            alteredAsmBinY, record.getCounts()));
+                }
+            }
+        }
+        block = new Block(block.getNumber(), alteredContacts);
+        return block;
+    }
+
+    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
+        int originalBinCenterCoordinate = binValue * binSize + binSize / 2;
+        Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
+        int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
+        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
+        if (currentBinCenterCoordinate == -1) {
+            return -1;
+        } else {
+            return (currentBinCenterCoordinate - binSize / 2) / binSize;
+        }
     }
 }

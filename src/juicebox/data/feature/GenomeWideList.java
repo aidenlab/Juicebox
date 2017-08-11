@@ -49,30 +49,12 @@ public class GenomeWideList<T extends Feature> {
     }
 
     /**
-     * @param chromosomes for genome
-     */
-    private GenomeWideList(List<Chromosome> chromosomes) {
-        for (Chromosome chr : chromosomes) {
-            featureLists.put("" + chr.getIndex(), new ArrayList<T>());
-        }
-    }
-
-    /**
      * @param handler
      */
     private GenomeWideList(ChromosomeHandler handler) {
-        for (String indx : handler.getChrIndices()) {
-            featureLists.put(indx, new ArrayList<T>());
+        for (Chromosome c : handler.getChromosomeArray()) {
+            featureLists.put("" + c.getIndex(), new ArrayList<T>());
         }
-    }
-
-    /**
-     * @param chromosomes for genome
-     * @param features    to be added to list
-     */
-    public GenomeWideList(List<Chromosome> chromosomes, List<T> features) {
-        this(chromosomes);
-        addAll(features);
     }
 
     /**

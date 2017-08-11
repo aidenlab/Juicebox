@@ -27,6 +27,7 @@ package juicebox.gui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
+import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
@@ -43,6 +44,7 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.FileDialogUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -51,6 +53,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,9 +76,18 @@ public class SuperAdapter {
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
+    private AssemblyStateTracker assemblyStateTracker;
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
+
+    public static String getDatasetTitle() {
+        return datasetTitle;
+    }
+
+    public static void setDatasetTitle(String newDatasetTitle) {
+        datasetTitle = newDatasetTitle;
+    }
 
     public HiCZoom getInitialZoom() {
         return initialZoom;
@@ -130,6 +142,8 @@ public class SuperAdapter {
         }
     }
 
+//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
+
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
         mainMenuBar.setEnableForAllElements(status);
@@ -146,8 +160,6 @@ public class SuperAdapter {
         controlTitle = null;
         updateTitle();
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void launchSlideShow() {
         new Slideshow(mainWindow, this);
@@ -214,7 +226,6 @@ public class SuperAdapter {
         }
     }
 
-
     public void generateNewCustomAnnotation(File temp) {
         getActiveLayerHandler().setAnnotationLayer(
                 new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
@@ -264,15 +275,6 @@ public class SuperAdapter {
         return hic.getLocationDescription();
     }
 
-    public String getDescription(String item) {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
-                hic.getDefaultLocationDescription());
-    }
-
-    public void addNewStateToXML(String stateDescription) {
-        XMLFileHandling.addNewStateToXML(stateDescription, this);
-    }
-
     /*
     public void setShowLoops(boolean showLoops) {
         hic.setShowLoops(showLoops);
@@ -282,6 +284,15 @@ public class SuperAdapter {
         handler.addVisibleLoops(hic);
     }
     */
+
+    public String getDescription(String item) {
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
+                hic.getDefaultLocationDescription());
+    }
+
+    public void addNewStateToXML(String stateDescription) {
+        XMLFileHandling.addNewStateToXML(stateDescription, this);
+    }
 
     public void setNormalizationDisplayState() {
         mainViewPanel.setNormalizationDisplayState(hic);
@@ -364,7 +375,8 @@ public class SuperAdapter {
             }
 
         }
-        hic.unsafeActuallySetZoomAndLocation("", "", initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true);
+        hic.unsafeActuallySetZoomAndLocation(hic.getXContext().getChromosome().toString(), hic.getYContext().getChromosome().toString(),
+                initialZoom, 0, 0, -1, true, HiC.ZoomCallType.INITIAL, true, isResolutionLocked() ? 1 : 0, true);
     }
 
     public void refresh() {
@@ -372,6 +384,11 @@ public class SuperAdapter {
         mainWindow.repaint();
         mainViewPanel.updateThumbnail(hic);
         //System.err.println(heatmapPanel.getSize());
+    }
+
+    public void clearAllMatrixZoomCache() {
+        //not sure if this is a right place for this
+        hic.clearAllMatrixZoomDataCache();
     }
 
     private void refreshMainOnly() {
@@ -638,6 +655,10 @@ public class SuperAdapter {
         return layersPanel;
     }
 
+    public MainMenuBar getMainMenuBar() {
+        return mainMenuBar;
+    }
+
     public void revalidate() {
         mainWindow.revalidate();
     }
@@ -826,8 +847,48 @@ public class SuperAdapter {
     }
 
     // mhoeger - Used for contig layer, currently returns the first element
+    public List<AnnotationLayerHandler> getAssemblyLayerHandlers() {
+        List<AnnotationLayerHandler> handlers = new ArrayList<>();
+        for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
+                handlers.add(annotationLayerHandler);
+            }
+        }
+        if (handlers.size() == 0) {
+            handlers.add(annotationLayerHandlers.get(0));
+        }
+        return handlers;
+    }
+
+    private AnnotationLayerHandler getAssemblyLayerHandler(AnnotationLayer.LayerType layerType) {
+        for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers()) {
+            if (annotationLayerHandler.getAnnotationLayerType() == layerType) {
+                return annotationLayerHandler;
+            }
+        }
+        return null;
+    }
+
     public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
-        return annotationLayerHandlers.get(0);
+//        return annotationLayerHandlers.get(0);
+//        List<AnnotationLayerHandler> handlers = new ArrayList<>();
+//        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
+        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP)) {
+            return getActiveLayerHandler();
+        } else
+            return annotationLayerHandlers.get(0);
+    }
+
+    public AnnotationLayerHandler getMainLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.MAIN);
+    }
+
+    public AnnotationLayerHandler getGroupLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.GROUP);
+    }
+
+    public AnnotationLayerHandler getEditLayer() {
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT);
     }
 
     public AnnotationLayerHandler createNewLayer() {
@@ -904,6 +965,10 @@ public class SuperAdapter {
         setLayersPanelGUIControllersSelected(status);
     }
 
+    public void intializeLayersPanel() {
+        layersPanel = new LayersPanel(this);
+    }
+
     public void setLayersPanelGUIControllersSelected(boolean status) {
         mainViewPanel.setAnnotationsPanelToggleButtonSelected(status);
         mainMenuBar.setAnnotationPanelMenuItemSelected(status);
@@ -913,7 +978,35 @@ public class SuperAdapter {
         setLayersPanelVisible(!layerPanelIsVisible);
     }
 
+
+    public AssemblyStateTracker getAssemblyStateTracker() {
+        return assemblyStateTracker;
+    }
+
+    public void setAssemblyStateTracker(AssemblyStateTracker assemblyStateTracker) {
+        this.assemblyStateTracker = assemblyStateTracker;
+    }
+
+    public void createCustomChromosomes() {
+
+        FilenameFilter bedFilter = new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".bed");
+            }
+        };
+
+        File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
+                LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+        if (files != null && files.length > 0) {
+            for (File f : files) {
+                Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
+                mainViewPanel.getChrBox1().addItem(custom);
+                mainViewPanel.getChrBox2().addItem(custom);
+            }
+        }
+
     public void showSliders() {
         mainViewPanel.showSliders();
+
     }
 }
