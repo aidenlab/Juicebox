@@ -618,15 +618,23 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 double scale;
-                String newURL = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
                 try {
-                    scale = Double.parseDouble(newURL);
-                    if (scale == 0.0) { //scale cannot be zero
+                    scale = Double.parseDouble(newScale);
+                    if (scale == 0.0) {  // scale cannot be zero
                         scale = 1.0;
                     }
                     HiCGlobals.hicMapScale = scale;
-                    superAdapter.getAssemblyStateTracker().regenerateLayers();
-                    superAdapter.refresh();
+
+                    // Scale resolution slider labels
+                    superAdapter.getMainViewPanel().getResolutionSlider().reset();
+
+                    // Scale assembly annotations
+                    if (superAdapter.getAssemblyStateTracker() != null) {
+                        superAdapter.getAssemblyStateTracker().regenerateLayers();
+                        superAdapter.refresh();
+                    }
+
                 } catch (NumberFormatException t) {
                     JOptionPane.showMessageDialog(null, "Value must be an integer!");
                 }
@@ -642,7 +650,7 @@ public class MainMenuBar {
         exportAssembly.setEnabled(enabled);
         resetAssembly.setEnabled(enabled);
         enableAssembly.setEnabled(enabled);
-        setScale.setEnabled(enabled);
+        setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
 
         assemblyMenu.add(enableAssembly);
