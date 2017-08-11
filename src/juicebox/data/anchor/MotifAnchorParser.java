@@ -206,7 +206,7 @@ public class MotifAnchorParser {
                 qValue = Double.parseDouble(tokens[7]);
                 sequence = tokens[8];
 
-                Chromosome chr = handler.getChromosomeFromName(chr1Name);
+                Chromosome chr = handler.getChr(chr1Name);
                 if (chr == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 10) {
@@ -286,7 +286,7 @@ public class MotifAnchorParser {
                 end1 = Integer.parseInt(tokens[2]);
 
 
-                Chromosome chr = handler.getChromosomeFromName(chr1Name);
+                Chromosome chr = handler.getChr(chr1Name);
                 if (chr == null) {
                     if (errorCount < 10) {
                         System.out.println("Skipping line: " + nextLine);
@@ -301,7 +301,6 @@ public class MotifAnchorParser {
                 anchors.add(new MotifAnchor(chr.getIndex(), start1, end1));
             }
         }
-        if (anchors.size() < 1) System.err.println("BED File empty - file may have problems or error was encountered");
         bufferedReader.close();
         return new ArrayList<>(anchors);
     }

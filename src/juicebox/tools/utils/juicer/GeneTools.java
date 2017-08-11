@@ -83,7 +83,7 @@ public class GeneTools {
                 //int txEnd = (values.length==4) ? Integer.valueOf(values[3].trim())+1 : Integer.valueOf(values[5].trim());
                 String name = values[1].trim();
                 String name2 = (values.length==4) ? values[0].trim() : values[12].trim();
-                Chromosome chr = handler.getChromosomeFromName(values[2]);
+                Chromosome chr = handler.getChr(values[2]);
                 GeneLocation location = new GeneLocation(chr, txStart);
                 geneLocationHashMap.put(name2.toLowerCase(), location);
                 geneLocationHashMap.put(name.trim().toLowerCase(), location);
@@ -107,7 +107,7 @@ public class GeneTools {
             while ((nextLine = reader.readLine()) != null) {
                 String[] values = nextLine.split("\\s+");
                 if (values.length == 4 || values.length == 16) {  // 16 is refGene official format
-                    Chromosome chr = handler.getChromosomeFromName(values[2]);
+                    Chromosome chr = handler.getChr(values[2]);
                     // refGene contains contigs as well, ignore these genes
                     if (chr != null) {
                         int chrIndex = chr.getIndex();

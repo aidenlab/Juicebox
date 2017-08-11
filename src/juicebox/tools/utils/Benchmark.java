@@ -99,7 +99,7 @@ public class Benchmark extends JuiceboxCLT {
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int end1 = random.nextInt(handler.getChr(chr1).getLength()); // endpoint between 0 and end of chromosome
             int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
 
@@ -118,7 +118,7 @@ public class Benchmark extends JuiceboxCLT {
             String chr1 = chrs[random.nextInt(chrs.length)];
             int binSize = bpBinSizes[random.nextInt(bpBinSizes.length)];
 
-            int end1 = random.nextInt(handler.getChromosomeFromName(chr1).getLength()); // endpoint between 0 and end of chromosome
+            int end1 = random.nextInt(handler.getChr(chr1).getLength()); // endpoint between 0 and end of chromosome
             int start1 = end1 - binSize*QUERY_SIZE; // QUERY_SIZE number of bins earlier
             if (start1 < 0) start1 = 0;
 
