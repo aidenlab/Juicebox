@@ -33,7 +33,6 @@ import juicebox.windowui.HiCZoom;
 import org.broad.igv.ui.FontManager;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -88,16 +87,13 @@ public class ResolutionControl extends JPanel {
 
         this.setBorder(LineBorder.createGrayLineBorder());
         this.setLayout(new BorderLayout());
-//        this.setBorder(new EmptyBorder(0, 0, 0,0));
-        this.setBackground(Color.WHITE);
-
 
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         resolutionLabel.setBackground(HiCGlobals.backgroundColor);
 
         JPanel resolutionLabelPanel = new JPanel();
-        resolutionLabelPanel.setBackground(Color.WHITE);
+        resolutionLabelPanel.setBackground(HiCGlobals.backgroundColor);
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
@@ -172,7 +168,6 @@ public class ResolutionControl extends JPanel {
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.X_AXIS));
         resolutionSlider = new JSlider();
         sliderPanel.add(resolutionSlider);
-        sliderPanel.setBackground(Color.WHITE);
 
         lockButton = new JideButton();
 
@@ -190,7 +185,6 @@ public class ResolutionControl extends JPanel {
 
 
         resolutionButtonPanel.add(sliderPanel);
-        resolutionButtonPanel.setBackground(Color.WHITE);
         this.add(resolutionButtonPanel, BorderLayout.CENTER);
 
 
