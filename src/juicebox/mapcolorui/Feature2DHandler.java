@@ -114,7 +114,7 @@ public class Feature2DHandler {
     }
 
 
-    public void remakeRTree() {
+    protected void remakeRTree() {
         featureRtrees.clear();
 
         loopList.processLists(new FeatureFunction() {
@@ -167,8 +167,14 @@ public class Feature2DHandler {
         remakeRTree();
     }
 
-    public void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
+    protected void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
+        String hashID = feature2DList.hashCode() + "";
+        if (loopList.get(hashID) != null) {
+            //loopLists.get(hashID).setVisible(true);
+            System.out.println("Making " + hashID + " visible");
+        } else {
             loopList = feature2DList;
+        }
         if (remakeTree) {
             remakeRTree();
         }
@@ -203,22 +209,18 @@ public class Feature2DHandler {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
 
-                try {
-                    featureRtrees.get(key).nearestN(
-                            getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
-                            new TIntProcedure() {         // a procedure whose execute() method will be called with the results
-                                public boolean execute(int i) {
-                                    Feature2D feature = loopList.get(key).get(i);
-                                    foundFeatures.add(feature);
-                                    return true;              // return true here to continue receiving results
-                                }
-                            },
-                            n,                            // the number of nearby rectangles to find
-                            Float.MAX_VALUE               // Don't bother searching further than this. MAX_VALUE means search everything
-                    );
-                } catch (Exception e) {
-                    System.err.println("Error encountered getting nearby features" + e.getLocalizedMessage());
-                }
+                featureRtrees.get(key).nearestN(
+                        getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
+                        new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                            public boolean execute(int i) {
+                                Feature2D feature = loopList.get(key).get(i);
+                                foundFeatures.add(feature);
+                                return true;              // return true here to continue receiving results
+                            }
+                        },
+                        n,                            // the number of nearby rectangles to find
+                        Float.MAX_VALUE               // Don't bother searching further than this. MAX_VALUE means search everything
+                );
 
             } else {
                 foundFeatures.addAll(loopList.get(key));
@@ -233,22 +235,17 @@ public class Feature2DHandler {
 
         if (featureRtrees.containsKey(key) && layerVisible) {
             if (sparseFeaturePlottingEnabled) {
-                try {
-                    featureRtrees.get(key).intersects(
-                            selectionWindow,
-                            new TIntProcedure() {     // a procedure whose execute() method will be called with the results
-                                public boolean execute(int i) {
-                                    Feature2D feature = loopList.get(key).get(i);
-                                    foundFeatures.add(feature);
-                                    return true;      // return true here to continue receiving results
-                                }
+                featureRtrees.get(key).intersects(
+                        selectionWindow,
+                        new TIntProcedure() {     // a procedure whose execute() method will be called with the results
+                            public boolean execute(int i) {
+                                Feature2D feature = loopList.get(key).get(i);
+                                foundFeatures.add(feature);
+                                return true;      // return true here to continue receiving results
                             }
-                    );
-                } catch (Exception e) {
-                    System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
-                }
+                        }
+                );
             } else {
-                System.out.println("returning all");
                 List<Feature2D> features = loopList.get(key);
                 if (features != null) foundFeatures.addAll(features);
             }

@@ -134,8 +134,8 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chr1 = handler.getChromosomeFromName(chr1Name);
-                Chromosome chr2 = handler.getChromosomeFromName(chr2Name);
+                Chromosome chr1 = handler.getChr(chr1Name);
+                Chromosome chr2 = handler.getChr(chr2Name);
                 if (chr1 == null || chr2 == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {
@@ -270,8 +270,8 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chr1 = handler.getChromosomeFromName(chr1Name);
-                Chromosome chr2 = handler.getChromosomeFromName(chr2Name);
+                Chromosome chr1 = handler.getChr(chr1Name);
+                Chromosome chr2 = handler.getChr(chr2Name);
                 if (chr1 == null || chr2 == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {
@@ -365,7 +365,7 @@ public class Feature2DParser {
                     }
                 }
 
-                Chromosome chrA = handler.getChromosomeFromName(chrAName);
+                Chromosome chrA = handler.getChr(chrAName);
                 if (chrA == null) {
                     if (HiCGlobals.printVerboseComments) {
                         if (errorCount < 100) {

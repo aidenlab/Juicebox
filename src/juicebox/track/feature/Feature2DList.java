@@ -654,16 +654,6 @@ public class Feature2DList {
         return clone;
     }
 
-    public String printChromosomeRegionKeys() {
-        String features = "";
-        for (List<Feature2D> feature2DS : featureList.values()) {
-            for (Feature2D feature2D : feature2DS) {
-                features += (feature2D.getLocationKey() + ", ");
-            }
-        }
-        return features;
-    }
-
 
     public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 }
