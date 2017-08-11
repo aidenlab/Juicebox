@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -146,15 +147,15 @@ public class AssemblyFragmentHandler {
                 attributes.put(scaffoldIndexId, contigIndex.toString());
                 attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasInitiallyInverted()));
                 //put attribute here
-                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
+                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
+                        chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
                         new Color(0, 255, 0), attributes); //todo
 
                 Contig2D contig = feature2D.toContig();
                 if (contigProperty.isInverted()) {
                     contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasInitiallyInverted());
+                contig.setInitialState(contigProperty.getInitialChr(), (int) Math.round(contigProperty.getInitialStart() / HiCGlobals.hicMapScale), (int) Math.round(contigProperty.getInitialEnd() / HiCGlobals.hicMapScale), contigProperty.wasInitiallyInverted());
                 contigs.add(1, 1, contig);
                 contigProperty.setFeature2D(contig);
 
@@ -164,8 +165,8 @@ public class AssemblyFragmentHandler {
             Map<String, String> attributes = new HashMap<String, String>();
             attributes.put(scaffoldNum, rowNum.toString());
 
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
+            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, (int) Math.round(scaffoldStartPos / HiCGlobals.hicMapScale), (int) Math.round((scaffoldStartPos + scaffoldLength) / HiCGlobals.hicMapScale),
+                    chromosomeName, (int) Math.round(scaffoldStartPos / HiCGlobals.hicMapScale), (int) Math.round((scaffoldStartPos + scaffoldLength) / HiCGlobals.hicMapScale),
                     new Color(0, 0, 255), attributes);
             scaffolds.add(1, 1, scaffold);
 

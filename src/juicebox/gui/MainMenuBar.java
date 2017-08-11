@@ -625,6 +625,8 @@ public class MainMenuBar {
                         scale = 1.0;
                     }
                     HiCGlobals.hicMapScale = scale;
+                    superAdapter.getAssemblyStateTracker().regenerateLayers();
+                    superAdapter.refresh();
                 } catch (NumberFormatException t) {
                     JOptionPane.showMessageDialog(null, "Value must be an integer!");
                 }
