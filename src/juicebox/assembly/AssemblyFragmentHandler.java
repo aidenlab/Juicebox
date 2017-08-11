@@ -226,7 +226,7 @@ public class AssemblyFragmentHandler {
         Comparator<ContigProperty> comparator = new Comparator<ContigProperty>() {
             @Override
             public int compare(final ContigProperty o1, final ContigProperty o2) {
-                return o1.getName().compareTo(o2.getName());
+                return o1.getFragmentNumber() - o2.getFragmentNumber();
             }
         };
         for (String key : newSplitFragments.keySet()) {
@@ -248,7 +248,7 @@ public class AssemblyFragmentHandler {
                     List<ContigProperty> neededFragments = new ArrayList<>();
                     int sumLength = 0;
                     int length = originalContigProperty.getLength();
-                    while (sumLength != length) {
+                    while (sumLength < length) {
                         neededFragments.add(splitList.get(index));
                         sumLength += splitList.get(index).getLength();
                         index++;
