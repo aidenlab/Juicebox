@@ -996,7 +996,7 @@ public class SuperAdapter {
         };
 
         File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
-                LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+            LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
         if (files != null && files.length > 0) {
             for (File f : files) {
                 Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
@@ -1004,9 +1004,9 @@ public class SuperAdapter {
                 mainViewPanel.getChrBox2().addItem(custom);
             }
         }
+    }
 
     public void showSliders() {
         mainViewPanel.showSliders();
-
     }
 }
