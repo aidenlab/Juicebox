@@ -1396,7 +1396,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append(":");
             txt.append(formatter.format(Math.round(yGenomeStart * HiCGlobals.hicMapScale)));
             txt.append("-");
-            txt.append(formatter.format(yGenomeEnd));
+            txt.append(formatter.format(Math.round(yGenomeEnd * HiCGlobals.hicMapScale)));
 
             if (yGridAxis instanceof HiCFragmentAxis) {
                 String fragNumbers;
