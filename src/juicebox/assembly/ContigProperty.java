@@ -38,8 +38,8 @@ public class ContigProperty {
     private boolean inverted;
     private boolean initiallyInverted;
     private String initialChr;
-    private int initialStart;
-    private int initialEnd;
+    private long initialStart;
+    private long initialEnd;
 
     public ContigProperty(String name, int indexId, int length, boolean initiallyInverted) {
         this.name = name;
@@ -63,18 +63,18 @@ public class ContigProperty {
         this.initiallyInverted = contigProperty.initiallyInverted;
     }
 
-    public void setInitialState(String initialChr, int initialStart, int initialEnd, boolean inverted) {
+    public void setInitialState(String initialChr, long initialStart, long initialEnd, boolean inverted) {
         this.initialChr = initialChr;
         this.initialStart = initialStart;
         this.initialEnd = initialEnd;
         this.inverted = inverted;
     }
 
-    public int getInitialEnd() {
+    public long getInitialEnd() {
         return initialEnd;
     }
 
-    public int getInitialStart() {
+    public long getInitialStart() {
         return initialStart;
     }
 

@@ -662,6 +662,7 @@ public class MainMenuBar {
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        setScale.setEnabled(true);
         assemblyMenu.add(setScale);
 
         menuBar.add(fileMenu);

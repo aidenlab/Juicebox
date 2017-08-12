@@ -114,15 +114,15 @@ public class AssemblyFragmentHandler {
         Map<String, Pair<List<ContigProperty>, List<ContigProperty>>> splitFragments = new HashMap<>();
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
-        int contigStartPos = 0;
-        int scaffoldStartPos = 0;
-        int scaffoldLength = 0;
+        long contigStartPos = 0;
+        long scaffoldStartPos = 0;
+        long scaffoldLength = 0;
         Integer rowNum = 0;
         for (List<Integer> row : scaffoldProperties) {
             for (Integer contigIndex : row) {
                 ContigProperty contigProperty = contigProperties.get(Math.abs(contigIndex) - 1);
                 String contigName = contigProperty.getName();
-                Integer contigLength = contigProperty.getLength();
+                Long contigLength = new Long(contigProperty.getLength());
 
                 if (initialGeneration && !modifiedGeneration) {
                     contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
@@ -364,8 +364,8 @@ public class AssemblyFragmentHandler {
     }
 
     public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
-        int newInitialStart;
-        int newInitialEnd;
+        long newInitialStart;
+        long newInitialEnd;
         boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) { //inverted in map
