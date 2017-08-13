@@ -46,7 +46,7 @@ import java.util.List;
  * Created by muhammadsaadshamim on 8/9/17.
  */
 public class HeatmapClickListener extends MouseAdapter implements ActionListener {
-    private static final int clickDelay = 500;
+    private static final int clickDelay = 400;
     private HeatmapPanel heatmapPanel;
     private Timer clickTimer;
     private MouseEvent lastMouseEvent;

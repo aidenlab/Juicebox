@@ -27,6 +27,7 @@ package juicebox.assembly;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
+import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.util.*;
@@ -109,6 +110,7 @@ public class AssemblyFragmentHandler {
     }
 
     public void generateContigsAndScaffolds(boolean initialGeneration, boolean modifiedGeneration, AssemblyFragmentHandler originalAssemblyFragmentHandler) {
+        Map<String, Pair<List<ContigProperty>, List<ContigProperty>>> splitFragments = new HashMap<>();
         contigs = new Feature2DList();
         scaffolds = new Feature2DList();
         int contigStartPos = 0;
@@ -125,13 +127,18 @@ public class AssemblyFragmentHandler {
                     contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
                 }
                 if (modifiedGeneration) {
-                    ContigProperty originalContigProperty = getOriginalContigProperty(originalAssemblyFragmentHandler, contigProperty);
+                    List<ContigProperty> newList = getOriginalContigProperty(originalAssemblyFragmentHandler, contigProperty);
+                    ContigProperty originalContigProperty = newList.get(0);
                     boolean invertedInAsm = false;
                     if (contigProperty.getIndexId() != originalContigProperty.getIndexId()) {
                         invertedInAsm = true;
                     }
                     contigProperty.setInitialState(chromosomeName, originalContigProperty.getInitialStart(), originalContigProperty.getInitialEnd(), invertedInAsm);
                     contigProperty.setInitiallyInverted(originalContigProperty.wasInitiallyInverted());
+
+                    if (contigProperty.getName().contains("fragment")) {
+                        addRelevantOriginalContigProperties(newList, splitFragments, contigProperty);
+                    }
                 }
 
                 Map<String, String> attributes = new HashMap<String, String>();
@@ -166,16 +173,93 @@ public class AssemblyFragmentHandler {
             scaffoldLength = 0;
             rowNum++;
         }
+        if (modifiedGeneration && !splitFragments.isEmpty()) {
+            fixInitialState(splitFragments);
+            printRelevantOriginalContigProperties(splitFragments);
+        }
     }
 
-    public ContigProperty getOriginalContigProperty(AssemblyFragmentHandler originalAssemblyFragmentHandler, ContigProperty lookupContigProperty) {
+    public List<ContigProperty> getOriginalContigProperty(AssemblyFragmentHandler originalAssemblyFragmentHandler, ContigProperty lookupContigProperty) {
         List<ContigProperty> originalContigProperties = originalAssemblyFragmentHandler.getContigProperties();
+        List<ContigProperty> newList = new ArrayList<>();
         for (ContigProperty contigProperty : originalContigProperties) {
-            if (Math.abs(contigProperty.getIndexId()) == Math.abs(lookupContigProperty.getIndexId())) {
-                return contigProperty;
+            if (lookupContigProperty.getName().contains(contigProperty.getOriginalContigName())) {
+                newList.add(contigProperty);
             }
         }
-        return null;
+        return newList;
+    }
+
+    public void addRelevantOriginalContigProperties(List<ContigProperty> originalContigProperties, Map<String, Pair<List<ContigProperty>, List<ContigProperty>>> splitFragments, ContigProperty lookupContigProperty) {
+        String originalContigName = lookupContigProperty.getOriginalContigName();
+
+        for (ContigProperty originalContigProperty : originalContigProperties) {
+            Pair<List<ContigProperty>, List<ContigProperty>> newEntry = new Pair<List<ContigProperty>, List<ContigProperty>>(new ArrayList<ContigProperty>(), new ArrayList<ContigProperty>());
+            if (!splitFragments.containsKey(originalContigName)) {
+                Pair<List<ContigProperty>, List<ContigProperty>> newPair = new Pair<List<ContigProperty>, List<ContigProperty>>(new ArrayList<ContigProperty>(), new ArrayList<ContigProperty>());
+                splitFragments.put(originalContigName, newPair);
+            }
+            newEntry = splitFragments.get(originalContigName);
+            if (!newEntry.getFirst().contains(originalContigProperty))
+                newEntry.getFirst().add(originalContigProperty);
+            if (!newEntry.getSecond().contains(lookupContigProperty))
+                newEntry.getSecond().add(lookupContigProperty);
+        }
+    }
+
+    public void printRelevantOriginalContigProperties(Map<String, Pair<List<ContigProperty>, List<ContigProperty>>> splitFragments) {
+        for (String key : splitFragments.keySet()) {
+            Pair<List<ContigProperty>, List<ContigProperty>> pair = splitFragments.get(key);
+            System.out.println("Old fragments");
+            for (ContigProperty contigProperty : pair.getFirst()) {
+                System.out.println(contigProperty.getName());
+            }
+            System.out.println("New fragments");
+            for (ContigProperty contigProperty : pair.getSecond()) {
+                System.out.println(contigProperty.getName());
+            }
+            System.out.println();
+        }
+    }
+
+    public void fixInitialState(Map<String, Pair<List<ContigProperty>, List<ContigProperty>>> newSplitFragments) {
+        Comparator<ContigProperty> comparator = new Comparator<ContigProperty>() {
+            @Override
+            public int compare(final ContigProperty o1, final ContigProperty o2) {
+                return o1.getFragmentNumber() - o2.getFragmentNumber();
+            }
+        };
+        for (String key : newSplitFragments.keySet()) {
+            //reconstruct from here
+            Pair<List<ContigProperty>, List<ContigProperty>> entry = newSplitFragments.get(key);
+            List<ContigProperty> splitList = entry.getSecond();
+            List<ContigProperty> originalContigList = entry.getFirst();
+            Collections.sort(splitList, comparator);
+            Collections.sort(originalContigList, comparator);
+
+
+            if (splitList.size() == originalContigList.size()) {
+                for (int i = 0; i < splitList.size(); i++) {
+                    setInitialStatesBasedOnOriginalContig(originalContigList.get(i), splitList.subList(i, i + 1), originalContigList.get(i).wasInitiallyInverted());
+                }
+            } else {
+                int index = 0;
+                for (ContigProperty originalContigProperty : originalContigList) {
+                    List<ContigProperty> neededFragments = new ArrayList<>();
+                    int sumLength = 0;
+                    int length = originalContigProperty.getLength();
+                    while (sumLength < length) {
+                        neededFragments.add(splitList.get(index));
+                        sumLength += splitList.get(index).getLength();
+                        index++;
+                    }
+                    if (originalContigProperty.wasInitiallyInverted()) {  //not sure if needed yet depends
+                        Collections.reverse(neededFragments);
+                    }
+                    setInitialStatesBasedOnOriginalContig(originalContigProperty, neededFragments, originalContigProperty.wasInitiallyInverted());
+                }
+            }
+        }
     }
     //**** Splitting ****//
 
@@ -281,10 +365,9 @@ public class AssemblyFragmentHandler {
     public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
         int newInitialStart;
         int newInitialEnd;
-        System.out.println("Initially inverted: " + originalContig.wasInitiallyInverted());
         boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
-        if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) {
+        if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) { //inverted in map
             newInitialEnd = originalContig.getInitialEnd();
             newInitialStart = newInitialEnd;
             for (ContigProperty contigProperty : splitContig) {
@@ -294,7 +377,7 @@ public class AssemblyFragmentHandler {
 
                 newInitialEnd = newInitialStart;
             }
-        } else { //not inverted
+        } else { //not inverted in map
             newInitialStart = originalContig.getInitialStart();
             newInitialEnd = newInitialStart;
             //    0-40, 40-50, 50-100

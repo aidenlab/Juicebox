@@ -573,7 +573,6 @@ public class MainMenuBar {
                 if (option == 0) { //The ISSUE is here
                     superAdapter.getAssemblyStateTracker().resetState();
                     superAdapter.refresh();
-                    System.out.print("yes");
                 }
             }
         });

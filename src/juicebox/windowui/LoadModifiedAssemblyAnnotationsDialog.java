@@ -264,9 +264,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         }
 
         if (asmPath != null && cpropsPath != null) {
-            try {
+//            try {
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
-                System.out.println(assemblyFileImporter.getAssemblyFragmentHandler().toString());
                 AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
                 AssemblyFragmentHandler initialAssemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getInitialAssemblyFragmentHandler();
                 modifiedAssemblyFragmentHandler.generateContigsAndScaffolds(true, true, initialAssemblyFragmentHandler);
@@ -274,11 +273,11 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                 superAdapter.refresh();
                 superAdapter.clearAllMatrixZoomCache();
 
-            } catch (Exception ee) {
+//            } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                MessageUtils.showMessage("Could not load loop Modified Assembly: " + ee.getMessage());
 //                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
-            }
+//            }
         } else {
             System.err.println("Invalid files...");
         }
