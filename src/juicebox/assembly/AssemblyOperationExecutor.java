@@ -47,7 +47,6 @@ public class AssemblyOperationExecutor {
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
-
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.invertSelection(selectedFeatures);
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);

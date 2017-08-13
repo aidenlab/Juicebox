@@ -73,7 +73,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Image tile width in pixels
      */
     private static final int imageTileWidth = 500;
-    public final int RESIZE_SNAP = 5;
+    private final int RESIZE_SNAP = 5;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -116,7 +116,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
      */
     private Robot heatmapMouseBot;
     private boolean activelyEditingAssembly = false;
-    private PromptedAssemblyAction promptedAssemblyAction = PromptedAssemblyAction.NONE;
+    private PromptedAssemblyAction currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
+    private PromptedAssemblyAction promptedAssemblyActionOnClick = PromptedAssemblyAction.NONE;
 
     /**
      * Initialize heatmap panel
@@ -130,7 +131,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         renderer = new HeatmapRenderer();
         superAdapter.setPearsonColorScale(renderer.getPearsonColorScale());
         final HeatmapMouseHandler mouseHandler = new HeatmapMouseHandler();
-        final HeatmapClickListener clickListener = new HeatmapClickListener(superAdapter);
+        final HeatmapClickListener clickListener = new HeatmapClickListener(this);
         addMouseMotionListener(mouseHandler);
         addMouseListener(mouseHandler);
         addMouseListener(clickListener);
@@ -678,6 +679,26 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     public void setShowGridLines(boolean showGridLines) {
         this.showGridLines = showGridLines;
+    }
+
+    public HiC getHiC() {
+        return this.hic;
+    }
+
+    public MainWindow getMainWindow() {
+        return this.mainWindow;
+    }
+
+    public SuperAdapter getSuperAdapter() {
+        return this.superAdapter;
+    }
+
+    public void unsafeSetSelectedChromosomes(Chromosome xChrom, Chromosome yChrom) {
+        superAdapter.unsafeSetSelectedChromosomes(xChrom, yChrom);
+    }
+
+    public void updateThumbnail() {
+        superAdapter.updateThumbnail();
     }
 
     public void clearTileCache() {
@@ -1252,7 +1273,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         HiCGlobals.translationInProgress = Boolean.TRUE;
     }
 
-
     private void splitMenuItemActionPerformed() {
         executeSplitMenuAction();
     }
@@ -1593,14 +1613,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
+    public Feature2D generateDebrisFeature(int xMousePos, int yMousePos) {
+        final double scaleFactor = hic.getScaleFactor();
+        double binOriginX = hic.getXContext().getBinOrigin();
+        double binOriginY = hic.getYContext().getBinOrigin();
+        Rectangle annotateRectangle = new Rectangle(xMousePos, (int) (yMousePos + (binOriginX - binOriginY) * scaleFactor), RESIZE_SNAP, RESIZE_SNAP);
+        superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
+        return superAdapter.getEditLayer().generateFeature(hic);
+    }
+
     public void toggleActivelyEditingAssembly() {
         this.activelyEditingAssembly = !this.activelyEditingAssembly;
     }
 
     //private enum AdjustAnnotation {LEFT, RIGHT, NONE}
 
-    public PromptedAssemblyAction getPromptedAssemblyAction() {
-        return this.promptedAssemblyAction;
+    public PromptedAssemblyAction getCurrentPromptedAssemblyAction() {
+        return this.currentPromptedAssemblyAction;
+    }
+
+    public PromptedAssemblyAction getPromptedAssemblyActionOnClick() {
+        return this.promptedAssemblyActionOnClick;
+    }
+
+    public void setPromptedAssemblyActionOnClick(PromptedAssemblyAction promptedAssemblyAction) {
+        this.promptedAssemblyActionOnClick = promptedAssemblyAction;
     }
 
     public void setDebrisFeauture(Feature2D debrisFeature) {
@@ -1673,8 +1710,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
             // Priority is right click
             if (e.isPopupTrigger()) {
                 if (activelyEditingAssembly) {
-                    if (promptedAssemblyAction == PromptedAssemblyAction.ANNOTATE) {
-                        debrisFeature = generateDebrisFeature(e);
+                    if (currentPromptedAssemblyAction == PromptedAssemblyAction.ANNOTATE) {
+                        debrisFeature = generateDebrisFeature(e.getX(), e.getY());
                         executeSplitMenuAction();
                     } else {
                         getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
@@ -2063,16 +2100,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
         }
 
-        public Feature2D generateDebrisFeature(final MouseEvent eF) {
-            final double scaleFactor = hic.getScaleFactor();
-            double binOriginX = hic.getXContext().getBinOrigin();
-            double binOriginY = hic.getYContext().getBinOrigin();
-            Rectangle annotateRectangle = new Rectangle(eF.getX(), (int) (eF.getX() + (binOriginX - binOriginY) * scaleFactor), RESIZE_SNAP, RESIZE_SNAP);
-            superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
-            debrisFeature = superAdapter.getEditLayer().generateFeature(hic);
-            return debrisFeature;
-        }
-
         @Override
         public void mouseMoved(MouseEvent e) {
             try {
@@ -2082,7 +2109,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             if (hic.getXContext() != null) {
                 adjustAnnotation = AdjustAnnotation.NONE;
-                promptedAssemblyAction = PromptedAssemblyAction.NONE;
+                currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
                 // Update tool tip text
                 if (!featureOptionMenuEnabled) {
                     superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
@@ -2150,11 +2177,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
-                                    promptedAssemblyAction = PromptedAssemblyAction.REGROUP;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                                         currentUpstreamFeature.getFeature2D().getEnd1() <= selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
                                     setCursor(MainWindow.pasteSWCursor);
-                                    promptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
                             } else if ((currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() >= 0) &&
                                     (currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() <= minDist) &&
@@ -2162,11 +2189,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
-                                    promptedAssemblyAction = PromptedAssemblyAction.REGROUP;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
                                 } else if (!(currentUpstreamFeature.getFeature2D().getEnd1() >= selectedFeatures.get(0).getStart1() &&
                                         currentUpstreamFeature.getFeature2D().getEnd1() <= selectedFeatures.get(selectedFeatures.size() - 1).getEnd1())) {
                                     setCursor(MainWindow.pasteNECursor);
-                                    promptedAssemblyAction = PromptedAssemblyAction.PASTE;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.PASTE;
                                 }
                             }
                         }
@@ -2184,7 +2211,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         int chr2Idx = hic.getYContext().getChromosome().getIndex();
                                         superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     }
-                                    promptedAssemblyAction = PromptedAssemblyAction.INVERT;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (Math.abs(asmFragment.getRectangle().getMinX() - mousePoint.getX()) < minDist &&
                                         Math.abs(asmFragment.getRectangle().getMaxY() - mousePoint.getY()) < minDist) {
                                     setCursor(MainWindow.invertNECursor);
@@ -2193,7 +2220,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         int chr2Idx = hic.getYContext().getChromosome().getIndex();
                                         superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
                                     }
-                                    promptedAssemblyAction = PromptedAssemblyAction.INVERT;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.INVERT;
                                 } else if (selectedFeatures.size() == 1 && Math.abs(x - (y + (binOriginY - binOriginX) * scaleFactor)) < minDist &&
                                         Math.abs(y - (x + (binOriginX - binOriginY) * scaleFactor)) < minDist &&
                                         x - asmFragment.getRectangle().getMinX() > RESIZE_SNAP + 1 &&
@@ -2201,12 +2228,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         y - asmFragment.getRectangle().getMinY() > RESIZE_SNAP + 1 &&
                                         asmFragment.getRectangle().getMaxY() - y > RESIZE_SNAP + 1){
                                     setCursor(MainWindow.scissorCursor);
-                                    promptedAssemblyAction = PromptedAssemblyAction.ANNOTATE;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.ANNOTATE;
 
                                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
                                     superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
-                                    generateDebrisFeature(e);
+                                    generateDebrisFeature(e.getX(), e.getY());
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
                                 } else if (debrisFeature != null) {
                                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
@@ -2227,7 +2254,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                         debrisFeatureContainer.getRectangle().getY() - y < minDist) {
                                     //TODO: accept cut here
                                     //setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-                                    promptedAssemblyAction = PromptedAssemblyAction.CUT;
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.CUT;
                                 }
                                 break;
                             }
@@ -2254,7 +2281,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         hic.setDiagonalCursorPoint(e.getPoint());
                         superAdapter.repaintTrackPanels();
                     }
-                } else if (adjustAnnotation == AdjustAnnotation.NONE && promptedAssemblyAction == PromptedAssemblyAction.NONE) {
+                } else if (adjustAnnotation == AdjustAnnotation.NONE && currentPromptedAssemblyAction == PromptedAssemblyAction.NONE) {
                     hic.setCursorPoint(null);
                     setCursor(Cursor.getDefaultCursor());
                 }
@@ -2262,7 +2289,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
 
         }
-
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {

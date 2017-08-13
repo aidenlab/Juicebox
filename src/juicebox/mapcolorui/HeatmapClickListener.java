@@ -47,14 +47,13 @@ import java.util.List;
  */
 public class HeatmapClickListener extends MouseAdapter implements ActionListener {
     private static final int clickDelay = 500;
-    public SuperAdapter superAdapter;
-    public HeatmapPanel.PromptedAssemblyAction promptedAssemblyAction;
+    private HeatmapPanel heatmapPanel;
     private Timer clickTimer;
     private MouseEvent lastMouseEvent;
 
-    public HeatmapClickListener(SuperAdapter superAdapter) {
+    public HeatmapClickListener(HeatmapPanel heatmapPanel) {
         this(clickDelay);
-        this.superAdapter = superAdapter;
+        this.heatmapPanel = heatmapPanel;
     }
 
     public HeatmapClickListener(int delay) {
@@ -63,21 +62,19 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println(lastMouseEvent.getClickCount());
         clickTimer.stop();
-        singleClick(lastMouseEvent, this.promptedAssemblyAction);
+        singleClick(lastMouseEvent);
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        promptedAssemblyAction = superAdapter.getHeatmapPanel().getPromptedAssemblyAction();
-        if (superAdapter.getHiC() == null) return;
+        if (heatmapPanel.getHiC() == null) return;
         safeMouseClicked(e);
     }
 
     private void unsafeMouseClickSubActionA(final MouseEvent eF) {
-        HiC hic = superAdapter.getHiC();
-        int[] chromosomeBoundaries = superAdapter.getHeatmapPanel().getChromosomeBoundaries();
+        HiC hic = heatmapPanel.getHiC();
+        int[] chromosomeBoundaries = heatmapPanel.getChromosomeBoundaries();
 
         double binX = hic.getXContext().getBinOrigin() + (eF.getX() / hic.getScaleFactor());
         double binY = hic.getYContext().getBinOrigin() + (eF.getY() / hic.getScaleFactor());
@@ -100,15 +97,15 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
             // do nothing, leave chromosomes null
         }
         if (xChrom != null && yChrom != null) {
-            superAdapter.unsafeSetSelectedChromosomes(xChrom, yChrom);
+            heatmapPanel.unsafeSetSelectedChromosomes(xChrom, yChrom);
         }
 
         //Only if zoom is changed All->Chr:
-        superAdapter.updateThumbnail();
+        heatmapPanel.updateThumbnail();
     }
 
     private void unsafeMouseClickSubActionB(double centerBinX, double centerBinY, HiCZoom newZoom) {
-        HiC hic = superAdapter.getHiC();
+        HiC hic = heatmapPanel.getHiC();
 
         try {
             final String chrXName = hic.getXContext().getChromosome().toString();
@@ -125,7 +122,7 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
     }
 
     private void safeMouseClicked(final MouseEvent eF) {
-        HiC hic = superAdapter.getHiC();
+        HiC hic = heatmapPanel.getHiC();
 
         if (!eF.isPopupTrigger() && eF.getButton() == MouseEvent.BUTTON1 && !eF.isControlDown()) {
 
@@ -137,6 +134,7 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
 
             if (eF.getClickCount() > 0) {
                 lastMouseEvent = eF;
+                heatmapPanel.setPromptedAssemblyActionOnClick(heatmapPanel.getCurrentPromptedAssemblyAction());
                 if (clickTimer.isRunning()) {
                     clickTimer.stop();
                     doubleClick(lastMouseEvent);
@@ -147,10 +145,10 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
         }
     }
 
-    private void singleClick(final MouseEvent lastMouseEvent, HeatmapPanel.PromptedAssemblyAction promptedAssemblyAction) {
-        HiC hic = superAdapter.getHiC();
-        MainWindow mainWindow = superAdapter.getMainWindow();
-        HeatmapPanel heatmapPanel = superAdapter.getHeatmapPanel();
+    private void singleClick(final MouseEvent lastMouseEvent) {
+        HiC hic = heatmapPanel.getHiC();
+        MainWindow mainWindow = heatmapPanel.getMainWindow();
+        SuperAdapter superAdapter = heatmapPanel.getSuperAdapter();
 
         if (hic.isWholeGenome()) {
             Runnable runnable = new Runnable() {
@@ -163,7 +161,7 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
             List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
             Feature2DGuiContainer currentUpstreamFeature = heatmapPanel.getCurrentUpstreamFeature();
             Feature2DGuiContainer currentDownstreamFeature = heatmapPanel.getCurrentDownstreamFeature();
-            switch (promptedAssemblyAction) {
+            switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
                 case REGROUP:
                     AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
                     heatmapPanel.repaint();
@@ -173,16 +171,14 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
                     AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
                     heatmapPanel.removeSelection(); //TODO fix this so that highlight moves with translated selection
                     heatmapPanel.repaint();
-//                        mouseMoved(lastMouseEvent);
                     break;
                 case INVERT:
                     AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
                     heatmapPanel.removeSelection(); //TODO fix this so that highlight moves with translated selection
                     heatmapPanel.repaint();
-//                        mouseMoved(lastMouseEvent);
                     break;
                 case ANNOTATE:
-                    Feature2D debrisFeature = generateDebrisFeature(lastMouseEvent);
+                    Feature2D debrisFeature = heatmapPanel.generateDebrisFeature(lastMouseEvent.getX(), lastMouseEvent.getY());
                     heatmapPanel.setDebrisFeauture(debrisFeature);
                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
@@ -210,8 +206,8 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
     }
 
     private void doubleClick(MouseEvent lastMouseEvent) {
-        HiC hic = superAdapter.getHiC();
-        MainWindow mainWindow = superAdapter.getMainWindow();
+        HiC hic = heatmapPanel.getHiC();
+        MainWindow mainWindow = heatmapPanel.getMainWindow();
 
         // Double click, zoom and center on click location
         try {
@@ -254,21 +250,10 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
         }
     }
 
-    public Feature2D generateDebrisFeature(final MouseEvent eF) {
-        HiC hic = superAdapter.getHiC();
-        HeatmapPanel heatmapPanel = superAdapter.getHeatmapPanel();
-        final double scaleFactor = hic.getScaleFactor();
-        double binOriginX = hic.getXContext().getBinOrigin();
-        double binOriginY = hic.getYContext().getBinOrigin();
-        Rectangle annotateRectangle = new Rectangle(eF.getX(), (int) (eF.getX() + (binOriginX - binOriginY) * scaleFactor), heatmapPanel.RESIZE_SNAP, heatmapPanel.RESIZE_SNAP);
-        superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
-        return superAdapter.getEditLayer().generateFeature(hic);
-    }
-
     private void restoreDefaultVariables() {
-        superAdapter.getHiC().setCursorPoint(null);
-        superAdapter.getHeatmapPanel().setCursor(Cursor.getDefaultCursor());
-        superAdapter.getHeatmapPanel().repaint();
-        superAdapter.repaintTrackPanels();
+        HiC hic = heatmapPanel.getHiC();
+        hic.setCursorPoint(null);
+        heatmapPanel.setCursor(Cursor.getDefaultCursor());
+        heatmapPanel.repaint();
     }
 }

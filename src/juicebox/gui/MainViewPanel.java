@@ -497,7 +497,6 @@ public class MainViewPanel {
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        //*Dimension prefSize = new Dimension(210, 490);
         Dimension prefSize = new Dimension(210, 250);
         mouseHoverTextPanel.setPreferredSize(prefSize);
 
@@ -507,10 +506,8 @@ public class MainViewPanel {
 
         annotationsLayerPanel = generate2DAnnotationsLayerSelectionPanel(superAdapter);
         annotationsLayerPanel.setBackground(Color.gray);
-        annotationsLayerPanel.setPreferredSize(new Dimension(210, 160));
-//        annotationsLayerPanel.setToolTipText("Hello!");
+        annotationsLayerPanel.setPreferredSize(new Dimension(210, 130));
 
-//        tooltipPanel.setPreferredSize(new Dimension(210, 500));
         tooltipPanel.add(tooltipScroller, BorderLayout.NORTH);
         tooltipPanel.add(annotationsLayerPanel, BorderLayout.SOUTH);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
@@ -736,7 +733,7 @@ public class MainViewPanel {
         tooltipPanel.remove(this.annotationsLayerPanel);
         this.annotationsLayerPanel = annotationsLayerPanel;
         this.annotationsLayerPanel.setBackground(Color.gray);
-        this.annotationsLayerPanel.setPreferredSize(new Dimension(210, 160));
+        this.annotationsLayerPanel.setPreferredSize(new Dimension(210, 130));
         tooltipPanel.add(this.annotationsLayerPanel, BorderLayout.SOUTH);
     }
 
