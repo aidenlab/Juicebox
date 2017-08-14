@@ -101,8 +101,8 @@ public class MainViewPanel {
     private boolean menuTabOpen = false;
     private boolean rightPnlOpen = false;
     private JPanel sliderPanel;
-    private final JideLabel sliderLbl = new JideLabel();
-
+    private final JideButton sliderBtn = new JideButton();
+    private final JideButton sliderCloseBtn = new JideButton();
 
     public void setIgnoreUpdateThumbnail(boolean flag) {
         ignoreUpdateThumbnail = true;
@@ -667,39 +667,19 @@ public class MainViewPanel {
 
         //======= Slider Tab Button =======
         ImageIcon sliderIcon = new ImageIcon(getClass().getResource("/images/sliders.png"));
-        sliderLbl.setIcon(sliderIcon);
-        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderLbl, -33, SpringLayout.SOUTH, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderLbl, -28, SpringLayout.EAST, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderLbl, -10, SpringLayout.SOUTH, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderLbl, -5, SpringLayout.EAST, heatmapPanel);
-        heatmapPanel.add(sliderLbl);
-        sliderLbl.setVisible(false);
-
-        sliderLbl.addMouseListener(new MouseListener() {
+        sliderBtn.setIcon(sliderIcon);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderBtn, -33, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderBtn, -28, SpringLayout.EAST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderBtn, -10, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderBtn, -5, SpringLayout.EAST, heatmapPanel);
+        heatmapPanel.add(sliderBtn);
+        sliderBtn.setVisible(false);
+        sliderBtn.addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                //no-op
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                //no-op
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                //no-op
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 sliderPanel.setVisible(true);
-                sliderLbl.setVisible(false);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                //no-op
+                sliderCloseBtn.setVisible(true);
+                sliderBtn.setVisible(false);
             }
         });
 
@@ -708,50 +688,33 @@ public class MainViewPanel {
         SpringLayout sl_sliderPanel = new SpringLayout();
         sliderPanel.setLayout(sl_sliderPanel);
         sliderPanel.setBackground(Color.WHITE);
-        sliderPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
+        sliderPanel.setOpaque(false);
+//        sliderPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
+        sliderPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
         sliderPanel.setVisible(false);
 
         sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderPanel, -70 * 2 - 30, SpringLayout.SOUTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderPanel, -215, SpringLayout.EAST, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, 0, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, -30, SpringLayout.SOUTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderPanel, 0, SpringLayout.EAST, heatmapPanel);
 //        heatmapPanel.setLayer(sliderPanel, 1);
         heatmapPanel.add(sliderPanel);
 
-        JideLabel sliderCloseLbl = new JideLabel();
         ImageIcon sliderCloseIcon = new ImageIcon(getClass().getResource("/images/close.png"));
-        sliderCloseLbl.setIcon(sliderCloseIcon);
-        sl_sliderPanel.putConstraint(SpringLayout.NORTH, sliderCloseLbl, -28, SpringLayout.SOUTH, sliderPanel);
-        sl_sliderPanel.putConstraint(SpringLayout.WEST, sliderCloseLbl, 5, SpringLayout.WEST, sliderPanel);
-        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, sliderCloseLbl, -5, SpringLayout.SOUTH, sliderPanel);
-        sl_sliderPanel.putConstraint(SpringLayout.EAST, sliderCloseLbl, 28, SpringLayout.WEST, sliderPanel);
-        sliderPanel.add(sliderCloseLbl);
+        sliderCloseBtn.setIcon(sliderCloseIcon);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderCloseBtn, -33, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderCloseBtn, -28, SpringLayout.EAST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderCloseBtn, -10, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderCloseBtn, -5, SpringLayout.EAST, heatmapPanel);
+        heatmapPanel.add(sliderCloseBtn);
+        sliderCloseBtn.setVisible(false);
 
-        sliderCloseLbl.addMouseListener(new MouseListener() {
+        sliderCloseBtn.addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 sliderPanel.setVisible(false);
-                sliderLbl.setVisible(true);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
+                sliderCloseBtn.setVisible(false);
+                sliderBtn.setVisible(true);
             }
         });
 
@@ -1432,7 +1395,7 @@ public class MainViewPanel {
     }
 
     public void showSliders() {
-        sliderLbl.setVisible(true);
+        sliderBtn.setVisible(true);
     }
 
     /*public boolean isPearsonDisplayed() {

@@ -88,18 +88,21 @@ public class ResolutionControl extends JPanel {
 
         this.setBorder(LineBorder.createGrayLineBorder());
         this.setLayout(new BorderLayout());
-//        this.setBorder(new EmptyBorder(0, 0, 0,0));
+        this.setBorder(new EmptyBorder(0, 0, 0, 0));
         this.setBackground(Color.WHITE);
+        this.setOpaque(false);
 
 
         resolutionLabel = new JLabel(getUnitLabel());
         resolutionLabel.setHorizontalAlignment(SwingConstants.CENTER);
         resolutionLabel.setBackground(HiCGlobals.backgroundColor);
+        resolutionLabel.setOpaque(false);
 
         JPanel resolutionLabelPanel = new JPanel();
         resolutionLabelPanel.setBackground(Color.WHITE);
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
+        resolutionLabelPanel.setOpaque(false);
 
         // TODO not working
         // supposed to underline "resolution text" but why? is this an important gui issue?
@@ -173,6 +176,7 @@ public class ResolutionControl extends JPanel {
         resolutionSlider = new JSlider();
         sliderPanel.add(resolutionSlider);
         sliderPanel.setBackground(Color.WHITE);
+        sliderPanel.setOpaque(false);
 
         lockButton = new JideButton();
 
@@ -191,6 +195,7 @@ public class ResolutionControl extends JPanel {
 
         resolutionButtonPanel.add(sliderPanel);
         resolutionButtonPanel.setBackground(Color.WHITE);
+        resolutionButtonPanel.setOpaque(false);
         this.add(resolutionButtonPanel, BorderLayout.CENTER);
 
 
