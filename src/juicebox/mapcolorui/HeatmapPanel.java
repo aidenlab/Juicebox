@@ -819,6 +819,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             public void actionPerformed(ActionEvent e) {
                 final boolean isLinked = mi4.isSelected();
                 if (isLinked) {
+                    HiCGlobals.wasLinkedBeforeMousePress = false;
                     hic.broadcastLocation();
                 }
                 hic.setLinkedMode(isLinked);
@@ -1684,6 +1685,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         DragMode dragMode = DragMode.NONE;
         private Point lastMousePoint;
+        private Point lastPressedMousePoint;
 
         @Override
         public void mouseEntered(MouseEvent e) {
@@ -1700,6 +1702,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         @Override
         public void mousePressed(final MouseEvent e) {
+
             featureOptionMenuEnabled = false;
             if (hic.isWholeGenome()) {
                 if (e.isPopupTrigger()) {
@@ -1719,82 +1722,92 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } else {
                     getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 }
-                // Alt down for zoom
-            } else if (e.isAltDown()) {
-                dragMode = DragMode.ZOOM;
-                // Shift down for custom annotations
-            } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN)) {
-
-                if (!activelyEditingAssembly) {
-                    boolean showWarning = false;
-
-                    if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
-                        firstAnnotation = false;
-                        String text = "There are unsaved hand annotations from your previous session! \n" +
-                                "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
-                        System.err.println(text);
-                        JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
-                    }
-
-                    //superAdapter.getActiveLayerHandler().updateSelectionPoint(e.getX(), e.getY());
-                    superAdapter.getActiveLayerHandler().doPeak();
-                }
-
-                dragMode = DragMode.ANNOTATE;
-                //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
-                superAdapter.getActiveLayerHandler().doPeak();
-                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-                // Corners for resize annotation
-
-                try {
-                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
-                    if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
-
-                        HiCGlobals.splitModeEnabled = false;
-                        superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
-                        superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
-                        superAdapter.getEditLayer().clearAnnotations();
-                    }
-                    if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
-                        HiCGlobals.splitModeEnabled = true;
-                    }
-                } catch (Exception ee) {
-                }
-            } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
-                dragMode = DragMode.RESIZE;
-                Feature2D loop = currentFeature.getFeature2D();
-                // Resizing upper left corner, keep end points stationary
-                if (adjustAnnotation == AdjustAnnotation.LEFT) {
-                    superAdapter.getActiveLayerHandler().setStationaryEnd(loop.getEnd1(), loop.getEnd2());
-                    // Resizing lower right corner, keep start points stationary
-                } else {
-                    superAdapter.getActiveLayerHandler().setStationaryStart(loop.getStart1(), loop.getStart2());
-                }
-
-
-                try {
-                    HiCGridAxis xAxis = hic.getZd().getXGridAxis();
-                    HiCGridAxis yAxis = hic.getZd().getYGridAxis();
-                    final double scaleFactor = hic.getScaleFactor();
-                    double binOriginX = hic.getXContext().getBinOrigin();
-                    double binOriginY = hic.getYContext().getBinOrigin();
-                    loop.doTest();//TODO meh - please comment why test?
-                    // hic.getFeature2DHandler()
-                    annotateRectangle = superAdapter.getActiveLayerHandler().getFeatureHandler().getRectangleFromFeature(
-                            xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
-                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                    preAdjustLoop = new Pair<>(new Pair<>(chr1Idx, chr2Idx), loop);
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
             } else {
-                dragMode = DragMode.PAN;
-                setCursor(MainWindow.fistCursor);
+
+                // turn off continuous sync for dragging
+                if (hic.isLinkedMode()) {
+                    HiCGlobals.wasLinkedBeforeMousePress = true;
+                    hic.setLinkedMode(false);
+                }
+
+                // Alt down for zoom
+                if (e.isAltDown()) {
+                    dragMode = DragMode.ZOOM;
+                    // Shift down for custom annotations
+                } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN)) {
+
+                    if (!activelyEditingAssembly) {
+                        boolean showWarning = false;
+
+                        if (superAdapter.unsavedEditsExist() && firstAnnotation && showWarning) {
+                            firstAnnotation = false;
+                            String text = "There are unsaved hand annotations from your previous session! \n" +
+                                    "Go to 'Annotations > Hand Annotations > Load Last' to restore.";
+                            System.err.println(text);
+                            JOptionPane.showMessageDialog(superAdapter.getMainWindow(), text);
+                        }
+
+                        //superAdapter.getActiveLayerHandler().updateSelectionPoint(e.getX(), e.getY());
+                        superAdapter.getActiveLayerHandler().doPeak();
+                    }
+
+                    dragMode = DragMode.ANNOTATE;
+                    //superAdapter.getActiveLayer().updateSelectionPoint(e.getX(), e.getY());
+                    superAdapter.getActiveLayerHandler().doPeak();
+                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                    // Corners for resize annotation
+
+                    try {
+                        List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                        if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+
+                            HiCGlobals.splitModeEnabled = false;
+                            superAdapter.setActiveLayerHandler(superAdapter.getMainLayer());
+                            superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
+                            superAdapter.getEditLayer().clearAnnotations();
+                        }
+                        if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
+                            HiCGlobals.splitModeEnabled = true;
+                        }
+                    } catch (Exception ee) {
+                    }
+                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
+                    dragMode = DragMode.RESIZE;
+                    Feature2D loop = currentFeature.getFeature2D();
+                    // Resizing upper left corner, keep end points stationary
+                    if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                        superAdapter.getActiveLayerHandler().setStationaryEnd(loop.getEnd1(), loop.getEnd2());
+                        // Resizing lower right corner, keep start points stationary
+                    } else {
+                        superAdapter.getActiveLayerHandler().setStationaryStart(loop.getStart1(), loop.getStart2());
+                    }
+
+
+                    try {
+                        HiCGridAxis xAxis = hic.getZd().getXGridAxis();
+                        HiCGridAxis yAxis = hic.getZd().getYGridAxis();
+                        final double scaleFactor = hic.getScaleFactor();
+                        double binOriginX = hic.getXContext().getBinOrigin();
+                        double binOriginY = hic.getYContext().getBinOrigin();
+                        loop.doTest();//TODO meh - please comment why test?
+                        // hic.getFeature2DHandler()
+                        annotateRectangle = superAdapter.getActiveLayerHandler().getFeatureHandler().getRectangleFromFeature(
+                                xAxis, yAxis, loop, binOriginX, binOriginY, scaleFactor);
+                        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                        preAdjustLoop = new Pair<>(new Pair<>(chr1Idx, chr2Idx), loop);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else {
+                    dragMode = DragMode.PAN;
+                    setCursor(MainWindow.fistCursor);
+                }
+                lastMousePoint = e.getPoint();
+                lastPressedMousePoint = e.getPoint();
             }
-            lastMousePoint = e.getPoint();
         }
 
 
@@ -1834,95 +1847,110 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 }
 
-            }*/ else if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
-                // New annotation is added (not single click) and new feature from custom annotation
+            }*/ else {
+                // turn on continuous sync after dragging
+                if (HiCGlobals.wasLinkedBeforeMousePress) {
+                    HiCGlobals.wasLinkedBeforeMousePress = false;
+                    hic.setLinkedMode(true);
 
-
-                updateSelectedFeatures(false);
-                List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
-
-                if (HiCGlobals.translationInProgress) {
-                    translationInProgressMouseReleased(newSelectedFeatures);
-                } else {
-                    selectedFeatures = newSelectedFeatures;
-                }
-                updateSelectedFeatures(true);
-
-                Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-                Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-                superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-                repaint();
-
-                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                    if (superAdapter.getMainLayer().getLayerVisibility()) {
-                        tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-                        addHighlightedFeature(tempSelectedGroup);
-                    }
-                } else {
-                    removeHighlightedFeature();
+                    if (lastPressedMousePoint != null) {
+                        double deltaX = e.getX() - lastPressedMousePoint.getX();
+                        double deltaY = e.getY() - lastPressedMousePoint.getY();
+                        if (Math.abs(deltaX) > 0 && Math.abs(deltaY) > 0) {
+                            hic.broadcastLocation();
+                        }
+                    } else hic.broadcastLocation();
                 }
 
-                //getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
+                if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
+                    // New annotation is added (not single click) and new feature from custom annotation
 
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+                    updateSelectedFeatures(false);
+                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
 
-                restoreDefaultVariables();
-
-            } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        unsafeDragging();
+                    if (HiCGlobals.translationInProgress) {
+                        translationInProgressMouseReleased(newSelectedFeatures);
+                    } else {
+                        selectedFeatures = newSelectedFeatures;
                     }
-                };
-                mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
-            } else if (dragMode == DragMode.ANNOTATE) {
-                // New annotation is added (not single click) and new feature from custom annotation
-                superAdapter.getActiveLayerHandler().addFeature(hic);
-                restoreDefaultVariables();
-            } else if (dragMode == DragMode.RESIZE) {
-                // New annotation is added (not single click) and new feature from custom annotation
-                int idx1 = preAdjustLoop.getFirst().getFirst();
-                int idx2 = preAdjustLoop.getFirst().getSecond();
+                    updateSelectedFeatures(true);
 
-                Feature2D secondLoop = preAdjustLoop.getSecond();
-                // Add a new loop if it was resized (prevents deletion on single click)
+                    Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+                    Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+                    superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+                    repaint();
 
-                try {
-                    final double scaleFactor = hic.getScaleFactor();
-                    final int screenWidth = HeatmapPanel.this.getBounds().width;
-                    final int screenHeight = HeatmapPanel.this.getBounds().height;
-                    int centerX = (int) (screenWidth / scaleFactor) / 2;
-                    int centerY = (int) (screenHeight / scaleFactor) / 2;
+                    if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                        if (superAdapter.getMainLayer().getLayerVisibility()) {
+                            tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
+                            addHighlightedFeature(tempSelectedGroup);
+                        }
+                    } else {
+                        removeHighlightedFeature();
+                    }
 
-                    if (superAdapter.getActiveLayerHandler().hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
-                            Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
-                            hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize) {
-                        Feature2D oldFeature2D = secondLoop.deepCopy();
+                    //getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
 
-                        superAdapter.getActiveLayerHandler().removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+                    superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+                    superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+
+                    restoreDefaultVariables();
+
+                } else if ((dragMode == DragMode.ZOOM || dragMode == DragMode.SELECT) && zoomRectangle != null) {
+                    Runnable runnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            unsafeDragging();
+                        }
+                    };
+                    mainWindow.executeLongRunningTask(runnable, "Mouse Drag");
+                } else if (dragMode == DragMode.ANNOTATE) {
+                    // New annotation is added (not single click) and new feature from custom annotation
+                    superAdapter.getActiveLayerHandler().addFeature(hic);
+                    restoreDefaultVariables();
+                } else if (dragMode == DragMode.RESIZE) {
+                    // New annotation is added (not single click) and new feature from custom annotation
+                    int idx1 = preAdjustLoop.getFirst().getFirst();
+                    int idx2 = preAdjustLoop.getFirst().getSecond();
+
+                    Feature2D secondLoop = preAdjustLoop.getSecond();
+                    // Add a new loop if it was resized (prevents deletion on single click)
+
+                    try {
+                        final double scaleFactor = hic.getScaleFactor();
+                        final int screenWidth = HeatmapPanel.this.getBounds().width;
+                        final int screenHeight = HeatmapPanel.this.getBounds().height;
+                        int centerX = (int) (screenWidth / scaleFactor) / 2;
+                        int centerY = (int) (screenHeight / scaleFactor) / 2;
+
+                        if (superAdapter.getActiveLayerHandler().hasLoop(hic.getZd(), idx1, idx2, centerX, centerY,
                                 Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
-                                hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
+                                hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop) && changedSize) {
+                            Feature2D oldFeature2D = secondLoop.deepCopy();
 
-                        Feature2D tempFeature2D = superAdapter.getActiveLayerHandler().addFeature(hic);
-                        superAdapter.getActiveLayerHandler().setLastItem(idx1, idx2, secondLoop);
-                        for (String newKey : oldFeature2D.getAttributeKeys()) {
-                            tempFeature2D.setAttribute(newKey, oldFeature2D.getAttribute(newKey));
-                        }
+                            superAdapter.getActiveLayerHandler().removeFromList(hic.getZd(), idx1, idx2, centerX, centerY,
+                                    Feature2DHandler.numberOfLoopsToFind, hic.getXContext().getBinOrigin(),
+                                    hic.getYContext().getBinOrigin(), hic.getScaleFactor(), secondLoop);
 
-                        //remove preadjust loop from list
-                        if (activelyEditingAssembly && HiCGlobals.splitModeEnabled){
-                            debrisFeature = tempFeature2D;
+                            Feature2D tempFeature2D = superAdapter.getActiveLayerHandler().addFeature(hic);
+                            superAdapter.getActiveLayerHandler().setLastItem(idx1, idx2, secondLoop);
+                            for (String newKey : oldFeature2D.getAttributeKeys()) {
+                                tempFeature2D.setAttribute(newKey, oldFeature2D.getAttribute(newKey));
+                            }
+
+                            //remove preadjust loop from list
+                            if (activelyEditingAssembly && HiCGlobals.splitModeEnabled) {
+                                debrisFeature = tempFeature2D;
+                            }
                         }
+                    } catch (Exception ee) {
+                        System.err.println("Unable to remove pre-resized loop");
                     }
-                } catch (Exception ee) {
-                    System.err.println("Unable to remove pre-resized loop");
+                    restoreDefaultVariables();
+                } else {
+                    setProperCursor();
                 }
-                restoreDefaultVariables();
-            } else {
-                setProperCursor();
             }
         }
 
