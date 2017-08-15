@@ -569,7 +569,7 @@ public class MainViewPanel {
             try {
                 JPanel panel = createLayerPanel(handler, superAdapter, twoDAnnotationsLayerSelectionPanel);
                 //layerPanels.add(panel);
-                twoDAnnotationsLayerSelectionPanel.add(panel, 0);
+                twoDAnnotationsLayerSelectionPanel.add(panel);
             } catch (IOException e) {
                 System.err.println("Unable to generate layer panel " + (i - 1));
                 //e.printStackTrace();
@@ -612,7 +612,6 @@ public class MainViewPanel {
                 int index = superAdapter.moveUpIndex(handler);
                 twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
                 twoDAnnotationsLayerSelectionPanel.revalidate();
-                twoDAnnotationsLayerSelectionPanel.repaint();
                 updateLayers2DPanel(superAdapter);
                 superAdapter.repaint();
             }
@@ -627,7 +626,6 @@ public class MainViewPanel {
                 int index = superAdapter.moveDownIndex(handler);
                 twoDAnnotationsLayerSelectionPanel.add(parentPanel, index);
                 twoDAnnotationsLayerSelectionPanel.revalidate();
-                twoDAnnotationsLayerSelectionPanel.repaint();
                 updateLayers2DPanel(superAdapter);
                 superAdapter.repaint();
             }
@@ -723,10 +721,6 @@ public class MainViewPanel {
         button.setBorderPainted(false);
         button.setPreferredSize(new Dimension(miniButtonSize, miniButtonSize));
         return button;
-    }
-
-    public JPanel getAnnotationsLayerPanel() {
-        return this.annotationsLayerPanel;
     }
 
     public void setAnnotationsLayerPanel(JPanel annotationsLayerPanel) {

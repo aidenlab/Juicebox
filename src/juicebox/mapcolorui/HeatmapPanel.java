@@ -53,6 +53,7 @@ import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.awt.Toolkit.getDefaultToolkit;
@@ -1524,7 +1525,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 txt.append(superAdapter.getTrackPanelPrintouts(x, y));
             }
 
-            /*if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
                 Collections.sort(selectedFeatures);
                 for (Feature2D feature2D : selectedFeatures) {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
@@ -1540,7 +1541,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     txt.append("</span>");
                 }
             } else {
-                */
                 Point currMouse = new Point(x, y);
                 double minDistance = Double.POSITIVE_INFINITY;
                 //mouseIsOverFeature = false;
@@ -1564,7 +1564,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                             //mouseIsOverFeature = true;
                         }
                     }
-                //}
+                }
             }
             txt.append("<br>");
             txt.append("</html>");
