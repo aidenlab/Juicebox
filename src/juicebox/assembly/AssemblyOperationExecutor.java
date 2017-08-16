@@ -67,6 +67,7 @@ public class AssemblyOperationExecutor {
         if (upstreamFeature2D != null && downstreamFeature2D != null) {
             AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
             assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+            performAssemblyAction(superAdapter, assemblyFragmentHandler, false);
         }
     }
 
