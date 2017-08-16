@@ -1871,7 +1871,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     if (HiCGlobals.translationInProgress) {
                         translationInProgressMouseReleased(newSelectedFeatures);
                     } else {
-                        selectedFeatures = newSelectedFeatures;
+                        if (selectedFeatures != null && selectedFeatures.equals(newSelectedFeatures)) {
+                            removeSelection();
+                        } else {
+                            selectedFeatures = newSelectedFeatures;
+                        }
                     }
                     updateSelectedFeatures(true);
 
