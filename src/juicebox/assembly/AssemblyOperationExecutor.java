@@ -63,6 +63,7 @@ public class AssemblyOperationExecutor {
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
         assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+        superAdapter.refresh();
     }
 
     public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refeshMap) {

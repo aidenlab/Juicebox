@@ -24,6 +24,8 @@
 
 package juicebox.track.feature;
 
+import juicebox.HiCGlobals;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,7 @@ public class Contig2D extends Feature2D {
 
     private String initialChr;
     private int initialStart, initialEnd;
+    private long unscaledStart, unscaledEnd;
     private boolean initialInvert = false;
     private boolean isInverted = false;
 
@@ -46,18 +49,11 @@ public class Contig2D extends Feature2D {
         initialEnd = end1;
     }
 
-    private static int processInversionPlotting(int pos, int limitStart, int limitEnd) {
-        if (pos >= limitStart && pos <= limitEnd) {
-            return limitStart + (limitEnd - pos);
-        }
-        return pos;
-    }
-
-    private static int processTranslationPlotting(int pos, int initStart, int initEnd, int newStart) {
-        if (pos >= initStart && pos <= initEnd) {
-            return pos + (newStart - initStart);
-        }
-        return pos;
+    public Contig2D(FeatureType featureType, String chr1, long start1, long end1, String chr2, long start2, long end2, Color c,
+                    Map<String, String> attributes) {
+        super(featureType, chr1, (int) Math.round(start1 / HiCGlobals.hicMapScale), (int) Math.round(end1 / HiCGlobals.hicMapScale), chr2, (int) Math.round(start2 / HiCGlobals.hicMapScale), (int) Math.round(end2 / HiCGlobals.hicMapScale), c, attributes);
+        this.unscaledStart = start1;
+        this.unscaledEnd = end1;
     }
 
     public void toggleInversion() {
@@ -90,6 +86,14 @@ public class Contig2D extends Feature2D {
         return initialEnd;
     }
 
+    public long getUnscaledStart() {
+        return unscaledStart;
+    }
+
+    public long getUnscaledEnd() {
+        return unscaledEnd;
+    }
+
     public boolean getInitialInvert() {
         return initialInvert;
     } //TODO: generalize!
@@ -100,8 +104,8 @@ public class Contig2D extends Feature2D {
 
     @Override
     public String tooltipText() {
-        attributes.put("origStart", "" + initialStart);
-        attributes.put("origEnd", "" + initialEnd);
+        attributes.put("origStart", "" + initialStart * HiCGlobals.hicMapScale); //not sure if we really need to print this out anyways??
+        attributes.put("origEnd", "" + initialEnd * HiCGlobals.hicMapScale);
         attributes.put("Inverted", "" + isInverted);
         return super.tooltipText();
     }

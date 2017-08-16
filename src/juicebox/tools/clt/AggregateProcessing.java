@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,6 @@ package juicebox.tools.clt;
 
 import jargs.gnu.CmdLineParser;
 
-import juicebox.tools.HiCTools;
-import juicebox.tools.dev.APAvsDistance;
-
 import java.io.IOException;
 
 /**
@@ -39,21 +36,6 @@ class AggregateProcessing {
 
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
-
-        String hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
-        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
-
-        /*
-        APAvsDistance test= new APAvsDistance();
-        test.run();
-
-        */
-
-        String[] ll51231123 = {"apa_vs_distance", hicFilePaths,PeaksFile,SaveFolderPath};
-
-        HiCTools.main(ll51231123);
-
 
         /*
         String[] ll51231123 = {"motifs",

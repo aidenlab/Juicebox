@@ -147,11 +147,10 @@ public class AssemblyFragmentHandler {
                 attributes.put(scaffoldIndexId, contigIndex.toString());
                 attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasInitiallyInverted()));
                 //put attribute here
-                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
-                        chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
+                Contig2D contig = new Contig2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, contigStartPos + contigLength,
+                        chromosomeName, contigStartPos, contigStartPos + contigLength,
                         new Color(0, 255, 0), attributes); //todo
 
-                Contig2D contig = feature2D.toContig();
                 if (contigProperty.isInverted()) {
                     contig.toggleInversion(); //assuming initial contig2D inverted = false
                 }
@@ -318,13 +317,13 @@ public class AssemblyFragmentHandler {
         boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         length = debrisStart - originalStart;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length, initiallyInverted);
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         length = originalEnd - debrisEnd;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length, initiallyInverted);
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         splitContig.add(firstFragment);
         splitContig.add(secondFragment);
@@ -347,13 +346,13 @@ public class AssemblyFragmentHandler {
         boolean initiallyInverted = originalContig.wasInitiallyInverted();
 
         length = originalEnd - debrisEnd;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length, initiallyInverted);
+        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
+        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         length = debrisStart - originalStart;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length, initiallyInverted);
+        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, (int) Math.round(length * (HiCGlobals.hicMapScale)), initiallyInverted);
 
         splitContig.add(thirdFragment);
         splitContig.add(secondFragment);

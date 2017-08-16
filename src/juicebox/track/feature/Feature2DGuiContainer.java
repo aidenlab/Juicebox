@@ -56,6 +56,9 @@ public class Feature2DGuiContainer {
         return feature2D;
     }
 
+    public Contig2D getContig2D() {
+        return feature2D.toContig();
+    }
     public AnnotationLayerHandler getAnnotationLayerHandler() {
         return annotationLayerHandler;
     }
