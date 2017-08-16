@@ -158,41 +158,43 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
             };
             mainWindow.executeLongRunningTask(runnable, "Mouse Click Set Chr");
         } else {
-            List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
-            Feature2DGuiContainer currentUpstreamFeature = heatmapPanel.getCurrentUpstreamFeature();
-            Feature2DGuiContainer currentDownstreamFeature = heatmapPanel.getCurrentDownstreamFeature();
-            switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
-                case REGROUP:
-                    AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
-                    heatmapPanel.repaint();
-                    mouseMoved(lastMouseEvent);
-                    break;
-                case PASTE:
-                    AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
-                    heatmapPanel.removeSelection(); //TODO fix this so that highlight moves with translated selection
-                    heatmapPanel.repaint();
-                    break;
-                case INVERT:
-                    AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
-                    heatmapPanel.removeSelection(); //TODO fix this so that highlight moves with translated selection
-                    heatmapPanel.repaint();
-                    break;
-                case ANNOTATE:
-                    Feature2D debrisFeature = heatmapPanel.generateDebrisFeature(lastMouseEvent.getX(), lastMouseEvent.getY());
-                    heatmapPanel.setDebrisFeauture(debrisFeature);
-                    int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                    int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                    if (debrisFeature != null) {
-                        superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
-                    }
-                    superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
-                    HiCGlobals.splitModeEnabled = true;
-                    superAdapter.setActiveLayerHandler(superAdapter.getEditLayer());
-                    restoreDefaultVariables();
-                    heatmapPanel.repaint();
-                    break;
-                default:
-                    break;
+            if (!lastMouseEvent.isShiftDown()) {
+                List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
+                Feature2DGuiContainer currentUpstreamFeature = heatmapPanel.getCurrentUpstreamFeature();
+                Feature2DGuiContainer currentDownstreamFeature = heatmapPanel.getCurrentDownstreamFeature();
+                switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
+                    case REGROUP:
+                        AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
+                        heatmapPanel.repaint();
+                        mouseMoved(lastMouseEvent);
+                        break;
+                    case PASTE:
+                        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, currentUpstreamFeature.getFeature2D());
+                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint();
+                        break;
+                    case INVERT:
+                        AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
+                        heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
+                        heatmapPanel.repaint();
+                        break;
+                    case ANNOTATE:
+                        Feature2D debrisFeature = generateDebrisFeature(lastMouseEvent);
+                        heatmapPanel.setDebrisFeauture(debrisFeature);
+                        int chr1Idx = hic.getXContext().getChromosome().getIndex();
+                        int chr2Idx = hic.getYContext().getChromosome().getIndex();
+                        if (debrisFeature != null) {
+                            superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
+                        }
+                        superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
+                        HiCGlobals.splitModeEnabled = true;
+                        superAdapter.setActiveLayerHandler(superAdapter.getEditLayer());
+                        restoreDefaultVariables();
+                        heatmapPanel.repaint();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -248,6 +250,17 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Feature2D generateDebrisFeature(final MouseEvent eF) {
+        HiC hic = heatmapPanel.getHiC();
+        SuperAdapter superAdapter = heatmapPanel.getSuperAdapter();
+        final double scaleFactor = hic.getScaleFactor();
+        double binOriginX = hic.getXContext().getBinOrigin();
+        double binOriginY = hic.getYContext().getBinOrigin();
+        Rectangle annotateRectangle = new Rectangle(eF.getX(), (int) (eF.getX() + (binOriginX - binOriginY) * scaleFactor), heatmapPanel.RESIZE_SNAP, heatmapPanel.RESIZE_SNAP);
+        superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
+        return superAdapter.getEditLayer().generateFeature(hic);
     }
 
     private void restoreDefaultVariables() {

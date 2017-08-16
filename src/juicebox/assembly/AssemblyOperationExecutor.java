@@ -42,15 +42,19 @@ public class AssemblyOperationExecutor {
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.invertSelection(selectedFeatures);
-        performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyFragmentHandler.invertSelection(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+        }
     }
 
     public static void moveSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.moveSelection(selectedFeatures, featureOrigin);
-        performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyFragmentHandler.moveSelection(selectedFeatures, featureOrigin);
+            performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+        }
     }
 
     public static void moveDebrisToEnd(SuperAdapter superAdapter) {
@@ -60,15 +64,17 @@ public class AssemblyOperationExecutor {
     }
 
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+        if (upstreamFeature2D != null && downstreamFeature2D != null) {
+            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+        }
     }
 
-    public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refeshMap) {
+    public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
         Runnable runnable = new Runnable() {
             public void run() {
                 superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-                if (refeshMap) {
+                if (refreshMap) {
                     superAdapter.clearAllMatrixZoomCache();
                     superAdapter.refresh();
                 }
