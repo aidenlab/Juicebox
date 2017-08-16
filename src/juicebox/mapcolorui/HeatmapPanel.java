@@ -2205,8 +2205,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (!HiCGlobals.splitModeEnabled && (currentUpstreamFeature.getFeature2D().getEnd1() == currentDownstreamFeature.getFeature2D().getStart1())) {
                             if ((mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() >= 0) &&
                                     (mousePoint.getX() - currentUpstreamFeature.getRectangle().getMaxX() <= minDist) &&
-                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= 0) &&
-                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
+                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() >= 0) &&
+                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
@@ -2217,8 +2217,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                 }
                             } else if ((currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() >= 0) &&
                                     (currentUpstreamFeature.getRectangle().getMaxX() - mousePoint.getX() <= minDist) &&
-                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= 0) &&
-                                    (currentUpstreamFeature.getRectangle().getMaxY() - mousePoint.getY() <= minDist)) {
+                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() >= 0) &&
+                                    (mousePoint.getY() - currentUpstreamFeature.getRectangle().getMaxY() <= minDist)) {
                                 if (selectedFeatures == null || selectedFeatures.isEmpty()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.REGROUP;
