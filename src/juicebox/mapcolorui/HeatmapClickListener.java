@@ -50,6 +50,8 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
     private HeatmapPanel heatmapPanel;
     private Timer clickTimer;
     private MouseEvent lastMouseEvent;
+    private Feature2DGuiContainer currentUpstreamFeature = null;
+    private Feature2DGuiContainer currentDownstreamFeature = null;
 
     public HeatmapClickListener(HeatmapPanel heatmapPanel) {
         this(clickDelay);
@@ -134,12 +136,14 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
 
             if (eF.getClickCount() > 0) {
                 lastMouseEvent = eF;
-                heatmapPanel.setPromptedAssemblyActionOnClick(heatmapPanel.getCurrentPromptedAssemblyAction());
                 if (clickTimer.isRunning()) {
                     clickTimer.stop();
                     doubleClick(lastMouseEvent);
                 } else {
                     clickTimer.restart();
+                    heatmapPanel.setPromptedAssemblyActionOnClick(heatmapPanel.getCurrentPromptedAssemblyAction());
+                    currentUpstreamFeature = heatmapPanel.getCurrentUpstreamFeature();
+                    currentDownstreamFeature = heatmapPanel.getCurrentDownstreamFeature();
                 }
             }
         }
@@ -160,15 +164,13 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
         } else {
             if (!lastMouseEvent.isShiftDown()) {
                 List<Feature2D> selectedFeatures = heatmapPanel.getSelectedFeatures();
-                Feature2DGuiContainer currentUpstreamFeature = heatmapPanel.getCurrentUpstreamFeature();
-                Feature2DGuiContainer currentDownstreamFeature = heatmapPanel.getCurrentDownstreamFeature();
                 switch (heatmapPanel.getPromptedAssemblyActionOnClick()) {
                     case REGROUP:
                         AssemblyOperationExecutor.toggleGroup(superAdapter, currentUpstreamFeature.getFeature2D(), currentDownstreamFeature.getFeature2D());
                         heatmapPanel.repaint();
                         try {
                             Robot bot = new Robot();
-                            bot.mouseMove(lastMouseEvent.getXOnScreen(), lastMouseEvent.getYOnScreen());
+                            bot.mouseMove(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y);
                         } catch (AWTException e) {
                             e.printStackTrace();
                         }
