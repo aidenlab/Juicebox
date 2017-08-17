@@ -185,20 +185,7 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
                         heatmapPanel.removeSelection();  // TODO fix this so that highlight moves with translated selection
                         heatmapPanel.repaint();
                         break;
-                    case ANNOTATE:
-                        Feature2D debrisFeature = generateDebrisFeature(lastMouseEvent);
-                        heatmapPanel.setDebrisFeauture(debrisFeature);
-                        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-                        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-                        if (debrisFeature != null) {
-                            superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().getFeatureList().checkAndRemoveFeature(chr1Idx, chr2Idx, debrisFeature);
-                        }
-                        superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
-                        HiCGlobals.splitModeEnabled = true;
-                        superAdapter.setActiveLayerHandler(superAdapter.getEditLayer());
-                        restoreDefaultVariables();
-                        heatmapPanel.repaint();
-                        break;
+                    //case CUT is processed on mousePressed and mouseReleased
                     default:
                         break;
                 }
@@ -215,51 +202,6 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
     }
 
     private void doubleClick(MouseEvent lastMouseEvent) {
-        HiC hic = heatmapPanel.getHiC();
-        MainWindow mainWindow = heatmapPanel.getMainWindow();
-
-        // Double click, zoom and center on click location
-        try {
-            final HiCZoom currentZoom = hic.getZd().getZoom();
-            final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !lastMouseEvent.isAltDown());
-            final HiCZoom newZoom = hic.isResolutionLocked() ||
-                    hic.isPearsonEdgeCaseEncountered(nextPotentialZoom) ? currentZoom : nextPotentialZoom;
-
-            // If newZoom == currentZoom adjust scale factor (no change in resolution)
-            final double centerBinX = hic.getXContext().getBinOrigin() + (lastMouseEvent.getX() / hic.getScaleFactor());
-            final double centerBinY = hic.getYContext().getBinOrigin() + (lastMouseEvent.getY() / hic.getScaleFactor());
-
-            // perform superzoom / normal zoom / reverse-superzoom
-            if (newZoom.equals(currentZoom)) {
-                double mult = lastMouseEvent.isAltDown() ? 0.5 : 2.0;
-                // if newScaleFactor > 1.0, performs superzoom
-                // if newScaleFactor = 1.0, performs normal zoom
-                // if newScaleFactor < 1.0, performs reverse superzoom
-                double newScaleFactor = Math.max(0.0, hic.getScaleFactor() * mult);
-
-                String chrXName = hic.getXContext().getChromosome().getName();
-                String chrYName = hic.getYContext().getChromosome().getName();
-
-                int genomeX = Math.max(0, (int) (centerBinX) * newZoom.getBinSize());
-                int genomeY = Math.max(0, (int) (centerBinY) * newZoom.getBinSize());
-
-                hic.unsafeActuallySetZoomAndLocation(chrXName, chrYName, newZoom, genomeX, genomeY,
-                        newScaleFactor, true, HiC.ZoomCallType.STANDARD, true, hic.isResolutionLocked() ? 1 : 0, true);
-
-            } else {
-                Runnable runnable = new Runnable() {
-                    public void run() {
-                        unsafeMouseClickSubActionB(centerBinX, centerBinY, newZoom);
-                    }
-                };
-                mainWindow.executeLongRunningTask(runnable, "Mouse Click Zoom");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void longClick(MouseEvent lastMouseEvent) {
         HiC hic = heatmapPanel.getHiC();
         MainWindow mainWindow = heatmapPanel.getMainWindow();
 
