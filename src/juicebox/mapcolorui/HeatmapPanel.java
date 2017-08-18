@@ -1398,9 +1398,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append("<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
-            txt.append(formatter.format(xGenomeStart));
+            txt.append(formatter.format(Math.round(xGenomeStart * HiCGlobals.hicMapScale)));
             txt.append("-");
-            txt.append(formatter.format(xGenomeEnd));
+            txt.append(formatter.format(Math.round(xGenomeEnd) * HiCGlobals.hicMapScale));
 
             if (xGridAxis instanceof HiCFragmentAxis) {
                 String fragNumbers;
@@ -1422,9 +1422,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append("</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
-            txt.append(formatter.format(yGenomeStart));
+            txt.append(formatter.format(Math.round(yGenomeStart * HiCGlobals.hicMapScale)));
             txt.append("-");
-            txt.append(formatter.format(yGenomeEnd));
+            txt.append(formatter.format(Math.round(yGenomeEnd * HiCGlobals.hicMapScale)));
 
             if (yGridAxis instanceof HiCFragmentAxis) {
                 String fragNumbers;

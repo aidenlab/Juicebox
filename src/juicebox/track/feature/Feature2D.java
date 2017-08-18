@@ -199,6 +199,17 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public String tooltipText() {
 
+        long start1 = this.start1;
+        long start2 = this.start2;
+        long end1 = this.end1;
+        long end2 = this.end2;
+        if (this instanceof Contig2D) {
+            Contig2D contig2D = this.toContig();
+            start1 = contig2D.getUnscaledStart();
+            start2 = contig2D.getUnscaledStart();
+            end1 = contig2D.getUnscaledEnd();
+            end2 = contig2D.getUnscaledEnd();
+        }
         StringBuilder txt = new StringBuilder();
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(getFeatureName());
@@ -215,7 +226,7 @@ public class Feature2D implements Comparable<Feature2D> {
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.leftChromosomeColor + ";'>");
         txt.append(chr2).append(":").append(formatter.format(start2 + 1));
         if ((end2 - start2) > 1) {
-            txt.append("-").append(formatter.format(end2));
+            txt.append("-").append(formatter.format((end2)));
         }
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
