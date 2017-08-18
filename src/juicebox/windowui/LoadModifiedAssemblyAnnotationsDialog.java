@@ -270,8 +270,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                 AssemblyFragmentHandler initialAssemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getInitialAssemblyFragmentHandler();
                 modifiedAssemblyFragmentHandler.generateContigsAndScaffolds(true, true, initialAssemblyFragmentHandler);
                 superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler);
-                superAdapter.refresh();
                 superAdapter.clearAllMatrixZoomCache();
+            superAdapter.refresh();
 
 //            } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);

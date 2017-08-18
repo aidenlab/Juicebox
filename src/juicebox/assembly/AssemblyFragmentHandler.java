@@ -700,8 +700,6 @@ public class AssemblyFragmentHandler {
 
         scaffoldProperties.clear();
         scaffoldProperties.addAll(newGroups);
-
-        return;
     }
 
     //**** Group toggle ****//

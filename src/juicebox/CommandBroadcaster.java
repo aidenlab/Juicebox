@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,10 +41,11 @@ import java.net.Socket;
 class CommandBroadcaster {
 
     public static int selfPort;
+    public static int numPorts = 50;
 
     public static void broadcast(String command) {
         // Broadcast self port to other running instances
-        for (int p = 30000; p <= 30009; p++) {
+        for (int p = 30000; p <= 30000 + numPorts - 1; p++) {
             if (p == selfPort) continue;  // don't broadcast to self
             try {
                 CommandBroadcaster.broadcastCommand(command, p);
