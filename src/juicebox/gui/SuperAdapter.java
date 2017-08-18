@@ -500,7 +500,7 @@ public class SuperAdapter {
 
             mainMenuBar.updateMainMapHasBeenLoaded(true);
             if (control) {
-                mainMenuBar.updateContolMapHasBeenLoaded(true);
+                mainMenuBar.updateControlMapHasBeenLoaded(true);
             }
             mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {

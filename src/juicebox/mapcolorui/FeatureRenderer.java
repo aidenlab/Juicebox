@@ -44,7 +44,7 @@ public class FeatureRenderer {
                               Feature2D highlightedFeature, boolean showFeatureHighlight,
                               int maxWidth, int maxHeight) {
         if (annotationHandler.getLineStyle() == LineStyle.DASHED) {
-            Stroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.0f, new float[]{30}, 0.0f);
+            Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{1}, 0);
             g2.setStroke(dashed);
         }
 

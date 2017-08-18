@@ -26,7 +26,6 @@ package juicebox.windowui;
 
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.data.HiCFileLoader;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.dev.Private;
@@ -133,12 +132,6 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
             superAdapter.togglePanelVisible();
-            return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F12) {
-            String newURL = MessageUtils.showInputDialog("Specify reassembling");
-            if (newURL != null) {
-                AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
-            }
             return true;
         } else {
             return false;
