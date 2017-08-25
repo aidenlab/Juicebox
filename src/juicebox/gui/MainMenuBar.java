@@ -602,6 +602,9 @@ public class MainMenuBar {
 
         importModifiedAssembly = new JMenuItem("Import Modified assembly");
         importModifiedAssembly.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.getLayersPanel() == null) {

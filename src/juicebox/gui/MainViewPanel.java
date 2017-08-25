@@ -485,7 +485,6 @@ public class MainViewPanel {
         //========= mouse hover text ======
         tooltipPanel = new JPanel(new BorderLayout());
         tooltipPanel.setBackground(Color.white);
-        tooltipPanel.setPreferredSize(new Dimension(210, 700));
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
