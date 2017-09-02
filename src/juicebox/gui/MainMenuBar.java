@@ -602,6 +602,9 @@ public class MainMenuBar {
 
         importModifiedAssembly = new JMenuItem("Import Modified assembly");
         importModifiedAssembly.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.getLayersPanel() == null) {
@@ -618,13 +621,27 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 double scale;
-                String newURL = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
                 try {
-                    scale = Double.parseDouble(newURL);
-                    if (scale == 0.0) { //scale cannot be zero
+                    scale = Double.parseDouble(newScale);
+                    if (scale == 0.0) {  // scale cannot be zero
                         scale = 1.0;
                     }
                     HiCGlobals.hicMapScale = scale;
+
+                    // Rescale resolution slider labels
+                    superAdapter.getMainViewPanel().getResolutionSlider().reset();
+
+                    // Rescale axis tick labels
+                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                    // Rescale assembly annotations
+                    if (superAdapter.getAssemblyStateTracker() != null) {
+                        superAdapter.getAssemblyStateTracker().regenerateLayers();
+                        superAdapter.refresh();
+                    }
+
                 } catch (NumberFormatException t) {
                     JOptionPane.showMessageDialog(null, "Value must be an integer!");
                 }
@@ -640,7 +657,7 @@ public class MainMenuBar {
         exportAssembly.setEnabled(enabled);
         resetAssembly.setEnabled(enabled);
         enableAssembly.setEnabled(enabled);
-        setScale.setEnabled(enabled);
+        setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
 
         assemblyMenu.add(enableAssembly);
@@ -648,6 +665,7 @@ public class MainMenuBar {
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        setScale.setEnabled(true);
         assemblyMenu.add(setScale);
 
         menuBar.add(fileMenu);

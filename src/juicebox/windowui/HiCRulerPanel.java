@@ -289,8 +289,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                     x1 = x2;
                 }
             }
-        }
-        else {
+        } else {
             HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
             int binRange = (int) (w / hic.getScaleFactor());
@@ -350,7 +349,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
                         x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
 
-                        String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                        String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier() * HiCGlobals.hicMapScale) + " " + ts.getMajorUnit();
                         int strWidth = g.getFontMetrics().stringWidth(chrPosition);
                         int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
 

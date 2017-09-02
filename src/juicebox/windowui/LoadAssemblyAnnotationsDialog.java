@@ -268,7 +268,9 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
         if (asmPath != null && cpropsPath != null) {
             try {
-                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+                //AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+
+                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
 
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
                 scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);

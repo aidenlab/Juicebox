@@ -37,8 +37,8 @@ public class AssemblyOperationExecutor {
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic, boolean moveTo) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.editContig(originalContig, debrisContig);
-        performAssemblyAction(superAdapter, assemblyFragmentHandler, false);
+        assemblyFragmentHandler.editFragment(originalContig, debrisContig);
+        performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
@@ -57,12 +57,6 @@ public class AssemblyOperationExecutor {
         }
     }
 
-    public static void moveDebrisToEnd(SuperAdapter superAdapter) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.moveDebrisToEnd();
-        performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
-    }
-
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         if (upstreamFeature2D != null && downstreamFeature2D != null) {
             AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
@@ -72,15 +66,9 @@ public class AssemblyOperationExecutor {
     }
 
     public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-                if (refreshMap) {
-                    superAdapter.clearAllMatrixZoomCache();
-                    superAdapter.refresh();
-                }
-            }
-        };
-        superAdapter.getMainWindow().executeLongRunningTask(runnable, "AssemblyAction");
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        if (refreshMap) {
+            superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
+        }
     }
 }
