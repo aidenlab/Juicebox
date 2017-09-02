@@ -998,6 +998,7 @@ public class SuperAdapter {
         if (files != null && files.length > 0) {
             for (File f : files) {
                 Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
+                hic.setChromosomeHandler(hic.getChromosomeHandler());
                 mainViewPanel.getChrBox1().addItem(custom);
                 mainViewPanel.getChrBox2().addItem(custom);
             }

@@ -173,6 +173,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
             return;
         }
 
+        MatrixZoomData controlZd = null;
+        try {
+            controlZd = hic.getControlZd();
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
+
         if (hic.getXContext() == null) return;
 
         // todo pearsons
@@ -217,7 +224,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 ImageTile tile;
                 try {
-                    tile = getImageTile(zd, tileRow, tileColumn, displayOption, normalizationType);
+                    tile = getImageTile(zd, controlZd, tileRow, tileColumn, displayOption, normalizationType);
                 } catch (Exception e) {
                     return;
                 }
@@ -628,7 +635,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * @param tileColumn column index of tile
      * @return image tile
      */
-    private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MatrixType displayOption,
+    private ImageTile getImageTile(MatrixZoomData zd, MatrixZoomData controlZd, int tileRow, int tileColumn, MatrixType displayOption,
                                    NormalizationType normalizationType) {
 
         String key = zd.getTileKey(tileRow, tileColumn, displayOption);
@@ -659,7 +666,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     imageWidth,
                     imageHeight,
                     zd,
-                    hic.getControlZd(),
+                    controlZd,
                     displayOption,
                     normalizationType,
                     hic.getExpectedValues(),
