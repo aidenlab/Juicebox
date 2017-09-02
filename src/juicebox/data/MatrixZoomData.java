@@ -71,7 +71,7 @@ public class MatrixZoomData {
     protected final int blockBinCount;   // block size in bins
     protected final int blockColumnCount;     // number of block columns
     // Cache the last 20 blocks loaded
-    protected final LRUCache<String, Block> blockCache = new LRUCache<>(50);
+    private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
@@ -218,7 +218,7 @@ public class MatrixZoomData {
         }
     }
 
-    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
+    private void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
         int blockNumber = r * getBlockColumnCount() + c;
         String key = getBlockKey(blockNumber, no);
         Block b;

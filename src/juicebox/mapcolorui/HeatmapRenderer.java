@@ -215,20 +215,22 @@ class HeatmapRenderer {
 
             List<Block> blocks = null;
             try {
-                blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                if (zd != null)
+                    blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
-                System.err.println("zd is null? 32");
+                if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
             List<Block> ctrlBlocks = null;
             try {
-                ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                if (controlZD != null)
+                    ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
-                System.err.println("czd is null? c32");
+                if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
             if (blocks == null && ctrlBlocks == null) {
-                System.err.println("everything null...?");
+                System.err.println("Both ZoomData objects are null");
                 return false;
             }
 
