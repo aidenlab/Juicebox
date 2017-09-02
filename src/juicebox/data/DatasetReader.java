@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,6 @@ public interface DatasetReader {
     Dataset read() throws IOException;
 
     Matrix readMatrix(String key) throws IOException;
-
-    Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException;
 
     Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException;
 

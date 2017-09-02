@@ -1224,7 +1224,7 @@ public class HiC {
                 case CONTROL:
                 case OECTRL:
                 case PEARSONCTRL:
-                    return getControlZd().getKey() + displayOption;
+                    return getControlZd().getColorScaleKey(displayOption);
                 case OE:
                 case RATIO:
                 case OBSERVED:
@@ -1234,7 +1234,7 @@ public class HiC {
                 case PEARSON:
                 case PEARSONVS:
                 default:
-                    return getZd().getKey() + displayOption;
+                    return getZd().getColorScaleKey(displayOption);
             }
         } catch (Exception e) {
         }

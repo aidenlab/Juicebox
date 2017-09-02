@@ -120,7 +120,7 @@ class HeatmapRenderer {
     }
 
     public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption) {
-        return zd.getKey() + displayOption;
+        return zd.getColorScaleKey(displayOption);
     }
 
     public boolean render(int originX,
@@ -165,7 +165,7 @@ class HeatmapRenderer {
 
         if (displayOption == MatrixType.PEARSON) {
 
-            String key = zd.getKey() + displayOption;
+            String key = zd.getColorScaleKey(displayOption);
 
             BasicMatrix bm = zd.getPearsons(df);
 
@@ -184,7 +184,7 @@ class HeatmapRenderer {
 
             BasicMatrix bm = controlZD.getPearsons(controlDF);
 
-            String key = controlZD.getKey() + displayOption;
+            String key = controlZD.getColorScaleKey(displayOption);
             if (!pearsonColorScale.containsKey(key)) {
                 pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
             }
@@ -200,7 +200,7 @@ class HeatmapRenderer {
             BasicMatrix bm1 = zd.getPearsons(df);
             BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
-            String key = zd.getKey() + displayOption;
+            String key = zd.getColorScaleKey(displayOption);
             if (!pearsonColorScale.containsKey(key)) {
                 float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
                 float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
@@ -233,7 +233,7 @@ class HeatmapRenderer {
             if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
                 if (controlZD != null && ctrlBlocks != null) {
 
-                    String key = controlZD.getKey() + displayOption;
+                    String key = controlZD.getColorScaleKey(displayOption);
                     ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks);
 
                     for (Block b : ctrlBlocks) {
@@ -288,7 +288,7 @@ class HeatmapRenderer {
                 if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
                 if (comboBlocks.isEmpty()) return false;
 
-                String key = zd.getKey() + displayOption;
+                String key = zd.getColorScaleKey(displayOption);
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
 
                 double averageCount = zd.getAverageCount();
@@ -372,14 +372,14 @@ class HeatmapRenderer {
             } else {
 
                 boolean hasControl = controlZD != null && ctrlBlocks != null && MatrixType.isSimpleControlType(displayOption);
-                Map<Integer, Block> controlBlocks = new HashMap<>();
+                Map<String, Block> controlBlocks = new HashMap<>();
                 if (hasControl) {
                     for (Block b : ctrlBlocks) {
-                        controlBlocks.put(b.getNumber(), b);
+                        controlBlocks.put(b.getUniqueRegionID(), b);
                     }
                 }
 
-                String key = zd.getKey() + displayOption;
+                String key = zd.getColorScaleKey(displayOption);
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
 
                 double averageCount = zd.getAverageCount();
@@ -393,7 +393,7 @@ class HeatmapRenderer {
 
                         Map<String, ContactRecord> controlRecords = new HashMap<>();
                         if (hasControl) {
-                            Block cb = controlBlocks.get(b.getNumber());
+                            Block cb = controlBlocks.get(b.getUniqueRegionID());
                             if (cb != null) {
                                 for (ContactRecord ctrlRec : cb.getContactRecords()) {
                                     controlRecords.put(ctrlRec.getKey(), ctrlRec);

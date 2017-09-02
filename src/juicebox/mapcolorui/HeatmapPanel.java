@@ -631,7 +631,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private ImageTile getImageTile(MatrixZoomData zd, int tileRow, int tileColumn, MatrixType displayOption,
                                    NormalizationType normalizationType) {
 
-        String key = zd.getKey() + "_" + tileRow + "_" + tileColumn + "_ " + displayOption;
+        String key = zd.getTileKey(tileRow, tileColumn, displayOption);
         ImageTile tile = tileCache.get(key);
 
         if (tile == null) {

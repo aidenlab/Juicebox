@@ -100,7 +100,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         }
     }
 
-    public static Block modifyBlock(Block block, MatrixZoomData zd, RegionPair rp) {
+    public static Block modifyBlock(Block block, String key, MatrixZoomData zd, RegionPair rp) {
         int binSize = zd.getBinSize();
         int chr1Idx = zd.getChr1Idx();
         int chr2Idx = zd.getChr2Idx();
@@ -108,30 +108,30 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-            int newX = record.getBinX();
-            if (newX >= rp.xRegion.getX1() / binSize && newX <= rp.xRegion.getX2() / binSize + 1) {
-                newX = rp.xTransRegion.getX1() / binSize + (newX - (rp.xRegion.getX1() / binSize));
+            int newX = record.getBinX() * binSize;
+            if (newX >= rp.xRegion.getX1() && newX <= rp.xRegion.getX2()) {
+                newX = rp.xTransRegion.getX1() + newX - rp.xRegion.getX1();
             } else {
                 continue;
             }
 
-            int newY = record.getBinY();
-            if (newY >= rp.yRegion.getX1() / binSize && newY <= rp.yRegion.getX2() / binSize + 1) {
-                newY = rp.yTransRegion.getX1() / binSize + (newY - (rp.yRegion.getX1() / binSize));
+            int newY = record.getBinY() * binSize;
+            if (newY >= rp.yRegion.getX1() && newY <= rp.yRegion.getX2()) {
+                newY = rp.yTransRegion.getX1() + newY - rp.yRegion.getX1();
             } else {
                 continue;
             }
+            int newBinX = newX / binSize;
+            int newBinY = newY / binSize;
 
-            if (chr1Idx == chr2Idx && newY < newX) {
-                alteredContacts.add(new ContactRecord(newY, newX, record.getCounts()));
+            if (chr1Idx == chr2Idx && newBinY < newBinX) {
+                alteredContacts.add(new ContactRecord(newBinY, newBinX, record.getCounts()));
             } else {
-                alteredContacts.add(new ContactRecord(newX, newY, record.getCounts()));
+                alteredContacts.add(new ContactRecord(newBinX, newBinY, record.getCounts()));
             }
         }
         //System.out.println("num orig records "+block.getContactRecords().size()+ " after alter "+alteredContacts.size()+" bnum "+block.getNumber());
-        int newID = -(block.getNumber() + 10000 * chr1Idx + 300407 * chr2Idx);
-        block = new Block(newID, alteredContacts);
-        return block;
+        return new Block(block.getNumber(), alteredContacts, key);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     }
 
     @Override
-    public void printDescription() {
+    public void printFullDescription() {
         System.out.println("Custom Chromosome: " + chr1.getName() + " - " + chr2.getName());
         System.out.println("unit: " + zoom.getUnit());
         System.out.println("binSize (bp): " + zoom.getBinSize());
@@ -215,7 +215,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                     if (blocksNumsToLoadForZd.get(zd).contains(blockRegionPair)) {
                         continue;
                     } else {
-                        String key = getBlockKey(zd, blockNumber, no);
+                        String key = zd.getBlockKey(blockNumber, no);
                         Block b;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             b = blockCache.get(key);
@@ -254,12 +254,12 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                     public void run() {
                         try {
                             //TODO blocknums may cause incident down the road
-                            String key = getBlockKey(zd, blockNumberObj.getFirst(), no);
+                            String key = zd.getBlockKey(blockNumberObj.getFirst(), no);
                             Block b = reader.readNormalizedBlock(blockNumberObj.getFirst(), zd, no);
                             if (b == null) {
-                                b = new Block(blockNumberObj.getFirst());   // An empty block
+                                b = new Block(blockNumberObj.getFirst(), key);   // An empty block
                             } else {
-                                b = modifyBlock(b, zd, blockNumberObj.getSecond());
+                                b = modifyBlock(b, key, zd, blockNumberObj.getSecond());
                             }
 
                             if (HiCGlobals.useCache) {
@@ -360,10 +360,6 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             }
         }
         return foundFeatures;
-    }
-
-    public String getBlockKey(MatrixZoomData zd, int blockNumber, NormalizationType no) {
-        return getKey() + "_" + zd.getChr1Idx() + "-" + zd.getChr2Idx() + "_" + blockNumber + "_" + no;
     }
 
     private class RegionPair {
