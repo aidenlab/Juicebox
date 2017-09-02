@@ -104,7 +104,8 @@ class MapSelectionPanel extends JPanel {
                     for (ActionListener listener : actionListeners) {
                         listener.actionPerformed(e);
                     }
-                    // because cache keys currently don't account for map activation
+                    // todo because cache keys currently don't account for map activation
+                    // actually don't need to do this, just do a clear cache whenever triggered
                     HiCGlobals.useCache = false;
                     superAdapter.refresh();
                 }

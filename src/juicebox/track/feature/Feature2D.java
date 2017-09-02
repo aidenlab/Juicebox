@@ -205,17 +205,17 @@ public class Feature2D implements Comparable<Feature2D> {
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.topChromosomeColor + ";'>");
-        txt.append(chr1).append(":").append(formatter.format(start1 + 1));
+        txt.append(chr1).append(":").append(formatter.format(Math.round(start1 + 1) * HiCGlobals.hicMapScale));
         if ((end1 - start1) > 1) {
-            txt.append("-").append(formatter.format(end1));
+            txt.append("-").append(formatter.format(Math.round(end1 * HiCGlobals.hicMapScale)));
         }
 
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.leftChromosomeColor + ";'>");
-        txt.append(chr2).append(":").append(formatter.format(start2 + 1));
+        txt.append(chr2).append(":").append(formatter.format(Math.round(start2 + 1) * HiCGlobals.hicMapScale));
         if ((end2 - start2) > 1) {
-            txt.append("-").append(formatter.format(end2));
+            txt.append("-").append(formatter.format(Math.round(end2 * HiCGlobals.hicMapScale)));
         }
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");

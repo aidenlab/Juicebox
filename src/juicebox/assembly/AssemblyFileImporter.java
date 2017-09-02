@@ -28,7 +28,9 @@ import juicebox.track.feature.Feature2DList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 /**
  * Created by ranganmostofa on 6/29/17.
@@ -36,28 +38,48 @@ import java.util.*;
 public class AssemblyFileImporter {
     private String cpropsFilePath;
     private String asmFilePath;
-    private List<ContigProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
+    private List<FragmentProperty> fragmentProperties;
+    private List<List<Integer>> assemblyGroups;
     private AssemblyFragmentHandler assemblyFragmentHandler;
 
-    public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
+    // Deprecated
+//    public AssemblyFileImporter(String cpropsFilePath, String asmFilePath) {
+//        this.cpropsFilePath = cpropsFilePath;
+//        this.asmFilePath = asmFilePath;
+//        fragmentProperties = new ArrayList<>();
+//        assemblyGroups = new ArrayList<>();
+//        readFiles();
+//        assemblyFragmentHandler = new AssemblyFragmentHandler(fragmentProperties, assemblyGroups);
+//        assemblyFragmentHandler.generateContigsAndScaffolds(true, false, assemblyFragmentHandler);
+//    }
+
+    public AssemblyFileImporter(String cpropsFilePath, String asmFilePath, boolean modified) {
         this.cpropsFilePath = cpropsFilePath;
         this.asmFilePath = asmFilePath;
-        contigProperties = new ArrayList<>();
-        scaffoldProperties = new ArrayList<>();
-        readFiles();
-        assemblyFragmentHandler = new AssemblyFragmentHandler(contigProperties, scaffoldProperties);
-        assemblyFragmentHandler.generateContigsAndScaffolds(true, false, assemblyFragmentHandler);
-    }
-
-    public void readFiles() {
+        fragmentProperties = new ArrayList<>();
+        assemblyGroups = new ArrayList<>();
         try {
+            newParseCpropsFile();
             parseAsmFile();
-            parseCpropsFile();
+            if (!modified)
+                setInitialState();
+            else
+                setModifiedInitialState();
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
+        assemblyFragmentHandler = new AssemblyFragmentHandler(fragmentProperties, assemblyGroups);
     }
+
+//    public void readFiles() {
+//        try {
+//            parseCpropsFile();
+//            parseAsmFile();
+//            setInitialState();
+//        } catch (IOException exception) {
+//            System.err.println("Error reading files!");
+//        }
+//    }
 
     private void parseCpropsFile() throws IOException {
         if (validateCpropsFile()) {
@@ -68,7 +90,7 @@ public class AssemblyFileImporter {
                 // splitRow[0] -> Name, splitRow[2] -> length
 
                 boolean initiallyInverted = false;
-                for (List<Integer> scaffoldRow : scaffoldProperties) {
+                for (List<Integer> scaffoldRow : assemblyGroups) {
                     for (int element : scaffoldRow) {
                         if (Math.abs(element) == Math.abs(Integer.parseInt(splitRow[1]))) { //can make
                             if (Math.abs(element) != element) { //if negative
@@ -78,13 +100,27 @@ public class AssemblyFileImporter {
                         }
                     }
                 }
-                ContigProperty currentPair = new ContigProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]), initiallyInverted);
-                contigProperties.add(currentPair);
+                FragmentProperty currentPair = new FragmentProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]), initiallyInverted);
+                fragmentProperties.add(currentPair);
+            }
+        } else System.out.println("Invalid cprops file");
+    }
+
+    private void newParseCpropsFile() throws IOException {
+        if (validateCpropsFile()) {
+            List<String> rawFileData = readFile(cpropsFilePath);
+
+            for (String row : rawFileData) {
+                String[] splitRow = row.split(" ");
+                // Name<\s>ID<\s>length
+                FragmentProperty fragmentProperty = new FragmentProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
+                fragmentProperties.add(fragmentProperty);
             }
         } else System.out.println("Invalid cprops file");
     }
 
     private boolean validateCpropsFile() {
+        //TODO: more restrictions for user-proofness
         return getCpropsFilePath().endsWith(FILE_EXTENSIONS.CPROPS.toString());
     }
 
@@ -99,24 +135,71 @@ public class AssemblyFileImporter {
                     currentContigIndices.add(Integer.parseInt(index));
                 }
 
-                scaffoldProperties.add(currentContigIndices);
+                assemblyGroups.add(currentContigIndices);
             }
         } else
             System.out.println("Invalid asm file");
     }
 
     private boolean validateAsmFile() {
+        //TODO: more restrictions for user-proofness
         return getAsmFilePath().endsWith(FILE_EXTENSIONS.ASM.toString());
     }
 
-    private boolean getIsInverted(Integer contigIndex) {
-        return contigIndex < 0 ? Boolean.TRUE : Boolean.FALSE;
+    private void setInitialState() {
+        long shift = 0;
+        for (List<Integer> group : assemblyGroups) {
+            for (Integer entry : group) {
+                int fragmentIterator = Math.abs(entry) - 1;
+                fragmentProperties.get(fragmentIterator).setInitiallyInverted(false);
+                if (entry < 0) {
+                    fragmentProperties.get(fragmentIterator).setInitiallyInverted(true);
+                } else if (entry == 0) {
+                    System.err.println("Something is wrong with the input."); // should not happen
+                }
+                fragmentProperties.get(fragmentIterator).setInitialStart(shift);
+                shift += fragmentProperties.get(fragmentIterator).getLength();
+            }
+        }
     }
 
-    public void buildContigAttributes(String contigName, Integer contigLength) {
-        Map<String, String> featureAttributes = new HashMap<>();
-//        featureAttributes.put("Scaffold_ID", );
+    private void setModifiedInitialState() {
+        List<FragmentProperty> originalFragmentProperties = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyFragmentHandler().getContigProperties();
+        long modifiedShift = 0;
+        int originalFragmentIterator = 0;
+        FragmentProperty originalFragmentProperty = originalFragmentProperties.get(originalFragmentIterator);
+        long containingStart = originalFragmentProperty.getInitialStart();
+        long containingEnd = originalFragmentProperty.getInitialEnd();
+        for (FragmentProperty modifiedFragmentProperty : fragmentProperties) {
+
+            modifiedFragmentProperty.setInitiallyInverted(originalFragmentProperty.wasInitiallyInverted());
+            if (!modifiedFragmentProperty.wasInitiallyInverted()) {
+                modifiedFragmentProperty.setInitialStart(containingStart);
+                containingStart += modifiedFragmentProperty.getLength();
+            } else {
+                modifiedFragmentProperty.setInitialStart(containingEnd - modifiedFragmentProperty.getLength());
+                containingEnd -= modifiedFragmentProperty.getLength();
+            }
+            // trace movement along the original feature
+            modifiedShift += modifiedFragmentProperty.getLength();
+            // check if need to switch to next original feature
+            if (modifiedShift == originalFragmentProperty.getLength()) {
+                if (originalFragmentIterator == originalFragmentProperties.size() - 1) {
+                    if (modifiedFragmentProperty != fragmentProperties.get(fragmentProperties.size() - 1)) {
+                        System.err.println("Modified assembly incompatible with the original one.");
+                    }
+                    break;
+                }
+                originalFragmentIterator++;
+                originalFragmentProperty = originalFragmentProperties.get(originalFragmentIterator);
+                containingStart = originalFragmentProperty.getInitialStart();
+                containingEnd = originalFragmentProperty.getInitialEnd();
+                modifiedShift = 0;
+            }
+        }
+        //TODO: more safeguards e.g. by name
     }
+
 
     private List<String> readFile(String filePath) throws IOException {
         List<String> fileData = new ArrayList<>();
@@ -149,10 +232,10 @@ public class AssemblyFileImporter {
 
     public Feature2DList getContigs() {
         return this.assemblyFragmentHandler.getContigs();
-    }
+    } //why do we have this here?
 
     public Feature2DList getScaffolds() {
-        return this.assemblyFragmentHandler.getScaffolds();
+        return this.assemblyFragmentHandler.getScaffolds(); //why do we have this here?
     }
 
     public AssemblyFragmentHandler getAssemblyFragmentHandler() {

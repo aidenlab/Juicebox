@@ -36,7 +36,7 @@ public class AssemblyFileExporter {
 
     private AssemblyFragmentHandler assemblyFragmentHandler;
     private String outputFilePath;
-    private List<ContigProperty> contigProperties;
+    private List<FragmentProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
 
     public AssemblyFileExporter(AssemblyFragmentHandler assemblyFragmentHandler, String outputFilePath) {
@@ -57,8 +57,8 @@ public class AssemblyFileExporter {
 
     private void exportContigs() throws IOException {
         PrintWriter contigPrintWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
-        for (ContigProperty contigProperty : contigProperties) {
-            contigPrintWriter.println(contigProperty.toString());
+        for (FragmentProperty fragmentProperty : contigProperties) {
+            contigPrintWriter.println(fragmentProperty.toString());
         }
         contigPrintWriter.close();
     }

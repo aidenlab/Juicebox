@@ -82,7 +82,7 @@ public class AssemblyHeatmapHandler {
         AssemblyHeatmapHandler.superAdapter = superAdapter;
     }
 
-    public static Block modifyBlock(Block block, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
+    public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
         //TODO: do some filtering here
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
@@ -104,7 +104,7 @@ public class AssemblyHeatmapHandler {
                 }
             }
         }
-        block = new Block(block.getNumber(), alteredContacts);
+        block = new Block(block.getNumber(), alteredContacts, key);
         return block;
     }
 

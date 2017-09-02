@@ -331,25 +331,32 @@ public class ResolutionControl extends JPanel {
         setZoom(newZoom);
     }
 
-
     private String sizeToLabel(int binSize) {
 
         if (unit == HiC.Unit.FRAG) {
             return binSize + " f";
         }
 
-        if (bpLabelMap.containsKey(binSize)) {
-            return bpLabelMap.get(binSize);
-        }
+        // TODO delete the bpLabelMap? We dont need a hard-coded map if the labels change based on hicMapScale
+//        if (bpLabelMap.containsKey(binSize)) {
+//            return bpLabelMap.get(binSize);
+//        }
 
-        if (binSize >= 1000000) {
-            return ((float) binSize / 1000000) + " MB";
-        } else if (binSize >= 1000) {
-            return ((float) binSize / 1000) + " KB";
+        String label;
+        int adjustedBinSize = (int) (binSize * HiCGlobals.hicMapScale);
+
+        if (adjustedBinSize >= 1000000) {
+            label = ((double) adjustedBinSize / 1000000) + " MB";
+        } else if (adjustedBinSize >= 1000) {
+            label = ((double) adjustedBinSize / 1000) + " KB";
         } else {
-            return binSize + " BP";
+            label = adjustedBinSize + " BP";
         }
+        return removeTrailingZeros(label);
+    }
 
+    public String removeTrailingZeros(String label) {
+        return label.split(" ")[0].replaceAll("\\.(0)+$", "") + " " + label.split(" ")[1];
     }
 
     public void setZoom(HiCZoom newZoom) {

@@ -690,74 +690,6 @@ public class HiC {
         return returnVal[0];
     }
 
-    /*  TODO Undo Zoom implementation mss2 _UZI
-     private boolean canUndoZoomChange = false;
-     private boolean canRedoZoomChange = false;
-     private ZoomAction previousZoomState, tempZoomState;
-
-     public boolean isCanUndoZoomChangeAvailable(){
-         return canUndoZoomChange;
-     }
-
-     public boolean isCanRedoZoomChangeAvailable(){
-         return canRedoZoomChange;
-     }
-
-     public void undoZoomChange(){
-         if(canUndoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when undoing zoom
-             canUndoZoomChange = false;
-             canRedoZoomChange = true;
-         }
-
-     }
-
-     public void redoZoomChange(){
-         if(canRedoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when redoing zoom
-             canRedoZoomChange = false;
-             canUndoZoomChange = true;
-         }
-     }
-
-        private class ZoomAction {
-         String chr1Name, chr2Name;
-         HiCZoom zoom;
-         int genomeX, genomeY;
-         double scaleFactor;
-         boolean resetZoom;
-         ZoomCallType zoomCallType;
-
-         ZoomAction(String chr1Name, String chr2Name,
-                   HiCZoom zoom, int genomeX, int genomeY, double scaleFactor,
-                   boolean resetZoom, ZoomCallType zoomCallType){
-             this.chr1Name = chr1Name;
-             this.chr2Name = chr2Name;
-             this.zoom = zoom;
-             this.genomeX = genomeX;
-             this.genomeY = genomeY;
-             this.scaleFactor = scaleFactor;
-             this.resetZoom = resetZoom;
-             this.zoomCallType = zoomCallType;
-         }
-
-         boolean loadZoomState(){
-             return actuallySetZoomAndLocation(chr1Name, chr2Name, zoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
-         }
-
-         @Override
-         public String toString(){
-             return ""+chr1Name+" "+chr2Name+" "+zoom;
-         }
-      }
-     */
-
     /**
      * *************************************************************
      * Official Method for setting the zoom and location for heatmap
@@ -779,11 +711,6 @@ public class HiC {
                                                     boolean allowLocationBroadcast, int resolutionLocked, boolean storeZoomAction) {
 
         if (dataset == null) return false;  // No data in view
-        //Check this zoom operation is possible, if not, fail it here:
-//        if (superAdapter.testNewZoom(newZoom))
-//        {
-//            return false;
-//        }
 
         boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrXName)) &&
                 yContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrYName)));
@@ -1224,7 +1151,7 @@ public class HiC {
                 case CONTROL:
                 case OECTRL:
                 case PEARSONCTRL:
-                    return getControlZd().getKey() + displayOption;
+                    return getControlZd().getColorScaleKey(displayOption);
                 case OE:
                 case RATIO:
                 case OBSERVED:
@@ -1234,7 +1161,7 @@ public class HiC {
                 case PEARSON:
                 case PEARSONVS:
                 default:
-                    return getZd().getKey() + displayOption;
+                    return getZd().getColorScaleKey(displayOption);
             }
         } catch (Exception e) {
         }
@@ -1262,6 +1189,8 @@ public class HiC {
 
     public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
+        dataset.setChromosomeHandler(chromosomeHandler);
+        if (controlDataset != null) controlDataset.setChromosomeHandler(chromosomeHandler);
     }
 
     public ZoomActionTracker getZoomActionTracker() {
