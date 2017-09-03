@@ -619,10 +619,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else return -1;
     }
 
-
-
-    @Override
-    synchronized public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
+    synchronized private Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
 
         Block b = null;
         Map<Integer, Preprocessor.IndexEntry> blockIndex = blockIndexMap.get(zd.getKey());
@@ -719,13 +716,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                         throw new RuntimeException("Unknown block type: " + type);
                     }
                 }
-                b = new Block(blockNumber, records);
+                b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationType.NONE));
             }
         }
 
         // If no block exists, mark with an "empty block" to prevent further attempts
         if (b == null) {
-            b = new Block(blockNumber);
+            b = new Block(blockNumber, zd.getBlockKey(blockNumber, NormalizationType.NONE));
         }
         return b;
     }
@@ -742,7 +739,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
             if (nv1 == null || nv2 == null) {
-                throw new IOException("Normalization missing for: " + zd.getKey());
+                throw new IOException("Normalization missing for: " + zd.getDescription());
             }
             double[] nv1Data = nv1.getData();
             double[] nv2Data = nv2.getData();
@@ -766,7 +763,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             //double sparsity = (normRecords.size() * 100) / (Preprocessor.BLOCK_SIZE * Preprocessor.BLOCK_SIZE);
             //System.out.println(sparsity);
 
-            return new Block(blockNumber, normRecords);
+            return new Block(blockNumber, normRecords, zd.getBlockKey(blockNumber, no));
         }
     }
 

@@ -104,6 +104,12 @@ public class HiCTrackManager {
         String path = locator.getPath();
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
+
+        if (index < 0) {
+            MessageUtils.showMessage(Level.ERROR, "File is missing extension");
+            return;
+        }
+
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
@@ -281,6 +287,19 @@ public class HiCTrackManager {
             }
 
         }
+        /**
+         * TODO potential fix for ASSEMBLY vs assembly @sa501428
+         List<Chromosome> cleanedChromosomes = new ArrayList<>();
+         for(String name : genome.getAllChromosomeNames()){
+         Chromosome chr = genome.getChromosome(name);
+         //cleanedChromosomes.add(chr);
+         cleanedChromosomes.add(new Chromosome(chr.getIndex(), ChromosomeHandler.cleanUpName(name), chr.getLength()));
+         }
+
+
+         Genome finalGenome = new Genome(genome.getId(), cleanedChromosomes);
+         */
+
         return genome;
     }
 

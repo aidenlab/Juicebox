@@ -71,7 +71,7 @@ public class MatrixZoomData {
     protected final int blockBinCount;   // block size in bins
     protected final int blockColumnCount;     // number of block columns
     // Cache the last 20 blocks loaded
-    protected final LRUCache<String, Block> blockCache = new LRUCache<>(50);
+    private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
@@ -185,6 +185,17 @@ public class MatrixZoomData {
         return chr1.getName() + "_" + chr2.getName() + "_" + zoom.getKey();
     }
 
+    public String getBlockKey(int blockNumber, NormalizationType no) {
+        return getKey() + "_" + blockNumber + "_" + no;
+    }
+
+    public String getColorScaleKey(MatrixType displayOption) {
+        return getKey() + displayOption;
+    }
+
+    public String getTileKey(int tileRow, int tileColumn, MatrixType displayOption) {
+        return getKey() + "_" + tileRow + "_" + tileColumn + "_ " + displayOption;
+    }
 
     /**
      * Return the blocks of normalized, observed values overlapping the rectangular region specified.
@@ -207,9 +218,9 @@ public class MatrixZoomData {
         }
     }
 
-    public void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
+    private void populateBlocksToLoad(int r, int c, NormalizationType no, List<Block> blockList, Set<Integer> blocksToLoad) {
         int blockNumber = r * getBlockColumnCount() + c;
-        String key = getKey() + "_" + blockNumber + "_" + no;
+        String key = getBlockKey(blockNumber, no);
         Block b;
         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
             b = blockCache.get(key);
@@ -294,7 +305,7 @@ public class MatrixZoomData {
                     if (blocksToLoad.contains(blockNumber)) {
                         continue;
                     } else {
-                        String key = getKey() + "_" + blockNumber + "_" + no;
+                        String key = getBlockKey(blockNumber, no);
                         Block b;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             b = blockCache.get(key);
@@ -341,14 +352,14 @@ public class MatrixZoomData {
                 @Override
                 public void run() {
                     try {
-                        String key = getKey() + "_" + blockNumber + "_" + no;
+                        String key = getBlockKey(blockNumber, no);
                         Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, no);
                         if (b == null) {
-                            b = new Block(blockNumber);   // An empty block
+                            b = new Block(blockNumber, key);   // An empty block
                         }
                         //Run out of memory if do it here
                         if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, binSize, chr1Index, chr2Index, aFragHandler);
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index, aFragHandler);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -645,7 +656,11 @@ public class MatrixZoomData {
     /**
      * Utility for printing description of this matrix.
      */
-    public void printDescription() {
+    public String getDescription() {
+        return chr1.getName() + " - " + chr2.getName();
+    }
+
+    public void printFullDescription() {
         System.out.println("Chromosomes: " + chr1.getName() + " - " + chr2.getName());
         System.out.println("unit: " + zoom.getUnit());
         System.out.println("binSize (bp): " + zoom.getBinSize());
@@ -1011,12 +1026,13 @@ public class MatrixZoomData {
                         int blockNumber = blockNumbers.get(blockIdx);
 
                         // Optionally check the cache
-                        String key = getKey() + "_" + blockNumber + "_" + NormalizationType.NONE;
+                        // TODO why is this always NONE, should trace to ensure hard coding doesn't cause bug?
+                        String key = getBlockKey(blockNumber, NormalizationType.NONE);
                         Block nextBlock;
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             nextBlock = blockCache.get(key);
                         } else {
-                            nextBlock = reader.readBlock(blockNumber, MatrixZoomData.this);
+                            nextBlock = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, NormalizationType.NONE);
                         }
                         currentBlockIterator = nextBlock.getContactRecords().iterator();
                         return true;

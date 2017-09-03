@@ -62,7 +62,7 @@ public class AnnotationLayerHandler {
     private FeatureRenderer.PlottingOption plottingStyle = FeatureRenderer.PlottingOption.EVERYTHING;
     private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
-    private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton;
+    private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
     private JToggleButton activeLayerButton;
     private Color defaultColor = Color.BLUE;
     private JButton plottingStyleButton;
@@ -661,11 +661,16 @@ public class AnnotationLayerHandler {
         canExport = allowed;
         if (exportButton != null) {
             exportButton.setEnabled(true);
+            censorButton.setEnabled(true);
         }
     }
 
     public void setExportButton(JButton exportButton) {
         this.exportButton = exportButton;
+    }
+
+    public void setCensorButton(JButton censorButton) {
+        this.censorButton = censorButton;
     }
 
     public boolean getExportCapability() {

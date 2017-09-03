@@ -46,6 +46,7 @@ public class MotifAnchorTools {
      */
     public static GenomeWideList<MotifAnchor> extractAnchorsFromFeatures(Feature2DList features,
                                                                          final boolean onlyUninitializedFeatures,
+                                                                         final boolean getAllPossibleAnchors,
                                                                          final ChromosomeHandler handler) {
 
         final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
@@ -54,7 +55,7 @@ public class MotifAnchorTools {
             public void process(String chr, List<Feature2D> feature2DList) {
                 List<MotifAnchor> anchors = new ArrayList<>();
                 for (Feature2D f : feature2DList) {
-                    anchors.addAll(f.getAnchors(onlyUninitializedFeatures, handler));
+                    anchors.addAll(f.getAnchors(onlyUninitializedFeatures, getAllPossibleAnchors, handler));
                 }
                 String newKey = chr.split("_")[0].replace("chr", "");
                 extractedAnchorList.setFeatures(newKey, anchors);
