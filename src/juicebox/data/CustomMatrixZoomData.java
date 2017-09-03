@@ -96,7 +96,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             }
         }
         //System.out.println("num orig records "+block.getContactRecords().size()+ " after alter "+alteredContacts.size()+" bnum "+block.getNumber());
-        return new Block(block.getNumber(), alteredContacts, key);
+        return new Block(block.getNumber(), alteredContacts, key + rp.getDescription());
     }
 
     @Override
@@ -190,11 +190,10 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                         @Override
                         public void run() {
                             try {
-                                //TODO blocknums may cause incident down the road
                                 String key = zd.getBlockKey(blockNum, no);
                                 Block b = reader.readNormalizedBlock(blockNum, zd, no);
                                 if (b == null) {
-                                    b = new Block(blockNum, key);   // An empty block
+                                    b = new Block(blockNum, key + rp.getDescription());   // An empty block
                                 } else {
                                     b = modifyBlock(b, key, zd, rp);
                                 }

@@ -955,16 +955,6 @@ public class HiC {
         superAdapter.getActiveLayerHandler().loadLoopList(path, chromosomeHandler);
     }
 
-    // TODO MSS REMOVE
-    /*public void setShowLoops(boolean showLoops) {
-        feature2DHandler.setLayerVisibility(showLoops);
-    }
-
-    public void setLoopsInvisible(String path) {
-        feature2DHandler.setLoopsInvisible(path);
-    }
-    */
-
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
 
         if (!MatrixType.isObservedOrControl(displayOption)) {
