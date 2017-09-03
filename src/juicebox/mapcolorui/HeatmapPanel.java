@@ -372,7 +372,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (zd instanceof CustomMatrixZoomData) {
                             List<Integer> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();
                             //int maxSize = xBins.get(xBins.size() - 1);
-                            int maxSize = zd.getChr2().getLength() / zd.getBinSize();
+                            int maxSize = (int) ((zd.getYGridAxis().getBinCount() - binOriginY) * scaleFactor);
                             for (int xBin : xBins) {
                                 int x = (int) ((xBin - binOriginX) * scaleFactor);
                                 g.drawLine(x, 0, x, maxSize);
@@ -383,7 +383,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (zd instanceof CustomMatrixZoomData) {
                             List<Integer> yBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeY();
                             //int maxSize = yBins.get(yBins.size() - 1);
-                            int maxSize = zd.getChr1().getLength() / zd.getBinSize();
+                            int maxSize = (int) ((zd.getXGridAxis().getBinCount() - binOriginX) * scaleFactor);
                             for (int yBin : yBins) {
                                 int y = (int) ((yBin - binOriginY) * scaleFactor);
                                 g.drawLine(0, y, maxSize, y);
