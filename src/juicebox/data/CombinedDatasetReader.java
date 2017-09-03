@@ -136,36 +136,19 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
     @Override
-    public Block readBlock(int blockNumber, MatrixZoomData zd) throws IOException {
-
-        List<Block> blockList = new ArrayList<>();
-        for (DatasetReader r : readers) {
-            if (r.isActive()) {
-                Block cb = r.readBlock(blockNumber, zd);
-                if (cb != null) {
-                    blockList.add(cb);
-                }
-            }
-        }
-
-        return (blockList.size() == 0) ? new Block(blockNumber) : mergeBlocks(blockList);
-
-    }
-
-    @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
         List<Block> blockList = new ArrayList<>();
         for (DatasetReader r : readers) {
             if (r.isActive()) {
-                Block cb;
-                cb = r.readNormalizedBlock(blockNumber, zd, no);
+                Block cb = r.readNormalizedBlock(blockNumber, zd, no);
                 if (cb != null) {
                     blockList.add(cb);
                 }
             }
         }
-        return blockList.size() == 0 ? new Block(blockNumber) : mergeBlocks(blockList);
+        String key = zd.getBlockKey(blockNumber, no);
+        return blockList.size() == 0 ? new Block(blockNumber, key) : mergeBlocks(blockList, key);
 
     }
 
@@ -552,9 +535,10 @@ public class CombinedDatasetReader implements DatasetReader {
      * column order.
      *
      * @param blockList Blocks to merge
+     * @param blockKey
      * @return new Block
      */
-    private Block mergeBlocks(List<Block> blockList) {
+    private Block mergeBlocks(List<Block> blockList, String blockKey) {
         // First combine contact records for all blocks
         final Block firstBlock = blockList.get(0);
         int repSize = firstBlock.getContactRecords().size();
@@ -577,7 +561,7 @@ public class CombinedDatasetReader implements DatasetReader {
         }
 
         List<ContactRecord> mergedRecords = new ArrayList<>(mergedRecordMap.values());
-        return new Block(blockNumber, mergedRecords);
+        return new Block(blockNumber, mergedRecords, blockKey);
     }
 
 }

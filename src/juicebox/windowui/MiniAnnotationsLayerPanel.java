@@ -42,6 +42,9 @@ import java.io.IOException;
  * Created by ranganmostofa on 8/16/17.
  */
 public class MiniAnnotationsLayerPanel extends JPanel {
+
+    private static final long serialVersionUID = 126735123117L;
+
     private int miniButtonSize = 22;
 
     private int horizontalBorderPadding = 5;
