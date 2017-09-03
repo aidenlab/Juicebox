@@ -601,15 +601,16 @@ public class Feature2DList {
     public boolean checkAndRemoveFeature(int idx1, int idx2, Feature2D feature) {
         boolean somethingWasDeleted = false;
         String key = getKey(idx1, idx2);
-        try {
-            somethingWasDeleted = featureList.get(key).remove(feature);
-        } catch (Exception e) {
-            System.err.println("Error encountered removing feature");
+
+        if (featureList.containsKey(key)) {
+            try {
+                somethingWasDeleted = featureList.get(key).remove(feature);
+            } catch (Exception e) {
+                System.err.println("Error encountered removing feature");
+            }
+            if (featureList.get(key).size() == 0)
+                featureList.remove(key);
         }
-
-        if (featureList.get(key).size() == 0)
-            featureList.remove(key);
-
         return somethingWasDeleted;
     }
 
