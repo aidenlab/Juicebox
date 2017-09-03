@@ -26,8 +26,10 @@ package juicebox.data;
 
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
+import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.FeatureFunction;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.track.feature.Feature2DList;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
@@ -88,8 +90,20 @@ public class ChromosomeHandler {
     public Chromosome addCustomChromosome(File file) {
         GenomeWideList<MotifAnchor> regionsInCustomChromosome =
                 MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
-        int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
         String cleanedUpName = cleanUpName(file.getName());
+
+        return addCustomChromosome(regionsInCustomChromosome, cleanedUpName);
+    }
+
+    public Chromosome addCustomChromosome(Feature2DList featureList, String chrName) {
+        GenomeWideList<MotifAnchor> featureAnchors =
+                MotifAnchorTools.extractAnchorsFromFeatures(featureList, false, true, this);
+        String cleanedUpName = cleanUpName(chrName);
+        return addCustomChromosome(featureAnchors, cleanedUpName);
+    }
+
+    private Chromosome addCustomChromosome(GenomeWideList<MotifAnchor> regionsInCustomChromosome, String cleanedUpName) {
+        int size = getTotalLengthOfAllRegionsInBedFile(regionsInCustomChromosome);
         int newIndex = cleanedChromosomes.size();
         customChromosomeRegions.put(newIndex, regionsInCustomChromosome);
         Chromosome newChr = new Chromosome(newIndex, cleanedUpName, size);

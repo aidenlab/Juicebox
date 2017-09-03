@@ -40,6 +40,7 @@ import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import org.apache.log4j.Logger;
@@ -1003,5 +1004,12 @@ public class SuperAdapter {
                 mainViewPanel.getChrBox2().addItem(custom);
             }
         }
+    }
+
+    public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
+        Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
+        hic.setChromosomeHandler(hic.getChromosomeHandler());
+        mainViewPanel.getChrBox1().addItem(custom);
+        mainViewPanel.getChrBox2().addItem(custom);
     }
 }
