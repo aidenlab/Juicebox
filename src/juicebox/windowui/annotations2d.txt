@@ -1,16 +1,16 @@
 Loop Calls
-4DN Dekker H1 hESC rep2	loops	https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2_loops.txt
-4DN Dekker H1 hffc6 rep1 loops	https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1_loops.txt
-Eagen et al. | bioRxiv 2017| Kc167 combined loops	https://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_loops.txt
-Mumbach Rubin Flynn et al. | Nature Methods 2016 | GM12878 cohesin combined loops	https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_GM_cohesin_peaks.txt
-Mumbach Rubin Flynn et al. | Nature Methods 2016 | mESC oct4 combined loops	https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_mES_Oct4_peaks.txt
-Mumbach Rubin Flynn et al. | Nature Methods 2016 | mESC cohesin combined loops	https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_mES_cohesin_all_peaks.txt
-Darrow & Huntley et al. | PNAS 2016 | Patski combined loops	https://hicfiles.s3.amazonaws.com/hiseq/patski/DarrowHuntley-2015/combined_loops.txt
-Darrow & Huntley et al. | PNAS 2016 | Rhesus HIC020 loops https://hicfiles.s3.amazonaws.com/hiseq/rhesus/DarrowHuntley-2015/HIC020_loops.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 control combined loops	https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/WT-combined_loops.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 loops	https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_loops.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 delXi combined loops		https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xi-combined_loops.txt
-Tang Luo Li et al. | Cell 2015 | GM12878 ChIA-PET loops	https://hicfiles.s3.amazonaws.com/external/tang/gm12878_loops.txt
+4DN Dekker H1 hESC rep2	loops;https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2_loops.txt
+4DN Dekker H1 hffc6 rep1 loops;https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1_loops.txt
+Eagen et al. | bioRxiv 2017| Kc167 combined loops;https://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_loops.txt
+Mumbach Rubin Flynn et al. | Nature Methods 2016 | GM12878 cohesin combined loops;https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_GM_cohesin_peaks.txt
+Mumbach Rubin Flynn et al. | Nature Methods 2016 | mESC oct4 combined loops;https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_mES_Oct4_peaks.txt
+Mumbach Rubin Flynn et al. | Nature Methods 2016 | mESC cohesin combined loops;https://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_mES_cohesin_all_peaks.txt
+Darrow & Huntley et al. | PNAS 2016 | Patski combined loops;https://hicfiles.s3.amazonaws.com/hiseq/patski/DarrowHuntley-2015/combined_loops.txt
+Darrow & Huntley et al. | PNAS 2016 | Rhesus HIC020 loops;https://hicfiles.s3.amazonaws.com/hiseq/rhesus/DarrowHuntley-2015/HIC020_loops.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 control combined loops;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/WT-combined_loops.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 loops;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_loops.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 delXi combined loops;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xi-combined_loops.txt
+Tang Luo Li et al. | Cell 2015 | GM12878 ChIA-PET loops;https://hicfiles.s3.amazonaws.com/external/tang/gm12878_loops.txt
 GM12878 in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt
 IMR90 in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_peaks.txt
 HMEC in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/combined_peaks.txt
@@ -28,16 +28,16 @@ Jin et al. Hi-C IMR90 (Nature, 2013);https://hicfiles.s3.amazonaws.com/external/
 Li et al. ChIA-PET/PolII K562 (Cell, 2012);https://hicfiles.s3.amazonaws.com/external/LiRuanK562.txt
 Li et al. ChIA-PET/CTCF K562 (Cell, 2012);https://hicfiles.s3.amazonaws.com/external/LiRuanK562CTCF.txt
 Domains
-4DN Dekker H1 hESC rep1	domains	https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1_domains.txt
-4DN Dekker H1 hESC rep2	domains	https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2_domains.txt
-4DN Dekker H1 hffc6 rep1 domains	https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1_domains.txt
-Eagen et al. | bioRxiv 2017 | Kc167 combined domains	https://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_domains.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 delXi combined domains	https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xi-combined_domains.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 domains	https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_domains.txt
-Darrow & Huntley et al. | PNAS 2016 | RPE1 control combined domains	https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/WT-combined_domains.txt
-Darrow & Huntley et al. | PNAS 2016 | Rhesus HIC020 domains	https://hicfiles.s3.amazonaws.com/hiseq/rhesus/DarrowHuntley-2015/HIC020_domains.txt
-Darrow & Huntley et al. | PNAS 2016 | Patski combined domains	https://hicfiles.s3.amazonaws.com/hiseq/patski/DarrowHuntley-2015/combined_domains.txt
-Sanborn & Rao et al. | PNAS 2015 | Hap1 domains	https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_blocks.txt
+4DN Dekker H1 hESC rep1	domains;https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1_domains.txt
+4DN Dekker H1 hESC rep2	domains;https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2_domains.txt
+4DN Dekker H1 hffc6 rep1 domains;https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1_domains.txt
+Eagen et al. | bioRxiv 2017 | Kc167 combined domains;https://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_domains.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 delXi combined domains;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xi-combined_domains.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 domains;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_domains.txt
+Darrow & Huntley et al. | PNAS 2016 | RPE1 control combined domains;https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/WT-combined_domains.txt
+Darrow & Huntley et al. | PNAS 2016 | Rhesus HIC020 domains;https://hicfiles.s3.amazonaws.com/hiseq/rhesus/DarrowHuntley-2015/HIC020_domains.txt
+Darrow & Huntley et al. | PNAS 2016 | Patski combined domains;https://hicfiles.s3.amazonaws.com/hiseq/patski/DarrowHuntley-2015/combined_domains.txt
+Sanborn & Rao et al. | PNAS 2015 | Hap1 domains;https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_blocks.txt
 GM12878 in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_blocks.txt
 IMR90 in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined_blocks.txt
 HMEC in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/combined_blocks.txt
@@ -49,4 +49,4 @@ HeLa in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazo
 CH12-LX in situ Hi-C (Rao and Huntley et al., Cell, 2014);https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_blocks.txt
 Hap1 in situ Hi-C (Sanborn and Rao et al., PNAS, 2015);https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_blocks.txt
 Jin et al. Hi-C IMR90 TADs (Nature, 2013);https://hicfiles.s3.amazonaws.com/external/TADS_IMR90_hg19_looplist.txt
-Dixon et al. | Nature 2012 | IMR90 HindIII domains	https://hicfiles.s3.amazonaws.com/external/dixon/imr90-hindiii_blocks.txt
+Dixon et al. | Nature 2012 | IMR90 HindIII domains;https://hicfiles.s3.amazonaws.com/external/dixon/imr90-hindiii_blocks.txt
