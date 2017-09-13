@@ -84,7 +84,7 @@ public class GeneFinder extends JuicerCLT {
 
             GenomeWideList<MotifAnchor> genes = GeneTools.parseGenome(genomeID, handler);
             final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, handler, false, null, false);
-            GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromFeatures(allLoops, false, false, handler);
+            GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(allLoops, false, handler);
             final Feature2DList filteredLoops = new Feature2DList();
 
             if ((new File(bedFilePath)).exists()) {
@@ -111,7 +111,7 @@ public class GeneFinder extends JuicerCLT {
             // note, this is NOT identical to all anchors after preservative intersect
             // because this restores both of the loops anchors even if one was eliminated
             // in the previous intersection as long as one of its anchors hit the protein
-            GenomeWideList<MotifAnchor> filteredAnchors = MotifAnchorTools.extractAnchorsFromFeatures(filteredLoops, false, false, handler);
+            GenomeWideList<MotifAnchor> filteredAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(filteredLoops, false, handler);
             MotifAnchorTools.preservativeIntersectLists(genes, filteredAnchors, false);
 
             final Set<String> geneNames = new HashSet<>();

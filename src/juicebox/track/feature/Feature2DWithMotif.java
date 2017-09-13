@@ -236,8 +236,7 @@ public class Feature2DWithMotif extends Feature2D {
     }
 
     @Override
-    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures,
-                                        boolean getAllPossibleAnchors, ChromosomeHandler handler) {
+    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
         List<Feature2D> originalFeatures = new ArrayList<>();
         originalFeatures.add(this);
 

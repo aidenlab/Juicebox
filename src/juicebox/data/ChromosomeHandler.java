@@ -97,7 +97,7 @@ public class ChromosomeHandler {
 
     public Chromosome addCustomChromosome(Feature2DList featureList, String chrName) {
         GenomeWideList<MotifAnchor> featureAnchors =
-                MotifAnchorTools.extractAnchorsFromFeatures(featureList, false, true, this);
+                MotifAnchorTools.extractAllAnchorsFromAllFeatures(featureList, this);
         String cleanedUpName = cleanUpName(chrName);
         return addCustomChromosome(featureAnchors, cleanedUpName);
     }
@@ -168,7 +168,11 @@ public class ChromosomeHandler {
     }
 
     public boolean isCustomChromosome(Chromosome chromosome) {
-        return customChromosomeRegions.containsKey(chromosome.getIndex());
+        return isCustomChromosome(chromosome.getIndex());
+    }
+
+    public boolean isCustomChromosome(int index) {
+        return customChromosomeRegions.containsKey(index);
     }
 
     public Chromosome getChromosomeFromName(String name) {

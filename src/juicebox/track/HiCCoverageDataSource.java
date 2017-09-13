@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.data.Dataset;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
 import juicebox.windowui.HiCZoom;
@@ -51,11 +52,17 @@ public class HiCCoverageDataSource implements HiCDataSource {
     private Color color = new Color(97, 184, 209);
     private Color altcolor = color;
     private DataRange dataRange;
+    private boolean isControl;
 
-    public HiCCoverageDataSource(HiC hic, NormalizationType no) {
+    public HiCCoverageDataSource(HiC hic, NormalizationType no, boolean isControl) {
         this.name = no.getLabel();
+        if (isControl) {
+            this.name += " (Control)";
+        }
+
         this.hic = hic;
         this.normalizationType = no;
+        this.isControl = isControl;
     }
 
 
@@ -127,17 +134,23 @@ public class HiCCoverageDataSource implements HiCDataSource {
     public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {
 
         HiCZoom zoom;
+        Dataset dataset;
         try {
-            zoom = hic.getZd().getZoom();
+            if (isControl) {
+                zoom = hic.getControlZd().getZoom();
+                dataset = hic.getControlDataset();
+            } else {
+                zoom = hic.getZd().getZoom();
+                dataset = hic.getDataset();
+            }
         } catch (Exception e) {
             return null;
         }
 
-        NormalizationVector nv = hic.getDataset().getNormalizationVector(chr.getIndex(), zoom, normalizationType);
+        NormalizationVector nv = dataset.getNormalizationVector(chr.getIndex(), zoom, normalizationType);
         if (nv == null) return null;
 
         double[] data = nv.getData();
-
 
         CoverageDataPoint[] dataPoints = new CoverageDataPoint[endBin - startBin + 1];
 

@@ -81,7 +81,7 @@ public class XMLFileHandling {
                 currentTrackName += track.getName() + ", ";
                 track.getLocator().getColor();
                 try {
-                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
+                    HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType(), false);
                     HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, track.getLocator(), source);
 
                     configTrackInfo = track.getName() + "," + hiCDataTrack.getPosColor().getRGB() + ","
