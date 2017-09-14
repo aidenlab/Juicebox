@@ -84,8 +84,6 @@ public class MotifAnchorTools {
             }
         });
 
-        MotifAnchorTools.mergeAnchors(extractedAnchorList);
-
         int minSize = 10000;
         String newSize = MessageUtils.showInputDialog("Specify a minimum size for 1D anchors", "" + minSize);
         try {
@@ -93,7 +91,9 @@ public class MotifAnchorTools {
         } catch (Exception e) {
             MessageUtils.showErrorMessage("Invalid int, using default size " + minSize, e);
         }
+        MotifAnchorTools.mergeAnchors(extractedAnchorList);
         MotifAnchorTools.expandSmallAnchors(extractedAnchorList, minSize);
+        MotifAnchorTools.mergeAnchors(extractedAnchorList);
 
         return extractedAnchorList;
     }
