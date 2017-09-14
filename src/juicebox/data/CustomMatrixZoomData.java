@@ -240,4 +240,34 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     public List<Integer> getBoundariesOfCustomChromosomeY() {
         return rTreeHandler.getBoundariesOfCustomChromosomeY();
     }
+
+    // TODO
+    public double getExpected(int binX, int binY, ExpectedValueFunction df) {
+        // x window
+        int gx1 = binX * zoom.getBinSize();
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx1, gx1);
+        List<Pair<MotifAnchor, MotifAnchor>> xRegions = rTreeHandler.getIntersectingFeatures(chr1.getIndex(), currentWindow);
+
+        // y window
+        int gy1 = binY * zoom.getBinSize();
+        currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy1, gy1);
+        List<Pair<MotifAnchor, MotifAnchor>> yRegions = rTreeHandler.getIntersectingFeatures(chr2.getIndex(), currentWindow);
+
+        RegionPair rp = RegionPair.generateRegionPair(xRegions.get(0), yRegions.get(0));
+        MatrixZoomData zd = zoomDatasForDifferentRegions.get(Matrix.generateKey(rp.xI, rp.yI));
+
+        return zd.getAverageCount();
+        /*
+        if(rp.xI == rp.yI){
+            if (df != null) {
+                int dist = Math.abs(binX - binY);
+                return df.getExpectedValue(rp.xI, dist);
+            }
+        } else {
+            return zd.getAverageCount();
+        }
+
+        return 0;
+        */
+    }
 }

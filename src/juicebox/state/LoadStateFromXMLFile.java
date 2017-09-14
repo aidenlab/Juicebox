@@ -193,7 +193,7 @@ public class LoadStateFromXMLFile {
                             loadedTrack.setName(trackNames[i].trim());
                             if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
 
-                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType());
+                                HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType(), false);
                                 HiCDataTrack hiCDataTrack = new HiCDataTrack(hic, loadedTrack.getLocator(), source);
 
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");

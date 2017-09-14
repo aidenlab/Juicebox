@@ -57,6 +57,7 @@ public class HiCTrackManager {
 
     private final List<HiCTrack> loadedTracks = new ArrayList<>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<>();
+    private final Map<NormalizationType, HiCTrack> controlCoverageTracks = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final HiC hic;
 
@@ -70,14 +71,24 @@ public class HiCTrackManager {
         superAdapter.updateTrackPanel();
     }
 
-    public void loadCoverageTrack(NormalizationType no) {
-        if (coverageTracks.containsKey(no)) return; // Already loaded
-        HiCDataSource source = new HiCCoverageDataSource(hic, no);
-        ResourceLocator locator = new ResourceLocator(no.getLabel());
-        HiCDataTrack track = new HiCDataTrack(hic, locator, source);
-        coverageTracks.put(no, track);
-        loadedTracks.add(track);
-        superAdapter.updateTrackPanel();
+    public void loadCoverageTrack(NormalizationType no, boolean isControl) {
+        if (isControl) {
+            if (controlCoverageTracks.containsKey(no)) return; // Already loaded
+            HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
+            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            HiCDataTrack track = new HiCDataTrack(hic, locator, source);
+            controlCoverageTracks.put(no, track);
+            loadedTracks.add(track);
+            superAdapter.updateTrackPanel();
+        } else {
+            if (coverageTracks.containsKey(no)) return; // Already loaded
+            HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
+            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            HiCDataTrack track = new HiCDataTrack(hic, locator, source);
+            coverageTracks.put(no, track);
+            loadedTracks.add(track);
+            superAdapter.updateTrackPanel();
+        }
     }
 
     public void unsafeTrackLoad(final List<ResourceLocator> locators) {
@@ -206,19 +217,31 @@ public class HiCTrackManager {
         if (key != null) {
             coverageTracks.remove(key);
         }
+
+        key = null;
+        for (Map.Entry<NormalizationType, HiCTrack> entry : controlCoverageTracks.entrySet()) {
+            if (entry.getValue() == track) {
+                key = entry.getKey();
+            }
+        }
+
+        if (key != null) {
+            controlCoverageTracks.remove(key);
+        }
         superAdapter.updateTrackPanel();
     }
 
-
     public void removeTrack(ResourceLocator locator) {
-        HiCTrack track = null;
+        List<HiCTrack> tracks = new ArrayList<>();
         for (HiCTrack tmp : loadedTracks) {
             if (tmp.getLocator().equals(locator)) {
-                track = tmp;
-                break;
+                tracks.add(tmp);
+                // for coverage tracks, can have more than one, so don't break
             }
         }
-        removeTrack(track);
+        for (HiCTrack track : tracks) {
+            removeTrack(track);
+        }
     }
 
 
@@ -245,6 +268,7 @@ public class HiCTrackManager {
     public void clearTracks() {
         loadedTracks.clear();
         coverageTracks.clear();
+        controlCoverageTracks.clear();
     }
 
     /* TODO @zgire, is this old code that can be deleted?

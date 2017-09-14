@@ -241,7 +241,10 @@ public class HiC {
     }
 
     public void loadCoverageTrack(NormalizationType no) {
-        trackManager.loadCoverageTrack(no);
+        trackManager.loadCoverageTrack(no, false);
+        if (isControlLoaded()) {
+            trackManager.loadCoverageTrack(no, true);
+        }
     }
 
     public void removeTrack(HiCTrack track) {

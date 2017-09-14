@@ -485,27 +485,7 @@ public class Feature2D implements Comparable<Feature2D> {
         attributes.clear();
     }
 
-    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, boolean getAllPossibleAnchors, ChromosomeHandler handler) {
-        List<Feature2D> originalFeatures = new ArrayList<>();
-        originalFeatures.add(this);
-
-        List<MotifAnchor> anchors = new ArrayList<>();
-        if (isOnDiagonal()) {
-            // loops should not be on diagonal
-            // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
-            if (getAllPossibleAnchors) {
-                List<Feature2D> emptyList = new ArrayList<>();
-                anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
-            }
-        } else {
-            List<Feature2D> emptyList = new ArrayList<>();
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
-            anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
-        }
-        return anchors;
-    }
-
-    public List<MotifAnchor> get1Anchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
+    public List<MotifAnchor> getAnchors(boolean onlyUninitializedFeatures, ChromosomeHandler handler) {
         List<Feature2D> originalFeatures = new ArrayList<>();
         originalFeatures.add(this);
 
@@ -515,7 +495,6 @@ public class Feature2D implements Comparable<Feature2D> {
             // anchors.add(new MotifAnchor(chr1, start1, end1, originalFeatures, originalFeatures));
         } else {
             List<Feature2D> emptyList = new ArrayList<>();
-
             anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr1).getIndex(), start1, end1, originalFeatures, emptyList));
             anchors.add(new MotifAnchor(handler.getChromosomeFromName(chr2).getIndex(), start2, end2, emptyList, originalFeatures));
         }

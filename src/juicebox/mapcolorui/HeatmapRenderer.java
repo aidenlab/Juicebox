@@ -409,6 +409,10 @@ class HeatmapRenderer {
                             double score = Double.NaN;
                             if (displayOption == MatrixType.OE || displayOption == MatrixType.EXPECTED) {
                                 double expected = 0;
+                                // todo
+                                // if(zd instanceof CustomMatrixZoomData){
+                                //    expected = ((CustomMatrixZoomData)zd).getExpected(rec.getBinX(), rec.getBinY(), df);
+                                //} else
                                 if (chr1 == chr2) {
                                     if (df != null) {
                                         int binX = rec.getBinX();

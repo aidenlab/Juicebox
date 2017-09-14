@@ -178,7 +178,8 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      * @return true if given anchor overlaps at either edge with this anchor
      */
     public boolean hasOverlapWith(MotifAnchor anchor) {
-        return chrIndex == anchor.chrIndex && (this.contains(anchor.x1) || this.contains(anchor.x2));
+        return chrIndex == anchor.chrIndex
+                && (this.contains(anchor.x1) || this.contains(anchor.x2) || anchor.contains(x1) || anchor.contains(x2));
     }
 
     public void mergeWith(MotifAnchor anchor) {
