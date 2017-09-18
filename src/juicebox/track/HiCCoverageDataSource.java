@@ -38,7 +38,6 @@ import org.broad.igv.track.WindowFunction;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Collections;
 
 /**
  * @author jrobinso
@@ -131,7 +130,8 @@ public class HiCCoverageDataSource implements HiCDataSource {
         return new ArrayList<>();
     }
 
-    public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {
+    public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis,
+                                  double scaleFactor, WindowFunction windowFunction) {
 
         HiCZoom zoom;
         Dataset dataset;
@@ -167,10 +167,10 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     public static class CoverageDataPoint implements HiCDataPoint {
 
-        final int binNumber;
-        final int genomicStart;
-        final int genomicEnd;
-        final double value;
+        public final int binNumber;
+        public final int genomicStart;
+        public final int genomicEnd;
+        public final double value;
 
 
         public CoverageDataPoint(int binNumber, int genomicStart, int genomicEnd, double value) {
