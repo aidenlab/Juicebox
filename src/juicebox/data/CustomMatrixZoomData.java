@@ -29,6 +29,7 @@ import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.censoring.RegionPair;
 import juicebox.data.censoring.RegionsRTreeHandler;
 import juicebox.windowui.NormalizationType;
+import net.sf.jsi.Rectangle;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
@@ -269,5 +270,9 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
         return 0;
         */
+    }
+
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, Rectangle currentWindow) {
+        return rTreeHandler.getIntersectingFeatures(chrIndex, currentWindow);
     }
 }

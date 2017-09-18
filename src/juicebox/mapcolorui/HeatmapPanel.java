@@ -1340,7 +1340,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         debrisFeature = null;
         //moveDebrisToEnd();
         removeSelection();
-        debrisFeatureSize = RESIZE_SNAP;
+        debrisFeatureSize = (int) (RESIZE_SNAP * hic.getScaleFactor());
     }
 
     private void moveSelectionToEnd() {
