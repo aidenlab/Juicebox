@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -164,13 +164,13 @@ public abstract class HiCDataAdapter implements HiCDataSource {
 
     public static class DataAccumulator implements HiCDataPoint {
 
-        final double binNumber;
-        double width = 1;
-        int nPts = 0;
-        double weightedSum = 0;
-        double max = 0;
-        int genomicStart;
-        int genomicEnd;
+        public final double binNumber;
+        public double width = 1;
+        public int nPts = 0;
+        public double weightedSum = 0;
+        public double max = 0;
+        public int genomicStart;
+        public int genomicEnd;
 
 
         public DataAccumulator(double binNumber) {

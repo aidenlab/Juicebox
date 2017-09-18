@@ -65,7 +65,6 @@ public class ChromosomeHandler {
      * Set intersection
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
      *
-     * 
      * @param collection1
      * @param collection2
      * @return intersection of set1 and set2
