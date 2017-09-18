@@ -419,7 +419,7 @@ public class MainMenuBar {
         //---View Menu-----
         JMenu viewMenu = new JMenu("View");
 
-        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome...");
+        JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.createCustomChromosomes();
@@ -672,7 +672,9 @@ public class MainMenuBar {
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(viewMenu);
-        menuBar.add(assemblyMenu);
+        if (HiCGlobals.isAssemblyToolsAllowed) {
+            menuBar.add(assemblyMenu);
+        }
         menuBar.add(devMenu);
         return menuBar;
     }
