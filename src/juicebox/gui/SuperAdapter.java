@@ -507,6 +507,7 @@ public class SuperAdapter {
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
+        showSliders();
         return true;
     }
 
@@ -978,6 +979,7 @@ public class SuperAdapter {
         setLayersPanelVisible(!layerPanelIsVisible);
     }
 
+
     public AssemblyStateTracker getAssemblyStateTracker() {
         return assemblyStateTracker;
     }
@@ -995,7 +997,7 @@ public class SuperAdapter {
         };
 
         File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
-                LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+            LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
         if (files != null && files.length > 0) {
             for (File f : files) {
                 Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
@@ -1011,5 +1013,9 @@ public class SuperAdapter {
         hic.setChromosomeHandler(hic.getChromosomeHandler());
         mainViewPanel.getChrBox1().addItem(custom);
         mainViewPanel.getChrBox2().addItem(custom);
+    }
+  
+    public void showSliders() {
+        mainViewPanel.showSliders();
     }
 }
