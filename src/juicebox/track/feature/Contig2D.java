@@ -110,23 +110,6 @@ public class Contig2D extends Feature2D {
         return isInverted;
     }
 
-    public boolean hasSomeOriginalOverlapWith(int pos) {
-        return pos >= initialStart && pos <= initialEnd;
-    }
-
-    public int getAlteredBinIndex(int binPos, int binSize) {
-        int translatedPos = processTranslationPlotting(binPos * binSize, initialStart, initialEnd, start1);
-        if (isInverted) {
-            translatedPos = processInversionPlotting(translatedPos, start1, end1);
-        }
-        return translatedPos / binSize;
-    }
-
-    public boolean nowContains(int coordinate) {
-        Contig2D contig = this;
-        return contig.getStart1() < coordinate && contig.getEnd1() >= coordinate;
-    }
-
     public boolean iniContains(int coordinate) {
         Contig2D contig = this;
         return contig.getInitialStart() < coordinate && contig.getInitialEnd() >= coordinate;

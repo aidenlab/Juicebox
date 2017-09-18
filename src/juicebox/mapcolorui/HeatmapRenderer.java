@@ -120,7 +120,7 @@ class HeatmapRenderer {
     }
 
     public static String getColorScaleCacheKey(MatrixZoomData zd, MatrixType displayOption) {
-        return zd.getKey() + displayOption;
+        return zd.getColorScaleKey(displayOption);
     }
 
     public boolean render(int originX,
@@ -165,7 +165,7 @@ class HeatmapRenderer {
 
         if (displayOption == MatrixType.PEARSON) {
 
-            String key = zd.getKey() + displayOption;
+            String key = zd.getColorScaleKey(displayOption);
 
             BasicMatrix bm = zd.getPearsons(df);
 
@@ -184,7 +184,7 @@ class HeatmapRenderer {
 
             BasicMatrix bm = controlZD.getPearsons(controlDF);
 
-            String key = controlZD.getKey() + displayOption;
+            String key = controlZD.getColorScaleKey(displayOption);
             if (!pearsonColorScale.containsKey(key)) {
                 pearsonColorScale.setMinMax(key, bm.getLowerValue(), bm.getUpperValue());
             }
@@ -200,7 +200,7 @@ class HeatmapRenderer {
             BasicMatrix bm1 = zd.getPearsons(df);
             BasicMatrix bm2 = controlZD.getPearsons(controlDF);
 
-            String key = zd.getKey() + displayOption;
+            String key = zd.getColorScaleKey(displayOption);
             if (!pearsonColorScale.containsKey(key)) {
                 float min = Math.min(bm1.getLowerValue(), bm2.getLowerValue());
                 float max = Math.max(bm1.getUpperValue(), bm2.getUpperValue());
@@ -215,25 +215,29 @@ class HeatmapRenderer {
 
             List<Block> blocks = null;
             try {
-                blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                if (zd != null)
+                    blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
+                if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
             List<Block> ctrlBlocks = null;
             try {
-                ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
+                if (controlZD != null)
+                    ctrlBlocks = controlZD.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
+                if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
             if (blocks == null && ctrlBlocks == null) {
-                System.err.println("everything null...?");
+                System.err.println("Both ZoomData objects are null");
                 return false;
             }
 
             if (displayOption == MatrixType.CONTROL || displayOption == MatrixType.OECTRL) {
                 if (controlZD != null && ctrlBlocks != null) {
 
-                    String key = controlZD.getKey() + displayOption;
+                    String key = controlZD.getColorScaleKey(displayOption);
                     ColorScale cs = getColorScale(key, displayOption, isWholeGenome, ctrlBlocks);
 
                     for (Block b : ctrlBlocks) {
@@ -288,7 +292,7 @@ class HeatmapRenderer {
                 if (ctrlBlocks != null) comboBlocks.addAll(ctrlBlocks);
                 if (comboBlocks.isEmpty()) return false;
 
-                String key = zd.getKey() + displayOption;
+                String key = zd.getColorScaleKey(displayOption);
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, comboBlocks);
 
                 double averageCount = zd.getAverageCount();
@@ -297,89 +301,89 @@ class HeatmapRenderer {
 
 
                 if (zd != null && blocks != null) {
-                        for (Block b : blocks) {
+                    for (Block b : blocks) {
 
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+                            for (ContactRecord rec : recs) {
 
-                                    double score = rec.getCounts() / averageCount;
-                                    score = score * averageAcrossMapAndControl;
-                                    if (Double.isNaN(score)) continue;
+                                double score = rec.getCounts() / averageCount;
+                                score = score * averageAcrossMapAndControl;
+                                if (Double.isNaN(score)) continue;
 
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
 
-                                    int px = binX - originX;
-                                    int py = binY - originY;
+                                int px = binX - originX;
+                                int py = binY - originY;
 
-                                    if (displayOption == MatrixType.OEVS) {
-                                        if (df != null) {
-                                            int dist = Math.abs(binX - binY);
-                                            double expected = df.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
-                                        } else {
-                                            continue;
-                                        }
-
+                                if (displayOption == MatrixType.OEVS) {
+                                    if (df != null) {
+                                        int dist = Math.abs(binX - binY);
+                                        double expected = df.getExpectedValue(chr1, dist);
+                                        score = rec.getCounts() / expected;
+                                    } else {
+                                        continue;
                                     }
-                                    Color color = cs.getColor((float) score);
-                                    g.setColor(color);
 
+                                }
+                                Color color = cs.getColor((float) score);
+                                g.setColor(color);
+
+                                if (px > -1 && py > -1 && px <= width && py <= height) {
+                                    g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
+                                }
+                            }
+                        }
+                    }
+                }
+                if (controlZD != null && ctrlBlocks != null) {
+                    for (Block b : ctrlBlocks) {
+                        Collection<ContactRecord> recs = b.getContactRecords();
+                        if (recs != null) {
+                            for (ContactRecord rec : recs) {
+
+                                double score = rec.getCounts() / ctrlAverageCount;
+                                score = score * averageAcrossMapAndControl;
+                                if (Double.isNaN(score)) continue;
+
+                                int binX = rec.getBinX();
+                                int binY = rec.getBinY();
+
+                                if (displayOption == MatrixType.OEVS) {
+                                    if (controlDF != null) {
+                                        int dist = Math.abs(binX - binY);
+                                        double expected = controlDF.getExpectedValue(chr1, dist);
+                                        score = rec.getCounts() / expected;
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                                Color color = cs.getColor((float) score);
+                                g.setColor(color);
+
+                                if (sameChr && (rec.getBinX() != rec.getBinY())) {
+                                    int px = (binY - originX);
+                                    int py = (binX - originY);
                                     if (px > -1 && py > -1 && px <= width && py <= height) {
                                         g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
                                     }
                                 }
                             }
                         }
-                }
-                if (controlZD != null && ctrlBlocks != null) {
-                        for (Block b : ctrlBlocks) {
-                            Collection<ContactRecord> recs = b.getContactRecords();
-                            if (recs != null) {
-                                for (ContactRecord rec : recs) {
-
-                                    double score = rec.getCounts() / ctrlAverageCount;
-                                    score = score * averageAcrossMapAndControl;
-                                    if (Double.isNaN(score)) continue;
-
-                                    int binX = rec.getBinX();
-                                    int binY = rec.getBinY();
-
-                                    if (displayOption == MatrixType.OEVS) {
-                                        if (controlDF != null) {
-                                            int dist = Math.abs(binX - binY);
-                                            double expected = controlDF.getExpectedValue(chr1, dist);
-                                            score = rec.getCounts() / expected;
-                                        } else {
-                                            continue;
-                                        }
-                                    }
-                                    Color color = cs.getColor((float) score);
-                                    g.setColor(color);
-
-                                    if (sameChr && (rec.getBinX() != rec.getBinY())) {
-                                        int px = (binY - originX);
-                                        int py = (binX - originY);
-                                        if (px > -1 && py > -1 && px <= width && py <= height) {
-                                            g.fillRect(px, py, HiCGlobals.BIN_PIXEL_WIDTH, HiCGlobals.BIN_PIXEL_WIDTH);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    }
                 }
             } else {
 
                 boolean hasControl = controlZD != null && ctrlBlocks != null && MatrixType.isSimpleControlType(displayOption);
-                Map<Integer, Block> controlBlocks = new HashMap<>();
+                Map<String, Block> controlBlocks = new HashMap<>();
                 if (hasControl) {
                     for (Block b : ctrlBlocks) {
-                        controlBlocks.put(b.getNumber(), b);
+                        controlBlocks.put(b.getUniqueRegionID(), b);
                     }
                 }
 
-                String key = zd.getKey() + displayOption;
+                String key = zd.getColorScaleKey(displayOption);
                 ColorScale cs = getColorScale(key, displayOption, isWholeGenome, blocks);
 
                 double averageCount = zd.getAverageCount();
@@ -393,7 +397,7 @@ class HeatmapRenderer {
 
                         Map<String, ContactRecord> controlRecords = new HashMap<>();
                         if (hasControl) {
-                            Block cb = controlBlocks.get(b.getNumber());
+                            Block cb = controlBlocks.get(b.getUniqueRegionID());
                             if (cb != null) {
                                 for (ContactRecord ctrlRec : cb.getContactRecords()) {
                                     controlRecords.put(ctrlRec.getKey(), ctrlRec);
@@ -405,6 +409,10 @@ class HeatmapRenderer {
                             double score = Double.NaN;
                             if (displayOption == MatrixType.OE || displayOption == MatrixType.EXPECTED) {
                                 double expected = 0;
+                                // todo
+                                // if(zd instanceof CustomMatrixZoomData){
+                                //    expected = ((CustomMatrixZoomData)zd).getExpected(rec.getBinX(), rec.getBinY(), df);
+                                //} else
                                 if (chr1 == chr2) {
                                     if (df != null) {
                                         int binX = rec.getBinX();

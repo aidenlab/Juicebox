@@ -25,6 +25,7 @@
 package juicebox.tools.utils.original;
 
 import juicebox.HiCGlobals;
+import juicebox.data.ChromosomeHandler;
 
 import java.io.*;
 import java.util.LinkedHashMap;
@@ -58,7 +59,7 @@ public class FragmentCalculation {
                     sites[i - 1] = Integer.parseInt(tokens[i]);
                 }
 
-                sitesMap.put(key, sites);
+                sitesMap.put(ChromosomeHandler.cleanUpName(key), sites);
             } else {
                 System.out.println("Skipping line: " + nextLine);
             }

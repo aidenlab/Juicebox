@@ -461,6 +461,18 @@ public class LayersPanel extends JDialog {
         handler.setPlottingStyleButton(togglePlottingStyle);
 
         /* export annotations in layer to new file */
+        final JButton censorButton = createIconButton("/images/layer/hiclogo.png");
+        censorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.createCustomChromosomeMap(handler.getAnnotationLayer().getFeatureList(), handler.getLayerName());
+            }
+        });
+        handler.setCensorButton(censorButton);
+        censorButton.setEnabled(handler.getExportCapability());
+        censorButton.setToolTipText("Create sub-map (custom chromosome) from this layer");
+
+        /* export annotations in layer to new file */
         final JButton exportLayerButton = createIconButton("/images/layer/export_icon_green.png");
         exportLayerButton.addActionListener(new ActionListener() {
             @Override
@@ -589,7 +601,7 @@ public class LayersPanel extends JDialog {
         parentPanel.add(nameField);
         Component[] allComponents = new Component[]{writeButton, toggleVisibleButton,
                 colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyle, toggleSparseButton,
-                undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+                undoButton, clearButton, censorButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
         for (Component component : allComponents) {
             if (component instanceof AbstractButton) {
                 component.setMaximumSize(new Dimension(miniButtonSize, miniButtonSize));

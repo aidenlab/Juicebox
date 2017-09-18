@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -37,44 +38,40 @@ import java.util.List;
  */
 public class AssemblyFragmentHandler {
 
+    //deprecated
     private final String contigName = "Contig Name";
     private final String scaffoldIndexId = "Scaffold Index";
     private final String scaffoldNum = "Scaffold Number";
     private final String initiallyInvertedStatus = "Initially Inverted";
-    private List<ContigProperty> contigProperties;
+
+    private final String fragmentId = "Fragment ID";
+    private List<FragmentProperty> contigProperties;
     private List<List<Integer>> scaffoldProperties;
     private Feature2DList contigs;
     private Feature2DList scaffolds;
     private String chromosomeName = "assembly";
-    private Contig2D guessContig = null;
-    private Integer debrisContigIndex;
-    public AssemblyFragmentHandler(List<ContigProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
+
+    public AssemblyFragmentHandler(List<FragmentProperty> contigProperties, List<List<Integer>> scaffoldProperties) {
         this.contigProperties = contigProperties;
         this.scaffoldProperties = scaffoldProperties;
-        contigs = new Feature2DList();
-        scaffolds = new Feature2DList();
-        generateContigsAndScaffolds();
-        debrisContigIndex = null;
+        updateAssembly();
     }
 
     public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
         this.contigProperties = assemblyFragmentHandler.cloneContigProperties();
         this.scaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
-        this.contigs = new Feature2DList();
-        this.scaffolds = new Feature2DList();
-        if (assemblyFragmentHandler.debrisContigIndex == null) {
-            this.debrisContigIndex = null;
-        } else {
-            this.debrisContigIndex = new Integer(assemblyFragmentHandler.debrisContigIndex);
-        }
-        generateContigsAndScaffolds();
+        updateAssembly();
     }
 
+    public void updateAssembly() {
+        setCurrentState();
+        populate2DFeatures();
+    }
 
-    public List<ContigProperty> cloneContigProperties() {
-        List<ContigProperty> newList = new ArrayList<>();
-        for (ContigProperty contigProperty : contigProperties) {
-            newList.add(new ContigProperty(contigProperty));
+    public List<FragmentProperty> cloneContigProperties() {
+        List<FragmentProperty> newList = new ArrayList<>();
+        for (FragmentProperty fragmentProperty : contigProperties) {
+            newList.add(new FragmentProperty(fragmentProperty));
         }
         return newList;
     }
@@ -99,7 +96,7 @@ public class AssemblyFragmentHandler {
         return scaffolds;
     }
 
-    public List<ContigProperty> getContigProperties() {
+    public List<FragmentProperty> getContigProperties() {
         return contigProperties;
     }
 
@@ -107,329 +104,189 @@ public class AssemblyFragmentHandler {
         return scaffoldProperties;
     }
 
-    public void generateInitialContigsAndScaffolds() {
-        contigs = new Feature2DList();
-        scaffolds = new Feature2DList();
-        int contigStartPos = 0;
-        int scaffoldStartPos = 0;
-        int scaffoldLength = 0;
-        Integer rowNum = 0;
-        for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                ContigProperty contigProperty = contigProperties.get(Math.abs(contigIndex) - 1);
-                String contigName = contigProperty.getName();
-                Integer contigLength = contigProperty.getLength();
 
-                Map<String, String> attributes = new HashMap<String, String>();
-                attributes.put(this.contigName, contigName);
-                attributes.put(scaffoldIndexId, contigIndex.toString());
-                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
-                //put attribute here
-                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        new Color(0, 255, 0), attributes); //todo
-
-                Contig2D contig = feature2D.toContig();
-
-                contigProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), contigProperty.isInverted());
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
-
-                contigs.add(1, 1, contig);
-                contigProperty.setFeature2D(contig);
-
-                contigStartPos += contigLength;
-                scaffoldLength += contigLength;
-            }
-            Map<String, String> attributes = new HashMap<String, String>();
-            attributes.put(scaffoldNum, rowNum.toString());
-
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    new Color(0, 0, 255), attributes);
-            scaffolds.add(1, 1, scaffold);
-
-            scaffoldStartPos += scaffoldLength;
-            scaffoldLength = 0;
-            rowNum++;
-        }
-    }
-
-    public void generateContigsAndScaffolds() {
-        contigs = new Feature2DList();
-        scaffolds = new Feature2DList();
-        int contigStartPos = 0;
-        int scaffoldStartPos = 0;
-        int scaffoldLength = 0;
-        Integer rowNum = 0;
-        for (List<Integer> row : scaffoldProperties) {
-            for (Integer contigIndex : row) {
-                ContigProperty contigProperty = contigProperties.get(Math.abs(contigIndex) - 1);
-                String contigName = contigProperty.getName();
-                Integer contigLength = contigProperty.getLength();
-
-                Map<String, String> attributes = new HashMap<String, String>();
-                attributes.put(this.contigName, contigName);
-                attributes.put(scaffoldIndexId, contigIndex.toString());
-                attributes.put(initiallyInvertedStatus, Boolean.toString(contigProperty.wasIntiallyInverted()));
-                //put attribute here
-                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        chromosomeName, contigStartPos, (contigStartPos + contigLength),
-                        new Color(0, 255, 0), attributes); //todo
-
-                Contig2D contig = feature2D.toContig();
-                if (contigProperty.isInverted()) {
-                    contig.toggleInversion(); //assuming initial contig2D inverted = false
+    public void setCurrentState() {
+        long shift = 0;
+        for (List<Integer> asmGroup : scaffoldProperties) {
+            for (Integer entry : asmGroup) {
+                int fragmentIterator = Math.abs(entry) - 1;
+                FragmentProperty currentFragmentProperty = contigProperties.get(fragmentIterator);
+                currentFragmentProperty.setCurrentStart(shift);
+                currentFragmentProperty.setInvertedVsInitial(false);
+                if (entry < 0 && (!contigProperties.get(fragmentIterator).wasInitiallyInverted()) ||
+                        entry > 0 && contigProperties.get(fragmentIterator).wasInitiallyInverted()) {
+                    currentFragmentProperty.setInvertedVsInitial(true);
                 }
-
-                contig.setInitialState(contigProperty.getInitialChr(), contigProperty.getInitialStart(), contigProperty.getInitialEnd(), contigProperty.wasIntiallyInverted());
-
-                contigs.add(1, 1, contig);
-                contigProperty.setFeature2D(contig);
-
-                contigStartPos += contigLength;
-                scaffoldLength += contigLength;
+                shift += currentFragmentProperty.getLength();
             }
+        }
+    }
+
+    public void populate2DFeatures() {
+        contigs = new Feature2DList();
+        for (FragmentProperty fragmentProperty : contigProperties) {
+
             Map<String, String> attributes = new HashMap<String, String>();
-            attributes.put(scaffoldNum, rowNum.toString());
+            //deprecated
+            attributes.put(contigName, fragmentProperty.getName());
+            attributes.put(scaffoldIndexId, String.valueOf(fragmentProperty.getSignIndexId()));
+            attributes.put(initiallyInvertedStatus, Boolean.toString(fragmentProperty.wasInitiallyInverted()));
 
-            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    chromosomeName, scaffoldStartPos, (scaffoldStartPos + scaffoldLength),
-                    new Color(0, 0, 255), attributes);
+            // leave only the id to lookup everything else
+            attributes.put(fragmentId, String.valueOf(fragmentProperty.getIndexId()));
+
+            // we don't need both contig and fragment. Will drop contig2D in favor of getting evertyihgn from fragment property (change to fragment state?)
+            Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG,
+                    chromosomeName,
+                    (int) Math.round(fragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale),
+                    (int) Math.round((fragmentProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
+                    chromosomeName,
+                    (int) Math.round(fragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale),
+                    (int) Math.round((fragmentProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
+                    new Color(0, 255, 0),
+                    attributes); //todo
+
+            Contig2D contig = feature2D.toContig();
+            if (fragmentProperty.isInvertedVsInitial()) {
+                contig.toggleInversion(); //assuming initial contig2D inverted = false
+            }
+            contig.setInitialState(fragmentProperty.getInitialChr(),
+                    (int) Math.round(fragmentProperty.getInitialStart() / HiCGlobals.hicMapScale),
+                    (int) Math.round(fragmentProperty.getInitialEnd() / HiCGlobals.hicMapScale),
+                    fragmentProperty.wasInitiallyInverted());
+            contigs.add(1, 1, contig);
+            fragmentProperty.setFeature2D(contig);
+        }
+        scaffolds = new Feature2DList();
+        long groupStart = 0;
+        for (int row = 0; row < scaffoldProperties.size(); row++) {
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.put(scaffoldNum, String.valueOf(row));
+            long totalGroupLength = 0;
+            for (int fragment : scaffoldProperties.get(row)) {
+                int fragmentIterator = Math.abs(fragment) - 1;
+                totalGroupLength += contigProperties.get(fragmentIterator).getLength();
+            }
+            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
+                    chromosomeName,
+                    (int) Math.round(groupStart / HiCGlobals.hicMapScale),
+                    (int) Math.round((groupStart + totalGroupLength) / HiCGlobals.hicMapScale),
+                    chromosomeName,
+                    (int) Math.round(groupStart / HiCGlobals.hicMapScale),
+                    (int) Math.round((groupStart + totalGroupLength) / HiCGlobals.hicMapScale),
+                    new Color(0, 0, 255),
+                    attributes);
             scaffolds.add(1, 1, scaffold);
-
-            scaffoldStartPos += scaffoldLength;
-            scaffoldLength = 0;
-            rowNum++;
+            groupStart += totalGroupLength;
         }
     }
 
-    //**** Splitting ****//
+    //**** Split fragment ****//
 
-    public void editContig(Feature2D originalFeature, Feature2D debrisContig) {
-        ArrayList<Feature2D> contigs = new ArrayList<>();
-        contigs.add(originalFeature);
-        int scaffoldRowNum = getScaffoldRow(contig2DListToIntegerList(contigs));
-        boolean invertedInAsm = originalFeature.getAttribute(scaffoldIndexId).contains("-");  //if contains a negative then it is inverted
+    public void editFragment(Feature2D originalFeature, Feature2D debrisFeature) {
+        // find the relevant fragment property
+        int fragmentIterator = Integer.parseInt(originalFeature.getAttribute(fragmentId)) - 1;
+        FragmentProperty toEditFragmentProperty = contigProperties.get(fragmentIterator);
+        //FragmentProperty toEditFragmentProperty = feature2DtoContigProperty(originalFeature);
 
-        ContigProperty originalContig = feature2DtoContigProperty(originalFeature);
-        int indexId = Integer.parseInt(originalFeature.getAttribute(scaffoldIndexId));
-        List<ContigProperty> splitContigs = splitContig(invertedInAsm, originalFeature, debrisContig, originalContig);
-
-        addContigProperties(originalContig, splitContigs);
-        addScaffoldProperties(indexId, invertedInAsm, splitContigs, scaffoldRowNum, scaffoldProperties.get(scaffoldRowNum).indexOf(indexId));
-
-        debrisContigIndex = splitContigs.get(1).getIndexId();
-        debrisContigIndex = findInvertedContigIndex(debrisContigIndex);
-//        System.out.println("dindex "+debrisContigIndex);
-    }
-
-    public ContigProperty feature2DtoContigProperty(Feature2D feature2D) {
-        for (ContigProperty contigProperty : contigProperties) {
-            if (contigProperty.getFeature2D().getStart1() == feature2D.getStart1())
-                return contigProperty;
+        // do not allow for splitting debris contigs, TODO: should probably also handle at the level of prompts
+        if (toEditFragmentProperty.isDebris()) {
+            return;
         }
-        System.err.println("error finding corresponding contig");
-        return null;
-    }
 
-    public List<ContigProperty> splitContig(boolean invertedInAsm, Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
+        // calculate split with respect to fragment
+        long startCut;
+        long endCut;
 
-
-        if (originalFeature.overlapsWith(debrisFeature)) {
-            if (!invertedInAsm)  //not inverted
-                return generateNormalSplit(originalFeature, debrisFeature, originalContig);
-            else  //is inverted so flip order of contigs
-                return generateInvertedSplit(originalFeature, debrisFeature, originalContig);
+        if (toEditFragmentProperty.getSignIndexId() > 0) {
+            startCut = (long) (debrisFeature.getStart1() * HiCGlobals.hicMapScale) - toEditFragmentProperty.getCurrentStart();
+            endCut = (long) (debrisFeature.getEnd1() * HiCGlobals.hicMapScale) - toEditFragmentProperty.getCurrentStart();
         } else {
-            System.out.println("error splitting contigs");
-            return null;
+            startCut = (long) (toEditFragmentProperty.getCurrentEnd() - debrisFeature.getEnd1() * HiCGlobals.hicMapScale);
+            endCut = (long) (toEditFragmentProperty.getCurrentEnd() - debrisFeature.getStart1() * HiCGlobals.hicMapScale);
         }
+
+        editCprops(toEditFragmentProperty, startCut, endCut);
+        editAsm(toEditFragmentProperty);
     }
 
-    public List<ContigProperty> generateNormalSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
-        List<ContigProperty> splitContig = new ArrayList<>();
-        List<String> newContigNames = getNewContigNames(originalContig);
-
-        int originalIndexId = originalContig.getIndexId();
-        int originalStart = originalFeature.getStart1();
-        int debrisStart = debrisFeature.getStart1();
-        int originalEnd = originalFeature.getEnd2();
-        int debrisEnd = debrisFeature.getEnd1();
-        int length;
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
-
-        length = debrisStart - originalStart;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), originalIndexId, length, initiallyInverted);
-
-        length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
-
-        length = originalEnd - debrisEnd;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), (originalIndexId + 2), length, initiallyInverted);
-
-        splitContig.add(firstFragment);
-        splitContig.add(secondFragment);
-        splitContig.add(thirdFragment);
-
-        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, false);
-        return splitContig;
-    }
-
-    public List<ContigProperty> generateInvertedSplit(Feature2D originalFeature, Feature2D debrisFeature, ContigProperty originalContig) {
-        List<ContigProperty> splitContig = new ArrayList<>();
-        List<String> newContigNames = getNewContigNames(originalContig);
-
-        int originalIndexId = originalContig.getIndexId();
-        int originalStart = originalFeature.getStart1();
-        int debrisStart = debrisFeature.getStart1();
-        int originalEnd = originalFeature.getEnd2();
-        int debrisEnd = debrisFeature.getEnd1();
-        int length;
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
-
-        length = originalEnd - debrisEnd;
-        ContigProperty firstFragment = new ContigProperty(newContigNames.get(0), (originalIndexId + 2), length, initiallyInverted);
-
-        length = debrisEnd - debrisStart;
-        ContigProperty secondFragment = new ContigProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
-
-        length = debrisStart - originalStart;
-        ContigProperty thirdFragment = new ContigProperty(newContigNames.get(2), originalIndexId, length, initiallyInverted);
-
-        splitContig.add(thirdFragment);
-        splitContig.add(secondFragment);
-        splitContig.add(firstFragment);
-
-        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, true);
-        return splitContig;
-    }
-
-    public void setInitialStatesBasedOnOriginalContig(ContigProperty originalContig, List<ContigProperty> splitContig, boolean invertedInAsm) {
-        int newInitialStart;
-        int newInitialEnd;
-        System.out.println("Initially inverted: " + originalContig.wasIntiallyInverted());
-        boolean initiallyInverted = originalContig.wasIntiallyInverted();
-
-        if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) {
-            newInitialEnd = originalContig.getInitialEnd();
-            newInitialStart = newInitialEnd;
-            for (ContigProperty contigProperty : splitContig) {
-                //    50-100, 40-50, 0-40
-                newInitialStart = newInitialStart - contigProperty.getLength();
-                contigProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInverted());
-
-                newInitialEnd = newInitialStart;
+    private void editAsm(FragmentProperty toEditFragmentProperty) {
+        List<Integer> debrisGroup = new ArrayList<>();
+        for (int i = 0; i < scaffoldProperties.size(); i++) {
+            int fragmentId = toEditFragmentProperty.getIndexId();
+            for (int j = 0; j < scaffoldProperties.get(i).size(); j++) {
+                scaffoldProperties.get(i).set(j, modifyFragmentId(scaffoldProperties.get(i).get(j), fragmentId));
             }
-        } else { //not inverted
-            newInitialStart = originalContig.getInitialStart();
-            newInitialEnd = newInitialStart;
-            //    0-40, 40-50, 50-100
-            for (ContigProperty contigProperty : splitContig) {
-                newInitialEnd = newInitialEnd + contigProperty.getLength();
-                contigProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInverted());
-                newInitialStart = newInitialEnd;
+            if (scaffoldProperties.get(i).contains(fragmentId)) {
+                scaffoldProperties.get(i).add(scaffoldProperties.get(i).indexOf(fragmentId) + 1, fragmentId + 2);
+                debrisGroup.add(fragmentId + 1);
+            } else if (scaffoldProperties.get(i).contains(-fragmentId)) {
+                scaffoldProperties.get(i).add(scaffoldProperties.get(i).indexOf(-fragmentId), -fragmentId - 2);
+                debrisGroup.add(-fragmentId - 1);
             }
         }
+        scaffoldProperties.add(debrisGroup);
     }
 
-    public List<String> getNewContigNames(ContigProperty contigProperty) {
-        String fragmentString = ":::fragment_";
-        String contigName = contigProperty.getName();
-        List<String> newNames = new ArrayList<String>();
-        if (contigName.contains(":::")) {
-            if (contigName.contains("debris")) {
-                System.err.println("cannot split a debris fragment");
-            } else {
-                String originalContigName = contigProperty.getOriginalContigName();
-                int fragmentNum = contigProperty.getFragmentNumber();
-                newNames.add(originalContigName + fragmentString + fragmentNum);
-                newNames.add(originalContigName + fragmentString + (fragmentNum + 1) + ":::debris");
-                newNames.add(originalContigName + fragmentString + (fragmentNum + 2));
-            }
-        } else {
-            newNames.add(contigName + fragmentString + "1");
-            newNames.add(contigName + fragmentString + "2:::debris");
-            newNames.add(contigName + fragmentString + "3");
-        }
-        return newNames;
-    }
-
-    public void addScaffoldProperties(int splitIndex, boolean invertedInAsm, List<ContigProperty> splitContigs, int rowNum, int posNum) {
-        List<Integer> splitContigsIds = new ArrayList<>();
-        int multiplier;
-        if (invertedInAsm)
-            multiplier = -1;
-        else
-            multiplier = 1;
-
-        for (ContigProperty contigProperty : splitContigs) {
-            splitContigsIds.add(multiplier * contigProperty.getIndexId());
-
-        }
-
-        shiftScaffoldProperties(splitIndex);
-
-        scaffoldProperties.get(rowNum).addAll(posNum, splitContigsIds);
-        scaffoldProperties.get(rowNum).remove(posNum + 3);
-    }
-
-    public void shiftScaffoldProperties(int splitIndex) {
-        int i;
-
-        for (List<Integer> scaffoldRow : scaffoldProperties) {
-            i = 0;
-            for (Integer indexId : scaffoldRow) {
-                if (Math.abs(indexId) > (Math.abs(splitIndex))) {
-                    if (indexId < 0)
-                        scaffoldRow.set(i, indexId - 2);
-                    else
-                        scaffoldRow.set(i, indexId + 2);
-                }
-                i++;
-            }
+    private int modifyFragmentId(int index, int cutElementId) {
+        if (Math.abs(index) <= cutElementId)
+            return index;
+        else {
+            if (index > 0)
+                return index + 2;
+            else
+                return index - 2;
         }
     }
 
-    public void addContigProperties(ContigProperty originalContig, List<ContigProperty> splitContig) {
-        int splitContigIndex = contigProperties.indexOf(originalContig);
-        shiftContigIndices(splitContigIndex);
-
-        List<ContigProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
-        if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are framents past the one you are splitting
-            List<ContigProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
-            for (ContigProperty contigProperty : shiftedContigs) {
-                String newContigName = contigProperty.getName();
-                if (newContigName.contains(":::debris")) {
-                    newContigName = newContigName.replaceFirst("_.*", "_" + (contigProperty.getFragmentNumber() + 2) + ":::debris");
+    private void editCprops(FragmentProperty originalFragmentProperty, long startCut, long endCut) {
+        List<FragmentProperty> newFragmentProperties = new ArrayList<>();
+        //List<FragmentProperty> addedProperties = new ArrayList<>();
+        int startingFragmentNumber;
+        for (FragmentProperty fragmentProperty : contigProperties) {
+            if (fragmentProperty.getIndexId() < originalFragmentProperty.getIndexId()) {
+                newFragmentProperties.add(fragmentProperty);
+            } else if (fragmentProperty.getIndexId() == originalFragmentProperty.getIndexId()) {
+                startingFragmentNumber = fragmentProperty.getFragmentNumber();
+                if (startingFragmentNumber == 0) {
+                    startingFragmentNumber++;
+                } // first ever split
+                newFragmentProperties.add(new FragmentProperty(fragmentProperty.getOriginalContigName() + ":::fragment_" + (startingFragmentNumber), fragmentProperty.getIndexId(), startCut));
+                newFragmentProperties.add(new FragmentProperty(fragmentProperty.getOriginalContigName() + ":::fragment_" + (startingFragmentNumber + 1) + ":::debris", fragmentProperty.getIndexId() + 1, endCut - startCut));
+                newFragmentProperties.add(new FragmentProperty(fragmentProperty.getOriginalContigName() + ":::fragment_" + (startingFragmentNumber + 2), fragmentProperty.getIndexId() + 2, fragmentProperty.getLength() - endCut));
+                // set their initial properties
+                if (!originalFragmentProperty.wasInitiallyInverted()) {
+                    newFragmentProperties.get(newFragmentProperties.size() - 3).setInitialStart(originalFragmentProperty.getInitialStart());
+                    newFragmentProperties.get(newFragmentProperties.size() - 3).setInitiallyInverted(false);
+                    newFragmentProperties.get(newFragmentProperties.size() - 2).setInitialStart(originalFragmentProperty.getInitialStart() + startCut);
+                    newFragmentProperties.get(newFragmentProperties.size() - 2).setInitiallyInverted(false);
+                    newFragmentProperties.get(newFragmentProperties.size() - 1).setInitialStart(originalFragmentProperty.getInitialStart() + endCut);
+                    newFragmentProperties.get(newFragmentProperties.size() - 1).setInitiallyInverted(false);
                 } else {
-                    newContigName = newContigName.replaceFirst("_\\d+", "_" + (contigProperty.getFragmentNumber() + 2));
+                    newFragmentProperties.get(newFragmentProperties.size() - 1).setInitialStart(originalFragmentProperty.getInitialStart());
+                    newFragmentProperties.get(newFragmentProperties.size() - 1).setInitiallyInverted(true);
+                    newFragmentProperties.get(newFragmentProperties.size() - 2).setInitialStart(originalFragmentProperty.getInitialEnd() - endCut);
+                    newFragmentProperties.get(newFragmentProperties.size() - 2).setInitiallyInverted(true);
+                    newFragmentProperties.get(newFragmentProperties.size() - 3).setInitialStart(originalFragmentProperty.getInitialEnd() - startCut);
+                    newFragmentProperties.get(newFragmentProperties.size() - 3).setInitiallyInverted(true);
                 }
-                contigProperty.setName(newContigName);
+            } else {
+                if (fragmentProperty.getOriginalContigName().equals(originalFragmentProperty.getOriginalContigName())) {
+                    if (fragmentProperty.isDebris())
+                        fragmentProperty.setName(fragmentProperty.getOriginalContigName() + ":::fragment_" + (fragmentProperty.getFragmentNumber() + 2) + ":::debris");
+                    else
+                        fragmentProperty.setName(fragmentProperty.getOriginalContigName() + ":::fragment_" + (fragmentProperty.getFragmentNumber() + 2));
+                }
+                fragmentProperty.setIndexId(fragmentProperty.getIndexId() + 2);
+                newFragmentProperties.add(fragmentProperty);
             }
         }
 
-        contigProperties.addAll(splitContigIndex, splitContig);
-        contigProperties.remove(originalContig);
+        contigProperties.clear();
+        contigProperties.addAll(newFragmentProperties);
     }
 
-    public void shiftContigIndices(int splitIndexId) {
-        for (ContigProperty contigProperty : contigProperties) {
-            if (Math.abs(contigProperty.getIndexId()) > (Math.abs(splitIndexId) + 1)) {
-                contigProperty.setIndexId(contigProperty.getIndexId() + 2);
-            }
-        }
-    }
 
-    public List<ContigProperty> findContigsSplitFromInitial(ContigProperty originalContig) {
-        List<ContigProperty> contigPropertiesFromSameInitial = new ArrayList<>();
-        String originalContigName = originalContig.getOriginalContigName();
-
-        for (ContigProperty contigProperty : contigProperties) {
-            if (contigProperty.getName().contains(originalContigName))
-                contigPropertiesFromSameInitial.add(contigProperty);
-        }
-        return contigPropertiesFromSameInitial;
-    }
 
     //**** Inversion ****//
 
@@ -454,9 +311,9 @@ public class AssemblyFragmentHandler {
         }
 
         //invert selected contig properties
-        List<ContigProperty> selectedContigProperties = contig2DListToContigPropertyList(contigs);
-        for (ContigProperty contigProperty : selectedContigProperties) {
-            contigProperty.toggleInversion();
+        List<FragmentProperty> selectedContigProperties = contig2DListToContigPropertyList(contigs);
+        for (FragmentProperty fragmentProperty : selectedContigProperties) {
+            fragmentProperty.toggleInversion();
         }
 
         if (gid1==gid2){
@@ -485,18 +342,6 @@ public class AssemblyFragmentHandler {
 
     }
 
-    public int getScaffoldRow(List<Integer> contigIds) {
-        int i = 0;
-        for (List<Integer> scaffoldRow : scaffoldProperties) {
-            List<Integer> absoluteRow = findAbsoluteValuesList(scaffoldRow);
-            if (absoluteRow.containsAll(findAbsoluteValuesList(contigIds)))
-                return i;
-            i++;
-        }
-        System.err.println("Can't Find row");
-        return -1;
-    }
-
     public List<Integer> findAbsoluteValuesList(List<Integer> list) {
         List<Integer> newList = new ArrayList<>();
         for (int element : list) {
@@ -513,25 +358,25 @@ public class AssemblyFragmentHandler {
         return contigIds;
     }
 
-    public List<ContigProperty> contig2DListToContigPropertyList(List<Feature2D> contigs) {
-        List<ContigProperty> newList = new ArrayList<ContigProperty>();
+    public List<FragmentProperty> contig2DListToContigPropertyList(List<Feature2D> contigs) {
+        List<FragmentProperty> newList = new ArrayList<FragmentProperty>();
         for (Feature2D feature2D : contigs) {
             newList.add(contig2DToContigProperty(feature2D));
         }
         return newList;
     }
 
-    public ContigProperty contig2DToContigProperty(Feature2D feature2D) {
-        for (ContigProperty contigProperty : contigProperties) {
-            if (contigProperty.getFeature2D().equals(feature2D)) { //make sure it is okay
+    public FragmentProperty contig2DToContigProperty(Feature2D feature2D) {
+        for (FragmentProperty fragmentProperty : contigProperties) {
+            if (fragmentProperty.getFeature2D().equals(feature2D)) { //make sure it is okay
 
-                return contigProperty;
+                return fragmentProperty;
             }
         }
         return null;
     }
 
-    //**** Move toggle ****//
+    //**** Move selection ****//
 
     public void moveSelection(List<Feature2D> selectedFeatures, Feature2D upstreamFeature){
         int id1 = Integer.parseInt(selectedFeatures.get(0).getAttribute(scaffoldIndexId));
@@ -540,31 +385,7 @@ public class AssemblyFragmentHandler {
         moveSelection(id1, id2, id3);
     }
 
-    public void moveDebrisToEnd() {
-        if (debrisContigIndex != null) {
-            int id1 = debrisContigIndex;
-            int id2 = debrisContigIndex;
-            int counter = 0;
-
-            List<Integer> lastRow = scaffoldProperties.get(scaffoldProperties.size() - 1);
-
-            int id3 = lastRow.get(lastRow.size() - 1);
-            moveSelection(id1, id2, id3);
-            debrisContigIndex = null;
-        }
-    }
-
-    public int findInvertedContigIndex(int id1) {
-        for (List<Integer> scaffoldRow : scaffoldProperties) {
-
-            for (int index : scaffoldRow) {
-                if (Math.abs(index) == Math.abs(id1))
-                    return index;
-            }
-        }
-        System.err.println("error finding contigID");
-        return -1;
-    }
+    //**** Move selection ****//
 
     public void moveSelection(int id1, int id2, int id3) {
 
@@ -643,8 +464,6 @@ public class AssemblyFragmentHandler {
 
         scaffoldProperties.clear();
         scaffoldProperties.addAll(newGroups);
-
-        return;
     }
 
     //**** Group toggle ****//
@@ -661,16 +480,10 @@ public class AssemblyFragmentHandler {
         int gr1 = getGroupID(id1);
         int gr2 = getGroupID(id2);
 
-//        System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         if (gr1==gr2){
-//            System.out.println("calling split");
             newSplitGroup(gr1, id1);
-//            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }else {
-
-//            System.out.println("calling merge");
             newMergeGroup(gr1, gr2);
-//            System.out.println(Arrays.toString(scaffoldProperties.toArray()));
         }
 
     }
@@ -805,5 +618,424 @@ public class AssemblyFragmentHandler {
         }
         return newCoordinate;
     }
+
+    @Override
+    public String toString() {
+        String s = "CPROPS\n";
+        for (FragmentProperty fragmentProperty : contigProperties) {
+            s += fragmentProperty.toString() + "\n";
+        }
+        s += "ASM\n";
+        for (List<Integer> row : scaffoldProperties) {
+            for (int id : row) {
+                s += id + " ";
+            }
+            s += "\n";
+        }
+        return s;
+    }
+
+
+    //deprecated
+//    public void generateContigsAndScaffolds(boolean initialGeneration, boolean modifiedGeneration, AssemblyFragmentHandler originalAssemblyFragmentHandler) {
+//        Map<String, Pair<List<FragmentProperty>, List<FragmentProperty>>> splitFragments = new HashMap<>();
+//        contigs = new Feature2DList();
+//        scaffolds = new Feature2DList();
+//        long contigStartPos = 0;
+//        long scaffoldStartPos = 0;
+//        long scaffoldLength = 0;
+//        Integer rowNum = 0;
+//        for (List<Integer> row : scaffoldProperties) {
+//            for (Integer contigIndex : row) {
+//                FragmentProperty fragmentProperty = contigProperties.get(Math.abs(contigIndex) - 1);
+//                String contigName = fragmentProperty.getName();
+//                Long contigLength = new Long(fragmentProperty.getLength());
+//
+//                if (initialGeneration && !modifiedGeneration) {
+//                    fragmentProperty.setInitialState(chromosomeName, contigStartPos, (contigStartPos + contigLength), fragmentProperty.isInvertedVsInitial());
+//                }
+//                if (modifiedGeneration) {
+//                    List<FragmentProperty> newList = getRelatedFragmentProperties(originalAssemblyFragmentHandler, fragmentProperty);
+//                    //works for non-modified, rewrite
+//                    FragmentProperty originalFragmentProperty = newList.get(0);
+//
+//                    boolean invertedInAsm = false;
+//
+//                    List<Integer> list = Arrays.asList(fragmentProperty.getIndexId());
+//                    if ((originalFragmentProperty.wasInitiallyInverted() && scaffoldProperties.get(getScaffoldRow(list)).contains(fragmentProperty.getIndexId())) ||
+//                            ((!originalFragmentProperty.wasInitiallyInverted()) && scaffoldProperties.get(getScaffoldRow(list)).contains(-fragmentProperty.getIndexId()))){
+//                    //if (fragmentProperty.getIndexId() != originalFragmentProperty.getIndexId()) {
+//                        invertedInAsm = true;
+//                    }
+//                    fragmentProperty.setInitialState(chromosomeName, originalFragmentProperty.getInitialStart(), originalFragmentProperty.getInitialEnd(), invertedInAsm);
+//                    fragmentProperty.setInitiallyInverted(originalFragmentProperty.wasInitiallyInverted());
+//
+//                    if (fragmentProperty.getName().contains(":::fragment_")) {
+//                        addRelevantOriginalContigProperties(newList, splitFragments, fragmentProperty);
+//                    }
+//                }
+//
+//                Map<String, String> attributes = new HashMap<String, String>();
+//                attributes.put(this.contigName, contigName);
+//                attributes.put(scaffoldIndexId, contigIndex.toString());
+//                attributes.put(initiallyInvertedStatus, Boolean.toString(fragmentProperty.wasInitiallyInverted()));
+//                //put attribute here
+//                Feature2D feature2D = new Feature2D(Feature2D.FeatureType.CONTIG, chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
+//                        chromosomeName, (int) Math.round(contigStartPos / HiCGlobals.hicMapScale), (int) Math.round((contigStartPos + contigLength) / HiCGlobals.hicMapScale),
+//                        new Color(0, 255, 0), attributes); //todo
+//
+//                Contig2D contig = feature2D.toContig();
+//                if (fragmentProperty.isInvertedVsInitial()) {
+//                    contig.toggleInversion(); //assuming initial contig2D inverted = false
+//                }
+//                contig.setInitialState(fragmentProperty.getInitialChr(), (int) Math.round(fragmentProperty.getInitialStart() / HiCGlobals.hicMapScale), (int) Math.round(fragmentProperty.getInitialEnd() / HiCGlobals.hicMapScale), fragmentProperty.wasInitiallyInverted());
+//                contigs.add(1, 1, contig);
+//                fragmentProperty.setFeature2D(contig);
+//
+//                contigStartPos += contigLength;
+//                scaffoldLength += contigLength;
+//            }
+//            Map<String, String> attributes = new HashMap<String, String>();
+//            attributes.put(scaffoldNum, rowNum.toString());
+//
+//            Feature2D scaffold = new Feature2D(Feature2D.FeatureType.SCAFFOLD, chromosomeName, (int) Math.round(scaffoldStartPos / HiCGlobals.hicMapScale), (int) Math.round((scaffoldStartPos + scaffoldLength) / HiCGlobals.hicMapScale),
+//                    chromosomeName, (int) Math.round(scaffoldStartPos / HiCGlobals.hicMapScale), (int) Math.round((scaffoldStartPos + scaffoldLength) / HiCGlobals.hicMapScale),
+//                    new Color(0, 0, 255), attributes);
+//            scaffolds.add(1, 1, scaffold);
+//
+//            scaffoldStartPos += scaffoldLength;
+//            scaffoldLength = 0;
+//            rowNum++;
+//        }
+//
+//        if (modifiedGeneration && !splitFragments.isEmpty()) {
+//            printRelevantOriginalContigProperties(splitFragments);
+//            fixInitialState(splitFragments);
+//        }
+//    }
+
+    //    public List<FragmentProperty> getRelatedFragmentProperties(AssemblyFragmentHandler originalAssemblyFragmentHandler, FragmentProperty lookupFragmentProperty) {
+//        List<FragmentProperty> originalContigProperties = originalAssemblyFragmentHandler.getContigProperties();
+//        List<FragmentProperty> newList = new ArrayList<>();
+//        for (FragmentProperty fragmentProperty : originalContigProperties) {
+//            if (lookupFragmentProperty.getOriginalContigName().equals(fragmentProperty.getOriginalContigName())){
+//                newList.add(fragmentProperty);
+//            }
+//        }
+//        return newList;
+//    }
+
+//    public void addRelevantOriginalContigProperties(List<FragmentProperty> originalContigProperties, Map<String, Pair<List<FragmentProperty>, List<FragmentProperty>>> splitFragments, FragmentProperty lookupFragmentProperty) {
+//        String originalContigName = lookupFragmentProperty.getOriginalContigName();
+//
+//        for (FragmentProperty originalFragmentProperty : originalContigProperties) {
+//            Pair<List<FragmentProperty>, List<FragmentProperty>> newEntry = new Pair<List<FragmentProperty>, List<FragmentProperty>>(new ArrayList<FragmentProperty>(), new ArrayList<FragmentProperty>());
+//            if (!splitFragments.containsKey(originalContigName)) {
+//                Pair<List<FragmentProperty>, List<FragmentProperty>> newPair = new Pair<List<FragmentProperty>, List<FragmentProperty>>(new ArrayList<FragmentProperty>(), new ArrayList<FragmentProperty>());
+//                splitFragments.put(originalContigName, newPair);
+//            }
+//            newEntry = splitFragments.get(originalContigName);
+//            if (!newEntry.getFirst().contains(originalFragmentProperty))
+//                newEntry.getFirst().add(originalFragmentProperty);
+//            if (!newEntry.getSecond().contains(lookupFragmentProperty))
+//                newEntry.getSecond().add(lookupFragmentProperty);
+//        }
+//    }
+
+//    public void printRelevantOriginalContigProperties(Map<String, Pair<List<FragmentProperty>, List<FragmentProperty>>> splitFragments) {
+//        for (String key : splitFragments.keySet()) {
+//            Pair<List<FragmentProperty>, List<FragmentProperty>> pair = splitFragments.get(key);
+//            System.out.println("Old fragments");
+//            for (FragmentProperty fragmentProperty : pair.getFirst()) {
+//                System.out.println(fragmentProperty.getName());
+//            }
+//            System.out.println("New fragments");
+//            for (FragmentProperty fragmentProperty : pair.getSecond()) {
+//                System.out.println(fragmentProperty.getName());
+//            }
+//            System.out.println();
+//        }
+//    }
+
+//    public void fixInitialState(Map<String, Pair<List<FragmentProperty>, List<FragmentProperty>>> newSplitFragments) {
+//        Comparator<FragmentProperty> comparator = new Comparator<FragmentProperty>() {
+//            @Override
+//            public int compare(final FragmentProperty o1, final FragmentProperty o2) {
+//                return o1.getFragmentNumber() - o2.getFragmentNumber();
+//            }
+//        };
+//        for (String key : newSplitFragments.keySet()) {
+//            //reconstruct from here
+//            Pair<List<FragmentProperty>, List<FragmentProperty>> entry = newSplitFragments.get(key);
+//
+////            System.out.println(key);
+////            Collections.sort(entry.getFirst(),comparator);
+////            Collections.sort(entry.getSecond(),comparator);
+////
+////            List arrayList = new ArrayList<>();
+////            for(FragmentProperty contigProperty : entry.getFirst()){
+////                arrayList.add(contigProperty.getName());
+////            }
+////            System.out.println(arrayList);
+////            arrayList.clear();
+////            for(FragmentProperty contigProperty : entry.getSecond()){
+////                arrayList.add(contigProperty.getName());
+////            }
+////            System.out.println(arrayList);
+//
+//
+//            List<FragmentProperty> splitList = entry.getSecond();
+//            List<FragmentProperty> originalContigList = entry.getFirst();
+//            Collections.sort(splitList, comparator);
+//            Collections.sort(originalContigList, comparator);
+//
+//
+//            if (splitList.size() == originalContigList.size()) {
+//                for (int i = 0; i < splitList.size(); i++) {
+//                    setInitialStatesBasedOnOriginalContig(originalContigList.get(i), splitList.subList(i, i + 1), originalContigList.get(i).wasInitiallyInverted());
+//                }
+//            } else {
+//                int index = 0;
+//                for (FragmentProperty originalFragmentProperty : originalContigList) {
+//                    List<FragmentProperty> neededFragments = new ArrayList<>();
+//                    int sumLength = 0;
+//                    long length = originalFragmentProperty.getLength();
+//                    while (sumLength < length) {
+//                        neededFragments.add(splitList.get(index));
+//
+//                        System.out.println(splitList.get(index).getName()+" "+splitList.get(index).getFragmentNumber()+" "+splitList.get(index).getLength());
+//
+//                        sumLength += splitList.get(index).getLength();
+//                        index++;
+//                    }
+//
+//                    if (originalFragmentProperty.wasInitiallyInverted()) {  //not sure if needed yet depends
+//                        Collections.reverse(neededFragments);
+//                    }
+//                    setInitialStatesBasedOnOriginalContig(originalFragmentProperty, neededFragments, originalFragmentProperty.wasInitiallyInverted());
+//                }
+//            }
+//        }
+//    }
+
+    //    public FragmentProperty feature2DtoContigProperty(Feature2D feature2D) {
+//        for (FragmentProperty fragmentProperty : contigProperties) {
+//            if (fragmentProperty.getFeature2D().getStart1() == feature2D.getStart1())
+//                return fragmentProperty;
+//        }
+//        System.err.println("error finding corresponding contig");
+//        return null;
+//    }
+
+//    public List<FragmentProperty> splitContig(boolean invertedInAsm, Feature2D originalFeature, Feature2D debrisFeature, FragmentProperty originalContig) {
+//
+//
+//        if (originalFeature.overlapsWith(debrisFeature)) {
+//            if (!invertedInAsm)  //not inverted
+//                return generateNormalSplit(originalFeature, debrisFeature, originalContig);
+//            else  //is inverted so flip order of contigs
+//                return generateInvertedSplit(originalFeature, debrisFeature, originalContig);
+//        } else {
+//            System.out.println("error splitting contigs");
+//            return null;
+//        }
+//    }
+
+//    public List<FragmentProperty> generateNormalSplit(Feature2D originalFeature, Feature2D debrisFeature, FragmentProperty originalContig) {
+//        List<FragmentProperty> splitContig = new ArrayList<>();
+//        List<String> newContigNames = getNewContigNames(originalContig);
+//
+//        int originalIndexId = originalContig.getIndexId();
+//        int originalStart = originalFeature.getStart1();
+//        int debrisStart = debrisFeature.getStart1();
+//        int originalEnd = originalFeature.getEnd2();
+//        int debrisEnd = debrisFeature.getEnd1();
+//        int length;
+//        boolean initiallyInverted = originalContig.wasInitiallyInverted();
+//
+//        length = debrisStart - originalStart;
+//        FragmentProperty firstFragment = new FragmentProperty(newContigNames.get(0), originalIndexId, length, initiallyInverted);
+//
+//        length = debrisEnd - debrisStart;
+//        FragmentProperty secondFragment = new FragmentProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
+//
+//        length = originalEnd - debrisEnd;
+//        FragmentProperty thirdFragment = new FragmentProperty(newContigNames.get(2), (originalIndexId + 2), length, initiallyInverted);
+//
+//        splitContig.add(firstFragment);
+//        splitContig.add(secondFragment);
+//        splitContig.add(thirdFragment);
+//
+//        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, false);
+//        return splitContig;
+//    }
+
+//    public List<FragmentProperty> generateInvertedSplit(Feature2D originalFeature, Feature2D debrisFeature, FragmentProperty originalContig) {
+//        List<FragmentProperty> splitContig = new ArrayList<>();
+//        List<String> newContigNames = getNewContigNames(originalContig);
+//
+//        int originalIndexId = originalContig.getIndexId();
+//        int originalStart = originalFeature.getStart1();
+//        int debrisStart = debrisFeature.getStart1();
+//        int originalEnd = originalFeature.getEnd2();
+//        int debrisEnd = debrisFeature.getEnd1();
+//        int length;
+//        boolean initiallyInverted = originalContig.wasInitiallyInverted();
+//
+//        length = originalEnd - debrisEnd;
+//        FragmentProperty firstFragment = new FragmentProperty(newContigNames.get(0), (originalIndexId + 2), length, initiallyInverted);
+//
+//        length = debrisEnd - debrisStart;
+//        FragmentProperty secondFragment = new FragmentProperty(newContigNames.get(1), (originalIndexId + 1), length, initiallyInverted);
+//
+//        length = debrisStart - originalStart;
+//        FragmentProperty thirdFragment = new FragmentProperty(newContigNames.get(2), originalIndexId, length, initiallyInverted);
+//
+//        splitContig.add(thirdFragment);
+//        splitContig.add(secondFragment);
+//        splitContig.add(firstFragment);
+//
+//        setInitialStatesBasedOnOriginalContig(originalContig, splitContig, true);
+//        return splitContig;
+//    }
+
+//    public void setInitialStatesBasedOnOriginalContig(FragmentProperty originalContig, List<FragmentProperty> splitContig, boolean invertedInAsm) {
+//        long newInitialStart;
+//        long newInitialEnd;
+//        boolean initiallyInverted = originalContig.wasInitiallyInverted();
+//
+//        if (invertedInAsm && !initiallyInverted || !invertedInAsm && initiallyInverted) { //inverted in map
+//            newInitialEnd = originalContig.getInitialEnd();
+//            newInitialStart = newInitialEnd;
+//            for (FragmentProperty fragmentProperty : splitContig) {
+//                //    50-100, 40-50, 0-40
+//                newInitialStart = newInitialStart - fragmentProperty.getLength();
+//                fragmentProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInvertedVsInitial());
+//
+//                newInitialEnd = newInitialStart;
+//            }
+//        } else { //not inverted in map
+//            newInitialStart = originalContig.getInitialStart();
+//            newInitialEnd = newInitialStart;
+//            //    0-40, 40-50, 50-100
+//            for (FragmentProperty fragmentProperty : splitContig) {
+//                newInitialEnd = newInitialEnd + fragmentProperty.getLength();
+//                fragmentProperty.setInitialState(originalContig.getInitialChr(), newInitialStart, newInitialEnd, originalContig.isInvertedVsInitial());
+//                newInitialStart = newInitialEnd;
+//            }
+//        }
+//    }
+
+//    public List<String> getNewContigNames(FragmentProperty contigProperty) {
+//        String fragmentString = ":::fragment_";
+//        String contigName = contigProperty.getName();
+//        List<String> newNames = new ArrayList<String>();
+//        if (contigName.contains(fragmentString)) {
+//            if (contigName.contains(":::debris")) {
+//                System.err.println("cannot split a debris fragment");
+//            } else {
+//                String originalContigName = contigProperty.getOriginalContigName();
+//                int fragmentNum = contigProperty.getFragmentNumber();
+//                newNames.add(originalContigName + fragmentString + fragmentNum);
+//                newNames.add(originalContigName + fragmentString + (fragmentNum + 1) + ":::debris");
+//                newNames.add(originalContigName + fragmentString + (fragmentNum + 2));
+//            }
+//        } else {
+//            newNames.add(contigName + fragmentString + "1");
+//            newNames.add(contigName + fragmentString + "2:::debris");
+//            newNames.add(contigName + fragmentString + "3");
+//        }
+//        return newNames;
+//    }
+
+//    public void addScaffoldProperties(int splitIndex, boolean invertedInAsm, List<FragmentProperty> splitContigs, int rowNum, int posNum) {
+//        List<Integer> splitContigsIds = new ArrayList<>();
+//        int multiplier;
+//        if (invertedInAsm)
+//            multiplier = -1;
+//        else
+//            multiplier = 1;
+//
+//        for (FragmentProperty contigProperty : splitContigs) {
+//            splitContigsIds.add(multiplier * contigProperty.getIndexId());
+//
+//        }
+//
+//        shiftScaffoldProperties(splitIndex);
+//
+//        scaffoldProperties.get(rowNum).addAll(posNum, splitContigsIds);
+//        scaffoldProperties.get(rowNum).remove(posNum + 3);
+//    }
+
+//    public void shiftScaffoldProperties(int splitIndex) {
+//        int i;
+//
+//        for (List<Integer> scaffoldRow : scaffoldProperties) {
+//            i = 0;
+//            for (Integer indexId : scaffoldRow) {
+//                if (Math.abs(indexId) > (Math.abs(splitIndex))) {
+//                    if (indexId < 0)
+//                        scaffoldRow.set(i, indexId - 2);
+//                    else
+//                        scaffoldRow.set(i, indexId + 2);
+//                }
+//                i++;
+//            }
+//        }
+//    }
+
+//    public void addContigProperties(FragmentProperty originalContig, List<FragmentProperty> splitContig) {
+//        int splitContigIndex = contigProperties.indexOf(originalContig);
+//        shiftContigIndices(splitContigIndex);
+//
+//        List<FragmentProperty> fromInitialContig = findContigsSplitFromInitial(originalContig);
+//        if (fromInitialContig.indexOf(originalContig) != fromInitialContig.size() - 1) { //if there are fragments past the one you are splitting
+//            List<FragmentProperty> shiftedContigs = fromInitialContig.subList(fromInitialContig.indexOf(originalContig) + 1, fromInitialContig.size());
+//            for (FragmentProperty contigProperty : shiftedContigs) {
+//                String newContigName = contigProperty.getName();
+//                if (newContigName.contains(":::debris")) {
+//                    newContigName = newContigName.replaceFirst(":::fragment_.*", ":::fragment_" + (contigProperty.getFragmentNumber() + 2) + ":::debris");
+//                } else {
+//                    newContigName = newContigName.replaceFirst(":::fragment_\\d+", ":::fragment_" + (contigProperty.getFragmentNumber() + 2));
+//                }
+//                contigProperty.setName(newContigName);
+//            }
+//        }
+//
+//        contigProperties.addAll(splitContigIndex, splitContig);
+//        contigProperties.remove(originalContig);
+//    }
+
+//    public void shiftContigIndices(int splitIndexId) {
+//        for (FragmentProperty contigProperty : contigProperties) {
+//            if (Math.abs(contigProperty.getIndexId()) > (Math.abs(splitIndexId) + 1)) {
+//                contigProperty.setIndexId(contigProperty.getIndexId() + 2);
+//            }
+//        }
+//    }
+
+//    public List<FragmentProperty> findContigsSplitFromInitial(FragmentProperty originalContig) {
+//        List<FragmentProperty> contigPropertiesFromSameInitial = new ArrayList<>();
+//        String originalContigName = originalContig.getOriginalContigName();
+//
+//        for (FragmentProperty contigProperty : contigProperties) {
+//            if (contigProperty.getName().contains(originalContigName))
+//                contigPropertiesFromSameInitial.add(contigProperty);
+//        }
+//        return contigPropertiesFromSameInitial;
+//    }
+
+//    public int getScaffoldRow(List<Integer> contigIds) {
+//        int i = 0;
+//        for (List<Integer> scaffoldRow : scaffoldProperties) {
+//            List<Integer> absoluteRow = findAbsoluteValuesList(scaffoldRow);
+//            if (absoluteRow.containsAll(findAbsoluteValuesList(contigIds)))
+//                return i;
+//            i++;
+//        }
+//        System.err.println("Can't Find row");
+//        return -1;
+//    }
+
 
 }

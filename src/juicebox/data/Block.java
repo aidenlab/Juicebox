@@ -39,26 +39,30 @@ import java.util.List;
 public class Block {
 
     private final int number;
+    private final String uniqueRegionID;
     private final List<ContactRecord> records;
 
-    public Block(int number) {
+    public Block(int number, String regionID) {
         this.number = number;
         records = new ArrayList<>();
+        uniqueRegionID = regionID + "_" + number;
     }
 
-    public Block(int number, List<ContactRecord> records) {
+    public Block(int number, List<ContactRecord> records, String regionID) {
         this.number = number;
         this.records = records;
+        this.uniqueRegionID = regionID + "_" + number;
     }
 
     public int getNumber() {
         return number;
     }
 
+    public String getUniqueRegionID() {
+        return uniqueRegionID;
+    }
 
     public Collection<ContactRecord> getContactRecords() {
         return records;
     }
-
-
 }

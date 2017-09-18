@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
 
 import java.util.Stack;
@@ -61,8 +62,12 @@ public class AssemblyStateTracker {
         undoStack.clear();
         redoStack.clear();
         undoStack.push(initialAssemblyFragmentHandler);
-        AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
         regenerateLayers();
+        executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+    }
+
+    public AssemblyFragmentHandler getInitialAssemblyFragmentHandler() {
+        return initialAssemblyFragmentHandler;
     }
 
     public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
@@ -73,7 +78,7 @@ public class AssemblyStateTracker {
 
     public void regenerateLayers() {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
-        assemblyFragmentHandler.generateContigsAndScaffolds();
+        assemblyFragmentHandler.updateAssembly();
         scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffolds(), true);
         contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getContigs(), true);
     }
@@ -84,9 +89,9 @@ public class AssemblyStateTracker {
 
     public void undo() {
         if (checkUndo()) {
-            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             redoStack.push(undoStack.pop());
             regenerateLayers();
+            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
         }
     }
 
@@ -96,10 +101,20 @@ public class AssemblyStateTracker {
 
     public void redo() {
         if (checkRedo()) {
-            AssemblyHeatmapHandler.getSuperAdapter().clearAllMatrixZoomCache();
             undoStack.push(redoStack.pop());
             regenerateLayers();
+            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
         }
+    }
+
+    public void executeLongRunningTask(final SuperAdapter superAdapter) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                superAdapter.clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
+                superAdapter.refresh();
+            }
+        };
+        superAdapter.getMainWindow().executeLongRunningTask(runnable, "AssemblyAction");
     }
 
 }

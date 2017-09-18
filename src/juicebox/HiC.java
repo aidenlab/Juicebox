@@ -28,6 +28,7 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
+import juicebox.data.anchor.MotifAnchor;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
@@ -38,6 +39,7 @@ import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -241,7 +243,10 @@ public class HiC {
     }
 
     public void loadCoverageTrack(NormalizationType no) {
-        trackManager.loadCoverageTrack(no);
+        trackManager.loadCoverageTrack(no, false);
+        if (isControlLoaded()) {
+            trackManager.loadCoverageTrack(no, true);
+        }
     }
 
     public void removeTrack(HiCTrack track) {
@@ -690,74 +695,6 @@ public class HiC {
         return returnVal[0];
     }
 
-    /*  TODO Undo Zoom implementation mss2 _UZI
-     private boolean canUndoZoomChange = false;
-     private boolean canRedoZoomChange = false;
-     private ZoomAction previousZoomState, tempZoomState;
-
-     public boolean isCanUndoZoomChangeAvailable(){
-         return canUndoZoomChange;
-     }
-
-     public boolean isCanRedoZoomChangeAvailable(){
-         return canRedoZoomChange;
-     }
-
-     public void undoZoomChange(){
-         if(canUndoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when undoing zoom
-             canUndoZoomChange = false;
-             canRedoZoomChange = true;
-         }
-
-     }
-
-     public void redoZoomChange(){
-         if(canRedoZoomChange){
-             System.err.println(previousZoomState);
-             System.err.println(previousZoomState.loadZoomState());
-             System.err.println(previousZoomState+"\n\n");
-             // override when redoing zoom
-             canRedoZoomChange = false;
-             canUndoZoomChange = true;
-         }
-     }
-
-        private class ZoomAction {
-         String chr1Name, chr2Name;
-         HiCZoom zoom;
-         int genomeX, genomeY;
-         double scaleFactor;
-         boolean resetZoom;
-         ZoomCallType zoomCallType;
-
-         ZoomAction(String chr1Name, String chr2Name,
-                   HiCZoom zoom, int genomeX, int genomeY, double scaleFactor,
-                   boolean resetZoom, ZoomCallType zoomCallType){
-             this.chr1Name = chr1Name;
-             this.chr2Name = chr2Name;
-             this.zoom = zoom;
-             this.genomeX = genomeX;
-             this.genomeY = genomeY;
-             this.scaleFactor = scaleFactor;
-             this.resetZoom = resetZoom;
-             this.zoomCallType = zoomCallType;
-         }
-
-         boolean loadZoomState(){
-             return actuallySetZoomAndLocation(chr1Name, chr2Name, zoom, genomeX, genomeY, scaleFactor, resetZoom, zoomCallType);
-         }
-
-         @Override
-         public String toString(){
-             return ""+chr1Name+" "+chr2Name+" "+zoom;
-         }
-      }
-     */
-
     /**
      * *************************************************************
      * Official Method for setting the zoom and location for heatmap
@@ -779,11 +716,6 @@ public class HiC {
                                                     boolean allowLocationBroadcast, int resolutionLocked, boolean storeZoomAction) {
 
         if (dataset == null) return false;  // No data in view
-        //Check this zoom operation is possible, if not, fail it here:
-//        if (superAdapter.testNewZoom(newZoom))
-//        {
-//            return false;
-//        }
 
         boolean chromosomesChanged = !(xContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrXName)) &&
                 yContext.getChromosome().equals(chromosomeHandler.getChromosomeFromName(chrYName)));
@@ -1028,16 +960,6 @@ public class HiC {
         superAdapter.getActiveLayerHandler().loadLoopList(path, chromosomeHandler);
     }
 
-    // TODO MSS REMOVE
-    /*public void setShowLoops(boolean showLoops) {
-        feature2DHandler.setLayerVisibility(showLoops);
-    }
-
-    public void setLoopsInvisible(String path) {
-        feature2DHandler.setLoopsInvisible(path);
-    }
-    */
-
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
 
         if (!MatrixType.isObservedOrControl(displayOption)) {
@@ -1224,7 +1146,7 @@ public class HiC {
                 case CONTROL:
                 case OECTRL:
                 case PEARSONCTRL:
-                    return getControlZd().getKey() + displayOption;
+                    return getControlZd().getColorScaleKey(displayOption);
                 case OE:
                 case RATIO:
                 case OBSERVED:
@@ -1234,7 +1156,7 @@ public class HiC {
                 case PEARSON:
                 case PEARSONVS:
                 default:
-                    return getZd().getKey() + displayOption;
+                    return getZd().getColorScaleKey(displayOption);
             }
         } catch (Exception e) {
         }
@@ -1262,6 +1184,8 @@ public class HiC {
 
     public void setChromosomeHandler(ChromosomeHandler chromosomeHandler) {
         this.chromosomeHandler = chromosomeHandler;
+        dataset.setChromosomeHandler(chromosomeHandler);
+        if (controlDataset != null) controlDataset.setChromosomeHandler(chromosomeHandler);
     }
 
     public ZoomActionTracker getZoomActionTracker() {
@@ -1279,6 +1203,14 @@ public class HiC {
         Matrix matrix = ds.getMatrix(xContext.getChromosome(), yContext.getChromosome());
         for (HiCZoom zoom : ds.getBpZooms()) {
             matrix.getZoomData(zoom).clearCache();
+        }
+    }
+
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, net.sf.jsi.Rectangle currentWindow) {
+        try {
+            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, currentWindow);
+        } catch (Exception ignored) {
+            return new ArrayList<>();
         }
     }
 

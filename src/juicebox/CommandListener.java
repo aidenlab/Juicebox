@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ class CommandListener implements Runnable {
 
         // Grab the first available port
         int port = 0;
-        for (int p = 30000; p <= 30009; p++) {
+        for (int p = 30000; p <= 30000 + CommandBroadcaster.numPorts - 1; p++) {
             try {
                 listener = new CommandListener(p, hic);
                 listener.listenerThread.start();

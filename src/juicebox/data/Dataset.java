@@ -83,6 +83,10 @@ public class Dataset {
         if (m == null && reader != null) {
             try {
                 // custom chromosome is handled as separate case
+                //if (chromosomeHandler.isCustomAPAChromosome(chr1) || chromosomeHandler.isCustomAPAChromosome(chr2)) {
+                //    System.err.println("APA Index key is " + key);
+                //    m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);
+                //} else
                 if (chromosomeHandler.isCustomChromosome(chr1) || chromosomeHandler.isCustomChromosome(chr2)) {
                     System.err.println("Index key is " + key);
                     m = Matrix.createCustomChromosomeMatrix(chr1, chr2, chromosomeHandler, matrices, reader);

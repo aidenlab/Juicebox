@@ -27,14 +27,10 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
-import juicebox.windowui.HiCRulerPanel;
-import juicebox.windowui.LoadAssemblyAnnotationsDialog;
-import juicebox.windowui.RecentMenu;
-import juicebox.windowui.SaveAssemblyDialog;
+import juicebox.windowui.*;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -73,6 +69,8 @@ public class MainMenuBar {
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
     private static JCheckBoxMenuItem enableAssembly;
+    private static JMenuItem setScale;
+    private static JMenuItem importModifiedAssembly;
 
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
@@ -421,7 +419,7 @@ public class MainMenuBar {
         //---View Menu-----
         JMenu viewMenu = new JMenu("View");
 
-        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome...");
+        JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.createCustomChromosomes();
@@ -518,18 +516,6 @@ public class MainMenuBar {
         });
         devMenu.add(mapSubset);
 
-        JMenuItem assemblyMode = new JMenuItem("Launch assembly mode editor...");
-        assemblyMode.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String newURL = MessageUtils.showInputDialog("Specify reassembling");
-                if (newURL != null) {
-                    AssemblyHeatmapHandler.makeChanges(newURL.split(","), superAdapter);
-                }
-            }
-        });
-        devMenu.add(assemblyMode);
-
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
         numSparse.isEditable();
@@ -567,10 +553,6 @@ public class MainMenuBar {
         assemblyMenu.setEnabled(false);
 
         enableAssembly = new JCheckBoxMenuItem("Enable edits");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            enableAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            enableAssembly.setEnabled(false);
         enableAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -583,23 +565,19 @@ public class MainMenuBar {
         });
 
         resetAssembly = new JMenuItem("Reset assembly");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            resetAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            resetAssembly.setEnabled(false);
+
         resetAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.getAssemblyStateTracker().resetState();
-                superAdapter.refresh();
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+                if (option == 0) { //The ISSUE is here
+                    superAdapter.getAssemblyStateTracker().resetState();
+                    superAdapter.refresh();
+                }
             }
         });
 
         exportAssembly = new JMenuItem("Export assembly");
-        if (superAdapter.getAssemblyStateTracker() != null) {
-            exportAssembly.setEnabled(superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null);
-        } else
-            exportAssembly.setEnabled(false);
         exportAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -609,9 +587,8 @@ public class MainMenuBar {
             }
         });
 
-        final JMenuItem importAssembly = new JMenuItem("Import assembly");
-
-        importAssembly.addActionListener(new ActionListener() {
+        final JMenuItem importMapAssembly = new JMenuItem("Import Map assembly");
+        importMapAssembly.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (superAdapter.getLayersPanel() == null) {
@@ -622,16 +599,82 @@ public class MainMenuBar {
                 loadAssemblyDialog.addLocalButtonActionPerformed(superAdapter);
             }
         });
+
+        importModifiedAssembly = new JMenuItem("Import Modified assembly");
+        importModifiedAssembly.addActionListener(new ActionListener() {
+
+            //TODO: add warning if changes are present
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (superAdapter.getLayersPanel() == null) {
+                    superAdapter.intializeLayersPanel();
+                }
+                LoadModifiedAssemblyAnnotationsDialog loadModifiedAssemblyAnnotationsDialog;
+                loadModifiedAssemblyAnnotationsDialog = new LoadModifiedAssemblyAnnotationsDialog(superAdapter.getLayersPanel(), superAdapter, superAdapter.getLayersPanel().getLayerBoxGUI2DAnnotations());
+                loadModifiedAssemblyAnnotationsDialog.addLocalButtonActionPerformed(superAdapter);
+            }
+        });
+
+        setScale = new JMenuItem("Set scale");
+        setScale.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                double scale;
+                String newScale = MessageUtils.showInputDialog("Specify a scale", Double.toString(HiCGlobals.hicMapScale));
+                try {
+                    scale = Double.parseDouble(newScale);
+                    if (scale == 0.0) {  // scale cannot be zero
+                        scale = 1.0;
+                    }
+                    HiCGlobals.hicMapScale = scale;
+
+                    // Rescale resolution slider labels
+                    superAdapter.getMainViewPanel().getResolutionSlider().reset();
+
+                    // Rescale axis tick labels
+                    superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                    superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                    // Rescale assembly annotations
+                    if (superAdapter.getAssemblyStateTracker() != null) {
+                        superAdapter.getAssemblyStateTracker().regenerateLayers();
+                        superAdapter.refresh();
+                    }
+
+                } catch (NumberFormatException t) {
+                    JOptionPane.showMessageDialog(null, "Value must be an integer!");
+                }
+            }
+        });
+
+        boolean enabled;
+        if (superAdapter.getAssemblyStateTracker() != null)
+            enabled = superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
+        else
+            enabled = false;
+
+        exportAssembly.setEnabled(enabled);
+        resetAssembly.setEnabled(enabled);
+        enableAssembly.setEnabled(enabled);
+        setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
+        importModifiedAssembly.setEnabled(enabled);
+
         assemblyMenu.add(enableAssembly);
         assemblyMenu.add(resetAssembly);
-        assemblyMenu.add(importAssembly);
+        assemblyMenu.add(importMapAssembly);
+        assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        setScale.setEnabled(true);
+        assemblyMenu.add(setScale);
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
         menuBar.add(viewMenu);
-        menuBar.add(assemblyMenu);
+        if (HiCGlobals.isAssemblyToolsAllowed) {
+            menuBar.add(assemblyMenu);
+        }
         menuBar.add(devMenu);
         return menuBar;
     }
@@ -652,6 +695,8 @@ public class MainMenuBar {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
         enableAssembly.setEnabled(true);
+        setScale.setEnabled(true);
+        importModifiedAssembly.setEnabled(true);
     }
 
     public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {
@@ -670,7 +715,7 @@ public class MainMenuBar {
         showStats.setEnabled(status);
     }
 
-    public void updateContolMapHasBeenLoaded(boolean status) {
+    public void updateControlMapHasBeenLoaded(boolean status) {
         showControlStats.setEnabled(status);
     }
 

@@ -227,30 +227,32 @@ public class Feature2DHandler {
         return foundFeatures;
     }
 
-    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
+    public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow, boolean ignoreVisibility) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        if (featureRtrees.containsKey(key) && layerVisible) {
-            if (sparseFeaturePlottingEnabled) {
-                try {
-                    featureRtrees.get(key).intersects(
-                            selectionWindow,
-                            new TIntProcedure() {     // a procedure whose execute() method will be called with the results
-                                public boolean execute(int i) {
-                                    Feature2D feature = loopList.get(key).get(i);
-                                    foundFeatures.add(feature);
-                                    return true;      // return true here to continue receiving results
+        if (featureRtrees.containsKey(key)) {
+            if (layerVisible || ignoreVisibility) {// && layerVisible) {
+                if (sparseFeaturePlottingEnabled) {
+                    try {
+                        featureRtrees.get(key).intersects(
+                                selectionWindow,
+                                new TIntProcedure() {     // a procedure whose execute() method will be called with the results
+                                    public boolean execute(int i) {
+                                        Feature2D feature = loopList.get(key).get(i);
+                                        foundFeatures.add(feature);
+                                        return true;      // return true here to continue receiving results
+                                    }
                                 }
-                            }
-                    );
-                } catch (Exception e) {
-                    System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
+                    }
+                } else {
+                    System.out.println("returning all");
+                    List<Feature2D> features = loopList.get(key);
+                    if (features != null) foundFeatures.addAll(features);
                 }
-            } else {
-                System.out.println("returning all");
-                List<Feature2D> features = loopList.get(key);
-                if (features != null) foundFeatures.addAll(features);
             }
         }
         return foundFeatures;

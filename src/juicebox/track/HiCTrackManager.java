@@ -57,6 +57,7 @@ public class HiCTrackManager {
 
     private final List<HiCTrack> loadedTracks = new ArrayList<>();
     private final Map<NormalizationType, HiCTrack> coverageTracks = new HashMap<>();
+    private final Map<NormalizationType, HiCTrack> controlCoverageTracks = new HashMap<>();
     private final SuperAdapter superAdapter;
     private final HiC hic;
 
@@ -70,14 +71,24 @@ public class HiCTrackManager {
         superAdapter.updateTrackPanel();
     }
 
-    public void loadCoverageTrack(NormalizationType no) {
-        if (coverageTracks.containsKey(no)) return; // Already loaded
-        HiCDataSource source = new HiCCoverageDataSource(hic, no);
-        ResourceLocator locator = new ResourceLocator(no.getLabel());
-        HiCDataTrack track = new HiCDataTrack(hic, locator, source);
-        coverageTracks.put(no, track);
-        loadedTracks.add(track);
-        superAdapter.updateTrackPanel();
+    public void loadCoverageTrack(NormalizationType no, boolean isControl) {
+        if (isControl) {
+            if (controlCoverageTracks.containsKey(no)) return; // Already loaded
+            HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
+            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            HiCDataTrack track = new HiCDataTrack(hic, locator, source);
+            controlCoverageTracks.put(no, track);
+            loadedTracks.add(track);
+            superAdapter.updateTrackPanel();
+        } else {
+            if (coverageTracks.containsKey(no)) return; // Already loaded
+            HiCDataSource source = new HiCCoverageDataSource(hic, no, isControl);
+            ResourceLocator locator = new ResourceLocator(no.getLabel());
+            HiCDataTrack track = new HiCDataTrack(hic, locator, source);
+            coverageTracks.put(no, track);
+            loadedTracks.add(track);
+            superAdapter.updateTrackPanel();
+        }
     }
 
     public void unsafeTrackLoad(final List<ResourceLocator> locators) {
@@ -104,6 +115,12 @@ public class HiCTrackManager {
         String path = locator.getPath();
         String pathLC = path.toLowerCase();
         int index = path.lastIndexOf('.');
+
+        if (index < 0) {
+            MessageUtils.showMessage(Level.ERROR, "File is missing extension");
+            return;
+        }
+
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
@@ -200,19 +217,31 @@ public class HiCTrackManager {
         if (key != null) {
             coverageTracks.remove(key);
         }
+
+        key = null;
+        for (Map.Entry<NormalizationType, HiCTrack> entry : controlCoverageTracks.entrySet()) {
+            if (entry.getValue() == track) {
+                key = entry.getKey();
+            }
+        }
+
+        if (key != null) {
+            controlCoverageTracks.remove(key);
+        }
         superAdapter.updateTrackPanel();
     }
 
-
     public void removeTrack(ResourceLocator locator) {
-        HiCTrack track = null;
+        List<HiCTrack> tracks = new ArrayList<>();
         for (HiCTrack tmp : loadedTracks) {
             if (tmp.getLocator().equals(locator)) {
-                track = tmp;
-                break;
+                tracks.add(tmp);
+                // for coverage tracks, can have more than one, so don't break
             }
         }
-        removeTrack(track);
+        for (HiCTrack track : tracks) {
+            removeTrack(track);
+        }
     }
 
 
@@ -239,6 +268,7 @@ public class HiCTrackManager {
     public void clearTracks() {
         loadedTracks.clear();
         coverageTracks.clear();
+        controlCoverageTracks.clear();
     }
 
     /* TODO @zgire, is this old code that can be deleted?
@@ -281,6 +311,19 @@ public class HiCTrackManager {
             }
 
         }
+        /**
+         * TODO potential fix for ASSEMBLY vs assembly @sa501428
+         List<Chromosome> cleanedChromosomes = new ArrayList<>();
+         for(String name : genome.getAllChromosomeNames()){
+         Chromosome chr = genome.getChromosome(name);
+         //cleanedChromosomes.add(chr);
+         cleanedChromosomes.add(new Chromosome(chr.getIndex(), ChromosomeHandler.cleanUpName(name), chr.getLength()));
+         }
+
+
+         Genome finalGenome = new Genome(genome.getId(), cleanedChromosomes);
+         */
+
         return genome;
     }
 

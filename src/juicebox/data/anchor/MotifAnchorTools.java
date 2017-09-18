@@ -32,6 +32,8 @@ import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DWithMotif;
 import juicebox.track.feature.FeatureFunction;
+import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 
 import java.util.*;
 
@@ -44,9 +46,9 @@ public class MotifAnchorTools {
      * @param features
      * @return anchor list from features (i.e. split anchor1 and anchor2)
      */
-    public static GenomeWideList<MotifAnchor> extractAnchorsFromFeatures(Feature2DList features,
-                                                                         final boolean onlyUninitializedFeatures,
-                                                                         final ChromosomeHandler handler) {
+    public static GenomeWideList<MotifAnchor> extractAnchorsFromIntrachromosomalFeatures(Feature2DList features,
+                                                                                         final boolean onlyUninitializedFeatures,
+                                                                                         final ChromosomeHandler handler) {
 
         final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
         features.processLists(new FeatureFunction() {
@@ -63,6 +65,35 @@ public class MotifAnchorTools {
 
         MotifAnchorTools.mergeAnchors(extractedAnchorList);
         MotifAnchorTools.expandSmallAnchors(extractedAnchorList, 15000);
+
+        return extractedAnchorList;
+    }
+
+    public static GenomeWideList<MotifAnchor> extractAllAnchorsFromAllFeatures(Feature2DList features, final ChromosomeHandler handler) {
+
+        final GenomeWideList<MotifAnchor> extractedAnchorList = new GenomeWideList<>();
+        features.processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D f : feature2DList) {
+                    Chromosome chrom = handler.getChromosomeFromName((f.getChr1()));
+                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getIndex(), f.getStart1(), f.getEnd1()));
+                    chrom = handler.getChromosomeFromName((f.getChr2()));
+                    extractedAnchorList.addFeature(chrom.getName(), new MotifAnchor(chrom.getIndex(), f.getStart2(), f.getEnd2()));
+                }
+            }
+        });
+
+        int minSize = 10000;
+        String newSize = MessageUtils.showInputDialog("Specify a minimum size for 1D anchors", "" + minSize);
+        try {
+            minSize = Integer.parseInt(newSize);
+        } catch (Exception e) {
+            MessageUtils.showErrorMessage("Invalid int, using default size " + minSize, e);
+        }
+        MotifAnchorTools.mergeAnchors(extractedAnchorList);
+        MotifAnchorTools.expandSmallAnchors(extractedAnchorList, minSize);
+        MotifAnchorTools.mergeAnchors(extractedAnchorList);
 
         return extractedAnchorList;
     }

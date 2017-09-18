@@ -29,12 +29,9 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
-import juicebox.assembly.AssemblyStateTracker;
+import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
-import juicebox.mapcolorui.FeatureRenderer;
-import juicebox.track.feature.AnnotationLayer;
-import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
@@ -62,7 +59,7 @@ import java.util.Map;
  * Created by nathanielmusial on 6/29/17.
  */
 
-public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
+public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;
@@ -72,8 +69,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
 
-    public LoadAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
-        super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
+    public LoadModifiedAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
+        super(superAdapter.getMainWindow(), "Select Modified Assembly annotation file(s) to open");
 
         final ChromosomeHandler chromosomeHandler = superAdapter.getHiC().getChromosomeHandler();
         final MainWindow window = superAdapter.getMainWindow();
@@ -106,7 +103,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                             } catch (Exception e) {
                                 MessageUtils.showErrorMessage("Unable to load file", e);
                             }
-                            LoadAssemblyAnnotationsDialog.this.setVisible(false);
+                            LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
                         }
                     }
                 }
@@ -127,7 +124,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             @Override
             public void actionPerformed(ActionEvent e) {
                 safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
-                LoadAssemblyAnnotationsDialog.this.setVisible(false);
+                LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
 
@@ -136,7 +133,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LoadAssemblyAnnotationsDialog.this.setVisible(false);
+                LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
@@ -216,7 +213,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             model.reload(root);
             expandTree();
         }
-        LoadAssemblyAnnotationsDialog.this.setVisible(localFilesAdded);
+        LoadModifiedAssemblyAnnotationsDialog.this.setVisible(localFilesAdded);
     }
 
     private void expandTree() {
@@ -267,49 +264,18 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         }
 
         if (asmPath != null && cpropsPath != null) {
-            try {
-                //AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+//            try {
+            AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
+                AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
+                superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler);
+                superAdapter.clearAllMatrixZoomCache();
+            superAdapter.refresh();
 
-                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
-
-                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
-                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
-                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
-                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
-
-                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Group");
-                scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
-
-                AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                contigLayerHandler.setAnnotationLayer(contigLayer);
-                contigLayerHandler.setLayerNameAndField("Main");
-                contigLayerHandler.setColorOfAllAnnotations(Color.green);
-
-                AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                editHandler.setColorOfAllAnnotations(Color.yellow);
-                editHandler.setLayerNameAndField("Edit");
-                editHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
-                editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
-
-                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyFragmentHandler(), contigLayerHandler, scaffoldLayerHandler);
-                superAdapter.setAssemblyStateTracker(assemblyStateTracker);
-//                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
-                superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
-                superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
-                for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
-                    if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
-                        superAdapter.removeLayer(annotationLayerHandler);
-                    superAdapter.setActiveLayerHandler(contigLayerHandler);
-                    superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
-                }
-
-            } catch (Exception ee) {
+//            } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                MessageUtils.showMessage("Could not load loop Modified Assembly: " + ee.getMessage());
 //                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
-            }
+//            }
         } else {
             System.err.println("Invalid files...");
         }
