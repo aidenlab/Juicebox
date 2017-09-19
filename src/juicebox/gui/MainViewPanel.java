@@ -86,7 +86,6 @@ public class MainViewPanel {
     private JPanel tooltipPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
-    private int miniButtonSize = 22;
 
     public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
