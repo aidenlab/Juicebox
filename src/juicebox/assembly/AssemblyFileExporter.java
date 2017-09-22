@@ -42,8 +42,8 @@ public class AssemblyFileExporter {
     public AssemblyFileExporter(AssemblyFragmentHandler assemblyFragmentHandler, String outputFilePath) {
         this.assemblyFragmentHandler = assemblyFragmentHandler;
         this.outputFilePath = outputFilePath;
-        this.contigProperties = assemblyFragmentHandler.getContigProperties();
-        this.scaffoldProperties = assemblyFragmentHandler.getScaffoldProperties();
+        this.contigProperties = assemblyFragmentHandler.getListOfScaffoldProperties();
+        this.scaffoldProperties = assemblyFragmentHandler.getListOfSuperscaffolds();
     }
 
     public void exportContigsAndScaffolds() {

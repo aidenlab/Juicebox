@@ -46,33 +46,33 @@ public class Contig2D extends Feature2D {
         initialEnd = end1;
     }
 
-    private static int processInversionPlotting(int pos, int limitStart, int limitEnd) {
-        if (pos >= limitStart && pos <= limitEnd) {
-            return limitStart + (limitEnd - pos);
-        }
-        return pos;
-    }
-
-    private static int processTranslationPlotting(int pos, int initStart, int initEnd, int newStart) {
-        if (pos >= initStart && pos <= initEnd) {
-            return pos + (newStart - initStart);
-        }
-        return pos;
-    }
+//    private static int processInversionPlotting(int pos, int limitStart, int limitEnd) {
+//        if (pos >= limitStart && pos <= limitEnd) {
+//            return limitStart + (limitEnd - pos);
+//        }
+//        return pos;
+//    }
+//
+//    private static int processTranslationPlotting(int pos, int initStart, int initEnd, int newStart) {
+//        if (pos >= initStart && pos <= initEnd) {
+//            return pos + (newStart - initStart);
+//        }
+//        return pos;
+//    }
 
     public void toggleInversion() {
         isInverted = !isInverted;
     }
 
-    public int setNewStart(int newStart) {
-        start1 = newStart;
-        start2 = newStart;
-
-        int newEnd = newStart + getTrueWidth();
-        end1 = newEnd;
-        end2 = newEnd;
-        return newEnd;
-    }
+//    public int setNewStart(int newStart) {
+//        start1 = newStart;
+//        start2 = newStart;
+//
+//        int newEnd = newStart + getTrueWidth();
+//        end1 = newEnd;
+//        end2 = newEnd;
+//        return newEnd;
+//    }
 
     public void setInitialState(String initialChr, int initialStart, int initialEnd, boolean initialInvert) {
         this.initialChr = initialChr;
@@ -98,13 +98,13 @@ public class Contig2D extends Feature2D {
         return initialEnd - initialStart;
     }
 
-    @Override
-    public String tooltipText() {
-        attributes.put("origStart", "" + initialStart);
-        attributes.put("origEnd", "" + initialEnd);
-        attributes.put("Inverted", "" + isInverted);
-        return super.tooltipText();
-    }
+//    @Override
+//    public String tooltipText() {
+//        attributes.put("origStart", "" + initialStart);
+//        attributes.put("origEnd", "" + initialEnd);
+//        attributes.put("Inverted", "" + isInverted);
+//        return super.tooltipText();
+//    }
 
     public boolean isInverted() {
         return isInverted;

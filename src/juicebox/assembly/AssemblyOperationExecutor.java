@@ -37,7 +37,7 @@ public class AssemblyOperationExecutor {
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic, boolean moveTo) {
         AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.editFragment(originalContig, debrisContig);
+        assemblyFragmentHandler.editScaffold(originalContig, debrisContig);
         performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
     }
 

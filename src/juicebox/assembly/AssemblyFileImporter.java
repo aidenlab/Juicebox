@@ -164,7 +164,7 @@ public class AssemblyFileImporter {
     }
 
     private void setModifiedInitialState() {
-        List<FragmentProperty> originalFragmentProperties = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyFragmentHandler().getContigProperties();
+        List<FragmentProperty> originalFragmentProperties = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getInitialAssemblyFragmentHandler().getListOfScaffoldProperties();
         long modifiedShift = 0;
         int originalFragmentIterator = 0;
         FragmentProperty originalFragmentProperty = originalFragmentProperties.get(originalFragmentIterator);
@@ -231,11 +231,11 @@ public class AssemblyFileImporter {
     }
 
     public Feature2DList getContigs() {
-        return this.assemblyFragmentHandler.getContigs();
+        return this.assemblyFragmentHandler.getScaffoldFeature2DList();
     } //why do we have this here?
 
     public Feature2DList getScaffolds() {
-        return this.assemblyFragmentHandler.getScaffolds(); //why do we have this here?
+        return this.assemblyFragmentHandler.getSuperscaffoldFeature2DList(); //why do we have this here?
     }
 
     public AssemblyFragmentHandler getAssemblyFragmentHandler() {

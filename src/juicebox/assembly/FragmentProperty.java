@@ -29,6 +29,7 @@ import juicebox.track.feature.Feature2D;
 /**
  * Created by nathanielmusial on 6/30/17.
  */
+// change name to ScaffoldStateTracker?
 public class FragmentProperty {
 
     //invariant properties
@@ -125,7 +126,7 @@ public class FragmentProperty {
         return name.contains(":::debris");
     }
 
-    public String getOriginalContigName() {
+    public String getOriginalScaffoldName() {
         if (name.contains(":::fragment_")) {
             return name.split(":::fragment_")[0];
         } else {
