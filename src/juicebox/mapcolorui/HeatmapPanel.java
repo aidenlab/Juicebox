@@ -1287,6 +1287,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
         Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
         List<Feature2D> scaffoldFeatureList = superAdapter.getMainLayer().getFeatureHandler().loopList.get(chrX.getIndex(), chrY.getIndex());
+        Collections.sort(scaffoldFeatureList);
         selectedFeatures = scaffoldFeatureList.subList(Math.min(scaffoldFeatureList.indexOf(selectedFeatures.get(0)), scaffoldFeatureList.indexOf(clickedFeature.getFeature2D())),
                 1 + Math.max(scaffoldFeatureList.indexOf(selectedFeatures.get(selectedFeatures.size() - 1)), scaffoldFeatureList.indexOf(clickedFeature.getFeature2D())));
         updateSelectedFeatures(true);
