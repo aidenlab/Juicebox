@@ -25,6 +25,7 @@
 package juicebox.track;
 
 import juicebox.HiC;
+import juicebox.data.Dataset;
 import juicebox.data.MatrixZoomData;
 import juicebox.data.NormalizationVector;
 import juicebox.windowui.HiCZoom;
@@ -37,7 +38,6 @@ import org.broad.igv.track.WindowFunction;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Collections;
 
 /**
  * @author jrobinso
@@ -51,11 +51,17 @@ public class HiCCoverageDataSource implements HiCDataSource {
     private Color color = new Color(97, 184, 209);
     private Color altcolor = color;
     private DataRange dataRange;
+    private boolean isControl;
 
-    public HiCCoverageDataSource(HiC hic, NormalizationType no) {
+    public HiCCoverageDataSource(HiC hic, NormalizationType no, boolean isControl) {
         this.name = no.getLabel();
+        if (isControl) {
+            this.name += " (Control)";
+        }
+
         this.hic = hic;
         this.normalizationType = no;
+        this.isControl = isControl;
     }
 
 
@@ -124,20 +130,27 @@ public class HiCCoverageDataSource implements HiCDataSource {
         return new ArrayList<>();
     }
 
-    public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis, double scaleFactor, WindowFunction windowFunction) {
+    public HiCDataPoint[] getData(Chromosome chr, int startBin, int endBin, HiCGridAxis gridAxis,
+                                  double scaleFactor, WindowFunction windowFunction) {
 
         HiCZoom zoom;
+        Dataset dataset;
         try {
-            zoom = hic.getZd().getZoom();
+            if (isControl) {
+                zoom = hic.getControlZd().getZoom();
+                dataset = hic.getControlDataset();
+            } else {
+                zoom = hic.getZd().getZoom();
+                dataset = hic.getDataset();
+            }
         } catch (Exception e) {
             return null;
         }
 
-        NormalizationVector nv = hic.getDataset().getNormalizationVector(chr.getIndex(), zoom, normalizationType);
+        NormalizationVector nv = dataset.getNormalizationVector(chr.getIndex(), zoom, normalizationType);
         if (nv == null) return null;
 
         double[] data = nv.getData();
-
 
         CoverageDataPoint[] dataPoints = new CoverageDataPoint[endBin - startBin + 1];
 
@@ -154,10 +167,10 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     public static class CoverageDataPoint implements HiCDataPoint {
 
-        final int binNumber;
-        final int genomicStart;
-        final int genomicEnd;
-        final double value;
+        public final int binNumber;
+        public final int genomicStart;
+        public final int genomicEnd;
+        public final double value;
 
 
         public CoverageDataPoint(int binNumber, int genomicStart, int genomicEnd, double value) {

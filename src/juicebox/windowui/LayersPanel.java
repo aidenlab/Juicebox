@@ -470,7 +470,7 @@ public class LayersPanel extends JDialog {
         });
         handler.setCensorButton(censorButton);
         censorButton.setEnabled(handler.getExportCapability());
-        censorButton.setToolTipText("Create censor map from this layer");
+        censorButton.setToolTipText("Create sub-map (custom chromosome) from this layer");
 
         /* export annotations in layer to new file */
         final JButton exportLayerButton = createIconButton("/images/layer/export_icon_green.png");
@@ -816,6 +816,7 @@ public class LayersPanel extends JDialog {
 
     public void updateLayers2DPanel(SuperAdapter superAdapter) {
         layers2DPanel.remove(0);
+        System.out.print("Scroll pane");
         layers2DPanel.add(generateLayers2DScrollPane(superAdapter), BorderLayout.CENTER, 0);
         tabbedPane.updateUI();
         tabbedPane.repaint();

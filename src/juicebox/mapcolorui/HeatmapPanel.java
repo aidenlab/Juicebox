@@ -731,6 +731,11 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         JidePopupMenu menu = new JidePopupMenu();
 
+        if (HiCGlobals.assemblyModeEnabled) {
+            getAssemblyPopupMenu(xMousePos, yMousePos, menu);
+            menu.addSeparator();
+        }
+
 
         final JMenuItem miUndoZoom = new JMenuItem("Undo Zoom");
         miUndoZoom.addActionListener(new ActionListener() {
@@ -753,20 +758,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         miRedoZoom.setEnabled(hic.getZoomActionTracker().validateRedoZoom());
         menu.add(miRedoZoom);
-
-        /*
-        final JCheckBoxMenuItem mi_0 = new JCheckBoxMenuItem("Enable Assembly Editing");
-        mi_0.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HiCGlobals.assemblyModeEnabled = true;
-                activelyEditingAssembly = true;
-                AssemblyHeatmapHandler.setSuperAdapter(superAdapter);
-                enableAssemblyEditing();
-            }
-        });
-        menu.add(mi_0);
-        */
 
         // add Jump to Diagonal menu items
         addJumpToDiagonalMenuItems(menu, xMousePos, yMousePos);
@@ -1060,9 +1051,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
         repaint();
     }
 
-    private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos) {
+    private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-        JidePopupMenu menu = new JidePopupMenu();
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
             final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
             miSelect.addActionListener(new ActionListener() {
@@ -1073,10 +1063,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
             });
             menu.add(miSelect);
         }
-
-        // add Jump to Diagonal menu items
-        addJumpToDiagonalMenuItems(menu, xMousePos, yMousePos);
-
 
         final JCheckBoxMenuItem expandSelection = new JCheckBoxMenuItem("Expand Selection");
         expandSelection.setSelected(false);
@@ -1765,11 +1751,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             }
             // Priority is right click
             if (e.isPopupTrigger()) {
-                if (activelyEditingAssembly) {
-                    getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
-                } else {
-                    getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
-                }
+                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
             } else {
 
                 // turn off continuous sync for dragging
@@ -1876,11 +1858,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         public void mouseReleased(final MouseEvent e) {
             endTime = System.nanoTime();
             if (e.isPopupTrigger()) {
-                if (activelyEditingAssembly) {
-                    getAssemblyPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
-                } else {
-                    getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
-                }
+                getPopupMenu(e.getX(), e.getY()).show(HeatmapPanel.this, e.getX(), e.getY());
                 dragMode = DragMode.NONE;
                 lastMousePoint = null;
                 zoomRectangle = null;

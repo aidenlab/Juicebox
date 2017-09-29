@@ -28,6 +28,7 @@ package juicebox;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import juicebox.data.*;
+import juicebox.data.anchor.MotifAnchor;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
 import juicebox.track.feature.Feature2D;
@@ -38,6 +39,7 @@ import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
+import org.broad.igv.util.Pair;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -241,7 +243,10 @@ public class HiC {
     }
 
     public void loadCoverageTrack(NormalizationType no) {
-        trackManager.loadCoverageTrack(no);
+        trackManager.loadCoverageTrack(no, false);
+        if (isControlLoaded()) {
+            trackManager.loadCoverageTrack(no, true);
+        }
     }
 
     public void removeTrack(HiCTrack track) {
@@ -1198,6 +1203,14 @@ public class HiC {
         Matrix matrix = ds.getMatrix(xContext.getChromosome(), yContext.getChromosome());
         for (HiCZoom zoom : ds.getBpZooms()) {
             matrix.getZoomData(zoom).clearCache();
+        }
+    }
+
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, net.sf.jsi.Rectangle currentWindow) {
+        try {
+            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, currentWindow);
+        } catch (Exception ignored) {
+            return new ArrayList<>();
         }
     }
 

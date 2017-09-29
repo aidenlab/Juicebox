@@ -115,18 +115,20 @@ public class Matrix {
         return new Matrix(chr1.getIndex(), chr2.getIndex(), new ArrayList<>(customZDs.values()));
     }
 
-    private static List<Chromosome> getIndicesFromSubChromosomes(final ChromosomeHandler handler, Chromosome chr) {
+    private static List<Chromosome> getIndicesFromSubChromosomes(final ChromosomeHandler handler, Chromosome chromosome) {
         final List<Chromosome> indices = new ArrayList<>();
-        if (handler.isCustomChromosome(chr)) {
-            GenomeWideList<MotifAnchor> regions = handler.getListOfRegionsInCustomChromosome(chr.getIndex());
+        if (handler.isCustomChromosome(chromosome)) {
+            GenomeWideList<MotifAnchor> regions = handler.getListOfRegionsInCustomChromosome(chromosome.getIndex());
             regions.processLists(new FeatureFunction<MotifAnchor>() {
                 @Override
                 public void process(String chr, List<MotifAnchor> featureList) {
-                    if (featureList.size() > 0) indices.add(handler.getChromosomeFromName(chr));
+                    if (featureList.size() > 0) {
+                        indices.add(handler.getChromosomeFromName(chr));
+                    }
                 }
             });
         } else {
-            indices.add(chr);
+            indices.add(chromosome);
         }
         return indices;
     }

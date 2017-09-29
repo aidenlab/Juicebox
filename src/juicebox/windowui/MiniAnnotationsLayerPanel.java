@@ -36,6 +36,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -47,8 +48,8 @@ public class MiniAnnotationsLayerPanel extends JPanel {
 
     private int miniButtonSize = 22;
 
-    private int horizontalBorderPadding = 5;
-    private int verticalBorderPadding = 5;
+    private int horizontalBorderSize = 5;
+    private int verticalBorderSize = 5;
 
     private int maximumVisibleLayers = 5;
 
@@ -57,26 +58,24 @@ public class MiniAnnotationsLayerPanel extends JPanel {
     private Color backgroundColor = Color.gray;
 
     public MiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
-        java.util.List<AnnotationLayerHandler> annotationLayerHandlers = superAdapter.getAllLayers();
+        List<AnnotationLayerHandler> annotationLayerHandlers = superAdapter.getAllLayers();
 
-        dynamicHeight = this.horizontalBorderPadding + Math.min(annotationLayerHandlers.size(), maximumVisibleLayers) * 40 + this.horizontalBorderPadding;
+        dynamicHeight = this.horizontalBorderSize + Math.min(annotationLayerHandlers.size(), maximumVisibleLayers) * 40
+            + this.horizontalBorderSize;
 
         setBackground(this.backgroundColor);
         setPreferredSize(new Dimension(210, dynamicHeight));
 
-        int i = 0;
-        for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+        for (int i = annotationLayerHandlers.size() - 1; i >= 0; i--) {
             try {
+                AnnotationLayerHandler handler = annotationLayerHandlers.get(i);
                 JPanel panel = createLayerPanel(handler, superAdapter, this);
-                if (i < 5) {
-
-                }
                 add(panel);
             } catch (IOException e) {
-                System.err.println("Unable to generate layer panel " + (i - 1));
-                //e.printStackTrace();
+                // 1 - i points to the same layer in the main annotations layer since the list
+                // is being iterated backwards for the mini annotations layer
+                System.err.println("Unable to generate mini-layer panel " + (1 - i));
             }
-            i++;
         }
     }
 
@@ -87,7 +86,7 @@ public class MiniAnnotationsLayerPanel extends JPanel {
 
         /* layer name */
         final JTextField nameField = new JTextField(handler.getLayerName(), 10);
-        nameField.getDocument().addDocumentListener(anyTextChangeListener(handler, nameField));
+        nameField.getDocument().addDocumentListener(anyTextChangeListener(superAdapter, handler, nameField));
         nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
         nameField.setMaximumSize(new Dimension(20, 20));
         handler.setNameTextField(nameField);
@@ -146,13 +145,15 @@ public class MiniAnnotationsLayerPanel extends JPanel {
         return parentPanel;
     }
 
-    private DocumentListener anyTextChangeListener(final AnnotationLayerHandler handler,
-                                                   final JTextField nameField) {
+    private DocumentListener anyTextChangeListener(final SuperAdapter superAdapter,
+                                                   final AnnotationLayerHandler handler, final JTextField nameField) {
         return new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 handler.setLayerName(nameField.getText());
                 nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+
+//                updateLayers2DPanel(superAdapter);
             }
 
             @Override
@@ -165,6 +166,10 @@ public class MiniAnnotationsLayerPanel extends JPanel {
             public void changedUpdate(DocumentEvent e) {
                 handler.setLayerName(nameField.getText());
                 nameField.setToolTipText("Change the name for this layer: " + nameField.getText());
+
+                System.out.print(handler.getLayerName());
+                updateLayers2DPanel(superAdapter);
+                superAdapter.repaint();
             }
         };
     }
@@ -231,5 +236,29 @@ public class MiniAnnotationsLayerPanel extends JPanel {
 
     public int getDynamicHeight() {
         return this.dynamicHeight;
+    }
+
+    private int getHorizontalBorderSize() {
+        return this.horizontalBorderSize;
+    }
+
+    private int getVerticalBorderSize() {
+        return this.verticalBorderSize;
+    }
+
+    private int getMiniButtonSize() {
+        return this.miniButtonSize;
+    }
+
+    private int getMaximumVisibleLayers() {
+        return this.maximumVisibleLayers;
+    }
+
+    private int getCurrentHeight() {
+        return this.dynamicHeight;
+    }
+
+    private Color getBackgroundColor() {
+        return this.backgroundColor;
     }
 }
