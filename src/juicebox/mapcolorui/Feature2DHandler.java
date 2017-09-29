@@ -29,6 +29,7 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
+import net.sf.jsi.Point;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
 import org.broad.igv.util.Pair;
@@ -225,6 +226,39 @@ public class Feature2DHandler {
             }
         }
         return foundFeatures;
+    }
+
+    // not sure where to implement this
+    public Feature2D getContainingScaffold(int chrIdx1, int chrIdx2, long genomicX, long genomicY) {
+        final Feature2D[] foundFeature = {null};
+        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+
+        if (featureRtrees.containsKey(key) && layerVisible) {
+            if (sparseFeaturePlottingEnabled) {
+                try {
+                    featureRtrees.get(key).nearestN(
+                            new Point(genomicX, genomicY),      // the point for which we want to find nearby rectangles
+                            new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                                public boolean execute(int i) {
+                                    foundFeature[0] = loopList.get(key).get(i);
+                                    //foundFeatures.add(feature);
+                                    return false;              // return true here to continue receiving results
+                                }
+                            },
+                            1,                            // the number of nearby rectangles to find
+                            Float.MAX_VALUE               // Don't bother searching further than this. MAX_VALUE means search everything
+                    );
+                } catch (Exception e) {
+                    System.err.println("Error encountered getting nearby features" + e.getLocalizedMessage());
+                }
+
+            }
+            //else {
+//                foundFeatures.addAll(loopList.get(key));
+//            }
+        }
+        System.out.println("Feature2D found: " + foundFeature[0].getAttribute("Scaffold Id"));
+        return foundFeature[0];
     }
 
     public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow, boolean ignoreVisibility) {

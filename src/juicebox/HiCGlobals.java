@@ -70,9 +70,10 @@ public class HiCGlobals {
     public static final String versionNum = "1.8.6";
     // Juicebox title
     // TODO decide on title displayed in Juicebox
-    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
+    public static final String juiceboxTitle = "[Juicebox new " + versionNum + "] Hi-C Map ";
     public static final Color HIGHLIGHT_COLOR = Color.BLACK;
     public static final Color SELECT_FEATURE_COLOR = Color.DARK_GRAY;
+    public static final boolean isAssemblyToolsAllowed = true;
     public static int MAX_PEARSON_ZOOM = 500000;
     public static double hicMapScale = 1; //TODO implement Map scaling with this global variable
     // whether MatrixZoomData should cache or not
@@ -84,8 +85,6 @@ public class HiCGlobals {
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
-    public static final boolean isAssemblyToolsAllowed = true;
-
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
 

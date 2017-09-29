@@ -48,6 +48,9 @@ public class AssemblyHeatmapHandler {
      * @param currentContigs
      * @return mergedContigs
      */
+
+    // This does not really do anything, why bother?
+
     public static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
 
         List<Contig2D> mergedContigs = new ArrayList<>();

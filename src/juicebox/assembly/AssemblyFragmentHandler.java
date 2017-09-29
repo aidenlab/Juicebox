@@ -560,7 +560,6 @@ public class AssemblyFragmentHandler {
 //    }
 
     public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-
         for (Feature2D feature : scaffoldFeature2DList.get(chrId1, chrId2)) {
                 Contig2D contig = feature.toContig();
                 if (contig.iniContains(asmCoordinate)) {
