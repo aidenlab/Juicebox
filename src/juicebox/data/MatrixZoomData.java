@@ -334,7 +334,8 @@ public class MatrixZoomData {
             axisContigs.add(feature2D.toContig());
         }
         Collections.sort(axisContigs);
-        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
+        return axisContigs;
+        //return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
