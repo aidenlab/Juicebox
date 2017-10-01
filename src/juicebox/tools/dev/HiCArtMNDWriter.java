@@ -22,71 +22,35 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.tools.clt;
-
-import jargs.gnu.CmdLineParser;
-import juicebox.tools.HiCTools;
+package juicebox.tools.dev;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * Created for testing multiple CLTs at once
- * Basically scratch space
- */
-class AggregateProcessing {
+public class HiCArtMNDWriter {
 
-
-    public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
-
-        String hicFilePaths="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/HiC/gm12878_intra_nofrag_30.hic";//.Hic
-        String PeaksFile="/Users/nathanielmusial/CS_Projects/SMART_Projects/Testing_Files/Other/GM12878_loop_list.txt";//.txt
-        String SaveFolderPath="/Users/nathanielmusial/CS_Projects/SMART_Projects/Output";
-
-        /*
-        APAvsDistance test= new APAvsDistance();
-        test.run();
-
-        */
-
-
-        String seqPath = "/Users/muhammadsaadshamim/Desktop/FractalArt/Time_Sequence";
-        String newPath = "/Users/muhammadsaadshamim/Desktop/FractalArt/temp_sim_merged_nodups.txt";
-
-        //writeMergedNoDupsFromTimeSeq(seqPath, newPath);
-
-        String[] ll51231123 = {"pre", "-r", "1000,500,100,50,10",
-                newPath,
-                "/Users/muhammadsaadshamim/Desktop/FractalArt/sim.hic",
-                "/Users/muhammadsaadshamim/Desktop/FractalArt/art.chrom.sizes"};
-
-        HiCTools.main(ll51231123);
-
-
-        /*
-        String[] ll51231123 = {"motifs",
-                "hg19",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/gm12878_2",
-                "/Users/muhammadsaadshamim/Desktop/test_motifs/loops_clean.txt"};
-
-
-        HiCTools.main(ll51231123);
-*/
-
+    public static void main(String[] args) {
+        writeMergedNoDupsFromTimeSeq(args[0], args[1]);
     }
 
     private static void writeMergedNoDupsFromTimeSeq(String seqPath, String newPath) {
         List<Integer[]> listPositions = new ArrayList<>();
+        int distanceLimit = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(seqPath))) {
+            Set<Integer> positions = new HashSet<>();
+
             for (String line; (line = br.readLine()) != null; ) {
                 String[] parts = line.split(",");
-                listPositions.add(new Integer[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+                Integer[] xy = new Integer[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])};
+                listPositions.add(xy);
+                positions.add(xy[0]);
+                positions.add(xy[1]);
             }
+
+            distanceLimit = (Collections.max(positions) - Collections.min(positions)) / 2;
         } catch (Exception ignored) {
             ignored.printStackTrace();
         }
-
 
         try {
             PrintWriter p0 = new PrintWriter(new FileWriter(newPath));
@@ -94,10 +58,12 @@ class AggregateProcessing {
                 Integer[] pos_xy_1 = listPositions.get(i);
                 for (int j = i; j < listPositions.size(); j++) {
                     Integer[] pos_xy_2 = listPositions.get(j);
-                    double value = 1. / Math.max(1, Math.sqrt((pos_xy_1[0] - pos_xy_2[0]) ^ 2 + (pos_xy_1[1] - pos_xy_2[1]) ^ 2));
-                    float conv_val = (float) value;
-                    if (!Float.isNaN(conv_val) && conv_val > 0) {
-                        p0.println("0 art " + i + " 0 16 art " + j + " 1 " + conv_val);
+                    double distance = Math.sqrt((pos_xy_1[0] - pos_xy_2[0]) ^ 2 + (pos_xy_1[1] - pos_xy_2[1]) ^ 2);
+                    if (distance < distanceLimit) {
+                        double value = 1. / Math.max(.5, distance);
+                        if (!Double.isNaN(value) && value > 0) {
+                            p0.println("0 art " + i + " 0 16 art " + j + " 1 " + value);
+                        }
                     }
                 }
             }
