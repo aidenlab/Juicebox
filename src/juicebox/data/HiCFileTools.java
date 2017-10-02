@@ -295,7 +295,8 @@ public class HiCFileTools {
      */
     public static ChromosomeHandler stringToChromosomes(Set<String> chromosomesSpecified,
                                                         ChromosomeHandler handler) {
-        Set<Chromosome> chromosomes = new HashSet<>();
+        List<Chromosome> chromosomes = new ArrayList<>();
+        chromosomes.add(0, null);
 
         for (String strKey : chromosomesSpecified) {
             boolean chrFound = false;
@@ -310,7 +311,7 @@ public class HiCFileTools {
                 System.err.println("Chromosome " + strKey + " not found");
             }
         }
-        return new ChromosomeHandler(new ArrayList<>(chromosomes));
+        return new ChromosomeHandler(chromosomes);
     }
 
     /**
