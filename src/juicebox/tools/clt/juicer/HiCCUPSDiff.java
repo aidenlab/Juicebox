@@ -214,7 +214,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         // differential loop list 2 is loops that appeared in list2 that are not enriched in Hi-C file 1
         Feature2DList differentialList2 = Feature2DList.getIntersection(diff2, results1);
 
-        differentialList1.exportFeatureList(new File(outputDirectory, "differential_loops1.txt"), true, Feature2DList.ListFormat.FINAL);
-        differentialList2.exportFeatureList(new File(outputDirectory, "differential_loops2.txt"), true, Feature2DList.ListFormat.FINAL);
+        differentialList1.exportFeatureList(new File(outputDirectory, "differential_loops1.bedpe"), true, Feature2DList.ListFormat.FINAL);
+        differentialList2.exportFeatureList(new File(outputDirectory, "differential_loops2.bedpe"), true, Feature2DList.ListFormat.FINAL);
     }
 }

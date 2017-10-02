@@ -211,12 +211,12 @@ public class Arrowhead extends JuicerCLT {
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomeHandler, true, null, false));
         }
 
-        File outputBlockFile = new File(outputDirectory, resolution + "_blocks");
+        File outputBlockFile = new File(outputDirectory, resolution + "_blocks.bedpe");
         File outputListFile = null;
         File outputControlFile = null;
         if (controlAndListProvided) {
-            outputListFile = new File(outputDirectory, resolution + "_list_scores");
-            outputControlFile = new File(outputDirectory, resolution + "_control_scores");
+            outputListFile = new File(outputDirectory, resolution + "_list_scores.bedpe");
+            outputControlFile = new File(outputDirectory, resolution + "_control_scores.bedpe");
         }
 
         // chromosome filtering must be done after input/control created

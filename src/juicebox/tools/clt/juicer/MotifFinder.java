@@ -84,9 +84,11 @@ public class MotifFinder extends JuicerCLT {
         }
 
         if (loopListPath.endsWith(".txt")) {
-            outputPath = loopListPath.substring(0, loopListPath.length() - 4) + "_with_motifs.txt";
+            outputPath = loopListPath.substring(0, loopListPath.length() - 4) + "_with_motifs.bedpe";
+        } else if (loopListPath.endsWith(".bedpe")) {
+            outputPath = loopListPath.substring(0, loopListPath.length() - 6) + "_with_motifs.bedpe";
         } else {
-            outputPath = loopListPath + "_with_motifs.txt";
+            outputPath = loopListPath + "_with_motifs.bedpe";
         }
 
         try {

@@ -200,7 +200,7 @@ public class Feature2DWithMotif extends Feature2D {
     public String toString() {
         String output = super.toString();
         if (useSimpleOutput) {
-            output = simpleString();
+            output = simpleStringWithColor();
             if (attributes.containsKey(CompareLists.PARENT_ATTRIBUTE)) {
                 output += "\t" + attributes.get(CompareLists.PARENT_ATTRIBUTE);
             }

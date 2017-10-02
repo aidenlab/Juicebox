@@ -65,7 +65,7 @@ public class LoopDomains extends JuicerCLT {
 
     private int threshold = 25000;
     private String genomeID, loopListPath, domainListPath;
-    private File outputFile = new File("loop_domains_list");
+    private File outputFile = new File("loop_domains_list.bedpe");
 
     /*
      * Assumes that the loop list provided already has associated motifs

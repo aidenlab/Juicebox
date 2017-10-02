@@ -108,6 +108,6 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
     public boolean exportFeatureList(File file, boolean b, Feature2DList.ListFormat na) {
         Feature2DList mergedList = new Feature2DList();
         mergedList.add(loopList);
-        return mergedList.exportFeatureList(file, b, na) == -1;
+        return mergedList.exportFeatureList(file, b, na);
     }
 }

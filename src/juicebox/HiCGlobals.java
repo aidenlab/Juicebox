@@ -88,6 +88,7 @@ public class HiCGlobals {
 
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
+    public static boolean isLegacyOutputPrintingEnabled = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

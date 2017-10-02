@@ -270,12 +270,12 @@ public class Feature2DList {
      *
      * @param outputFile
      */
-    public int exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
+    public boolean exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
             final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
             return exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
         }
-        return -1;
+        return false;
     }
 
     /**
@@ -283,7 +283,8 @@ public class Feature2DList {
      *
      * @param outputFilePrintWriter
      */
-    private int exportFeatureList(final PrintWriter outputFilePrintWriter, final boolean formattedOutput, final ListFormat listFormat) {
+    private boolean exportFeatureList(final PrintWriter outputFilePrintWriter, final boolean formattedOutput,
+                                      final ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
@@ -308,7 +309,7 @@ public class Feature2DList {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             for (Feature2D feature : feature2DList) {
-                                StringBuilder output = new StringBuilder(feature.simpleString());
+                                StringBuilder output = new StringBuilder(feature.simpleStringWithColor());
                                 for (String key : outputKeys) {
                                     output.append("\t").append(feature.attributes.get(key));
                                 }
@@ -331,9 +332,9 @@ public class Feature2DList {
             }
             outputFilePrintWriter.close();
 
-            return 0;
+            return true;
         }
-        return -1;
+        return false;
     }
 
     /**

@@ -45,9 +45,10 @@ import java.util.List;
  */
 public class Feature2D implements Comparable<Feature2D> {
 
-    static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
+    static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
-
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
     final FeatureType featureType;
@@ -79,7 +80,11 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public static String getDefaultOutputFileHeader() {
-        return genericHeader;
+        if (HiCGlobals.isLegacyOutputPrintingEnabled) {
+            return genericLegacyHeader;
+        } else {
+            return genericHeader;
+        }
     }
 
     public FeatureType getFeatureType() {
@@ -295,7 +300,7 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public String getOutputFileHeader() {
-        StringBuilder output = new StringBuilder(genericHeader);
+        StringBuilder output = new StringBuilder(getDefaultOutputFileHeader());
 
         ArrayList<String> keys = new ArrayList<>(attributes.keySet());
         Collections.sort(keys);
@@ -308,14 +313,24 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public String simpleString() {
-        String output = chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
-        output += "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
-        return output;
+        return chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
+    }
+
+    public String justColorString() {
+        return "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+    }
+
+    public String simpleStringWithColor() {
+        if (HiCGlobals.isLegacyOutputPrintingEnabled) {
+            return simpleString() + justColorString();
+        } else {
+            return simpleString() + BEDPE_SPACER + justColorString();
+        }
     }
 
     @Override
     public String toString() {
-        StringBuilder output = new StringBuilder(simpleString());
+        StringBuilder output = new StringBuilder(simpleStringWithColor());
 
         ArrayList<String> keys = new ArrayList<>(attributes.keySet());
         Collections.sort(keys);
