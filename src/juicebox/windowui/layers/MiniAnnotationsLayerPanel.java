@@ -72,6 +72,7 @@ public class MiniAnnotationsLayerPanel extends JPanel {
         /* layer name */
         JLabel nameField = new JLabel(handler.getLayerName());
         handler.setMiniNameLabelField(nameField);
+        nameField.setToolTipText(handler.getLayerName());
         parentPanel.add(nameField);
 
         JToggleButton writeButton = LayerPanelButtons.createWritingButton(this, superAdapter, handler);

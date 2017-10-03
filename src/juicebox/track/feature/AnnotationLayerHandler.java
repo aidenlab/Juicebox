@@ -592,6 +592,7 @@ public class AnnotationLayerHandler {
         this.layerName = layerName;
         if (miniNameLabel != null) {
             miniNameLabel.setText(layerName);
+            miniNameLabel.setToolTipText(layerName);
         }
     }
 
