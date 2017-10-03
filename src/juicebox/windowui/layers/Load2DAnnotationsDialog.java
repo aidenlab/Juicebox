@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.windowui;
+package juicebox.windowui.layers;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.DirectoryManager;
@@ -49,7 +49,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.List;
 
-class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
+public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionListener {
 
     private static final long serialVersionUID = 323844632613064L;
     private static DefaultMutableTreeNode customAddedFeatures = null;

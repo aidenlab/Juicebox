@@ -43,6 +43,8 @@ import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
+import juicebox.windowui.layers.LayersPanel;
+import juicebox.windowui.layers.UnsavedAnnotationWarning;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -1011,5 +1013,19 @@ public class SuperAdapter {
         hic.setChromosomeHandler(hic.getChromosomeHandler());
         mainViewPanel.getChrBox1().addItem(custom);
         mainViewPanel.getChrBox2().addItem(custom);
+    }
+
+    public void updateMiniAnnotationsLayerPanel() {
+        try {
+            getMainViewPanel().updateMiniAnnotationsLayerPanel(this);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void updateMainLayersPanel() {
+        try {
+            getLayersPanel().updateLayers2DPanel(this);
+        } catch (Exception ignored) {
+        }
     }
 }

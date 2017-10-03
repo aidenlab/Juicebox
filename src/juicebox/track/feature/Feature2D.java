@@ -536,6 +536,6 @@ public class Feature2D implements Comparable<Feature2D> {
     }
 
     public enum FeatureType {
-        NONE, PEAK, DOMAIN, GENERIC, CONTIG, SCAFFOLD, SELECTED_GROUP
+        NONE, PEAK, DOMAIN, GENERIC, SCAFFOLD, SUPERSCAFFOLD, SELECTED_GROUP
     }
 }

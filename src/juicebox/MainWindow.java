@@ -30,7 +30,7 @@ import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
 import juicebox.windowui.FileDropTargetListener;
-import juicebox.windowui.LayersPanel;
+import juicebox.windowui.layers.LayersPanel;
 import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
