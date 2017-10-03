@@ -1016,10 +1016,16 @@ public class SuperAdapter {
     }
 
     public void updateMiniAnnotationsLayerPanel() {
-        getMainViewPanel().updateMiniAnnotationsLayerPanel(this);
+        try {
+            getMainViewPanel().updateMiniAnnotationsLayerPanel(this);
+        } catch (Exception ignored) {
+        }
     }
 
     public void updateMainLayersPanel() {
-        getLayersPanel().updateLayers2DPanel(this);
+        try {
+            getLayersPanel().updateLayers2DPanel(this);
+        } catch (Exception ignored) {
+        }
     }
 }
