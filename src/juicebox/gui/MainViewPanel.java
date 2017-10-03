@@ -37,6 +37,7 @@ import juicebox.mapcolorui.ThumbnailPanel;
 import juicebox.track.TrackLabelPanel;
 import juicebox.track.TrackPanel;
 import juicebox.windowui.*;
+import juicebox.windowui.layers.MiniAnnotationsLayerPanel;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
@@ -480,6 +481,7 @@ public class MainViewPanel {
 
         //========= mini-annotations panel ======
         miniAnnotationsLayerPanel = new MiniAnnotationsLayerPanel(superAdapter);
+        miniAnnotationsLayerPanel.setEnabled(false);
 
         //========= mouse hover text ======
         tooltipPanel = new JPanel(new BorderLayout());
@@ -877,6 +879,7 @@ public class MainViewPanel {
         }
         goPanel.setEnabled(status);
         annotationsPanelToggleButton.setEnabled(status);
+        miniAnnotationsLayerPanel.setEnabled(status);
     }
 
     public String getColorRangeValues() {
@@ -978,10 +981,6 @@ public class MainViewPanel {
 
     public void setAnnotationsPanelToggleButtonSelected(boolean status) {
         annotationsPanelToggleButton.setSelected(status);
-    }
-
-    private void updateLayers2DPanel(SuperAdapter superAdapter) {
-        superAdapter.getLayersPanel().updateLayers2DPanel(superAdapter);
     }
 
     public void updateMiniAnnotationsLayerPanel(SuperAdapter superAdapter) {

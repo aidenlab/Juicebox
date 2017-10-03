@@ -22,7 +22,7 @@
  *  THE SOFTWARE.
  */
 
-package juicebox.windowui;
+package juicebox.windowui.layers;
 
 import juicebox.gui.SuperAdapter;
 

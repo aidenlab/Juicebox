@@ -35,6 +35,8 @@ import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.feature.AnnotationLayer;
 import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.windowui.layers.LayersPanel;
+import juicebox.windowui.layers.Load2DAnnotationsDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;

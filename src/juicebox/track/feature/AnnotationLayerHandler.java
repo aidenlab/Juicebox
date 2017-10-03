@@ -32,7 +32,8 @@ import juicebox.gui.SuperAdapter;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.track.HiCGridAxis;
-import juicebox.windowui.SaveAnnotationsDialog;
+import juicebox.windowui.layers.PlottingStyleButton;
+import juicebox.windowui.layers.SaveAnnotationsDialog;
 import org.broad.igv.ui.color.ColorChooserPanel;
 import org.broad.igv.util.Pair;
 
@@ -63,11 +64,12 @@ public class AnnotationLayerHandler {
     private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
-    private JToggleButton activeLayerButton;
+    private List<JToggleButton> activeLayerButtons = new ArrayList<>();
     private Color defaultColor = Color.BLUE;
-    private JButton plottingStyleButton;
-    private ColorChooserPanel colorChooserPanel;
+    private List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
+    private List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
     private JTextField nameTextField;
+    private JLabel miniNameLabel;
 
     public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
@@ -586,13 +588,18 @@ public class AnnotationLayerHandler {
         return layerName;
     }
 
-    public void setLayerName(String layerName) {
+    public void setLayerNameAndOtherField(String layerName) {
         this.layerName = layerName;
+        if (miniNameLabel != null) {
+            miniNameLabel.setText(layerName);
+        }
     }
 
     public void setLayerNameAndField(String layerName) {
-        this.layerName = layerName;
-        if (nameTextField != null) nameTextField.setText(layerName);
+        setLayerNameAndOtherField(layerName);
+        if (nameTextField != null) {
+            nameTextField.setText(layerName);
+        }
     }
 
     public Feature2DHandler getFeatureHandler() {
@@ -621,6 +628,9 @@ public class AnnotationLayerHandler {
 
     public void setPlottingStyle(FeatureRenderer.PlottingOption plottingStyle) {
         this.plottingStyle = plottingStyle;
+        for (PlottingStyleButton button : plottingStyleButtons) {
+            button.setCurrentState(plottingStyle);
+        }
     }
 
     public void exportAnnotations() {
@@ -697,14 +707,14 @@ public class AnnotationLayerHandler {
     }
 
     public void setActiveLayerButtonStatus(boolean status) {
-        if (activeLayerButton != null) {
-            activeLayerButton.setSelected(status);
-            activeLayerButton.revalidate();
+        for (JToggleButton button : activeLayerButtons) {
+            button.setSelected(status);
+            button.revalidate();
         }
     }
 
     public void setActiveLayerButton(JToggleButton activeLayerButton) {
-        this.activeLayerButton = activeLayerButton;
+        activeLayerButtons.add(activeLayerButton);
     }
 
     public int getNumberOfFeatures() {
@@ -712,7 +722,7 @@ public class AnnotationLayerHandler {
     }
 
     public void setColorOfAllAnnotations(Color color) {
-        defaultColor = color;
+        setDefaultColor(color);
         annotationLayer.setColorOfAllAnnotations(color);
     }
 
@@ -722,7 +732,10 @@ public class AnnotationLayerHandler {
 
     private void setDefaultColor(Color defaultColor) {
         this.defaultColor = defaultColor;
-        if (colorChooserPanel != null) colorChooserPanel.setSelectedColor(defaultColor);
+        if (colorChooserPanels.size() > 0) {
+            for (ColorChooserPanel colorChooserPanel : colorChooserPanels)
+                colorChooserPanel.setSelectedColor(defaultColor);
+        }
     }
 
     public void setDeleteLayerButtonStatus(boolean status) {
@@ -793,26 +806,33 @@ public class AnnotationLayerHandler {
         }
 
         setExportAbility(canExport);
-        setLayerName("Merger" + cleanedTitle);
+        setLayerNameAndField("Merger" + cleanedTitle);
     }
 
     public void togglePlottingStyle() {
         try {
-            plottingStyleButton.doClick();
+            for (JButton plottingStyleButton : plottingStyleButtons) {
+                plottingStyleButton.doClick();
+                break;
+            }
         } catch (Exception e) {
             setPlottingStyle(FeatureRenderer.getNextState(getPlottingStyle()));
         }
     }
 
-    public void setPlottingStyleButton(JButton plottingStyleButton) {
-        this.plottingStyleButton = plottingStyleButton;
+    public void setPlottingStyleButton(PlottingStyleButton plottingStyleButton) {
+        plottingStyleButtons.add(plottingStyleButton);
     }
 
     public void setColorChooserPanel(ColorChooserPanel colorChooserPanel) {
-        this.colorChooserPanel = colorChooserPanel;
+        colorChooserPanels.add(colorChooserPanel);
     }
 
     public void setNameTextField(JTextField nameTextField) {
         this.nameTextField = nameTextField;
+    }
+
+    public void setMiniNameLabelField(JLabel miniNameLabel) {
+        this.miniNameLabel = miniNameLabel;
     }
 }
