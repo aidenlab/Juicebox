@@ -52,21 +52,14 @@ public class SaveAnnotationsDialog extends JFileChooser {
         menuOptions();
     }
 
-    public SaveAnnotationsDialog(AnnotationLayer annotationsLayer, Feature2DList otherList) {
-        super();
-        this.annotations = annotationsLayer;
-        this.otherList = otherList;
-        menuOptions();
-    }
-
     private void menuOptions() {
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd-HH.mm").format(new Date());
-        setSelectedFile(new File(mapName + "-" + timeStamp + ".txt"));
+        setSelectedFile(new File(mapName + "-" + timeStamp + ".bedpe"));
 
         //setCurrentDirectory(new File(System.getProperty("user.dir")));
 
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                "Text Files", "txt", "text");
+                "BEDPE Files", "bedpe", "txt", "text");
         setFileFilter(filter);
         if (HiCGlobals.guiIsCurrentlyActive) {
             int actionDialog = showSaveDialog(MainWindow.getInstance());
@@ -79,12 +72,14 @@ public class SaveAnnotationsDialog extends JFileChooser {
                         return;
                 }
                 if (otherList == null) {
-                    if (annotations.exportAnnotations(outputPath)) {
+                    if (!annotations.exportAnnotations(outputPath)) {
                         JOptionPane.showMessageDialog(MainWindow.getInstance(), "No annotations to output", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    if (annotations.exportOverlap(otherList, outputPath) < 0) {
+                    if (!annotations.exportOverlap(otherList, outputPath)) {
+                        JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to export annotations", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }

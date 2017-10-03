@@ -523,7 +523,7 @@ public class HiCCUPSUtils {
             removeLowMapQFeatures(looplists.get(res), res, ds, chromosomeHandler, norm);
             coalesceFeaturesToCentroid(looplists.get(res), res, conf.getClusterRadius());
             filterOutFeaturesByFDR(looplists.get(res));
-            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res), true, Feature2DList.ListFormat.FINAL);
+            looplists.get(res).exportFeatureList(new File(outputDirectory, POST_PROCESSED + "_" + res + ".bedpe"), true, Feature2DList.ListFormat.FINAL);
         }
 
         return mergeAllResolutions(looplists);

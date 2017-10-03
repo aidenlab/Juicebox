@@ -508,10 +508,10 @@ public class HiCCUPS_postproc extends JuicerCLT {
 
         }
 
-        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution()),
+        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution() + ".bedpe"),
                 true, Feature2DList.ListFormat.ENRICHED);
         if (listGiven) {
-            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution()),
+            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution() + ".bedpe"),
                     true, Feature2DList.ListFormat.ENRICHED);
         }
         for (int i = 0; i < w1; i++) {

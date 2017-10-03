@@ -50,7 +50,7 @@ public class CompareLists extends JuicerCLT {
     private static final Color AA = new Color(0, 255, 150);
     private static final Color BB = new Color(150, 255, 0);
     private int threshold = 10000, compareTypeID = 0;
-    private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
+    private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list.bedpe";
 
     public CompareLists() {
         super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]");
@@ -71,9 +71,11 @@ public class CompareLists extends JuicerCLT {
             outputPath = args[5];
         } else {
             if (inputFileB.endsWith(".txt")) {
-                outputPath = inputFileB.substring(0, inputFileB.length() - 4) + "_comparison_results.txt";
+                outputPath = inputFileB.substring(0, inputFileB.length() - 4) + "_comparison_results.bedpe";
+            } else if (inputFileB.endsWith(".bedpe")) {
+                outputPath = inputFileB.substring(0, inputFileB.length() - 6) + "_comparison_results.bedpe";
             } else {
-                outputPath = inputFileB + "_comparison_results.txt";
+                outputPath = inputFileB + "_comparison_results.bedpe";
             }
         }
 

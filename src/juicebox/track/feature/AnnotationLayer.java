@@ -243,11 +243,11 @@ public class AnnotationLayer {
 
     // Export annotations
     public boolean exportAnnotations(String outputFilePath) {
-        boolean nothingExported = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
-        if (!nothingExported) {
+        boolean somethingExported = customAnnotationRTreeHandler.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
+        if (somethingExported) {
             deleteTempFile();
         }
-        return nothingExported;
+        return somethingExported;
     }
 
     // Note assumes that all attributes are already correctly formatted. Ok to assume
@@ -273,14 +273,12 @@ public class AnnotationLayer {
         updateAutoSave();
     }
 
-    public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
-        int ok;
-        ok = customAnnotationRTreeHandler.getOverlap(otherAnnotations).exportFeatureList(
-                new File(outputFilePath), false, Feature2DList.ListFormat.NA);
-        if (ok < 0)
-            return ok;
-        unsavedEdits = false;
-        return ok;
+    public boolean exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
+        if (customAnnotationRTreeHandler.getOverlap(otherAnnotations).exportFeatureList(
+                new File(outputFilePath), false, Feature2DList.ListFormat.NA)) {
+            unsavedEdits = false;
+        }
+        return false;
     }
 
     private void getAndAddAttributes(List<String> featureKeys) {

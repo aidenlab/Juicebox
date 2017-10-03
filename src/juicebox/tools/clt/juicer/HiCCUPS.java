@@ -158,7 +158,7 @@ public class HiCCUPS extends JuicerCLT {
     private static final int w1 = 40;      // TODO dimension should be variably set
     private static final int w2 = 10000;   // TODO dimension should be variably set
     private static final boolean dataShouldBePostProcessed = true;
-    private static final String MERGED = "merged_loops";
+    private static final String MERGED = "merged_loops.bedpe";
     private static final String FDR_THRESHOLDS = "fdr_thresholds";
     private static final String ENRICHED_PIXELS = "enriched_pixels";
     private static final String REQUESTED_LIST = "requested_list";
@@ -562,10 +562,10 @@ public class HiCCUPS extends JuicerCLT {
 
         }
 
-        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution()),
+        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution() + ".bedpe"),
                 true, Feature2DList.ListFormat.ENRICHED);
         if (listGiven) {
-            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution()),
+            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution() + ".bedpe"),
                     true, Feature2DList.ListFormat.ENRICHED);
         }
         for (int i = 0; i < w1; i++) {
