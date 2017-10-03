@@ -24,6 +24,8 @@
 
 package juicebox.track.feature;
 
+import juicebox.assembly.FragmentProperty;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,8 @@ import java.util.Map;
  * Created by muhammadsaadshamim on 4/22/17.
  */
 public class Contig2D extends Feature2D {
+
+    private FragmentProperty fragmentProperty;
 
     private String initialChr;
     private int initialStart, initialEnd;

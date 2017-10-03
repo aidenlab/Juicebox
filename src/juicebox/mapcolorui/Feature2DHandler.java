@@ -249,7 +249,7 @@ public class Feature2DHandler {
                         System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
                     }
                 } else {
-                    System.out.println("returning all");
+//                    System.out.println("returning all");
                     List<Feature2D> features = loopList.get(key);
                     if (features != null) foundFeatures.addAll(features);
                 }

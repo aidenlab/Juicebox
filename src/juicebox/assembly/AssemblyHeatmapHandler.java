@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.gui.SuperAdapter;
@@ -109,14 +110,18 @@ public class AssemblyHeatmapHandler {
     }
 
     private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        int originalBinCenterCoordinate = binValue * binSize + binSize / 2;
-        Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
-        int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
-        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
+        long originalBinCenterCoordinate = (long) (HiCGlobals.hicMapScale * (binValue * binSize + binSize / 2));
+        //Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
+        FragmentProperty fragmentProperty = aFragHandler.newLookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
+        //int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
+        long fragCoordinate = aFragHandler.newLiftOriginalAsmCoordinateToFragmentCoordinate(fragmentProperty, originalBinCenterCoordinate);
+//        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
+        long currentBinCenterCoordinate = aFragHandler.newLiftFragmentCoordinateToAsmCoordinate(fragmentProperty, fragCoordinate);
+
         if (currentBinCenterCoordinate == -1) {
             return -1;
         } else {
-            return (currentBinCenterCoordinate - binSize / 2) / binSize;
+            return (int) ((currentBinCenterCoordinate - binSize / 2) / binSize / HiCGlobals.hicMapScale);
         }
     }
 }

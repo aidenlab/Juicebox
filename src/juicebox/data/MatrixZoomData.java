@@ -30,6 +30,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
+import juicebox.assembly.FragmentProperty;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
@@ -264,23 +265,26 @@ public class MatrixZoomData {
     private List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                           final NormalizationType no) {
         Set<Integer> blocksToLoad = new HashSet<>();
-        Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
-
+        //       Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
         // enable sparse plotting options
-        boolean previousStatus = handler.getIsSparsePlottingEnabled();
-
+        //       boolean previousStatus = handler.getIsSparsePlottingEnabled();
         // Get features that are both contained by and touching (nearest single neighbor)
         // the selection rectangle
-        handler.setSparsePlottingEnabled(true);
+        //       handler.setSparsePlottingEnabled(true);
 
+        // get aggregate scaffold handler
+        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
+        Feature2DHandler aggregateFeature2DHandler = aFragHandler.getAggregateFeature2DHandler();
+        aggregateFeature2DHandler.setSparsePlottingEnabled(true);
         // x window binNumber * binSize
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
                 binX1 * zoom.getBinSize(),
                 binX1 * zoom.getBinSize(),
                 binX2 * zoom.getBinSize(),
                 binX2 * zoom.getBinSize());
-        List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
+        //       List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
 
+        List<Feature2D> xAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, false);
 
         // y window
         currentWindow = new net.sf.jsi.Rectangle(
@@ -288,18 +292,74 @@ public class MatrixZoomData {
                 binY1 * zoom.getBinSize(),
                 binY2 * zoom.getBinSize(),
                 binY2 * zoom.getBinSize());
-        List<Contig2D> yAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
+        //      List<Contig2D> yAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
         // restore sparse plotting options
-        handler.setSparsePlottingEnabled(previousStatus);
+        //handler.setSparsePlottingEnabled(previousStatus);
 
-        for (Contig2D xContig : xAxisContigs) {
-            for (Contig2D yContig : yAxisContigs) {
+        List<Feature2D> yAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, false);
+
+        Collections.sort(xAxisFeatures);
+        Collections.sort(yAxisFeatures);
+
+        int x1pos, x2pos, y1pos, y2pos;
+//        for (Contig2D xContig : xAxisContigs) {
+//            for (Contig2D yContig : yAxisContigs) {
+        for (Feature2D xContig : xAxisFeatures) {
+            for (Feature2D yContig : yAxisFeatures) {
+
+                FragmentProperty xProperty = aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(xContig.getAttribute("Scaffold name")) - 1);
+                FragmentProperty yProperty = aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(yContig.getAttribute("Scaffold name")) - 1);
+
+
+                x1pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale);
+                x2pos = (int) (xProperty.getInitialEnd() / HiCGlobals.hicMapScale);
+                y1pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale);
+                y2pos = (int) (yProperty.getInitialEnd() / HiCGlobals.hicMapScale);
+
+                if (xContig.equals(xAxisFeatures.get(0))) {
+                    if (!xProperty.isInvertedVsInitial()) {
+                        x1pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale + binX1 * zoom.getBinSize() - xProperty.getCurrentStart() / HiCGlobals.hicMapScale);
+                    } else {
+                        x2pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale - binX1 * zoom.getBinSize() + xProperty.getCurrentEnd() / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (yContig.equals(yAxisFeatures.get(0))) {
+                    if (!yProperty.isInvertedVsInitial()) {
+                        y1pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale + binY1 * zoom.getBinSize() - yProperty.getCurrentStart() / HiCGlobals.hicMapScale);
+                    } else {
+                        y2pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale - binY1 * zoom.getBinSize() + yProperty.getCurrentEnd() / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (xContig.equals(xAxisFeatures.get(xAxisFeatures.size() - 1))) {
+                    if (!xProperty.isInvertedVsInitial()) {
+                        x2pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale + binX2 * zoom.getBinSize() - xProperty.getCurrentStart() / HiCGlobals.hicMapScale);
+                    } else {
+                        x1pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale - binX2 * zoom.getBinSize() + xProperty.getCurrentEnd() / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (yContig.equals(yAxisFeatures.get(yAxisFeatures.size() - 1))) {
+                    if (!yProperty.isInvertedVsInitial()) {
+                        y2pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale + binY2 * zoom.getBinSize() - yProperty.getCurrentStart() / HiCGlobals.hicMapScale);
+                    } else {
+                        y1pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale - binY2 * zoom.getBinSize() + yProperty.getCurrentEnd() / HiCGlobals.hicMapScale);
+                    }
+                }
+
                 int[] genomePosition = new int[]{
-                        xContig.getInitialStart(),
-                        xContig.getInitialEnd(),
-                        yContig.getInitialStart(),
-                        yContig.getInitialEnd()
+//                        (int) (aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(xContig.getAttribute("Scaffold #"))-1).getInitialEnd()/HiCGlobals.hicMapScale),
+//                        (int) (aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(yContig.getAttribute("Scaffold #"))-1).getInitialStart()/HiCGlobals.hicMapScale),
+//                        (int) (aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(yContig.getAttribute("Scaffold #"))-1).getInitialEnd()/HiCGlobals.hicMapScale),
+                        x1pos, x2pos, y1pos, y2pos
+
+//                        xContig.getInitialStart(),
+//                        xContig.getInitialEnd(),
+//                        yContig.getInitialStart(),
+//                        yContig.getInitialEnd()
                 };
+
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
                     if (blocksToLoad.contains(blockNumber)) {
@@ -319,8 +379,6 @@ public class MatrixZoomData {
         }
 
         // Remove basic duplicates here
-        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
-
         // Actually load new blocks
         actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
 

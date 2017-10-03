@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.track.feature.Feature2D;
 
 /**
@@ -85,7 +86,7 @@ public class FragmentProperty {
         this.isInvertedVsInitial = fragmentProperty.isInvertedVsInitial;
 
         // 2D features
-        if (this.feature2D != null)
+        if (fragmentProperty.feature2D != null)
             this.feature2D = fragmentProperty.feature2D.deepCopy();
 
         // formality
@@ -225,4 +226,31 @@ public class FragmentProperty {
     }
 
 
+    public FragmentProperty merge(FragmentProperty fragmentProperty) {
+
+        if (this.getInitialEnd() == fragmentProperty.getInitialStart()
+                && fragmentProperty.isInvertedVsInitial == this.isInvertedVsInitial
+                && this.isInvertedVsInitial == false) {
+
+            this.length = this.length + fragmentProperty.length;
+
+            if (this.feature2D != null) {
+                this.feature2D.setEnd1(this.feature2D.getEnd1() + (int) (fragmentProperty.length / HiCGlobals.hicMapScale));
+                this.feature2D.setEnd2(this.feature2D.getEnd2() + (int) (fragmentProperty.length / HiCGlobals.hicMapScale));
+            }
+            return this;
+        }
+        if (fragmentProperty.getInitialEnd() == this.initialStart
+                && fragmentProperty.isInvertedVsInitial == this.isInvertedVsInitial
+                && this.isInvertedVsInitial == true) {
+            this.setInitialStart(fragmentProperty.getInitialStart());
+            this.length = this.length + fragmentProperty.length;
+            if (this.feature2D != null) {
+                this.feature2D.setEnd1(this.feature2D.getEnd1() + (int) (fragmentProperty.length / HiCGlobals.hicMapScale));
+                this.feature2D.setEnd2(this.feature2D.getEnd2() + (int) (fragmentProperty.length / HiCGlobals.hicMapScale));
+            }
+            return this;
+        }
+        return null;
+    }
 }

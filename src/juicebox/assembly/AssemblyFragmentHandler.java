@@ -25,6 +25,7 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
 import juicebox.track.feature.Feature2DList;
@@ -51,6 +52,11 @@ public class AssemblyFragmentHandler {
     private Feature2DList superscaffoldFeature2DList;
     private String chromosomeName = "assembly";
 
+    private List<FragmentProperty> listOfAggregateScaffoldProperties = new ArrayList<>();
+    private Feature2DList aggregateScaffoldFeature2DList;
+    private Feature2DHandler aggregateFeature2DHandler;
+
+
     public AssemblyFragmentHandler(List<FragmentProperty> listOfScaffoldProperties, List<List<Integer>> listOfSuperscaffolds) {
         this.listOfScaffoldProperties = listOfScaffoldProperties;
         this.listOfSuperscaffolds = listOfSuperscaffolds;
@@ -66,6 +72,7 @@ public class AssemblyFragmentHandler {
     public void updateAssembly() {
         setCurrentState();
         populate2DFeatures();
+        aggregateScaffolds();
     }
 
     public List<FragmentProperty> cloneScaffoldProperties() {
@@ -175,6 +182,46 @@ public class AssemblyFragmentHandler {
             superscaffoldFeature2DList.add(1, 1, superscaffoldFeature2D);
             superscaffoldStart += superscaffoldLength;
         }
+    }
+
+    public void aggregateScaffolds() {
+        listOfAggregateScaffoldProperties.clear();
+        aggregateScaffoldFeature2DList = new Feature2DList();
+        int counter = 1;
+        FragmentProperty aggregateScaffoldProperty = new FragmentProperty(listOfScaffoldProperties.get(Math.abs(listOfSuperscaffolds.get(0).get(0)) - 1));
+        aggregateScaffoldProperty.setInitiallyInverted(false);
+
+        for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+            for (int j = 0; j < listOfSuperscaffolds.get(i).size(); j++) {
+
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+
+                FragmentProperty nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(listOfSuperscaffolds.get(i).get(j)) - 1);
+                FragmentProperty temp = aggregateScaffoldProperty.merge(nextScaffoldProperty);
+                if (temp == null) {
+                    listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
+                    aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(counter));
+                    aggregateScaffoldProperty.setInitiallyInverted(false);
+                    aggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+                    counter++;
+                    aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
+                } else {
+                    aggregateScaffoldProperty = temp;
+                }
+            }
+        }
+        listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
+        aggregateScaffoldProperty.setInitiallyInverted(false);
+        aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(counter));
+        aggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+
+        aggregateFeature2DHandler = new Feature2DHandler();
+        aggregateFeature2DHandler.loadLoopList(aggregateScaffoldFeature2DList, true);
+
+//        System.out.println("how many aggregates: "+listOfAggregateScaffoldProperties.size());
+
     }
 
     //**** Split fragment ****//
@@ -571,6 +618,17 @@ public class AssemblyFragmentHandler {
         return null;
     }
 
+    public FragmentProperty newLookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, long asmCoordinate) {
+
+        for (FragmentProperty aggregateFragmentProperty : listOfAggregateScaffoldProperties) {
+            if (asmCoordinate > aggregateFragmentProperty.getInitialStart()
+                    && asmCoordinate <= aggregateFragmentProperty.getInitialEnd()) {
+                return aggregateFragmentProperty;
+            }
+        }
+        return null;
+    }
+
     public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
         Contig2D contig = lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
         return liftOriginalAsmCoordinateToFragmentCoordinate(contig, asmCoordinate);
@@ -591,6 +649,21 @@ public class AssemblyFragmentHandler {
         return newCoordinate;
     }
 
+    public long newLiftOriginalAsmCoordinateToFragmentCoordinate(FragmentProperty fragmentProperty, long asmCoordinate) {
+        if (fragmentProperty == null) {
+            return -1;
+        }
+        long newCoordinate;
+        boolean invertedInitially = fragmentProperty.wasInitiallyInverted();
+
+        if (invertedInitially) {
+            newCoordinate = fragmentProperty.getInitialEnd() - asmCoordinate + 1;
+        } else {
+            newCoordinate = asmCoordinate - fragmentProperty.getInitialStart();
+        }
+        return newCoordinate;
+    }
+
     //TODO: add scaling, check +/-1
     public int liftFragmentCoordinateToAsmCoordinate(Contig2D contig, int fragmentCoordinate) {
         if (contig == null) {
@@ -603,6 +676,21 @@ public class AssemblyFragmentHandler {
             newCoordinate = contig.getEnd1() - fragmentCoordinate + 1;
         } else {
             newCoordinate = contig.getStart1() + fragmentCoordinate;
+        }
+        return newCoordinate;
+    }
+
+    public long newLiftFragmentCoordinateToAsmCoordinate(FragmentProperty fragmentProperty, long fragmentCoordinate) {
+        if (fragmentProperty == null) {
+            return -1;
+        }
+        boolean invertedInAsm = (fragmentProperty.getSignIndexId() < 0);  //if contains a negative then it is inverted
+
+        long newCoordinate;
+        if (invertedInAsm) {
+            newCoordinate = fragmentProperty.getCurrentEnd() - fragmentCoordinate + 1;
+        } else {
+            newCoordinate = fragmentProperty.getCurrentStart() + fragmentCoordinate;
         }
         return newCoordinate;
     }
@@ -623,4 +711,11 @@ public class AssemblyFragmentHandler {
         return s;
     }
 
+    public Feature2DList getAggregateFeature2DList() {
+        return aggregateScaffoldFeature2DList;
+    }
+
+    public Feature2DHandler getAggregateFeature2DHandler() {
+        return aggregateFeature2DHandler;
+    }
 }
