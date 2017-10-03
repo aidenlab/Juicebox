@@ -68,7 +68,7 @@ public class AssemblyOperationExecutor {
     public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
         if (refreshMap) {
-            superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
+            superAdapter.getAssemblyStateTracker().executeClearAllMZDCache(superAdapter);
         }
     }
 }

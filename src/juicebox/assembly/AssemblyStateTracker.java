@@ -45,7 +45,7 @@ public class AssemblyStateTracker {
         undoStack.push(assemblyFragmentHandler);
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
-        redoStack = new Stack<AssemblyFragmentHandler>();
+        redoStack = new Stack<>();
         this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
     }
 
@@ -63,7 +63,7 @@ public class AssemblyStateTracker {
         redoStack.clear();
         undoStack.push(initialAssemblyFragmentHandler);
         regenerateLayers();
-        executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+        executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
     }
 
     public AssemblyFragmentHandler getInitialAssemblyFragmentHandler() {
@@ -91,7 +91,7 @@ public class AssemblyStateTracker {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
             regenerateLayers();
-            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
         }
     }
 
@@ -103,18 +103,18 @@ public class AssemblyStateTracker {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
             regenerateLayers();
-            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
         }
     }
 
-    public void executeLongRunningTask(final SuperAdapter superAdapter) {
+    public void executeClearAllMZDCache(final SuperAdapter superAdapter) {
         Runnable runnable = new Runnable() {
             public void run() {
                 superAdapter.clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
                 superAdapter.refresh();
             }
         };
-        superAdapter.getMainWindow().executeLongRunningTask(runnable, "AssemblyAction");
+        superAdapter.executeLongRunningTask(runnable, "Assembly clear MZD cache");
     }
 
 }

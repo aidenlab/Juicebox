@@ -207,18 +207,6 @@ public class FragmentProperty {
         this.feature2D = feature2D;
     }
 
-
-    //
-    //
-    //
-    // deprecated
-
-    public void setInitialState(String initialChr, long initialStart, long initialEnd, boolean inverted) {
-        this.initialChr = initialChr;
-        this.initialStart = initialStart;
-        this.isInvertedVsInitial = inverted;
-    }
-
     @Override
     public String toString() {
         return name + " " + indexId + " " + length;
