@@ -87,9 +87,12 @@ public class ChromosomeHandler {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
     }
 
-    public Chromosome addCustomChromosome(File file) {
+    public Chromosome generateCustomChromosomeFromBED(File file, int minSize) {
         GenomeWideList<MotifAnchor> regionsInCustomChromosome =
                 MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
+
+        MotifAnchorTools.mergeAndExpandSmallAnchors(regionsInCustomChromosome, minSize);
+
         String cleanedUpName = cleanUpName(file.getName());
 
         return addCustomChromosome(regionsInCustomChromosome, cleanedUpName);

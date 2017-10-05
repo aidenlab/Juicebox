@@ -422,7 +422,7 @@ public class MainMenuBar {
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                superAdapter.createCustomChromosomes();
+                superAdapter.createCustomChromosomesFromBED();
             }
         });
         viewMenu.add(addCustomChromosome);

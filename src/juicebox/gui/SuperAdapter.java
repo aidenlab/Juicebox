@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
+import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -988,7 +989,7 @@ public class SuperAdapter {
         this.assemblyStateTracker = assemblyStateTracker;
     }
 
-    public void createCustomChromosomes() {
+    public void createCustomChromosomesFromBED() {
 
         FilenameFilter bedFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -998,18 +999,26 @@ public class SuperAdapter {
 
         File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
                 LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+
         if (files != null && files.length > 0) {
+            LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
+
+            int minSize = MotifAnchorTools.getMinSizeForExpansionFromGUI();
+
             for (File f : files) {
-                Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
-                hic.setChromosomeHandler(hic.getChromosomeHandler());
-                mainViewPanel.getChrBox1().addItem(custom);
-                mainViewPanel.getChrBox2().addItem(custom);
+                Chromosome custom = hic.getChromosomeHandler().generateCustomChromosomeFromBED(f, minSize);
+                updateChrHandlerAndMVP(custom);
             }
         }
     }
 
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
+
+        updateChrHandlerAndMVP(custom);
+    }
+
+    private void updateChrHandlerAndMVP(Chromosome custom) {
         hic.setChromosomeHandler(hic.getChromosomeHandler());
         mainViewPanel.getChrBox1().addItem(custom);
         mainViewPanel.getChrBox2().addItem(custom);
