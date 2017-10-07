@@ -88,10 +88,6 @@ public class AssemblyFragmentHandler {
         return scaffoldFeature2DList;
     }
 
-    public void setScaffoldFeature2DList(Feature2DList scaffoldFeature2DList) {
-        this.scaffoldFeature2DList = scaffoldFeature2DList;
-    }
-
     public Feature2DList getSuperscaffoldFeature2DList() {
         return superscaffoldFeature2DList;
     }
@@ -142,7 +138,8 @@ public class AssemblyFragmentHandler {
                     (int) Math.round((scaffoldProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
                     new Color(0, 255, 0),
                     attributes);
-//TODO: get rid of Contig2D, too much confusion, too much overlap
+
+            //TODO: get rid of Contig2D, too much confusion, too much overlap
             Contig2D contig = scaffoldFeature2D.toContig();
             if (scaffoldProperty.isInvertedVsInitial()) {
                 contig.toggleInversion(); //assuming initial contig2D inverted = false
@@ -184,7 +181,8 @@ public class AssemblyFragmentHandler {
         int i = Integer.parseInt(originalFeature.getAttribute(unsignedScaffoldIdAttributeKey)) - 1;
         FragmentProperty toEditFragmentProperty = listOfScaffoldProperties.get(i);
 
-        // do not allow for splitting debris scaffoldFeature2DList, TODO: should probably also handle at the level of prompts
+        // do not allow for splitting debris scaffoldFeature2DList
+        // TODO should probably also handle at the level of prompts
         if (toEditFragmentProperty.isDebris()) {
             return;
         }
@@ -497,8 +495,6 @@ public class AssemblyFragmentHandler {
     }
 
     //**** Utility functions ****//
-
-    // TODO MSS
     private int getSuperscaffoldId(int scaffoldId) {
         int i = 0;
         for (List<Integer> scaffoldRow : listOfSuperscaffolds) {
@@ -514,41 +510,9 @@ public class AssemblyFragmentHandler {
     //**** For debugging ****//
     public void printAssembly(){
         System.out.println(Arrays.toString(listOfSuperscaffolds.toArray()));
-        return;
-    }
-
-    // TODO MSS
-    public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
-
-        for (Feature2D contig : scaffoldFeature2DList.get(chrId1, chrId2)) {
-            if (contig.getStart1() < asmCoordinate && contig.getEnd1() >= asmCoordinate) {
-                return contig.toContig();
-            }
-        }
-        return null;
-    }
-
-    public int liftAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-        Contig2D contig = liftAsmCoordinateToFragment(chrId1, chrId2, asmCoordinate);
-        if (contig == null) {
-            return -1;
-        }
-        int newCoordinate;
-        boolean inverted = contig.getAttribute(signedScaffoldIdAttributeKey).contains("-");
-        if (inverted) {
-            newCoordinate = contig.getEnd1() - asmCoordinate + 1;
-        } else {
-            newCoordinate = asmCoordinate - contig.getStart1();
-        }
-        return newCoordinate;
     }
 
     // TODO use rtree
-    // TODO likely should be renamed - this is a search function?
-//    public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-//        return lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
-//    }
-
     public Contig2D lookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, int asmCoordinate) {
 
         for (Feature2D feature : scaffoldFeature2DList.get(chrId1, chrId2)) {
@@ -559,11 +523,6 @@ public class AssemblyFragmentHandler {
             }
 
         return null;
-    }
-
-    public int liftOriginalAsmCoordinateToFragmentCoordinate(int chrId1, int chrId2, int asmCoordinate) {
-        Contig2D contig = lookupCurrentFragmentForOriginalAsmCoordinate(chrId1, chrId2, asmCoordinate);
-        return liftOriginalAsmCoordinateToFragmentCoordinate(contig, asmCoordinate);
     }
 
     public int liftOriginalAsmCoordinateToFragmentCoordinate(Contig2D contig, int asmCoordinate) {
