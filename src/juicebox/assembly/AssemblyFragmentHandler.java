@@ -477,44 +477,33 @@ public class AssemblyFragmentHandler {
 
     }
 
+
     private void mergeSuperscaffolds(int superscaffoldId1, int superscaffoldId2) {
-        List<List<Integer>> newSuperscaffolds = new ArrayList<>();
-        for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
-            if (i == superscaffoldId2) {
-                newSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(superscaffoldId2));
-            } else {
-                newSuperscaffolds.add(listOfSuperscaffolds.get(i));
-            }
-        }
-        listOfSuperscaffolds.clear();
-        listOfSuperscaffolds.addAll(newSuperscaffolds);
-        return;
+        listOfSuperscaffolds.get(superscaffoldId1).addAll(listOfSuperscaffolds.get(superscaffoldId2));
+        listOfSuperscaffolds.remove(superscaffoldId2);
     }
 
     private void splitSuperscaffold(int superscaffoldId, int scaffoldId) {
-        List<List<Integer>> newSuperscaffolds = new ArrayList<>();
-        for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
-            if (i == superscaffoldId) {
-                newSuperscaffolds.add(listOfSuperscaffolds.get(superscaffoldId).subList(0, 1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId)));
-                newSuperscaffolds.add(listOfSuperscaffolds.get(superscaffoldId).subList(1 + listOfSuperscaffolds.get(superscaffoldId).indexOf(scaffoldId), listOfSuperscaffolds.get(superscaffoldId).size()));
-            } else {
-                newSuperscaffolds.add(listOfSuperscaffolds.get(i));
-            }
-        }
-        listOfSuperscaffolds.clear();
-        listOfSuperscaffolds.addAll(newSuperscaffolds);
-        return;
+        List<Integer> extractedList = listOfSuperscaffolds.get(superscaffoldId);
+        int splitIndex = 1 + extractedList.indexOf(scaffoldId);
+
+        List<Integer> split1 = extractedList.subList(0, splitIndex);
+        List<Integer> split2 = extractedList.subList(splitIndex, extractedList.size());
+
+        // remove old entry and add the two new ones
+        listOfSuperscaffolds.remove(superscaffoldId);
+        listOfSuperscaffolds.add(superscaffoldId, split1);
+        listOfSuperscaffolds.add(superscaffoldId + 1, split2);
     }
 
     //**** Utility functions ****//
 
+    // TODO MSS
     private int getSuperscaffoldId(int scaffoldId) {
         int i = 0;
         for (List<Integer> scaffoldRow : listOfSuperscaffolds) {
-
-            for (int index : scaffoldRow) {
-                if (Math.abs(index) == Math.abs(scaffoldId))
-                    return i;
+            if (scaffoldRow.contains(scaffoldId) || scaffoldRow.contains(-scaffoldId)) {
+                return i;
             }
             i++;
         }
@@ -528,6 +517,7 @@ public class AssemblyFragmentHandler {
         return;
     }
 
+    // TODO MSS
     public Contig2D liftAsmCoordinateToFragment(int chrId1, int chrId2, int asmCoordinate) {
 
         for (Feature2D contig : scaffoldFeature2DList.get(chrId1, chrId2)) {
