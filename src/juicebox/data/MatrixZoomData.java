@@ -418,6 +418,7 @@ public class MatrixZoomData {
                         //Run out of memory if do it here
                         if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
                             b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index, aFragHandler);
+                            //b=b;
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);

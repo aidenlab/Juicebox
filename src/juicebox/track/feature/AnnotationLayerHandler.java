@@ -458,7 +458,14 @@ public class AnnotationLayerHandler {
                                              int numberOfLoopsToFind, double binOriginX,
                                              double binOriginY, double scaleFactor) {
         return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
-                binOriginX, binOriginY, scaleFactor);
+                binOriginX, binOriginY, scaleFactor, false);
+    }
+
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
+                                             int numberOfLoopsToFind, double binOriginX,
+                                             double binOriginY, double scaleFactor, boolean largeOnly) {
+        return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, largeOnly);
     }
 
     public List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
@@ -492,6 +499,9 @@ public class AnnotationLayerHandler {
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
 
+
+        boolean previousStatus = annotationLayer.getFeatureHandler().getIsSparsePlottingEnabled();
+
         // Multiple regions selected
         if (selectionRegion != null) {
             int startX, endX;
@@ -521,7 +531,7 @@ public class AnnotationLayerHandler {
                 List<Feature2D> intersectingFeatures = getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
                 selectedFeatures.addAll(intersectingFeatures);
 
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(previousStatus);
             } catch (Exception e) {
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
                 selectionRegion = null;
@@ -536,7 +546,7 @@ public class AnnotationLayerHandler {
                 // Find feature that contains selection point
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
                 selectedFeatures.addAll(selectSingleRegion(chr1Idx, chr2Idx, lastX, lastY, hic.getZd(), hic));
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(previousStatus);
             } catch (Exception e) {
                 System.out.println("error:" + e);
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);

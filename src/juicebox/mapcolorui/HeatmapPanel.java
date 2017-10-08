@@ -485,7 +485,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 for (AnnotationLayerHandler handler : handlers) {
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
+                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor, true);
                     List<Feature2D> cLoopsReflected = new ArrayList<>();
                     for (Feature2D feature2D : loops) {
                         if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
@@ -1788,7 +1788,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Corners for resize annotation
 
                     try {
-                        List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                        List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
                         if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
 
                             HiCGlobals.splitModeEnabled = false;
@@ -1915,7 +1915,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // New annotation is added (not single click) and new feature from custom annotation
 
                     updateSelectedFeatures(false);
-                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                    List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
                     if (HiCGlobals.translationInProgress) {
                         translationInProgressMouseReleased(newSelectedFeatures);

@@ -194,14 +194,14 @@ public class Feature2DHandler {
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                             double binOriginX, double binOriginY, double scale) {
+                                             final double binOriginX, final double binOriginY, final double scale, final boolean largeOnly) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+        final HiCGridAxis xAxis = zd.getXGridAxis();
+        final HiCGridAxis yAxis = zd.getYGridAxis();
 
         if (featureRtrees.containsKey(key) && layerVisible) {
             if (sparseFeaturePlottingEnabled) {
-                final HiCGridAxis xAxis = zd.getXGridAxis();
-                final HiCGridAxis yAxis = zd.getYGridAxis();
 
                 try {
                     featureRtrees.get(key).nearestN(
@@ -209,7 +209,10 @@ public class Feature2DHandler {
                             new TIntProcedure() {         // a procedure whose execute() method will be called with the results
                                 public boolean execute(int i) {
                                     Feature2D feature = loopList.get(key).get(i);
-                                    foundFeatures.add(feature);
+                                    Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
+                                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                                        foundFeatures.add(feature);
+                                    }
                                     return true;              // return true here to continue receiving results
                                 }
                             },
@@ -221,7 +224,12 @@ public class Feature2DHandler {
                 }
 
             } else {
-                foundFeatures.addAll(loopList.get(key));
+                for (Feature2D feature : loopList.get(key)) {
+                    Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
+                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                        foundFeatures.add(feature);
+                    }
+                }
             }
         }
         return foundFeatures;

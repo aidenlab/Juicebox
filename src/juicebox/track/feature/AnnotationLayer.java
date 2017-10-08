@@ -301,7 +301,13 @@ public class AnnotationLayer {
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                              double binOriginX, double binOriginY, double scale) {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
-                binOriginX, binOriginY, scale);
+                binOriginX, binOriginY, scale, false);
+    }
+
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
+                                             double binOriginX, double binOriginY, double scale, boolean largeOnly) {
+        return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
+                binOriginX, binOriginY, scale, largeOnly);
     }
 
     public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
