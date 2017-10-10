@@ -38,7 +38,7 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public CustomAnnotationRTree2DHandler(Feature2DList inputList) {
         clearLists();
-        loadLoopList(inputList, true);
+        setLoopList(inputList);
     }
 
     public void add(int chr1Idx, int chr2Idx, Feature2D feature) {

@@ -31,7 +31,6 @@ import juicebox.track.HiCGridAxis;
 import juicebox.track.feature.*;
 import net.sf.jsi.SpatialIndex;
 import net.sf.jsi.rtree.RTree;
-import org.broad.igv.util.Pair;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -58,6 +57,11 @@ public class Feature2DHandler {
     public Feature2DHandler() {
         loopList = new Feature2DList();
         clearLists();
+    }
+
+    public Feature2DHandler(Feature2DList inputList) {
+        this();
+        setLoopList(inputList);
     }
 
     public Rectangle getRectangleFromFeature(HiCGridAxis xAxis, HiCGridAxis yAxis, Feature2D feature, double binOriginX,
@@ -124,8 +128,6 @@ public class Feature2DHandler {
                 SpatialIndex si = new RTree();
                 si.init(null);
                 for (int i = 0; i < features.size(); i++) {
-                    //Rectangle rect = getRectFromFeature(features.get(i));
-                    //si.add(new net.sf.jsi.Rectangle((float)rect.getMinX(), (float)rect.getMinY(), (float)rect.getMaxX(), (float)rect.getMaxY()),i);
                     Feature2D feature = features.get(i);
                     si.add(new net.sf.jsi.Rectangle((float) feature.getStart1(), (float) feature.getStart2(),
                             (float) feature.getEnd1(), (float) feature.getEnd2()), i);
@@ -136,7 +138,7 @@ public class Feature2DHandler {
         //}
     }
 
-    public resultContainer loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
+    public resultContainer setLoopList(String path, ChromosomeHandler chromosomeHandler) {
         int numFeaturesAdded = 0;
         ArrayList<String> attributes = null;
         Color color = null;
@@ -158,17 +160,24 @@ public class Feature2DHandler {
         return new resultContainer(numFeaturesAdded, color, attributes);
     }
 
-    public void createNewMergedLoopLists(Feature2DList feature2DList) {
+    public void createNewMergedLoopLists(List<Feature2DList> lists) {
 
-        if (feature2DList.getNumTotalFeatures() > 0) {
-            loadLoopList(feature2DList, false);
+        for (Feature2DList list : lists) {
+            if (list.getNumTotalFeatures() > 0) {
+                addToLoopList(list, false);
+            }
         }
 
         remakeRTree();
     }
 
-    public void loadLoopList(Feature2DList feature2DList, boolean remakeTree) {
-            loopList = feature2DList;
+    public void setLoopList(Feature2DList feature2DList) {
+        loopList = feature2DList;
+        remakeRTree();
+    }
+
+    public void addToLoopList(Feature2DList feature2DList, boolean remakeTree) {
+        loopList.add(feature2DList);
         if (remakeTree) {
             remakeRTree();
         }
@@ -182,24 +191,13 @@ public class Feature2DHandler {
         return visibleLoopList;
     }
 
-    public List<Feature2D> getVisibleFeatures(int chrIdx1, int chrIdx2) {
-        List<Feature2D> visibleLoopList = new ArrayList<>();
-        if (layerVisible) {
-            List<Feature2D> currList = loopList.get(chrIdx1, chrIdx2);
-            if (currList != null) {
-                visibleLoopList.addAll(currList);
-            }
-        }
-        return visibleLoopList;
-    }
-
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                              double binOriginX, double binOriginY, double scale) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        if (featureRtrees.containsKey(key) && layerVisible) {
-            if (sparseFeaturePlottingEnabled) {
+        if (layerVisible) {
+            if (featureRtrees.containsKey(key)) {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
 
@@ -219,9 +217,10 @@ public class Feature2DHandler {
                 } catch (Exception e) {
                     System.err.println("Error encountered getting nearby features" + e.getLocalizedMessage());
                 }
-
             } else {
-                foundFeatures.addAll(loopList.get(key));
+                System.err.println("returning all; didn't find " + key + " nearby");
+                List<Feature2D> features = loopList.get(key);
+                if (features != null) foundFeatures.addAll(features);
             }
         }
         return foundFeatures;
@@ -231,33 +230,32 @@ public class Feature2DHandler {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
-        if (featureRtrees.containsKey(key)) {
-            if (layerVisible || ignoreVisibility) {// && layerVisible) {
-                if (sparseFeaturePlottingEnabled) {
-                    try {
-                        featureRtrees.get(key).intersects(
-                                selectionWindow,
-                                new TIntProcedure() {     // a procedure whose execute() method will be called with the results
-                                    public boolean execute(int i) {
-                                        Feature2D feature = loopList.get(key).get(i);
-                                        foundFeatures.add(feature);
-                                        return true;      // return true here to continue receiving results
-                                    }
+        if (layerVisible || ignoreVisibility) {
+            if (featureRtrees.containsKey(key)) {
+                try {
+                    featureRtrees.get(key).intersects(
+                            selectionWindow,
+                            new TIntProcedure() {     // a procedure whose execute() method will be called with the results
+                                public boolean execute(int i) {
+                                    Feature2D feature = loopList.get(key).get(i);
+                                    foundFeatures.add(feature);
+                                    return true;      // return true here to continue receiving results
                                 }
-                        );
-                    } catch (Exception e) {
-                        System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
-                    }
-                } else {
-                    System.out.println("returning all");
-                    List<Feature2D> features = loopList.get(key);
-                    if (features != null) foundFeatures.addAll(features);
+                            }
+                    );
+                } catch (Exception e) {
+                    System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
                 }
+            } else {
+                System.err.println("returning all; didn't find " + key + " intersecting");
+                List<Feature2D> features = loopList.get(key);
+                if (features != null) foundFeatures.addAll(features);
             }
         }
         return foundFeatures;
     }
 
+    /*
     public List<Pair<Rectangle, Feature2D>> getNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
                                                                   final double binOriginX, final double binOriginY, final double scale) {
         final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
@@ -286,13 +284,13 @@ public class Feature2DHandler {
 
         return featurePairs;
     }
+    */
 
     public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
 
         if (featureRtrees.containsKey(key)) {
-
             featureRtrees.get(key).contains(
                     currentWindow,      // the window in which we want to find all rectangles
                     new TIntProcedure() {         // a procedure whose execute() method will be called with the results
@@ -304,8 +302,8 @@ public class Feature2DHandler {
                         }
                     }
             );
-
         } else {
+            System.err.println("returning all; key " + key + " not found contained");
             List<Feature2D> features = loopList.get(key);
             if (features != null) foundFeatures.addAll(features);
         }
@@ -317,8 +315,6 @@ public class Feature2DHandler {
                                                              double binOriginX, double binOriginY, double scale) {
         float x2 = (float) (((x / scale) + binOriginX) * xAxis.getBinSize());
         float y2 = (float) (((y / scale) + binOriginY) * yAxis.getBinSize());
-
-        //System.out.println("x "+x2+" y "+y2);
         return new net.sf.jsi.Point(x2, y2);
     }
 
@@ -365,6 +361,5 @@ public class Feature2DHandler {
             this.color = color;
             this.attributes = attributes;
         }
-
     }
 }

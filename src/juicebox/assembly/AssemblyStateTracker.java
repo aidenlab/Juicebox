@@ -79,8 +79,8 @@ public class AssemblyStateTracker {
     public void regenerateLayers() {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
         assemblyFragmentHandler.updateAssembly();
-        scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList(), true);
-        contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffoldFeature2DList(), true);
+        scaffoldLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList());
+        contigLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getScaffoldFeature2DList());
     }
 
     public boolean checkUndo() {

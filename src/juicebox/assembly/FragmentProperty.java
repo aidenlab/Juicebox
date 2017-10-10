@@ -24,7 +24,13 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
+import juicebox.track.feature.Contig2D;
 import juicebox.track.feature.Feature2D;
+
+import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by nathanielmusial on 6/30/17.
@@ -32,10 +38,25 @@ import juicebox.track.feature.Feature2D;
 // change name to ScaffoldStateTracker?
 public class FragmentProperty {
 
+    public static final String unsignedScaffoldIdAttributeKey = "Scaffold #";
+    public static final String signedScaffoldIdAttributeKey = "Signed scaffold #";
+    public static final String scaffoldNameAttributeKey = "Scaffold name";
+    public static final String FRAG_TXT = ":::fragment_";
+    public static final String DBRS_TXT = ":::debris";
+
+
     //invariant properties
+    // todo @nathan @olga you've stated that these are invariant, but that means
+    // that it should be ok to make these variables final
+    // but then why is there a set name method?
+    // either this is a bug, or these aren't invariant
+    // if invariant, use "private final" modifier
     private String name;
     private int indexId;
     private long length;
+
+    // added by mss
+    private boolean isDebris;
 
     //initial state
     private boolean isInitiallyInverted;
@@ -50,29 +71,29 @@ public class FragmentProperty {
 
     // formality
     private String initialChr = "assembly";
+    private boolean isFragment;
 
 
+    // todo this is being used, are you trying to deprecate it?
     // deprecated constructor
     public FragmentProperty(String name, int indexId, long length, boolean isInitiallyInverted) {
-        this.name = name;
+        setName(name);
         this.indexId = indexId;
         this.length = length;
-        this.feature2D = null;
         this.isInvertedVsInitial = false;
         this.isInitiallyInverted = isInitiallyInverted;
     }
 
-
     public FragmentProperty(String name, int indexId, long length) {
-        this.name = name;
+        setName(name);
         this.indexId = indexId;
         this.length = length;
-        this.feature2D = null;
     }
 
     public FragmentProperty(FragmentProperty fragmentProperty) {
         // invariant properties
-        this.name = fragmentProperty.name;
+        // todo again this seems inaccurate; see above
+        setName(fragmentProperty.name);
         this.indexId = fragmentProperty.indexId;
         this.length = fragmentProperty.length;
 
@@ -85,7 +106,7 @@ public class FragmentProperty {
         this.isInvertedVsInitial = fragmentProperty.isInvertedVsInitial;
 
         // 2D features
-        if (this.feature2D != null)
+        if (fragmentProperty.feature2D != null)
             this.feature2D = fragmentProperty.feature2D.deepCopy();
 
         // formality
@@ -97,14 +118,18 @@ public class FragmentProperty {
         return name;
     }
 
+    // todo why do you have this public for an invariant property
     public void setName(String name) {
         this.name = name;
+        isDebris = name.contains(DBRS_TXT);
+        isFragment = name.contains(FRAG_TXT);
     }
 
     public int getIndexId() {
         return indexId;
     }
 
+    // todo why do you have this public for an invariant property
     public void setIndexId(int indexId) {
         this.indexId = indexId;
     }
@@ -123,22 +148,22 @@ public class FragmentProperty {
     }
 
     public boolean isDebris() {
-        return name.contains(":::debris");
+        return isDebris;
     }
 
     public String getOriginalScaffoldName() {
-        if (name.contains(":::fragment_")) {
-            return name.split(":::fragment_")[0];
+        if (isFragment) {
+            return name.split(FRAG_TXT)[0];
         } else {
             return name;
         }
     }
 
     public int getFragmentNumber() {
-        if (name.contains(":::fragment_")) {
-            String temp = name.split(":::fragment_")[1];
-            if (temp.contains(":::debris")) {
-                return Integer.parseInt(temp.split(":::debris")[0]);
+        if (isFragment) {
+            String temp = name.split(FRAG_TXT)[1];
+            if (temp.contains(DBRS_TXT)) {
+                return Integer.parseInt(temp.split(DBRS_TXT)[0]);
             } else {
                 return Integer.parseInt(temp); //can just parse int from string
             }
@@ -212,5 +237,33 @@ public class FragmentProperty {
         return name + " " + indexId + " " + length;
     }
 
+    public Contig2D convertToContig2D(String chromosomeName) {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(scaffoldNameAttributeKey, getName());
+        attributes.put(signedScaffoldIdAttributeKey, String.valueOf(getSignIndexId()));
+        attributes.put(unsignedScaffoldIdAttributeKey, String.valueOf(getIndexId()));
+        //attributes.put(initiallyInvertedStatus, Boolean.toString(scaffoldProperty.wasInitiallyInverted()));
 
+        Feature2D scaffoldFeature2D = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
+                chromosomeName,
+                (int) Math.round(getCurrentStart() / HiCGlobals.hicMapScale),
+                (int) Math.round((getCurrentEnd()) / HiCGlobals.hicMapScale),
+                chromosomeName,
+                (int) Math.round(getCurrentStart() / HiCGlobals.hicMapScale),
+                (int) Math.round((getCurrentEnd()) / HiCGlobals.hicMapScale),
+                new Color(0, 255, 0),
+                attributes);
+
+        //TODO: get rid of Contig2D, too much confusion, too much overlap
+        Contig2D contig = scaffoldFeature2D.toContig();
+        if (isInvertedVsInitial()) {
+            contig.toggleInversion(); //assuming initial contig2D inverted = false
+        }
+        contig.setInitialState(getInitialChr(),
+                (int) Math.round(getInitialStart() / HiCGlobals.hicMapScale),
+                (int) Math.round(getInitialEnd() / HiCGlobals.hicMapScale),
+                wasInitiallyInverted());
+
+        return contig;
+    }
 }

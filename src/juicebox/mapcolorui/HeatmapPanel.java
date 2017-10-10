@@ -459,58 +459,61 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             } else {
                 // Render loops
-                //drawnLoopFeatures.clear();
-
-                //double x = (screenWidth / scaleFactor)/2.0;//binOriginX;// +(screenWidth / scaleFactor)/2.0;
-                //double y = (screenHeight / scaleFactor)/2.0;//binOriginY;// +(screenHeight / scaleFactor)/2.0;
-
                 int centerX = (int) (screenWidth / scaleFactor) / 2;
                 int centerY = (int) (screenHeight / scaleFactor) / 2;
+                float x1 = (float) binOriginX * zd.getBinSize();
+                float y1 = (float) binOriginY * zd.getBinSize();
+                float x2 = x1 + (float) (screenWidth / scaleFactor) * zd.getBinSize();
+                float y2 = y1 + (float) (screenHeight / scaleFactor) * zd.getBinSize();
+                net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(x1, y1, x2, y2);
+
                 Graphics2D g2 = (Graphics2D) g.create();
                 allFeaturePairs.clear();
-                if (activelyEditingAssembly){allMainFeaturePairs.clear();allEditFeaturePairs.clear();}
-
-                //List<Feature2D> loops = hic.findNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                //        centerX, centerY, Feature2DHandler.numberOfLoopsToFind);
+                if (activelyEditingAssembly) {
+                    allMainFeaturePairs.clear();
+                    allEditFeaturePairs.clear();
+                }
 
                 // Only look at assembly layers if we're in assembly mode
                 List<AnnotationLayerHandler> handlers;
                 if (activelyEditingAssembly) {
-                    handlers = new ArrayList<>();
-                    handlers.addAll(superAdapter.getAssemblyLayerHandlers());
+                    handlers = superAdapter.getAssemblyLayerHandlers();
                 } else {
                     handlers = superAdapter.getAllLayers();
                 }
 
 
                 for (AnnotationLayerHandler handler : handlers) {
-                    List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
-                    List<Feature2D> cLoopsReflected = new ArrayList<>();
-                    for (Feature2D feature2D : loops) {
-                        if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
-                            cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                    if (handler.getNumberOfFeatures() > 0) {
+                        List<Feature2D> loops;
+                        if (handler.getIsSparse()) {
+                            loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                                    centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
+                        } else {
+                            loops = handler.getIntersectingFeatures(zd.getChr1Idx(), zd.getChr2Idx(), currentWindow);
                         }
+
+                        List<Feature2D> cLoopsReflected = new ArrayList<>();
+                        for (Feature2D feature2D : loops) {
+                            if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
+                                cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+                            }
+                        }
+
+                        allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                        loops.addAll(cLoopsReflected);
+
+                        if (activelyEditingAssembly) {
+                            if (handler == superAdapter.getMainLayer()) {
+                                allMainFeaturePairs.addAll(superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                            } else if (handler == superAdapter.getEditLayer() && selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                                allEditFeaturePairs.addAll(superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                            }
+                        }
+
+                        FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
+                                highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
                     }
-
-                    // handler.removeFromList();
-
-                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                    loops.addAll(cLoopsReflected);
-
-                    if (activelyEditingAssembly){
-
-                        if(handler==superAdapter.getMainLayer()) {
-                            allMainFeaturePairs.addAll(superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                        }
-                        if (handler==superAdapter.getEditLayer() && selectedFeatures!=null&& !selectedFeatures.isEmpty()) {
-                            allEditFeaturePairs.addAll(superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                        }
-                    }
-
-                    FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
-                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
-
                 }
                 g2.dispose();
 
