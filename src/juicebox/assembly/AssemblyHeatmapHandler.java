@@ -29,6 +29,7 @@ import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.Contig2D;
+import juicebox.track.feature.Feature2D;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -84,12 +85,22 @@ public class AssemblyHeatmapHandler {
     }
 
     public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
-        //TODO: do some filtering here
+//        System.out.println(block.getNumber());
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-            int alteredAsmBinX = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
-            int alteredAsmBinY = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+//            if (block.getNumber()==3){
+//                System.out.println("before: "+record.getBinX()+" "+record.getBinY());
+//            }
+//            int alteredAsmBinX = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
+//            int alteredAsmBinY = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+
+            int alteredAsmBinX = newGetAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
+            int alteredAsmBinY = newGetAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+
+//            if (block.getNumber()==3){
+//                System.out.println("after: "+alteredAsmBinX+" "+alteredAsmBinY);
+//            }
 
             if (alteredAsmBinX == -1 || alteredAsmBinY == -1) {
                 alteredContacts.add(record);
@@ -110,18 +121,56 @@ public class AssemblyHeatmapHandler {
     }
 
     private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        long originalBinCenterCoordinate = (long) (HiCGlobals.hicMapScale * (binValue * binSize + binSize / 2));
+        long originalBinCenterCoordinate = (long) ((binValue * binSize + binSize / 2) * HiCGlobals.hicMapScale);
         //Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
+        //System.out.println("start lookup fragmentProperty: "+ Calendar.getInstance().getTime());
         FragmentProperty fragmentProperty = aFragHandler.newLookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
+        //System.out.println("finish lookup fragmentProperty: "+fragmentProperty.getName()+" "+ Calendar.getInstance().getTime());
+
         //int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
         long fragCoordinate = aFragHandler.newLiftOriginalAsmCoordinateToFragmentCoordinate(fragmentProperty, originalBinCenterCoordinate);
+        //System.out.println("finished lookup of fragment coordinate "+fragCoordinate+" "+Calendar.getInstance().getTime());
+
 //        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
         long currentBinCenterCoordinate = aFragHandler.newLiftFragmentCoordinateToAsmCoordinate(fragmentProperty, fragCoordinate);
+
+        //System.out.println("finished lookup of fragment coordinate "+fragCoordinate+" "+Calendar.getInstance().getTime());
 
         if (currentBinCenterCoordinate == -1) {
             return -1;
         } else {
-            return (int) ((currentBinCenterCoordinate - binSize / 2) / binSize / HiCGlobals.hicMapScale);
+            return (int) ((currentBinCenterCoordinate - binSize / 2) / binSize);
+        }
+    }
+
+    private static int newGetAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
+
+        int originalBinCenterCoordinate = (binValue * binSize + binSize / 2);
+        int currentBinCenterCoordinate;
+        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
+                originalBinCenterCoordinate,
+                originalBinCenterCoordinate,
+                originalBinCenterCoordinate,
+                originalBinCenterCoordinate);
+
+        List<Feature2D> containedFeatures = aFragHandler.getOriginalAggregateFeature2DHandler().getIntersectingFeatures(chr1Idx, chr2Idx, currentWindow, true);
+
+        if (!containedFeatures.isEmpty()) {
+
+            int aggregateScaffoldId = Integer.parseInt(containedFeatures.get(0).getAttribute("Scaffold name")) - 1;
+            //System.out.println(aggregateScaffoldId);
+            FragmentProperty aggregateFragmentProperty = aFragHandler.getListOfAggregateScaffoldProperties().get(aggregateScaffoldId);
+            if (!aggregateFragmentProperty.isInvertedVsInitial()) {
+                currentBinCenterCoordinate = (int) (aggregateFragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale) + originalBinCenterCoordinate - (int) (aggregateFragmentProperty.getInitialStart() / HiCGlobals.hicMapScale);
+            } else {
+                currentBinCenterCoordinate = (int) (aggregateFragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale - originalBinCenterCoordinate + aggregateFragmentProperty.getInitialEnd() / HiCGlobals.hicMapScale);
+            }
+
+            return Math.round((currentBinCenterCoordinate - binSize / 2) / binSize);
+
+        } else {
+//            System.out.println("I am here");
+            return -1;
         }
     }
 }

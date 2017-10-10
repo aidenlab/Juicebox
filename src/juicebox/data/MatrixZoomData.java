@@ -274,8 +274,9 @@ public class MatrixZoomData {
 
         // get aggregate scaffold handler
         AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
-        Feature2DHandler aggregateFeature2DHandler = aFragHandler.getAggregateFeature2DHandler();
-        aggregateFeature2DHandler.setSparsePlottingEnabled(true);
+        Feature2DHandler aggregateFeature2DHandler = aFragHandler.getCurrentAggregateFeature2DHandler();
+
+        //aggregateFeature2DHandler.setSparsePlottingEnabled(true);
         // x window binNumber * binSize
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
                 binX1 * zoom.getBinSize(),
@@ -284,7 +285,7 @@ public class MatrixZoomData {
                 binX2 * zoom.getBinSize());
         //       List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
 
-        List<Feature2D> xAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, false);
+        List<Feature2D> xAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, true);
 
         // y window
         currentWindow = new net.sf.jsi.Rectangle(
@@ -296,10 +297,14 @@ public class MatrixZoomData {
         // restore sparse plotting options
         //handler.setSparsePlottingEnabled(previousStatus);
 
-        List<Feature2D> yAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, false);
+        List<Feature2D> yAxisFeatures = aggregateFeature2DHandler.getIntersectingFeatures(1, 1, currentWindow, true);
 
         Collections.sort(xAxisFeatures);
         Collections.sort(yAxisFeatures);
+
+//        System.out.println("MatrixZoomData");
+//        System.out.println(xAxisFeatures.size());
+//        System.out.println(yAxisFeatures.size());
 
         int x1pos, x2pos, y1pos, y2pos;
 //        for (Contig2D xContig : xAxisContigs) {
@@ -307,14 +312,15 @@ public class MatrixZoomData {
         for (Feature2D xContig : xAxisFeatures) {
             for (Feature2D yContig : yAxisFeatures) {
 
-                FragmentProperty xProperty = aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(xContig.getAttribute("Scaffold name")) - 1);
-                FragmentProperty yProperty = aFragHandler.getListOfScaffoldProperties().get(Integer.parseInt(yContig.getAttribute("Scaffold name")) - 1);
+                FragmentProperty xProperty = aFragHandler.getListOfAggregateScaffoldProperties().get(Integer.parseInt(xContig.getAttribute("Scaffold name")) - 1);
+                FragmentProperty yProperty = aFragHandler.getListOfAggregateScaffoldProperties().get(Integer.parseInt(yContig.getAttribute("Scaffold name")) - 1);
 
 
                 x1pos = (int) (xProperty.getInitialStart() / HiCGlobals.hicMapScale);
                 x2pos = (int) (xProperty.getInitialEnd() / HiCGlobals.hicMapScale);
                 y1pos = (int) (yProperty.getInitialStart() / HiCGlobals.hicMapScale);
                 y2pos = (int) (yProperty.getInitialEnd() / HiCGlobals.hicMapScale);
+
 
                 if (xContig.equals(xAxisFeatures.get(0))) {
                     if (!xProperty.isInvertedVsInitial()) {
@@ -360,7 +366,10 @@ public class MatrixZoomData {
 //                        yContig.getInitialEnd()
                 };
 
+//              System.out.println(x1pos+" "+x2pos+" "+y1pos+" "+y2pos);
+
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
+//                System.out.println("blocksToLoad size: "+tempBlockNumbers.size());
                 for (int blockNumber : tempBlockNumbers) {
                     if (blocksToLoad.contains(blockNumber)) {
                         continue;

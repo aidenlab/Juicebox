@@ -66,7 +66,10 @@ public class AssemblyOperationExecutor {
     }
 
     public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+        //superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler, refreshMap);
+
         if (refreshMap) {
             superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
         }

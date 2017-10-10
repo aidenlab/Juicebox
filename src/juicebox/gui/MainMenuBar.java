@@ -638,7 +638,7 @@ public class MainMenuBar {
 
                     // Rescale assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().regenerateLayers();
+                        superAdapter.getAssemblyStateTracker().regenerateLayers(true);
                         superAdapter.refresh();
                     }
 

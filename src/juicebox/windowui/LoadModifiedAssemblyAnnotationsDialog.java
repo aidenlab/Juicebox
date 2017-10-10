@@ -267,7 +267,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 //            try {
             AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
                 AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
-                superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler);
+            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler, true);
                 superAdapter.clearAllMatrixZoomCache();
             superAdapter.refresh();
 

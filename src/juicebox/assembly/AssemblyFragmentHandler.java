@@ -51,29 +51,49 @@ public class AssemblyFragmentHandler {
     private Feature2DList scaffoldFeature2DList;
     private Feature2DList superscaffoldFeature2DList;
     private String chromosomeName = "assembly";
-
     private List<FragmentProperty> listOfAggregateScaffoldProperties = new ArrayList<>();
-    private Feature2DList aggregateScaffoldFeature2DList;
-    private Feature2DHandler aggregateFeature2DHandler;
-
-
+    private Feature2DList currentAggregateScaffoldFeature2DList;
+    private Feature2DHandler currentAggregateFeature2DHandler;
+    private Feature2DList originalAggregateScaffoldFeature2DList;
+    private Feature2DHandler originalAggregateFeature2DHandler;
     public AssemblyFragmentHandler(List<FragmentProperty> listOfScaffoldProperties, List<List<Integer>> listOfSuperscaffolds) {
         this.listOfScaffoldProperties = listOfScaffoldProperties;
         this.listOfSuperscaffolds = listOfSuperscaffolds;
-        updateAssembly();
+        updateAssembly(true);
     }
+
 
     public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
         this.listOfScaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
         this.listOfSuperscaffolds = assemblyFragmentHandler.cloneSuperscaffolds();
-        updateAssembly();
+        //updateAssembly(true);
     }
 
-    public void updateAssembly() {
-        setCurrentState();
-        populate2DFeatures();
-        aggregateScaffolds();
+    public List<FragmentProperty> getListOfAggregateScaffoldProperties() {
+        return listOfAggregateScaffoldProperties;
     }
+
+
+//    public AssemblyFragmentHandler(List<FragmentProperty> listOfScaffoldProperties, List<List<Integer>> listOfSuperscaffolds) {
+//        this.listOfScaffoldProperties = listOfScaffoldProperties;
+//        this.listOfSuperscaffolds = listOfSuperscaffolds;
+//        updateAssembly();
+//    }
+//
+//    public AssemblyFragmentHandler(AssemblyFragmentHandler assemblyFragmentHandler) {
+//        this.listOfScaffoldProperties = assemblyFragmentHandler.cloneScaffoldProperties();
+//        this.listOfSuperscaffolds = assemblyFragmentHandler.cloneSuperscaffolds();
+//        updateAssembly();
+//    }
+//
+//    public void updateAssembly() {
+//        setCurrentState();
+//        //setCurrentScaffoldState();
+//        populate2DFeatures();
+//        //populateScaffold2DFeatures();
+//        //populateSuperscaffold2DFeatures();
+//        aggregateScaffolds();
+//    }
 
     public List<FragmentProperty> cloneScaffoldProperties() {
         List<FragmentProperty> newListOfScaffoldProperties = new ArrayList<>();
@@ -112,116 +132,283 @@ public class AssemblyFragmentHandler {
     }
 
 
-    public void setCurrentState() {
-        long shift = 0;
-        for (List<Integer> superscaffold : listOfSuperscaffolds) {
-            for (Integer entry : superscaffold) {
-                int i = Math.abs(entry) - 1;
-                FragmentProperty currentScaffoldProperty = listOfScaffoldProperties.get(i);
-                currentScaffoldProperty.setCurrentStart(shift);
-                currentScaffoldProperty.setInvertedVsInitial(false);
-                if (entry < 0 && (!listOfScaffoldProperties.get(i).wasInitiallyInverted()) ||
-                        entry > 0 && listOfScaffoldProperties.get(i).wasInitiallyInverted()) {
-                    currentScaffoldProperty.setInvertedVsInitial(true);
-                }
-                shift += currentScaffoldProperty.getLength();
-            }
-        }
-    }
+//    public void setCurrentState() {
+//        long shift = 0;
+//        for (List<Integer> superscaffold : listOfSuperscaffolds) {
+//            for (Integer entry : superscaffold) {
+//                int i = Math.abs(entry) - 1;
+//                FragmentProperty currentScaffoldProperty = listOfScaffoldProperties.get(i);
+//                currentScaffoldProperty.setCurrentStart(shift);
+//                currentScaffoldProperty.setInvertedVsInitial(false);
+//                if (entry < 0 && (!listOfScaffoldProperties.get(i).wasInitiallyInverted()) ||
+//                        entry > 0 && listOfScaffoldProperties.get(i).wasInitiallyInverted()) {
+//                    currentScaffoldProperty.setInvertedVsInitial(true);
+//                }
+//                shift += currentScaffoldProperty.getLength();
+//            }
+//        }
+//    }
 
-    public void populate2DFeatures() {
+//    public void aggregateScaffolds() {
+//
+//        long shift = 0;
+//        listOfAggregateScaffoldProperties.clear();
+//        currentAggregateScaffoldFeature2DList = new Feature2DList();
+//        int aggregateScaffoldCounter = 1;
+//
+//        int signScafId;
+//        FragmentProperty nextScaffoldProperty = null;
+//        FragmentProperty aggregateScaffoldProperty = null;
+//        FragmentProperty tempAggregateProperty = null;
+//
+//        for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+//            for (int j = 0; j < listOfSuperscaffolds.get(i).size(); j++) {
+//
+//                if (i == 0 && j == 0) {
+//                    signScafId = listOfSuperscaffolds.get(i).get(j);
+//                    nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(signScafId) - 1);
+//                    nextScaffoldProperty.setCurrentStart(shift);
+//                    nextScaffoldProperty.setInvertedVsInitial(false);
+//                    if (signScafId < 0 && (!listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) ||
+//                            signScafId > 0 && listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) {
+//                        nextScaffoldProperty.setInvertedVsInitial(true);
+//                    }
+//                    shift += nextScaffoldProperty.getLength();
+//                    aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
+//                    //aggregateScaffoldProperty.setInitiallyInverted(false);
+//                    continue;
+//                }
+//
+//                // set up property according to assembly
+//                signScafId = listOfSuperscaffolds.get(i).get(j);
+//                nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(signScafId) - 1);
+//                nextScaffoldProperty.setCurrentStart(shift);
+//                nextScaffoldProperty.setInvertedVsInitial(false);
+//                if (signScafId < 0 && (!listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) ||
+//                        signScafId > 0 && listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) {
+//                    nextScaffoldProperty.setInvertedVsInitial(true);
+//                }
+//                shift += nextScaffoldProperty.getLength();
+//
+//                // try to aggregate with previous
+//                tempAggregateProperty = aggregateScaffoldProperty.merge(nextScaffoldProperty);
+//                if (tempAggregateProperty == null) {
+//                    listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
+//                    aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(aggregateScaffoldCounter));
+//                    aggregateScaffoldProperty.setInitiallyInverted(false);
+//                    currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+//                    aggregateScaffoldCounter++;
+//                    aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
+//                } else {
+//                    aggregateScaffoldProperty = tempAggregateProperty;
+//                }
+//            }
+//        }
+//        listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
+//        aggregateScaffoldProperty.setInitiallyInverted(false);
+//        aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(aggregateScaffoldCounter));
+//        currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+//
+//        // create aggregate feature handler
+//        currentAggregateFeature2DHandler = new Feature2DHandler();
+//        currentAggregateFeature2DHandler.loadLoopList(currentAggregateScaffoldFeature2DList, true);
+//
+////        System.out.println("how many aggregates: "+listOfAggregateScaffoldProperties.size());
+//
+//    }
+
+
+//
+//    public void populate2DFeatures() {
+//        scaffoldFeature2DList = new Feature2DList();
+//        for (FragmentProperty scaffoldProperty : listOfScaffoldProperties) {
+//
+//            Contig2D contig = populateScaffoldFeature2D(scaffoldProperty);
+//            scaffoldFeature2DList.add(1, 1, contig);
+//            scaffoldProperty.setFeature2D(contig);
+//        }
+//        updateSuperscaffolds();
+//    }
+
+    public void updateAssembly(boolean refreshMap) {
+
+        if (!refreshMap) {
+            updateSuperscaffolds();
+            return;
+        }
+
+        int signScafId;
+        long scaffoldShift = 0;
+        long superscaffoldShift = 0;
+        int aggregateScaffoldCounter = 1;
+
+
+        FragmentProperty nextScaffoldProperty = null;
+        FragmentProperty aggregateScaffoldProperty = null;
+        FragmentProperty tempAggregateProperty = null;
+
         scaffoldFeature2DList = new Feature2DList();
-        for (FragmentProperty scaffoldProperty : listOfScaffoldProperties) {
-
-            Map<String, String> attributes = new HashMap<String, String>();
-
-            attributes.put(scaffoldNameAttributeKey, scaffoldProperty.getName());
-            attributes.put(signedScaffoldIdAttributeKey, String.valueOf(scaffoldProperty.getSignIndexId()));
-            attributes.put(unsignedScaffoldIdAttributeKey, String.valueOf(scaffoldProperty.getIndexId()));
-            //attributes.put(initiallyInvertedStatus, Boolean.toString(scaffoldProperty.wasInitiallyInverted()));
-
-            Feature2D scaffoldFeature2D = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
-                    chromosomeName,
-                    (int) Math.round(scaffoldProperty.getCurrentStart() / HiCGlobals.hicMapScale),
-                    (int) Math.round((scaffoldProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
-                    chromosomeName,
-                    (int) Math.round(scaffoldProperty.getCurrentStart() / HiCGlobals.hicMapScale),
-                    (int) Math.round((scaffoldProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
-                    new Color(0, 255, 0),
-                    attributes);
-//TODO: get rid of Contig2D, too much confusion, too much overlap
-            Contig2D contig = scaffoldFeature2D.toContig();
-            if (scaffoldProperty.isInvertedVsInitial()) {
-                contig.toggleInversion(); //assuming initial contig2D inverted = false
-            }
-            contig.setInitialState(scaffoldProperty.getInitialChr(),
-                    (int) Math.round(scaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale),
-                    (int) Math.round(scaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale),
-                    scaffoldProperty.wasInitiallyInverted());
-            scaffoldFeature2DList.add(1, 1, contig);
-            scaffoldProperty.setFeature2D(contig);
-        }
         superscaffoldFeature2DList = new Feature2DList();
-        long superscaffoldStart = 0;
-        for (int superscaffold = 0; superscaffold < listOfSuperscaffolds.size(); superscaffold++) {
-            Map<String, String> attributes = new HashMap<String, String>();
-            attributes.put(superScaffoldIdAttributeKey, String.valueOf(superscaffold));
-            long superscaffoldLength = 0;
-            for (int scaffold : listOfSuperscaffolds.get(superscaffold)) {
-                superscaffoldLength += listOfScaffoldProperties.get(Math.abs(scaffold) - 1).getLength();
-            }
-            Feature2D superscaffoldFeature2D = new Feature2D(Feature2D.FeatureType.SUPERSCAFFOLD,
-                    chromosomeName,
-                    (int) Math.round(superscaffoldStart / HiCGlobals.hicMapScale),
-                    (int) Math.round((superscaffoldStart + superscaffoldLength) / HiCGlobals.hicMapScale),
-                    chromosomeName,
-                    (int) Math.round(superscaffoldStart / HiCGlobals.hicMapScale),
-                    (int) Math.round((superscaffoldStart + superscaffoldLength) / HiCGlobals.hicMapScale),
-                    new Color(0, 0, 255),
-                    attributes);
-            superscaffoldFeature2DList.add(1, 1, superscaffoldFeature2D);
-            superscaffoldStart += superscaffoldLength;
-        }
-    }
+        originalAggregateScaffoldFeature2DList = new Feature2DList();
+        currentAggregateScaffoldFeature2DList = new Feature2DList();
 
-    public void aggregateScaffolds() {
         listOfAggregateScaffoldProperties.clear();
-        aggregateScaffoldFeature2DList = new Feature2DList();
-        int counter = 1;
-        FragmentProperty aggregateScaffoldProperty = new FragmentProperty(listOfScaffoldProperties.get(Math.abs(listOfSuperscaffolds.get(0).get(0)) - 1));
-        aggregateScaffoldProperty.setInitiallyInverted(false);
 
         for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
             for (int j = 0; j < listOfSuperscaffolds.get(i).size(); j++) {
 
                 if (i == 0 && j == 0) {
+                    signScafId = listOfSuperscaffolds.get(i).get(j);
+                    nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(signScafId) - 1);
+                    nextScaffoldProperty.setCurrentStart(scaffoldShift);
+                    nextScaffoldProperty.setInvertedVsInitial(false);
+                    if (signScafId < 0 && (!listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) ||
+                            signScafId > 0 && listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) {
+                        nextScaffoldProperty.setInvertedVsInitial(true);
+                    }
+                    Contig2D contig = populateScaffoldFeature2D(nextScaffoldProperty);
+                    scaffoldFeature2DList.add(1, 1, contig);
+                    //nextScaffoldProperty.setFeature2D(contig);
+
+                    scaffoldShift += nextScaffoldProperty.getLength();
+                    aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
+                    //aggregateScaffoldProperty.setInitiallyInverted(false);
                     continue;
                 }
+                // set up property according to assembly
+                signScafId = listOfSuperscaffolds.get(i).get(j);
+                nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(signScafId) - 1);
+                nextScaffoldProperty.setCurrentStart(scaffoldShift);
+                nextScaffoldProperty.setInvertedVsInitial(false);
+                if (signScafId < 0 && (!listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) ||
+                        signScafId > 0 && listOfScaffoldProperties.get(Math.abs(signScafId) - 1).wasInitiallyInverted()) {
+                    nextScaffoldProperty.setInvertedVsInitial(true);
+                }
+                Contig2D contig = populateScaffoldFeature2D(nextScaffoldProperty);
+                scaffoldFeature2DList.add(1, 1, contig);
+                scaffoldShift += nextScaffoldProperty.getLength();
 
-                FragmentProperty nextScaffoldProperty = listOfScaffoldProperties.get(Math.abs(listOfSuperscaffolds.get(i).get(j)) - 1);
-                FragmentProperty temp = aggregateScaffoldProperty.merge(nextScaffoldProperty);
-                if (temp == null) {
+                // try to aggregate with previous
+                tempAggregateProperty = aggregateScaffoldProperty.merge(nextScaffoldProperty);
+                if (tempAggregateProperty == null) {
                     listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
-                    aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(counter));
+                    aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(aggregateScaffoldCounter));
                     aggregateScaffoldProperty.setInitiallyInverted(false);
-                    aggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
-                    counter++;
+                    Feature2D temp = aggregateScaffoldProperty.getFeature2D().deepCopy();
+                    temp.setStart1((int) (aggregateScaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale));
+                    temp.setStart2((int) (aggregateScaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale));
+                    temp.setEnd1((int) (aggregateScaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale));
+                    temp.setEnd2((int) (aggregateScaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale));
+
+                    originalAggregateScaffoldFeature2DList.add(1, 1, temp);
+                    currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+
+                    //temp
+                    aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
+                    superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+
+                    aggregateScaffoldCounter++;
                     aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
                 } else {
-                    aggregateScaffoldProperty = temp;
+                    aggregateScaffoldProperty = tempAggregateProperty;
                 }
             }
+            Feature2D superscaffoldFeature2D = populateSuperscaffoldFeature2D(superscaffoldShift, scaffoldShift, i);
+            superscaffoldFeature2DList.add(1, 1, superscaffoldFeature2D);
+            superscaffoldShift = scaffoldShift;
         }
+
         listOfAggregateScaffoldProperties.add(aggregateScaffoldProperty);
         aggregateScaffoldProperty.setInitiallyInverted(false);
-        aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(counter));
-        aggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+        aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(aggregateScaffoldCounter));
+        //temp
+        aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
+        superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+        currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
 
-        aggregateFeature2DHandler = new Feature2DHandler();
-        aggregateFeature2DHandler.loadLoopList(aggregateScaffoldFeature2DList, true);
+        Feature2D temp = aggregateScaffoldProperty.getFeature2D().deepCopy();
+        temp.setStart1((int) (aggregateScaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale));
+        temp.setStart2((int) (aggregateScaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale));
+        temp.setEnd1((int) (aggregateScaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale));
+        temp.setEnd2((int) (aggregateScaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale));
 
+        originalAggregateScaffoldFeature2DList.add(1, 1, temp);
+
+        // create aggregate feature handler
+        currentAggregateFeature2DHandler = new Feature2DHandler();
+        currentAggregateFeature2DHandler.loadLoopList(currentAggregateScaffoldFeature2DList, true);
+
+        currentAggregateFeature2DHandler.setSparsePlottingEnabled(true);
 //        System.out.println("how many aggregates: "+listOfAggregateScaffoldProperties.size());
 
+        // create aggregate feature handler
+        originalAggregateFeature2DHandler = new Feature2DHandler();
+        originalAggregateFeature2DHandler.loadLoopList(originalAggregateScaffoldFeature2DList, true);
+
+        originalAggregateFeature2DHandler.setSparsePlottingEnabled(true);
+
+//        System.out.println("Done with assembly update!");
+//        for( FragmentProperty fragmentProperty : listOfAggregateScaffoldProperties){
+//            System.out.println(fragmentProperty.getFeature2D().getAttribute(scaffoldNameAttributeKey)+" "+fragmentProperty.getCurrentStart()+" "+fragmentProperty.getInitialStart());
+//        }
+    }
+
+    private Contig2D populateScaffoldFeature2D(FragmentProperty scaffoldProperty) {
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(scaffoldNameAttributeKey, scaffoldProperty.getName());
+        attributes.put(signedScaffoldIdAttributeKey, String.valueOf(scaffoldProperty.getSignIndexId()));
+        attributes.put(unsignedScaffoldIdAttributeKey, String.valueOf(scaffoldProperty.getIndexId()));
+        //attributes.put(initiallyInvertedStatus, Boolean.toString(scaffoldProperty.wasInitiallyInverted()));
+
+        Feature2D scaffoldFeature2D = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
+                chromosomeName,
+                (int) Math.round(scaffoldProperty.getCurrentStart() / HiCGlobals.hicMapScale),
+                (int) Math.round((scaffoldProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
+                chromosomeName,
+                (int) Math.round(scaffoldProperty.getCurrentStart() / HiCGlobals.hicMapScale),
+                (int) Math.round((scaffoldProperty.getCurrentEnd()) / HiCGlobals.hicMapScale),
+                new Color(0, 255, 0),
+                attributes);
+//TODO: get rid of Contig2D, too much confusion, too much overlap
+        Contig2D contig = scaffoldFeature2D.toContig();
+        if (scaffoldProperty.isInvertedVsInitial()) {
+            contig.toggleInversion(); //assuming initial contig2D inverted = false
+        }
+        contig.setInitialState(scaffoldProperty.getInitialChr(),
+                (int) Math.round(scaffoldProperty.getInitialStart() / HiCGlobals.hicMapScale),
+                (int) Math.round(scaffoldProperty.getInitialEnd() / HiCGlobals.hicMapScale),
+                scaffoldProperty.wasInitiallyInverted());
+
+        scaffoldProperty.setFeature2D(contig);
+        return contig;
+    }
+
+    private Feature2D populateSuperscaffoldFeature2D(long start, long end, int i) {
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(superScaffoldIdAttributeKey, String.valueOf(i + 1));
+        return new Feature2D(Feature2D.FeatureType.SUPERSCAFFOLD,
+                chromosomeName,
+                (int) Math.round(start / HiCGlobals.hicMapScale),
+                (int) Math.round(end / HiCGlobals.hicMapScale),
+                chromosomeName,
+                (int) Math.round(start / HiCGlobals.hicMapScale),
+                (int) Math.round(end / HiCGlobals.hicMapScale),
+                new Color(0, 0, 255),
+                attributes);
+    }
+
+    private void updateSuperscaffolds() {
+        superscaffoldFeature2DList = new Feature2DList();
+        long superscaffoldStart = 0;
+        for (int superscaffold = 0; superscaffold < listOfSuperscaffolds.size(); superscaffold++) {
+            long superscaffoldLength = 0;
+            for (int scaffold : listOfSuperscaffolds.get(superscaffold)) {
+                superscaffoldLength += listOfScaffoldProperties.get(Math.abs(scaffold) - 1).getLength();
+            }
+            Feature2D superscaffoldFeature2D = populateSuperscaffoldFeature2D(superscaffoldStart, superscaffoldStart + superscaffoldLength, superscaffold);
+            superscaffoldFeature2DList.add(1, 1, superscaffoldFeature2D);
+            superscaffoldStart += superscaffoldLength;
+        }
     }
 
     //**** Split fragment ****//
@@ -619,7 +806,6 @@ public class AssemblyFragmentHandler {
     }
 
     public FragmentProperty newLookupCurrentFragmentForOriginalAsmCoordinate(int chrId1, int chrId2, long asmCoordinate) {
-
         for (FragmentProperty aggregateFragmentProperty : listOfAggregateScaffoldProperties) {
             if (asmCoordinate > aggregateFragmentProperty.getInitialStart()
                     && asmCoordinate <= aggregateFragmentProperty.getInitialEnd()) {
@@ -684,6 +870,7 @@ public class AssemblyFragmentHandler {
         if (fragmentProperty == null) {
             return -1;
         }
+
         boolean invertedInAsm = (fragmentProperty.getSignIndexId() < 0);  //if contains a negative then it is inverted
 
         long newCoordinate;
@@ -712,10 +899,14 @@ public class AssemblyFragmentHandler {
     }
 
     public Feature2DList getAggregateFeature2DList() {
-        return aggregateScaffoldFeature2DList;
+        return currentAggregateScaffoldFeature2DList;
     }
 
-    public Feature2DHandler getAggregateFeature2DHandler() {
-        return aggregateFeature2DHandler;
+    public Feature2DHandler getOriginalAggregateFeature2DHandler() {
+        return originalAggregateFeature2DHandler;
+    }
+
+    public Feature2DHandler getCurrentAggregateFeature2DHandler() {
+        return currentAggregateFeature2DHandler;
     }
 }

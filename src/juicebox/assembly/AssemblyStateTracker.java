@@ -62,7 +62,7 @@ public class AssemblyStateTracker {
         undoStack.clear();
         redoStack.clear();
         undoStack.push(initialAssemblyFragmentHandler);
-        regenerateLayers();
+        regenerateLayers(true);
         executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
     }
 
@@ -70,17 +70,18 @@ public class AssemblyStateTracker {
         return initialAssemblyFragmentHandler;
     }
 
-    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
+    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler, boolean updateMap) {
         redoStack.clear();
         undoStack.push(assemblyFragmentHandler);
-        regenerateLayers();
+        //assemblyFragmentHandler.updateAssembly(updateMap);
+        regenerateLayers(updateMap);
     }
 
-    public void regenerateLayers() {
+    public void regenerateLayers(boolean updateMap) {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
-        assemblyFragmentHandler.updateAssembly();
-        scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList(), true);
+        assemblyFragmentHandler.updateAssembly(updateMap);
         contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffoldFeature2DList(), true);
+        scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList(), false);
     }
 
     public boolean checkUndo() {
@@ -90,7 +91,7 @@ public class AssemblyStateTracker {
     public void undo() {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
-            regenerateLayers();
+            regenerateLayers(true);
             executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
         }
     }
@@ -102,7 +103,7 @@ public class AssemblyStateTracker {
     public void redo() {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
-            regenerateLayers();
+            regenerateLayers(true);
             executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
         }
     }
