@@ -24,7 +24,7 @@
 
 <Global name="Cell-type-specific 1D features">
     <Category name="Genes">
-        <Resource name="RefSeq Genes" path="http://data.broadinstitute.org/igvdata/hic/tracks/refGene.txt.gz"/>
+        <Resource name="RefSeq Genes" path="http://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/refGene.txt.gz"/>
     </Category>
     <Category name="RepeatMasker">
         <Resource name="Satellite"
