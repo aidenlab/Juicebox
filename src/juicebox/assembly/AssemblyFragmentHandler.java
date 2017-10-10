@@ -56,6 +56,7 @@ public class AssemblyFragmentHandler {
     private Feature2DHandler currentAggregateFeature2DHandler;
     private Feature2DList originalAggregateScaffoldFeature2DList;
     private Feature2DHandler originalAggregateFeature2DHandler;
+
     public AssemblyFragmentHandler(List<FragmentProperty> listOfScaffoldProperties, List<List<Integer>> listOfSuperscaffolds) {
         this.listOfScaffoldProperties = listOfScaffoldProperties;
         this.listOfSuperscaffolds = listOfSuperscaffolds;
@@ -304,8 +305,8 @@ public class AssemblyFragmentHandler {
                     currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
 
                     //temp
-                    aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
-                    superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+                    //aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
+                    //superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
 
                     aggregateScaffoldCounter++;
                     aggregateScaffoldProperty = new FragmentProperty(nextScaffoldProperty);
@@ -322,8 +323,8 @@ public class AssemblyFragmentHandler {
         aggregateScaffoldProperty.setInitiallyInverted(false);
         aggregateScaffoldProperty.getFeature2D().setAttribute(scaffoldNameAttributeKey, String.valueOf(aggregateScaffoldCounter));
         //temp
-        aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
-        superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
+        //aggregateScaffoldProperty.getFeature2D().setColor(Color.black);
+        //superscaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
         currentAggregateScaffoldFeature2DList.add(1, 1, aggregateScaffoldProperty.getFeature2D());
 
         Feature2D temp = aggregateScaffoldProperty.getFeature2D().deepCopy();
@@ -344,7 +345,6 @@ public class AssemblyFragmentHandler {
         // create aggregate feature handler
         originalAggregateFeature2DHandler = new Feature2DHandler();
         originalAggregateFeature2DHandler.loadLoopList(originalAggregateScaffoldFeature2DList, true);
-
         originalAggregateFeature2DHandler.setSparsePlottingEnabled(true);
 
 //        System.out.println("Done with assembly update!");

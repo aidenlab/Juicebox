@@ -54,7 +54,8 @@ public class AssemblyStateTracker {
     }
 
     public AssemblyFragmentHandler getNewAssemblyHandler() {
-        AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
+        //AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
+        AssemblyFragmentHandler newAssemblyFragmentHandler = undoStack.peek();
         return newAssemblyFragmentHandler;
     }
 
@@ -80,7 +81,9 @@ public class AssemblyStateTracker {
     public void regenerateLayers(boolean updateMap) {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
         assemblyFragmentHandler.updateAssembly(updateMap);
-        contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffoldFeature2DList(), true);
+        if (updateMap) {
+            contigLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getScaffoldFeature2DList(), true);
+        }
         scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList(), false);
     }
 
