@@ -84,6 +84,12 @@ public class MotifAnchorTools {
             }
         });
 
+        mergeAndExpandSmallAnchors(extractedAnchorList, getMinSizeForExpansionFromGUI());
+
+        return extractedAnchorList;
+    }
+
+    public static int getMinSizeForExpansionFromGUI() {
         int minSize = 10000;
         String newSize = MessageUtils.showInputDialog("Specify a minimum size for 1D anchors", "" + minSize);
         try {
@@ -91,11 +97,7 @@ public class MotifAnchorTools {
         } catch (Exception e) {
             MessageUtils.showErrorMessage("Invalid int, using default size " + minSize, e);
         }
-        MotifAnchorTools.mergeAnchors(extractedAnchorList);
-        MotifAnchorTools.expandSmallAnchors(extractedAnchorList, minSize);
-        MotifAnchorTools.mergeAnchors(extractedAnchorList);
-
-        return extractedAnchorList;
+        return minSize;
     }
 
     /**
@@ -546,5 +548,11 @@ public class MotifAnchorTools {
         });
 
         return results;
+    }
+
+    public static void mergeAndExpandSmallAnchors(GenomeWideList<MotifAnchor> regionsInCustomChromosome, int minSize) {
+        MotifAnchorTools.mergeAnchors(regionsInCustomChromosome);
+        MotifAnchorTools.expandSmallAnchors(regionsInCustomChromosome, minSize);
+        MotifAnchorTools.mergeAnchors(regionsInCustomChromosome);
     }
 }

@@ -306,10 +306,6 @@ public class AnnotationLayer {
         return customAnnotationRTreeHandler.getIntersectingFeatures(chrIdx1, chrIdx2, selectionWindow, false);
     }
 
-    public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
-        return customAnnotationRTreeHandler.getContainedFeatures(chrIdx1, chrIdx2, currentWindow);
-    }
-
     public Feature2DHandler getFeatureHandler() {
         return customAnnotationRTreeHandler;
     }
@@ -334,7 +330,13 @@ public class AnnotationLayer {
         customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
     }
 
-    public void createMergedLoopLists(Feature2DList lists) {
+    public void createMergedLoopLists(List<Feature2DList> lists) {
+        customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
+    }
+
+    public void createMergedLoopLists(Feature2DList list) {
+        List<Feature2DList> lists = new ArrayList<>();
+        lists.add(list);
         customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
     }
 

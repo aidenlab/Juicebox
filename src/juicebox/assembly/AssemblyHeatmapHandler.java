@@ -109,14 +109,16 @@ public class AssemblyHeatmapHandler {
     }
 
     private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        int originalBinCenterCoordinate = binValue * binSize + binSize / 2;
-        Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
-        int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
-        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
-        if (currentBinCenterCoordinate == -1) {
-            return -1;
-        } else {
+        int genomicCoordinate = binValue * binSize + binSize / 2;
+        Contig2D contig2D = aFragHandler.lookupContigForBinValue(chr1Idx, chr2Idx, genomicCoordinate, binSize);
+        if (contig2D != null) {
+            //System.err.println("fine so far...2");
+            int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, genomicCoordinate);
+            int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
             return (currentBinCenterCoordinate - binSize / 2) / binSize;
+        } else {
+            //System.err.println("contig is null..2?");
         }
+        return -1;
     }
 }
