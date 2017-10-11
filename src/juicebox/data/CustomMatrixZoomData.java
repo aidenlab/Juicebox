@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -180,17 +183,16 @@ public class CustomMatrixZoomData extends MatrixZoomData {
     private void actuallyLoadGivenBlocks(final List<Block> blockList, final NormalizationType no,
                                          Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd) {
         final AtomicInteger errorCounter = new AtomicInteger();
-
-        List<Thread> threads = new ArrayList<>();
+        ExecutorService service = Executors.newFixedThreadPool(1000);
 
         for (final MatrixZoomData zd : blocksNumsToLoadForZd.keySet()) {
             final Map<RegionPair, List<Integer>> blockNumberMap = blocksNumsToLoadForZd.get(zd);
             for (final RegionPair rp : blockNumberMap.keySet()) {
-                for (final int blockNum : blockNumberMap.get(rp)) {
-                    Runnable loader = new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
+                Runnable loader = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            for (final int blockNum : blockNumberMap.get(rp)) {
                                 String key = zd.getBlockKey(blockNum, no);
                                 Block b = reader.readNormalizedBlock(blockNum, zd, no);
                                 if (b == null) {
@@ -209,26 +211,31 @@ public class CustomMatrixZoomData extends MatrixZoomData {
                                     allBlockCaches.get(zd).get(rp).put(key, b);
                                 }
                                 blockList.add(b);
-                            } catch (IOException e) {
-                                errorCounter.incrementAndGet();
                             }
+                        } catch (IOException e) {
+                            errorCounter.incrementAndGet();
                         }
-                    };
-
-                    Thread t = new Thread(loader);
-                    threads.add(t);
-                    t.start();
-                }
+                    }
+                };
+                service.submit(loader);
             }
         }
 
-        // Wait for all threads to complete
-        for (Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignore) {
+        // done submitting all jobs
+        service.shutdown();
+
+        // wait for all to finish
+        try {
+            service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            //String.format("Pending tasks: %d", executor.getQueue().size())
+            System.err.println("Error loading custom mzd data " + e.getLocalizedMessage());
+            if (HiCGlobals.printVerboseComments) {
+                e.printStackTrace();
             }
         }
+
+        // error printing
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }

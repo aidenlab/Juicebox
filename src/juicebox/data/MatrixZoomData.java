@@ -52,6 +52,9 @@ import org.broad.igv.util.collections.LRUCache;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -328,9 +331,9 @@ public class MatrixZoomData {
     }
 
     private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
+        List<Feature2D> axisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
         List<Contig2D> axisContigs = new ArrayList<>();
-        for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
+        for (Feature2D feature2D : new HashSet<>(axisFeatures)) {
             axisContigs.add(feature2D.toContig());
         }
         Collections.sort(axisContigs);
@@ -341,7 +344,7 @@ public class MatrixZoomData {
                                          final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
-        List<Thread> threads = new ArrayList<>();
+        ExecutorService service = Executors.newFixedThreadPool(200);
 
         final int binSize = getBinSize();
         final int chr1Index = chr1.getIndex();
@@ -371,18 +374,23 @@ public class MatrixZoomData {
                 }
             };
 
-            Thread t = new Thread(loader);
-            threads.add(t);
-            t.start();
+            service.submit(loader);
         }
 
-        // Wait for all threads to complete
-        for (Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignore) {
+        // done submitting all jobs
+        service.shutdown();
+
+        // wait for all to finish
+        try {
+            service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Error loading mzd data " + e.getLocalizedMessage());
+            if (HiCGlobals.printVerboseComments) {
+                e.printStackTrace();
             }
         }
+
+        // error printing
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
