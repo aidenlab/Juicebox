@@ -52,6 +52,9 @@ import org.broad.igv.util.collections.LRUCache;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -341,7 +344,7 @@ public class MatrixZoomData {
                                          final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
-        List<Thread> threads = new ArrayList<>();
+        ExecutorService service = Executors.newFixedThreadPool(200);
 
         final int binSize = getBinSize();
         final int chr1Index = chr1.getIndex();
@@ -371,18 +374,23 @@ public class MatrixZoomData {
                 }
             };
 
-            Thread t = new Thread(loader);
-            threads.add(t);
-            t.start();
+            service.submit(loader);
         }
 
-        // Wait for all threads to complete
-        for (Thread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException ignore) {
+        // done submitting all jobs
+        service.shutdown();
+
+        // wait for all to finish
+        try {
+            service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            System.err.println("Error loading mzd data " + e.getLocalizedMessage());
+            if (HiCGlobals.printVerboseComments) {
+                e.printStackTrace();
             }
         }
+
+        // error printing
         if (errorCounter.get() > 0) {
             System.err.println(errorCounter.get() + " errors while reading blocks");
         }
