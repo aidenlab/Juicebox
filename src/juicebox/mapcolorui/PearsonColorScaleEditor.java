@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
@@ -74,10 +75,11 @@ public class PearsonColorScaleEditor extends JDialog {
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                textPosMax.setBackground(Color.WHITE);
-                textPosMin.setBackground(Color.WHITE);
-                textNegMax.setBackground(Color.WHITE);
-                textNegMin.setBackground(Color.WHITE);
+                Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.DARK_GRAY : Color.WHITE;
+                textPosMax.setBackground(mainBackgroundColor);
+                textPosMin.setBackground(mainBackgroundColor);
+                textNegMax.setBackground(mainBackgroundColor);
+                textNegMin.setBackground(mainBackgroundColor);
 
 
                 float maxA = Float.parseFloat(textPosMax.getText());

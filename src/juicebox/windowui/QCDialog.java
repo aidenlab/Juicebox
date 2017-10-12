@@ -25,6 +25,7 @@
 package juicebox.windowui;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.Dataset;
 import juicebox.data.ExpectedValueFunction;
@@ -192,11 +193,12 @@ public class QCDialog extends JDialog {
 
                 readTypePlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
                 readTypePlot.setRangeAxis(new LogarithmicAxis("Binned Reads (log)"));
-                readTypePlot.setBackgroundPaint(Color.white);
+                Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+                readTypePlot.setBackgroundPaint(backgroundColor);
                 readTypePlot.setRangeGridlinePaint(Color.lightGray);
                 readTypePlot.setDomainGridlinePaint(Color.lightGray);
-                readTypeChart.setBackgroundPaint(Color.white);
-                readTypePlot.setOutlinePaint(Color.black);
+                readTypeChart.setBackgroundPaint(backgroundColor);
+                readTypePlot.setOutlinePaint(Color.DARK_GRAY);
                 final ChartPanel chartPanel = new ChartPanel(readTypeChart);
 
                 final XYSeriesCollection reCollection = new XYSeriesCollection();
@@ -221,11 +223,11 @@ public class QCDialog extends JDialog {
                 final XYPlot rePlot = reChart.getXYPlot();
                 rePlot.setDomainAxis(new NumberAxis("Distance (bp)"));
                 rePlot.setRangeAxis(new LogarithmicAxis("Fraction of Reads (log)"));
-                rePlot.setBackgroundPaint(Color.white);
+                rePlot.setBackgroundPaint(backgroundColor);
                 rePlot.setRangeGridlinePaint(Color.lightGray);
                 rePlot.setDomainGridlinePaint(Color.lightGray);
-                reChart.setBackgroundPaint(Color.white);
-                rePlot.setOutlinePaint(Color.black);
+                reChart.setBackgroundPaint(backgroundColor);
+                rePlot.setOutlinePaint(Color.darkGray);
                 final ChartPanel chartPanel2 = new ChartPanel(reChart);
 
                 final XYSeriesCollection intraCollection = new XYSeriesCollection();
@@ -246,11 +248,11 @@ public class QCDialog extends JDialog {
                 final XYPlot intraPlot = intraChart.getXYPlot();
                 intraPlot.setDomainAxis(new LogarithmicAxis("Distance (log)"));
                 intraPlot.setRangeAxis(new NumberAxis("Cumulative Sum of Binned Reads (log)"));
-                intraPlot.setBackgroundPaint(Color.white);
+                intraPlot.setBackgroundPaint(backgroundColor);
                 intraPlot.setRangeGridlinePaint(Color.lightGray);
                 intraPlot.setDomainGridlinePaint(Color.lightGray);
-                intraChart.setBackgroundPaint(Color.white);
-                intraPlot.setOutlinePaint(Color.black);
+                intraChart.setBackgroundPaint(backgroundColor);
+                intraPlot.setOutlinePaint(Color.darkGray);
                 final ChartPanel chartPanel3 = new ChartPanel(intraChart);
 
                 final XYSeriesCollection mapqCollection = new XYSeriesCollection();
@@ -270,11 +272,11 @@ public class QCDialog extends JDialog {
                 );
 
                 final XYPlot mapqPlot = mapqChart.getXYPlot();
-                mapqPlot.setBackgroundPaint(Color.white);
+                mapqPlot.setBackgroundPaint(backgroundColor);
                 mapqPlot.setRangeGridlinePaint(Color.lightGray);
                 mapqPlot.setDomainGridlinePaint(Color.lightGray);
-                mapqChart.setBackgroundPaint(Color.white);
-                mapqPlot.setOutlinePaint(Color.black);
+                mapqChart.setBackgroundPaint(backgroundColor);
+                mapqPlot.setOutlinePaint(Color.darkGray);
                 final ChartPanel chartPanel4 = new ChartPanel(mapqChart);
 
 
@@ -310,11 +312,12 @@ public class QCDialog extends JDialog {
 
             readTypePlot.setDomainAxis(new LogarithmicAxis("Distance between reads (log)"));
             readTypePlot.setRangeAxis(new LogarithmicAxis("Genome-wide expected (log)"));
-            readTypePlot.setBackgroundPaint(Color.white);
+            Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+            readTypePlot.setBackgroundPaint(backgroundColor);
             readTypePlot.setRangeGridlinePaint(Color.lightGray);
             readTypePlot.setDomainGridlinePaint(Color.lightGray);
-            readTypeChart.setBackgroundPaint(Color.white);
-            readTypePlot.setOutlinePaint(Color.black);
+            readTypeChart.setBackgroundPaint(backgroundColor);
+            readTypePlot.setOutlinePaint(Color.darkGray);
             final ChartPanel chartPanel5 = new ChartPanel(readTypeChart);
 
             tabbedPane.addTab("Expected", chartPanel5);

@@ -63,7 +63,11 @@ public class HiCChromosomeFigPanel extends JComponent implements Serializable {
 
     public HiCChromosomeFigPanel(final HiC hic) {
         this.hic = hic;
-        setBackground(Color.WHITE);
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            setBackground(Color.BLACK);
+        } else {
+            setBackground(Color.WHITE);
+        }
 
         addMouseListener(new MouseAdapter() {
             @Override

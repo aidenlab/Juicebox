@@ -1128,7 +1128,11 @@ public class HiC {
         if (MatrixType.isPearsonType(displayOption)) {
             return Color.WHITE;
         } else {
-            return HiCGlobals.RULER_LINE_COLOR;
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                return HiCGlobals.DARKULA_RULER_LINE_COLOR;
+            } else {
+                return HiCGlobals.RULER_LINE_COLOR;
+            }
         }
     }
 

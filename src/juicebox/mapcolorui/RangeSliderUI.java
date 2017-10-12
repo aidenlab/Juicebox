@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.gui.MainViewPanel;
 
@@ -51,10 +52,11 @@ class RangeSliderUI extends BasicSliderUI {
     private final float[] fractionsBlank = {0.0f, 1.0f};
 
     private final Color rangeColor = Color.RED;
-    private final Color[] gradientColors = {Color.WHITE, MainWindow.hicMapColor};
+    //private final Color[] gradientColors = {Color.WHITE, MainWindow.hicMapColor};
     private final float[] fractions = {0.0f, 1.0f};
 
-    private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
+    private final Color[] gradientColorsOE = HiCGlobals.isDarkulaModeEnabled ?
+            new Color[]{Color.BLUE, Color.BLACK, Color.RED} : new Color[]{Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
     private final int oeColorMax;
     private Color[] gradientColorsPreDef =
@@ -334,8 +336,9 @@ class RangeSliderUI extends BasicSliderUI {
                 LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractionsPreDef, gradientColorsPreDef);
                 drawSubTrackRectangles((Graphics2D) g, gradient, subRect, gradientColorsPreDef[0], leftSide, gradientColorsPreDef[gradientColorsPreDef.length - 1], rightSide);
             } else {
-                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{Color.WHITE, MainWindow.hicMapColor});
-                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, Color.WHITE, leftSide, MainWindow.hicMapColor, rightSide);
+                Color backgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+                LinearGradientPaint gradient = new LinearGradientPaint(startP, endP, fractions, new Color[]{backgroundColor, MainWindow.hicMapColor});
+                drawSubTrackRectangles((Graphics2D) g, gradient, subRect, backgroundColor, leftSide, MainWindow.hicMapColor, rightSide);
             }
 
 

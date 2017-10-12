@@ -66,7 +66,11 @@ public class TrackPanel extends JPanel {
         setAutoscrolls(true);
         trackRectangles = new ArrayList<>();
         //setBackground(new Color(238, 238, 238));
-        setBackground(Color.white);
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            setBackground(Color.black);
+        } else {
+            setBackground(Color.white);
+        }
         addMouseAdapter(superAdapter);
 
         //setToolTipText("");   // Has side affect of turning on tt text
@@ -289,7 +293,11 @@ public class TrackPanel extends JPanel {
         }
 
         if (cursorPoint != null) {
-            g.setColor(HiCGlobals.RULER_LINE_COLOR);
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                g.setColor(HiCGlobals.DARKULA_RULER_LINE_COLOR);
+            } else {
+                g.setColor(HiCGlobals.RULER_LINE_COLOR);
+            }
             if (orientation == Orientation.X) {
                 g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
             } else {

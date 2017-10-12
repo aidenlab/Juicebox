@@ -58,7 +58,11 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     public HiCRulerPanel(HiC hic) {
         this.hic = hic;
-        setBackground(Color.white);
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            setBackground(Color.BLACK);
+        } else {
+            setBackground(Color.WHITE);
+        }
     }
 
     private static String formatNumber(double position) {

@@ -251,8 +251,7 @@ public class FragmentProperty {
                 chromosomeName,
                 (int) Math.round(getCurrentStart() / HiCGlobals.hicMapScale),
                 (int) Math.round((getCurrentEnd()) / HiCGlobals.hicMapScale),
-                new Color(0, 255, 0),
-                attributes);
+                Color.GREEN, attributes);
 
         //TODO: get rid of Contig2D, too much confusion, too much overlap
         Contig2D contig = scaffoldFeature2D.toContig();

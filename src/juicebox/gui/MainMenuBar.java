@@ -419,6 +419,17 @@ public class MainMenuBar {
         //---View Menu-----
         JMenu viewMenu = new JMenu("View");
 
+        final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
+        darkulaMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
+                superAdapter.getHeatmapPanel().repaint();
+            }
+        });
+        darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
+        viewMenu.add(darkulaMode);
+
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

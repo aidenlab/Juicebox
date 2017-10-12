@@ -166,8 +166,7 @@ public class AssemblyFragmentHandler {
                 chromosomeName,
                 (int) Math.round(superscaffoldStart / HiCGlobals.hicMapScale),
                 (int) Math.round((superscaffoldStart + superscaffoldLength) / HiCGlobals.hicMapScale),
-                new Color(0, 0, 255),
-                attributes);
+                Color.BLUE, attributes);
         return superscaffoldFeature2D;
     }
 

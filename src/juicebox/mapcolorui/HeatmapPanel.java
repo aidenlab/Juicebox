@@ -339,7 +339,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             if (isWholeGenome) {
                 Color color = g.getColor();
-                g.setColor(Color.LIGHT_GRAY);
+                if (HiCGlobals.isDarkulaModeEnabled) {
+                    g.setColor(Color.DARK_GRAY);
+                } else {
+                    g.setColor(Color.LIGHT_GRAY);
+                }
+
                 int maxDimension = chromosomeBoundaries[chromosomeBoundaries.length - 1];
 
                 // Draw grid lines only if option is selected
@@ -360,14 +365,22 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 g.setColor(color);
 
                 //Cover gray background for the empty parts of the matrix:
-                g.setColor(Color.white);
+                if (HiCGlobals.isDarkulaModeEnabled) {
+                    g.setColor(Color.black);
+                } else {
+                    g.setColor(Color.white);
+                }
                 g.fillRect(getGridLineHeightLimit(zd, maxDimension), 0, getHeight(), getWidth());
                 g.fillRect(0, getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
                 g.fillRect(getGridLineHeightLimit(zd, maxDimension), getGridLineWidthLimit(zd, maxDimension), getHeight(), getWidth());
             } else {
                 if (showGridLines) {
                     Color color = g.getColor();
-                    g.setColor(Color.BLACK);
+                    if (HiCGlobals.isDarkulaModeEnabled) {
+                        g.setColor(Color.LIGHT_GRAY);
+                    } else {
+                        g.setColor(Color.DARK_GRAY);
+                    }
                     if (hic.getChromosomeHandler().isCustomChromosome(zd.getChr1())) {
                         if (zd instanceof CustomMatrixZoomData) {
                             List<Integer> xBins = ((CustomMatrixZoomData) zd).getBoundariesOfCustomChromosomeX();

@@ -157,16 +157,17 @@ public class ResourceTree {
 
         pane.setPreferredSize(new Dimension(650, 500));
         pane.setOpaque(true);
-        pane.setBackground(Color.WHITE);
+        Color backGroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        pane.setBackground(backGroundColor);
         pane.setViewportView(dialogTree);
 
-        dialog.setBackground(Color.WHITE);
-        dialog.getContentPane().setBackground(Color.WHITE);
+        dialog.setBackground(backGroundColor);
+        dialog.getContentPane().setBackground(backGroundColor);
 
         Component[] children = treePanel.getComponents();
         if (children != null) {
             for (Component child : children) {
-                child.setBackground(Color.WHITE);
+                child.setBackground(backGroundColor);
             }
         }
 
@@ -1269,15 +1270,6 @@ public class ResourceTree {
 
         public boolean isParentOfPartiallySelectedChildren() {
             return isParentOfPartiallySelectedChildren;
-        }
-
-        public Color getBackground() {
-
-            if (isParentOfPartiallySelectedChildren()) {
-                return partialSelectionColor;
-            } else {
-                return Color.WHITE;
-            }
         }
 
         @Override

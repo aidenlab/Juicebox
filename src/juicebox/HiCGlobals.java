@@ -43,6 +43,8 @@ public class HiCGlobals {
     public static final boolean isBlackBorderActivated = false;
     // MainWindow variables
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
+    public static final Color DARKULA_RULER_LINE_COLOR = new Color(200, 200, 250, 100);
+
     public static final int BIN_PIXEL_WIDTH = 1;
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
@@ -84,6 +86,8 @@ public class HiCGlobals {
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
+    public static boolean isDarkulaModeEnabled = false;
+
 
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
