@@ -737,8 +737,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
+
             if (nv1 == null || nv2 == null) {
-                throw new IOException("Normalization missing for: " + zd.getDescription());
+                if (HiCGlobals.printVerboseComments) {
+                    System.err.println("Normalization missing for: " + zd.getDescription());
+                }
+                return null;
             }
             double[] nv1Data = nv1.getData();
             double[] nv2Data = nv2.getData();
