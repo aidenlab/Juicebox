@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.LinkCheckBox;
@@ -55,7 +54,6 @@ import static org.broad.igv.util.ResourceLocator.AttributeType.*;
  */
 public class ResourceTree {
 
-    private static final Logger log = Logger.getLogger(ResourceTree.class);
     private final List<CheckableResource> leafResources = new ArrayList<>();
     private final JTree dialogTree;
     private final Set<ResourceLocator> loadedLocators;
@@ -524,7 +522,7 @@ public class ResourceTree {
                     Color c = ColorUtilities.stringToColor(colorString);
                     locator.setColor(c);
                 } catch (Exception e) {
-                    log.error("Error setting color: ", e);
+                    System.err.println("Error setting color: " + e.getLocalizedMessage());
                 }
             }
         }
@@ -581,7 +579,7 @@ public class ResourceTree {
                     ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
                 }
             } catch (Exception e) {
-                log.debug("There appears to be an invalid node in the resource tree");
+                System.err.println("There appears to be an invalid node in the resource tree");
             }
         }
 

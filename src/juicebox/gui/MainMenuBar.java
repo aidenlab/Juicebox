@@ -31,7 +31,6 @@ import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.*;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
@@ -50,7 +49,6 @@ public class MainMenuBar {
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
-    private static final Logger log = Logger.getLogger(MainMenuBar.class);
 
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;

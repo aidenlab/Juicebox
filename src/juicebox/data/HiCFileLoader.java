@@ -27,7 +27,6 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ParsingUtils;
@@ -49,7 +48,6 @@ import java.util.Properties;
  */
 public class HiCFileLoader {
 
-    private static final Logger log = Logger.getLogger(HiCFileLoader.class);
     private static Properties properties;
     private static LoadDialog loadDialog = null;
     private static String propertiesFileURL = System.getProperty("jnlp.loadMenu");
@@ -141,7 +139,7 @@ public class HiCFileLoader {
                 }
             }
             if (fileFailedToLoad) {
-                log.error("Can't find properties file for loading list - internet likely disconnected", error);
+                System.err.println("Can't find properties file for loading list - internet likely disconnected" + error.getLocalizedMessage());
             }
         }
     }

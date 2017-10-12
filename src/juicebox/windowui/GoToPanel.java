@@ -31,7 +31,6 @@ import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -54,7 +53,6 @@ import java.util.Map;
  */
 public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private static final long serialVersionUID = -6639157254305571236L;
-    private static final Logger log = Logger.getLogger(GoToPanel.class);
     private static JideButton goButton;
     private static JTextField positionChrLeft;
     private static JTextField positionChrTop;
@@ -163,14 +161,14 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         Chromosome topChr = handler.getChromosomeFromName(topChrTokens[0]);
         if (topChr == null) {
             positionChrTop.setBackground(Color.yellow);
-            log.error("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
+            System.err.println("Cannot find " + topChrTokens[0] + " in dataset's chromosome list");
             return;
         }
 
         Chromosome leftChr = handler.getChromosomeFromName(leftChrTokens[0]);
         if (leftChr == null) {
             positionChrLeft.setBackground(Color.yellow);
-            log.error("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
+            System.err.println("Cannot find " + leftChrTokens[0] + " in dataset's chromosome list");
             return;
         }
 
@@ -245,7 +243,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 resolutionUnits = -1; //FRAG
             } else if (outBinSize == Integer.MIN_VALUE) {
                 positionChr.setBackground(Color.yellow);
-                log.error("Invalid resolution " + chrTokens[2].toLowerCase());
+                System.err.println("Invalid resolution " + chrTokens[2].toLowerCase());
             }
         } else if (chrTokens.length > 3) {
             outBinSize = hic.validateBinSize(chrTokens[3].toLowerCase());
@@ -253,7 +251,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 resolutionUnits = -1; //FRAG
             } else if (outBinSize == Integer.MIN_VALUE) {
                 positionChr.setBackground(Color.yellow);
-                log.error("Invalid resolution " + chrTokens[3].toLowerCase());
+                System.err.println("Invalid resolution " + chrTokens[3].toLowerCase());
             }
         }
         return new int[]{outBinSize, resolutionUnits};
@@ -268,7 +266,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 start = Math.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
                 end = Math.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
             } catch (Exception e) {
-                log.error("Cannot parse " + chrTokens[1] + " or " + chrTokens[2] + ". Expecting int");
+                System.err.println("Cannot parse " + chrTokens[1] + " or " + chrTokens[2] + ". Expecting int");
                 positionChr.setBackground(Color.yellow);
                 throw new IOException();
             }
@@ -281,7 +279,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             try {
                 outBin = cleanUpNumber(chrTokens[1]);
             } catch (Exception e) {
-                log.error("Cannot parse " + chrTokens[1] + ". Expecting int");
+                System.err.println("Cannot parse " + chrTokens[1] + ". Expecting int");
                 positionChr.setBackground(Color.yellow);
                 throw new IOException();
             }

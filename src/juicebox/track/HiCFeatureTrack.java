@@ -27,7 +27,6 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
 import org.broad.igv.feature.IGVFeature;
@@ -49,7 +48,6 @@ import java.util.List;
  */
 public class HiCFeatureTrack extends HiCTrack {
 
-    private static final Logger log = Logger.getLogger(HiCFeatureTrack.class);
     private static final int BLOCK_HEIGHT = 14;
     private static final int ARROW_SPACING = 10;
     private final Font font;
@@ -110,7 +108,7 @@ public class HiCFeatureTrack extends HiCTrack {
                 iter = featureSource.getFeatures("chr" + chr, gStart, gEnd);
             }
         } catch (IOException error) {
-            log.error("Error getting feature source " + error);
+            System.err.println("Error getting feature source " + error);
             return;
         }
         while (iter.hasNext()) {
@@ -226,7 +224,7 @@ public class HiCFeatureTrack extends HiCTrack {
                 iter = featureSource.getFeatures("chr" + chr, start, end);
             }
         } catch (IOException error) {
-            log.error("Error getting feature source " + error);
+            System.err.println("Error getting feature source " + error);
             return null;
         }
         List<Feature> allFeatures = new ArrayList<>();
@@ -287,7 +285,7 @@ public class HiCFeatureTrack extends HiCTrack {
                 url = "http://www.genecards.org/cgi-bin/carddisp.pl?gene=" + f.getName();
                 BrowserLauncher.openURL(url);
             } catch (IOException e) {
-                log.error("Error opening gene link: " + url, e);
+                System.err.println("Error opening gene link: " + url + " " + e.getLocalizedMessage());
             }
         }
     }

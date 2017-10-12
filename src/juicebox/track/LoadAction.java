@@ -27,7 +27,6 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.MainWindow;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.Utilities;
@@ -51,7 +50,6 @@ import java.util.List;
 public class LoadAction extends AbstractAction {
 
     private static final long serialVersionUID = -1122795124141741145L;
-    private static final Logger log = Logger.getLogger(LoadAction.class);
     private final MainWindow mainWindow;
     private final HiC hic;
     private Runnable repaint1DLayersPanel = null;
@@ -81,7 +79,7 @@ public class LoadAction extends AbstractAction {
             }
         } catch (Exception e) {
             String message = "Cannot create an XML Document from " + xmlUrl;
-            log.error(message, e);
+            System.err.println(message + " " + e.getLocalizedMessage());
         }
 
         if (buffer.length() > 0) {
@@ -98,7 +96,7 @@ public class LoadAction extends AbstractAction {
         Document xmlDocument = null;
         is = LoadAction.class.getResourceAsStream(url);
         if (is == null) {
-            log.error(url + " doesn't exist, so cannot read default annotations");
+            System.err.println(url + " doesn't exist, so cannot read default annotations");
             return null;
         }
         try {
@@ -107,22 +105,22 @@ public class LoadAction extends AbstractAction {
             xmlDocument = resolveIncludes(xmlDocument, errors);
 
         } catch (SAXException e) {
-            log.error("Invalid XML resource: " + url, e);
+            System.err.println("Invalid XML resource: " + url + " " + e.getLocalizedMessage());
             errors.append(url).append("<br><i>").append(e.getMessage());
         } catch (java.net.SocketTimeoutException e) {
-            log.error("Connection time out", e);
+            System.err.println("Connection time out " + e.getLocalizedMessage());
             errors.append(url).append("<br><i>Connection time out");
         } catch (IOException e) {
-            log.error("Error accessing " + url, e);
+            System.err.println("Error accessing " + url + " " + e.getLocalizedMessage());
             errors.append(url).append("<br><i>").append(e.getMessage());
         } catch (ParserConfigurationException e) {
-            log.error("Parser configuration error for:" + url, e);
+            System.err.println("Parser configuration error for:" + url + " " + e.getLocalizedMessage());
             errors.append(url).append("<br><i>").append(e.getMessage());
         } finally {
             try {
                 is.close();
             } catch (IOException e) {
-                log.error("Error closing stream for: " + url, e);
+                System.err.println("Error closing stream for: " + url + " " + e.getLocalizedMessage());
             }
         }
         return xmlDocument;
@@ -145,15 +143,15 @@ public class LoadAction extends AbstractAction {
         for (Node item : tmp) {
             NamedNodeMap nodeMap = item.getAttributes();
             if (nodeMap == null) {
-                log.info("XML node " + item.getNodeName() + " has no attributes");
+                System.out.println("XML node " + item.getNodeName() + " has no attributes");
             } else {
                 Attr path = (Attr) item.getAttributes().getNamedItem("path");
                 if (path == null) {
-                    log.info("XML node " + item.getNodeName() + " is missing a path attribute");
+                    System.out.println("XML node " + item.getNodeName() + " is missing a path attribute");
                 } else {
                     Node parent = item.getParentNode();
 
-                    //log.info("Loading node " + path.getValue());
+                    //System.out.println("Loading node " + path.getValue());
                     Document doc = readXMLDocument(path.getValue(), errors);
                     if (doc != null) {
                         Element global = doc.getDocumentElement();
@@ -237,7 +235,7 @@ public class LoadAction extends AbstractAction {
                 resourceTree = new ResourceTree(hic, masterDocument);
             }
         } catch (Exception e) {
-            log.error("Could not load from server", e);
+            System.err.println("Could not load from server" + e.getLocalizedMessage());
             MessageUtils.showMessage("Could not load from server: " + e.getMessage());
             return null;
         }
@@ -269,7 +267,7 @@ public class LoadAction extends AbstractAction {
                     } else newLoadList.add(locator);
 
                 } catch (Exception e) {
-                    log.error("Could not load selected locator", e);
+                    System.err.println("Could not load selected locator" + e.getLocalizedMessage());
                     MessageUtils.showMessage("Could not load selection: " + e.getMessage());
                     deselectedLocators.add(locator);
                 }

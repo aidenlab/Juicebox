@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,12 @@ package juicebox.data;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.matrix.BasicMatrix;
+import juicebox.tools.clt.old.Pearsons;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.collections.DoubleArrayList;
-import juicebox.tools.clt.old.Pearsons;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -47,8 +46,6 @@ import java.io.InputStreamReader;
  *         Time: 10:15 AM
  */
 public abstract class AbstractDatasetReader implements DatasetReader {
-
-    private static final Logger log = Logger.getLogger(AbstractDatasetReader.class);
 
     final String path;
 
@@ -113,12 +110,12 @@ public abstract class AbstractDatasetReader implements DatasetReader {
                 }
                 return arrayList.toArray();
             } catch (IOException e) {
-                log.error("Error reading eigenvector", e);
+                System.err.println("Error reading eigenvector " + e.getLocalizedMessage());
             } finally {
                 if (br != null) try {
                     br.close();
                 } catch (IOException e) {
-                    log.error("Error reading eigenvector", e);
+                    System.err.println("Error reading eigenvector " + e.getLocalizedMessage());
                 }
             }
         } else {

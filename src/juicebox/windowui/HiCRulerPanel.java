@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
@@ -47,7 +46,6 @@ import java.text.NumberFormat;
 public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
-    private static Logger log = Logger.getLogger(HiCRulerPanel.class);
     private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = HiCGlobals.font(9, false);

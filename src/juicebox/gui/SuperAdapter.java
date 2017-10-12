@@ -46,7 +46,6 @@ import juicebox.track.feature.Feature2DParser;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
 
@@ -68,7 +67,6 @@ import java.util.Properties;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class SuperAdapter {
-    private static final Logger log = Logger.getLogger(SuperAdapter.class);
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
@@ -538,7 +536,7 @@ public class SuperAdapter {
             }
         } catch (IOException e) {
             // TODO somehow still have trouble reloading the previous file
-            log.error("Error loading hic file", e);
+            System.err.println("Error loading hic file " + e.getLocalizedMessage());
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);

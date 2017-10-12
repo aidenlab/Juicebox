@@ -27,7 +27,6 @@ package juicebox.encode;
 
 import com.jidesoft.swing.JideBoxLayout;
 import juicebox.HiCGlobals;
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.IGV;
 import org.broad.igv.util.Pair;
@@ -60,7 +59,6 @@ public class EncodeFileBrowser extends JDialog {
     private static final Map<String, EncodeFileBrowser> instanceMap = Collections.synchronizedMap(new HashMap<String, EncodeFileBrowser>());
     private static final NumberFormatter numberFormatter = new NumberFormatter();
     private static final HashSet<String> supportedGenomes = new HashSet<>(Arrays.asList("hg19", "mm9", "hic"));
-    private static Logger log = Logger.getLogger(EncodeFileBrowser.class);
     private final EncodeTableModel model;
     private JTable table;
     private JTextField filterTextField;

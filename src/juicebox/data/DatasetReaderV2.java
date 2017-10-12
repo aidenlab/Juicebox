@@ -33,7 +33,6 @@ import juicebox.HiCGlobals;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
@@ -55,7 +54,6 @@ import java.util.*;
  */
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
-    private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
     private static final int maxLengthEntryName = 100;
     /**
      * Cache of chromosome name -> array of restriction sites
@@ -234,7 +232,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
         } catch (IOException e) {
-            log.error("Error reading dataset", e);
+            System.err.println("Error reading dataset" + e.getLocalizedMessage());
             throw e;
         }
 
@@ -493,7 +491,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 nExpectedValues = dis.readInt();
             } catch (EOFException e) {
                 if (HiCGlobals.printVerboseComments) {
-                    log.info("No normalization vectors");
+                    System.out.println("No normalization vectors");
                 }
                 return;
             }

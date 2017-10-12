@@ -31,7 +31,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
 import juicebox.windowui.FileDropTargetListener;
 import juicebox.windowui.layers.LayersPanel;
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
 
@@ -58,7 +57,6 @@ import java.util.concurrent.Future;
 public class MainWindow extends JFrame {
 
     private static final long serialVersionUID = -3654174199024388185L;
-    private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
@@ -103,7 +101,7 @@ public class MainWindow extends JFrame {
             try {
                 theInstance = createMainWindow();
             } catch (Exception e) {
-                log.error("Error creating main window", e);
+                System.err.println("Error creating main window " + e.getLocalizedMessage());
             }
         }
         return theInstance;
@@ -168,10 +166,7 @@ public class MainWindow extends JFrame {
     }
 
     private static void initApplication() {
-
-        DirectoryManager.initializeLog();
-
-        log.debug("Default User Directory: " + DirectoryManager.getUserDirectory());
+        System.err.println("Default User Directory: " + DirectoryManager.getUserDirectory());
         System.setProperty("http.agent", Globals.applicationString());
     }
 
