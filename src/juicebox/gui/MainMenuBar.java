@@ -425,7 +425,9 @@ public class MainMenuBar {
                 superAdapter.createCustomChromosomesFromBED();
             }
         });
-        viewMenu.add(addCustomChromosome);
+        if (HiCGlobals.isCustomChromosomesAllowed) {
+            viewMenu.add(addCustomChromosome);
+        }
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -496,7 +498,9 @@ public class MainMenuBar {
             }
         });
         displayTiles.setSelected(HiCGlobals.displayTiles);
-        devMenu.add(displayTiles);
+        if (HiCGlobals.isAssemblyToolsAllowed) {
+            devMenu.add(displayTiles);
+        }
 
         JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {

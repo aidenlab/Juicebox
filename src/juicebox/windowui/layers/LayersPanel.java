@@ -25,6 +25,7 @@
 package juicebox.windowui.layers;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.*;
 import juicebox.track.feature.AnnotationLayerHandler;
@@ -409,7 +410,6 @@ public class LayersPanel extends JDialog {
         JToggleButton toggleSparseButton = LayerPanelButtons.createToggleSparseButton(this, superAdapter, handler);
         JToggleButton toggleEnlargeButton = LayerPanelButtons.createToggleEnlargeButton(this, superAdapter, handler);
         JButton togglePlottingStyleButton = LayerPanelButtons.createTogglePlottingStyleButton(superAdapter, handler);
-        JButton censorButton = LayerPanelButtons.createCensorButton(this, superAdapter, handler);
         JButton exportLayerButton = LayerPanelButtons.createExportButton(this, handler);
         JButton undoButton = LayerPanelButtons.createUndoButton(this, superAdapter, handler);
         ColorChooserPanel colorChooserPanel = LayerPanelButtons.createColorChooserButton(superAdapter, handler);
@@ -423,7 +423,14 @@ public class LayersPanel extends JDialog {
         parentPanel.add(nameField);
         Component[] allComponents = new Component[]{writeButton, toggleVisibleButton,
                 colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyleButton, toggleSparseButton,
-                undoButton, clearButton, censorButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+                undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+
+        if (HiCGlobals.isCustomChromosomesAllowed) {
+            JButton censorButton = LayerPanelButtons.createCensorButton(this, superAdapter, handler);
+            allComponents = new Component[]{writeButton, toggleVisibleButton,
+                    colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyleButton, toggleSparseButton,
+                    undoButton, clearButton, censorButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
+        }
         for (Component component : allComponents) {
             if (component instanceof AbstractButton) {
                 component.setMaximumSize(new Dimension(LayerPanelButtons.miniButtonSize, LayerPanelButtons.miniButtonSize));

@@ -84,11 +84,12 @@ public class HiCGlobals {
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
-    public static final boolean isAssemblyToolsAllowed = true;
 
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
+    public static final boolean isAssemblyToolsAllowed = false;
+    public static final boolean isCustomChromosomesAllowed = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
