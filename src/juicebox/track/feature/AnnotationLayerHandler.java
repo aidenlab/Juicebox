@@ -654,6 +654,8 @@ public class AnnotationLayerHandler {
         canExport = allowed;
         if (exportButton != null) {
             exportButton.setEnabled(true);
+        }
+        if (censorButton != null) {
             censorButton.setEnabled(true);
         }
     }
