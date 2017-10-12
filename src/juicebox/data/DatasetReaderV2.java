@@ -131,8 +131,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             version = dis.readInt();
             position += 4;
 
-            System.out.println("HiC file version: " + version);
-
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                System.out.println("HiC file version: " + version);
+            }
             masterIndexPos = dis.readLong();
             position += 8;
 
