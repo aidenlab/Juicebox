@@ -119,8 +119,6 @@ public class AssemblyScaffoldHandler {
 
         Feature2DList scaffoldFeature2DList = new Feature2DList();
         Feature2DList superscaffoldFeature2DList = new Feature2DList();
-        Feature2DList originalAggregateScaffoldFeature2DList = new Feature2DList();
-        Feature2DList currentAggregateScaffoldFeature2DList = new Feature2DList();
 
         listOfAggregateScaffolds.clear();
 
@@ -167,8 +165,6 @@ public class AssemblyScaffoldHandler {
 
                     // if merge failed dump current aggregate
                     listOfAggregateScaffolds.add(aggregateScaffold);
-                    originalAggregateScaffoldFeature2DList.add(chrIndex, chrIndex, aggregateScaffold.getOriginalFeature2D());
-                    currentAggregateScaffoldFeature2DList.add(chrIndex, chrIndex, aggregateScaffold.getCurrentFeature2D());
 
                     // start next aggregate
                     aggregateScaffoldCounter++;
@@ -186,8 +182,6 @@ public class AssemblyScaffoldHandler {
         }
 
         listOfAggregateScaffolds.add(aggregateScaffold);
-        originalAggregateScaffoldFeature2DList.add(chrIndex, chrIndex, aggregateScaffold.getOriginalFeature2D());
-        currentAggregateScaffoldFeature2DList.add(chrIndex, chrIndex, aggregateScaffold.getCurrentFeature2D());
 
         // create scaffold feature handler
         scaffoldFeature2DHandler = new Feature2DHandler();
@@ -197,16 +191,6 @@ public class AssemblyScaffoldHandler {
         // create superscaffold feature handler
         superscaffoldFeature2DHandler = new Feature2DHandler();
         superscaffoldFeature2DHandler.loadLoopList(superscaffoldFeature2DList, false);
-
-        // create aggregate feature handler - should be done via intervals!
-        currentAggregateFeature2DHandler = new Feature2DHandler();
-        currentAggregateFeature2DHandler.loadLoopList(currentAggregateScaffoldFeature2DList, true);
-        currentAggregateFeature2DHandler.setSparsePlottingEnabled(true);
-
-        // create original aggregate feature handler - should be done via intervals!
-        originalAggregateFeature2DHandler = new Feature2DHandler();
-        originalAggregateFeature2DHandler.loadLoopList(originalAggregateScaffoldFeature2DList, true);
-        originalAggregateFeature2DHandler.setSparsePlottingEnabled(true);
 
         AssemblyHeatmapHandler.setListOfOSortedAggregateScaffolds(listOfAggregateScaffolds);
         // aggregate list is already sorted, no need to sort again
