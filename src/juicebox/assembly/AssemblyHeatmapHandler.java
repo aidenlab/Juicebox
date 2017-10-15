@@ -28,11 +28,9 @@ import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.Contig2D;
-import juicebox.track.feature.Feature2D;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,39 +39,11 @@ import java.util.List;
 public class AssemblyHeatmapHandler {
 
     private static SuperAdapter superAdapter;
+    private static List<Scaffold> listOfOSortedAggregateScaffolds = new ArrayList<>();
 
-    /**
-     * if neighboring contigs are not inverted, share original continuity
-     * and share current continuity, they can essentially be merged
-     * this will reduce the number of contigs, and improve speed
-     *
-     * @param currentContigs
-     * @return mergedContigs
-     */
-    public static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
-
-        List<Contig2D> mergedContigs = new ArrayList<>();
-        Contig2D growingContig = null;
-
-        for (Contig2D contig : currentContigs) {
-            if (growingContig == null) {
-                growingContig = contig.deepCopy().toContig();
-                continue;
-            } else {
-                Contig2D result = growingContig.mergeContigs(contig);
-                if (result == null) {
-                    // cannot be merged
-                    if (growingContig != null) mergedContigs.add(growingContig);
-                    growingContig = contig.deepCopy().toContig();
-                    continue;
-                } else {
-                    growingContig = result;
-                }
-            }
-        }
-        if (growingContig != null) mergedContigs.add(growingContig);
-
-        return new ArrayList<>(new HashSet<>(mergedContigs));
+    public static void setListOfOSortedAggregateScaffolds(List<Scaffold> listOfAggregateScaffolds) {
+        AssemblyHeatmapHandler.listOfOSortedAggregateScaffolds = new ArrayList<>(listOfAggregateScaffolds);
+        Collections.sort(listOfOSortedAggregateScaffolds, Scaffold.originalStateComparator);
     }
 
     public static SuperAdapter getSuperAdapter() {
@@ -84,23 +54,12 @@ public class AssemblyHeatmapHandler {
         AssemblyHeatmapHandler.superAdapter = superAdapter;
     }
 
-    public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
-//        System.out.println(block.getNumber());
+    public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyScaffoldHandler aFragHandler) {
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-//            if (block.getNumber()==3){
-//                System.out.println("before: "+record.getBinX()+" "+record.getBinY());
-//            }
-//            int alteredAsmBinX = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
-//            int alteredAsmBinY = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
-
-            int alteredAsmBinX = newGetAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
-            int alteredAsmBinY = newGetAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
-
-//            if (block.getNumber()==3){
-//                System.out.println("after: "+alteredAsmBinX+" "+alteredAsmBinY);
-//            }
+            int alteredAsmBinX = getAlteredAsmBin(record.getBinX(), binSize);
+            int alteredAsmBinY = getAlteredAsmBin(record.getBinY(), binSize);
 
             if (alteredAsmBinX == -1 || alteredAsmBinY == -1) {
                 alteredContacts.add(record);
@@ -120,57 +79,32 @@ public class AssemblyHeatmapHandler {
         return block;
     }
 
-    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        long originalBinCenterCoordinate = (long) ((binValue * binSize + binSize / 2) * HiCGlobals.hicMapScale);
-        //Contig2D contig2D = aFragHandler.lookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
-        //System.out.println("start lookup fragmentProperty: "+ Calendar.getInstance().getTime());
-        FragmentProperty fragmentProperty = aFragHandler.newLookupCurrentFragmentForOriginalAsmCoordinate(chr1Idx, chr2Idx, originalBinCenterCoordinate);
-        //System.out.println("finish lookup fragmentProperty: "+fragmentProperty.getName()+" "+ Calendar.getInstance().getTime());
 
-        //int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, originalBinCenterCoordinate);
-        long fragCoordinate = aFragHandler.newLiftOriginalAsmCoordinateToFragmentCoordinate(fragmentProperty, originalBinCenterCoordinate);
-        //System.out.println("finished lookup of fragment coordinate "+fragCoordinate+" "+Calendar.getInstance().getTime());
+    private static int getAlteredAsmBin(int binValue, int binSize) {
 
-//        int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
-        long currentBinCenterCoordinate = aFragHandler.newLiftFragmentCoordinateToAsmCoordinate(fragmentProperty, fragCoordinate);
-
-        //System.out.println("finished lookup of fragment coordinate "+fragCoordinate+" "+Calendar.getInstance().getTime());
-
-        if (currentBinCenterCoordinate == -1) {
+        long originalBinCenterCoordinate = (long) ((binValue + 1 / 2) * HiCGlobals.hicMapScale * binSize);
+        long currentBinCenterCoordinate;
+        Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalBinCenterCoordinate);
+        if (aggregateScaffold == null) {
             return -1;
         } else {
-            return (int) ((currentBinCenterCoordinate - binSize / 2) / binSize);
+            if (!aggregateScaffold.getInvertedVsInitial()) {
+                currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() + originalBinCenterCoordinate - aggregateScaffold.getOriginalStart());
+            } else {
+                currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() - originalBinCenterCoordinate + aggregateScaffold.getOriginalEnd());
+            }
+            return Math.round(((int) (currentBinCenterCoordinate / HiCGlobals.hicMapScale) - binSize / 2) / binSize);
         }
     }
 
-    private static int newGetAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
+    public static Scaffold lookUpOriginalAggregateScaffold(long genomicPos) {
+        Scaffold tmp = new Scaffold("tmp", 1, 1);
+        tmp.setOriginalStart(genomicPos);
+        int idx = Collections.binarySearch(listOfOSortedAggregateScaffolds, tmp, Scaffold.originalStateComparator);
+        if (-idx - 2 >= 0)
+            return listOfOSortedAggregateScaffolds.get(-idx - 2);
+        else
+            return null;
 
-        int originalBinCenterCoordinate = (binValue * binSize + binSize / 2);
-        int currentBinCenterCoordinate;
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
-                originalBinCenterCoordinate,
-                originalBinCenterCoordinate,
-                originalBinCenterCoordinate,
-                originalBinCenterCoordinate);
-
-        List<Feature2D> containedFeatures = aFragHandler.getOriginalAggregateFeature2DHandler().getIntersectingFeatures(chr1Idx, chr2Idx, currentWindow, true);
-
-        if (!containedFeatures.isEmpty()) {
-
-            int aggregateScaffoldId = Integer.parseInt(containedFeatures.get(0).getAttribute("Scaffold name")) - 1;
-            //System.out.println(aggregateScaffoldId);
-            FragmentProperty aggregateFragmentProperty = aFragHandler.getListOfAggregateScaffoldProperties().get(aggregateScaffoldId);
-            if (!aggregateFragmentProperty.isInvertedVsInitial()) {
-                currentBinCenterCoordinate = (int) (aggregateFragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale) + originalBinCenterCoordinate - (int) (aggregateFragmentProperty.getInitialStart() / HiCGlobals.hicMapScale);
-            } else {
-                currentBinCenterCoordinate = (int) (aggregateFragmentProperty.getCurrentStart() / HiCGlobals.hicMapScale - originalBinCenterCoordinate + aggregateFragmentProperty.getInitialEnd() / HiCGlobals.hicMapScale);
-            }
-
-            return Math.round((currentBinCenterCoordinate - binSize / 2) / binSize);
-
-        } else {
-//            System.out.println("I am here");
-            return -1;
-        }
     }
 }

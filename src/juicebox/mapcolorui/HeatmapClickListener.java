@@ -194,7 +194,7 @@ public class HeatmapClickListener extends MouseAdapter implements ActionListener
 
         if (HiCGlobals.printVerboseComments) {
             try {
-                superAdapter.getAssemblyStateTracker().getAssemblyHandler().printAssembly();
+                superAdapter.getAssemblyStateTracker().getAssemblyHandler().toString();
             } catch (Exception e) {
                 System.err.println("Unable to print assembly state");
             }

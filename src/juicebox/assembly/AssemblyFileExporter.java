@@ -34,44 +34,44 @@ import java.util.List;
  */
 public class AssemblyFileExporter {
 
-    private AssemblyFragmentHandler assemblyFragmentHandler;
+    private AssemblyScaffoldHandler assemblyScaffoldHandler;
     private String outputFilePath;
-    private List<FragmentProperty> contigProperties;
-    private List<List<Integer>> scaffoldProperties;
+    private List<Scaffold> listOfScaffolds;
+    private List<List<Integer>> listOfSuperscaffolds;
 
-    public AssemblyFileExporter(AssemblyFragmentHandler assemblyFragmentHandler, String outputFilePath) {
-        this.assemblyFragmentHandler = assemblyFragmentHandler;
+    public AssemblyFileExporter(AssemblyScaffoldHandler assemblyScaffoldHandler, String outputFilePath) {
+        this.assemblyScaffoldHandler = assemblyScaffoldHandler;
         this.outputFilePath = outputFilePath;
-        this.contigProperties = assemblyFragmentHandler.getListOfScaffoldProperties();
-        this.scaffoldProperties = assemblyFragmentHandler.getListOfSuperscaffolds();
+        this.listOfScaffolds = assemblyScaffoldHandler.getListOfScaffolds();
+        this.listOfSuperscaffolds = assemblyScaffoldHandler.getListOfSuperscaffolds();
     }
 
-    public void exportContigsAndScaffolds() {
+    public void exportCpropsAndAsm() {
         try {
-            exportContigs();
-            exportScaffolds();
+            exportCprops();
+            exportAsm();
         } catch (IOException exception) {
             System.out.println("Exporting failed...");
         }
     }
 
-    private void exportContigs() throws IOException {
-        PrintWriter contigPrintWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
-        for (FragmentProperty fragmentProperty : contigProperties) {
-            contigPrintWriter.println(fragmentProperty.toString());
+    private void exportCprops() throws IOException {
+        PrintWriter cpropsWriter = new PrintWriter(buildCpropsOutputPath(), "UTF-8");
+        for (Scaffold scaffold : listOfScaffolds) {
+            cpropsWriter.println(scaffold.toString());
         }
-        contigPrintWriter.close();
+        cpropsWriter.close();
     }
 
-    private void exportScaffolds() throws IOException {
-        PrintWriter scaffoldPrintWriter = new PrintWriter(buildAsmOutputPath(), "UTF-8");
-        for (List<Integer> row : scaffoldProperties) {
-            scaffoldPrintWriter.println(convertScaffoldRowToString(row));
+    private void exportAsm() throws IOException {
+        PrintWriter asmWriter = new PrintWriter(buildAsmOutputPath(), "UTF-8");
+        for (List<Integer> row : listOfSuperscaffolds) {
+            asmWriter.println(superscaffoldToString(row));
         }
-        scaffoldPrintWriter.close();
+        asmWriter.close();
     }
 
-    private String convertScaffoldRowToString(List<Integer> scaffoldRow) {
+    private String superscaffoldToString(List<Integer> scaffoldRow) {
         StringBuilder stringBuilder = new StringBuilder();
         Iterator<Integer> iterator = scaffoldRow.iterator();
         while (iterator.hasNext()) {

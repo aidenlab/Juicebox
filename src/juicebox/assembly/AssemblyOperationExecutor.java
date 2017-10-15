@@ -36,42 +36,39 @@ import java.util.List;
 public class AssemblyOperationExecutor {
 
     public static void splitContig(Feature2D originalContig, Feature2D debrisContig, SuperAdapter superAdapter, HiC hic, boolean moveTo) {
-        AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-        assemblyFragmentHandler.editScaffold(originalContig, debrisContig);
-        performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+        AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+        assemblyScaffoldHandler.editScaffold(originalContig, debrisContig);
+        performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
     }
 
     public static void invertSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures) {
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-            assemblyFragmentHandler.invertSelection(selectedFeatures);
-            performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.invertSelection(selectedFeatures);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
         }
     }
 
     public static void moveSelection(SuperAdapter superAdapter, List<Feature2D> selectedFeatures, Feature2D featureOrigin) {
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-            assemblyFragmentHandler.moveSelection(selectedFeatures, featureOrigin);
-            performAssemblyAction(superAdapter, assemblyFragmentHandler, true);
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.moveSelection(selectedFeatures, featureOrigin);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, true);
         }
     }
 
     public static void toggleGroup(SuperAdapter superAdapter, Feature2D upstreamFeature2D, Feature2D downstreamFeature2D) {
         if (upstreamFeature2D != null && downstreamFeature2D != null) {
-            AssemblyFragmentHandler assemblyFragmentHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
-            assemblyFragmentHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
-            performAssemblyAction(superAdapter, assemblyFragmentHandler, false);
+            AssemblyScaffoldHandler assemblyScaffoldHandler = superAdapter.getAssemblyStateTracker().getNewAssemblyHandler();
+            assemblyScaffoldHandler.toggleGroup(upstreamFeature2D, downstreamFeature2D);
+            performAssemblyAction(superAdapter, assemblyScaffoldHandler, false);
         }
     }
 
-    public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
-        //superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
+    public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler, refreshMap);
+        superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
+        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyScaffoldHandler, refreshMap);
 
-        if (refreshMap) {
-            superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
-        }
     }
 }

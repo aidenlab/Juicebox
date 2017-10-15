@@ -267,41 +267,44 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         }
 
         if (asmPath != null && cpropsPath != null) {
+
             try {
-                //AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
 
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                assemblyFileImporter.importAssembly();
 
-                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
-                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
-                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
-                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
+                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getScaffoldFeature2DHandler().getFeatureList());
+                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.SCAFFOLD);
+
+                AnnotationLayer superscaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler().getFeatureList());
+                superscaffoldLayer.setLayerType(AnnotationLayer.LayerType.SUPERSCAFFOLD);
 
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Group");
-                scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
+                scaffoldLayerHandler.setLayerNameAndField("Scaffolds");
+                scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
 
-                AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                contigLayerHandler.setAnnotationLayer(contigLayer);
-                contigLayerHandler.setLayerNameAndField("Main");
-                contigLayerHandler.setColorOfAllAnnotations(Color.green);
+                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
+                superscaffoldLayerHandler.setLayerNameAndField("Supersaffolds");
+                superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
-                AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                editHandler.setColorOfAllAnnotations(Color.yellow);
-                editHandler.setLayerNameAndField("Edit");
-                editHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
-                editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+                AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                editLayerHandler.setColorOfAllAnnotations(Color.yellow);
+                editLayerHandler.setLayerNameAndField("Edit");
+                editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
+                editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
-                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyFragmentHandler(), contigLayerHandler, scaffoldLayerHandler);
+                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyScaffoldHandler());
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
-//                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+
+                //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
                 superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
                         superAdapter.removeLayer(annotationLayerHandler);
-                    superAdapter.setActiveLayerHandler(contigLayerHandler);
+                    superAdapter.setActiveLayerHandler(scaffoldLayerHandler);
                     superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
                 }
 

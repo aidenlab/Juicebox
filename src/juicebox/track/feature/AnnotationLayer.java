@@ -350,7 +350,7 @@ public class AnnotationLayer {
         return customAnnotationRTreeHandler.getFeatureList();
     }
 
-    public enum LayerType {DEFAULT, EDIT, MAIN, GROUP}
+    public enum LayerType {DEFAULT, EDIT, SCAFFOLD, SUPERSCAFFOLD}
 
 
 

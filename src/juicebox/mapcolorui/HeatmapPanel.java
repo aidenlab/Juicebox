@@ -319,8 +319,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             //Uncomment to draw bin grid (for debugging)
 //            Graphics2D g2 = (Graphics2D) g.create();
-//            g2.setColor(Color.green);
-//            g2.setColor(new Color(0, 0, 1.0f, 0.3f));
+//            g2.setAssociatedFeatureColor(Color.green);
+//            g2.setAssociatedFeatureColor(new Color(0, 0, 1.0f, 0.3f));
 //            for (int bin = (int) binOriginX; bin <= bRight; bin++) {
 //                int pX = (int) ((bin - hic.getXContext().getBinOrigin()) * hic.getScaleFactor());
 //                g2.drawLine(pX, 0, pX, getHeight());
@@ -1297,10 +1297,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
 
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            Feature2D initialFeature = selectedFeatures.get(0);
-            Contig2D initialContig = initialFeature.toContig();
-
-            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
+//            Feature2D initialFeature = selectedFeatures.get(0);
+//            Contig2D initialContig = initialFeature.toContig();
+//            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
 
             AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
         }
@@ -1571,7 +1570,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             for (Feature2DGuiContainer loop : allFeaturePairs) {
                 if (loop.getRectangle().contains(x, y)) {
                     // TODO - why is this code duplicated in this file?
-                    if (loop.getAnnotationLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.GROUP) { //ignore group layer
+                    if (loop.getAnnotationLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.SUPERSCAFFOLD) { //ignore group layer
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
@@ -1592,14 +1591,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 for (Feature2D feature2D : selectedFeatures) {
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append(feature2D.tooltipText());
-                    if (!(feature2D instanceof Contig2D)) {
-                        String isInverted = String.valueOf(feature2D.toContig().isInverted());
-                        isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
-                        txt.append("Inverted = ");
-                        txt.append("<b>");
-                        txt.append(isInverted);
-                        txt.append("</b>");
-                    }
+//                    if (!(feature2D instanceof Contig2D)) {
+//                        String isInverted = String.valueOf(feature2D.toContig().isInverted());
+//                        isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
+//                        txt.append("Inverted = ");
+//                        txt.append("<b>");
+//                        txt.append(isInverted);
+//                        txt.append("</b>");
+//                    }
                     txt.append("</span>");
                 }
             }
@@ -1764,7 +1763,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (e.isAltDown()) {
                     dragMode = DragMode.ZOOM;
                     // Shift down for custom annotations
-                } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN)) {
+                } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD)) {
 
                     if (!activelyEditingAssembly) {
                         boolean showWarning = false;
@@ -1801,7 +1800,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     } catch (Exception ee) {
                     }
-                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
+                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD) {
                     dragMode = DragMode.RESIZE;
                     Feature2D loop = currentFeature.getFeature2D();
                     // Resizing upper left corner, keep end points stationary
@@ -2214,7 +2213,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int minDist = 20;
                 if (currentFeature != null) {
 
-                    boolean resizeable = (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) && (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.GROUP);
+                    boolean resizeable = (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD) && (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SUPERSCAFFOLD);
 //                    if (activelyEditingAssembly) {
 //                        resizeable = (resizeable && HiCGlobals.splitModeEnabled);
 //                    }

@@ -850,7 +850,7 @@ public class SuperAdapter {
     public List<AnnotationLayerHandler> getAssemblyLayerHandlers() {
         List<AnnotationLayerHandler> handlers = new ArrayList<>();
         for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
-            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
                 handlers.add(annotationLayerHandler);
             }
         }
@@ -873,18 +873,18 @@ public class SuperAdapter {
 //        return annotationLayerHandlers.get(0);
 //        List<AnnotationLayerHandler> handlers = new ArrayList<>();
 //        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
-        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP)) {
+        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD)) {
             return getActiveLayerHandler();
         } else
             return annotationLayerHandlers.get(0);
     }
 
     public AnnotationLayerHandler getMainLayer() {
-        return getAssemblyLayerHandler(AnnotationLayer.LayerType.MAIN);
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.SCAFFOLD);
     }
 
     public AnnotationLayerHandler getGroupLayer() {
-        return getAssemblyLayerHandler(AnnotationLayer.LayerType.GROUP);
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.SUPERSCAFFOLD);
     }
 
     public AnnotationLayerHandler getEditLayer() {

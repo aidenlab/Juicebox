@@ -29,7 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
-import juicebox.assembly.AssemblyFragmentHandler;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -266,8 +266,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         if (asmPath != null && cpropsPath != null) {
 //            try {
             AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
-                AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
-            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler, true);
+            AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
+            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);
                 superAdapter.clearAllMatrixZoomCache();
             superAdapter.refresh();
 
