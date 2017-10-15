@@ -35,6 +35,7 @@ public class AssemblyStateTracker {
     private Stack<AssemblyScaffoldHandler> undoStack;
     private Stack<AssemblyScaffoldHandler> redoStack;
     private AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
+    private SuperAdapter superAdapter;
 
     public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler) {
 
@@ -56,31 +57,28 @@ public class AssemblyStateTracker {
 
     public void resetState() {
         undoStack.clear();
-        redoStack.clear();
-        undoStack.push(initialAssemblyScaffoldHandler);
-        regenerateLayers(true);
-        executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+        assemblyActionPerformed(this.initialAssemblyScaffoldHandler, true);
+        executeLongRunningTask(this.superAdapter);
     }
 
     public AssemblyScaffoldHandler getInitialAssemblyScaffoldHandler() {
-        return initialAssemblyScaffoldHandler;
+        return this.initialAssemblyScaffoldHandler;
     }
 
     public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
         redoStack.clear();
         undoStack.push(assemblyScaffoldHandler);
         assemblyScaffoldHandler.updateAssembly(refreshMap);
+        regenerateLayers(refreshMap);
         System.out.println(assemblyScaffoldHandler.toString());
-        //regenerateLayers(refreshMap);
     }
 
     public void regenerateLayers(boolean refreshMap) {
         AssemblyScaffoldHandler assemblyScaffoldHandler = undoStack.peek();
-        assemblyScaffoldHandler.updateAssembly(refreshMap);
-//        if (refreshMap) {
-//            contigLayerHandler.getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getScaffoldFeature2DList(), true);
-//        }
-//        scaffoldLayerHandler.getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DList(), false);
+        if (refreshMap) {
+            superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+        }
+        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
     }
 
     public boolean checkUndo() {
@@ -90,8 +88,9 @@ public class AssemblyStateTracker {
     public void undo() {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
+            undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+            executeLongRunningTask(this.superAdapter);
         }
     }
 
@@ -102,8 +101,9 @@ public class AssemblyStateTracker {
     public void redo() {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
+            undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            executeLongRunningTask(AssemblyHeatmapHandler.getSuperAdapter());
+            executeLongRunningTask(this.superAdapter);
         }
     }
 
@@ -117,4 +117,7 @@ public class AssemblyStateTracker {
         superAdapter.getMainWindow().executeLongRunningTask(runnable, "AssemblyAction");
     }
 
+    public void setSuperAdapter(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
+    }
 }

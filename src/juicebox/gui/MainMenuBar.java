@@ -27,7 +27,6 @@ package juicebox.gui;
 import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
@@ -641,11 +640,12 @@ public class MainMenuBar {
 
                     // Rescale and redraw assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
-                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
-                        assemblyHandler.updateAssembly(true);
-                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
-                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
-                        superAdapter.repaint();
+                        superAdapter.getAssemblyStateTracker().resetState();
+//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+////                        assemblyHandler.updateAssembly(true);
+//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
+////                        //superAdapter.repaint();
                     }
 
                 } catch (NumberFormatException t) {
