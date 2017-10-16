@@ -516,9 +516,6 @@ public class MainViewPanel {
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 
-        annotationsPanel = new JPanel();
-        annotationsPanel.setLayout(new BoxLayout(annotationsPanel, BoxLayout.Y_AXIS));
-
         annotationsPanelToggleButton.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -543,13 +540,12 @@ public class MainViewPanel {
         });
         annotationsPanelToggleButton.setSelected(false);
         annotationsPanelToggleButton.setEnabled(false);
-        annotationsPanelToggleButton.setMinimumSize(new Dimension(rightSidePanel.getWidth(),
-            annotationsPanelToggleButton.getHeight()));
 
-        annotationsPanel.add(miniAnnotationsLayerPanel);
+        annotationsPanel = new JPanel(new BorderLayout());
+        annotationsPanel.add(miniAnnotationsLayerPanel, BorderLayout.NORTH);
         miniAnnotationsLayerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        annotationsPanel.add(annotationsPanelToggleButton);
+        annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
         annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         rightSidePanel.add(annotationsPanel);
