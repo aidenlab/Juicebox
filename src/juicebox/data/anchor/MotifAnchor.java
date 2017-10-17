@@ -153,7 +153,7 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
      * @param x
      * @return true if x is within bounds of anchor
      */
-    private boolean contains(int x) {
+    public boolean contains(int x) {
         return x >= x1 && x <= x2;
     }
 

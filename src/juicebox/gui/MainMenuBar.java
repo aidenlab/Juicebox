@@ -426,7 +426,7 @@ public class MainMenuBar {
             }
         });
         darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
-        viewMenu.add(darkulaMode);
+        //viewMenu.add(darkulaMode);
 
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
