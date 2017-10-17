@@ -93,7 +93,7 @@ public class AssemblyHeatmapHandler {
             } else {
                 currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() - originalBinCenterCoordinate + aggregateScaffold.getOriginalEnd());
             }
-            return Math.round(((int) (currentBinCenterCoordinate / HiCGlobals.hicMapScale) - binSize / 2) / binSize);
+            return (int) ((currentBinCenterCoordinate / (HiCGlobals.hicMapScale * binSize)) - 1 / 2);
         }
     }
 

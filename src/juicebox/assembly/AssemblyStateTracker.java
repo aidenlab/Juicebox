@@ -50,8 +50,8 @@ public class AssemblyStateTracker {
     }
 
     public AssemblyScaffoldHandler getNewAssemblyHandler() {
-        //AssemblyScaffoldHandler newAssemblyScaffoldHandler = new AssemblyScaffoldHandler(undoStack.peek());
-        AssemblyScaffoldHandler newAssemblyScaffoldHandler = undoStack.peek();
+        AssemblyScaffoldHandler newAssemblyScaffoldHandler = new AssemblyScaffoldHandler(undoStack.peek());
+        //AssemblyScaffoldHandler newAssemblyScaffoldHandler = undoStack.peek();
         return newAssemblyScaffoldHandler;
     }
 

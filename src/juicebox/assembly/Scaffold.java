@@ -184,25 +184,8 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         return feature2D;
     }
 
-    public Feature2D getOriginalFeature2D() {
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(scaffoldNameAttributeKey, this.getName());
-        attributes.put(signedScaffoldIdAttributeKey, String.valueOf(this.getSignIndexId()));
-        attributes.put(unsignedScaffoldIdAttributeKey, String.valueOf(this.getIndexId()));
-        Feature2D feature2D = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
-                chrName,
-                scale(this.getOriginalStart()),
-                scale(this.getOriginalEnd()),
-                chrName,
-                scale(this.getOriginalStart()),
-                scale(this.getOriginalEnd()),
-                defaultColor,
-                attributes);
-        return feature2D;
-    }
-
     private int scale(long longCoordinate) {
-        return (int) Math.round(longCoordinate / HiCGlobals.hicMapScale);
+        return (int) (longCoordinate / HiCGlobals.hicMapScale);
     }
 
     public boolean isDebris() {

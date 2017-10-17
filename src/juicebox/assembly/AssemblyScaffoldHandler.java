@@ -54,10 +54,6 @@ public class AssemblyScaffoldHandler {
     private Feature2DHandler scaffoldFeature2DHandler;
     private Feature2DHandler superscaffoldFeature2DHandler;
 
-    // should change this to BinarySearchTree
-    private Feature2DHandler originalAggregateFeature2DHandler;
-    private Feature2DHandler currentAggregateFeature2DHandler;
-
     // formalities
     private int chrIndex = 1;
     private String chrName = "assembly";
@@ -202,11 +198,11 @@ public class AssemblyScaffoldHandler {
         attributes.put(superScaffoldIdAttributeKey, String.valueOf(i + 1));
         return new Feature2D(Feature2D.FeatureType.SUPERSCAFFOLD,
                 chrName,
-                (int) Math.round(start / HiCGlobals.hicMapScale),
-                (int) Math.round(end / HiCGlobals.hicMapScale),
+                (int) (start / HiCGlobals.hicMapScale),
+                (int) (end / HiCGlobals.hicMapScale),
                 chrName,
-                (int) Math.round(start / HiCGlobals.hicMapScale),
-                (int) Math.round(end / HiCGlobals.hicMapScale),
+                (int) (start / HiCGlobals.hicMapScale),
+                (int) (end / HiCGlobals.hicMapScale),
                 new Color(0, 0, 255),
                 attributes);
     }
@@ -579,31 +575,12 @@ public class AssemblyScaffoldHandler {
     }
 
 
-    public Feature2DHandler getOriginalAggregateFeature2DHandler() {
-        return originalAggregateFeature2DHandler;
-    }
-
-    public Feature2DHandler getCurrentAggregateFeature2DHandler() {
-        return currentAggregateFeature2DHandler;
-    }
-
     public Feature2DHandler getScaffoldFeature2DHandler() {
         return scaffoldFeature2DHandler;
     }
 
     public Feature2DHandler getSuperscaffoldFeature2DHandler() {
         return superscaffoldFeature2DHandler;
-    }
-
-    public Scaffold lookUpCurrentAggregateScaffold(long genomicPos) {
-        Scaffold tmp = new Scaffold("tmp", 1, 1);
-        tmp.setCurrentStart(genomicPos);
-        int idx = Collections.binarySearch(listOfAggregateScaffolds, tmp);
-        return listOfAggregateScaffolds.get(idx);
-    }
-
-    public List<Scaffold> getListOfAggregateScaffolds() {
-        return listOfAggregateScaffolds;
     }
 
     public List<Scaffold> getIntersectingAggregateFeatures(long genomicPos1, long genomicPos2) {

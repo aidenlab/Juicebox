@@ -1053,16 +1053,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
-            miSelect.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    removeSelection();
-                }
-            });
-            menu.add(miSelect);
-        }
+//        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+//            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
+//            miSelect.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//                    removeSelection();
+//                }
+//            });
+//            menu.add(miSelect);
+//        }
 
         final JCheckBoxMenuItem expandSelection = new JCheckBoxMenuItem("Expand Selection");
         expandSelection.setSelected(false);
@@ -1565,12 +1565,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
             double minDistance = Double.POSITIVE_INFINITY;
             //mouseIsOverFeature = false;
             currentFeature = null;
-            int numLayers = superAdapter.getAllLayers().size();
-            int priority = numLayers;
-            for (Feature2DGuiContainer loop : allFeaturePairs) {
-                if (loop.getRectangle().contains(x, y)) {
-                    // TODO - why is this code duplicated in this file?
-                    if (loop.getAnnotationLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.SUPERSCAFFOLD) { //ignore group layer
+            if (!activelyEditingAssembly) {
+                int numLayers = superAdapter.getAllLayers().size();
+                int priority = numLayers;
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
@@ -1584,24 +1584,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         //mouseIsOverFeature = true;
                     }
                 }
-            }
 
-            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                Collections.sort(selectedFeatures);
-                for (Feature2D feature2D : selectedFeatures) {
-                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(feature2D.tooltipText());
-//                    if (!(feature2D instanceof Contig2D)) {
-//                        String isInverted = String.valueOf(feature2D.toContig().isInverted());
-//                        isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
-//                        txt.append("Inverted = ");
-//                        txt.append("<b>");
-//                        txt.append(isInverted);
-//                        txt.append("</b>");
-//                    }
-                    txt.append("</span>");
+            } else {
+                for (Feature2DGuiContainer loop : allMainFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(loop.getFeature2D().tooltipText());
+                        txt.append("</span>");
+                        currentFeature = loop;
+                        //mouseIsOverFeature = true;
+                    }
+                }
+                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                    Collections.sort(selectedFeatures);
+                    for (Feature2D feature2D : selectedFeatures) {
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(feature2D.tooltipText());
+                        txt.append("</span>");
+                    }
                 }
             }
+
             txt.append("<br>");
             txt.append("</html>");
             return txt.toString();

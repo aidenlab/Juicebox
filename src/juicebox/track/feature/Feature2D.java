@@ -26,6 +26,8 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyHeatmapHandler;
+import juicebox.assembly.Scaffold;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
@@ -199,23 +201,36 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public String tooltipText() {
 
+        String scaledStart1 = formatter.format(start1 * HiCGlobals.hicMapScale + 1);
+        String scaledStart2 = formatter.format(start2 * HiCGlobals.hicMapScale + 1);
+        String scaledEnd1 = formatter.format(end1 * HiCGlobals.hicMapScale);
+        String scaledEnd2 = formatter.format(end2 * HiCGlobals.hicMapScale);
+
+        if (getFeatureType() == FeatureType.SCAFFOLD) {
+            Scaffold scaffold = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler().getScaffoldFromFeature(this);
+            scaledStart1 = formatter.format(scaffold.getCurrentStart() + 1);
+            scaledStart2 = formatter.format(scaffold.getCurrentStart() + 1);
+            scaledEnd1 = formatter.format(scaffold.getCurrentEnd());
+            scaledEnd2 = formatter.format(scaffold.getCurrentEnd());
+        }
+
         StringBuilder txt = new StringBuilder();
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(getFeatureName());
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.topChromosomeColor + ";'>");
-        txt.append(chr1).append(":").append(formatter.format(Math.round(start1 + 1) * HiCGlobals.hicMapScale));
+        txt.append(chr1).append(":").append(scaledStart1);
         if ((end1 - start1) > 1) {
-            txt.append("-").append(formatter.format(Math.round(end1 * HiCGlobals.hicMapScale)));
+            txt.append("-").append(scaledEnd1);
         }
 
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.leftChromosomeColor + ";'>");
-        txt.append(chr2).append(":").append(formatter.format(Math.round(start2 + 1) * HiCGlobals.hicMapScale));
+        txt.append(chr2).append(":").append(scaledStart2);
         if ((end2 - start2) > 1) {
-            txt.append("-").append(formatter.format(Math.round(end2 * HiCGlobals.hicMapScale)));
+            txt.append("-").append(scaledEnd2);
         }
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
