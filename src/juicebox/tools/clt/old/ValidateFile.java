@@ -25,11 +25,16 @@
 package juicebox.tools.clt.old;
 
 import jargs.gnu.CmdLineParser;
-import juicebox.data.Dataset;
-import juicebox.data.HiCFileTools;
+import juicebox.HiCGlobals;
+import juicebox.data.*;
 import juicebox.tools.clt.JuiceboxCLT;
+import juicebox.windowui.HiCZoom;
+import juicebox.windowui.NormalizationType;
+import org.broad.igv.feature.Chromosome;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by muhammadsaadshamim on 6/2/16.
@@ -56,9 +61,42 @@ public class ValidateFile extends JuiceboxCLT {
 
     @Override
     public void run() {
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(filePath.split("\\+")), true);
-        assert ds.getGenomeId() != null;
-        assert ds.getChromosomeHandler().size() > 0;
-        System.exit(0);
+        DatasetReader reader = HiCFileTools.extractDatasetReaderForCLT(Arrays.asList(filePath.split("\\+")), true);
+        Dataset ds = null;
+        try {
+    //        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(filePath.split("\\+")), true);
+          ds = reader.read();
+            HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
+            assert ds.getGenomeId() != null;
+            assert ds.getChromosomeHandler().size() > 0;
+            List<HiCZoom> zooms = ds.getBpZooms();
+            List<NormalizationType> norms = ds.getNormalizationTypes();
+            Chromosome[] array = ds.getChromosomeHandler().getChromosomeArrayWithoutAllByAll();
+            for (Chromosome chr: array)  {
+                for (Chromosome chr2: array) {
+                    System.out.print(".");
+                    Matrix matrix = ds.getMatrix(chr, chr2);
+                    if (matrix == null) {
+                        System.err.println("Warning: no reads in " + chr.getName() + " " + chr2.getName());
+                    }
+                    else {
+                        for (HiCZoom zoom: zooms) {
+                            MatrixZoomData zd = matrix.getZoomData(zoom);
+                            for (NormalizationType type: norms) {
+                                reader.readNormalizedBlock(0, zd, type);
+                            }
+                        }
+                    }
+                }
+                System.out.println();
+            }
+            System.out.println("(-: Validation successful");
+            System.exit(0);
+            throw new IOException("t");
+        }
+        catch (IOException error) {
+            error.printStackTrace();
+            System.exit(1);
+        }
     }
 }

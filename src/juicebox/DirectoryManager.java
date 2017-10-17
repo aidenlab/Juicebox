@@ -165,18 +165,6 @@ public class DirectoryManager {
         return override;
     }
 
-
-    private static synchronized File getLogFile() throws IOException {
-
-        File logFile = new File(getHiCDirectory(), "juicebox.log");
-        if (!logFile.exists()) {
-            logFile.createNewFile();
-        }
-        return logFile;
-
-    }
-
-
     private static boolean canWrite(File directory) {
         // There are bugs in the Windows Java JVM that can cause user directories to be non-writable (target fix is
         // Java 7).  The only way to know if the directory is writable for sure is to try to write something.

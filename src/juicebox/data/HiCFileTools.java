@@ -83,6 +83,39 @@ public class HiCFileTools {
         return dataset;
     }
 
+    public static DatasetReader extractDatasetReaderForCLT(List<String> files, boolean allowPrinting) {
+        DatasetReader reader = null;
+        try {
+            if (files.size() == 1) {
+                if (allowPrinting)
+                    System.out.println("Reading file: " + files.get(0));
+                String magicString = DatasetReaderV2.getMagicString(files.get(0));
+                if (magicString.equals("HIC")) {
+                    reader = new DatasetReaderV2(files.get(0));
+                } else {
+                    System.err.println("This version of HIC is no longer supported");
+                    System.exit(32);
+                }
+
+
+            } else {
+                if (allowPrinting)
+                    System.out.println("Reading summed files: " + files);
+                reader = DatasetReaderFactory.getReader(files);
+                if (reader == null) {
+                    System.err.println("Error while reading files");
+                    System.exit(33);
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Could not read hic file: " + e.getMessage());
+            System.exit(34);
+            //e.printStackTrace();
+        }
+        return reader;
+    }
+
     /**
      * Load the list of chromosomes based on given genome id or file
      *
