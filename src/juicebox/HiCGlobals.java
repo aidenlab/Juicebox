@@ -51,9 +51,8 @@ public class HiCGlobals {
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     // for state saving
-    public static final File stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
-    public static final File xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
-            "JuiceboxStatesForExport.xml");
+    public static File stateFile;
+    public static File xmlSavedStatesFile;
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();

@@ -33,6 +33,7 @@ import juicebox.windowui.FileDropTargetListener;
 import juicebox.windowui.layers.LayersPanel;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,10 +42,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -167,6 +165,18 @@ public class MainWindow extends JFrame {
 
     private static void initApplication() {
         System.err.println("Default User Directory: " + DirectoryManager.getUserDirectory());
+
+        try {
+            HiCGlobals.stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
+            HiCGlobals.xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
+                    "JuiceboxStatesForExport.xml");
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                MessageUtils.showErrorMessage("Error with state file", e);
+            }
+        }
+
         System.setProperty("http.agent", Globals.applicationString());
     }
 
