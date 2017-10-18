@@ -73,7 +73,7 @@ public class Eigenvector extends JuiceboxCLT {
             System.exit(16);
         }
 
-        dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), true);
+        dataset = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[2].split("\\+")), false);
         ChromosomeHandler chromosomeHandler = dataset.getChromosomeHandler();
 
         if (!chromosomeHandler.containsChromosome(args[3])) {
