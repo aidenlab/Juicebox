@@ -481,4 +481,13 @@ public class HiCFileTools {
         }
         return truncatedName;
     }
+
+    public static boolean isDropboxURL(String url) {
+        return url.contains("dropbox.com");
+    }
+
+    public static String cleanUpDropboxURL(String url) {
+        return url.replace("?dl=0", "")
+                .replace("://www.dropbox.com", "://dl.dropboxusercontent.com");
+    }
 }

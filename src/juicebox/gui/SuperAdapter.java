@@ -264,6 +264,9 @@ public class SuperAdapter {
                 String url = JOptionPane.showInputDialog("Enter URL: ");
 
                 if (url != null && url.length() > 0) {
+                    if (HiCFileTools.isDropboxURL(url)) {
+                        url = HiCFileTools.cleanUpDropboxURL(url);
+                    }
                     url = url.trim();
                     hic.unsafeLoadTrack(url);
                 }

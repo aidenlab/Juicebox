@@ -90,6 +90,9 @@ public class HiCFileLoader {
 
         if (urlString != null && urlString.length() > 0) {
             try {
+                if (HiCFileTools.isDropboxURL(urlString)) {
+                    urlString = HiCFileTools.cleanUpDropboxURL(urlString);
+                }
                 urlString = urlString.trim();
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<>();
