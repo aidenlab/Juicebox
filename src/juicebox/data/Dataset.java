@@ -275,6 +275,8 @@ public class Dataset {
     }
 
     public void setGenomeId(String genomeId) {
+        if (genomeId.equals("GRCm38"))
+            genomeId = "mm10";
         this.genomeId = genomeId;
     }
 
