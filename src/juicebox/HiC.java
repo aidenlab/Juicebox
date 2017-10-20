@@ -1214,6 +1214,9 @@ public class HiC {
         }
     }
 
+    public SuperAdapter getSuperAdaptor() {
+        return superAdapter;
+    }
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {
         STANDARD, DRAG, DIRECT, INITIAL, REVERSE

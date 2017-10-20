@@ -1249,6 +1249,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         if (selectedFeatures != null) {
             selectedFeatures.clear();
         }
+        superAdapter.updatePreviousTempSelectedGroups(tempSelectedGroup);
         tempSelectedGroup = null;
         superAdapter.getEditLayer().clearAnnotations();
         if (superAdapter.getActiveLayerHandler() != superAdapter.getMainLayer()) {

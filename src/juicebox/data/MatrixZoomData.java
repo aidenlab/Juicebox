@@ -328,7 +328,13 @@ public class MatrixZoomData {
     }
 
     private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
+        List<Feature2D> xAxisFeatures;
+        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+            xAxisFeatures = handler.getIntersectingFeatures(1, 1, currentWindow, true);
+            // helps with disappearing heatmap but doesn't fix everything
+        } else {
+            xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
+        }
         List<Contig2D> axisContigs = new ArrayList<>();
         for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
             axisContigs.add(feature2D.toContig());

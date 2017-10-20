@@ -24,6 +24,7 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.track.feature.Feature2DList;
 
 import java.io.File;
@@ -68,42 +69,17 @@ public class AssemblyFileImporter {
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
+        updateAssemblyScale();
         assemblyFragmentHandler = new AssemblyFragmentHandler(fragmentProperties, assemblyGroups);
     }
 
-//    public void readFiles() {
-//        try {
-//            parseCpropsFile();
-//            parseAsmFile();
-//            setInitialState();
-//        } catch (IOException exception) {
-//            System.err.println("Error reading files!");
-//        }
-//    }
-
-    private void parseCpropsFile() throws IOException {
-        if (validateCpropsFile()) {
-            List<String> rawFileData = readFile(cpropsFilePath);
-
-            for (String row : rawFileData) {
-                String[] splitRow = row.split(" ");
-                // splitRow[0] -> Name, splitRow[2] -> length
-
-                boolean initiallyInverted = false;
-                for (List<Integer> scaffoldRow : assemblyGroups) {
-                    for (int element : scaffoldRow) {
-                        if (Math.abs(element) == Math.abs(Integer.parseInt(splitRow[1]))) { //can make
-                            if (Math.abs(element) != element) { //if negative
-                                initiallyInverted = true;
-                            }
-                            break;
-                        }
-                    }
-                }
-                FragmentProperty currentPair = new FragmentProperty(splitRow[0], Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]), initiallyInverted);
-                fragmentProperties.add(currentPair);
-            }
-        } else System.out.println("Invalid cprops file");
+    public void updateAssemblyScale() {
+        long totalLength = 0;
+        for (FragmentProperty fragmentProperty : fragmentProperties) {
+            totalLength += fragmentProperty.getLength();
+        }
+        HiCGlobals.hicMapScale = (int) (1 + totalLength / 2100000000);
+        System.out.println(HiCGlobals.hicMapScale);
     }
 
     private void newParseCpropsFile() throws IOException {
@@ -218,16 +194,8 @@ public class AssemblyFileImporter {
         return this.cpropsFilePath;
     }
 
-    private void setCpropsFilePath(String cpropsFilePath) {
-        this.cpropsFilePath = cpropsFilePath;
-    }
-
     private String getAsmFilePath() {
         return this.asmFilePath;
-    }
-
-    private void setAsmFilePath(String asmFilePath) {
-        this.asmFilePath = asmFilePath;
     }
 
     public Feature2DList getContigs() {
