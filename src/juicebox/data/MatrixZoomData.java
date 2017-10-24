@@ -260,6 +260,7 @@ public class MatrixZoomData {
 
     private List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                           final NormalizationType no) {
+
         Set<Integer> blocksToLoad = new HashSet<>();
 
         // get aggregate scaffold handler
@@ -269,22 +270,17 @@ public class MatrixZoomData {
         List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (binX1 * binSize * HiCGlobals.hicMapScale), (long) (binX2 * binSize * HiCGlobals.hicMapScale));
         List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (binY1 * binSize * HiCGlobals.hicMapScale), (long) (binY2 * binSize * HiCGlobals.hicMapScale));
 
-
-
         int x1pos, x2pos, y1pos, y2pos;
 
-        for (int i = 0; i < xAxisAggregateScaffolds.size(); i++) {
-            for (int j = 0; j < yAxisAggregateScaffolds.size(); j++) {
-
-                Scaffold xScaffold = xAxisAggregateScaffolds.get(i);
-                Scaffold yScaffold = yAxisAggregateScaffolds.get(j);
+        for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+            for (Scaffold yScaffold : yAxisAggregateScaffolds) {
 
                 x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
                 y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 y2pos = (int) (yScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
 
-                if (i == 0) {
+                if (xScaffold.getCurrentStart() / HiCGlobals.hicMapScale < binX1 * binSize) {
                     if (!xScaffold.getInvertedVsInitial()) {
                         x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binX1 * binSize - xScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
                     } else {
@@ -292,7 +288,7 @@ public class MatrixZoomData {
                     }
                 }
 
-                if (j == 0) {
+                if (yScaffold.getCurrentStart() / HiCGlobals.hicMapScale < binY1 * binSize) {
                     if (!yScaffold.getInvertedVsInitial()) {
                         y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binY1 * binSize - yScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
                     } else {
@@ -300,7 +296,7 @@ public class MatrixZoomData {
                     }
                 }
 
-                if (i == xAxisAggregateScaffolds.size() - 1) {
+                if (xScaffold.getCurrentEnd() / HiCGlobals.hicMapScale > binX2 * binSize) {
                     if (!xScaffold.getInvertedVsInitial()) {
                         x2pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binX2 * binSize - xScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
                     } else {
@@ -308,7 +304,7 @@ public class MatrixZoomData {
                     }
                 }
 
-                if (j == yAxisAggregateScaffolds.size() - 1) {
+                if (yScaffold.getCurrentEnd() / HiCGlobals.hicMapScale > binY2 * binSize) {
                     if (!yScaffold.getInvertedVsInitial()) {
                         y2pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binY2 * binSize - yScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
                     } else {
@@ -327,7 +323,8 @@ public class MatrixZoomData {
                     } else {
                         String key = getBlockKey(blockNumber, no);
                         Block b;
-                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
+                        //temp fix for AllByAll. TODO: trace this!
+                        if (HiCGlobals.useCache && blockCache.containsKey(key) && binSize != 4298) {
                             b = blockCache.get(key);
                             blockList.add(b);
                         } else {

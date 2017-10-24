@@ -43,8 +43,10 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
         public int compare(Scaffold o1, Scaffold o2) {
 
+//            System.out.println("I am in originalstatscomparator");
+
             if (o1.getOriginalStart() == o2.getOriginalStart()) {
-                return (new Long(o1.length)).compareTo(o2.length);
+                return -(new Long(o1.length)).compareTo(o2.length);
             }
             return (new Long(o1.getOriginalStart())).compareTo(o2.getOriginalStart());
         }
@@ -290,9 +292,15 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
     @Override
     public int compareTo(Scaffold o) {
+
+//        System.out.println("I am in standard comparator");
+
         if (currentStart == o.currentStart) {
-            return (new Long(length)).compareTo(o.length);
+            //           System.out.println(-(new Long(length)).compareTo(o.length));
+            return -(new Long(length)).compareTo(o.length);
         }
+
+//        System.out.println((new Long(currentStart)).compareTo(o.currentStart));
         return (new Long(currentStart)).compareTo(o.currentStart);
     }
 

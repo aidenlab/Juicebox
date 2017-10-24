@@ -1586,13 +1586,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
             } else {
-                for (Feature2DGuiContainer loop : allMainFeaturePairs) {
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
                         // TODO - why is this code duplicated in this file?
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
-                        currentFeature = loop;
+                        if (allMainFeaturePairs.contains(loop)) {
+                            currentFeature = loop;
+                        }
                         //mouseIsOverFeature = true;
                     }
                 }

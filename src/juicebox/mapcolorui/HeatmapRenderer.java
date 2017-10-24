@@ -218,6 +218,7 @@ class HeatmapRenderer {
                 if (zd != null)
                     blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
+                System.out.println("problems with MZD");
                 if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 

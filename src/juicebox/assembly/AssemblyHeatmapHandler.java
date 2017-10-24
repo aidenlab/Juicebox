@@ -55,6 +55,11 @@ public class AssemblyHeatmapHandler {
     }
 
     public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyScaffoldHandler aFragHandler) {
+        //temp fix for AllByAll. TODO: trace this!
+        if (binSize == 4298) {
+            binSize = 4298000;
+        }
+
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
@@ -85,6 +90,7 @@ public class AssemblyHeatmapHandler {
         long originalBinCenterCoordinate = (long) ((binValue + 1 / 2) * HiCGlobals.hicMapScale * binSize);
         long currentBinCenterCoordinate;
         Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalBinCenterCoordinate);
+
         if (aggregateScaffold == null) {
             return -1;
         } else {
@@ -93,7 +99,8 @@ public class AssemblyHeatmapHandler {
             } else {
                 currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() - originalBinCenterCoordinate + aggregateScaffold.getOriginalEnd());
             }
-            return (int) ((currentBinCenterCoordinate / (HiCGlobals.hicMapScale * binSize)) - 1 / 2);
+
+            return (int) (currentBinCenterCoordinate / (HiCGlobals.hicMapScale * binSize) - 1 / 2);
         }
     }
 

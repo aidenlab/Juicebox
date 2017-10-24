@@ -69,6 +69,9 @@ public class AssemblyScaffoldHandler {
     public AssemblyScaffoldHandler(AssemblyScaffoldHandler assemblyScaffoldHandler) {
         this.listOfScaffolds = assemblyScaffoldHandler.cloneScaffolds();
         this.listOfSuperscaffolds = assemblyScaffoldHandler.cloneSuperscaffolds();
+        this.scaffoldFeature2DHandler = assemblyScaffoldHandler.getScaffoldFeature2DHandler();
+        this.superscaffoldFeature2DHandler = assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler();
+        this.listOfAggregateScaffolds = assemblyScaffoldHandler.getListOfAggregateScaffolds();
         //updateAssembly(true);
     }
 
@@ -116,7 +119,7 @@ public class AssemblyScaffoldHandler {
         Feature2DList scaffoldFeature2DList = new Feature2DList();
         Feature2DList superscaffoldFeature2DList = new Feature2DList();
 
-        listOfAggregateScaffolds.clear();
+        listOfAggregateScaffolds = new ArrayList<>();
 
         for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
             for (int j = 0; j < listOfSuperscaffolds.get(i).size(); j++) {
@@ -183,6 +186,12 @@ public class AssemblyScaffoldHandler {
         scaffoldFeature2DHandler = new Feature2DHandler();
         scaffoldFeature2DHandler.loadLoopList(scaffoldFeature2DList, true);
         //scaffoldFeature2DHandler.setSparsePlottingEnabled(true);
+
+//        Uncomment to visualize aggregate scaffold boundaries
+//        for (Scaffold temp : listOfAggregateScaffolds){
+//            temp.setAssociatedFeatureColor(Color.black);
+//            superscaffoldFeature2DList.add(chrIndex, chrIndex, temp.getCurrentFeature2D());
+//        }
 
         // create superscaffold feature handler
         superscaffoldFeature2DHandler = new Feature2DHandler();
@@ -583,18 +592,24 @@ public class AssemblyScaffoldHandler {
         return superscaffoldFeature2DHandler;
     }
 
+    public List<Scaffold> getListOfAggregateScaffolds() {
+        return listOfAggregateScaffolds;
+    }
+
     public List<Scaffold> getIntersectingAggregateFeatures(long genomicPos1, long genomicPos2) {
+//        System.out.println("I am in getIntersectingAggerageFeatures: "+listOfAggregateScaffolds.size());
         Scaffold tmp = new Scaffold("tmp", 1, 1);
         tmp.setCurrentStart(genomicPos1);
         int idx1 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
+//        System.out.println(-idx1-2);
         if (-idx1 - 2 < 0) {
             idx1 = 0;
         } else {
             idx1 = -idx1 - 2;
         }
-        tmp = new Scaffold("tmp", 1, 1);
         tmp.setCurrentStart(genomicPos2);
         int idx2 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
+//        System.out.println(-idx2-2);
         if (-idx2 - 2 <= 0) {
             idx2 = listOfAggregateScaffolds.size() - 1;
         } else {
