@@ -68,7 +68,7 @@ public class HiCGlobals {
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.8.6";
+    public static final String versionNum = "1.6.11";//"1.8.6"; // 1.6.11 is latest public release
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";

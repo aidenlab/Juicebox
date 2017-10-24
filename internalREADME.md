@@ -126,8 +126,9 @@ Building Different CUDA versions
 
 CUDA 7.0 is used on AWS
 CUDA 7.5 is on most of our internal machines (Hailmary)
-CUDA 8.0 is used on Adam now.
-I think Rice was 7.5 as well, but not sure.
+CUDA 8.0 is used on Adam; linux-x64
+CUDA 8.0 is used on Rice; linux-ppc
+CUDA 8.0 for Mac; apple-x86
 
 
 To change from 7.0 to 7.5, the build.xml and 
@@ -141,7 +142,11 @@ Change the following line (has x2 occurrences, one for each jar build)
 to
 `<zipfileset src="${basedir}/lib/jcuda/jcuda-0.7.5.jar"/>`
 or
-`<zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0RC.linux.jar"/>`
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-0.8.0.jar"/>`
+and for Power (Rice) will need
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-ppc_64.jar"/>`
+and otherwise
+`<zipfileset src="${basedir}/lib/jcuda/jcuda-natives-0.8.0-linux-x86_64.jar"/>`
 
 ---jcuda lib changes
 
