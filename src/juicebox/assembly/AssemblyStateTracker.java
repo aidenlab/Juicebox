@@ -70,7 +70,7 @@ public class AssemblyStateTracker {
         undoStack.push(assemblyScaffoldHandler);
         assemblyScaffoldHandler.updateAssembly(refreshMap);
         regenerateLayers(refreshMap);
-        System.out.println(assemblyScaffoldHandler.toString());
+        //     System.out.println(assemblyScaffoldHandler.toString());
     }
 
     public void regenerateLayers(boolean refreshMap) {
