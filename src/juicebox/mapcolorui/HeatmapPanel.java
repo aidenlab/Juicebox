@@ -1086,31 +1086,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(miMoveToDebris);
 
-        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-        miInvert.setSelected(straightEdgeEnabled);
-        miInvert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                invertMenuItemActionPerformed();
+        // Remnants of duplicating mouse prompt functionality. Not sure if we want to keep this around.
+//        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
+//        miInvert.setSelected(straightEdgeEnabled);
+//        miInvert.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                invertMenuItemActionPerformed();
+//
+//                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+//                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
+//                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+//            }
+//        });
+//        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+//        menu.add(miInvert);
 
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-            }
-        });
-        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miInvert);
-
-        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
-        miSplit.setSelected(straightEdgeEnabled);
-        miSplit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                splitMenuItemActionPerformed();
-            }
-        });
-        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miSplit);
+        // Remnants of long-click split.. Disabled for now, not sure if want to revive
+//        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
+//        miSplit.setSelected(straightEdgeEnabled);
+//        miSplit.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                splitMenuItemActionPerformed();
+//            }
+//        });
+//        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+//        menu.add(miSplit);
 
         final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
         miUndo.setSelected(straightEdgeEnabled);
@@ -1585,24 +1587,28 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
             } else {
-                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                // current feature is populated only from all main feature pairs, contains does not work
+                for (Feature2DGuiContainer loop : allMainFeaturePairs) {
                     if (loop.getRectangle().contains(x, y)) {
-                        // TODO - why is this code duplicated in this file?
-                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append(loop.getFeature2D().tooltipText());
-                        txt.append("</span>");
-                        if (allMainFeaturePairs.contains(loop)) {
-                            currentFeature = loop;
-                        }
-                        //mouseIsOverFeature = true;
+                        currentFeature = loop;
                     }
                 }
+
                 if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
                     Collections.sort(selectedFeatures);
                     for (Feature2D feature2D : selectedFeatures) {
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(feature2D.tooltipText());
                         txt.append("</span>");
+                    }
+                } else {
+                    for (Feature2DGuiContainer loop : allFeaturePairs) {
+                        if (loop.getRectangle().contains(x, y)) {
+                            // TODO - why is this code duplicated in this file?
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(loop.getFeature2D().tooltipText());
+                            txt.append("</span>");
+                        }
                     }
                 }
             }
@@ -1907,12 +1913,13 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
                 if (activelyEditingAssembly && HiCGlobals.splitModeEnabled && currentPromptedAssemblyAction == PromptedAssemblyAction.CUT) {
-                    holdTime = (endTime - startTime) / Math.pow(10, 6);
+                    // disable long click: it seems that no one is using it anyway. But let's keep it commented around for now..
+//                    holdTime = (endTime - startTime) / Math.pow(10, 6);
                     //Short click: execute split, long click: expert mode leave annotation be for editing purposes
-                    if (holdTime <= clickDelay) {
+//                    if (holdTime <= clickDelay) {
                         debrisFeature = generateDebrisFeature(e, debrisFeatureSize);
                         executeSplitMenuAction();
-                    }
+//                    }
                     currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
                 }
                 if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
@@ -2408,7 +2415,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 hic.moveBy(scroll, scroll);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
             } catch (Exception e2) {
-                //
+                repaint();
             }
         }
     }
