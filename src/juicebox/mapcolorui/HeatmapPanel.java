@@ -594,7 +594,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
                                    NormalizationType normalizationType) {
-
         if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
             JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
             return null;

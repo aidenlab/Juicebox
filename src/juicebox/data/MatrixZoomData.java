@@ -280,41 +280,46 @@ public class MatrixZoomData {
                 y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
                 y2pos = (int) (yScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
 
-                if (xScaffold.getCurrentStart() / HiCGlobals.hicMapScale < binX1 * binSize) {
+                // have to case long because of thumbnail, maybe fix thumbnail instead
+
+                if (xScaffold.getCurrentStart() < (long) binX1 * binSize * HiCGlobals.hicMapScale) {
                     if (!xScaffold.getInvertedVsInitial()) {
-                        x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binX1 * binSize - xScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
+                        x1pos = (int) ((xScaffold.getOriginalStart() + (long) binX1 * binSize * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        x2pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale - binX1 * binSize + xScaffold.getCurrentEnd() / HiCGlobals.hicMapScale);
+                        x2pos = (int) ((xScaffold.getOriginalStart() - (long) binX1 * binSize * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (yScaffold.getCurrentStart() / HiCGlobals.hicMapScale < binY1 * binSize) {
+                if (yScaffold.getCurrentStart() < (long) binY1 * binSize * HiCGlobals.hicMapScale) {
                     if (!yScaffold.getInvertedVsInitial()) {
-                        y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binY1 * binSize - yScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
+                        y1pos = (int) ((yScaffold.getOriginalStart() + (long) binY1 * binSize * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        y2pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale - binY1 * binSize + yScaffold.getCurrentEnd() / HiCGlobals.hicMapScale);
+                        y2pos = (int) ((yScaffold.getOriginalStart() - (long) binY1 * binSize * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (xScaffold.getCurrentEnd() / HiCGlobals.hicMapScale > binX2 * binSize) {
+                if (xScaffold.getCurrentEnd() > (long) binX2 * binSize * HiCGlobals.hicMapScale) {
                     if (!xScaffold.getInvertedVsInitial()) {
-                        x2pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binX2 * binSize - xScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
+                        x2pos = (int) ((xScaffold.getOriginalStart() + (long) binX2 * binSize * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale - binX2 * binSize + xScaffold.getCurrentEnd() / HiCGlobals.hicMapScale);
+                        x1pos = (int) ((xScaffold.getOriginalStart() - (long) binX2 * binSize * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (yScaffold.getCurrentEnd() / HiCGlobals.hicMapScale > binY2 * binSize) {
+                if (yScaffold.getCurrentEnd() > (long) binY2 * binSize * HiCGlobals.hicMapScale) {
                     if (!yScaffold.getInvertedVsInitial()) {
-                        y2pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale + binY2 * binSize - yScaffold.getCurrentStart() / HiCGlobals.hicMapScale);
+                        y2pos = (int) ((yScaffold.getOriginalStart() + (long) binY2 * binSize * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale - binY2 * binSize + yScaffold.getCurrentEnd() / HiCGlobals.hicMapScale);
+                        y1pos = (int) ((yScaffold.getOriginalStart() - (long) binY2 * binSize * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
                 int[] genomePosition = new int[]{
                         x1pos, x2pos, y1pos, y2pos
                 };
+
+//                System.out.println(binX1+" "+binX2+" "+binY1+" "+binY2);
+//                System.out.println(x1pos+" "+x2pos+" "+y1pos+" "+y2pos);
 
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
