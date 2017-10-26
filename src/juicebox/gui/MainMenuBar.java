@@ -629,6 +629,8 @@ public class MainMenuBar {
             }
         });
 
+// TODO: check total length and have automatic scaling assigned as default based on that
+
         setScale = new JMenuItem("Set scale");
         setScale.addActionListener(new ActionListener() {
             @Override
@@ -649,10 +651,14 @@ public class MainMenuBar {
                     superAdapter.getMainViewPanel().getRulerPanelX().repaint();
                     superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale assembly annotations
+                    // Rescale and redraw assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().regenerateLayers();
-                        superAdapter.refresh();
+                        superAdapter.getAssemblyStateTracker().resetState();
+//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+////                        assemblyHandler.updateAssembly(true);
+//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
+////                        //superAdapter.repaint();
                     }
 
                 } catch (NumberFormatException t) {

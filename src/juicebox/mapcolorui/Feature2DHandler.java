@@ -192,14 +192,21 @@ public class Feature2DHandler {
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                             double binOriginX, double binOriginY, double scale) {
+                                             final double binOriginX, final double binOriginY, final double scale, final boolean largeOnly) {
         final List<Feature2D> foundFeatures = new ArrayList<>();
         final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+        final HiCGridAxis xAxis = zd.getXGridAxis();
+        final HiCGridAxis yAxis = zd.getYGridAxis();
 
+<<<<<<< HEAD
         if (layerVisible) {
             if (featureRtrees.containsKey(key)) {
                 final HiCGridAxis xAxis = zd.getXGridAxis();
                 final HiCGridAxis yAxis = zd.getYGridAxis();
+=======
+        if (featureRtrees.containsKey(key) && layerVisible) {
+            if (sparseFeaturePlottingEnabled) {
+>>>>>>> AggregateProcessingDevelopment
 
                 try {
                     featureRtrees.get(key).nearestN(
@@ -207,7 +214,10 @@ public class Feature2DHandler {
                             new TIntProcedure() {         // a procedure whose execute() method will be called with the results
                                 public boolean execute(int i) {
                                     Feature2D feature = loopList.get(key).get(i);
-                                    foundFeatures.add(feature);
+                                    Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
+                                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                                        foundFeatures.add(feature);
+                                    }
                                     return true;              // return true here to continue receiving results
                                 }
                             },
@@ -218,9 +228,18 @@ public class Feature2DHandler {
                     System.err.println("Error encountered getting nearby features" + e.getLocalizedMessage());
                 }
             } else {
+<<<<<<< HEAD
                 System.err.println("returning all; didn't find " + key + " nearby");
                 List<Feature2D> features = loopList.get(key);
                 if (features != null) foundFeatures.addAll(features);
+=======
+                for (Feature2D feature : loopList.get(key)) {
+                    Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
+                    if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
+                        foundFeatures.add(feature);
+                    }
+                }
+>>>>>>> AggregateProcessingDevelopment
             }
         }
         return foundFeatures;
@@ -241,10 +260,21 @@ public class Feature2DHandler {
                                     foundFeatures.add(feature);
                                     return true;      // return true here to continue receiving results
                                 }
+<<<<<<< HEAD
                             }
                     );
                 } catch (Exception e) {
                     System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
+=======
+                        );
+                    } catch (Exception e) {
+                        System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
+                    }
+                } else {
+//                    System.out.println("returning all");
+                    List<Feature2D> features = loopList.get(key);
+                    if (features != null) foundFeatures.addAll(features);
+>>>>>>> AggregateProcessingDevelopment
                 }
             } else {
                 System.err.println("returning all; didn't find " + key + " intersecting");

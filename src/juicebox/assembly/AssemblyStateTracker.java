@@ -25,7 +25,6 @@
 package juicebox.assembly;
 
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayerHandler;
 
 import java.util.Stack;
 
@@ -33,54 +32,76 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyFragmentHandler> undoStack;
-    private Stack<AssemblyFragmentHandler> redoStack;
-    private AnnotationLayerHandler contigLayerHandler;
-    private AnnotationLayerHandler scaffoldLayerHandler;
-    private AssemblyFragmentHandler initialAssemblyFragmentHandler;
+    private Stack<AssemblyScaffoldHandler> undoStack;
+    private Stack<AssemblyScaffoldHandler> redoStack;
+    private AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
+    private SuperAdapter superAdapter;
 
-    public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
+    public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler) {
 
         undoStack = new Stack<>();
+<<<<<<< HEAD
         undoStack.push(assemblyFragmentHandler);
         this.contigLayerHandler = contigLayerHandler;
         this.scaffoldLayerHandler = scaffoldLayerHandler;
         redoStack = new Stack<>();
         this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
+=======
+        undoStack.push(assemblyScaffoldHandler);
+        redoStack = new Stack<AssemblyScaffoldHandler>();
+        this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
+>>>>>>> AggregateProcessingDevelopment
     }
 
-    public AssemblyFragmentHandler getAssemblyHandler() {
+    public AssemblyScaffoldHandler getAssemblyHandler() {
         return undoStack.peek();
     }
 
-    public AssemblyFragmentHandler getNewAssemblyHandler() {
-        AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
-        return newAssemblyFragmentHandler;
+    public AssemblyScaffoldHandler getNewAssemblyHandler() {
+        AssemblyScaffoldHandler newAssemblyScaffoldHandler = new AssemblyScaffoldHandler(undoStack.peek());
+        //AssemblyScaffoldHandler newAssemblyScaffoldHandler = undoStack.peek();
+        return newAssemblyScaffoldHandler;
     }
 
     public void resetState() {
         undoStack.clear();
+<<<<<<< HEAD
         redoStack.clear();
         undoStack.push(initialAssemblyFragmentHandler);
         regenerateLayers();
         executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+=======
+        assemblyActionPerformed(this.initialAssemblyScaffoldHandler, true);
+        executeLongRunningTask(this.superAdapter);
+>>>>>>> AggregateProcessingDevelopment
     }
 
-    public AssemblyFragmentHandler getInitialAssemblyFragmentHandler() {
-        return initialAssemblyFragmentHandler;
+    public AssemblyScaffoldHandler getInitialAssemblyScaffoldHandler() {
+        return this.initialAssemblyScaffoldHandler;
     }
 
-    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
+    public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
         redoStack.clear();
-        undoStack.push(assemblyFragmentHandler);
-        regenerateLayers();
+        undoStack.push(assemblyScaffoldHandler);
+        assemblyScaffoldHandler.updateAssembly(refreshMap);
+        regenerateLayers(refreshMap);
+        //     System.out.println(assemblyScaffoldHandler.toString());
     }
 
+<<<<<<< HEAD
     public void regenerateLayers() {
         AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
         assemblyFragmentHandler.updateAssembly();
         scaffoldLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList());
         contigLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getScaffoldFeature2DList());
+=======
+    public void regenerateLayers(boolean refreshMap) {
+        AssemblyScaffoldHandler assemblyScaffoldHandler = undoStack.peek();
+        if (refreshMap) {
+            superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+        }
+        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
+>>>>>>> AggregateProcessingDevelopment
     }
 
     public boolean checkUndo() {
@@ -90,8 +111,14 @@ public class AssemblyStateTracker {
     public void undo() {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
+<<<<<<< HEAD
             regenerateLayers();
             executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+=======
+            undoStack.peek().updateAssembly(true);
+            regenerateLayers(true);
+            executeLongRunningTask(this.superAdapter);
+>>>>>>> AggregateProcessingDevelopment
         }
     }
 
@@ -102,8 +129,14 @@ public class AssemblyStateTracker {
     public void redo() {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
+<<<<<<< HEAD
             regenerateLayers();
             executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+=======
+            undoStack.peek().updateAssembly(true);
+            regenerateLayers(true);
+            executeLongRunningTask(this.superAdapter);
+>>>>>>> AggregateProcessingDevelopment
         }
     }
 
@@ -117,4 +150,7 @@ public class AssemblyStateTracker {
         superAdapter.executeLongRunningTask(runnable, "Assembly clear MZD cache");
     }
 
+    public void setSuperAdapter(SuperAdapter superAdapter) {
+        this.superAdapter = superAdapter;
+    }
 }

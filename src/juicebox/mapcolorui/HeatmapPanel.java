@@ -319,8 +319,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             //Uncomment to draw bin grid (for debugging)
 //            Graphics2D g2 = (Graphics2D) g.create();
-//            g2.setColor(Color.green);
-//            g2.setColor(new Color(0, 0, 1.0f, 0.3f));
+//            g2.setAssociatedFeatureColor(Color.green);
+//            g2.setAssociatedFeatureColor(new Color(0, 0, 1.0f, 0.3f));
 //            for (int bin = (int) binOriginX; bin <= bRight; bin++) {
 //                int pX = (int) ((bin - hic.getXContext().getBinOrigin()) * hic.getScaleFactor());
 //                g2.drawLine(pX, 0, pX, getHeight());
@@ -497,6 +497,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
                 for (AnnotationLayerHandler handler : handlers) {
+<<<<<<< HEAD
                     if (handler.getNumberOfFeatures() > 0) {
                         List<Feature2D> loops;
                         if (handler.getIsSparse()) {
@@ -504,6 +505,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
                         } else {
                             loops = handler.getIntersectingFeatures(zd.getChr1Idx(), zd.getChr2Idx(), currentWindow);
+=======
+                    List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
+                            centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor, true);
+                    List<Feature2D> cLoopsReflected = new ArrayList<>();
+                    for (Feature2D feature2D : loops) {
+                        if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
+                            cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
+>>>>>>> AggregateProcessingDevelopment
                         }
 
                         List<Feature2D> cLoopsReflected = new ArrayList<>();
@@ -610,7 +619,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     public Image getThumbnailImage(MatrixZoomData zd0, MatrixZoomData ctrl0, int tw, int th, MatrixType displayOption,
                                    NormalizationType normalizationType) {
-
         if (MatrixType.isPearsonType(displayOption) && hic.isPearsonsNotAvailable(false)) {
             JOptionPane.showMessageDialog(this, "Pearson's matrix is not available at this resolution");
             return null;
@@ -1069,16 +1077,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
-            miSelect.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    removeSelection();
-                }
-            });
-            menu.add(miSelect);
-        }
+//        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+//            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
+//            miSelect.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//                    removeSelection();
+//                }
+//            });
+//            menu.add(miSelect);
+//        }
 
         final JCheckBoxMenuItem expandSelection = new JCheckBoxMenuItem("Expand Selection");
         expandSelection.setSelected(false);
@@ -1103,31 +1111,33 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(miMoveToDebris);
 
-        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-        miInvert.setSelected(straightEdgeEnabled);
-        miInvert.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                invertMenuItemActionPerformed();
+        // Remnants of duplicating mouse prompt functionality. Not sure if we want to keep this around.
+//        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
+//        miInvert.setSelected(straightEdgeEnabled);
+//        miInvert.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                invertMenuItemActionPerformed();
+//
+//                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+//                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
+//                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+//            }
+//        });
+//        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+//        menu.add(miInvert);
 
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
-                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-            }
-        });
-        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miInvert);
-
-        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
-        miSplit.setSelected(straightEdgeEnabled);
-        miSplit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                splitMenuItemActionPerformed();
-            }
-        });
-        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-        menu.add(miSplit);
+        // Remnants of long-click split.. Disabled for now, not sure if want to revive
+//        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
+//        miSplit.setSelected(straightEdgeEnabled);
+//        miSplit.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                splitMenuItemActionPerformed();
+//            }
+//        });
+//        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
+//        menu.add(miSplit);
 
         final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
         miUndo.setSelected(straightEdgeEnabled);
@@ -1313,10 +1323,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
         Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
 
         if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            Feature2D initialFeature = selectedFeatures.get(0);
-            Contig2D initialContig = initialFeature.toContig();
-
-            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
+//            Feature2D initialFeature = selectedFeatures.get(0);
+//            Contig2D initialContig = initialFeature.toContig();
+//            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
 
             AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
         }
@@ -1582,12 +1591,12 @@ public class HeatmapPanel extends JComponent implements Serializable {
             double minDistance = Double.POSITIVE_INFINITY;
             //mouseIsOverFeature = false;
             currentFeature = null;
-            int numLayers = superAdapter.getAllLayers().size();
-            int priority = numLayers;
-            for (Feature2DGuiContainer loop : allFeaturePairs) {
-                if (loop.getRectangle().contains(x, y)) {
-                    // TODO - why is this code duplicated in this file?
-                    if (loop.getAnnotationLayerHandler().getAnnotationLayer().getLayerType() != AnnotationLayer.LayerType.GROUP) { //ignore group layer
+            if (!activelyEditingAssembly) {
+                int numLayers = superAdapter.getAllLayers().size();
+                int priority = numLayers;
+                for (Feature2DGuiContainer loop : allFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        // TODO - why is this code duplicated in this file?
                         txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                         txt.append(loop.getFeature2D().tooltipText());
                         txt.append("</span>");
@@ -1601,24 +1610,34 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         //mouseIsOverFeature = true;
                     }
                 }
-            }
 
-            if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                Collections.sort(selectedFeatures);
-                for (Feature2D feature2D : selectedFeatures) {
-                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append(feature2D.tooltipText());
-                    if (!(feature2D instanceof Contig2D)) {
-                        String isInverted = String.valueOf(feature2D.toContig().isInverted());
-                        isInverted = isInverted.substring(0, 1).toUpperCase() + isInverted.substring(1);
-                        txt.append("Inverted = ");
-                        txt.append("<b>");
-                        txt.append(isInverted);
-                        txt.append("</b>");
+            } else {
+                // current feature is populated only from all main feature pairs, contains does not work
+                for (Feature2DGuiContainer loop : allMainFeaturePairs) {
+                    if (loop.getRectangle().contains(x, y)) {
+                        currentFeature = loop;
                     }
-                    txt.append("</span>");
+                }
+
+                if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                    Collections.sort(selectedFeatures);
+                    for (Feature2D feature2D : selectedFeatures) {
+                        txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                        txt.append(feature2D.tooltipText());
+                        txt.append("</span>");
+                    }
+                } else {
+                    for (Feature2DGuiContainer loop : allFeaturePairs) {
+                        if (loop.getRectangle().contains(x, y)) {
+                            // TODO - why is this code duplicated in this file?
+                            txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                            txt.append(loop.getFeature2D().tooltipText());
+                            txt.append("</span>");
+                        }
+                    }
                 }
             }
+
             txt.append("<br>");
             txt.append("</html>");
             return txt.toString();
@@ -1780,7 +1799,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 if (e.isAltDown()) {
                     dragMode = DragMode.ZOOM;
                     // Shift down for custom annotations
-                } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN)) {
+                } else if (e.isShiftDown() && (activelyEditingAssembly || superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD)) {
 
                     if (!activelyEditingAssembly) {
                         boolean showWarning = false;
@@ -1804,7 +1823,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     // Corners for resize annotation
 
                     try {
-                        List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                        List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
                         if (!selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
 
                             HiCGlobals.splitModeEnabled = false;
@@ -1817,7 +1836,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     } catch (Exception ee) {
                     }
-                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) {
+                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD) {
                     dragMode = DragMode.RESIZE;
                     Feature2D loop = currentFeature.getFeature2D();
                     // Resizing upper left corner, keep end points stationary
@@ -1919,19 +1938,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 }
 
                 if (activelyEditingAssembly && HiCGlobals.splitModeEnabled && currentPromptedAssemblyAction == PromptedAssemblyAction.CUT) {
-                    holdTime = (endTime - startTime) / Math.pow(10, 6);
+                    // disable long click: it seems that no one is using it anyway. But let's keep it commented around for now..
+//                    holdTime = (endTime - startTime) / Math.pow(10, 6);
                     //Short click: execute split, long click: expert mode leave annotation be for editing purposes
-                    if (holdTime <= clickDelay) {
+//                    if (holdTime <= clickDelay) {
                         debrisFeature = generateDebrisFeature(e, debrisFeatureSize);
                         executeSplitMenuAction();
-                    }
+//                    }
                     currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
                 }
                 if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
                     // New annotation is added (not single click) and new feature from custom annotation
 
                     updateSelectedFeatures(false);
-                    List<Feature2D> newSelectedFeatures = superAdapter.getActiveLayerHandler().getSelectedFeatures(hic, e.getX(), e.getY());
+                    List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
                     if (HiCGlobals.translationInProgress) {
                         translationInProgressMouseReleased(newSelectedFeatures);
@@ -2230,7 +2250,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 int minDist = 20;
                 if (currentFeature != null) {
 
-                    boolean resizeable = (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.MAIN) && (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.GROUP);
+                    boolean resizeable = (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD) && (currentFeature.getAnnotationLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SUPERSCAFFOLD);
 //                    if (activelyEditingAssembly) {
 //                        resizeable = (resizeable && HiCGlobals.splitModeEnabled);
 //                    }
@@ -2420,7 +2440,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 hic.moveBy(scroll, scroll);
                 superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
             } catch (Exception e2) {
-                //
+                repaint();
             }
         }
     }

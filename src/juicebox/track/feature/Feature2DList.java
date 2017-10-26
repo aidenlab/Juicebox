@@ -463,19 +463,19 @@ public class Feature2DList {
     }
 
 
-    public void convertFeaturesToContigs(String key) {
-        List<Feature2D> contigs = new ArrayList<>();
-        for (Feature2D entry : this.get(key)) {
-            // Only proceed if not instance of Contig2D
-            if (entry instanceof Contig2D) {
-                contigs.add(entry);
-            } else {
-                contigs.add(entry.toContig());
-            }
-        }
-        Collections.sort(contigs);
-        this.setWithKey(key, contigs);
-    }
+//    public void convertFeaturesToContigs(String key) {
+//        List<Feature2D> contigs = new ArrayList<>();
+//        for (Feature2D entry : this.get(key)) {
+//            // Only proceed if not instance of Contig2D
+//            if (entry instanceof Contig2D) {
+//                contigs.add(entry);
+//            } else {
+//                contigs.add(entry.toContig());
+//            }
+//        }
+//        Collections.sort(contigs);
+//        this.setWithKey(key, contigs);
+//    }
 
     public Map<String, String> getDefaultAtributes() {
         return defaultAttributes;
@@ -579,7 +579,7 @@ public class Feature2DList {
 
     public int getIndex(Chromosome chrX, Chromosome chrY, Feature2D feature2D) {
         final String key = Feature2DList.getKey(chrX, chrY);
-        this.convertFeaturesToContigs(key);
+        //this.convertFeaturesToContigs(key);
         List<Feature2D> contigs = this.get(key);
 
         for (int i = 0; i < contigs.size(); i++) {
