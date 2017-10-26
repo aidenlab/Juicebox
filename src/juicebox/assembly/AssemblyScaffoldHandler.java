@@ -354,9 +354,9 @@ public class AssemblyScaffoldHandler {
                 } else {
                     newListOfScaffolds.get(newListOfScaffolds.size() - 1).setOriginalStart(targetScaffold.getOriginalStart());
                     newListOfScaffolds.get(newListOfScaffolds.size() - 1).setOriginallyInverted(true);
-                    newListOfScaffolds.get(newListOfScaffolds.size() - 2).setOriginalStart(targetScaffold.getOriginalStart() - endCut);
+                    newListOfScaffolds.get(newListOfScaffolds.size() - 2).setOriginalStart(targetScaffold.getOriginalEnd() - endCut - 1);
                     newListOfScaffolds.get(newListOfScaffolds.size() - 2).setOriginallyInverted(true);
-                    newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginalStart(targetScaffold.getOriginalStart() - startCut);
+                    newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginalStart(targetScaffold.getOriginalEnd() - startCut - 1);
                     newListOfScaffolds.get(newListOfScaffolds.size() - 3).setOriginallyInverted(true);
                 }
             } else {
@@ -597,7 +597,7 @@ public class AssemblyScaffoldHandler {
     }
 
     public List<Scaffold> getIntersectingAggregateFeatures(long genomicPos1, long genomicPos2) {
-//        System.out.println("I am in getIntersectingAggerageFeatures: "+listOfAggregateScaffolds.size());
+//        System.out.println("I am in getIntersectingAggerageFeatures: "+genomicPos1+" "+genomicPos2);
         Scaffold tmp = new Scaffold("tmp", 1, 1);
         tmp.setCurrentStart(genomicPos1);
         int idx1 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
@@ -610,7 +610,7 @@ public class AssemblyScaffoldHandler {
         tmp.setCurrentStart(genomicPos2);
         int idx2 = Collections.binarySearch(listOfAggregateScaffolds, tmp);
 //        System.out.println(-idx2-2);
-        if (-idx2 - 2 <= 0) {
+        if (-idx2 - 2 < 0) {
             idx2 = listOfAggregateScaffolds.size() - 1;
         } else {
             idx2 = -idx2 - 2;

@@ -232,7 +232,6 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         if (this.getOriginalEnd() == scaffold.getOriginalStart()
                 && scaffold.isInvertedVsInitial == this.isInvertedVsInitial
                 && this.isInvertedVsInitial == false) {
-
             this.length = this.length + scaffold.length;
             return this;
         }

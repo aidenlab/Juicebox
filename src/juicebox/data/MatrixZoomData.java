@@ -253,7 +253,7 @@ public class MatrixZoomData {
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, null);
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
@@ -267,8 +267,26 @@ public class MatrixZoomData {
         AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
         final int binSize = zoom.getBinSize();
-        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (binX1 * binSize * HiCGlobals.hicMapScale), (long) (binX2 * binSize * HiCGlobals.hicMapScale));
-        List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (binY1 * binSize * HiCGlobals.hicMapScale), (long) (binY2 * binSize * HiCGlobals.hicMapScale));
+        long actualBinSize = (long) binSize;
+        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+            actualBinSize = 1000 * actualBinSize;
+        }
+
+        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
+        List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (actualBinSize * binY1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binY2 * HiCGlobals.hicMapScale));
+
+
+//        System.out.println("*****");
+//
+//        for (Scaffold scaffod: xAxisAggregateScaffolds){
+//            System.out.println(scaffod.getIndexId());
+//            System.out.println(scaffod.getCurrentStart());
+//            System.out.println(scaffod.getOriginalStart());
+//
+//        }
+//
+//        System.out.println("*****");
+
 
         int x1pos, x2pos, y1pos, y2pos;
 
@@ -282,35 +300,35 @@ public class MatrixZoomData {
 
                 // have to case long because of thumbnail, maybe fix thumbnail instead
 
-                if (xScaffold.getCurrentStart() < (long) binX1 * binSize * HiCGlobals.hicMapScale) {
+                if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
                     if (!xScaffold.getInvertedVsInitial()) {
-                        x1pos = (int) ((xScaffold.getOriginalStart() + (long) binX1 * binSize * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                        x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        x2pos = (int) ((xScaffold.getOriginalStart() - (long) binX1 * binSize * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                        x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (yScaffold.getCurrentStart() < (long) binY1 * binSize * HiCGlobals.hicMapScale) {
+                if (yScaffold.getCurrentStart() < actualBinSize * binY1 * HiCGlobals.hicMapScale) {
                     if (!yScaffold.getInvertedVsInitial()) {
-                        y1pos = (int) ((yScaffold.getOriginalStart() + (long) binY1 * binSize * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                        y1pos = (int) ((yScaffold.getOriginalStart() + actualBinSize * binY1 * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        y2pos = (int) ((yScaffold.getOriginalStart() - (long) binY1 * binSize * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                        y2pos = (int) ((yScaffold.getOriginalStart() - actualBinSize * binY1 * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (xScaffold.getCurrentEnd() > (long) binX2 * binSize * HiCGlobals.hicMapScale) {
+                if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
                     if (!xScaffold.getInvertedVsInitial()) {
-                        x2pos = (int) ((xScaffold.getOriginalStart() + (long) binX2 * binSize * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                        x2pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        x1pos = (int) ((xScaffold.getOriginalStart() - (long) binX2 * binSize * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                        x1pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
-                if (yScaffold.getCurrentEnd() > (long) binY2 * binSize * HiCGlobals.hicMapScale) {
+                if (yScaffold.getCurrentEnd() > actualBinSize * binY2 * HiCGlobals.hicMapScale) {
                     if (!yScaffold.getInvertedVsInitial()) {
-                        y2pos = (int) ((yScaffold.getOriginalStart() + (long) binY2 * binSize * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                        y2pos = (int) ((yScaffold.getOriginalStart() + actualBinSize * binY2 * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
                     } else {
-                        y1pos = (int) ((yScaffold.getOriginalStart() - (long) binY2 * binSize * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                        y1pos = (int) ((yScaffold.getOriginalStart() - actualBinSize * binY2 * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
                     }
                 }
 
@@ -329,7 +347,7 @@ public class MatrixZoomData {
                         String key = getBlockKey(blockNumber, no);
                         Block b;
                         //temp fix for AllByAll. TODO: trace this!
-                        if (HiCGlobals.useCache && blockCache.containsKey(key) && binSize != 4298) {
+                        if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             b = blockCache.get(key);
                             blockList.add(b);
                         } else {
@@ -342,13 +360,13 @@ public class MatrixZoomData {
 
         // Remove basic duplicates here
         // Actually load new blocks
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
-                                         final NormalizationType no, final AssemblyScaffoldHandler aFragHandler) {
+                                         final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         List<Thread> threads = new ArrayList<>();
@@ -368,9 +386,8 @@ public class MatrixZoomData {
                             b = new Block(blockNumber, key);   // An empty block
                         }
                         //Run out of memory if do it here
-                        if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index, aFragHandler);
-                            //b=b;
+                        if (HiCGlobals.assemblyModeEnabled) {
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
