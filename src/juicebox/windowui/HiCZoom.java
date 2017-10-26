@@ -32,10 +32,10 @@ import juicebox.HiC;
  *         Date: 12/17/12
  *         Time: 9:16 AM
  */
-public class HiCZoom {
+public class HiCZoom implements Comparable<HiCZoom> {
 
     private final HiC.Unit unit;
-    private final int binSize;
+    private final Integer binSize;
 
     public HiCZoom(HiC.Unit unit, int binSize) {
         this.unit = unit;
@@ -76,5 +76,10 @@ public class HiCZoom {
     @Override
     public int hashCode() {
         return 31 * unit.hashCode() + binSize;
+    }
+
+    @Override
+    public int compareTo(HiCZoom o) {
+        return binSize.compareTo(o.binSize);
     }
 }
