@@ -539,13 +539,6 @@ public class Feature2D implements Comparable<Feature2D> {
         return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
     }
 
-//    public Contig2D toContig() {
-//        if (this instanceof Contig2D) {
-//            return (Contig2D) this;
-//        }
-//        return new Contig2D(featureType, chr1, start1, end1, color, attributes);
-//    }
-
     public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {
         isSelected = setIsSelectedColorUpdate;
     }
