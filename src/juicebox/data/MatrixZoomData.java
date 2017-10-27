@@ -76,16 +76,6 @@ public class MatrixZoomData {
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
-//    private static final SuperAdapter superAdapter = new SuperAdapter();
-//    private static final Slideshow slideshow = superAdapter.getSlideshow();
-
-
-//    float sumCounts;
-//    float avgCounts;
-//    float stdDev;
-//    float percent95 = -1;
-//    float percent80 = -1;
-
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -135,14 +125,6 @@ public class MatrixZoomData {
         pearsonsMap = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
-
-    // IMPORTANT
-    // Only to be used for Custom Chromosome
-    //public MatrixZoomData(Chromosome chr1, HiCZoom zoom, DatasetReader reader) {
-    //    this.chr1 = chr1;
-    //    this.chr2 = chr1;
-    //    this.zoom = zoom;
-    //}
 
     public Chromosome getChr1() {
         return chr1;
@@ -275,21 +257,10 @@ public class MatrixZoomData {
             actualBinSize = 1000 * actualBinSize;
         }
 
-        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
-        List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures((long) (actualBinSize * binY1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binY2 * HiCGlobals.hicMapScale));
-
-
-//        System.out.println("*****");
-//
-//        for (Scaffold scaffod: xAxisAggregateScaffolds){
-//            System.out.println(scaffod.getIndexId());
-//            System.out.println(scaffod.getCurrentStart());
-//            System.out.println(scaffod.getOriginalStart());
-//
-//        }
-//
-//        System.out.println("*****");
-
+        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
+        List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binY1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binY2 * HiCGlobals.hicMapScale));
 
         int x1pos, x2pos, y1pos, y2pos;
 
@@ -338,9 +309,6 @@ public class MatrixZoomData {
                 int[] genomePosition = new int[]{
                         x1pos, x2pos, y1pos, y2pos
                 };
-
-//                System.out.println(binX1+" "+binX2+" "+binY1+" "+binY2);
-//                System.out.println(x1pos+" "+x2pos+" "+y1pos+" "+y2pos);
 
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
