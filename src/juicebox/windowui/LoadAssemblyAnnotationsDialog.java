@@ -297,8 +297,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
                 editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
-                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyScaffoldHandler());
-                assemblyStateTracker.setSuperAdapter(superAdapter);
+                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyScaffoldHandler(), superAdapter);
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
 
                 //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);

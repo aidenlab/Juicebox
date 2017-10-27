@@ -65,18 +65,11 @@ public class AssemblyOperationExecutor {
         }
     }
 
-<<<<<<< HEAD
-    public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyFragmentHandler assemblyFragmentHandler, final Boolean refreshMap) {
-        superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyFragmentHandler);
-        if (refreshMap) {
-            superAdapter.getAssemblyStateTracker().executeClearAllMZDCache(superAdapter);
-        }
-=======
+
     public static void performAssemblyAction(final SuperAdapter superAdapter, final AssemblyScaffoldHandler assemblyScaffoldHandler, final Boolean refreshMap) {
 
         superAdapter.getAssemblyStateTracker().assemblyActionPerformed(assemblyScaffoldHandler, refreshMap);
-        if (refreshMap) superAdapter.getAssemblyStateTracker().executeLongRunningTask(superAdapter);
+        if (refreshMap) superAdapter.executeClearAllMZDCache();
 
->>>>>>> AggregateProcessingDevelopment
     }
 }

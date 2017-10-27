@@ -84,18 +84,7 @@ public class AssemblyHeatmapHandler {
         return block;
     }
 
-<<<<<<< HEAD
-    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        int genomicCoordinate = binValue * binSize + binSize / 2;
-        Contig2D contig2D = aFragHandler.lookupContigForBinValue(chr1Idx, chr2Idx, genomicCoordinate, binSize);
-        if (contig2D != null) {
-            //System.err.println("fine so far...2");
-            int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, genomicCoordinate);
-            int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
-            return (currentBinCenterCoordinate - binSize / 2) / binSize;
-        } else {
-            //System.err.println("contig is null..2?");
-=======
+
 
     private static int getAlteredAsmBin(int binValue, int binSize) {
 
@@ -103,9 +92,7 @@ public class AssemblyHeatmapHandler {
         long currentBinCenterCoordinate;
         Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalBinCenterCoordinate);
 
-        if (aggregateScaffold == null) {
-            return -1;
-        } else {
+        if (aggregateScaffold != null) {
             if (!aggregateScaffold.getInvertedVsInitial()) {
                 currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() + originalBinCenterCoordinate - aggregateScaffold.getOriginalStart());
             } else {
@@ -113,7 +100,6 @@ public class AssemblyHeatmapHandler {
             }
 
             return (int) (currentBinCenterCoordinate / (HiCGlobals.hicMapScale * binSize) - 1 / 2);
->>>>>>> AggregateProcessingDevelopment
         }
         return -1;
     }

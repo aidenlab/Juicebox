@@ -515,11 +515,7 @@ public class AnnotationLayerHandler {
                 List<Feature2D> intersectingFeatures = getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
                 selectedFeatures.addAll(intersectingFeatures);
 
-<<<<<<< HEAD
-                //annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
-=======
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(previousStatus);
->>>>>>> AggregateProcessingDevelopment
             } catch (Exception e) {
                 //annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
                 selectionRegion = null;

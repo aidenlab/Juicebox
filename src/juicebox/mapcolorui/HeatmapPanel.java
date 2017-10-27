@@ -497,45 +497,31 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
 
                 for (AnnotationLayerHandler handler : handlers) {
-<<<<<<< HEAD
-                    if (handler.getNumberOfFeatures() > 0) {
-                        List<Feature2D> loops;
-                        if (handler.getIsSparse()) {
-                            loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
-                                    centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor);
-                        } else {
-                            loops = handler.getIntersectingFeatures(zd.getChr1Idx(), zd.getChr2Idx(), currentWindow);
-=======
+
                     List<Feature2D> loops = handler.getNearbyFeatures(zd, zd.getChr1Idx(), zd.getChr2Idx(),
                             centerX, centerY, Feature2DHandler.numberOfLoopsToFind, binOriginX, binOriginY, scaleFactor, true);
                     List<Feature2D> cLoopsReflected = new ArrayList<>();
                     for (Feature2D feature2D : loops) {
                         if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
                             cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
->>>>>>> AggregateProcessingDevelopment
                         }
-
-                        List<Feature2D> cLoopsReflected = new ArrayList<>();
-                        for (Feature2D feature2D : loops) {
-                            if (zd.getChr1Idx() == zd.getChr2Idx() && !feature2D.isOnDiagonal()) {
-                                cLoopsReflected.add(feature2D.reflectionAcrossDiagonal());
-                            }
-                        }
-
-                        allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                        loops.addAll(cLoopsReflected);
-
-                        if (activelyEditingAssembly) {
-                            if (handler == superAdapter.getMainLayer()) {
-                                allMainFeaturePairs.addAll(superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                            } else if (handler == superAdapter.getEditLayer() && selectedFeatures != null && !selectedFeatures.isEmpty()) {
-                                allEditFeaturePairs.addAll(superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
-                            }
-                        }
-
-                        FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
-                                highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
                     }
+
+
+                    allFeaturePairs.addAll(handler.getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                    loops.addAll(cLoopsReflected);
+
+                    if (activelyEditingAssembly) {
+                        if (handler == superAdapter.getMainLayer()) {
+                            allMainFeaturePairs.addAll(superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                        } else if (handler == superAdapter.getEditLayer() && selectedFeatures != null && !selectedFeatures.isEmpty()) {
+                            allEditFeaturePairs.addAll(superAdapter.getEditLayer().getAnnotationLayer().getFeatureHandler().convertFeaturesToFeaturePairs(handler, loops, zd, binOriginX, binOriginY, scaleFactor));
+                        }
+                    }
+
+                    FeatureRenderer.render(g2, handler, loops, zd, binOriginX, binOriginY, scaleFactor,
+                            highlightedFeature, showFeatureHighlight, this.getWidth(), this.getHeight());
+
                 }
                 g2.dispose();
 
@@ -1942,8 +1928,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                    holdTime = (endTime - startTime) / Math.pow(10, 6);
                     //Short click: execute split, long click: expert mode leave annotation be for editing purposes
 //                    if (holdTime <= clickDelay) {
-                        debrisFeature = generateDebrisFeature(e, debrisFeatureSize);
-                        executeSplitMenuAction();
+                    debrisFeature = generateDebrisFeature(e, debrisFeatureSize);
+                    executeSplitMenuAction();
 //                    }
                     currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
                 }
@@ -2259,18 +2245,18 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         Point mousePoint = e.getPoint();
                         // Mouse near top left corner
                         if ((Math.abs(loop.getMinX() - mousePoint.getX()) <= minDist &&
-                            Math.abs(loop.getMinY() - mousePoint.getY()) <= minDist)) {
+                                Math.abs(loop.getMinY() - mousePoint.getY()) <= minDist)) {
                             adjustAnnotation = AdjustAnnotation.LEFT;
                             setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
                             // Mouse near bottom right corner
                         } else if (Math.abs(loop.getMaxX() - mousePoint.getX()) <= minDist &&
-                            Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
+                                Math.abs(loop.getMaxY() - mousePoint.getY()) <= minDist) {
                             adjustAnnotation = AdjustAnnotation.RIGHT;
                             setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
                         }
                     }
 
-                    }
+                }
                 if (activelyEditingAssembly && !allMainFeaturePairs.isEmpty() && !e.isShiftDown()) {
 
                     final double scaleFactor = hic.getScaleFactor();

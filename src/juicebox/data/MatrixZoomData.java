@@ -368,19 +368,6 @@ public class MatrixZoomData {
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
-<<<<<<< HEAD
-    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> axisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
-        List<Contig2D> axisContigs = new ArrayList<>();
-        for (Feature2D feature2D : new HashSet<>(axisFeatures)) {
-            axisContigs.add(feature2D.toContig());
-        }
-        Collections.sort(axisContigs);
-        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
-    }
-
-=======
->>>>>>> AggregateProcessingDevelopment
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
                                          final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();

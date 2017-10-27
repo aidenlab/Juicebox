@@ -183,8 +183,7 @@ public class AssemblyScaffoldHandler {
         listOfAggregateScaffolds.add(aggregateScaffold);
 
         // create scaffold feature handler
-        scaffoldFeature2DHandler = new Feature2DHandler();
-        scaffoldFeature2DHandler.loadLoopList(scaffoldFeature2DList, true);
+        scaffoldFeature2DHandler = new Feature2DHandler(scaffoldFeature2DList);
         //scaffoldFeature2DHandler.setSparsePlottingEnabled(true);
 
 //        Uncomment to visualize aggregate scaffold boundaries
@@ -194,9 +193,7 @@ public class AssemblyScaffoldHandler {
 //        }
 
         // create superscaffold feature handler
-        superscaffoldFeature2DHandler = new Feature2DHandler();
-        superscaffoldFeature2DHandler.loadLoopList(superscaffoldFeature2DList, false);
-
+        superscaffoldFeature2DHandler = new Feature2DHandler(superscaffoldFeature2DList);
         AssemblyHeatmapHandler.setListOfOSortedAggregateScaffolds(listOfAggregateScaffolds);
         // aggregate list is already sorted, no need to sort again
 
@@ -229,8 +226,7 @@ public class AssemblyScaffoldHandler {
             superscaffoldStart += superscaffoldLength;
         }
 
-        superscaffoldFeature2DHandler = new Feature2DHandler();
-        superscaffoldFeature2DHandler.loadLoopList(superscaffoldFeature2DList, false);
+        superscaffoldFeature2DHandler = new Feature2DHandler(superscaffoldFeature2DList);
     }
 
 

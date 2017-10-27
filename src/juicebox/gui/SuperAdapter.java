@@ -1038,4 +1038,14 @@ public class SuperAdapter {
         } catch (Exception ignored) {
         }
     }
+
+    public void executeClearAllMZDCache() {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
+                refresh();
+            }
+        };
+        executeLongRunningTask(runnable, "Assembly clear MZD cache");
+    }
 }

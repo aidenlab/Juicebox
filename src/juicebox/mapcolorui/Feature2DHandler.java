@@ -198,15 +198,9 @@ public class Feature2DHandler {
         final HiCGridAxis xAxis = zd.getXGridAxis();
         final HiCGridAxis yAxis = zd.getYGridAxis();
 
-<<<<<<< HEAD
-        if (layerVisible) {
-            if (featureRtrees.containsKey(key)) {
-                final HiCGridAxis xAxis = zd.getXGridAxis();
-                final HiCGridAxis yAxis = zd.getYGridAxis();
-=======
+
         if (featureRtrees.containsKey(key) && layerVisible) {
             if (sparseFeaturePlottingEnabled) {
->>>>>>> AggregateProcessingDevelopment
 
                 try {
                     featureRtrees.get(key).nearestN(
@@ -228,18 +222,13 @@ public class Feature2DHandler {
                     System.err.println("Error encountered getting nearby features" + e.getLocalizedMessage());
                 }
             } else {
-<<<<<<< HEAD
-                System.err.println("returning all; didn't find " + key + " nearby");
-                List<Feature2D> features = loopList.get(key);
-                if (features != null) foundFeatures.addAll(features);
-=======
+
                 for (Feature2D feature : loopList.get(key)) {
                     Rectangle rect = getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale);
                     if (!largeOnly || (rect.getWidth() > 1 && rect.getHeight() > 1)) {
                         foundFeatures.add(feature);
                     }
                 }
->>>>>>> AggregateProcessingDevelopment
             }
         }
         return foundFeatures;
@@ -260,22 +249,10 @@ public class Feature2DHandler {
                                     foundFeatures.add(feature);
                                     return true;      // return true here to continue receiving results
                                 }
-<<<<<<< HEAD
-                            }
-                    );
-                } catch (Exception e) {
-                    System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
-=======
-                        );
+                            });
                     } catch (Exception e) {
                         System.err.println("Error encountered getting intersecting features" + e.getLocalizedMessage());
                     }
-                } else {
-//                    System.out.println("returning all");
-                    List<Feature2D> features = loopList.get(key);
-                    if (features != null) foundFeatures.addAll(features);
->>>>>>> AggregateProcessingDevelopment
-                }
             } else {
                 System.err.println("returning all; didn't find " + key + " intersecting");
                 List<Feature2D> features = loopList.get(key);
@@ -284,37 +261,6 @@ public class Feature2DHandler {
         }
         return foundFeatures;
     }
-
-    /*
-    public List<Pair<Rectangle, Feature2D>> getNearbyFeaturePairs(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                                                  final double binOriginX, final double binOriginY, final double scale) {
-        final List<Pair<Rectangle, Feature2D>> featurePairs = new ArrayList<>();
-
-        if (layerVisible) {
-            final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
-
-            final HiCGridAxis xAxis = zd.getXGridAxis();
-            final HiCGridAxis yAxis = zd.getYGridAxis();
-
-            if (featureRtrees.containsKey(key)) {
-                featureRtrees.get(key).nearestN(
-                        getGenomicPointFromXYCoordinate(x, y, xAxis, yAxis, binOriginX, binOriginY, scale),      // the point for which we want to find nearby rectangles
-                        new TIntProcedure() {         // a procedure whose execute() method will be called with the results
-                            public boolean execute(int i) {
-                                Feature2D feature = loopList.get(key).get(i);
-                                featurePairs.add(new Pair<>(getRectangleFromFeature(xAxis, yAxis, feature, binOriginX, binOriginY, scale), feature));
-                                return true;              // return true here to continue receiving results
-                            }
-                        },
-                        n,  // the number of nearby rectangles to find
-                        Float.MAX_VALUE  // Don't bother searching further than this. MAX_VALUE means search everything
-                );
-            }
-        }
-
-        return featurePairs;
-    }
-    */
 
     public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
         final List<Feature2D> foundFeatures = new ArrayList<>();

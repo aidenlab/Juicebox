@@ -35,22 +35,15 @@ public class AssemblyStateTracker {
     private Stack<AssemblyScaffoldHandler> undoStack;
     private Stack<AssemblyScaffoldHandler> redoStack;
     private AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
-    private SuperAdapter superAdapter;
+    private final SuperAdapter superAdapter;
 
-    public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler) {
+    public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler, SuperAdapter superAdapter) {
 
         undoStack = new Stack<>();
-<<<<<<< HEAD
-        undoStack.push(assemblyFragmentHandler);
-        this.contigLayerHandler = contigLayerHandler;
-        this.scaffoldLayerHandler = scaffoldLayerHandler;
-        redoStack = new Stack<>();
-        this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
-=======
         undoStack.push(assemblyScaffoldHandler);
-        redoStack = new Stack<AssemblyScaffoldHandler>();
+        redoStack = new Stack<>();
         this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
->>>>>>> AggregateProcessingDevelopment
+        this.superAdapter = superAdapter;
     }
 
     public AssemblyScaffoldHandler getAssemblyHandler() {
@@ -65,19 +58,13 @@ public class AssemblyStateTracker {
 
     public void resetState() {
         undoStack.clear();
-<<<<<<< HEAD
-        redoStack.clear();
-        undoStack.push(initialAssemblyFragmentHandler);
-        regenerateLayers();
-        executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
-=======
-        assemblyActionPerformed(this.initialAssemblyScaffoldHandler, true);
-        executeLongRunningTask(this.superAdapter);
->>>>>>> AggregateProcessingDevelopment
+
+        assemblyActionPerformed(initialAssemblyScaffoldHandler, true);
+        superAdapter.executeClearAllMZDCache();
     }
 
     public AssemblyScaffoldHandler getInitialAssemblyScaffoldHandler() {
-        return this.initialAssemblyScaffoldHandler;
+        return initialAssemblyScaffoldHandler;
     }
 
     public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
@@ -88,20 +75,13 @@ public class AssemblyStateTracker {
         //     System.out.println(assemblyScaffoldHandler.toString());
     }
 
-<<<<<<< HEAD
-    public void regenerateLayers() {
-        AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
-        assemblyFragmentHandler.updateAssembly();
-        scaffoldLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList());
-        contigLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getScaffoldFeature2DList());
-=======
+
     public void regenerateLayers(boolean refreshMap) {
         AssemblyScaffoldHandler assemblyScaffoldHandler = undoStack.peek();
         if (refreshMap) {
-            superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+            superAdapter.getMainLayer().getFeatureHandler().setLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops());
         }
-        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
->>>>>>> AggregateProcessingDevelopment
+        superAdapter.getGroupLayer().getFeatureHandler().setLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops());
     }
 
     public boolean checkUndo() {
@@ -111,14 +91,10 @@ public class AssemblyStateTracker {
     public void undo() {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
-<<<<<<< HEAD
-            regenerateLayers();
-            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
-=======
+
             undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            executeLongRunningTask(this.superAdapter);
->>>>>>> AggregateProcessingDevelopment
+            superAdapter.executeClearAllMZDCache();
         }
     }
 
@@ -129,28 +105,10 @@ public class AssemblyStateTracker {
     public void redo() {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
-<<<<<<< HEAD
-            regenerateLayers();
-            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
-=======
+
             undoStack.peek().updateAssembly(true);
             regenerateLayers(true);
-            executeLongRunningTask(this.superAdapter);
->>>>>>> AggregateProcessingDevelopment
+            superAdapter.executeClearAllMZDCache();
         }
-    }
-
-    public void executeClearAllMZDCache(final SuperAdapter superAdapter) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                superAdapter.clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
-                superAdapter.refresh();
-            }
-        };
-        superAdapter.executeLongRunningTask(runnable, "Assembly clear MZD cache");
-    }
-
-    public void setSuperAdapter(SuperAdapter superAdapter) {
-        this.superAdapter = superAdapter;
     }
 }
