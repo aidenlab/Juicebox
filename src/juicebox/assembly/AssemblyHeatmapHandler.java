@@ -40,6 +40,8 @@ public class AssemblyHeatmapHandler {
 
     private static SuperAdapter superAdapter;
     private static List<Scaffold> listOfOSortedAggregateScaffolds = new ArrayList<>();
+//    Does not seem to offer any speedup.
+//    private static Scaffold guessScaffold = null;
 
     public static void setListOfOSortedAggregateScaffolds(List<Scaffold> listOfAggregateScaffolds) {
         AssemblyHeatmapHandler.listOfOSortedAggregateScaffolds = new ArrayList<>(listOfAggregateScaffolds);
@@ -105,11 +107,16 @@ public class AssemblyHeatmapHandler {
     }
 
     public static Scaffold lookUpOriginalAggregateScaffold(long genomicPos) {
+//        Does not seem to offer much advantage
+//        if (guessScaffold!=null && guessScaffold.getOriginalStart()<genomicPos && guessScaffold.getOriginalEnd()>=genomicPos){
+//            return guessScaffold;
+//        }
         Scaffold tmp = new Scaffold("tmp", 1, 1);
         tmp.setOriginalStart(genomicPos);
         int idx = Collections.binarySearch(listOfOSortedAggregateScaffolds, tmp, Scaffold.originalStateComparator);
-        if (-idx - 2 >= 0)
+        if (-idx - 2 >= 0) {
             return listOfOSortedAggregateScaffolds.get(-idx - 2);
+        }
         else
             return null;
 
