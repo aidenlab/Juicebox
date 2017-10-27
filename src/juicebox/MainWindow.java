@@ -128,14 +128,14 @@ public class MainWindow extends JFrame {
 
             int iC = Integer.valueOf(current[0]);
             int iL = Integer.valueOf(latest[0]);
-            int jC = Integer.valueOf(current[1]);
-            int jL = Integer.valueOf(latest[1]);
-            int kC = Integer.valueOf(current[2]);
-            int kL = Integer.valueOf(latest[2]);
 
             if (iC < iL) {
                 isOutdated = true;
             } else if (iC == iL) {
+                int jC = Integer.valueOf(current[1]);
+                int jL = Integer.valueOf(latest[1]);
+                int kC = Integer.valueOf(current[2]);
+                int kL = Integer.valueOf(latest[2]);
                 if (jC < jL) {
                     isOutdated = true;
                 } else if (jC == jL && kC < kL) {
