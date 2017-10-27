@@ -66,11 +66,11 @@ public class HiCZoom implements Comparable<HiCZoom> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        HiCZoom hiCZoom = (HiCZoom) o;
-
-        return (binSize == hiCZoom.binSize) && (unit == hiCZoom.unit);
+        if (o instanceof HiCZoom) {
+            HiCZoom hiCZoom = (HiCZoom) o;
+            return (binSize.equals(hiCZoom.binSize)) && (unit == hiCZoom.unit);
+        }
+        return false;
     }
 
     @Override

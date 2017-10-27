@@ -47,19 +47,15 @@ import java.util.List;
  */
 class HeatmapClickListener extends MouseAdapter implements ActionListener {
     private static final int clickDelay = 400;
-    private HeatmapPanel heatmapPanel;
+    private final HeatmapPanel heatmapPanel;
     private final Timer clickTimer;
     private MouseEvent lastMouseEvent;
     private Feature2DGuiContainer currentUpstreamFeature = null;
     private Feature2DGuiContainer currentDownstreamFeature = null;
 
     public HeatmapClickListener(HeatmapPanel heatmapPanel) {
-        this(clickDelay);
+        clickTimer = new Timer(clickDelay, this);
         this.heatmapPanel = heatmapPanel;
-    }
-
-    private HeatmapClickListener(int delay) {
-        clickTimer = new Timer(delay, this);
     }
 
     @Override
