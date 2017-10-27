@@ -51,7 +51,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
     private Color color = new Color(97, 184, 209);
     private Color altcolor = color;
     private DataRange dataRange;
-    private boolean isControl;
+    private final boolean isControl;
 
     public HiCCoverageDataSource(HiC hic, NormalizationType no, boolean isControl) {
         this.name = no.getLabel();
@@ -167,7 +167,7 @@ public class HiCCoverageDataSource implements HiCDataSource {
 
     public static class CoverageDataPoint implements HiCDataPoint {
 
-        public final int binNumber;
+        final int binNumber;
         public final int genomicStart;
         public final int genomicEnd;
         public final double value;

@@ -32,9 +32,9 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyScaffoldHandler> undoStack;
-    private Stack<AssemblyScaffoldHandler> redoStack;
-    private AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
+    private final Stack<AssemblyScaffoldHandler> undoStack;
+    private final Stack<AssemblyScaffoldHandler> redoStack;
+    private final AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
     private final SuperAdapter superAdapter;
 
     public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler, SuperAdapter superAdapter) {
@@ -51,9 +51,7 @@ public class AssemblyStateTracker {
     }
 
     public AssemblyScaffoldHandler getNewAssemblyHandler() {
-        AssemblyScaffoldHandler newAssemblyScaffoldHandler = new AssemblyScaffoldHandler(undoStack.peek());
-        //AssemblyScaffoldHandler newAssemblyScaffoldHandler = undoStack.peek();
-        return newAssemblyScaffoldHandler;
+        return new AssemblyScaffoldHandler(undoStack.peek());
     }
 
     public void resetState() {
@@ -76,7 +74,7 @@ public class AssemblyStateTracker {
     }
 
 
-    public void regenerateLayers(boolean refreshMap) {
+    private void regenerateLayers(boolean refreshMap) {
         AssemblyScaffoldHandler assemblyScaffoldHandler = undoStack.peek();
         if (refreshMap) {
             superAdapter.getMainLayer().getFeatureHandler().setLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops());

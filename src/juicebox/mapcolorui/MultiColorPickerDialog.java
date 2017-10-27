@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ class MultiColorPickerDialog extends JDialog {
     public MultiColorPickerDialog() {
         super();
         setResizable(false);
-        setLayout(new BoxLayout(getContentPane(), 1));
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         final Color defaultColor = getBackground();
 
         chooser.setSize(new Dimension(690, 270));

@@ -62,16 +62,16 @@ public class HiCFileLoader {
         File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", openHiCPath, hicFilter);
         if (files != null && files.length > 0) {
             List<String> fileNames = new ArrayList<>();
-            String str = "";
+            StringBuilder str = new StringBuilder();
             String path = "";
             for (File f : files) {
                 fileNames.add(f.getAbsolutePath());
-                str += f.getName() + " ";
+                str.append(f.getName()).append(" ");
                 path = f.getAbsolutePath();
             }
             openHiCPath = new File(path);
-            superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
-            superAdapter.safeLoad(fileNames, control, str);
+            superAdapter.addRecentMapMenuEntry(str.toString().trim() + "@@" + files[0].getAbsolutePath(), true);
+            superAdapter.safeLoad(fileNames, control, str.toString());
         }
         return openHiCPath;
     }
@@ -96,12 +96,12 @@ public class HiCFileLoader {
                 urlString = urlString.trim();
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<>();
-                String title = "";
+                StringBuilder title = new StringBuilder();
                 for (String url : urls) {
                     urlList.add(url);
-                    title += (new URL(url)).getPath() + " ";
+                    title.append((new URL(url)).getPath()).append(" ");
                 }
-                superAdapter.safeLoad(urlList, control, title);
+                superAdapter.safeLoad(urlList, control, title.toString());
             } catch (MalformedURLException e1) {
                 superAdapter.launchFileLoadingError(urlString);
             }

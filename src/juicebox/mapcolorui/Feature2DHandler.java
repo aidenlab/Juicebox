@@ -118,7 +118,7 @@ public class Feature2DHandler {
     }
 
 
-    public void remakeRTree() {
+    protected void remakeRTree() {
         featureRtrees.clear();
 
         loopList.processLists(new FeatureFunction() {
@@ -149,7 +149,7 @@ public class Feature2DHandler {
             color = newList.extractSingleFeature().getColor();
             attributes = newList.extractSingleFeature().getAttributeKeys();
             loopList = newList;
-            Map<String, String> defaultAttributes = new HashMap<String, String>(); //creates defaultAttributes map
+            Map<String, String> defaultAttributes = new HashMap<>(); //creates defaultAttributes map
             for (String attribute : attributes) {
                 defaultAttributes.put(attribute, null);
             }
@@ -176,7 +176,7 @@ public class Feature2DHandler {
         remakeRTree();
     }
 
-    public void addToLoopList(Feature2DList feature2DList, boolean remakeTree) {
+    private void addToLoopList(Feature2DList feature2DList, boolean remakeTree) {
         loopList.add(feature2DList);
         if (remakeTree) {
             remakeRTree();
@@ -330,7 +330,7 @@ public class Feature2DHandler {
     public class resultContainer {
         public final int n;
         public final Color color;
-        public final ArrayList<String> attributes;
+        final ArrayList<String> attributes;
 
         resultContainer(int n, Color color, ArrayList<String> attributes) {
             this.n = n;

@@ -90,7 +90,7 @@ public class AssemblyHeatmapHandler {
 
     private static int getAlteredAsmBin(int binValue, int binSize) {
 
-        long originalBinCenterCoordinate = (long) ((binValue + 1 / 2) * HiCGlobals.hicMapScale * binSize);
+        long originalBinCenterCoordinate = (long) (binValue * HiCGlobals.hicMapScale * binSize);
         long currentBinCenterCoordinate;
         Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalBinCenterCoordinate);
 
@@ -106,7 +106,7 @@ public class AssemblyHeatmapHandler {
         return -1;
     }
 
-    public static Scaffold lookUpOriginalAggregateScaffold(long genomicPos) {
+    private static Scaffold lookUpOriginalAggregateScaffold(long genomicPos) {
 //        Does not seem to offer much advantage
 //        if (guessScaffold!=null && guessScaffold.getOriginalStart()<genomicPos && guessScaffold.getOriginalEnd()>=genomicPos){
 //            return guessScaffold;

@@ -292,8 +292,8 @@ public class Feature2DParser {
         abstract void parseAndAddToList(String path, String[] headers, String[] tokens, int lineNum, boolean loadAttributes, String nextLine,
                                         ChromosomeHandler handler, Feature2DList newList, Feature2D.FeatureType featureType) throws IOException;
 
-        public void parseDomainsAndAddToList(String path, String[] headers, String[] tokens, int lineNum, boolean loadAttributes, String nextLine,
-                                             ChromosomeHandler handler, Feature2DList newList, Feature2D.FeatureType featureType) throws IOException {
+        void parseDomainsAndAddToList(String path, String[] headers, String[] tokens, int lineNum, boolean loadAttributes, String nextLine,
+                                      ChromosomeHandler handler, Feature2DList newList, Feature2D.FeatureType featureType) throws IOException {
             if (tokens.length < 3) return;
 
             String chrAName;
@@ -317,10 +317,10 @@ public class Feature2DParser {
             addToList(chrAName, feature, handler, nextLine, newList);
         }
 
-        public void parseBEDPEAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
-                                           boolean loadAttributes, String nextLine, ChromosomeHandler handler,
-                                           Feature2DList newList, Feature2D.FeatureType featureType,
-                                           boolean useFeature2DWithMotif) throws IOException {
+        void parseBEDPEAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
+                                    boolean loadAttributes, String nextLine, ChromosomeHandler handler,
+                                    Feature2DList newList, Feature2D.FeatureType featureType,
+                                    boolean useFeature2DWithMotif) throws IOException {
             // BEDPE format
             // chrom1 start1 end1 chrom2 start2 end2 name(opt) score(opt) strand1(opt) strand2(opt) ...(opt)...
             // we will check for color in 11th column
@@ -351,10 +351,10 @@ public class Feature2DParser {
                     start1, end1, start2, end2, c, attrs);
         }
 
-        public void parseLegacyLoopsAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
-                                                 boolean loadAttributes, String nextLine, ChromosomeHandler handler,
-                                                 Feature2DList newList, Feature2D.FeatureType featureType,
-                                                 boolean useFeature2DWithMotif) throws IOException {
+        void parseLegacyLoopsAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
+                                          boolean loadAttributes, String nextLine, ChromosomeHandler handler,
+                                          Feature2DList newList, Feature2D.FeatureType featureType,
+                                          boolean useFeature2DWithMotif) throws IOException {
             if (tokens.length < 6) return;
             String chr1Name, chr2Name;
             int start1, end1, start2, end2;
@@ -382,9 +382,9 @@ public class Feature2DParser {
                     start1, end1, start2, end2, c, attrs);
         }
 
-        public void parsePxLoopsAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
-                                             boolean loadAttributes, String nextLine, ChromosomeHandler handler,
-                                             Feature2DList newList, Feature2D.FeatureType featureType) throws IOException {
+        void parsePxLoopsAndAddToList(String path, String[] headers, String[] tokens, int lineNum,
+                                      boolean loadAttributes, String nextLine, ChromosomeHandler handler,
+                                      Feature2DList newList, Feature2D.FeatureType featureType) throws IOException {
             // this was the prelim output used for old hiccups debugging
             if (tokens.length < 4) return;
             String chr1Name, chr2Name;

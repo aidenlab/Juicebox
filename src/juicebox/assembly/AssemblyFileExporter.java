@@ -34,13 +34,11 @@ import java.util.List;
  */
 public class AssemblyFileExporter {
 
-    private AssemblyScaffoldHandler assemblyScaffoldHandler;
-    private String outputFilePath;
-    private List<Scaffold> listOfScaffolds;
-    private List<List<Integer>> listOfSuperscaffolds;
+    private final String outputFilePath;
+    private final List<Scaffold> listOfScaffolds;
+    private final List<List<Integer>> listOfSuperscaffolds;
 
     public AssemblyFileExporter(AssemblyScaffoldHandler assemblyScaffoldHandler, String outputFilePath) {
-        this.assemblyScaffoldHandler = assemblyScaffoldHandler;
         this.outputFilePath = outputFilePath;
         this.listOfScaffolds = assemblyScaffoldHandler.getListOfScaffolds();
         this.listOfSuperscaffolds = assemblyScaffoldHandler.getListOfSuperscaffolds();

@@ -55,8 +55,8 @@ public class AssemblyScaffoldHandler {
     private Feature2DHandler superscaffoldFeature2DHandler;
 
     // formalities
-    private int chrIndex = 1;
-    private String chrName = "assembly";
+    private final int chrIndex = 1;
+    private final String chrName = "assembly";
 
 
     public AssemblyScaffoldHandler(List<Scaffold> listOfScaffolds, List<List<Integer>> listOfSuperscaffolds) {
@@ -75,7 +75,7 @@ public class AssemblyScaffoldHandler {
         //updateAssembly(true);
     }
 
-    public List<Scaffold> cloneScaffolds() {
+    private List<Scaffold> cloneScaffolds() {
         List<Scaffold> newListOfScaffolds = new ArrayList<>();
         for (Scaffold scaffold : listOfScaffolds) {
             newListOfScaffolds.add(new Scaffold(scaffold));
@@ -83,10 +83,10 @@ public class AssemblyScaffoldHandler {
         return newListOfScaffolds;
     }
 
-    public List<List<Integer>> cloneSuperscaffolds() {
+    private List<List<Integer>> cloneSuperscaffolds() {
         List<List<Integer>> newListOfSuperScaffolds = new ArrayList<>();
         for (List<Integer> superscaffold : listOfSuperscaffolds) {
-            newListOfSuperScaffolds.add(new ArrayList<Integer>(superscaffold));
+            newListOfSuperScaffolds.add(new ArrayList<>(superscaffold));
         }
         return newListOfSuperScaffolds;
     }
@@ -200,7 +200,7 @@ public class AssemblyScaffoldHandler {
     }
 
     private Feature2D populateSuperscaffoldFeature2D(long start, long end, int i) {
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put(superScaffoldIdAttributeKey, String.valueOf(i + 1));
         return new Feature2D(Feature2D.FeatureType.SUPERSCAFFOLD,
                 chrName,
@@ -297,16 +297,16 @@ public class AssemblyScaffoldHandler {
 
     private void editAsm(Scaffold scaffold) {
         List<Integer> debrisSuperscaffold = new ArrayList<>();
-        for (int i = 0; i < listOfSuperscaffolds.size(); i++) {
+        for (List<Integer> listOfSuperscaffold : listOfSuperscaffolds) {
             int scaffoldId = scaffold.getIndexId();
-            for (int j = 0; j < listOfSuperscaffolds.get(i).size(); j++) {
-                listOfSuperscaffolds.get(i).set(j, modifyScaffoldId(listOfSuperscaffolds.get(i).get(j), scaffoldId));
+            for (int j = 0; j < listOfSuperscaffold.size(); j++) {
+                listOfSuperscaffold.set(j, modifyScaffoldId(listOfSuperscaffold.get(j), scaffoldId));
             }
-            if (listOfSuperscaffolds.get(i).contains(scaffoldId)) {
-                listOfSuperscaffolds.get(i).add(listOfSuperscaffolds.get(i).indexOf(scaffoldId) + 1, scaffoldId + 2);
+            if (listOfSuperscaffold.contains(scaffoldId)) {
+                listOfSuperscaffold.add(listOfSuperscaffold.indexOf(scaffoldId) + 1, scaffoldId + 2);
                 debrisSuperscaffold.add(scaffoldId + 1);
-            } else if (listOfSuperscaffolds.get(i).contains(-scaffoldId)) {
-                listOfSuperscaffolds.get(i).add(listOfSuperscaffolds.get(i).indexOf(-scaffoldId), -scaffoldId - 2);
+            } else if (listOfSuperscaffold.contains(-scaffoldId)) {
+                listOfSuperscaffold.add(listOfSuperscaffold.indexOf(-scaffoldId), -scaffoldId - 2);
                 debrisSuperscaffold.add(-scaffoldId - 1);
             }
         }
@@ -444,7 +444,7 @@ public class AssemblyScaffoldHandler {
 
         List<List<Integer>> newSuperscaffolds = new ArrayList<>();
         List<List<Integer>> tempSuperscaffolds = new ArrayList<>();
-        List<Integer> truncatedSuperscaffold = new ArrayList<Integer>();
+        List<Integer> truncatedSuperscaffold = new ArrayList<>();
         int shiftSuperscaffold = 0;
 
         for (int i = 0; i <= listOfSuperscaffolds.size() - 1; i++) {
@@ -554,7 +554,6 @@ public class AssemblyScaffoldHandler {
         }
         listOfSuperscaffolds.clear();
         listOfSuperscaffolds.addAll(newSuperscaffolds);
-        return;
     }
 
     //**** Utility functions ****//
@@ -575,8 +574,7 @@ public class AssemblyScaffoldHandler {
 
     @Override
     public String toString() {
-        String s = Arrays.toString(listOfSuperscaffolds.toArray());
-        return s;
+        return Arrays.toString(listOfSuperscaffolds.toArray());
     }
 
 
@@ -588,7 +586,7 @@ public class AssemblyScaffoldHandler {
         return superscaffoldFeature2DHandler;
     }
 
-    public List<Scaffold> getListOfAggregateScaffolds() {
+    private List<Scaffold> getListOfAggregateScaffolds() {
         return listOfAggregateScaffolds;
     }
 

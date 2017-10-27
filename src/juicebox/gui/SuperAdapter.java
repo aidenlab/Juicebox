@@ -403,23 +403,23 @@ public class SuperAdapter {
 
     private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
-        String newFilesToBeLoaded = "";
+        StringBuilder newFilesToBeLoaded = new StringBuilder();
         boolean allFilesAreHiC = true;
         for (String file : files) {
             if (newFilesToBeLoaded.length() > 1) {
-                newFilesToBeLoaded += "##";
+                newFilesToBeLoaded.append("##");
             }
-            newFilesToBeLoaded += file;
+            newFilesToBeLoaded.append(file);
             allFilesAreHiC &= file.endsWith(".hic");
         }
 
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+        if ((!control) && newFilesToBeLoaded.toString().equals(currentlyLoadedMainFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
             return false;
         }
-        if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+        if (control && newFilesToBeLoaded.toString().equals(currentlyLoadedControlFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
@@ -498,9 +498,9 @@ public class SuperAdapter {
             setEnableForAllElements(true);
 
             if (control) {
-                currentlyLoadedControlFiles = newFilesToBeLoaded;
+                currentlyLoadedControlFiles = newFilesToBeLoaded.toString();
             } else {
-                currentlyLoadedMainFiles = newFilesToBeLoaded;
+                currentlyLoadedMainFiles = newFilesToBeLoaded.toString();
             }
 
             mainMenuBar.updateMainMapHasBeenLoaded(true);

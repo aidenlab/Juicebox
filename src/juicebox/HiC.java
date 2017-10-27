@@ -89,7 +89,7 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -182,7 +182,7 @@ public class HiC {
         return scaleFactor;
     }
 
-    public void setScaleFactor(double scaleFactor) {
+    private void setScaleFactor(double scaleFactor) {
         this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 

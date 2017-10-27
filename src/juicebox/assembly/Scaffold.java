@@ -39,23 +39,24 @@ import java.util.Map;
  */
 public class Scaffold extends Feature implements Comparable<Scaffold> {
 
-    public static Comparator<Scaffold> originalStateComparator = new Comparator<Scaffold>() {
+    public static final Comparator<Scaffold> originalStateComparator = new Comparator<Scaffold>() {
 
         public int compare(Scaffold o1, Scaffold o2) {
 
 //            System.out.println("I am in originalstatscomparator");
 
             if (o1.getOriginalStart() == o2.getOriginalStart()) {
-                return -(new Long(o1.length)).compareTo(o2.length);
+                return -Long.compare(o1.length, o2.length);
             }
-            return (new Long(o1.getOriginalStart())).compareTo(o2.getOriginalStart());
+            return Long.compare(o1.getOriginalStart(), o2.getOriginalStart());
         }
     };
     //constants
     private final String unsignedScaffoldIdAttributeKey = "Scaffold #";
     private final String signedScaffoldIdAttributeKey = "Signed scaffold #";
     private final String scaffoldNameAttributeKey = "Scaffold name";
-    public long length;
+    // formality
+    private final int chrIndex = 1;
     private Color defaultColor = new Color(0, 255, 0);
     //invariant properties
     private String name;
@@ -66,9 +67,8 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     //current state
     private boolean isInvertedVsInitial;
     private long currentStart;
-    // formality
-    private int chrIndex = 1;
-    private String chrName = "assembly";
+    private final String chrName = "assembly";
+    private long length;
 
     // Main Constructor
     public Scaffold(String name, int indexId, long length) {
@@ -96,7 +96,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     }
 
     // Invariant properties getters and setters
-    public String getName() {
+    private String getName() {
         return name;
     }
 
@@ -154,11 +154,6 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         this.isInvertedVsInitial = invertedVsInitial;
     }
 
-    // Supp getters and setters
-    public void setAssociatedFeatureColor(Color color) {
-        defaultColor = color;
-    }
-
     // convenience methods
     public int getSignIndexId() {
         if ((!getOriginallyInverted()) && (!isInvertedVsInitial) ||
@@ -170,11 +165,11 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     }
 
     public Feature2D getCurrentFeature2D() {
-        Map<String, String> attributes = new HashMap<String, String>();
+        Map<String, String> attributes = new HashMap<>();
         attributes.put(scaffoldNameAttributeKey, this.getName());
         attributes.put(signedScaffoldIdAttributeKey, String.valueOf(this.getSignIndexId()));
         attributes.put(unsignedScaffoldIdAttributeKey, String.valueOf(this.getIndexId()));
-        Feature2D feature2D = new Feature2D(Feature2D.FeatureType.SCAFFOLD,
+        return new Feature2D(Feature2D.FeatureType.SCAFFOLD,
                 chrName,
                 scale(this.getCurrentStart()),
                 scale(this.getCurrentEnd()),
@@ -183,7 +178,6 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
                 scale(this.getCurrentEnd()),
                 defaultColor,
                 attributes);
-        return feature2D;
     }
 
     private int scale(long longCoordinate) {
@@ -231,13 +225,13 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
         if (this.getOriginalEnd() == scaffold.getOriginalStart()
                 && scaffold.isInvertedVsInitial == this.isInvertedVsInitial
-                && this.isInvertedVsInitial == false) {
+                && !this.isInvertedVsInitial) {
             this.length = this.length + scaffold.length;
             return this;
         }
         if (scaffold.getOriginalEnd() == this.originalStart
                 && scaffold.isInvertedVsInitial == this.isInvertedVsInitial
-                && this.isInvertedVsInitial == true) {
+                && this.isInvertedVsInitial) {
             this.setOriginalStart(scaffold.getOriginalStart());
             this.length = this.length + scaffold.length;
             return this;
@@ -252,8 +246,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
     @Override
     public Feature deepClone() {
-        Scaffold clone = new Scaffold(name, indexId, length);
-        return clone;
+        return new Scaffold(name, indexId, length);
     }
 
     @Override
@@ -296,11 +289,11 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
 
         if (currentStart == o.currentStart) {
             //           System.out.println(-(new Long(length)).compareTo(o.length));
-            return -(new Long(length)).compareTo(o.length);
+            return -Long.compare(length, o.length);
         }
 
 //        System.out.println((new Long(currentStart)).compareTo(o.currentStart));
-        return (new Long(currentStart)).compareTo(o.currentStart);
+        return Long.compare(currentStart, o.currentStart);
     }
 
     private boolean currentContains(long x) {

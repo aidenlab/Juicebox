@@ -49,9 +49,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CustomMatrixZoomData extends MatrixZoomData {
 
-    private Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
+    private final Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
     private final Map<MatrixZoomData, Map<RegionPair, LRUCache<String, Block>>> allBlockCaches = new HashMap<>();
-    private RegionsRTreeHandler rTreeHandler = new RegionsRTreeHandler();
+    private final RegionsRTreeHandler rTreeHandler = new RegionsRTreeHandler();
 
     public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler, String regionKey,
                                 MatrixZoomData zd, DatasetReader reader) {
@@ -69,7 +69,7 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         }
     }
 
-    public static Block modifyBlock(Block block, String key, MatrixZoomData zd, RegionPair rp) {
+    private static Block modifyBlock(Block block, String key, MatrixZoomData zd, RegionPair rp) {
         int binSize = zd.getBinSize();
         int chr1Idx = zd.getChr1Idx();
         int chr2Idx = zd.getChr2Idx();

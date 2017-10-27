@@ -64,10 +64,10 @@ public class AnnotationLayerHandler {
     private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
-    private List<JToggleButton> activeLayerButtons = new ArrayList<>();
+    private final List<JToggleButton> activeLayerButtons = new ArrayList<>();
     private Color defaultColor = Color.BLUE;
-    private List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
-    private List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
+    private final List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
+    private final List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
     private JTextField nameTextField;
     private JLabel miniNameLabel;
 
@@ -231,7 +231,7 @@ public class AnnotationLayerHandler {
         }
 
         // Add new feature
-        if (HiCGlobals.splitModeEnabled == true) {
+        if (HiCGlobals.splitModeEnabled) {
         }
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
@@ -470,7 +470,7 @@ public class AnnotationLayerHandler {
                 binOriginX, binOriginY, scaleFactor, largeOnly);
     }
 
-    public List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
+    private List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
         return annotationLayer.getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
     }
 
@@ -540,7 +540,7 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
+    private List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
         List<Feature2D> selectedFeatures = new ArrayList<>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();
@@ -799,10 +799,7 @@ public class AnnotationLayerHandler {
 
     public void togglePlottingStyle() {
         try {
-            for (JButton plottingStyleButton : plottingStyleButtons) {
-                plottingStyleButton.doClick();
-                break;
-            }
+            plottingStyleButtons.get(0).doClick();
         } catch (Exception e) {
             setPlottingStyle(FeatureRenderer.getNextState(getPlottingStyle()));
         }

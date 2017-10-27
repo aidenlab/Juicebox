@@ -226,7 +226,7 @@ public class Feature2DList {
         }
     }
 
-    public Feature2D updateAttributeForFeature(Feature2D feature) {
+    private Feature2D updateAttributeForFeature(Feature2D feature) {
         if (defaultAttributes != null) {
             if (feature.getAttributeKeys() == null) {
                 for (String attribute : defaultAttributes.keySet()) {
@@ -246,7 +246,7 @@ public class Feature2DList {
         return feature;
     }
 
-    public List<Feature2D> updateAttributes(List<Feature2D> features) {
+    private List<Feature2D> updateAttributes(List<Feature2D> features) {
         processLists(new FeatureFunction() {
             @Override
             public void process(String chr, List<Feature2D> feature2DList) {
@@ -258,7 +258,7 @@ public class Feature2DList {
         return features;
     }
 
-    public void putFeature(String key, List<Feature2D> loops) {
+    private void putFeature(String key, List<Feature2D> loops) {
         featureList.put(key, loops);
     }
     public void setWithKey(String key, List<Feature2D> features) {
@@ -657,13 +657,13 @@ public class Feature2DList {
     }
 
     public String printChromosomeRegionKeys() {
-        String features = "";
+        StringBuilder features = new StringBuilder();
         for (List<Feature2D> feature2DS : featureList.values()) {
             for (Feature2D feature2D : feature2DS) {
-                features += (feature2D.getLocationKey() + ", ");
+                features.append(feature2D.getLocationKey()).append(", ");
             }
         }
-        return features;
+        return features.toString();
     }
 
 

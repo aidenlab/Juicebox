@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -696,7 +696,7 @@ class JSplitButton extends AbstractButton implements Accessible {
 
         private final JPopupMenu popupMenu;
 
-        public PopupAction(JPopupMenu popupMenu) {
+        PopupAction(JPopupMenu popupMenu) {
             this.popupMenu = popupMenu;
         }
 
@@ -711,7 +711,7 @@ class JSplitButton extends AbstractButton implements Accessible {
             popupMenu.show(comp, popupLocation.x, popupLocation.y);
         }
 
-        public JPopupMenu getPopupMenu() {
+        JPopupMenu getPopupMenu() {
             return popupMenu;
         }
 

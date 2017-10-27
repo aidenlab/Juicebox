@@ -48,7 +48,7 @@ import java.util.List;
 public class Feature2D implements Comparable<Feature2D> {
 
     static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
-    static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    private static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
     public static int tolerance = 0;
@@ -58,13 +58,13 @@ public class Feature2D implements Comparable<Feature2D> {
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    int start1;
-    int start2;
+    final int start1;
+    final int start2;
     int end1;
     int end2;
     private boolean isSelected = false;
     private Feature2D reflection = null;
-    private Color color, preSelectionColor, translucentColor;
+    private Color color, translucentColor;
     private boolean test = false;
 
     public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
@@ -118,20 +118,8 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1;
     }
 
-    public void setStart1(int start1) {
-        this.start1 = start1;
-        if (reflection != null)
-            reflection.start2 = start1;
-    }
-
     public int getStart2() {
         return start2;
-    }
-
-    public void setStart2(int start2) {
-        this.start2 = start1;
-        if (reflection != null)
-            reflection.start1 = start2;
     }
 
     public int getEnd1() {
@@ -327,11 +315,11 @@ public class Feature2D implements Comparable<Feature2D> {
         return output.toString();
     }
 
-    public String simpleString() {
+    private String simpleString() {
         return chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
     }
 
-    public String justColorString() {
+    private String justColorString() {
         return "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
     }
 
@@ -369,9 +357,8 @@ public class Feature2D implements Comparable<Feature2D> {
     public void setAttribute(String key, String newVal) {
         attributes.put(key, newVal);
         // attribute directly shared between reflections
-        //if (reflection != null)
-        //    reflection.attributes.put(key, newVal);
-
+        if (reflection != null)
+            reflection.attributes.put(key, newVal);
     }
 
     public float getFloatAttribute(String key) {

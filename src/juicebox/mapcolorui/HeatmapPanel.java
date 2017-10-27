@@ -85,7 +85,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private final transient List<Feature2DGuiContainer> allFeaturePairs = new ArrayList<>();
     private final transient List<Feature2DGuiContainer> allMainFeaturePairs = new ArrayList<>();
     private final transient List<Feature2DGuiContainer> allEditFeaturePairs = new ArrayList<>();
-    public int debrisFeatureSize = RESIZE_SNAP;
+    private int debrisFeatureSize = RESIZE_SNAP;
     private Rectangle zoomRectangle;
     private Rectangle annotateRectangle;
     /**
@@ -1698,7 +1698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.promptedAssemblyActionOnClick = promptedAssemblyAction;
     }
 
-    public void setDebrisFeauture(Feature2D debrisFeature) {
+    private void setDebrisFeauture(Feature2D debrisFeature) {
         this.debrisFeature = debrisFeature;
     }
 
@@ -2045,7 +2045,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         }
 
-        public Feature2D generateDebrisFeature(final MouseEvent eF, int debrisFeatureSize) {
+        Feature2D generateDebrisFeature(final MouseEvent eF, int debrisFeatureSize) {
             final double scaleFactor = hic.getScaleFactor();
             double binOriginX = hic.getXContext().getBinOrigin();
             double binOriginY = hic.getYContext().getBinOrigin();

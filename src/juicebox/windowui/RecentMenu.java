@@ -192,7 +192,7 @@ public abstract class RecentMenu extends JMenu {
      *
      * @param mapPath The file that was selected.
      */
-    public abstract void onSelectPosition(String mapPath);
+    protected abstract void onSelectPosition(String mapPath);
 
     //TODO--- Update recent menu when HiC states are imported
     public void updateNamesFromImport(String importedFile) {

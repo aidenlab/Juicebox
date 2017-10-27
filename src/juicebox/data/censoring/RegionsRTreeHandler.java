@@ -53,9 +53,7 @@ public class RegionsRTreeHandler {
                     new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
                         @Override
                         public void process(String chr, List<MotifAnchor> featureList) {
-                            for (MotifAnchor anchor : featureList) {
-                                allRegions.add(anchor);
-                            }
+                            allRegions.addAll(featureList);
                         }
                     });
             Collections.sort(allRegions);

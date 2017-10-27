@@ -27,7 +27,7 @@ package juicebox.tools.dev;
 import java.io.*;
 import java.util.*;
 
-public class HiCArtMNDWriter {
+class HiCArtMNDWriter {
 
     public static void main(String[] args) {
         writeMergedNoDupsFromTimeSeq(args[0], args[1]);

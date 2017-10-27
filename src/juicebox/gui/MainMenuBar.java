@@ -221,9 +221,9 @@ public class MainMenuBar {
                         "</h3>" +
                         "</center>" +
                         "<p>" +
-                        "Juicebox is the Aiden Lab's software for visualizing data<br>"+
+                        "Juicebox is the Aiden Lab's software for visualizing data<br>" +
                         "from proximity ligation experiments, such as Hi-C.<br>" +
-                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>"+
+                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
                         "and Erez Aiden. Ongoing development work is carried<br>" +
                         "out by " +
                         "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
@@ -242,7 +242,7 @@ public class MainMenuBar {
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
                         "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
                         "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase "+
+                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
                         "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
                         "* contributed equally" +
                         "</p></html>"));
@@ -667,11 +667,7 @@ public class MainMenuBar {
             }
         });
 
-        boolean enabled;
-        if (superAdapter.getAssemblyStateTracker() != null)
-            enabled = superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
-        else
-            enabled = false;
+        boolean enabled = superAdapter.getAssemblyStateTracker() != null && superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
 
         exportAssembly.setEnabled(enabled);
         resetAssembly.setEnabled(enabled);

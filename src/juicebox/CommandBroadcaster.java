@@ -41,7 +41,7 @@ import java.net.Socket;
 class CommandBroadcaster {
 
     public static int selfPort;
-    public static int numPorts = 50;
+    public static final int numPorts = 50;
 
     public static void broadcast(String command) {
         // Broadcast self port to other running instances

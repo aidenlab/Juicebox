@@ -296,8 +296,8 @@ public class AnnotationLayer {
         customAnnotationRTreeHandler.addAttributeFieldToAll(key, newValue);
     }
 
-    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                             double binOriginX, double binOriginY, double scale) {
+    private List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
+                                              double binOriginX, double binOriginY, double scale) {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
                 binOriginX, binOriginY, scale, false);
     }

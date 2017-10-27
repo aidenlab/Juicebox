@@ -383,7 +383,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 
-    public static class TickSpacing {
+    static class TickSpacing {
 
         private final double majorTick;
         private final double minorTick;
@@ -397,7 +397,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             this.unitMultiplier = unitMultiplier;
         }
 
-        public double getMajorTick() {
+        double getMajorTick() {
             return majorTick;
         }
 
@@ -405,7 +405,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             return minorTick;
         }
 
-        public String getMajorUnit() {
+        String getMajorUnit() {
             return majorUnit;
         }
 
@@ -413,7 +413,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             this.majorUnit = majorUnit;
         }
 
-        public int getUnitMultiplier() {
+        int getUnitMultiplier() {
             return unitMultiplier;
         }
 

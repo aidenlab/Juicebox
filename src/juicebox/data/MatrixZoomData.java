@@ -62,14 +62,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    protected final Chromosome chr1;  // Chromosome on the X axis
-    protected final Chromosome chr2;  // Chromosome on the Y axis
-    protected final HiCZoom zoom;    // Unit and bin size
-    protected final HiCGridAxis xGridAxis;
-    protected final HiCGridAxis yGridAxis;
+    final Chromosome chr1;  // Chromosome on the X axis
+    final Chromosome chr2;  // Chromosome on the Y axis
+    final HiCZoom zoom;    // Unit and bin size
+    private final HiCGridAxis xGridAxis;
+    private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
-    protected final int blockBinCount;   // block size in bins
-    protected final int blockColumnCount;     // number of block columns
+    private final int blockBinCount;   // block size in bins
+    private final int blockColumnCount;     // number of block columns
     // Cache the last 20 blocks loaded
     private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
@@ -312,9 +312,7 @@ public class MatrixZoomData {
 
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
-                    if (blocksToLoad.contains(blockNumber)) {
-                        continue;
-                    } else {
+                    if (!blocksToLoad.contains(blockNumber)) {
                         String key = getBlockKey(blockNumber, no);
                         Block b;
                         //temp fix for AllByAll. TODO: trace this!
@@ -681,7 +679,7 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+    List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
         int[] regionBinIndices = new int[4];
         for (int i = 0; i < regionBinIndices.length; i++) {
@@ -904,7 +902,7 @@ public class MatrixZoomData {
 
     public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, int binStartPosition,
                                               boolean isIntraChromosomal, int[] regionBinIndices,
-                                              NormalizationType norm, MatrixType matrixType) throws IOException {
+                                              NormalizationType norm, MatrixType matrixType) {
 
         if (!MatrixType.isObservedOrControl(matrixType)) {
             System.out.println("This feature is only available for Observed or Control views");
@@ -998,7 +996,7 @@ public class MatrixZoomData {
     /**
      * Class for iterating over the contact records
      */
-    public class ContactRecordIterator implements Iterator<ContactRecord> {
+    class ContactRecordIterator implements Iterator<ContactRecord> {
 
         final List<Integer> blockNumbers;
         int blockIdx;
@@ -1007,7 +1005,7 @@ public class MatrixZoomData {
         /**
          * Initializes the iterator
          */
-        public ContactRecordIterator() {
+        ContactRecordIterator() {
             this.blockIdx = -1;
             this.blockNumbers = reader.getBlockNumbers(MatrixZoomData.this);
         }

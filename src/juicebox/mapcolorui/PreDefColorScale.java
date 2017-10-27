@@ -212,21 +212,21 @@ class PreDefColorScale implements ColorScale {
         private final Color color;
         private double score; // limit
 
-        public ColorMapEntry(Color color, double score) {
+        ColorMapEntry(Color color, double score) {
             super();
             this.color = color;
             this.score = score;
         }
 
-        public double getScore() {
+        double getScore() {
             return score;
         }
 
-        public void setScore(double score) {
+        void setScore(double score) {
             this.score = score;
         }
 
-        public Color getColor() {
+        Color getColor() {
             return color;
         }
 

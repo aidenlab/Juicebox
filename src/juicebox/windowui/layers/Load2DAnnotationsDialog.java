@@ -439,15 +439,15 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     }
 
     private class ItemInfo {
-        public final String itemName;
-        public final String itemURL;
+        final String itemName;
+        final String itemURL;
 
-        public ItemInfo(String itemName, String itemURL) {
+        ItemInfo(String itemName, String itemURL) {
             this.itemName = itemName.trim();
             this.itemURL = itemURL.trim();
         }
 
-        public ItemInfo(String itemName) {
+        ItemInfo(String itemName) {
             this.itemName = itemName;
             itemURL = null;
         }

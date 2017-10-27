@@ -39,8 +39,8 @@ public class SaveAssemblyDialog extends JFileChooser {
 
     private static final long serialVersionUID = 18237123123L;
 
-    private AssemblyScaffoldHandler assemblyScaffoldHandler;
-    private String mapName;
+    private final AssemblyScaffoldHandler assemblyScaffoldHandler;
+    private final String mapName;
 
     public SaveAssemblyDialog(AssemblyScaffoldHandler assemblyScaffoldHandler, String mapName) {
         super();

@@ -37,7 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class LayerPanelButtons {
+class LayerPanelButtons {
 
     public static final int miniButtonSize = 30;
 
@@ -361,7 +361,7 @@ public class LayerPanelButtons {
      * @return toggle button which changes icon transparency when clicked
      * @throws IOException
      */
-    public static JToggleButton createToggleIconButton(Object lp, String url1, String url2, boolean activatedStatus) throws IOException {
+    private static JToggleButton createToggleIconButton(Object lp, String url1, String url2, boolean activatedStatus) throws IOException {
 
         // image when button is active/selected (is the darkest shade/color)
         //BufferedImage imageActive = ImageIO.read(getClass().getResource(url1));

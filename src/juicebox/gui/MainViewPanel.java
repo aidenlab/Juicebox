@@ -491,7 +491,7 @@ public class MainViewPanel {
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
-        mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
+        mouseHoverTextPanel.setFont(new Font("sans-serif", Font.PLAIN, 20));
         mouseHoverTextPanel.setBackground(mainBackgroundColor);
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
@@ -553,7 +553,7 @@ public class MainViewPanel {
         mainPanel.add(rightSidePanel, BorderLayout.EAST);
     }
 
-    public void setMiniAnnotationsLayerPanel(MiniAnnotationsLayerPanel miniAnnotationsLayerPanel) {
+    private void setMiniAnnotationsLayerPanel(MiniAnnotationsLayerPanel miniAnnotationsLayerPanel) {
         tooltipPanel.remove(this.miniAnnotationsLayerPanel);
         Dimension prefSize = new Dimension(210, 375 - miniAnnotationsLayerPanel.getDynamicHeight());
         mouseHoverTextPanel.setPreferredSize(prefSize);
@@ -832,10 +832,7 @@ public class MainViewPanel {
     }
 
     public boolean getShowGridLines() {
-        if (heatmapPanel != null) {
-            return heatmapPanel.getShowGridLines();
-        }
-        return true; // when starting from scratch, the gridlines option is set to true
+        return heatmapPanel == null || heatmapPanel.getShowGridLines();
     }
 
     public void setShowGridLines(boolean status) {
