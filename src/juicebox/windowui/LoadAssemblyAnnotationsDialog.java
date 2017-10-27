@@ -138,6 +138,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                customAddedFeatures.removeFromParent();
                 LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
@@ -313,7 +314,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
 //                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
-//                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
+                customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
+                customAddedFeatures.remove(loadedAnnotationsMap.get(asmPath)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
             }
         } else {
             System.err.println("Invalid files...");

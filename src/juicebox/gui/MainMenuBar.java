@@ -679,13 +679,15 @@ public class MainMenuBar {
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
 
-        assemblyMenu.add(enableAssembly);
-        assemblyMenu.add(resetAssembly);
+
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
+//        assemblyMenu.add(enableAssembly);
+
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
