@@ -1043,6 +1043,7 @@ public class SuperAdapter {
 
     public void updatePreviousTempSelectedGroups(Feature2D tempSelectedGroup) {
         previousTempSelectedGroup.add(tempSelectedGroup);
+    }
 
     public void executeClearAllMZDCache() {
         Runnable runnable = new Runnable() {

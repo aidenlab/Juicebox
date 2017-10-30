@@ -25,7 +25,6 @@
 package juicebox.assembly;
 
 import juicebox.HiCGlobals;
-import juicebox.track.feature.Feature2DList;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,20 +65,16 @@ public class AssemblyFileImporter {
             System.err.println("Error reading files!");
         }
         updateAssemblyScale();
-        assemblyFragmentHandler = new AssemblyFragmentHandler(fragmentProperties, assemblyGroups);
+        assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
     }
 
-    public void updateAssemblyScale() {
+    void updateAssemblyScale() {
         long totalLength = 0;
-        for (FragmentProperty fragmentProperty : fragmentProperties) {
+        for (Scaffold fragmentProperty : listOfScaffolds) {
             totalLength += fragmentProperty.getLength();
         }
         HiCGlobals.hicMapScale = (int) (1 + totalLength / 2100000000);
         System.out.println(HiCGlobals.hicMapScale);
-    }
-
-    private void newParseCpropsFile() throws IOException {
-        assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
     }
 
     private void parseCpropsFile() throws IOException {
@@ -198,18 +193,6 @@ public class AssemblyFileImporter {
         return this.asmFilePath;
     }
 
-    public Feature2DList getContigs() {
-        return this.assemblyFragmentHandler.getScaffoldFeature2DList();
-    } //why do we have this here?
-
-    public Feature2DList getScaffolds() {
-        return this.assemblyFragmentHandler.getSuperscaffoldFeature2DList(); //why do we have this here?
-    }
-
-    private void setAsmFilePath(String asmFilePath) {
-        this.asmFilePath = asmFilePath;
-    }
-  
     public AssemblyScaffoldHandler getAssemblyScaffoldHandler() {
         return assemblyScaffoldHandler;
     }
