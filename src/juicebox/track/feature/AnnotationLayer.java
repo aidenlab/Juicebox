@@ -296,18 +296,20 @@ public class AnnotationLayer {
         customAnnotationRTreeHandler.addAttributeFieldToAll(key, newValue);
     }
 
-    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
-                                             double binOriginX, double binOriginY, double scale) {
+    private List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
+                                              double binOriginX, double binOriginY, double scale) {
         return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
-                binOriginX, binOriginY, scale);
+                binOriginX, binOriginY, scale, false);
+    }
+
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chrIdx1, int chrIdx2, int x, int y, int n,
+                                             double binOriginX, double binOriginY, double scale, boolean largeOnly) {
+        return customAnnotationRTreeHandler.getNearbyFeatures(zd, chrIdx1, chrIdx2, x, y, n,
+                binOriginX, binOriginY, scale, largeOnly);
     }
 
     public List<Feature2D> getIntersectingFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle selectionWindow) {
         return customAnnotationRTreeHandler.getIntersectingFeatures(chrIdx1, chrIdx2, selectionWindow, false);
-    }
-
-    public List<Feature2D> getContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
-        return customAnnotationRTreeHandler.getContainedFeatures(chrIdx1, chrIdx2, currentWindow);
     }
 
     public Feature2DHandler getFeatureHandler() {
@@ -334,7 +336,13 @@ public class AnnotationLayer {
         customAnnotationRTreeHandler.setSparsePlottingEnabled(isSparse);
     }
 
-    public void createMergedLoopLists(Feature2DList lists) {
+    public void createMergedLoopLists(List<Feature2DList> lists) {
+        customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
+    }
+
+    public void createMergedLoopLists(Feature2DList list) {
+        List<Feature2DList> lists = new ArrayList<>();
+        lists.add(list);
         customAnnotationRTreeHandler.createNewMergedLoopLists(lists);
     }
 
@@ -342,7 +350,7 @@ public class AnnotationLayer {
         return customAnnotationRTreeHandler.getFeatureList();
     }
 
-    public enum LayerType {DEFAULT, EDIT, MAIN, GROUP}
+    public enum LayerType {DEFAULT, EDIT, SCAFFOLD, SUPERSCAFFOLD}
 
 
 

@@ -351,7 +351,7 @@ public class HiCCUPS extends JuicerCLT {
 
         Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
         if (listGiven) {
-            inputListFeature2DHandler.loadLoopList(featureListPath, commonChromosomesHandler);
+            inputListFeature2DHandler.setLoopList(featureListPath, commonChromosomesHandler);
         }
 
         for (HiCCUPSConfiguration conf : configurations) {

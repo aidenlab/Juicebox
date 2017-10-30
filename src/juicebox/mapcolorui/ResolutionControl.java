@@ -355,7 +355,7 @@ public class ResolutionControl extends JPanel {
         return removeTrailingZeros(label);
     }
 
-    public String removeTrailingZeros(String label) {
+    private String removeTrailingZeros(String label) {
         return label.split(" ")[0].replaceAll("\\.(0)+$", "") + " " + label.split(" ")[1];
     }
 
@@ -373,12 +373,12 @@ public class ResolutionControl extends JPanel {
         }
     }
 
-    public void toggleLockButton() {
+    private void toggleLockButton() {
         setResolutionLocked(!resolutionLocked);
         updateLockButton();
     }
 
-    public void updateLockButton() {
+    private void updateLockButton() {
         lockButton.setIcon(resolutionLocked ? lockIcon : lockOpenIcon);
     }
 

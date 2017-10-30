@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.color.ColorUtilities;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.LinkCheckBox;
@@ -55,7 +54,6 @@ import static org.broad.igv.util.ResourceLocator.AttributeType.*;
  */
 public class ResourceTree {
 
-    private static final Logger log = Logger.getLogger(ResourceTree.class);
     private final List<CheckableResource> leafResources = new ArrayList<>();
     private final JTree dialogTree;
     private final Set<ResourceLocator> loadedLocators;
@@ -157,16 +155,17 @@ public class ResourceTree {
 
         pane.setPreferredSize(new Dimension(650, 500));
         pane.setOpaque(true);
-        pane.setBackground(Color.WHITE);
+        Color backGroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+        pane.setBackground(backGroundColor);
         pane.setViewportView(dialogTree);
 
-        dialog.setBackground(Color.WHITE);
-        dialog.getContentPane().setBackground(Color.WHITE);
+        dialog.setBackground(backGroundColor);
+        dialog.getContentPane().setBackground(backGroundColor);
 
         Component[] children = treePanel.getComponents();
         if (children != null) {
             for (Component child : children) {
-                child.setBackground(Color.WHITE);
+                child.setBackground(backGroundColor);
             }
         }
 
@@ -523,7 +522,7 @@ public class ResourceTree {
                     Color c = ColorUtilities.stringToColor(colorString);
                     locator.setColor(c);
                 } catch (Exception e) {
-                    log.error("Error setting color: ", e);
+                    System.err.println("Error setting color: " + e.getLocalizedMessage());
                 }
             }
         }
@@ -580,7 +579,7 @@ public class ResourceTree {
                     ResourceEditor.checkOrUncheckParentNodesRecursively(node, false);
                 }
             } catch (Exception e) {
-                log.debug("There appears to be an invalid node in the resource tree");
+                System.err.println("There appears to be an invalid node in the resource tree");
             }
         }
 
@@ -696,7 +695,7 @@ public class ResourceTree {
         private final Color textForeground;
         private final Color textBackground;
 
-        public NodeRenderer() {
+        NodeRenderer() {
 
             Font fontValue;
             fontValue = UIManager.getFont("Tree.font");
@@ -785,7 +784,7 @@ public class ResourceTree {
         final NodeRenderer renderer = new NodeRenderer();
         final JTree tree;
 
-        public ResourceEditor(JTree tree) {
+        ResourceEditor(JTree tree) {
             this.tree = tree;
         }
 
@@ -793,8 +792,8 @@ public class ResourceTree {
          * Call to recursively check or uncheck the parent ancestors of the
          * passed node.
          */
-        static public void checkOrUncheckParentNodesRecursively(TreeNode node,
-                                                                boolean checkParentNode) {
+        static void checkOrUncheckParentNodesRecursively(TreeNode node,
+                                                         boolean checkParentNode) {
 
             if (node == null) {
                 return;
@@ -837,7 +836,7 @@ public class ResourceTree {
         * Uncheck a node unless rule prevent this behavior.
         */
 
-        static public boolean hasSelectedDescendants(TreeNode treeNode) {
+        static boolean hasSelectedDescendants(TreeNode treeNode) {
 
             Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
@@ -864,7 +863,7 @@ public class ResourceTree {
             return false;
         }
 
-        static public boolean hasSelectedChildren(TreeNode treeNode) {
+        static boolean hasSelectedChildren(TreeNode treeNode) {
 
             Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
@@ -1029,7 +1028,7 @@ public class ResourceTree {
             }
         }
 
-        public boolean hasLockedDescendants(TreeNode treeNode) {
+        boolean hasLockedDescendants(TreeNode treeNode) {
 
             Enumeration<?> children = treeNode.children();
             while (children.hasMoreElements()) {
@@ -1130,7 +1129,7 @@ public class ResourceTree {
          * @param treeNode
          * @return true if we are working with preselected nodes
          */
-        public boolean hasSelectedAndLockedDescendants(TreeNode treeNode) {
+        boolean hasSelectedAndLockedDescendants(TreeNode treeNode) {
 
             boolean hasSelected = false;
             boolean hasSelectedAndDisabled = false;
@@ -1231,8 +1230,8 @@ public class ResourceTree {
         boolean selected;
         boolean isEnabled = true;
 
-        public CheckableResource(String text, boolean selected,
-                                 ResourceLocator dataResourceLocator) {
+        CheckableResource(String text, boolean selected,
+                          ResourceLocator dataResourceLocator) {
 
             this.text = text;
             this.selected = selected;
@@ -1269,15 +1268,6 @@ public class ResourceTree {
 
         public boolean isParentOfPartiallySelectedChildren() {
             return isParentOfPartiallySelectedChildren;
-        }
-
-        public Color getBackground() {
-
-            if (isParentOfPartiallySelectedChildren()) {
-                return partialSelectionColor;
-            } else {
-                return Color.WHITE;
-            }
         }
 
         @Override

@@ -276,8 +276,6 @@ public class HiCCUPS_postproc extends JuicerCLT {
             this.featureListPath1 = featureListPath;
         }
 
-        List<Chromosome> directlyInitializedCommonChromosomes = providedCommonChromosomes;
-
         if (preferredNorm != null) norm = preferredNorm;
 
         // will just confirm matrix size is large enough

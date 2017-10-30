@@ -24,8 +24,6 @@
 
 package juicebox;
 
-import org.apache.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,8 +31,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 class CommandListener implements Runnable {
-
-    private static final Logger log = Logger.getLogger(CommandListener.class);
 
     private static CommandListener listener;
     private final Thread listenerThread;
@@ -83,7 +79,7 @@ class CommandListener implements Runnable {
     public void run() {
 
         CommandExecutor cmdExe = new CommandExecutor(hic);
-        log.info("Listening on port " + port);
+        System.out.println("Listening on port " + port);
 
         try {
             while (!halt) {
@@ -94,7 +90,7 @@ class CommandListener implements Runnable {
                         clientSocket.close();
                         clientSocket = null;
                     } catch (IOException e) {
-                        log.error("Error in client socket loop", e);
+                        System.err.println("Error in client socket loop" + e.getLocalizedMessage());
                     }
                 }
             }
@@ -125,7 +121,7 @@ class CommandListener implements Runnable {
                 cmdExe.execute(cmd);
             }
         } catch (IOException e) {
-            log.error("Error processing client session", e);
+            System.err.println("Error processing client session" + e.getLocalizedMessage());
         } finally {
             if (in != null) in.close();
         }
@@ -137,7 +133,7 @@ class CommandListener implements Runnable {
                 clientSocket.close();
                 clientSocket = null;
             } catch (IOException e) {
-                log.error("Error closing clientSocket", e);
+                System.err.println("Error closing clientSocket" + e.getLocalizedMessage());
             }
         }
 
@@ -146,7 +142,7 @@ class CommandListener implements Runnable {
                 serverSocket.close();
                 serverSocket = null;
             } catch (IOException e) {
-                log.error("Error closing server socket", e);
+                System.err.println("Error closing server socket" + e.getLocalizedMessage());
             }
         }
     }

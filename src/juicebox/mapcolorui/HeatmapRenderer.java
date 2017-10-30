@@ -58,7 +58,7 @@ class HeatmapRenderer {
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
     private final PreDefColorScale preDefColorScale;
-    private Color curHiCColor = Color.white;
+    private Color curHiCColor = HiCGlobals.isDarkulaModeEnabled ? Color.black : Color.white;
 
     public HeatmapRenderer() {
 
@@ -218,6 +218,7 @@ class HeatmapRenderer {
                 if (zd != null)
                     blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
+                System.out.println("problems with MZD");
                 if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
@@ -501,7 +502,11 @@ class HeatmapRenderer {
                     float max = computePercentile(blocks, percentile);
 
                     //observedColorScale = new ContinuousColorScale(0, max, Color.white, Color.red);
-                    observedColorScale = new ContinuousColorScale(0, max, Color.white, MainWindow.hicMapColor);
+                    if (HiCGlobals.isDarkulaModeEnabled) {
+                        observedColorScale = new ContinuousColorScale(0, max, Color.black, MainWindow.hicMapColor);
+                    } else {
+                        observedColorScale = new ContinuousColorScale(0, max, Color.white, MainWindow.hicMapColor);
+                    }
                     observedColorScaleMap.put(key, observedColorScale);
                     //mainWindow.updateColorSlider(0, 2 * max, max);
                 }
@@ -650,7 +655,11 @@ class HeatmapRenderer {
 
             ContinuousColorScale observedColorScale = observedColorScaleMap.get(key);
             if (observedColorScale == null) {
-                observedColorScale = new ContinuousColorScale(min, max, Color.white, MainWindow.hicMapColor);
+                if (HiCGlobals.isDarkulaModeEnabled) {
+                    observedColorScale = new ContinuousColorScale(min, max, Color.black, MainWindow.hicMapColor);
+                } else {
+                    observedColorScale = new ContinuousColorScale(min, max, Color.white, MainWindow.hicMapColor);
+                }
                 observedColorScaleMap.put(key, observedColorScale);
             }
             observedColorScale.setNegEnd(min);

@@ -27,7 +27,6 @@ package juicebox.data;
 import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.FileDialogUtils;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ParsingUtils;
@@ -49,7 +48,6 @@ import java.util.Properties;
  */
 public class HiCFileLoader {
 
-    private static final Logger log = Logger.getLogger(HiCFileLoader.class);
     private static Properties properties;
     private static LoadDialog loadDialog = null;
     private static String propertiesFileURL = System.getProperty("jnlp.loadMenu");
@@ -64,16 +62,16 @@ public class HiCFileLoader {
         File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", openHiCPath, hicFilter);
         if (files != null && files.length > 0) {
             List<String> fileNames = new ArrayList<>();
-            String str = "";
+            StringBuilder str = new StringBuilder();
             String path = "";
             for (File f : files) {
                 fileNames.add(f.getAbsolutePath());
-                str += f.getName() + " ";
+                str.append(f.getName()).append(" ");
                 path = f.getAbsolutePath();
             }
             openHiCPath = new File(path);
-            superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
-            superAdapter.safeLoad(fileNames, control, str);
+            superAdapter.addRecentMapMenuEntry(str.toString().trim() + "@@" + files[0].getAbsolutePath(), true);
+            superAdapter.safeLoad(fileNames, control, str.toString());
         }
         return openHiCPath;
     }
@@ -92,15 +90,18 @@ public class HiCFileLoader {
 
         if (urlString != null && urlString.length() > 0) {
             try {
+                if (HiCFileTools.isDropboxURL(urlString)) {
+                    urlString = HiCFileTools.cleanUpDropboxURL(urlString);
+                }
                 urlString = urlString.trim();
                 String[] urls = urlString.split(",");
                 List<String> urlList = new ArrayList<>();
-                String title = "";
+                StringBuilder title = new StringBuilder();
                 for (String url : urls) {
                     urlList.add(url);
-                    title += (new URL(url)).getPath() + " ";
+                    title.append((new URL(url)).getPath()).append(" ");
                 }
-                superAdapter.safeLoad(urlList, control, title);
+                superAdapter.safeLoad(urlList, control, title.toString());
             } catch (MalformedURLException e1) {
                 superAdapter.launchFileLoadingError(urlString);
             }
@@ -141,7 +142,7 @@ public class HiCFileLoader {
                 }
             }
             if (fileFailedToLoad) {
-                log.error("Can't find properties file for loading list - internet likely disconnected", error);
+                System.err.println("Can't find properties file for loading list - internet likely disconnected" + error.getLocalizedMessage());
             }
         }
     }

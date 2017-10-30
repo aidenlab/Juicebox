@@ -66,7 +66,11 @@ public class TrackPanel extends JPanel {
         setAutoscrolls(true);
         trackRectangles = new ArrayList<>();
         //setBackground(new Color(238, 238, 238));
-        setBackground(Color.white);
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            setBackground(Color.black);
+        } else {
+            setBackground(Color.white);
+        }
         addMouseAdapter(superAdapter);
 
         //setToolTipText("");   // Has side affect of turning on tt text
@@ -289,7 +293,11 @@ public class TrackPanel extends JPanel {
         }
 
         if (cursorPoint != null) {
-            g.setColor(HiCGlobals.RULER_LINE_COLOR);
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                g.setColor(HiCGlobals.DARKULA_RULER_LINE_COLOR);
+            } else {
+                g.setColor(HiCGlobals.RULER_LINE_COLOR);
+            }
             if (orientation == Orientation.X) {
                 g.drawLine(cursorPoint.x, 0, cursorPoint.x, getHeight());
             } else {
@@ -353,7 +361,7 @@ public class TrackPanel extends JPanel {
                 }
             }
         } else {
-            String toolTipText = "";
+            StringBuilder toolTipText = new StringBuilder();
 
             if (orientation == Orientation.X) {
                 for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
@@ -361,7 +369,7 @@ public class TrackPanel extends JPanel {
                     int y = r.y + r.height / 2;
                     if (r.contains(mx, y)) {
                         String tempText = p.getSecond().getToolTipText(mx, y, orientation);
-                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                        if (tempText.length() > 0) toolTipText.append("<br>").append(tempText);
                     }
                 }
             } else {
@@ -370,7 +378,7 @@ public class TrackPanel extends JPanel {
                     int x = r.x + r.width / 2;
                     if (r.contains(x, my)) {
                         String tempText = p.getSecond().getToolTipText(my, x, orientation);
-                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                        if (tempText.length() > 0) toolTipText.append("<br>").append(tempText);
                     }
                 }
             }

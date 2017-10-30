@@ -45,7 +45,7 @@ public class ChromosomeHandler {
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
-    private Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
+    private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -87,9 +87,12 @@ public class ChromosomeHandler {
         return cleanUpName(name).equalsIgnoreCase(Globals.CHR_ALL);
     }
 
-    public Chromosome addCustomChromosome(File file) {
+    public Chromosome generateCustomChromosomeFromBED(File file, int minSize) {
         GenomeWideList<MotifAnchor> regionsInCustomChromosome =
                 MotifAnchorParser.loadFromBEDFile(this, file.getAbsolutePath());
+
+        MotifAnchorTools.mergeAndExpandSmallAnchors(regionsInCustomChromosome, minSize);
+
         String cleanedUpName = cleanUpName(file.getName());
 
         return addCustomChromosome(regionsInCustomChromosome, cleanedUpName);
@@ -171,13 +174,12 @@ public class ChromosomeHandler {
         return isCustomChromosome(chromosome.getIndex());
     }
 
-    public boolean isCustomChromosome(int index) {
+    private boolean isCustomChromosome(int index) {
         return customChromosomeRegions.containsKey(index);
     }
 
     public Chromosome getChromosomeFromName(String name) {
-        Chromosome c = chromosomeMap.get(cleanUpName(name));
-        return c;
+        return chromosomeMap.get(cleanUpName(name));
     }
 
     public boolean containsChromosome(String name) {

@@ -85,10 +85,6 @@ public class SaveImageDialog extends JFileChooser {
                             } else {
                                 exportAsPDF(outputFile, mainWindow, hic, hiCPanel, w, h);
                             }
-
-                        } catch (IOException error) {
-                            JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
-                                    JOptionPane.ERROR_MESSAGE);
                         } catch (NumberFormatException error) {
                             JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
                                     JOptionPane.ERROR_MESSAGE);
@@ -117,7 +113,7 @@ public class SaveImageDialog extends JFileChooser {
     }
 
     private void exportAsPDF(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
-                             final int w, final int h) throws IOException {
+                             final int w, final int h) {
         try {
             PDFGraphics2D g = new PDFGraphics2D(0, 0, w, h);
             plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);
@@ -128,7 +124,7 @@ public class SaveImageDialog extends JFileChooser {
     }
 
     private void exportAsSVG(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
-                             final int w, final int h) throws IOException {
+                             final int w, final int h) {
         try {
             SVGGraphics2D g = new SVGGraphics2D(0, 0, w, h);
             plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);

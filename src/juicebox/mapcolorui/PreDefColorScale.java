@@ -24,6 +24,7 @@
 
 package juicebox.mapcolorui;
 
+import juicebox.HiCGlobals;
 import org.broad.igv.renderer.ColorScale;
 
 import java.awt.*;
@@ -136,7 +137,12 @@ class PreDefColorScale implements ColorScale {
         }
 
         if (colorList == null || colorList.size() == 0) {
-            return Color.white;
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                return Color.black;
+            } else {
+                return Color.white;
+            }
+
         }
 
         if (score < colorList.get(0).score) {
@@ -206,21 +212,21 @@ class PreDefColorScale implements ColorScale {
         private final Color color;
         private double score; // limit
 
-        public ColorMapEntry(Color color, double score) {
+        ColorMapEntry(Color color, double score) {
             super();
             this.color = color;
             this.score = score;
         }
 
-        public double getScore() {
+        double getScore() {
             return score;
         }
 
-        public void setScore(double score) {
+        void setScore(double score) {
             this.score = score;
         }
 
-        public Color getColor() {
+        Color getColor() {
             return color;
         }
 

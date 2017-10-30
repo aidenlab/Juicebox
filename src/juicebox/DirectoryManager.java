@@ -24,7 +24,6 @@
 
 package juicebox;
 
-import org.apache.log4j.*;
 import org.broad.igv.Globals;
 import org.broad.igv.exceptions.DataLoadException;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -41,7 +40,6 @@ import java.util.prefs.Preferences;
  */
 public class DirectoryManager {
 
-    private static final Logger log = Logger.getLogger(DirectoryManager.class);
     private final static String HIC_DIR_USERPREF = "hicDir";
     private static File USER_HOME;
     private static File USER_DIRECTORY;    // FileSystemView.getFileSystemView().getDefaultDirectory();
@@ -100,7 +98,7 @@ public class DirectoryManager {
                             HIC_DIRECTORY = null;
                         }
                     } catch (Exception e) {
-                        log.error("Error creating juicebox directory", e);
+                        System.err.println("Error creating juicebox directory" + e.getLocalizedMessage());
                     }
                 }
             }
@@ -138,7 +136,7 @@ public class DirectoryManager {
                 throw new DataLoadException("Cannot write to user directory", HIC_DIRECTORY.getAbsolutePath());
             }
 
-            log.debug("HiC Directory: " + HIC_DIRECTORY.getAbsolutePath());
+            System.err.println("HiC Directory: " + HIC_DIRECTORY.getAbsolutePath());
         }
         return HIC_DIRECTORY;
     }
@@ -167,18 +165,6 @@ public class DirectoryManager {
         return override;
     }
 
-
-    private static synchronized File getLogFile() throws IOException {
-
-        File logFile = new File(getHiCDirectory(), "juicebox.log");
-        if (!logFile.exists()) {
-            logFile.createNewFile();
-        }
-        return logFile;
-
-    }
-
-
     private static boolean canWrite(File directory) {
         // There are bugs in the Windows Java JVM that can cause user directories to be non-writable (target fix is
         // Java 7).  The only way to know if the directory is writable for sure is to try to write something.
@@ -204,35 +190,5 @@ public class DirectoryManager {
             return directory.canWrite();
         }
 
-    }
-
-    public static void initializeLog() {
-
-        Logger logger = Logger.getRootLogger();
-
-        PatternLayout layout = new PatternLayout();
-        layout.setConversionPattern("%p [%d{ISO8601}] [%F:%L]  %m%n");
-
-        // Create a log file that is ready to have text appended to it
-        try {
-            File logFile = getLogFile();
-            RollingFileAppender appender = new RollingFileAppender();
-            appender.setName("IGV_ROLLING_APPENDER");
-            appender.setFile(logFile.getAbsolutePath());
-            appender.setThreshold(Level.ALL);
-            appender.setMaxFileSize("1000KB");
-            appender.setMaxBackupIndex(1);
-            appender.setLayout(layout);
-            appender.setAppend(true);
-            appender.activateOptions();
-            logger.addAppender(appender);
-
-        } catch (IOException e) {
-            // Can't create log file, just log to console
-            System.err.println("Error creating log file");
-            e.printStackTrace();
-            ConsoleAppender consoleAppender = new ConsoleAppender();
-            logger.addAppender(consoleAppender);
-        }
     }
 }

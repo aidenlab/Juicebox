@@ -43,15 +43,16 @@ public class HiCGlobals {
     public static final boolean isBlackBorderActivated = false;
     // MainWindow variables
     public static final Color RULER_LINE_COLOR = new Color(0, 0, 230, 100);
+    public static final Color DARKULA_RULER_LINE_COLOR = new Color(200, 200, 250, 100);
+
     public static final int BIN_PIXEL_WIDTH = 1;
     // for plotting
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
     // for state saving
-    public static final File stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
-    public static final File xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
-            "JuiceboxStatesForExport.xml");
+    public static File stateFile;
+    public static File xmlSavedStatesFile;
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<>();
@@ -67,7 +68,7 @@ public class HiCGlobals {
             MatrixType.VS, MatrixType.RATIO, MatrixType.OEVS, MatrixType.PEARSONVS, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display purposes only)
-    public static final String versionNum = "1.8.6";
+    public static final String versionNum = "1.6.11";//"1.8.6"; // 1.6.11 is latest public release
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
@@ -84,11 +85,14 @@ public class HiCGlobals {
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
-    public static final boolean isAssemblyToolsAllowed = true;
+    public static boolean isDarkulaModeEnabled = false;
+
 
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
+    public static final boolean isAssemblyToolsAllowed = true;
+    public static final boolean isCustomChromosomesAllowed = false;
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

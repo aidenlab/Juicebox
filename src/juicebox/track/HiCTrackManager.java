@@ -29,7 +29,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
 import org.broad.igv.feature.genome.Genome;
@@ -49,8 +48,6 @@ import java.util.*;
  * @since 5/8/12
  */
 public class HiCTrackManager {
-
-    private static final Logger log = Logger.getLogger(HiCTrackManager.class);
 
     //static String path = "http://www.broadinstitute.org/igvdata/hic/tracksMenu.xml";
     //static String path = "/Users/jrobinso/Documents/IGV/hg19_encode.xml";
@@ -164,7 +161,7 @@ public class HiCTrackManager {
                 track.setName(locator.getTrackName());
                 loadedTracks.add(track);
             } catch (Exception e) {
-                log.error("Error loading track: " + locator.getPath(), e);
+                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
         } else {
@@ -174,7 +171,7 @@ public class HiCTrackManager {
 
                 loadedTracks.addAll(tracks);
             } catch (Exception e) {
-                log.error("Error loading track: " + locator.getPath(), e);
+                System.err.println("Error loading track: " + locator.getPath() + " " + e.getLocalizedMessage());
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
             }
            /* FeatureCodec<?, ?> codec = CodecFactory.getCodec(locator, genome);
@@ -188,13 +185,13 @@ public class HiCTrackManager {
                     track.setName(locator.getTrackName());
                     loadedTracks.add(track);
                 } catch (Exception e) {
-                    log.error("Error loading track: " + path, e);
+                    System.err.println("Error loading track: " + path, e);
                     JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading track. " + e.getMessage());
                 }
                 //Object header = bfs.getHeader();
                 //TrackProperties trackProperties = getTrackProperties(header);
             } else {
-                log.error("Error loading track: " + path);
+                System.err.println("Error loading track: " + path);
                 System.out.println("path: " + path);//DEBUGGING
                 File file = new File(path);
                 JOptionPane.showMessageDialog(superAdapter.getMainWindow(), "Error loading " + file.getName() + ".\n Does not appear to be a track file.");
@@ -307,7 +304,7 @@ public class HiCTrackManager {
             try {
                 genome = GenomeManager.getInstance().loadGenome(genomePath, null);
             } catch (IOException e) {
-                log.error("Error loading genome: " + genomePath, e);
+                System.err.println("Error loading genome: " + genomePath + " " + e.getLocalizedMessage());
             }
 
         }

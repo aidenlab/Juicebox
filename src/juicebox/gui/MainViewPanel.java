@@ -104,10 +104,12 @@ public class MainViewPanel {
                                    Dimension bigPanelDim, Dimension panelDim) {
         contentPane.setLayout(new BorderLayout());
 
+        Color mainBackgroundColor = HiCGlobals.isDarkulaModeEnabled ? Color.BLACK : Color.WHITE;
+
         final JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
         contentPane.add(mainPanel, BorderLayout.CENTER);
-        mainPanel.setBackground(Color.white);
+        mainPanel.setBackground(mainBackgroundColor);
 
         final JPanel toolbarPanel = new JPanel();
         toolbarPanel.setBorder(null);
@@ -117,14 +119,14 @@ public class MainViewPanel {
 
         JPanel bigPanel = new JPanel();
         bigPanel.setLayout(new BorderLayout());
-        bigPanel.setBackground(Color.white);
+        bigPanel.setBackground(mainBackgroundColor);
 
         bigPanel.setPreferredSize(new Dimension(bigPanelDim));
         bigPanel.setMaximumSize(new Dimension(bigPanelDim));
         bigPanel.setMinimumSize(new Dimension(bigPanelDim));
 
         JPanel bottomPanel = new JPanel();
-        bottomPanel.setBackground(Color.white);
+        bottomPanel.setBackground(mainBackgroundColor);
 
 
         JMenuBar menuBar = null;
@@ -279,12 +281,12 @@ public class MainViewPanel {
 
         //======== Resolution Panel ========
         hiCPanel = new JPanel();
-        hiCPanel.setBackground(Color.white);
+        hiCPanel.setBackground(mainBackgroundColor);
         hiCPanel.setLayout(new HiCLayout());
         bigPanel.add(hiCPanel, BorderLayout.CENTER);
 
         JPanel wrapGapPanel = new JPanel();
-        wrapGapPanel.setBackground(Color.white);
+        wrapGapPanel.setBackground(mainBackgroundColor);
         wrapGapPanel.setMaximumSize(new Dimension(5, 5));
         wrapGapPanel.setMinimumSize(new Dimension(5, 5));
         wrapGapPanel.setPreferredSize(new Dimension(5, 5));
@@ -293,15 +295,15 @@ public class MainViewPanel {
 
 
         // splitPanel.insertPane(hiCPanel, 0);
-        // splitPanel.setBackground(Color.white);
+        // splitPanel.setBackground(mainBackgroundColor);
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.white);
+        topPanel.setBackground(mainBackgroundColor);
         topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(superAdapter.getHiC());
-        trackLabelPanel.setBackground(Color.white);
+        trackLabelPanel.setBackground(mainBackgroundColor);
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
         JPanel topCenterPanel = new JPanel();
@@ -325,7 +327,7 @@ public class MainViewPanel {
 
         //---- rulerPanel1 ----
         JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(Color.white);
+        leftPanel.setBackground(mainBackgroundColor);
         leftPanel.setLayout(new BorderLayout());
         hiCPanel.add(leftPanel, BorderLayout.WEST);
 
@@ -347,7 +349,7 @@ public class MainViewPanel {
         //==== Chromosome Context Toggled ====
         //---- chromosomeSidePanel ----
         chrSidePanel = new JPanel();
-        chrSidePanel.setBackground(Color.white);
+        chrSidePanel.setBackground(mainBackgroundColor);
         chrSidePanel.setLayout(new BorderLayout());
         chrSidePanel.setMaximumSize(new Dimension(4000, 50));
         chrSidePanel.setPreferredSize(new Dimension(50, 50));
@@ -355,14 +357,14 @@ public class MainViewPanel {
         chrSidePanel.setVisible(true);
 
         JPanel chrSidePanel2 = new JPanel();
-        chrSidePanel2.setBackground(Color.white);
+        chrSidePanel2.setBackground(mainBackgroundColor);
         chrSidePanel2.setLayout(new BorderLayout());
         chrSidePanel2.setMaximumSize(new Dimension(50, 50));
         chrSidePanel2.setPreferredSize(new Dimension(50, 50));
         chrSidePanel2.setMinimumSize(new Dimension(50, 50));
 
         chrSidePanel3 = new JPanel();
-        chrSidePanel3.setBackground(Color.white);
+        chrSidePanel3.setBackground(mainBackgroundColor);
         chrSidePanel3.setLayout(new BorderLayout());
         chrSidePanel3.setMaximumSize(new Dimension(50, 4000));
         chrSidePanel3.setPreferredSize(new Dimension(50, 50));
@@ -371,7 +373,7 @@ public class MainViewPanel {
 
         //---- chromosomeFigPanel2 ----
         bottomChromosomeFigPanel = new JPanel();
-        bottomChromosomeFigPanel.setBackground(Color.white);
+        bottomChromosomeFigPanel.setBackground(mainBackgroundColor);
         bottomChromosomeFigPanel.setLayout(new BorderLayout());
         //bottomChromosomeFigPanel.setVisible(true);
 
@@ -407,14 +409,14 @@ public class MainViewPanel {
         wrapHeatmapPanel.setMaximumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setMinimumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setPreferredSize(new Dimension(panelDim));
-        wrapHeatmapPanel.setBackground(Color.white);
+        wrapHeatmapPanel.setBackground(mainBackgroundColor);
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(superAdapter);
         heatmapPanel.setMaximumSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setMinimumSize(new Dimension(panelWidth - 5, panelHeight - 5));
         heatmapPanel.setPreferredSize(new Dimension(panelWidth - 5, panelHeight - 5));
-        heatmapPanel.setBackground(Color.white);
+        heatmapPanel.setBackground(mainBackgroundColor);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
 
@@ -470,7 +472,7 @@ public class MainViewPanel {
 
         //---- thumbnailPanel ----
         thumbnailPanel = new ThumbnailPanel(superAdapter);
-        thumbnailPanel.setBackground(Color.white);
+        thumbnailPanel.setBackground(mainBackgroundColor);
         thumbnailPanel.setMaximumSize(new Dimension(210, 210));
         thumbnailPanel.setMinimumSize(new Dimension(210, 210));
         thumbnailPanel.setPreferredSize(new Dimension(210, 210));
@@ -479,7 +481,7 @@ public class MainViewPanel {
 //        gapPanel.setMaximumSize(new Dimension(1, 1));
 //        rightSidePanel.add(gapPanel,BorderLayout.WEST);
         thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
-        thumbPanel.setBackground(Color.white);
+        thumbPanel.setBackground(mainBackgroundColor);
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mini-annotations panel ======
@@ -488,12 +490,12 @@ public class MainViewPanel {
 
         //========= mouse hover text ======
         tooltipPanel = new JPanel(new BorderLayout());
-        tooltipPanel.setBackground(Color.white);
+        tooltipPanel.setBackground(mainBackgroundColor);
         mouseHoverTextPanel = new JEditorPane();
         mouseHoverTextPanel.setEditable(false);
         mouseHoverTextPanel.setContentType("text/html");
-        mouseHoverTextPanel.setFont(new Font("sans-serif", 0, 20));
-        mouseHoverTextPanel.setBackground(Color.white);
+        mouseHoverTextPanel.setFont(new Font("sans-serif", Font.PLAIN, 20));
+        mouseHoverTextPanel.setBackground(mainBackgroundColor);
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
@@ -506,12 +508,13 @@ public class MainViewPanel {
 
         tooltipScroller = new JScrollPane(mouseHoverTextPanel);
         tooltipScroller.setBackground(Color.white);
+
         tooltipScroller.setBorder(null);
         tooltipScroller.setMaximumSize(prefSize);
 
         tooltipPanel.add(tooltipScroller);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
-        tooltipPanel.setBackground(Color.white);
+        tooltipPanel.setBackground(mainBackgroundColor);
         tooltipPanel.setBorder(null);
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
@@ -573,6 +576,7 @@ public class MainViewPanel {
             prefSize =
             new Dimension(210,
                 375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+
         mouseHoverTextPanel.setPreferredSize(prefSize);
         tooltipPanel.setPreferredSize(prefSize);
         tooltipScroller.setMaximumSize(prefSize);
@@ -855,10 +859,7 @@ public class MainViewPanel {
     }
 
     public boolean getShowGridLines() {
-        if (heatmapPanel != null) {
-            return heatmapPanel.getShowGridLines();
-        }
-        return true; // when starting from scratch, the gridlines option is set to true
+        return heatmapPanel == null || heatmapPanel.getShowGridLines();
     }
 
     public void setShowGridLines(boolean status) {

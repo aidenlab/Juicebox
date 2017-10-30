@@ -378,19 +378,19 @@ public class LoadDialog extends JDialog implements TreeSelectionListener, Action
 
 
     private class ItemInfo {
-        public final String uid;
-        public final String itemName;
-        public final String parentKey;
-        public String itemURL;
+        final String uid;
+        final String itemName;
+        final String parentKey;
+        String itemURL;
 
-        public ItemInfo(String uid, String parentKey, String itemName, String itemURL) {
+        ItemInfo(String uid, String parentKey, String itemName, String itemURL) {
             this.uid = uid;
             this.parentKey = parentKey;
             this.itemName = itemName.trim();
             this.itemURL = itemURL.trim();
         }
 
-        public ItemInfo(String uid, String parentKey, String itemName) {
+        ItemInfo(String uid, String parentKey, String itemName) {
             this.parentKey = parentKey;
             this.itemName = itemName;
             this.uid = uid;

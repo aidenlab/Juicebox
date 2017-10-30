@@ -31,7 +31,6 @@ import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.state.SaveFileDialog;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.*;
-import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
@@ -50,7 +49,6 @@ public class MainMenuBar {
     private static final String recentMapEntityNode = "hicMapRecent";
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
-    private static final Logger log = Logger.getLogger(MainMenuBar.class);
 
     private static JMenuItem loadLastMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
@@ -223,9 +221,9 @@ public class MainMenuBar {
                         "</h3>" +
                         "</center>" +
                         "<p>" +
-                        "Juicebox is the Aiden Lab's software for visualizing data<br>"+
+                        "Juicebox is the Aiden Lab's software for visualizing data<br>" +
                         "from proximity ligation experiments, such as Hi-C.<br>" +
-                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>"+
+                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
                         "and Erez Aiden. Ongoing development work is carried<br>" +
                         "out by " +
                         "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
@@ -244,7 +242,7 @@ public class MainMenuBar {
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
                         "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
                         "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase "+
+                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
                         "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
                         "* contributed equally" +
                         "</p></html>"));
@@ -419,13 +417,26 @@ public class MainMenuBar {
         //---View Menu-----
         JMenu viewMenu = new JMenu("View");
 
+        final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
+        darkulaMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
+                superAdapter.getHeatmapPanel().repaint();
+            }
+        });
+        darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
+        //viewMenu.add(darkulaMode);
+
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                superAdapter.createCustomChromosomes();
+                superAdapter.createCustomChromosomesFromBED();
             }
         });
-        viewMenu.add(addCustomChromosome);
+        if (HiCGlobals.isCustomChromosomesAllowed) {
+            viewMenu.add(addCustomChromosome);
+        }
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -496,7 +507,9 @@ public class MainMenuBar {
             }
         });
         displayTiles.setSelected(HiCGlobals.displayTiles);
-        devMenu.add(displayTiles);
+        if (HiCGlobals.isAssemblyToolsAllowed) {
+            devMenu.add(displayTiles);
+        }
 
         JMenuItem editPearsonsColorItem = new JMenuItem("Edit Pearson's Color Scale");
         editPearsonsColorItem.addActionListener(new ActionListener() {
@@ -616,6 +629,8 @@ public class MainMenuBar {
             }
         });
 
+// TODO: check total length and have automatic scaling assigned as default based on that
+
         setScale = new JMenuItem("Set scale");
         setScale.addActionListener(new ActionListener() {
             @Override
@@ -636,10 +651,14 @@ public class MainMenuBar {
                     superAdapter.getMainViewPanel().getRulerPanelX().repaint();
                     superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale assembly annotations
+                    // Rescale and redraw assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().regenerateLayers();
-                        superAdapter.refresh();
+                        superAdapter.getAssemblyStateTracker().resetState();
+//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+////                        assemblyHandler.updateAssembly(true);
+//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
+////                        //superAdapter.repaint();
                     }
 
                 } catch (NumberFormatException t) {
@@ -648,11 +667,7 @@ public class MainMenuBar {
             }
         });
 
-        boolean enabled;
-        if (superAdapter.getAssemblyStateTracker() != null)
-            enabled = superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
-        else
-            enabled = false;
+        boolean enabled = superAdapter.getAssemblyStateTracker() != null && superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
 
         exportAssembly.setEnabled(enabled);
         resetAssembly.setEnabled(enabled);
@@ -660,13 +675,15 @@ public class MainMenuBar {
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
 
-        assemblyMenu.add(enableAssembly);
-        assemblyMenu.add(resetAssembly);
+
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
+//        assemblyMenu.add(enableAssembly);
+
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);

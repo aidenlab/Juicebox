@@ -36,7 +36,6 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
 import oracle.net.jdbc.nl.UninitializedObjectException;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.Pair;
@@ -58,7 +57,6 @@ import java.util.List;
  * @since 4/8/12
  */
 public class HiC {
-    private static final Logger log = Logger.getLogger(HiC.class);
     private static final Splitter MY_SPLITTER = Splitter.on(CharMatcher.BREAKING_WHITESPACE).trimResults().omitEmptyStrings();
 
     //private final MainWindow mainWindow;
@@ -91,7 +89,7 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -184,7 +182,7 @@ public class HiC {
         return scaleFactor;
     }
 
-    public void setScaleFactor(double scaleFactor) {
+    private void setScaleFactor(double scaleFactor) {
         this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 
@@ -856,7 +854,7 @@ public class HiC {
             Chromosome chrY = chromosomeHandler.getChromosomeFromName(chrYName);
 
             if (chrX == null || chrY == null) {
-                //log.info("Most probably origin is a different species saved location or sync/link between two different species maps.");
+                //System.out.println("Most probably origin is a different species saved location or sync/link between two different species maps.");
                 return;
             }
 
@@ -1128,7 +1126,11 @@ public class HiC {
         if (MatrixType.isPearsonType(displayOption)) {
             return Color.WHITE;
         } else {
-            return HiCGlobals.RULER_LINE_COLOR;
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                return HiCGlobals.DARKULA_RULER_LINE_COLOR;
+            } else {
+                return HiCGlobals.RULER_LINE_COLOR;
+            }
         }
     }
 

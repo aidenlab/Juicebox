@@ -52,7 +52,7 @@ public class ProcessHelper {
     private ProcessBuilder createProcess() {
         String jvm = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
         String classpath = System.getProperty("java.class.path");
-        //log.debug("classpath: " + classpath);
+        //System.err.println("classpath: " + classpath);
         // String workingDirectory = System.getProperty("user.dir");
 
         // String[] options = optionsAsString.split(" ");

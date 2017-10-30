@@ -29,14 +29,15 @@ import org.broad.igv.util.Pair;
 
 public class RegionPair {
 
-    public int xI, yI;
-    public MotifAnchor xRegion;
-    public MotifAnchor xTransRegion;
-    public MotifAnchor yRegion;
-    public MotifAnchor yTransRegion;
+    public final int xI;
+    public final int yI;
+    public final MotifAnchor xRegion;
+    public final MotifAnchor xTransRegion;
+    public final MotifAnchor yRegion;
+    public final MotifAnchor yTransRegion;
 
-    public RegionPair(int xI, Pair<MotifAnchor, MotifAnchor> xLocalRegion,
-                      int yI, Pair<MotifAnchor, MotifAnchor> yLocalRegion) {
+    private RegionPair(int xI, Pair<MotifAnchor, MotifAnchor> xLocalRegion,
+                       int yI, Pair<MotifAnchor, MotifAnchor> yLocalRegion) {
         this.xI = xI;
         this.yI = yI;
         this.xRegion = xLocalRegion.getFirst();
@@ -75,9 +76,9 @@ public class RegionPair {
             return xI == o.xI
                     && yI == o.yI
                     && xRegion.equals(o.xRegion)
-                    && xTransRegion.equals(xTransRegion)
+                    && xTransRegion.equals(o.xTransRegion)
                     && yRegion.equals(o.yRegion)
-                    && yTransRegion.equals(yTransRegion);
+                    && yTransRegion.equals(o.yTransRegion);
         }
         return false;
     }

@@ -35,10 +35,6 @@ public class ZoomActionTracker {
     private Stack<ZoomAction> undoZoomActions = new Stack<>();
     private Stack<ZoomAction> redoZoomActions = new Stack<>();
 
-    public ZoomActionTracker() {
-
-    }
-
     public void undoZoom() {
         if (validateUndoZoom()) {
             redoZoomActions.push(undoZoomActions.pop());
@@ -77,7 +73,7 @@ public class ZoomActionTracker {
     }
 
     public boolean equals(ZoomActionTracker other) {
-        if (sameObject(other)) return true;
+        if (this == other) return true;
         if (other != null) {
             if (this.undoZoomActions.equals(other.getUndoZoomActions())) {
                 if (this.redoZoomActions.equals(other.getRedoZoomActions())) {
@@ -88,29 +84,6 @@ public class ZoomActionTracker {
             }
         }
         return false;
-    }
-
-    public boolean sameObject(ZoomActionTracker other) {
-        return this == other;
-    }
-
-    public ZoomActionTracker deepCopy() {
-        ZoomActionTracker copy = new ZoomActionTracker();
-        copy.setCurrentZoomAction(this.getCurrentZoomAction().deepCopy());
-
-        Stack<ZoomAction> copyUndoZoomActions = new Stack<>();
-        for (ZoomAction undoZoomAction : undoZoomActions) {
-            copyUndoZoomActions.add(undoZoomAction.deepCopy());
-        }
-        copy.setUndoZoomActions(copyUndoZoomActions);
-
-        Stack<ZoomAction> copyRedoZoomActions = new Stack<>();
-        for (ZoomAction redoZoomAction : redoZoomActions) {
-            copyRedoZoomActions.add(redoZoomAction.deepCopy());
-        }
-        copy.setRedoZoomActions(copyRedoZoomActions);
-
-        return copy;
     }
 
     public ZoomAction getCurrentZoomAction() {
@@ -125,19 +98,7 @@ public class ZoomActionTracker {
         return this.undoZoomActions;
     }
 
-    private void setUndoZoomActions(Stack<ZoomAction> undoZoomActions) {
-        this.undoZoomActions = undoZoomActions;
-    }
-
     private Stack<ZoomAction> getRedoZoomActions() {
         return this.redoZoomActions;
-    }
-
-    private void setRedoZoomActions(Stack<ZoomAction> redoZoomActions) {
-        this.redoZoomActions = redoZoomActions;
-    }
-
-    private int getStackSizeLimit() {
-        return this.stackSizeLimit;
     }
 }

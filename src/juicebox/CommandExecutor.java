@@ -29,7 +29,6 @@
 
 package juicebox;
 
-import org.apache.log4j.Logger;
 import org.broad.igv.util.StringUtils;
 
 import java.util.ArrayList;
@@ -37,7 +36,6 @@ import java.util.List;
 
 class CommandExecutor {
 
-    private static final Logger log = Logger.getLogger(CommandExecutor.class);
     private final HiC hic;
 
     public CommandExecutor(HiC hic) {
@@ -60,7 +58,7 @@ class CommandExecutor {
         List<String> args = getArgs(commandString.toArray(new String[commandString.size()]));
 
         String result = "OK";
-        log.debug("Executing: " + command);
+        System.err.println("Executing: " + command);
         try {
             if (args.size() > 0) {
 
@@ -86,7 +84,7 @@ class CommandExecutor {
             }
 
         } catch (Exception e) {
-            log.error(e);
+            System.err.println(e.getLocalizedMessage());
             result = "Error: " + e.getMessage();
         }
         return result;

@@ -24,7 +24,6 @@
 
 package juicebox;
 
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.IGV;
 
@@ -49,7 +48,6 @@ import java.util.concurrent.Executors;
  */
 class IGVUtils {
 
-    private static final Logger log = Logger.getLogger(IGVUtils.class);
     private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
 
     private static SocketHelper helper = null;
@@ -65,7 +63,7 @@ class IGVUtils {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()), HiCGlobals.bufferSize);
                 helper = new SocketHelper(in, out, socket);
             } catch (IOException e) {
-                log.error("IOException", e);
+                System.err.println("IOException" + e.getLocalizedMessage());
                 helper = null;
             }
 

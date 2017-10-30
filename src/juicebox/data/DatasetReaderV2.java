@@ -33,7 +33,6 @@ import juicebox.HiCGlobals;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
@@ -55,7 +54,6 @@ import java.util.*;
  */
 public class DatasetReaderV2 extends AbstractDatasetReader {
 
-    private static final Logger log = Logger.getLogger(DatasetReaderV2.class);
     private static final int maxLengthEntryName = 100;
     /**
      * Cache of chromosome name -> array of restriction sites
@@ -131,8 +129,9 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             version = dis.readInt();
             position += 4;
 
-            System.out.println("HiC file version: " + version);
-
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                System.out.println("HiC file version: " + version);
+            }
             masterIndexPos = dis.readLong();
             position += 8;
 
@@ -233,7 +232,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
         } catch (IOException e) {
-            log.error("Error reading dataset", e);
+            System.err.println("Error reading dataset" + e.getLocalizedMessage());
             throw e;
         }
 
@@ -492,7 +491,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 nExpectedValues = dis.readInt();
             } catch (EOFException e) {
                 if (HiCGlobals.printVerboseComments) {
-                    log.info("No normalization vectors");
+                    System.out.println("No normalization vectors");
                 }
                 return;
             }
@@ -738,8 +737,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         } else {
             NormalizationVector nv1 = dataset.getNormalizationVector(zd.getChr1Idx(), zd.getZoom(), no);
             NormalizationVector nv2 = dataset.getNormalizationVector(zd.getChr2Idx(), zd.getZoom(), no);
+
             if (nv1 == null || nv2 == null) {
-                throw new IOException("Normalization missing for: " + zd.getDescription());
+                if (HiCGlobals.printVerboseComments) {
+                    System.err.println("Normalization missing for: " + zd.getDescription());
+                }
+                return null;
             }
             double[] nv1Data = nv1.getData();
             double[] nv2Data = nv2.getData();

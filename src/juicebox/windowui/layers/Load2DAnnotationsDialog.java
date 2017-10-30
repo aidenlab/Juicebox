@@ -30,6 +30,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.data.ChromosomeHandler;
+import juicebox.data.HiCFileTools;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.feature.AnnotationLayerHandler;
 import org.broad.igv.ui.util.FileDialogUtils;
@@ -127,8 +128,10 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
                 String url = JOptionPane.showInputDialog("Enter URL: ");
 
                 if (url != null && url.length() > 0) {
+                    if (HiCFileTools.isDropboxURL(url)) {
+                        url = HiCFileTools.cleanUpDropboxURL(url);
+                    }
                     url = url.trim();
-
                     if (customAddedFeatures == null) {
                         customAddedFeatures = new DefaultMutableTreeNode(
                                 new ItemInfo("Added 2D Features", ""), true);
@@ -436,15 +439,15 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
     }
 
     private class ItemInfo {
-        public final String itemName;
-        public final String itemURL;
+        final String itemName;
+        final String itemURL;
 
-        public ItemInfo(String itemName, String itemURL) {
+        ItemInfo(String itemName, String itemURL) {
             this.itemName = itemName.trim();
             this.itemURL = itemURL.trim();
         }
 
-        public ItemInfo(String itemName) {
+        ItemInfo(String itemName) {
             this.itemName = itemName;
             itemURL = null;
         }

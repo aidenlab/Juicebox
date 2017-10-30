@@ -26,6 +26,8 @@
 package juicebox.track.feature;
 
 import juicebox.HiCGlobals;
+import juicebox.assembly.AssemblyHeatmapHandler;
+import juicebox.assembly.Scaffold;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.tools.utils.juicer.arrowhead.ArrowheadScore;
@@ -46,7 +48,7 @@ import java.util.List;
 public class Feature2D implements Comparable<Feature2D> {
 
     static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tname\tscore\tstrand1\tstrand2\tcolor";
-    static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    private static final String genericLegacyHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String BEDPE_SPACER = "\t.\t.\t.\t.";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
     public static int tolerance = 0;
@@ -56,13 +58,13 @@ public class Feature2D implements Comparable<Feature2D> {
     private final String chr1;
     private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
-    int start1;
-    int start2;
+    final int start1;
+    final int start2;
     int end1;
     int end2;
     private boolean isSelected = false;
     private Feature2D reflection = null;
-    private Color color, preSelectionColor, translucentColor;
+    private Color color, translucentColor;
     private boolean test = false;
 
     public Feature2D(FeatureType featureType, String chr1, int start1, int end1, String chr2, int start2, int end2, Color c,
@@ -116,20 +118,8 @@ public class Feature2D implements Comparable<Feature2D> {
         return start1;
     }
 
-    public void setStart1(int start1) {
-        this.start1 = start1;
-        if (reflection != null)
-            reflection.start2 = start1;
-    }
-
     public int getStart2() {
         return start2;
-    }
-
-    public void setStart2(int start2) {
-        this.start2 = start1;
-        if (reflection != null)
-            reflection.start1 = start2;
     }
 
     public int getEnd1() {
@@ -204,23 +194,36 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public String tooltipText() {
 
+        String scaledStart1 = formatter.format(start1 * HiCGlobals.hicMapScale + 1);
+        String scaledStart2 = formatter.format(start2 * HiCGlobals.hicMapScale + 1);
+        String scaledEnd1 = formatter.format(end1 * HiCGlobals.hicMapScale);
+        String scaledEnd2 = formatter.format(end2 * HiCGlobals.hicMapScale);
+
+        if (getFeatureType() == FeatureType.SCAFFOLD) {
+            Scaffold scaffold = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler().getScaffoldFromFeature(this);
+            scaledStart1 = formatter.format(scaffold.getCurrentStart() + 1);
+            scaledStart2 = formatter.format(scaffold.getCurrentStart() + 1);
+            scaledEnd1 = formatter.format(scaffold.getCurrentEnd());
+            scaledEnd2 = formatter.format(scaffold.getCurrentEnd());
+        }
+
         StringBuilder txt = new StringBuilder();
         txt.append("<span style='color:red; font-family: arial; font-size: 12pt;'>");
         txt.append(getFeatureName());
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.topChromosomeColor + ";'>");
-        txt.append(chr1).append(":").append(formatter.format(Math.round(start1 + 1) * HiCGlobals.hicMapScale));
+        txt.append(chr1).append(":").append(scaledStart1);
         if ((end1 - start1) > 1) {
-            txt.append("-").append(formatter.format(Math.round(end1 * HiCGlobals.hicMapScale)));
+            txt.append("-").append(scaledEnd1);
         }
 
         txt.append("</span><br>");
 
         txt.append("<span style='font-family: arial; font-size: 12pt;color:" + HiCGlobals.leftChromosomeColor + ";'>");
-        txt.append(chr2).append(":").append(formatter.format(Math.round(start2 + 1) * HiCGlobals.hicMapScale));
+        txt.append(chr2).append(":").append(scaledStart2);
         if ((end2 - start2) > 1) {
-            txt.append("-").append(formatter.format(Math.round(end2 * HiCGlobals.hicMapScale)));
+            txt.append("-").append(scaledEnd2);
         }
         txt.append("</span>");
         DecimalFormat df = new DecimalFormat("#.##");
@@ -312,11 +315,11 @@ public class Feature2D implements Comparable<Feature2D> {
         return output.toString();
     }
 
-    public String simpleString() {
+    private String simpleString() {
         return chr1 + "\t" + start1 + "\t" + end1 + "\t" + chr2 + "\t" + start2 + "\t" + end2;
     }
 
-    public String justColorString() {
+    private String justColorString() {
         return "\t" + color.getRed() + "," + color.getGreen() + "," + color.getBlue();
     }
 
@@ -354,9 +357,8 @@ public class Feature2D implements Comparable<Feature2D> {
     public void setAttribute(String key, String newVal) {
         attributes.put(key, newVal);
         // attribute directly shared between reflections
-        //if (reflection != null)
-        //    reflection.attributes.put(key, newVal);
-
+        if (reflection != null)
+            reflection.attributes.put(key, newVal);
     }
 
     public float getFloatAttribute(String key) {
@@ -522,13 +524,6 @@ public class Feature2D implements Comparable<Feature2D> {
             attrClone.put(key, attributes.get(key));
         }
         return new Feature2D(featureType, chr1, start1, end1, chr2, start2, end2, color, attrClone);
-    }
-
-    public Contig2D toContig() {
-        if (this instanceof Contig2D) {
-            return (Contig2D) this;
-        }
-        return new Contig2D(featureType, chr1, start1, end1, color, attributes);
     }
 
     public void setSetIsSelectedColorUpdate(boolean setIsSelectedColorUpdate) {

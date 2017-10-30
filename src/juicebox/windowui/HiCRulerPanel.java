@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 
 import javax.swing.*;
@@ -47,7 +46,6 @@ import java.text.NumberFormat;
 public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
-    private static Logger log = Logger.getLogger(HiCRulerPanel.class);
     private static boolean showOnlyEndPts = false;
     private static boolean showChromosomeFigure = true;
     private final Font tickFont = HiCGlobals.font(9, false);
@@ -58,7 +56,11 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     public HiCRulerPanel(HiC hic) {
         this.hic = hic;
-        setBackground(Color.white);
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            setBackground(Color.BLACK);
+        } else {
+            setBackground(Color.WHITE);
+        }
     }
 
     private static String formatNumber(double position) {
@@ -393,7 +395,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     public enum Orientation {HORIZONTAL, VERTICAL}
 
-    public static class TickSpacing {
+    static class TickSpacing {
 
         private final double majorTick;
         private final double minorTick;
@@ -407,7 +409,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             this.unitMultiplier = unitMultiplier;
         }
 
-        public double getMajorTick() {
+        double getMajorTick() {
             return majorTick;
         }
 
@@ -415,7 +417,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             return minorTick;
         }
 
-        public String getMajorUnit() {
+        String getMajorUnit() {
             return majorUnit;
         }
 
@@ -423,7 +425,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
             this.majorUnit = majorUnit;
         }
 
-        public int getUnitMultiplier() {
+        int getUnitMultiplier() {
             return unitMultiplier;
         }
 

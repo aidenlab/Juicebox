@@ -27,7 +27,6 @@ package juicebox.matrix;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.tribble.util.LittleEndianInputStream;
-import org.apache.log4j.Logger;
 import org.broad.igv.util.ObjectCache;
 import org.broad.igv.util.ParsingUtils;
 
@@ -58,8 +57,6 @@ import java.io.InputStream;
  *         Time: 8:42 AM
  */
 public class DiskResidentBlockMatrix implements BasicMatrix {
-
-    private static final Logger log = Logger.getLogger(DiskResidentBlockMatrix.class);
 
     private final String path;
     private final ObjectCache<String, float[][]> blockDataCache = new ObjectCache<>(200);
@@ -156,7 +153,7 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
             return blockData;
 
         } catch (IOException e) {
-            log.error("Error reading block data: " + blockRowIdx + "-" + blockColIdx, e);
+            System.err.println("Error reading block data: " + blockRowIdx + "-" + blockColIdx + " " + e.getLocalizedMessage());
             return null;
         } finally {
             if (is != null)

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -172,7 +172,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
     private static class SquareDonut implements Shape {
         private final Area area;
 
-        public SquareDonut(Rectangle outerRectangle, Rectangle innerRectangle) {
+        SquareDonut(Rectangle outerRectangle, Rectangle innerRectangle) {
             this.area = new Area(outerRectangle);
             area.subtract(new Area(innerRectangle));
         }

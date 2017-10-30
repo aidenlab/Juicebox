@@ -64,10 +64,10 @@ public class AnnotationLayerHandler {
     private FeatureRenderer.LineStyle lineStyle = FeatureRenderer.LineStyle.SOLID;
     private boolean canExport = false, canUndo = false;
     private JButton exportButton, undoButton, importAnnotationsButton, deleteLayerButton, censorButton;
-    private List<JToggleButton> activeLayerButtons = new ArrayList<>();
+    private final List<JToggleButton> activeLayerButtons = new ArrayList<>();
     private Color defaultColor = Color.BLUE;
-    private List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
-    private List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
+    private final List<PlottingStyleButton> plottingStyleButtons = new ArrayList<>();
+    private final List<ColorChooserPanel> colorChooserPanels = new ArrayList<>();
     private JTextField nameTextField;
     private JLabel miniNameLabel;
 
@@ -231,7 +231,7 @@ public class AnnotationLayerHandler {
         }
 
         // Add new feature
-        if (HiCGlobals.splitModeEnabled == true) {
+        if (HiCGlobals.splitModeEnabled) {
         }
         newFeature = new Feature2D(Feature2D.FeatureType.DOMAIN, chr1, start1, end1, chr2, start2, end2,
                 defaultColor, attributes);
@@ -460,29 +460,18 @@ public class AnnotationLayerHandler {
                                              int numberOfLoopsToFind, double binOriginX,
                                              double binOriginY, double scaleFactor) {
         return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
-                binOriginX, binOriginY, scaleFactor);
+                binOriginX, binOriginY, scaleFactor, false);
     }
 
-    public List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
+    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
+                                             int numberOfLoopsToFind, double binOriginX,
+                                             double binOriginY, double scaleFactor, boolean largeOnly) {
+        return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
+                binOriginX, binOriginY, scaleFactor, largeOnly);
+    }
+
+    private List<Feature2D> getIntersectingFeatures(int chr1Idx, int chr2Idx, net.sf.jsi.Rectangle selectionWindow) {
         return annotationLayer.getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
-    }
-
-    public List<Feature2D> getContainedFeatures(HiC hic) {
-        if (selectionRegion == null) return null;
-
-        int start1, end1;
-        int x = selectionRegion.x;
-        int width = selectionRegion.width;
-        int chr1Idx = hic.getXContext().getChromosome().getIndex();
-        int chr2Idx = hic.getYContext().getChromosome().getIndex();
-
-        // Get starting chrx and ending chrx
-        start1 = geneXPos(hic, x, 0);
-        end1 = geneXPos(hic, x + width, 0);
-
-        net.sf.jsi.Rectangle selectionWindow = new net.sf.jsi.Rectangle(start1, start1, end1, end1);
-
-        return annotationLayer.getContainedFeatures(chr1Idx, chr2Idx, selectionWindow);
     }
 
     /*
@@ -493,6 +482,9 @@ public class AnnotationLayerHandler {
         List<Feature2D> selectedFeatures = new ArrayList<>();
         int chr1Idx = hic.getXContext().getChromosome().getIndex();
         int chr2Idx = hic.getYContext().getChromosome().getIndex();
+
+
+        boolean previousStatus = annotationLayer.getFeatureHandler().getIsSparsePlottingEnabled();
 
         // Multiple regions selected
         if (selectionRegion != null) {
@@ -516,16 +508,16 @@ public class AnnotationLayerHandler {
             net.sf.jsi.Rectangle selectionWindow = new net.sf.jsi.Rectangle(startX, startY, endX, endY);
 
             try {
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
+                //annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
 
                 // Get features that are both contained by and touching (nearest single neighbor)
                 // the selection rectangle
                 List<Feature2D> intersectingFeatures = getIntersectingFeatures(chr1Idx, chr2Idx, selectionWindow);
                 selectedFeatures.addAll(intersectingFeatures);
 
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(previousStatus);
             } catch (Exception e) {
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                //annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
                 selectionRegion = null;
                 return selectedFeatures;
             }
@@ -538,7 +530,7 @@ public class AnnotationLayerHandler {
                 // Find feature that contains selection point
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(true);
                 selectedFeatures.addAll(selectSingleRegion(chr1Idx, chr2Idx, lastX, lastY, hic.getZd(), hic));
-                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
+                annotationLayer.getFeatureHandler().setSparsePlottingEnabled(previousStatus);
             } catch (Exception e) {
                 System.out.println("error:" + e);
                 annotationLayer.getFeatureHandler().setSparsePlottingEnabled(false);
@@ -548,7 +540,7 @@ public class AnnotationLayerHandler {
         }
     }
 
-    public List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
+    private List<Feature2D> selectSingleRegion(int chr1Idx, int chr2Idx, int unscaledX, int unscaledY, MatrixZoomData zd, HiC hic) {
         List<Feature2D> selectedFeatures = new ArrayList<>();
 
         final HiCGridAxis xAxis = zd.getXGridAxis();
@@ -654,7 +646,7 @@ public class AnnotationLayerHandler {
     }
 
     public void loadLoopList(String path, ChromosomeHandler chromosomeHandler) {
-        Feature2DHandler.resultContainer result = getFeatureHandler().loadLoopList(path, chromosomeHandler);
+        Feature2DHandler.resultContainer result = getFeatureHandler().setLoopList(path, chromosomeHandler);
         if (result.n > 0) {
             setExportAbility(true);
             if (result.color != null) {
@@ -672,6 +664,8 @@ public class AnnotationLayerHandler {
         canExport = allowed;
         if (exportButton != null) {
             exportButton.setEnabled(true);
+        }
+        if (censorButton != null) {
             censorButton.setEnabled(true);
         }
     }
@@ -776,14 +770,9 @@ public class AnnotationLayerHandler {
         setIsTransparent(handlerOriginal.getIsTransparent());
         setIsEnlarged(handlerOriginal.getIsEnlarged());
         setPlottingStyle(handlerOriginal.getPlottingStyle());
-
         Feature2DList origLists = handlerOriginal.getAnnotationLayer().getFeatureList();
-        Feature2DList dupLists = new Feature2DList();
 
-        dupLists = (origLists.deepCopy());
-
-
-        annotationLayer.createMergedLoopLists(dupLists);
+        annotationLayer.createMergedLoopLists(origLists.deepCopy());
         setImportAnnotationsEnabled(handlerOriginal.getImportAnnotationsEnabled());
         setExportAbility(handlerOriginal.getExportCapability());
         setIsSparse(handlerOriginal.getIsSparse());
@@ -792,19 +781,17 @@ public class AnnotationLayerHandler {
     public void mergeDetailsFrom(Collection<AnnotationLayerHandler> originalHandlers) {
 
         StringBuilder cleanedTitle = new StringBuilder();
+        List<Feature2DList> allLists = new ArrayList<>();
         for (AnnotationLayerHandler originalHandler : originalHandlers) {
             featureType = originalHandler.featureType;
-
+            allLists.add(originalHandler.getAnnotationLayer().getFeatureList());
             cleanedTitle.append("-").append(originalHandler.getLayerName().toLowerCase().replaceAll("layer", "").replaceAll("\\s", ""));
-
             setLayerVisibility(originalHandler.getLayerVisibility());
             setColorOfAllAnnotations(originalHandler.getDefaultColor());
-
-            annotationLayer.createMergedLoopLists(originalHandler.getAnnotationLayer().getFeatureList());
             importAnnotationsEnabled |= originalHandler.getImportAnnotationsEnabled();
-
             canExport |= originalHandler.getExportCapability();
         }
+        annotationLayer.createMergedLoopLists(allLists);
 
         setExportAbility(canExport);
         setLayerNameAndField("Merger" + cleanedTitle);
@@ -812,10 +799,7 @@ public class AnnotationLayerHandler {
 
     public void togglePlottingStyle() {
         try {
-            for (JButton plottingStyleButton : plottingStyleButtons) {
-                plottingStyleButton.doClick();
-                break;
-            }
+            plottingStyleButtons.get(0).doClick();
         } catch (Exception e) {
             setPlottingStyle(FeatureRenderer.getNextState(getPlottingStyle()));
         }

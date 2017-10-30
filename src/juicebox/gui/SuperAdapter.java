@@ -29,6 +29,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
 import juicebox.data.*;
+import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.HiCColorScale;
 import juicebox.mapcolorui.PearsonColorScaleEditor;
@@ -42,7 +43,6 @@ import juicebox.track.feature.*;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
-import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.FileDialogUtils;
 
@@ -64,7 +64,6 @@ import java.util.Properties;
  * Created by muhammadsaadshamim on 8/4/15.
  */
 public class SuperAdapter {
-    private static final Logger log = Logger.getLogger(SuperAdapter.class);
     public static String currentlyLoadedMainFiles = "";
     public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
@@ -263,6 +262,9 @@ public class SuperAdapter {
                 String url = JOptionPane.showInputDialog("Enter URL: ");
 
                 if (url != null && url.length() > 0) {
+                    if (HiCFileTools.isDropboxURL(url)) {
+                        url = HiCFileTools.cleanUpDropboxURL(url);
+                    }
                     url = url.trim();
                     hic.unsafeLoadTrack(url);
                 }
@@ -399,23 +401,23 @@ public class SuperAdapter {
 
     private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
-        String newFilesToBeLoaded = "";
+        StringBuilder newFilesToBeLoaded = new StringBuilder();
         boolean allFilesAreHiC = true;
         for (String file : files) {
             if (newFilesToBeLoaded.length() > 1) {
-                newFilesToBeLoaded += "##";
+                newFilesToBeLoaded.append("##");
             }
-            newFilesToBeLoaded += file;
+            newFilesToBeLoaded.append(file);
             allFilesAreHiC &= file.endsWith(".hic");
         }
 
-        if ((!control) && newFilesToBeLoaded.equals(currentlyLoadedMainFiles)) {
+        if ((!control) && newFilesToBeLoaded.toString().equals(currentlyLoadedMainFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
             return false;
         }
-        if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+        if (control && newFilesToBeLoaded.toString().equals(currentlyLoadedControlFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
@@ -494,9 +496,9 @@ public class SuperAdapter {
             setEnableForAllElements(true);
 
             if (control) {
-                currentlyLoadedControlFiles = newFilesToBeLoaded;
+                currentlyLoadedControlFiles = newFilesToBeLoaded.toString();
             } else {
-                currentlyLoadedMainFiles = newFilesToBeLoaded;
+                currentlyLoadedMainFiles = newFilesToBeLoaded.toString();
             }
 
             mainMenuBar.updateMainMapHasBeenLoaded(true);
@@ -535,7 +537,7 @@ public class SuperAdapter {
             }
         } catch (IOException e) {
             // TODO somehow still have trouble reloading the previous file
-            log.error("Error loading hic file", e);
+            System.err.println("Error loading hic file " + e.getLocalizedMessage());
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);
@@ -850,7 +852,7 @@ public class SuperAdapter {
     public List<AnnotationLayerHandler> getAssemblyLayerHandlers() {
         List<AnnotationLayerHandler> handlers = new ArrayList<>();
         for (AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers) {
-            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
+            if (annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD || annotationLayerHandler.getAnnotationLayerType() == AnnotationLayer.LayerType.EDIT) {
                 handlers.add(annotationLayerHandler);
             }
         }
@@ -873,18 +875,18 @@ public class SuperAdapter {
 //        return annotationLayerHandlers.get(0);
 //        List<AnnotationLayerHandler> handlers = new ArrayList<>();
 //        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
-        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.MAIN || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.GROUP)) {
+        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD)) {
             return getActiveLayerHandler();
         } else
             return annotationLayerHandlers.get(0);
     }
 
     public AnnotationLayerHandler getMainLayer() {
-        return getAssemblyLayerHandler(AnnotationLayer.LayerType.MAIN);
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.SCAFFOLD);
     }
 
     public AnnotationLayerHandler getGroupLayer() {
-        return getAssemblyLayerHandler(AnnotationLayer.LayerType.GROUP);
+        return getAssemblyLayerHandler(AnnotationLayer.LayerType.SUPERSCAFFOLD);
     }
 
     public AnnotationLayerHandler getEditLayer() {
@@ -986,7 +988,7 @@ public class SuperAdapter {
         this.assemblyStateTracker = assemblyStateTracker;
     }
 
-    public void createCustomChromosomes() {
+    public void createCustomChromosomesFromBED() {
 
         FilenameFilter bedFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -996,18 +998,26 @@ public class SuperAdapter {
 
         File[] files = FileDialogUtils.chooseMultiple("Choose .bed file(s)",
                 LoadDialog.LAST_LOADED_HIC_FILE_PATH, bedFilter);
+
         if (files != null && files.length > 0) {
+            LoadDialog.LAST_LOADED_HIC_FILE_PATH = files[0];
+
+            int minSize = MotifAnchorTools.getMinSizeForExpansionFromGUI();
+
             for (File f : files) {
-                Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(f);
-                hic.setChromosomeHandler(hic.getChromosomeHandler());
-                mainViewPanel.getChrBox1().addItem(custom);
-                mainViewPanel.getChrBox2().addItem(custom);
+                Chromosome custom = hic.getChromosomeHandler().generateCustomChromosomeFromBED(f, minSize);
+                updateChrHandlerAndMVP(custom);
             }
         }
     }
 
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
+
+        updateChrHandlerAndMVP(custom);
+    }
+
+    private void updateChrHandlerAndMVP(Chromosome custom) {
         hic.setChromosomeHandler(hic.getChromosomeHandler());
         mainViewPanel.getChrBox1().addItem(custom);
         mainViewPanel.getChrBox2().addItem(custom);
@@ -1033,5 +1043,14 @@ public class SuperAdapter {
 
     public void updatePreviousTempSelectedGroups(Feature2D tempSelectedGroup) {
         previousTempSelectedGroup.add(tempSelectedGroup);
+
+    public void executeClearAllMZDCache() {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
+                refresh();
+            }
+        };
+        executeLongRunningTask(runnable, "Assembly clear MZD cache");
     }
 }

@@ -68,11 +68,19 @@ public class Matrix {
 
         // TODO some weird null error when X chr in bed file?
         List<Chromosome> indicesForChr1 = getIndicesFromSubChromosomes(handler, chr1);
-        List<Chromosome> indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
+        List<Chromosome> indicesForChr2;
+        if (chr1.getIndex() == chr2.getIndex()) {
+            indicesForChr2 = new ArrayList<>(indicesForChr1);
+        } else {
+            indicesForChr2 = getIndicesFromSubChromosomes(handler, chr2);
+        }
+
+        System.out.println(indicesForChr1);
+        //System.out.println(indicesForChr2);
 
         // TODO need to sort first!!
         Chromosome newChr1 = chr1, newChr2 = chr2;
-        if (indicesForChr1.get(0).getIndex() > indicesForChr2.get(0).getIndex()) {
+        if (chr1.getIndex() != chr2.getIndex() && indicesForChr1.get(0).getIndex() > indicesForChr2.get(0).getIndex()) {
             newChr1 = chr2;
             newChr2 = chr1;
         }
@@ -123,7 +131,10 @@ public class Matrix {
                 @Override
                 public void process(String chr, List<MotifAnchor> featureList) {
                     if (featureList.size() > 0) {
-                        indices.add(handler.getChromosomeFromName(chr));
+                        Chromosome chromosomeN = handler.getChromosomeFromName(chr);
+                        if (chromosomeN != null) {
+                            indices.add(chromosomeN);
+                        }
                     }
                 }
             });

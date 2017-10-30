@@ -60,12 +60,12 @@ public class GeneFinder extends JuicerCLT {
 
     @Override
     protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
-        if (args.length != 4 && args.length != 5) {
+        if (args.length != 3 && args.length != 4 && args.length != 5) {
             printUsageAndExit();
         }
         genomeID = args[1];
         bedFilePath = args[2];
-        loopListPath = args[3];
+        if (args.length >= 4) loopListPath = args[3];
 
         String outputPath = "active_genes";
         if (args.length == 5) {
@@ -83,36 +83,49 @@ public class GeneFinder extends JuicerCLT {
         try {
 
             GenomeWideList<MotifAnchor> genes = GeneTools.parseGenome(genomeID, handler);
-            final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, handler, false, null, false);
-            GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(allLoops, false, handler);
-            final Feature2DList filteredLoops = new Feature2DList();
+            System.out.println("Starting with " + genes.size() + " genes");
 
-            if ((new File(bedFilePath)).exists()) {
-                GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
-                MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
+            if (loopListPath != null) {
+                final Feature2DList allLoops = Feature2DParser.loadFeatures(loopListPath, handler, false, null, false);
+                GenomeWideList<MotifAnchor> allAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(allLoops, false, handler);
+                final Feature2DList filteredLoops = new Feature2DList();
 
-                allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
-                    @Override
-                    public void process(String chr, List<MotifAnchor> anchors) {
-                        List<Feature2D> restoredLoops = new ArrayList<>();
-                        for (MotifAnchor anchor : anchors) {
-                            restoredLoops.addAll(anchor.getOriginalFeatures1());
-                            restoredLoops.addAll(anchor.getOriginalFeatures2());
+                if ((new File(bedFilePath)).exists()) {
+                    GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+                    MotifAnchorTools.preservativeIntersectLists(allAnchors, proteins, false);
+
+                    allAnchors.processLists(new FeatureFunction<MotifAnchor>() {
+                        @Override
+                        public void process(String chr, List<MotifAnchor> anchors) {
+                            List<Feature2D> restoredLoops = new ArrayList<>();
+                            for (MotifAnchor anchor : anchors) {
+                                restoredLoops.addAll(anchor.getOriginalFeatures1());
+                                restoredLoops.addAll(anchor.getOriginalFeatures2());
+                            }
+
+                            filteredLoops.addByKey(chr + "_" + chr, restoredLoops);
                         }
+                    });
+                } else {
+                    System.err.println("No bed file provided, all loops being assessed.");
+                    filteredLoops.add(allLoops);
+                }
 
-                        filteredLoops.addByKey(chr + "_" + chr, restoredLoops);
-                    }
-                });
+
+                // note, this is NOT identical to all anchors after preservative intersect
+                // because this restores both of the loops anchors even if one was eliminated
+                // in the previous intersection as long as one of its anchors hit the protein
+                GenomeWideList<MotifAnchor> filteredAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(filteredLoops, false, handler);
+                MotifAnchorTools.preservativeIntersectLists(genes, filteredAnchors, false);
+
             } else {
-                System.err.println("No bed file provided, all loops being assessed.");
-                filteredLoops.add(allLoops);
+                if ((new File(bedFilePath)).exists()) {
+                    System.out.println("Just using bed file");
+                    GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(handler, bedFilePath);
+                    //MotifAnchorTools.mergeAndExpandSmallAnchors(proteins, 1000);
+                    MotifAnchorTools.preservativeIntersectLists(genes, proteins, false);
+                }
             }
-
-            // note, this is NOT identical to all anchors after preservative intersect
-            // because this restores both of the loops anchors even if one was eliminated
-            // in the previous intersection as long as one of its anchors hit the protein
-            GenomeWideList<MotifAnchor> filteredAnchors = MotifAnchorTools.extractAnchorsFromIntrachromosomalFeatures(filteredLoops, false, handler);
-            MotifAnchorTools.preservativeIntersectLists(genes, filteredAnchors, false);
 
             final Set<String> geneNames = new HashSet<>();
             genes.processLists(new FeatureFunction<MotifAnchor>() {

@@ -31,9 +31,9 @@ import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
 import juicebox.windowui.FileDropTargetListener;
 import juicebox.windowui.layers.LayersPanel;
-import org.apache.log4j.Logger;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,10 +42,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,7 +55,6 @@ import java.util.concurrent.Future;
 public class MainWindow extends JFrame {
 
     private static final long serialVersionUID = -3654174199024388185L;
-    private static final Logger log = Logger.getLogger(MainWindow.class);
     private static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final SuperAdapter superAdapter = new SuperAdapter();
     public static Cursor fistCursor;
@@ -103,7 +99,7 @@ public class MainWindow extends JFrame {
             try {
                 theInstance = createMainWindow();
             } catch (Exception e) {
-                log.error("Error creating main window", e);
+                System.err.println("Error creating main window " + e.getLocalizedMessage());
             }
         }
         return theInstance;
@@ -127,20 +123,26 @@ public class MainWindow extends JFrame {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String latestVersion = reader.readLine();
             String[] latest = latestVersion.split("\\.");
-            String[] current = new String(HiCGlobals.versionNum).split("\\.");
+            String[] current = HiCGlobals.versionNum.split("\\.");
             boolean isOutdated = false;
-            if (Integer.valueOf(current[0]) < Integer.valueOf(latest[0])) {
-                isOutdated = true;
-            } else if (Integer.valueOf(current[0]) == Integer.valueOf(latest[0])) {
-                if (Integer.valueOf(current[1]) < Integer.valueOf(latest[1])) {
-                    isOutdated = true;
-                } else if (Integer.valueOf(current[1]) == Integer.valueOf(latest[1])) {
-                    if (Integer.valueOf(current[2]) < Integer.valueOf(latest[2])) {
-                        isOutdated = true;
-                    }
 
+            int iC = Integer.valueOf(current[0]);
+            int iL = Integer.valueOf(latest[0]);
+
+            if (iC < iL) {
+                isOutdated = true;
+            } else if (iC == iL) {
+                int jC = Integer.valueOf(current[1]);
+                int jL = Integer.valueOf(latest[1]);
+                int kC = Integer.valueOf(current[2]);
+                int kL = Integer.valueOf(latest[2]);
+                if (jC < jL) {
+                    isOutdated = true;
+                } else if (jC == jL && kC < kL) {
+                    isOutdated = true;
                 }
             }
+
             if (isOutdated) {
                 JPanel textPanel = new JPanel(new GridLayout(0, 1));
                 JLabel label = new JLabel("<html><p> You are using Juicebox " + HiCGlobals.versionNum + "<br>The lastest version is "
@@ -168,10 +170,19 @@ public class MainWindow extends JFrame {
     }
 
     private static void initApplication() {
+        System.err.println("Default User Directory: " + DirectoryManager.getUserDirectory());
 
-        DirectoryManager.initializeLog();
+        try {
+            HiCGlobals.stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
+            HiCGlobals.xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
+                    "JuiceboxStatesForExport.xml");
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            if (HiCGlobals.guiIsCurrentlyActive) {
+                MessageUtils.showErrorMessage("Error with state file", e);
+            }
+        }
 
-        log.debug("Default User Directory: " + DirectoryManager.getUserDirectory());
         System.setProperty("http.agent", Globals.applicationString());
     }
 
