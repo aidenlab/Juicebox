@@ -375,6 +375,18 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                         g.drawLine(xpos, h - 10, xpos, h - 2);
                         nTick++;
                     }
+                    /* //for previously selected
+                    g.setColor(new Color(200,0,0));
+                    for(Feature2D feature2D:hic.getSuperAdaptor().getPreviousTempSelectedGroup()){ //add tick marks for previously selected group
+                        int startCoordinate = axis.getBinNumberForGenomicPosition(feature2D.getStart1());
+                        int endCoordinate = axis.getBinNumberForGenomicPosition(feature2D.getEnd1());
+                        startCoordinate = (int) ((startCoordinate - binOrigin) * hic.getScaleFactor());
+                        endCoordinate = (int) ((endCoordinate - binOrigin) * hic.getScaleFactor());
+                        g.drawLine(startCoordinate,h-10,startCoordinate,h-2);
+                        g.setColor(new Color(200,100,50));
+                        g.drawLine(endCoordinate,h-10,endCoordinate,h-2);
+
+                    }   */
                 } catch (Exception e) {
                 }
             }

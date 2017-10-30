@@ -24,6 +24,8 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,7 +64,17 @@ public class AssemblyFileImporter {
         } catch (IOException exception) {
             System.err.println("Error reading files!");
         }
+        updateAssemblyScale();
         assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
+    }
+
+    void updateAssemblyScale() {
+        long totalLength = 0;
+        for (Scaffold fragmentProperty : listOfScaffolds) {
+            totalLength += fragmentProperty.getLength();
+        }
+        HiCGlobals.hicMapScale = (int) (1 + totalLength / 2100000000);
+        System.out.println(HiCGlobals.hicMapScale);
     }
 
     private void parseCpropsFile() throws IOException {
@@ -177,18 +189,9 @@ public class AssemblyFileImporter {
         return this.cpropsFilePath;
     }
 
-    private void setCpropsFilePath(String cpropsFilePath) {
-        this.cpropsFilePath = cpropsFilePath;
-    }
-
     private String getAsmFilePath() {
         return this.asmFilePath;
     }
-
-    private void setAsmFilePath(String asmFilePath) {
-        this.asmFilePath = asmFilePath;
-    }
-
 
     public AssemblyScaffoldHandler getAssemblyScaffoldHandler() {
         return assemblyScaffoldHandler;

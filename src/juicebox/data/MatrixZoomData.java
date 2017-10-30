@@ -334,6 +334,22 @@ public class MatrixZoomData {
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
+//    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
+//        List<Feature2D> xAxisFeatures;
+//        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+//            xAxisFeatures = handler.getIntersectingFeatures(1, 1, currentWindow, true);
+//            // helps with disappearing heatmap but doesn't fix everything
+//        } else {
+//            xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
+//        }
+//        List<Contig2D> axisContigs = new ArrayList<>();
+//        for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
+//            axisContigs.add(feature2D.toContig());
+//        }
+//        Collections.sort(axisContigs);
+//        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
+//    }
+
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
                                          final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
