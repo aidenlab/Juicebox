@@ -39,10 +39,7 @@ import juicebox.state.Slideshow;
 import juicebox.state.XMLFileHandling;
 import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
-import juicebox.track.feature.AnnotationLayer;
-import juicebox.track.feature.AnnotationLayerHandler;
-import juicebox.track.feature.Feature2DList;
-import juicebox.track.feature.Feature2DParser;
+import juicebox.track.feature.*;
 import juicebox.windowui.*;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.UnsavedAnnotationWarning;
@@ -71,6 +68,7 @@ public class SuperAdapter {
     public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
+    private static List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
@@ -1038,6 +1036,13 @@ public class SuperAdapter {
         } catch (Exception ignored) {
         }
     }
+
+    public List<Feature2D> getPreviousTempSelectedGroup() {
+        return previousTempSelectedGroup;
+    }
+
+    public void updatePreviousTempSelectedGroups(Feature2D tempSelectedGroup) {
+        previousTempSelectedGroup.add(tempSelectedGroup);
 
     public void executeClearAllMZDCache() {
         Runnable runnable = new Runnable() {

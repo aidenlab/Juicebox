@@ -85,6 +85,8 @@ public class MainViewPanel {
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
     private JPanel tooltipPanel;
+    private JScrollPane tooltipScroller;
+    private JPanel annotationsPanel;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
 
@@ -457,8 +459,9 @@ public class MainViewPanel {
 
         //======== Right side panel ========
 
-        JPanel rightSidePanel = new JPanel(new BorderLayout());//(new BorderLayout());
-        rightSidePanel.setBackground(mainBackgroundColor);
+        JPanel rightSidePanel = new JPanel();//(new BorderLayout());
+        rightSidePanel.setLayout(new BoxLayout(rightSidePanel, BoxLayout.Y_AXIS));
+        rightSidePanel.setBackground(Color.white);
         rightSidePanel.setPreferredSize(new Dimension(210, 1000));
         rightSidePanel.setMaximumSize(new Dimension(10000, 10000));
 
@@ -496,15 +499,20 @@ public class MainViewPanel {
         mouseHoverTextPanel.setBorder(null);
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
-        Dimension prefSize = new Dimension(210, 375 - miniAnnotationsLayerPanel.getDynamicHeight());
+        Dimension
+            prefSize =
+            new Dimension(210,
+                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
         mouseHoverTextPanel.setPreferredSize(prefSize);
+        tooltipPanel.setPreferredSize(prefSize);
 
-        JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel);
-        tooltipScroller.setBackground(mainBackgroundColor);
+        tooltipScroller = new JScrollPane(mouseHoverTextPanel);
+        tooltipScroller.setBackground(Color.white);
+
         tooltipScroller.setBorder(null);
+        tooltipScroller.setMaximumSize(prefSize);
 
-        tooltipPanel.add(tooltipScroller, BorderLayout.NORTH);
-        tooltipPanel.add(miniAnnotationsLayerPanel, BorderLayout.SOUTH);
+        tooltipPanel.add(tooltipScroller);
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
         tooltipPanel.setBackground(mainBackgroundColor);
         tooltipPanel.setBorder(null);
@@ -535,7 +543,16 @@ public class MainViewPanel {
         });
         annotationsPanelToggleButton.setSelected(false);
         annotationsPanelToggleButton.setEnabled(false);
-        rightSidePanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
+
+        annotationsPanel = new JPanel(new BorderLayout());
+        annotationsPanel.add(miniAnnotationsLayerPanel, BorderLayout.NORTH);
+        miniAnnotationsLayerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
+        annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        rightSidePanel.add(annotationsPanel);
+        annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // compute preferred size
         Dimension preferredSize = new Dimension();
@@ -554,13 +571,23 @@ public class MainViewPanel {
     }
 
     private void setMiniAnnotationsLayerPanel(MiniAnnotationsLayerPanel miniAnnotationsLayerPanel) {
-        tooltipPanel.remove(this.miniAnnotationsLayerPanel);
-        Dimension prefSize = new Dimension(210, 375 - miniAnnotationsLayerPanel.getDynamicHeight());
+        annotationsPanel.remove(this.miniAnnotationsLayerPanel);
+        Dimension
+            prefSize =
+            new Dimension(210,
+                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+
         mouseHoverTextPanel.setPreferredSize(prefSize);
+        tooltipPanel.setPreferredSize(prefSize);
+        tooltipScroller.setMaximumSize(prefSize);
         mouseHoverTextPanel.revalidate();
         mouseHoverTextPanel.repaint();
+        tooltipPanel.revalidate();
+        tooltipPanel.repaint();
+        tooltipScroller.revalidate();
+        tooltipScroller.repaint();
         this.miniAnnotationsLayerPanel = miniAnnotationsLayerPanel;
-        tooltipPanel.add(this.miniAnnotationsLayerPanel, BorderLayout.SOUTH);
+        annotationsPanel.add(this.miniAnnotationsLayerPanel, 0);
     }
 
     public JPanel getHiCPanel() {
