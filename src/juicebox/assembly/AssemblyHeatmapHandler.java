@@ -90,18 +90,18 @@ public class AssemblyHeatmapHandler {
 
     private static int getAlteredAsmBin(int binValue, int binSize) {
 
-        long originalBinCenterCoordinate = (long) (binValue * HiCGlobals.hicMapScale * binSize);
-        long currentBinCenterCoordinate;
-        Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalBinCenterCoordinate);
+        long originalFirstNucleotide = (long) (binValue * HiCGlobals.hicMapScale * binSize + 1);
+        long currentFirstNucleotide;
+        Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalFirstNucleotide);
 
         if (aggregateScaffold != null) {
             if (!aggregateScaffold.getInvertedVsInitial()) {
-                currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() + originalBinCenterCoordinate - aggregateScaffold.getOriginalStart());
+                currentFirstNucleotide = (aggregateScaffold.getCurrentStart() + originalFirstNucleotide - aggregateScaffold.getOriginalStart());
             } else {
-                currentBinCenterCoordinate = (aggregateScaffold.getCurrentStart() - originalBinCenterCoordinate + aggregateScaffold.getOriginalEnd());
+                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 1 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
             }
 
-            return (int) (currentBinCenterCoordinate / (HiCGlobals.hicMapScale * binSize) - 1 / 2);
+            return (int) (currentFirstNucleotide / (HiCGlobals.hicMapScale * binSize) - 1);
         }
         return -1;
     }
