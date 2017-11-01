@@ -275,6 +275,12 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
                 AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
                 assemblyFileImporter.importAssembly();
+                // Rescale resolution slider labels
+                superAdapter.getMainViewPanel().getResolutionSlider().reset();
+
+                // Rescale axis tick labels
+                superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
                 AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getScaffoldFeature2DHandler().getFeatureList());
                 scaffoldLayer.setLayerType(AnnotationLayer.LayerType.SCAFFOLD);

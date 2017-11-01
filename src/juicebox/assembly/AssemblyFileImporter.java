@@ -74,7 +74,6 @@ public class AssemblyFileImporter {
             totalLength += fragmentProperty.getLength();
         }
         HiCGlobals.hicMapScale = (int) (1 + totalLength / 2100000000);
-        System.out.println(HiCGlobals.hicMapScale);
     }
 
     private void parseCpropsFile() throws IOException {
