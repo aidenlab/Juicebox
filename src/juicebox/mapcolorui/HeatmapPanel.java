@@ -1500,72 +1500,65 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 float value = hic.getNormalizedObservedValue(binX, binY);
                 if (!Float.isNaN(value)) {
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("observed value = ");
+                    txt.append("observed value (O) = ");
                     txt.append(getFloatString(value));
                     txt.append("</span>");
                 }
 
                 int c1 = hic.getXContext().getChromosome().getIndex();
                 int c2 = hic.getYContext().getChromosome().getIndex();
-                double ev = 0;
-                if (c1 == c2) {
-                    ExpectedValueFunction df = hic.getExpectedValues();
-                    if (df != null) {
-                        int distance = Math.abs(binX - binY);
-                        ev = df.getExpectedValue(c1, distance);
-                    }
-                } else {
-                    ev = zd.getAverageCount();
-                }
 
+                double ev = getExpectedValue(c1, c2, binX, binY, zd, hic.getExpectedValues());
                 String evString = ev < 0.001 || Double.isNaN(ev) ? String.valueOf(ev) : formatter.format(ev);
-                txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                txt.append("expected value = ");
-                txt.append(evString);
-                txt.append("</span>");
+                txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected value (E) = " + evString + "</span>");
                 if (ev > 0 && !Float.isNaN(value)) {
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("O/E            = ");
-                    txt.append(formatter.format(value / ev));
-                    txt.append("</span>");
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = ");
+                    txt.append(formatter.format(value / ev) + "</span>");
                 } else {
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("O/E            = NaN");
-                    txt.append("</span>");
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>O/E            = NaN</span>");
                 }
 
                 MatrixZoomData controlZD = hic.getControlZd();
                 if (controlZD != null) {
                     float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("control value = ");
+                    txt.append("control value (C) = ");
                     txt.append(getFloatString(controlValue));
                     txt.append("</span>");
 
+                    double evCtrl = getExpectedValue(c1, c2, binX, binY, controlZD, hic.getExpectedControlValues());
+                    String evStringCtrl = evCtrl < 0.001 || Double.isNaN(evCtrl) ? String.valueOf(evCtrl) : formatter.format(evCtrl);
+                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>expected control value (EC) = " + evStringCtrl + "</span>");
+                    if (evCtrl > 0 && !Float.isNaN(controlValue)) {
+                        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = ");
+                        txt.append(formatter.format(controlValue / evCtrl) + "</span>");
+                    } else {
+                        txt.append("<br><span style='font-family: arial; font-size: 12pt;'>C/EC            = NaN</span>");
+                    }
+
                     double obsAvg = zd.getAverageCount();
                     double obsValue = (value / obsAvg);
-                    txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("observed/average = ");
-                    txt.append(getFloatString((float) obsValue));
+                    txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
+                    txt.append("average observed value (AVG) = " + getFloatString((float) obsAvg));
+                    txt.append("<br>O' = O/AVG = " + getFloatString((float) obsValue));
                     txt.append("</span>");
 
                     double ctrlAvg = controlZD.getAverageCount();
                     double ctlValue = (float) (controlValue / ctrlAvg);
                     txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                    txt.append("control/average = ");
-                    txt.append(getFloatString((float) ctlValue));
+                    txt.append("average control value (AVGC) = " + getFloatString((float) ctrlAvg));
+                    txt.append("<br>C' = C/AVGC = " + getFloatString((float) ctlValue));
                     txt.append("</span>");
 
                     if (value > 0 && controlValue > 0) {
                         double ratio = obsValue / ctlValue;
                         txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append("O'/C' = ");
-                        txt.append(getFloatString((float) ratio));
+                        txt.append("O'/C' = " + getFloatString((float) ratio));
                         txt.append("</span>");
 
                         double diff = (obsValue - ctlValue) * (obsAvg / 2. + ctrlAvg / 2.);
                         txt.append("<br><span style='font-family: arial; font-size: 12pt;'>");
-                        txt.append("O'-C' = ");
+                        txt.append("(O'-C')*(AVG/2 + AVGC/2) = ");
                         txt.append(getFloatString((float) diff));
                         txt.append("</span>");
                     }
@@ -1631,6 +1624,20 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
 
         return null;
+    }
+
+    private double getExpectedValue(int c1, int c2, int binX, int binY, MatrixZoomData zd,
+                                    ExpectedValueFunction df) {
+        double ev = 0;
+        if (c1 == c2) {
+            if (df != null) {
+                int distance = Math.abs(binX - binY);
+                ev = df.getExpectedValue(c1, distance);
+            }
+        } else {
+            ev = zd.getAverageCount();
+        }
+        return ev;
     }
 
     private String getFloatString(float value) {
