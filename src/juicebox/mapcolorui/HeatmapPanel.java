@@ -1440,7 +1440,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append("<html><span style='color:" + HiCGlobals.topChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getXContext().getChromosome().getName());
             txt.append(":");
-            txt.append(formatter.format(Math.round(xGenomeStart * HiCGlobals.hicMapScale)));
+            txt.append(formatter.format(Math.round((xGenomeStart - 1) * HiCGlobals.hicMapScale + 1)));
             txt.append("-");
             txt.append(formatter.format(Math.round(xGenomeEnd) * HiCGlobals.hicMapScale));
 
@@ -1464,7 +1464,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
             txt.append("</span><br><span style='color:" + HiCGlobals.leftChromosomeColor + "; font-family: arial; font-size: 12pt; '>");
             txt.append(hic.getYContext().getChromosome().getName());
             txt.append(":");
-            txt.append(formatter.format(Math.round(yGenomeStart * HiCGlobals.hicMapScale)));
+            txt.append(formatter.format(Math.round((yGenomeStart - 1) * HiCGlobals.hicMapScale + 1)));
             txt.append("-");
             txt.append(formatter.format(Math.round(yGenomeEnd * HiCGlobals.hicMapScale)));
 
