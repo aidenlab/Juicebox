@@ -1732,7 +1732,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private enum DragMode {ZOOM, ANNOTATE, RESIZE, PAN, SELECT, NONE}
 
-    public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, CANCEL, NONE}
+    public enum PromptedAssemblyAction {REGROUP, PASTE, INVERT, CUT, ADJUST, NONE}
 
     static class ImageTile {
         final int bLeft;
@@ -1770,7 +1770,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         @Override
         public void mousePressed(final MouseEvent e) {
             startTime = System.nanoTime();
-
             featureOptionMenuEnabled = false;
             if (hic.isWholeGenome()) {
                 if (e.isPopupTrigger()) {
@@ -1830,9 +1829,14 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         }
                     } catch (Exception ee) {
                     }
-                } else if (adjustAnnotation != AdjustAnnotation.NONE && superAdapter.getActiveLayerHandler().getAnnotationLayerType() != AnnotationLayer.LayerType.SCAFFOLD) {
+                } else if (adjustAnnotation != AdjustAnnotation.NONE) {
                     dragMode = DragMode.RESIZE;
-                    Feature2D loop = currentFeature.getFeature2D();
+                    Feature2D loop;
+                    if (activelyEditingAssembly && currentPromptedAssemblyAction == PromptedAssemblyAction.ADJUST) {
+                        loop = superAdapter.getEditLayer().getFeatureHandler().getFeatureList().get(1, 1).get(0);
+                    } else {
+                        loop = currentFeature.getFeature2D();
+                    }
                     // Resizing upper left corner, keep end points stationary
                     if (adjustAnnotation == AdjustAnnotation.LEFT) {
                         superAdapter.getActiveLayerHandler().setStationaryEnd(loop.getEnd1(), loop.getEnd2());
@@ -1941,7 +1945,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 //                    }
                     currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
                 }
-                if (activelyEditingAssembly && dragMode == DragMode.ANNOTATE) {
+                if (activelyEditingAssembly && (dragMode == DragMode.ANNOTATE || currentPromptedAssemblyAction == PromptedAssemblyAction.ADJUST)) {
                     // New annotation is added (not single click) and new feature from custom annotation
 
                     updateSelectedFeatures(false);
@@ -1977,6 +1981,8 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
                     superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
                     superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+
+                    currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
 
                     restoreDefaultVariables();
 
@@ -2361,6 +2367,16 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     }
                                     generateDebrisFeature(e, debrisFeatureSize);
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
+                                } else if (Math.abs(x - asmFragment.getRectangle().getMinX()) < debrisFeatureSize + RESIZE_SNAP + scaleFactor &&
+                                        Math.abs(y - asmFragment.getRectangle().getMinY()) < debrisFeatureSize + RESIZE_SNAP + scaleFactor) {
+                                    setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.ADJUST;
+                                    adjustAnnotation = AdjustAnnotation.LEFT;
+                                } else if (Math.abs(asmFragment.getRectangle().getMaxX() - x) < RESIZE_SNAP + scaleFactor &&
+                                        Math.abs(asmFragment.getRectangle().getMaxY() - y) < RESIZE_SNAP + scaleFactor) {
+                                    setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+                                    currentPromptedAssemblyAction = PromptedAssemblyAction.ADJUST;
+                                    adjustAnnotation = AdjustAnnotation.RIGHT;
                                 } else if (debrisFeature != null) {
                                     int chr1Idx = hic.getXContext().getChromosome().getIndex();
                                     int chr2Idx = hic.getYContext().getChromosome().getIndex();
