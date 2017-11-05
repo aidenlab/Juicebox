@@ -201,8 +201,15 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
         HiC hic = heatmapPanel.getHiC();
         MainWindow mainWindow = heatmapPanel.getMainWindow();
 
+
         // Double click, zoom and center on click location
         try {
+            // in all-by-all mimic single click
+            if (hic.isWholeGenome()) {
+                singleClick(lastMouseEvent);
+                return;
+            }
+
             final HiCZoom currentZoom = hic.getZd().getZoom();
             final HiCZoom nextPotentialZoom = hic.getDataset().getNextZoom(currentZoom, !lastMouseEvent.isAltDown());
             final HiCZoom newZoom = hic.isResolutionLocked() ||
