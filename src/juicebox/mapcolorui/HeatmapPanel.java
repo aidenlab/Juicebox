@@ -34,7 +34,10 @@ import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.*;
+import juicebox.track.feature.AnnotationLayer;
+import juicebox.track.feature.AnnotationLayerHandler;
+import juicebox.track.feature.Feature2D;
+import juicebox.track.feature.Feature2DGuiContainer;
 import juicebox.windowui.EditFeatureAttributesDialog;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
@@ -1063,29 +1066,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-//        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-//            final JCheckBoxMenuItem miSelect = new JCheckBoxMenuItem("Remove Selection");
-//            miSelect.addActionListener(new ActionListener() {
-//                @Override
-//                public void actionPerformed(ActionEvent e) {
-//                    removeSelection();
-//                }
-//            });
-//            menu.add(miSelect);
-//        }
-
-        final JCheckBoxMenuItem expandSelection = new JCheckBoxMenuItem("Expand Selection");
-        expandSelection.setSelected(false);
-        expandSelection.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty() && currentFeature != null);
-        expandSelection.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                expandSelection(currentFeature);
-            }
-        });
-        menu.add(expandSelection);
-
-
         final JCheckBoxMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
         miMoveToDebris.setSelected(false);
         miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
@@ -1097,33 +1077,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         menu.add(miMoveToDebris);
 
-        // Remnants of duplicating mouse prompt functionality. Not sure if we want to keep this around.
-//        final JCheckBoxMenuItem miInvert = new JCheckBoxMenuItem("Invert");
-//        miInvert.setSelected(straightEdgeEnabled);
-//        miInvert.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                invertMenuItemActionPerformed();
-//
-//                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
-//                superAdapter.updateMainViewPanelToolTipText(toolTipText(xMousePos, yMousePos));
-//                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
-//            }
-//        });
-//        miInvert.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-//        menu.add(miInvert);
-
-        // Remnants of long-click split.. Disabled for now, not sure if want to revive
-//        final JCheckBoxMenuItem miSplit = new JCheckBoxMenuItem("Split");
-//        miSplit.setSelected(straightEdgeEnabled);
-//        miSplit.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                splitMenuItemActionPerformed();
-//            }
-//        });
-//        miSplit.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
-//        menu.add(miSplit);
 
         final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
         miUndo.setSelected(straightEdgeEnabled);
@@ -1151,18 +1104,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         });
         miRedo.setEnabled(superAdapter.getAssemblyStateTracker().checkRedo());
         menu.add(miRedo);
-
-        // internally, single sync = what we previously called sync
-        /*
-        final JMenuItem miExit = new JMenuItem("Exit Assembly Editing");
-        miExit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                disableAssemblyEditing();
-            }
-        });
-        menu.add(miExit);
-        */
 
         return menu;
     }
@@ -1282,49 +1223,6 @@ public class HeatmapPanel extends JComponent implements Serializable {
         repaint();
     }
 
-    private void expandSelection(Feature2DGuiContainer clickedFeature) {
-        Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-        Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-        List<Feature2D> scaffoldFeatureList = superAdapter.getMainLayer().getFeatureHandler().loopList.get(chrX.getIndex(), chrY.getIndex());
-        Collections.sort(scaffoldFeatureList);
-        selectedFeatures = scaffoldFeatureList.subList(Math.min(scaffoldFeatureList.indexOf(selectedFeatures.get(0)), scaffoldFeatureList.indexOf(clickedFeature.getFeature2D())),
-                1 + Math.max(scaffoldFeatureList.indexOf(selectedFeatures.get(selectedFeatures.size() - 1)), scaffoldFeatureList.indexOf(clickedFeature.getFeature2D())));
-        updateSelectedFeatures(true);
-        superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
-        repaint();
-
-        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-            if (superAdapter.getMainLayer().getLayerVisibility()) {
-                tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
-                addHighlightedFeature(tempSelectedGroup);
-            }
-        } else {
-            removeHighlightedFeature();
-        }
-    }
-
-    private void invertMenuItemActionPerformed() {
-        Feature2DList features = superAdapter.getMainLayer().getAnnotationLayer().getFeatureHandler()
-                .getAllVisibleLoops();
-        Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
-        Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
-
-        if (selectedFeatures != null && !selectedFeatures.isEmpty()) {
-//            Feature2D initialFeature = selectedFeatures.get(0);
-//            Contig2D initialContig = initialFeature.toContig();
-//            Integer startIndex = features.getIndex(chrX, chrY, initialContig);
-
-            AssemblyOperationExecutor.invertSelection(superAdapter, selectedFeatures);
-        }
-    }
-
-    private void translateMenuItemActionPerformed() {
-        HiCGlobals.translationInProgress = Boolean.TRUE;
-    }
-
-    private void splitMenuItemActionPerformed() {
-        executeSplitMenuAction();
-    }
 
     private void executeSplitMenuAction() {
 
@@ -1347,10 +1245,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         removeSelection();
     }
 
-    //    private void moveDebrisToEnd() {
-//        AssemblyOperationExecutor.moveDebrisToEnd(superAdapter);
-//        removeSelection();
-//    }
+
     private String toolTipText(int x, int y) {
         // Update popup text
         final MatrixZoomData zd;
