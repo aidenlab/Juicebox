@@ -1846,10 +1846,29 @@ public class HeatmapPanel extends JComponent implements Serializable {
                     updateSelectedFeatures(false);
                     List<Feature2D> newSelectedFeatures = superAdapter.getMainLayer().getSelectedFeatures(hic, e.getX(), e.getY());
 
+                    Collections.sort(newSelectedFeatures);
+
+                    // Damage rectangle is not precise, adjust boundaries...
+                    try {
+                        if (currentPromptedAssemblyAction == PromptedAssemblyAction.ADJUST && selectedFeatures != null) {
+                            if (adjustAnnotation == AdjustAnnotation.LEFT) {
+                                while (!selectedFeatures.contains(newSelectedFeatures.get(newSelectedFeatures.size() - 1)) && !newSelectedFeatures.isEmpty()) {
+                                    newSelectedFeatures.remove(newSelectedFeatures.size() - 1);
+                                }
+                            } else {
+                                while (!selectedFeatures.contains(newSelectedFeatures.get(0)) && !newSelectedFeatures.isEmpty()) {
+                                    newSelectedFeatures.remove(0);
+                                }
+                            }
+                        }
+                    } catch (Exception e1) {
+                        removeSelection();
+                    }
+
                     if (HiCGlobals.translationInProgress) {
                         translationInProgressMouseReleased(newSelectedFeatures);
                     } else {
-                        if (selectedFeatures != null && selectedFeatures.equals(newSelectedFeatures)) {
+                        if (selectedFeatures != null && selectedFeatures.equals(newSelectedFeatures) && currentPromptedAssemblyAction != PromptedAssemblyAction.ADJUST) {
                             removeSelection();
                         } else {
                             selectedFeatures = newSelectedFeatures;
@@ -2262,13 +2281,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
                                     }
                                     generateDebrisFeature(e, debrisFeatureSize);
                                     superAdapter.getEditLayer().getAnnotationLayer().add(chr1Idx, chr2Idx, debrisFeature);
-                                } else if (Math.abs(x - asmFragment.getRectangle().getMinX()) < debrisFeatureSize + RESIZE_SNAP + scaleFactor &&
-                                        Math.abs(y - asmFragment.getRectangle().getMinY()) < debrisFeatureSize + RESIZE_SNAP + scaleFactor) {
+                                } else if (Math.abs(x - asmFragment.getRectangle().getMinX()) <= RESIZE_SNAP &&
+                                        Math.abs(y - asmFragment.getRectangle().getMinY()) <= RESIZE_SNAP &&
+                                        y + x < asmFragment.getRectangle().getMaxX() + asmFragment.getRectangle().getMinY()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.ADJUST;
                                     adjustAnnotation = AdjustAnnotation.LEFT;
-                                } else if (Math.abs(asmFragment.getRectangle().getMaxX() - x) < RESIZE_SNAP + scaleFactor &&
-                                        Math.abs(asmFragment.getRectangle().getMaxY() - y) < RESIZE_SNAP + scaleFactor) {
+                                } else if (Math.abs(asmFragment.getRectangle().getMaxX() - x) <= RESIZE_SNAP &&
+                                        Math.abs(asmFragment.getRectangle().getMaxY() - y) <= RESIZE_SNAP &&
+                                        y + x > asmFragment.getRectangle().getMaxX() + asmFragment.getRectangle().getMinY()) {
                                     setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
                                     currentPromptedAssemblyAction = PromptedAssemblyAction.ADJUST;
                                     adjustAnnotation = AdjustAnnotation.RIGHT;

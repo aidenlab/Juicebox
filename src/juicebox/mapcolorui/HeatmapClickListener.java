@@ -241,22 +241,4 @@ class HeatmapClickListener extends MouseAdapter implements ActionListener {
             e.printStackTrace();
         }
     }
-
-    public Feature2D generateDebrisFeature(final MouseEvent eF) {
-        HiC hic = heatmapPanel.getHiC();
-        SuperAdapter superAdapter = heatmapPanel.getSuperAdapter();
-        final double scaleFactor = hic.getScaleFactor();
-        double binOriginX = hic.getXContext().getBinOrigin();
-        double binOriginY = hic.getYContext().getBinOrigin();
-        Rectangle annotateRectangle = new Rectangle(eF.getX(), (int) (eF.getX() + (binOriginX - binOriginY) * scaleFactor), heatmapPanel.RESIZE_SNAP, heatmapPanel.RESIZE_SNAP);
-        superAdapter.getEditLayer().updateSelectionRegion(annotateRectangle);
-        return superAdapter.getEditLayer().generateFeature(hic);
-    }
-
-    private void restoreDefaultVariables() {
-        HiC hic = heatmapPanel.getHiC();
-        hic.setCursorPoint(null);
-        heatmapPanel.setCursor(Cursor.getDefaultCursor());
-        heatmapPanel.repaint();
-    }
 }
