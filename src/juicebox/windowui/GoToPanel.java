@@ -27,10 +27,12 @@ package juicebox.windowui;
 import com.jidesoft.swing.JideButton;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.assembly.Scaffold;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.GeneLocation;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
+import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -140,6 +142,12 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void parsePositionText() {
+
+        if (HiCGlobals.assemblyModeEnabled) {
+            goToScaffoldName(positionChrLeft.getText(), positionChrTop.getText());
+            return;
+        }
+
         //Expected format 1: <chr>:<start>-<end>:<resolution>
         //Expected format 2: <chr>:<midpt>:<resolution>
 
@@ -301,10 +309,10 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private int cleanUpNumber(String number) {
-        return Integer.valueOf(number.toLowerCase()
+        return (int) (Long.valueOf(number.toLowerCase()
                 .replaceAll(",", "")
                 .replaceAll("m", "000000")
-                .replaceAll("k", "000"));
+                .replaceAll("k", "000")) / HiCGlobals.hicMapScale);
     }
 
     private void parseGenePositionText() {
@@ -358,6 +366,32 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         }
         if (geneLocationHashMap != null) this.genomeID = genomeID;
         extractGeneLocation();
+    }
+
+    private void goToScaffoldName(String scafName1, String scafName2) {
+        int location1 = -1;
+        int location2 = -1;
+        String chr1Name = "";
+        String chr2Name = "";
+        for (Scaffold scaffold : superAdapter.getAssemblyStateTracker().getAssemblyHandler().getListOfScaffolds()) {
+            if (scaffold.name.equals(scafName1)) {
+                chr1Name = scaffold.chrName;
+                location1 = scaffold.getCurrentFeature2D().getMidPt1();
+            }
+            if (scaffold.name.equals(scafName2)) {
+                chr2Name = scaffold.chrName;
+                location2 = scaffold.getCurrentFeature2D().getMidPt2();
+            }
+        }
+        try {
+            hic.setLocation(chr1Name, chr2Name, HiC.Unit.BP, hic.getZd().getBinSize(),
+                    location1, location2, hic.getScaleFactor(),
+                    HiC.ZoomCallType.STANDARD, "Assembly Goto", true);
+            superAdapter.setNormalizationDisplayState();
+        } catch (UninitializedObjectException e) {
+            System.err.println("Cannot recognize scaffold name");
+        }
+
     }
 
     private void extractGeneLocation() {

@@ -51,23 +51,23 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
             return Long.compare(o1.getOriginalStart(), o2.getOriginalStart());
         }
     };
+    public final String chrName = "assembly";
     //constants
     private final String unsignedScaffoldIdAttributeKey = "Scaffold #";
     private final String signedScaffoldIdAttributeKey = "Signed scaffold #";
     private final String scaffoldNameAttributeKey = "Scaffold name";
     // formality
     private final int chrIndex = 1;
-    private Color defaultColor = new Color(0, 255, 0);
     //invariant properties
-    private String name;
-    private int indexId;
+    public String name;
+    public int indexId;
+    private Color defaultColor = new Color(0, 255, 0);
     //initial state
     private long originalStart;
     private boolean isOriginallyInverted;
     //current state
     private boolean isInvertedVsInitial;
     private long currentStart;
-    private final String chrName = "assembly";
     private long length;
 
     // Main Constructor
