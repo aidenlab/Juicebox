@@ -1208,9 +1208,9 @@ public class HiC {
         }
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, net.sf.jsi.Rectangle currentWindow) {
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, int g1, int g2) {
         try {
-            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, currentWindow);
+            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, g1, g2);
         } catch (Exception ignored) {
             return new ArrayList<>();
         }
