@@ -1197,7 +1197,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         }
     }
 
-    void removeSelection() {
+    public void removeSelection() {
         updateSelectedFeatures(false);
         if (selectedFeatures != null) {
             selectedFeatures.clear();
