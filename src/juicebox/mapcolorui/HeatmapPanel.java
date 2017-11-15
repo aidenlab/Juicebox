@@ -698,7 +698,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     public boolean getShowGridLines() {
-        return this.showGridLines;
+        return showGridLines;
     }
 
     public void setShowGridLines(boolean showGridLines) {

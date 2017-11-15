@@ -26,10 +26,9 @@ package juicebox.data;
 
 import juicebox.HiCGlobals;
 import juicebox.data.anchor.MotifAnchor;
+import juicebox.data.censoring.CustomMZDRegionHandler;
 import juicebox.data.censoring.RegionPair;
-import juicebox.data.censoring.RegionsRTreeHandler;
 import juicebox.windowui.NormalizationType;
-import net.sf.jsi.Rectangle;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 import org.broad.igv.util.collections.LRUCache;
@@ -51,14 +50,14 @@ public class CustomMatrixZoomData extends MatrixZoomData {
 
     private final Map<String, MatrixZoomData> zoomDatasForDifferentRegions = new HashMap<>();
     private final Map<MatrixZoomData, Map<RegionPair, LRUCache<String, Block>>> allBlockCaches = new HashMap<>();
-    private final RegionsRTreeHandler rTreeHandler = new RegionsRTreeHandler();
+    private final CustomMZDRegionHandler rTreeHandler = new CustomMZDRegionHandler();
 
     public CustomMatrixZoomData(Chromosome chr1, Chromosome chr2, ChromosomeHandler handler, String regionKey,
                                 MatrixZoomData zd, DatasetReader reader) {
         super(chr1, chr2, zd.getZoom(), -1, -1,
                 new int[0], new int[0], reader);
         expandAvailableZoomDatas(regionKey, zd);
-        rTreeHandler.initializeRTree(chr1, chr2, zoom, handler);
+        rTreeHandler.initialize(chr1, chr2, zoom, handler);
     }
 
     private boolean isImportant = false;
@@ -109,8 +108,12 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         this.isImportant = isImportant;
         float resolution = zoom.getBinSize();
         //if(isImportant) System.out.println("zt12 "+resolution+" --x "+binX1+" "+binX2+" y "+binY1+" "+binY2);
-        return addNormalizedBlocksToListByGenomeCoordinates(
-                binX1 * resolution, binY1 * resolution, binX2 * resolution, binY2 * resolution, norm);
+        int gx1 = (int) (binX1 * resolution);
+        int gy1 = (int) (binY1 * resolution);
+        int gx2 = (int) (binX2 * resolution);
+        int gy2 = (int) (binY2 * resolution);
+
+        return addNormalizedBlocksToListByGenomeCoordinates(gx1, gy1, gx2, gy2, norm);
     }
 
     @Override
@@ -120,23 +123,31 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         System.out.println("binSize (bp): " + zoom.getBinSize());
     }
 
-    private List<Block> addNormalizedBlocksToListByGenomeCoordinates(float gx1, float gy1, float gx2, float gy2,
+    private List<Block> addNormalizedBlocksToListByGenomeCoordinates(int gx1, int gy1, int gx2, int gy2,
                                                                      final NormalizationType no) {
         List<Block> blockList = new ArrayList<>();
         Map<MatrixZoomData, Map<RegionPair, List<Integer>>> blocksNumsToLoadForZd = new HashMap<>();
         // remember these are pseudo genome coordinates
 
         // x window
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getIndex(), currentWindow);
+        //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
+        List<Pair<MotifAnchor, MotifAnchor>> xAxisRegions = rTreeHandler.getIntersectingFeatures(chr1.getIndex(), gx1, gx2);
 
         // y window
-        currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
-        List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getIndex(), currentWindow);
+        //currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy2, gy2);
+        List<Pair<MotifAnchor, MotifAnchor>> yAxisRegions = rTreeHandler.getIntersectingFeatures(chr2.getIndex(), gy1, gy2);
 
         if (isImportant) {
             //System.out.println("num x regions " + xAxisRegions.size()+ " num y regions " + yAxisRegions.size());
         }
+
+        if (xAxisRegions.size() < 1) {
+            System.err.println("no x?");
+        }
+        if (yAxisRegions.size() < 1) {
+            System.err.println("no y?");
+        }
+
 
         for (Pair<MotifAnchor, MotifAnchor> xRegion : xAxisRegions) {
             for (Pair<MotifAnchor, MotifAnchor> yRegion : yAxisRegions) {
@@ -169,6 +180,10 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         // Actually load new blocks
         actuallyLoadGivenBlocks(blockList, no, blocksNumsToLoadForZd);
         //System.out.println("num blocks post "+blockList.size());
+
+        if (blockList.size() < 1) {
+            System.err.println("no blocks??");
+        }
 
         return blockList;
     }
@@ -254,12 +269,12 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         // x window
         int gx1 = binX * zoom.getBinSize();
         net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx1, gx1);
-        List<Pair<MotifAnchor, MotifAnchor>> xRegions = rTreeHandler.getIntersectingFeatures(chr1.getIndex(), currentWindow);
+        List<Pair<MotifAnchor, MotifAnchor>> xRegions = rTreeHandler.getIntersectingFeatures(chr1.getIndex(), gx1);
 
         // y window
         int gy1 = binY * zoom.getBinSize();
         currentWindow = new net.sf.jsi.Rectangle(gy1, gy1, gy1, gy1);
-        List<Pair<MotifAnchor, MotifAnchor>> yRegions = rTreeHandler.getIntersectingFeatures(chr2.getIndex(), currentWindow);
+        List<Pair<MotifAnchor, MotifAnchor>> yRegions = rTreeHandler.getIntersectingFeatures(chr2.getIndex(), gy1);
 
         RegionPair rp = RegionPair.generateRegionPair(xRegions.get(0), yRegions.get(0));
         MatrixZoomData zd = zoomDatasForDifferentRegions.get(Matrix.generateKey(rp.xI, rp.yI));
@@ -279,7 +294,8 @@ public class CustomMatrixZoomData extends MatrixZoomData {
         */
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, Rectangle currentWindow) {
-        return rTreeHandler.getIntersectingFeatures(chrIndex, currentWindow);
+
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, int g1, int g2) {
+        return rTreeHandler.getIntersectingFeatures(chrIndex, g1, g2);
     }
 }
