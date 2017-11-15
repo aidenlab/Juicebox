@@ -30,6 +30,7 @@ import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyHeatmapHandler;
 import juicebox.assembly.AssemblyOperationExecutor;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.data.*;
 import juicebox.gui.SuperAdapter;
 import juicebox.track.HiCFragmentAxis;
@@ -1241,7 +1242,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
     }
 
     private void moveSelectionToEnd() {
-        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, allMainFeaturePairs.get(allMainFeaturePairs.size() - 1).getFeature2D());
+        AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+        final List<Integer> lastLine = assemblyHandler.getListOfSuperscaffolds().get(assemblyHandler.getListOfSuperscaffolds().size() - 1);
+        int lastId = Math.abs(lastLine.get(lastLine.size() - 1)) - 1;
+        AssemblyOperationExecutor.moveSelection(superAdapter, selectedFeatures, assemblyHandler.getListOfScaffolds().get(lastId).getCurrentFeature2D());
         removeSelection();
     }
 
