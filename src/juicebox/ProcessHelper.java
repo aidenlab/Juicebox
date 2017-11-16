@@ -45,6 +45,8 @@ public class ProcessHelper {
             throws IOException {
 
         ProcessBuilder processBuilder = createProcess();
+        processBuilder.redirectErrorStream(true); // redirect error stream to output stream
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         return processBuilder.start();
     }
 
