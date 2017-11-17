@@ -36,8 +36,14 @@ import java.util.Scanner;
  * Created by ranganmostofa on 6/29/17.
  */
 public class AssemblyFileImporter {
+
+    // legacy format
     private String cpropsFilePath;
     private String asmFilePath;
+
+    // single file format
+    private String assemblyFilePath;
+
     private boolean modified = false;
 
     private List<Scaffold> listOfScaffolds;
@@ -50,13 +56,22 @@ public class AssemblyFileImporter {
         this.modified = modified;
     }
 
+    public AssemblyFileImporter(String assemblyFilePath, boolean modified) {
+        this.assemblyFilePath = assemblyFilePath;
+        this.modified = modified;
+    }
+
     public void importAssembly() {
         listOfScaffolds = new ArrayList<>();
         listOfSuperscaffolds = new ArrayList<>();
         // does it update assembly? //
         try {
-            parseCpropsFile();
-            parseAsmFile();
+            if (assemblyFilePath != null) {
+                parseAssemblyFile();
+            } else {
+                parseCpropsFile();
+                parseAsmFile();
+            }
             if (!modified)
                 setInitialState();
             else
@@ -65,15 +80,41 @@ public class AssemblyFileImporter {
             System.err.println("Error reading files!");
         }
         updateAssemblyScale();
+
+        // TODO: validateImport or user dialog
         assemblyScaffoldHandler = new AssemblyScaffoldHandler(listOfScaffolds, listOfSuperscaffolds);
     }
 
-    void updateAssemblyScale() {
+    int updateAssemblyScale() {
         long totalLength = 0;
         for (Scaffold fragmentProperty : listOfScaffolds) {
             totalLength += fragmentProperty.getLength();
         }
         HiCGlobals.hicMapScale = (int) (1 + totalLength / 2100000000);
+        return (int) (totalLength / HiCGlobals.hicMapScale); // in case decide to use for validation so that not to count again
+    }
+
+    private void parseAssemblyFile() throws IOException {
+        List<String> rawFileData = readFile(assemblyFilePath);
+        try {
+            for (String row : rawFileData) {
+                if (row.startsWith(">")) {
+                    String[] splitRow = row.split(" ");
+                    // Name<\s>ID<\s>length
+                    Scaffold scaffold = new Scaffold(splitRow[0].substring(1), Integer.parseInt(splitRow[1]), Integer.parseInt(splitRow[2]));
+                    listOfScaffolds.add(scaffold);
+                } else {
+                    List<Integer> superscaffold = new ArrayList<>();
+                    for (String index : row.split(" ")) {
+                        superscaffold.add(Integer.parseInt(index));
+                    }
+                    listOfSuperscaffolds.add(superscaffold);
+                }
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            System.err.println("Errors in format");
+        }
     }
 
     private void parseCpropsFile() throws IOException {

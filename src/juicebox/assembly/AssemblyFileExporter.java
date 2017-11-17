@@ -48,6 +48,7 @@ public class AssemblyFileExporter {
         try {
             exportCprops();
             exportAsm();
+            exportAssembly();
         } catch (IOException exception) {
             System.out.println("Exporting failed...");
         }
@@ -69,6 +70,17 @@ public class AssemblyFileExporter {
         asmWriter.close();
     }
 
+    private void exportAssembly() throws IOException {
+        PrintWriter assemblyWriter = new PrintWriter(buildAssemblyOutputPath(), "UTF-8");
+        for (Scaffold scaffold : listOfScaffolds) {
+            assemblyWriter.println(">" + scaffold.toString());
+        }
+        for (List<Integer> row : listOfSuperscaffolds) {
+            assemblyWriter.println(superscaffoldToString(row));
+        }
+        assemblyWriter.close();
+    }
+
     private String superscaffoldToString(List<Integer> scaffoldRow) {
         StringBuilder stringBuilder = new StringBuilder();
         Iterator<Integer> iterator = scaffoldRow.iterator();
@@ -81,6 +93,10 @@ public class AssemblyFileExporter {
         return stringBuilder.toString();
     }
 
+    private String buildAssemblyOutputPath() {
+        return this.outputFilePath + "." + FILE_EXTENSIONS.ASSEMBLY.toString();
+    }
+
     private String buildCpropsOutputPath() {
         return this.outputFilePath + "." + FILE_EXTENSIONS.CPROPS.toString();
     }
@@ -90,6 +106,7 @@ public class AssemblyFileExporter {
     }
 
     private enum FILE_EXTENSIONS {
+        ASSEMBLY("assembly"),
         CPROPS("cprops"),
         ASM("asm");
 

@@ -249,11 +249,14 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                                          JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
         String cpropsPath = null;
         String asmPath = null;
+        String assemblyPath = null;
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                if (info.itemURL.endsWith("cprops")) {
+                if (info.itemURL.endsWith("assembly")) {
+                    assemblyPath = info.itemURL;
+                } else if (info.itemURL.endsWith("cprops")) {
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
@@ -265,9 +268,14 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             }
         }
 
-        if (asmPath != null && cpropsPath != null) {
+        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
 //            try {
-            AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
+            AssemblyFileImporter assemblyFileImporter;
+            if (assemblyPath != null) {
+                assemblyFileImporter = new AssemblyFileImporter(assemblyPath, true);
+            } else {
+                assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
+            }
             assemblyFileImporter.importAssembly();
             AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
             superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);

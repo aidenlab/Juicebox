@@ -251,13 +251,19 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
     private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
                                          JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        // two-file format
         String cpropsPath = null;
         String asmPath = null;
+        // single-file format
+        String assemblyPath = null;
+
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                if (info.itemURL.endsWith("cprops")) {
+                if (info.itemURL.endsWith("assembly")) {
+                    assemblyPath = info.itemURL;
+                } else if (info.itemURL.endsWith("cprops")) {
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
@@ -269,11 +275,15 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             }
         }
 
-        if (asmPath != null && cpropsPath != null) {
+        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
 
             try {
-
-                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                AssemblyFileImporter assemblyFileImporter;
+                if (assemblyPath != null) {
+                    assemblyFileImporter = new AssemblyFileImporter(assemblyPath, false);
+                } else {
+                    assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                }
                 assemblyFileImporter.importAssembly();
                 // Rescale resolution slider labels
                 superAdapter.getMainViewPanel().getResolutionSlider().reset();
@@ -320,8 +330,10 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
 //                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
-                customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
-                customAddedFeatures.remove(loadedAnnotationsMap.get(asmPath)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
+                if (assemblyPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(assemblyPath));
+                if (cpropsPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
+                if (asmPath != null)
+                    customAddedFeatures.remove(loadedAnnotationsMap.get(asmPath)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
             }
         } else {
             System.err.println("Invalid files...");

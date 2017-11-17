@@ -239,6 +239,9 @@ public class JColorRangePanel extends JPanel {
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
+        if (max == 0) {
+            max = 1;
+        } // map going into zero state?
         double scaleFactor = 100.0 / max;
         updateColorSlider(hic, min, lower, upper, max, scaleFactor);
     }
