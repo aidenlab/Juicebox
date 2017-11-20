@@ -108,6 +108,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
     private Feature2D debrisFeature = null;
     private Feature2D tempSelectedGroup = null;
     private List<Feature2D> selectedFeatures = null;
+    private List<Feature2D> lastSelectedFeatures = null;
     private Feature2DGuiContainer currentFeature = null;
     private Pair<Pair<Integer, Integer>, Feature2D> preAdjustLoop = null;
     private boolean changedSize = false;
@@ -1067,8 +1068,39 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     private JidePopupMenu getAssemblyPopupMenu(final int xMousePos, final int yMousePos, JidePopupMenu menu) {
 
-        final JCheckBoxMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
-        miMoveToDebris.setSelected(false);
+
+//        final JMenuItem miRepeatSelection = new JCheckBoxMenuItem("Repeat selection");
+//        miRepeatSelection.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                selectedFeatures=lastSelectedFeatures;
+//                updateSelectedFeatures(true);
+//
+//                Chromosome chrX = superAdapter.getHiC().getXContext().getChromosome();
+//                Chromosome chrY = superAdapter.getHiC().getYContext().getChromosome();
+//                superAdapter.getEditLayer().filterTempSelectedGroup(chrX.getIndex(), chrY.getIndex());
+//                repaint();
+//
+//                if (superAdapter.getMainLayer().getLayerVisibility()) {
+//                    tempSelectedGroup = superAdapter.getEditLayer().addTempSelectedGroup(selectedFeatures, hic);
+//                    addHighlightedFeature(tempSelectedGroup);
+//                }
+//
+////                superAdapter.getMainViewPanel().toggleToolTipUpdates(Boolean.TRUE);
+////                superAdapter.updateMainViewPanelToolTipText(toolTipText(e.getX(), e.getY()));
+////                superAdapter.getMainViewPanel().toggleToolTipUpdates(selectedFeatures.isEmpty());
+//
+////                currentPromptedAssemblyAction = PromptedAssemblyAction.NONE;
+//
+////                restoreDefaultVariables();
+//
+//            }
+//        });
+//        //System.out.println("I am in repeatselection and "+lastSelectedFeatures.size());
+//        miRepeatSelection.setEnabled(lastSelectedFeatures!=null && !lastSelectedFeatures.isEmpty());
+//        menu.add(miRepeatSelection);
+
+        final JMenuItem miMoveToDebris = new JCheckBoxMenuItem("Move to debris");
         miMoveToDebris.setEnabled(selectedFeatures != null && !selectedFeatures.isEmpty());
         miMoveToDebris.addActionListener(new ActionListener() {
             @Override
@@ -1079,8 +1111,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miMoveToDebris);
 
 
-        final JCheckBoxMenuItem miUndo = new JCheckBoxMenuItem("Undo");
-        miUndo.setSelected(straightEdgeEnabled);
+        final JMenuItem miUndo = new JCheckBoxMenuItem("Undo");
         miUndo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1093,8 +1124,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         menu.add(miUndo);
 
 
-        final JCheckBoxMenuItem miRedo = new JCheckBoxMenuItem("Redo");
-        miRedo.setSelected(straightEdgeEnabled);
+        final JMenuItem miRedo = new JCheckBoxMenuItem("Redo");
         miRedo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

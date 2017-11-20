@@ -69,10 +69,18 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             }
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F2) {
+            handlersPreviouslyHidden.clear();
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (!handler.getLayerVisibility()) {
+                    handlersPreviouslyHidden.add(handler);
+                }
+            }
             if (handlersPreviouslyHidden.size() > 0) {
                 for (AnnotationLayerHandler handler : handlersPreviouslyHidden) {
                     try {
                         handler.setLayerVisibility(true);
+                        superAdapter.updateMiniAnnotationsLayerPanel();
+                        superAdapter.updateMainLayersPanel();
                     } catch (Exception ee) {
                     }
                 }
@@ -82,6 +90,8 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
                 for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
                     if (handler.getLayerVisibility()) {
                         handler.setLayerVisibility(false);
+                        superAdapter.updateMiniAnnotationsLayerPanel();
+                        superAdapter.updateMainLayersPanel();
                         handlersPreviouslyHidden.add(handler);
                     }
                 }
