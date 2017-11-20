@@ -482,6 +482,7 @@ public class MainViewPanel {
 //        rightSidePanel.add(gapPanel,BorderLayout.WEST);
         thumbPanel.add(thumbnailPanel, BorderLayout.CENTER);
         thumbPanel.setBackground(mainBackgroundColor);
+        thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, thumbPanel.getMinimumSize().height));
         rightSidePanel.add(thumbPanel, BorderLayout.NORTH);
 
         //========= mini-annotations panel ======
@@ -516,6 +517,7 @@ public class MainViewPanel {
         tooltipPanel.setBounds(new Rectangle(new Point(0, mouseTextY), prefSize));
         tooltipPanel.setBackground(mainBackgroundColor);
         tooltipPanel.setBorder(null);
+        thumbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, tooltipPanel.getMinimumSize().height));
 
         rightSidePanel.add(tooltipPanel, BorderLayout.CENTER);
 

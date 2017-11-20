@@ -133,15 +133,14 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
             superAdapter.togglePanelVisible();
             return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && (e.getKeyCode() == KeyEvent.VK_U)) {
-
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && (e.getKeyCode() == KeyEvent.VK_U) && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
             if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkUndo()) {
                 superAdapter.getAssemblyStateTracker().undo();
                 superAdapter.getHeatmapPanel().removeSelection();
                 superAdapter.refresh();
             }
             return true;
-        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getExtendedKeyCode() == KeyEvent.VK_R) {
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getExtendedKeyCode() == KeyEvent.VK_R && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
             if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkRedo()) {
                 superAdapter.getAssemblyStateTracker().redo();
                 superAdapter.getHeatmapPanel().removeSelection();
