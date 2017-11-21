@@ -42,10 +42,10 @@ import java.util.*;
 public class ChromosomeHandler {
     private final List<Chromosome> cleanedChromosomes = new ArrayList<>();
     private final Map<String, Chromosome> chromosomeMap = new HashMap<>();
+    private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
     private int[] chromosomeBoundaries;
     private Chromosome[] chromosomesArray;
     private Chromosome[] chromosomeArrayWithoutAllByAll;
-    private final Map<Integer, GenomeWideList<MotifAnchor>> customChromosomeRegions = new HashMap<>();
 
     public ChromosomeHandler(List<Chromosome> chromosomes) {
 
@@ -58,6 +58,9 @@ public class ChromosomeHandler {
     }
 
     public static String cleanUpName(String name) {
+        if (name.equals("assembly")) {
+            return "assembly";
+        }
         return name.trim().toLowerCase().replaceAll("chr", "").toUpperCase();
     }
 
