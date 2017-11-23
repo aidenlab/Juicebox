@@ -967,6 +967,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                 } catch (Exception ee) {
                     System.err.println("Could not remove custom annotation");
                 }
+                superAdapter.refresh();
             }
         });
 
@@ -1511,7 +1512,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         txt.append("</span>");
                         int layerNum = superAdapter.getAllLayers().indexOf(loop.getAnnotationLayerHandler());
                         double distance = currMouse.distance(loop.getRectangle().getX(), loop.getRectangle().getY());
-                        if (distance < minDistance && numLayers - layerNum < priority) {
+                        if (distance < minDistance && numLayers - layerNum <= priority) {
                             minDistance = distance;
                             currentFeature = loop;
                             priority = numLayers - layerNum;
