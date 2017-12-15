@@ -137,9 +137,9 @@ public class HiCCUPSDiff extends JuicerCLT {
 
         boolean processed = true;
         for (HiCCUPSConfiguration config : configs) {
-            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution();
+            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
             if (!new File(fname).exists()) processed = false;
-            fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution();
+            fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
             if (!new File(fname).exists()) processed = false;
         }
 
@@ -194,7 +194,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
         Feature2DList results1 = new Feature2DList();
         for (HiCCUPSConfiguration config : configs) {
-            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution();
+            String fname = outputDirectory + File.separator + "file1" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
             Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results1.add(requestedList);
@@ -204,7 +204,7 @@ public class HiCCUPSDiff extends JuicerCLT {
         // then filter by max enrichment: observed < maxEnrich*expected BL & donut & V & H
         Feature2DList results2 = new Feature2DList();
         for (HiCCUPSConfiguration config : configs) {
-            String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution();
+            String fname = outputDirectory + File.separator + "file2" + File.separator + "requested_list_" + config.getResolution() + ".bedpe";
             Feature2DList requestedList = Feature2DParser.loadFeatures(fname, commonChromosomesHandler, true, null, false);
             HiCCUPSUtils.filterOutFeaturesByEnrichment(requestedList, maxEnrich);
             results2.add(requestedList);
