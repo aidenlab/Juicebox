@@ -61,6 +61,8 @@ public class HiCTrackManager {
     public HiCTrackManager(SuperAdapter superAdapter, HiC hic) {
         this.superAdapter = superAdapter;
         this.hic = hic;
+        org.broad.igv.Globals.setSuppressMessages(true);
+
     }
 
     public void unsafeLoadTrackDirectPath(final String path) {
