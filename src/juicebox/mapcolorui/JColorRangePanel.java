@@ -130,11 +130,9 @@ public class JColorRangePanel extends JPanel {
             }
         });
 
-        JPanel colorLabelPanel = new JPanel();
+        JPanel colorLabelPanel = new JPanel(new BorderLayout());
         colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
-        colorLabelPanel.setLayout(new BorderLayout());
         colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
-
         add(colorLabelPanel, BorderLayout.PAGE_START);
 
         //---- colorRangeSlider ----

@@ -164,11 +164,15 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
     @Override
     protected void paintComponent(Graphics g) {
-
         ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         Rectangle clipBounds = g.getClipBounds();
         g.clearRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            g.setColor(Color.BLACK);
+            g.fillRect(clipBounds.x, clipBounds.y, clipBounds.width, clipBounds.height);
+        }
 
         // Are we ready to draw?
         final MatrixZoomData zd;
@@ -345,9 +349,9 @@ public class HeatmapPanel extends JComponent implements Serializable {
             if (isWholeGenome) {
                 Color color = g.getColor();
                 if (HiCGlobals.isDarkulaModeEnabled) {
-                    g.setColor(Color.DARK_GRAY);
-                } else {
                     g.setColor(Color.LIGHT_GRAY);
+                } else {
+                    g.setColor(Color.DARK_GRAY);
                 }
 
                 int maxDimension = chromosomeBoundaries[chromosomeBoundaries.length - 1];
@@ -623,6 +627,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
         BufferedImage image = (BufferedImage) createImage(wh, wh);
         Graphics2D g = image.createGraphics();
+        if (HiCGlobals.isDarkulaModeEnabled) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, wh, wh);
+        }
 
         boolean success = renderer.render(0,
                 0,
@@ -671,6 +679,10 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
             BufferedImage image = (BufferedImage) createImage(imageWidth, imageHeight);
             Graphics2D g2D = (Graphics2D) image.getGraphics();
+            if (HiCGlobals.isDarkulaModeEnabled) {
+                g2D.setColor(Color.BLACK);
+                g2D.fillRect(0, 0, imageWidth, imageHeight);
+            }
 
             final int bx0 = tileColumn * imageTileWidth;
             final int by0 = tileRow * imageTileWidth;

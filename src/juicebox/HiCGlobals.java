@@ -94,6 +94,7 @@ public class HiCGlobals {
     public static boolean isLegacyOutputPrintingEnabled = false;
     public static final boolean isAssemblyToolsAllowed = true;
     public static final boolean isCustomChromosomesAllowed = true;
+    public static Color diffGrayColor = new Color(238, 238, 238);
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {

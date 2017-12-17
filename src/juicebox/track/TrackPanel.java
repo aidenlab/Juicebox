@@ -65,7 +65,6 @@ public class TrackPanel extends JPanel {
         this.orientation = orientation;
         setAutoscrolls(true);
         trackRectangles = new ArrayList<>();
-        //setBackground(new Color(238, 238, 238));
         if (HiCGlobals.isDarkulaModeEnabled) {
             setBackground(Color.black);
         } else {

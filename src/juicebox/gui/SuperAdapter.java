@@ -72,7 +72,6 @@ public class SuperAdapter {
     private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
-    private MainMenuBar mainMenuBar;
     private MainViewPanel mainViewPanel;
     private HiCZoom initialZoom;
     private AnnotationLayerHandler activeLayer;
@@ -93,28 +92,20 @@ public class SuperAdapter {
         return initialZoom;
     }
 
-    public void setAdapters(MainWindow mainWindow, HiC hic, MainMenuBar mainMenuBar, MainViewPanel mainViewPanel) {
+    public void setAdapters(MainWindow mainWindow, HiC hic, MainViewPanel mainViewPanel) {
         this.mainWindow = mainWindow;
         this.hic = hic;
-        this.mainMenuBar = mainMenuBar;
         this.mainViewPanel = mainViewPanel;
     }
 
     public boolean unsavedEditsExist() {
-        return mainMenuBar.unsavedEditsExist();
+        return mainViewPanel.unsavedEditsExist();
     }
 
     public void addRecentMapMenuEntry(String title, boolean status) {
-        mainMenuBar.addRecentMapMenuEntry(title, status);
+        mainViewPanel.addRecentMapMenuEntry(title, status);
     }
 
-    public void addRecentStateMenuEntry(String title, boolean status) {
-        mainMenuBar.addRecentStateMenuEntry(title, status);
-    }
-
-    public JMenuBar createMenuBar() {
-        return mainMenuBar.createMenuBar(this);
-    }
 
     public void showDataSetMetrics(boolean isControl) {
         if (hic.getDataset() == null) {
@@ -146,7 +137,6 @@ public class SuperAdapter {
 
     public void setEnableForAllElements(boolean status) {
         mainViewPanel.setEnableForAllElements(this, status);
-        mainMenuBar.setEnableForAllElements(status);
         for (AnnotationLayerHandler handler : annotationLayerHandlers) {
             handler.setImportAnnotationsEnabled(status);
         }
@@ -194,7 +184,7 @@ public class SuperAdapter {
     }
 
     public void updatePrevStateNameFromImport(String path) {
-        mainMenuBar.updatePrevStateNameFromImport(path);
+        mainViewPanel.updatePrevStateNameFromImport(path);
     }
 
     public void loadFromListActionPerformed(boolean control) {
@@ -485,7 +475,7 @@ public class SuperAdapter {
 
                 hic.resetContexts();
                 updateTrackPanel();
-                mainMenuBar.getRecentLocationMenu().setEnabled(true);
+                mainViewPanel.getMenuBar().getRecentLocationMenu().setEnabled(true);
                 mainWindow.getContentPane().invalidate();
                 mainWindow.repaint();
                 mainViewPanel.resetResolutionSlider();
@@ -501,9 +491,9 @@ public class SuperAdapter {
                 currentlyLoadedMainFiles = newFilesToBeLoaded.toString();
             }
 
-            mainMenuBar.updateMainMapHasBeenLoaded(true);
+            mainViewPanel.getMenuBar().updateMainMapHasBeenLoaded(true);
             if (control) {
-                mainMenuBar.updateControlMapHasBeenLoaded(true);
+                mainViewPanel.getMenuBar().updateControlMapHasBeenLoaded(true);
             }
             mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {
@@ -658,7 +648,7 @@ public class SuperAdapter {
     }
 
     public MainMenuBar getMainMenuBar() {
-        return mainMenuBar;
+        return mainViewPanel.getMenuBar();
     }
 
     public void revalidate() {
@@ -973,7 +963,6 @@ public class SuperAdapter {
 
     public void setLayersPanelGUIControllersSelected(boolean status) {
         mainViewPanel.setAnnotationsPanelToggleButtonSelected(status);
-        mainMenuBar.setAnnotationPanelMenuItemSelected(status);
     }
 
     public void togglePanelVisible() {

@@ -43,7 +43,8 @@ import java.io.IOException;
 /**
  * Created by muhammadsaadshamim on 8/4/15.
  */
-public class MainMenuBar {
+public class MainMenuBar extends JMenuBar {
+    private static final long serialVersionUID = 2342324643L;
     private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
@@ -75,6 +76,9 @@ public class MainMenuBar {
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
 
+    public MainMenuBar(SuperAdapter superAdapter) {
+        createMenuBar(superAdapter);
+    }
 
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
@@ -93,11 +97,7 @@ public class MainMenuBar {
     }
 
 
-
-    public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
-
-        JMenuBar menuBar = new JMenuBar();
-
+    private void createMenuBar(final SuperAdapter superAdapter) {
         //======== fileMenu ========
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
@@ -307,7 +307,7 @@ public class MainMenuBar {
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getDescription("location");
                 if (stateDescription != null && stateDescription.length() > 0) {
-                    superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+                    addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
                     recentLocationMenu.setEnabled(true);
                 }
             }
@@ -422,11 +422,13 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
-                superAdapter.getHeatmapPanel().repaint();
+                superAdapter.getMainViewPanel().resetAllColors();
+                //superAdapter.executeClearAllMZDCache();
+                superAdapter.refresh();
             }
         });
         darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
-        //viewMenu.add(darkulaMode);
+        viewMenu.add(darkulaMode);
 
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
@@ -685,15 +687,14 @@ public class MainMenuBar {
 //        assemblyMenu.add(enableAssembly);
 
 
-        menuBar.add(fileMenu);
-        menuBar.add(annotationsMenu);
-        menuBar.add(bookmarksMenu);
-        menuBar.add(viewMenu);
+        add(fileMenu);
+        add(annotationsMenu);
+        add(bookmarksMenu);
+        add(viewMenu);
         if (HiCGlobals.isAssemblyToolsAllowed) {
-            menuBar.add(assemblyMenu);
+            add(assemblyMenu);
         }
-        menuBar.add(devMenu);
-        return menuBar;
+        add(devMenu);
     }
 
     public RecentMenu getRecentLocationMenu() {

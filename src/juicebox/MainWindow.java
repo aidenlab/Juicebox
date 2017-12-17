@@ -25,7 +25,6 @@
 package juicebox;
 
 
-import juicebox.gui.MainMenuBar;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
@@ -72,9 +71,8 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         HiCGlobals.guiIsCurrentlyActive = true;
         hic = new HiC(superAdapter);
-        MainMenuBar mainMenuBar = new MainMenuBar();
         MainViewPanel mainViewPanel = new MainViewPanel();
-        superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel);
+        superAdapter.setAdapters(this, hic, mainViewPanel);
 
         initComponents();
         createCursors();
