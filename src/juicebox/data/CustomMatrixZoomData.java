@@ -93,9 +93,9 @@ public class CustomMatrixZoomData extends MatrixZoomData {
             int newBinY = newY / binSize;
 
             if (chr1Idx == chr2Idx && newBinY < newBinX) {
-                alteredContacts.add(new ContactRecord(newBinY, newBinX, record.getCounts()));
+                alteredContacts.add(new ContactRecord(newBinY, newBinX, record.getBaseCounts(), RGBButton.Channel.RED));
             } else {
-                alteredContacts.add(new ContactRecord(newBinX, newBinY, record.getCounts()));
+                alteredContacts.add(new ContactRecord(newBinX, newBinY, record.getBaseCounts(), RGBButton.Channel.RED));
             }
         }
         //System.out.println("num orig records "+block.getContactRecords().size()+ " after alter "+alteredContacts.size()+" bnum "+block.getNumber());

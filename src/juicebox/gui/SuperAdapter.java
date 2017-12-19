@@ -373,8 +373,7 @@ public class SuperAdapter {
     }
 
     public void refresh() {
-        mainViewPanel.getHeatmapPanel().clearTileCache();
-        mainWindow.repaint();
+        refreshMainOnly();
         mainViewPanel.updateThumbnail(hic);
         //System.err.println(heatmapPanel.getSize());
     }

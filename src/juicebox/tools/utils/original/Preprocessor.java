@@ -32,6 +32,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.ContactRecord;
+import juicebox.data.RGBButton;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.feature.Chromosome;
@@ -769,7 +770,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
                     row = new ArrayList<>(10);
                     rows.put(py, row);
                 }
-                row.add(new ContactRecord(px, py, counts));
+                row.add(new ContactRecord(px, py, counts, RGBButton.Channel.RED));
             }
         }
 
@@ -802,7 +803,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
                 for (ContactRecord contactRecord : row) {
                     buffer.putShort((short) (contactRecord.getBinX()));
-                    final float counts = contactRecord.getCounts();
+                    final float counts = contactRecord.getBaseCounts();
 
                     if (useShort) {
                         buffer.putShort((short) counts);

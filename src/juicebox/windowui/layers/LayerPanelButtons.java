@@ -37,7 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-class LayerPanelButtons {
+public class LayerPanelButtons {
 
     public static final int miniButtonSize = 30;
 

@@ -101,7 +101,7 @@ public class Dump extends JuiceboxCLT {
             Iterator<ContactRecord> iter = zd.contactRecordIterator();
             while (iter.hasNext()) {
                 ContactRecord cr = iter.next();
-                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getCounts());
+                pw.println(cr.getBinX() + "\t" + cr.getBinY() + "\t" + cr.getBaseCounts());
             }
             pw.close();
             return;
@@ -139,7 +139,7 @@ public class Dump extends JuiceboxCLT {
                     ContactRecord cr = iter.next();
                     int x = cr.getBinX();
                     int y = cr.getBinY();
-                    final float counts = cr.getCounts();
+                    final float counts = cr.getBaseCounts();
                     if (vector[x + addY] > 0 && vector[y + addY] > 0 && !Double.isNaN(vector[x + addY]) && !Double.isNaN(vector[y + addY])) {
                         double value = counts / (vector[x + addY] * vector[y + addY]);
                         evKR.addDistance(chrIdx, x, y, value);
@@ -163,7 +163,7 @@ public class Dump extends JuiceboxCLT {
             for (ContactRecord cr : recordArrayList) {
                 int x = cr.getBinX();
                 int y = cr.getBinY();
-                float value = cr.getCounts();
+                float value = cr.getBaseCounts();
 
                 if (vector[x] != 0 && vector[y] != 0 && !Double.isNaN(vector[x]) && !Double.isNaN(vector[y])) {
                     value = (float) (value / (vector[x] * vector[y]));

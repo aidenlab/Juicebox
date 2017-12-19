@@ -424,7 +424,7 @@ public class HiCFileTools {
 
                         if (relativeX >= 0 && relativeX < numRows) {
                             if (relativeY >= 0 && relativeY < numCols) {
-                                data.addToEntry(relativeX, relativeY, rec.getCounts());
+                                data.addToEntry(relativeX, relativeY, rec.getBaseCounts());
                             }
                         }
                     }

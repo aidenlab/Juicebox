@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -222,5 +222,16 @@ public class ArrayTools {
         for(double val : vector){
             pw.println(val);
         }
+    }
+
+    public static boolean isDoubleArrayNaNOrEmpty(double[] counts) {
+        boolean isNaN = true;
+        float totalCount = 0;
+        for (double f : counts) {
+            isNaN &= Double.isNaN(f);
+            totalCount += f;
+        }
+        isNaN &= totalCount == 0;
+        return isNaN;
     }
 }

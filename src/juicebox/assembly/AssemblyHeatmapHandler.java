@@ -27,6 +27,7 @@ package juicebox.assembly;
 import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
+import juicebox.data.RGBButton;
 import juicebox.gui.SuperAdapter;
 
 import java.util.ArrayList;
@@ -74,11 +75,13 @@ public class AssemblyHeatmapHandler {
                 if (alteredAsmBinX > alteredAsmBinY) {
                     alteredContacts.add(new ContactRecord(
                             alteredAsmBinY,
-                            alteredAsmBinX, record.getCounts()));
+                            alteredAsmBinX, record.getBaseCounts(),
+                            RGBButton.Channel.RED));
                 } else {
                     alteredContacts.add(new ContactRecord(
                             alteredAsmBinX,
-                            alteredAsmBinY, record.getCounts()));
+                            alteredAsmBinY, record.getBaseCounts(),
+                            RGBButton.Channel.RED));
                 }
             }
         }

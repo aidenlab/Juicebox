@@ -39,8 +39,6 @@ import org.broad.igv.util.CompressionUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -69,7 +67,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     private Map<String, Map<Integer, Preprocessor.IndexEntry>> blockIndexMap;
     private long masterIndexPos;
     private long normVectorFilePosition;
-    private boolean activeStatus = true;
+    private RGBButton.Channel activeChannel = RGBButton.Channel.RED;
 
     public DatasetReaderV2(String path) throws IOException {
 
@@ -278,6 +276,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         int nBins2 = chr2.getLength() / binSize;
         double avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.setAverageCount(avgCount);
+        int chanI = RGBButton.toChannelIndex(getActiveChannel());
+        Double[] avgRGB = new Double[]{1., 1., 1.};
+        avgRGB[chanI] = avgCount;
+        zd.setAverageRGBCount(avgRGB);
 
         return zd;
     }
@@ -310,21 +312,21 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
     }
 
     @Override
-    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
+    public List<RGBButton> getCheckBoxes(List<ActionListener> actionListeners) throws IOException {
         String truncatedName = HiCFileTools.getTruncatedText(getPath(), maxLengthEntryName);
-        final JCheckBox checkBox = new JCheckBox(truncatedName);
-        checkBox.setSelected(isActive());
-        checkBox.setToolTipText(getPath());
-        actionListeners.add(new ActionListener() {
+
+        final RGBButton toggleButton = new RGBButton(truncatedName, activeChannel, this);
+
+/*        actionListeners.add(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                setActive(checkBox.isSelected());
+
             }
         });
-
-        List<JCheckBox> checkBoxList = new ArrayList<>();
-        checkBoxList.add(checkBox);
-        return checkBoxList;
+*/
+        List<RGBButton> buttons = new ArrayList<>();
+        buttons.add(toggleButton);
+        return buttons;
     }
 
     private String readGraphs(String graphFileName) throws IOException {
@@ -410,13 +412,13 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
 
     @Override
-    public boolean isActive() {
-        return activeStatus;
+    public RGBButton.Channel getActiveChannel() {
+        return activeChannel;
     }
 
     @Override
-    public void setActive(boolean status) {
-        activeStatus = status;
+    public void setActiveChannel(RGBButton.Channel status) {
+        activeChannel = status;
     }
 
     @Override
@@ -657,7 +659,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                         int binX = dis.readInt();
                         int binY = dis.readInt();
                         float counts = dis.readFloat();
-                        records.add(new ContactRecord(binX, binY, counts));
+                        records.add(new ContactRecord(binX, binY, counts, getActiveChannel()));
                     }
                 } else {
 
@@ -681,7 +683,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                                 int binX = binXOffset + dis.readShort();
                                 float counts = useShort ? dis.readShort() : dis.readFloat();
-                                records.add(new ContactRecord(binX, binY, counts));
+                                records.add(new ContactRecord(binX, binY, counts, getActiveChannel()));
                             }
                         }
                     } else if (type == 2) {
@@ -699,12 +701,12 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                             if (useShort) {
                                 short counts = dis.readShort();
                                 if (counts != Short.MIN_VALUE) {
-                                    records.add(new ContactRecord(bin1, bin2, counts));
+                                    records.add(new ContactRecord(bin1, bin2, counts, getActiveChannel()));
                                 }
                             } else {
                                 float counts = dis.readFloat();
                                 if (!Float.isNaN(counts)) {
-                                    records.add(new ContactRecord(bin1, bin2, counts));
+                                    records.add(new ContactRecord(bin1, bin2, counts, getActiveChannel()));
                                 }
                             }
 
@@ -756,11 +758,11 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
                 int y = rec.getBinY();
                 float counts;
                 if (nv1Data[x] != 0 && nv2Data[y] != 0 && !Double.isNaN(nv1Data[x]) && !Double.isNaN(nv2Data[y])) {
-                    counts = (float) (rec.getCounts() / (nv1Data[x] * nv2Data[y]));
+                    counts = (float) (rec.getCounts(getActiveChannel()) / (nv1Data[x] * nv2Data[y]));
                 } else {
                     counts = Float.NaN;
                 }
-                normRecords.add(new ContactRecord(x, y, counts));
+                normRecords.add(new ContactRecord(x, y, counts, getActiveChannel()));
             }
 
             //double sparsity = (normRecords.size() * 100) / (Preprocessor.BLOCK_SIZE * Preprocessor.BLOCK_SIZE);

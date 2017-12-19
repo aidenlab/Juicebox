@@ -30,6 +30,7 @@ import juicebox.MainWindow;
 import juicebox.matrix.BasicMatrix;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.util.Pair;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -71,7 +72,7 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
     @Override
-    public boolean isActive() {
+    public RGBButton.Channel getActiveChannel() {
         /*
         do nothing
         boolean atLeastOneIsActive = false;
@@ -80,11 +81,11 @@ public class CombinedDatasetReader implements DatasetReader {
         }
         return atLeastOneIsActive;
         */
-        return true;
+        return null;
     }
 
     @Override
-    public void setActive(boolean status) {
+    public void setActiveChannel(RGBButton.Channel status) {
         // do nothing
     }
 
@@ -107,8 +108,8 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
     @Override
-    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
-        List<JCheckBox> allBoxes = new ArrayList<>();
+    public List<RGBButton> getCheckBoxes(List<ActionListener> actionListeners) throws IOException {
+        List<RGBButton> allBoxes = new ArrayList<>();
         for (DatasetReaderV2 reader : readers) {
             allBoxes.addAll(reader.getCheckBoxes(actionListeners));
         }
@@ -124,26 +125,30 @@ public class CombinedDatasetReader implements DatasetReader {
 
     public Matrix readMatrix(String key) throws IOException {
         //
-        List<Matrix> tmpDatasets = new ArrayList<>();
+        List<Pair<RGBButton.Channel, Matrix>> tmpDatasets = new ArrayList<>();
         for (DatasetReader r : readers) {
-            if (r.isActive()) {
-                tmpDatasets.add(r.readMatrix(key));
+            if (!r.getActiveChannel().equals(RGBButton.Channel.NONE)) {
+                try {
+                    Matrix mtrx = r.readMatrix(key);
+                    tmpDatasets.add(new Pair<>(r.getActiveChannel(), mtrx));
+                } catch (Exception ee) {
+                    System.err.println("Unable to read matrix for " + key);
+                }
             }
         }
 
         return mergeMatrices(tmpDatasets);
-
     }
 
     @Override
     public Block readNormalizedBlock(int blockNumber, MatrixZoomData zd, NormalizationType no) throws IOException {
 
-        List<Block> blockList = new ArrayList<>();
+        List<Pair<RGBButton.Channel, Block>> blockList = new ArrayList<>();
         for (DatasetReader r : readers) {
-            if (r.isActive()) {
+            if (!r.getActiveChannel().equals(RGBButton.Channel.NONE)) {
                 Block cb = r.readNormalizedBlock(blockNumber, zd, no);
                 if (cb != null) {
-                    blockList.add(cb);
+                    blockList.add(new Pair<>(r.getActiveChannel(), cb));
                 }
             }
         }
@@ -164,7 +169,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
         Set<Integer> blockNumberSet = new HashSet<>();
         for (DatasetReader r : readers) {
-            if (r.isActive()) {
+            if (!r.getActiveChannel().equals(RGBButton.Channel.NONE)) {
                 blockNumberSet.addAll(r.getBlockNumbers(matrixZoomData));
             }
         }
@@ -482,39 +487,34 @@ public class CombinedDatasetReader implements DatasetReader {
     }
 
 
-    private Matrix mergeMatrices(List<Matrix> matrixList) {
+    private Matrix mergeMatrices(List<Pair<RGBButton.Channel, Matrix>> matrixList) {
 
+        Map<String, Double[]> averageRGBCount = new HashMap<>();
         Map<String, Double> averageCount = new HashMap<>();
-        for (Matrix matrix : matrixList) {
+        for (Pair<RGBButton.Channel, Matrix> pair : matrixList) {
+            Matrix matrix = pair.getSecond();
             for (MatrixZoomData zd : matrix.bpZoomData) {
-                String key = zd.getKey();
-                Double avg = averageCount.get(key);
-                if (avg == null) {
-                    averageCount.put(key, zd.getAverageCount());
-                } else if (avg >= 0) {
-                    averageCount.put(key, avg + zd.getAverageCount());
-                }
+                updateMergeAvgs(zd, averageCount, averageRGBCount, pair.getFirst());
             }
             if (hasFrags) {
                 for (MatrixZoomData zd : matrix.fragZoomData) {
-                    String key = zd.getKey();
-                    Double avg = averageCount.get(key);
-                    if (avg == null) {
-                        averageCount.put(key, zd.getAverageCount());
-                    } else if (avg >= 0) {
-                        averageCount.put(key, avg + zd.getAverageCount());
-                    }
+                    updateMergeAvgs(zd, averageCount, averageRGBCount, pair.getFirst());
                 }
             }
         }
 
-        Matrix mergedMatrix = matrixList.get(0);
+        Matrix mergedMatrix = matrixList.get(0).getSecond();
 
         for (MatrixZoomData zd : mergedMatrix.bpZoomData) {
             zd.reader = this;
             String key = zd.getKey();
             if (averageCount.containsKey(key)) {
                 zd.setAverageCount(averageCount.get(key));
+                if (averageRGBCount.containsKey(key) || averageRGBCount.get(key) == null) {
+                    zd.setAverageRGBCount(averageRGBCount.get(key));
+                } else {
+                    System.err.println("why is package getting dropped??? " + key);
+                }
             }
         }
         if (hasFrags) {
@@ -523,12 +523,34 @@ public class CombinedDatasetReader implements DatasetReader {
                 String key = zd.getKey();
                 if (averageCount.containsKey(key)) {
                     zd.setAverageCount(averageCount.get(key));
+                    zd.setAverageRGBCount(averageRGBCount.get(key));
                 }
             }
         } else {
             mergedMatrix.fragZoomData = null;
         }
         return mergedMatrix;
+    }
+
+    private void updateMergeAvgs(MatrixZoomData zd, Map<String, Double> averageCount,
+                                 Map<String, Double[]> averageRGBCount, RGBButton.Channel channel) {
+        String key = zd.getKey();
+        Double avg = averageCount.get(key);
+        Double[] avgRGB = averageRGBCount.get(key);
+        if (avgRGB == null) {
+            avgRGB = new Double[]{1., 1., 1.};
+        }
+
+        int ir = RGBButton.toChannelIndex(channel);
+
+        if (avg == null) {
+            averageCount.put(key, zd.getAverageCount());
+            avgRGB[ir] = zd.getAverageCount();
+        } else if (avg >= 0) {
+            averageCount.put(key, avg + zd.getAverageCount());
+            avgRGB[ir] += zd.getAverageCount();
+        }
+        averageRGBCount.put(key, avgRGB);
     }
 
     /**
@@ -539,24 +561,34 @@ public class CombinedDatasetReader implements DatasetReader {
      * @param blockKey
      * @return new Block
      */
-    private Block mergeBlocks(List<Block> blockList, String blockKey) {
+    private Block mergeBlocks(List<Pair<RGBButton.Channel, Block>> blockList, String blockKey) {
         // First combine contact records for all blocks
-        final Block firstBlock = blockList.get(0);
-        int repSize = firstBlock.getContactRecords().size();
-        int blockNumber = firstBlock.getNumber(); // TODO -- this should be checked, all blocks should have same number
+        //final Pair<RGBButton.Channel,Block> firstBlock = blockList.get(0);
+        //int repSize = firstBlock.getSecond().getContactRecords(firstBlock.getFirst()).size();
+        //int blockNumber = firstBlock.getSecond().getNumber(); // TODO -- this should be checked, all blocks should have same number
+        int repSize = blockList.get(0).getSecond().getContactRecords().size();
+        Map<String, ContactRecord> mergedRecordMap = new HashMap<>(blockList.size() * repSize * 2);
 
-        HashMap<String, ContactRecord> mergedRecordMap = new HashMap<>(blockList.size() * repSize * 2);
+        int blockNumber = -1;
 
-        for (Block b : blockList) {
+        for (Pair<RGBButton.Channel, Block> pair : blockList) {
+            RGBButton.Channel channel = pair.getFirst();
+            Block b = pair.getSecond();
             Collection<ContactRecord> records = b.getContactRecords();
+            if (blockNumber == -1) {
+                blockNumber = b.getNumber();
+            } else if (b.getNumber() != blockNumber) {
+                System.err.println("Houston we have a problem");
+            }
+
             for (ContactRecord rec : records) {
                 String key = rec.getBinX() + "_" + rec.getBinY();
                 ContactRecord mergedRecord = mergedRecordMap.get(key);
                 if (mergedRecord == null) {
-                    mergedRecord = new ContactRecord(rec.getBinX(), rec.getBinY(), rec.getCounts());
+                    mergedRecord = new ContactRecord(rec.getBinX(), rec.getBinY(), rec.getBaseCounts(), channel);
                     mergedRecordMap.put(key, mergedRecord);
                 } else {
-                    mergedRecord.incrementCount(rec.getCounts());
+                    mergedRecord.incrementCount(channel, rec.getBaseCounts());
                 }
             }
         }

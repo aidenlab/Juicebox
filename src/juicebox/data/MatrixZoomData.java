@@ -76,6 +76,7 @@ public class MatrixZoomData {
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
+    private Double[] averageRGBCount;
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -415,7 +416,7 @@ public class MatrixZoomData {
      * @param binY              Y bin
      * @param normalizationType Normalization type
      */
-    public float getObservedValue(int binX, int binY, NormalizationType normalizationType) {
+    public double[] getObservedValue(int binX, int binY, NormalizationType normalizationType) {
 
         // Intra stores only lower diagonal
         if (chr1 == chr2) {
@@ -428,16 +429,16 @@ public class MatrixZoomData {
         }
 
         List<Block> blocks = getNormalizedBlocksOverlapping(binX, binY, binX, binY, normalizationType, false);
-        if (blocks == null) return 0;
+        if (blocks == null) return new double[3];
         for (Block b : blocks) {
             for (ContactRecord rec : b.getContactRecords()) {
                 if (rec.getBinX() == binX && rec.getBinY() == binY) {
-                    return rec.getCounts();
+                    return rec.getRGBCounts();
                 }
             }
         }
         // No record found for this bin
-        return 0;
+        return new double[3];
     }
 
 //    /**
@@ -608,7 +609,7 @@ public class MatrixZoomData {
             ContactRecord record = iter.next();
             int i = record.getBinX();
             int j = record.getBinY();
-            float counts = record.getCounts();
+            float counts = record.getBaseCounts();
             if (Float.isNaN(counts)) continue;
 
             int dist = Math.abs(i - j);
@@ -760,7 +761,7 @@ public class MatrixZoomData {
                 Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-                        float counts = rec.getCounts();
+                        float counts = rec.getBaseCounts();
                         int x = rec.getBinX();
                         int y = rec.getBinY();
                         int xActual = x * zoom.getBinSize();
@@ -777,7 +778,7 @@ public class MatrixZoomData {
                                 expected = (averageCount > 0 ? averageCount : 1);
                             }
 
-                            double observed = rec.getCounts(); // Observed is already normalized
+                            double observed = rec.getBaseCounts(); // Observed is already normalized
                             oeVal = (float) (observed / expected);
                         }
                         if (!useRegionIndices || // i.e. use full matrix
@@ -847,7 +848,7 @@ public class MatrixZoomData {
                 Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
                 if (b != null) {
                     for (ContactRecord rec : b.getContactRecords()) {
-                        float counts = rec.getCounts();
+                        float counts = rec.getBaseCounts();
                         int x = rec.getBinX();
                         int y = rec.getBinY();
 
@@ -862,7 +863,7 @@ public class MatrixZoomData {
                             } catch (Exception e) {
                                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                             }
-                            double observed = rec.getCounts(); // Observed is already normalized
+                            double observed = rec.getBaseCounts(); // Observed is already normalized
                             oeVal = (float) (observed / expected);
                         }
                         if (!useRegionIndices || // i.e. use full matrix
@@ -940,7 +941,7 @@ public class MatrixZoomData {
             }
             if (b != null) {
                 for (ContactRecord rec : b.getContactRecords()) {
-                    float counts = rec.getCounts();
+                    float counts = rec.getBaseCounts();
                     int x = rec.getBinX();
                     int y = rec.getBinY();
 
@@ -1006,6 +1007,14 @@ public class MatrixZoomData {
 
     public void clearCache() {
         blockCache.clear();
+    }
+
+    public Double[] getAverageRGBCount() {
+        return averageRGBCount;
+    }
+
+    public void setAverageRGBCount(Double[] averageRGBCount) {
+        this.averageRGBCount = averageRGBCount;
     }
 
 

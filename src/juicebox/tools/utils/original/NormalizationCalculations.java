@@ -26,6 +26,7 @@ package juicebox.tools.utils.original;
 
 import juicebox.data.ContactRecord;
 import juicebox.data.MatrixZoomData;
+import juicebox.data.RGBButton;
 import juicebox.windowui.NormalizationType;
 import org.apache.commons.math.stat.StatUtils;
 import org.broad.igv.Globals;
@@ -102,7 +103,7 @@ public class NormalizationCalculations {
             int binX = Integer.parseInt(tokens[0]);
             int binY = Integer.parseInt(tokens[1]);
             int count = Integer.parseInt(tokens[2]);
-            ContactRecord record = new ContactRecord(binX, binY, count);
+            ContactRecord record = new ContactRecord(binX, binY, count, RGBButton.Channel.RED);
             readList.add(record);
             if (binX > maxBin) maxBin = binX;
             if (binY > maxBin) maxBin = binY;
@@ -307,7 +308,7 @@ public class NormalizationCalculations {
         for (ContactRecord cr : list) {
             int x = cr.getBinX();
             int y = cr.getBinY();
-            float value = cr.getCounts();
+            float value = cr.getBaseCounts();
             rowsums[x] += value;
             if (x != y) {
                 rowsums[y] += value;
@@ -330,7 +331,7 @@ public class NormalizationCalculations {
         for (ContactRecord cr : list) {
             int x = cr.getBinX();
             int y = cr.getBinY();
-            float value = cr.getCounts();
+            float value = cr.getBaseCounts();
             if (!Double.isNaN(norm[x]) && !Double.isNaN(norm[y]) && norm[x] > 0 && norm[y] > 0) {
                 // want total sum of matrix, not just upper triangle
                 if (x == y) {
@@ -437,7 +438,7 @@ public class NormalizationCalculations {
         for (ContactRecord cr : list) {
             int x = cr.getBinX();
             int y = cr.getBinY();
-            float value = cr.getCounts();
+            float value = cr.getBaseCounts();
             rowSums[x] += value;
             if (x != y) {
                 rowSums[y] += value;
@@ -472,7 +473,7 @@ public class NormalizationCalculations {
         for (ContactRecord cr : list) {
             int x = cr.getBinX();
             int y = cr.getBinY();
-            float value = cr.getCounts();
+            float value = cr.getBaseCounts();
             if (offset[x] != -1 && offset[y] != -1) {
                 A.set(offset[x], offset[y], value);
             }

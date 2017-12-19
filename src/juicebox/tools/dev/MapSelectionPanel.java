@@ -27,6 +27,7 @@ package juicebox.tools.dev;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
+import juicebox.data.RGBButton;
 import juicebox.gui.SuperAdapter;
 
 import javax.swing.*;
@@ -97,20 +98,26 @@ class MapSelectionPanel extends JPanel {
     private JPanel generateMapActivationPanel(final SuperAdapter superAdapter, Dataset reader, String title) {
         final JButton showItButton = new JButton("Update View");
         if (reader != null) {
-            List<JCheckBox> checkBoxes = reader.getCheckBoxes(actionListeners);
+            try {
+                List<RGBButton> checkBoxes = reader.getCheckBoxes(actionListeners);
 
-            showItButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    for (ActionListener listener : actionListeners) {
-                        listener.actionPerformed(e);
+                showItButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        /*for (ActionListener listener : actionListeners) {
+                            listener.actionPerformed(e);
+                        }*/
+                        // todo because cache keys currently don't account for map activation
+                        // actually don't need to do this, just do a clear cache whenever triggered
+                        HiCGlobals.useCache = false;
+                        superAdapter.clearAllMatrixZoomCache();
+                        superAdapter.refresh();
+                        System.out.println("Clear cache");
                     }
-                    // todo because cache keys currently don't account for map activation
-                    // actually don't need to do this, just do a clear cache whenever triggered
-                    HiCGlobals.useCache = false;
-                    superAdapter.refresh();
-                }
-            });
-            return createPane(title, checkBoxes, showItButton);
+                });
+                return createPane(title, checkBoxes, showItButton);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return null;
@@ -122,14 +129,17 @@ class MapSelectionPanel extends JPanel {
      * @param showButton
      * @return
      */
-    private JPanel createPane(String description, List<JCheckBox> checkBoxes, JButton showButton) {
+    private JPanel createPane(String description, List<RGBButton> checkBoxes, JButton showButton) {
         
         JLabel label = new JLabel(description);
 
         JPanel box = new JPanel();
         box.setLayout(new BoxLayout(box, BoxLayout.PAGE_AXIS));
-        for (JCheckBox checkBox : checkBoxes) {
-            box.add(checkBox);
+        for (RGBButton checkBox : checkBoxes) {
+            JPanel newRow = new JPanel(new FlowLayout());
+            newRow.add(checkBox);
+            newRow.add(new JLabel(checkBox.getFilename()));
+            box.add(newRow);
         }
         JScrollPane scrollPane = new JScrollPane(box);
 

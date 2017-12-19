@@ -1462,7 +1462,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
 
                 MatrixZoomData controlZD = hic.getControlZd();
                 if (controlZD != null) {
-                    float controlValue = controlZD.getObservedValue(binX, binY, hic.getNormalizationType());
+                    float controlValue = (float) controlZD.getObservedValue(binX, binY, hic.getNormalizationType())[0];
                     txt.append("<br><br><span style='font-family: arial; font-size: 12pt;'>");
                     txt.append("control value (C) = ");
                     txt.append(getFloatString(controlValue));

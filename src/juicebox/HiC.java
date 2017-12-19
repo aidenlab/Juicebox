@@ -600,7 +600,7 @@ public class HiC {
     public float getNormalizedObservedValue(int binX, int binY) {
         float val = Float.NaN;
         try {
-            val = getZd().getObservedValue(binX, binY, normalizationType);
+            val = (float) getZd().getObservedValue(binX, binY, normalizationType)[0];
         } catch (Exception e) {
             e.printStackTrace();
         }

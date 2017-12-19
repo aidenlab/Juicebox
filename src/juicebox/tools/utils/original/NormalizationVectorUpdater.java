@@ -184,7 +184,7 @@ public class NormalizationVectorUpdater {
                     ContactRecord cr = iter.next();
                     int x = cr.getBinX();
                     int y = cr.getBinY();
-                    final float counts = cr.getCounts();
+                    final float counts = cr.getCounts(reader.getActiveChannel());
                     if (isValidNormValue(vc[x]) & isValidNormValue(vc[y])) {
                         double value = counts / (vc[x] * vc[y]);
                         evVC.addDistance(chrIdx, x, y, value);
@@ -226,7 +226,7 @@ public class NormalizationVectorUpdater {
                             ContactRecord cr = iter.next();
                             int x = cr.getBinX();
                             int y = cr.getBinY();
-                            double value = cr.getCounts() / (kr[x] * kr[y]);
+                            double value = cr.getCounts(reader.getActiveChannel()) / (kr[x] * kr[y]);
                             evKR.addDistance(chrIdx, x, y, value);
                         }
 
@@ -370,9 +370,8 @@ public class NormalizationVectorUpdater {
     }
 
 
-    static void writeNormSums(
-            List<Chromosome> chromosomes, Dataset ds, List<HiCZoom> zooms, Map<String, NormalizationVector> normVectors,
-            BufferedByteWriter buffer) throws IOException {
+    static void writeNormSums(List<Chromosome> chromosomes, Dataset ds, List<HiCZoom> zooms,
+                              Map<String, NormalizationVector> normVectors, BufferedByteWriter buffer) throws IOException {
 
 
         List<NormalizedSum> sums = new ArrayList<>();
@@ -426,27 +425,27 @@ public class NormalizationVectorUpdater {
                                 vc1[x] > 0 && vc2[y] > 0) {
                             // want total sum of matrix, not just upper triangle
                             if (x == y) {
-                                vcSum += cr.getCounts() / (vc1[x] * vc2[y]);
+                                vcSum += cr.getBaseCounts() / (vc1[x] * vc2[y]);
                             } else {
-                                vcSum += 2 * cr.getCounts() / (vc1[x] * vc2[y]);
+                                vcSum += 2 * cr.getBaseCounts() / (vc1[x] * vc2[y]);
                             }
                         }
                         if (vcSqrt1 != null && vcSqrt2 != null && !Double.isNaN(vcSqrt1[x]) && !Double.isNaN(vcSqrt2[y]) &&
                                 vcSqrt1[x] > 0 && vcSqrt2[y] > 0) {
                             // want total sum of matrix, not just upper triangle
                             if (x == y) {
-                                vcSqrtSum += cr.getCounts() / (vcSqrt1[x] * vcSqrt2[y]);
+                                vcSqrtSum += cr.getBaseCounts() / (vcSqrt1[x] * vcSqrt2[y]);
                             } else {
-                                vcSqrtSum += 2 * cr.getCounts() / (vcSqrt1[x] * vcSqrt2[y]);
+                                vcSqrtSum += 2 * cr.getBaseCounts() / (vcSqrt1[x] * vcSqrt2[y]);
                             }
                         }
                         if (kr1 != null && kr2 != null && !Double.isNaN(kr1[x]) && !Double.isNaN(kr2[y]) &&
                                 kr1[x] > 0 && kr2[y] > 0) {
                             // want total sum of matrix, not just upper triangle
                             if (x == y) {
-                                krSum += cr.getCounts() / (kr1[x] * kr2[y]);
+                                krSum += cr.getBaseCounts() / (kr1[x] * kr2[y]);
                             } else {
-                                krSum += 2 * cr.getCounts() / (kr1[x] * kr2[y]);
+                                krSum += 2 * cr.getBaseCounts() / (kr1[x] * kr2[y]);
                             }
                         }
                     }
@@ -711,7 +710,7 @@ public class NormalizationVectorUpdater {
                 final double vx = vector[x + addY];
                 final double vy = vector[y + addY];
                 if (isValidNormValue(vx) && isValidNormValue(vy)) {
-                    double value = cr.getCounts() / (vx * vy);
+                    double value = cr.getBaseCounts() / (vx * vy);
                     expectedValueCalculation.addDistance(chrIdx, x, y, value);
                 }
             }
@@ -757,7 +756,7 @@ public class NormalizationVectorUpdater {
                                 ContactRecord cr = iter.next();
                                 int binX = cr.getBinX() + addX;
                                 int binY = cr.getBinY() + addY;
-                                recordArrayList.add(new ContactRecord(binX, binY, cr.getCounts()));
+                                recordArrayList.add(new ContactRecord(binX, binY, cr.getBaseCounts(), RGBButton.Channel.RED));
                             }
                         }
                     }

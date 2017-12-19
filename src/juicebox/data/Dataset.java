@@ -34,7 +34,6 @@ import org.broad.igv.util.FileUtils;
 import org.broad.igv.util.ResourceLocator;
 import org.broad.igv.util.collections.LRUCache;
 
-import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -922,7 +921,7 @@ public class Dataset {
         attributes.put(key, value);
     }
 
-    public List<JCheckBox> getCheckBoxes(List<ActionListener> actionListeners) {
+    public List<RGBButton> getCheckBoxes(List<ActionListener> actionListeners) throws IOException {
         return reader.getCheckBoxes(actionListeners);
     }
 }
