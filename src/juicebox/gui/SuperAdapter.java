@@ -507,7 +507,7 @@ public class SuperAdapter {
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
-        showSliders();
+        showConfigurings();
         return true;
     }
 
@@ -1008,14 +1008,17 @@ public class SuperAdapter {
         }
     }
 
+
     public void createCustomChromosomeMap(Feature2DList featureList, String chrName) {
         Chromosome custom = hic.getChromosomeHandler().addCustomChromosome(featureList, chrName);
         hic.setChromosomeHandler(hic.getChromosomeHandler());
         mainViewPanel.getChrBox1().addItem(custom);
         mainViewPanel.getChrBox2().addItem(custom);
     }
-  
-    public void showSliders() {
-        mainViewPanel.showSliders();
+
+
+    public void showConfigurings() {
+        mainViewPanel.showSliderBtn();
+        mainViewPanel.showMenuBtn();
     }
 }

@@ -25,7 +25,6 @@
 package juicebox.gui;
 
 import com.jidesoft.swing.JideButton;
-import com.jidesoft.swing.JideLabel;
 import com.jidesoft.swing.JideToggleButton;
 import juicebox.Context;
 import juicebox.HiC;
@@ -91,7 +90,7 @@ public class MainViewPanel {
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
     private int miniButtonSize = 22;
-    private JideButton btnMenu;
+    private JideButton menuBtn;
     private JPanel menuTabPanel;
     private JideToggleButton btnRightPnl;
     private boolean menuTabOpen = false;
@@ -305,8 +304,8 @@ public class MainViewPanel {
         hiCPanel.setBackground(Color.white);
         hiCPanel.setLayout(new HiCLayout());
 
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, hiCPanel, 10, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, hiCPanel, 33, SpringLayout.WEST, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, hiCPanel, 0, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.WEST, hiCPanel, 0, SpringLayout.WEST, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.SOUTH, hiCPanel, -7, SpringLayout.SOUTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, hiCPanel, -30, SpringLayout.EAST, bigPanel);
 //        bigPanel.add(hiCPanel, BorderLayout.CENTER);
@@ -589,31 +588,33 @@ public class MainViewPanel {
         menuTabPanel.setBackground(Color.WHITE);
         menuTabPanel.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, 0, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 50 + 70 * 4, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 215, SpringLayout.WEST, bigPanel);
-        bigPanel.setLayer(menuTabPanel, 1);
-        bigPanel.add(menuTabPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, menuTabPanel, -(50 + 70 * 4), SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, menuTabPanel, 0, SpringLayout.WEST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, menuTabPanel, 0, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, menuTabPanel, 215, SpringLayout.WEST, heatmapPanel);
+//        heatmapPanel.setLayer(menuTabPanel, 1);
+        heatmapPanel.add(menuTabPanel);
 
         menuTabPanel.setVisible(false);
 
         //======= Menu Tab Button ========
-        btnMenu = new JideButton();
+        menuBtn = new JideButton();
         ImageIcon menuIcon = new ImageIcon(getClass().getResource("/images/menu.png"));
-        btnMenu.setIcon(menuIcon);
-        btnMenu.addActionListener(new ActionListener() {
+        menuBtn.setIcon(menuIcon);
+        menuBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 menuTabOpen = !menuTabOpen;
                 menuTabPanel.setVisible(menuTabOpen);
-                btnMenu.setEnabled(false);
+                menuBtn.setEnabled(false);
             }
         });
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnMenu, 10, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.WEST, btnMenu, 10, SpringLayout.WEST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnMenu, 33, SpringLayout.NORTH, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.EAST, btnMenu, 33, SpringLayout.WEST, bigPanel);
-        bigPanel.add(btnMenu);
+        menuBtn.setVisible(false);
+
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, menuBtn, -33, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, menuBtn, 5, SpringLayout.WEST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, menuBtn, -10, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, menuBtn, 28, SpringLayout.WEST, heatmapPanel);
+        heatmapPanel.add(menuBtn);
 
         //====== Menu Tab Components ========
         JideButton btnClose = new JideButton();
@@ -623,18 +624,18 @@ public class MainViewPanel {
             public void actionPerformed(ActionEvent e) {
                 menuTabOpen = !menuTabOpen;
                 menuTabPanel.setVisible(menuTabOpen);
-                btnMenu.setEnabled(true);
+                menuBtn.setEnabled(true);
             }
         });
-        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, btnClose, 10, SpringLayout.NORTH, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, btnClose, -33, SpringLayout.SOUTH, menuTabPanel);
         sl_menuTabPanel.putConstraint(SpringLayout.WEST, btnClose, 10, SpringLayout.WEST, menuTabPanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, btnClose, 33, SpringLayout.NORTH, menuTabPanel);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, btnClose, -10, SpringLayout.SOUTH, menuTabPanel);
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, btnClose, 33, SpringLayout.WEST, menuTabPanel);
         menuTabPanel.add(btnClose);
 
-        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, chrSelectionPanel, 13, SpringLayout.SOUTH, btnClose);
+        sl_menuTabPanel.putConstraint(SpringLayout.NORTH, chrSelectionPanel, 0, SpringLayout.NORTH, menuTabPanel);
         sl_menuTabPanel.putConstraint(SpringLayout.WEST, chrSelectionPanel, 0, SpringLayout.WEST, menuTabPanel);
-        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, chrSelectionPanel, 83, SpringLayout.SOUTH, btnClose);
+        sl_menuTabPanel.putConstraint(SpringLayout.SOUTH, chrSelectionPanel, 70, SpringLayout.NORTH, menuTabPanel);
         sl_menuTabPanel.putConstraint(SpringLayout.EAST, chrSelectionPanel, 210, SpringLayout.WEST, menuTabPanel);
         menuTabPanel.add(chrSelectionPanel);
 
@@ -659,9 +660,9 @@ public class MainViewPanel {
         //======= Slider Tab Button =======
         ImageIcon sliderIcon = new ImageIcon(getClass().getResource("/images/sliders.png"));
         sliderBtn.setIcon(sliderIcon);
-        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderBtn, -33, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderBtn, 10, SpringLayout.NORTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderBtn, -28, SpringLayout.EAST, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderBtn, -10, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderBtn, 33, SpringLayout.NORTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderBtn, -5, SpringLayout.EAST, heatmapPanel);
         heatmapPanel.add(sliderBtn);
         sliderBtn.setVisible(false);
@@ -684,19 +685,19 @@ public class MainViewPanel {
         sliderPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
         sliderPanel.setVisible(false);
 
-        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderPanel, -70 * 2 - 30, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderPanel, 0, SpringLayout.NORTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderPanel, -215, SpringLayout.EAST, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, -30, SpringLayout.SOUTH, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderPanel, 70 * 2 + 30, SpringLayout.NORTH, heatmapPanel);
         sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderPanel, 0, SpringLayout.EAST, heatmapPanel);
 //        heatmapPanel.setLayer(sliderPanel, 1);
         heatmapPanel.add(sliderPanel);
 
         ImageIcon sliderCloseIcon = new ImageIcon(getClass().getResource("/images/close.png"));
         sliderCloseBtn.setIcon(sliderCloseIcon);
-        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderCloseBtn, -33, SpringLayout.SOUTH, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderCloseBtn, -28, SpringLayout.EAST, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderCloseBtn, -10, SpringLayout.SOUTH, heatmapPanel);
-        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderCloseBtn, -5, SpringLayout.EAST, heatmapPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.NORTH, sliderCloseBtn, 10, SpringLayout.NORTH, sliderPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.WEST, sliderCloseBtn, -28, SpringLayout.EAST, sliderPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.SOUTH, sliderCloseBtn, 33, SpringLayout.NORTH, sliderPanel);
+        sl_heatmapPanel.putConstraint(SpringLayout.EAST, sliderCloseBtn, -5, SpringLayout.EAST, sliderPanel);
         heatmapPanel.add(sliderCloseBtn);
         sliderCloseBtn.setVisible(false);
 
@@ -710,9 +711,9 @@ public class MainViewPanel {
         });
 
 
-        sl_sliderPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, 0, SpringLayout.NORTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.NORTH, resolutionSlider, 30, SpringLayout.NORTH, sliderPanel);
         sl_sliderPanel.putConstraint(SpringLayout.WEST, resolutionSlider, 0, SpringLayout.WEST, sliderPanel);
-        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, 70, SpringLayout.NORTH, sliderPanel);
+        sl_sliderPanel.putConstraint(SpringLayout.SOUTH, resolutionSlider, 70 + 30, SpringLayout.NORTH, sliderPanel);
         sl_sliderPanel.putConstraint(SpringLayout.EAST, resolutionSlider, 0, SpringLayout.EAST, sliderPanel);
         sliderPanel.add(resolutionSlider);
 
@@ -753,9 +754,9 @@ public class MainViewPanel {
             }
         });
 
-        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnRightPnl, 10, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.NORTH, btnRightPnl, -33, SpringLayout.SOUTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.WEST, btnRightPnl, -28, SpringLayout.EAST, bigPanel);
-        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnRightPnl, 33, SpringLayout.NORTH, bigPanel);
+        sl_bigPanel.putConstraint(SpringLayout.SOUTH, btnRightPnl, -10, SpringLayout.SOUTH, bigPanel);
         sl_bigPanel.putConstraint(SpringLayout.EAST, btnRightPnl, -5, SpringLayout.EAST, bigPanel);
         bigPanel.add(btnRightPnl);
 
@@ -1219,8 +1220,12 @@ public class MainViewPanel {
         miniAnnotationsLayerPanel.repaint();
     }
 
-    public void showSliders() {
+    public void showSliderBtn() {
         sliderBtn.setVisible(true);
+    }
+
+    public void showMenuBtn() {
+        menuBtn.setVisible(true);
     }
 
     /*public boolean isPearsonDisplayed() {
