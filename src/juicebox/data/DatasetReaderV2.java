@@ -33,6 +33,7 @@ import juicebox.HiCGlobals;
 import juicebox.tools.utils.original.Preprocessor;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
+import org.broad.igv.exceptions.HttpResponseException;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
@@ -489,7 +490,7 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
             try {
                 nExpectedValues = dis.readInt();
-            } catch (EOFException e) {
+            } catch (EOFException|HttpResponseException e) {
                 if (HiCGlobals.printVerboseComments) {
                     System.out.println("No normalization vectors");
                 }
