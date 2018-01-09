@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -394,7 +394,9 @@ public class MainViewPanel {
         int mouseTextY = rightSidePanel.getBounds().y + rightSidePanel.getBounds().height;
 
         Dimension prefSize = new Dimension(210,
-                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+            computeResolutionIndependentJComponentHeight(500) -
+                miniAnnotationsLayerPanel.getDynamicHeight() -
+                annotationsPanelToggleButton.getHeight());
         mouseHoverTextPanel.setPreferredSize(prefSize);
         tooltipPanel.setPreferredSize(prefSize);
 
@@ -437,7 +439,7 @@ public class MainViewPanel {
         annotationsPanel.add(annotationsPanelToggleButton, BorderLayout.SOUTH);
         annotationsPanelToggleButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        rightSidePanel.add(annotationsPanel);
+      rightSidePanel.add(annotationsPanel, BorderLayout.SOUTH);
         annotationsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // compute preferred size
@@ -458,6 +460,20 @@ public class MainViewPanel {
         resetAllColors();
         initialSetToFalse();
     }
+
+  private int computeResolutionIndependentJComponentHeight(int referenceResolutionJComponentHeight) {
+
+    // Assumes that the max height in the reference resolution is 800
+    float referenceResolutionScreenHeight = 800;
+
+    float
+        currentResolutionScreenHeight =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getHeight();
+
+    return (int) ((currentResolutionScreenHeight / referenceResolutionScreenHeight) *
+        referenceResolutionJComponentHeight);
+
+  }
 
     private void initialSetToFalse() {
         JComponent[] comps = new JComponent[]{chrBox1, chrBox2, refreshButton, displayOptionComboBox,
@@ -498,7 +514,9 @@ public class MainViewPanel {
         Dimension
             prefSize =
             new Dimension(210,
-                375 - miniAnnotationsLayerPanel.getDynamicHeight() - annotationsPanelToggleButton.getHeight());
+                computeResolutionIndependentJComponentHeight(500) -
+                    miniAnnotationsLayerPanel.getDynamicHeight() -
+                    annotationsPanelToggleButton.getHeight());
 
         mouseHoverTextPanel.setPreferredSize(prefSize);
         tooltipPanel.setPreferredSize(prefSize);

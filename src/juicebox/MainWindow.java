@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,6 +76,7 @@ public class MainWindow extends JFrame {
 
         initComponents();
         createCursors();
+      setExtendedState(JFrame.MAXIMIZED_BOTH);
         pack();
         DropTarget target = new DropTarget(this, new FileDropTargetListener(superAdapter));
         setDropTarget(target);
