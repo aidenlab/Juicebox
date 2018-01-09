@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -437,6 +437,12 @@ public class SuperAdapter {
                 return false;
             }
 
+            if (HiCGlobals.assemblyModeEnabled) {
+                if (!exitAssemblyMode()) {
+                    return false; //if user does not exit assembly mode then do not load new map
+                }
+            }
+
             if (!control && hic.getDataset() != null && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
                 resetControlMap();
             }
@@ -818,7 +824,6 @@ public class SuperAdapter {
     }
 
     public AnnotationLayerHandler getActiveLayerHandler() {
-
         return activeLayer;
     }
 
@@ -915,6 +920,26 @@ public class SuperAdapter {
         boolean isDeleteAllowed = annotationLayerHandlers.size() > 1;
         for (AnnotationLayerHandler handler : annotationLayerHandlers) {
             handler.setDeleteLayerButtonStatus(isDeleteAllowed);
+        }
+    }
+
+    public boolean exitAssemblyMode() {
+        MainMenuBar.exitAssemblyMode();
+        int dialogButton = JOptionPane.YES_NO_OPTION;
+        int dialogResult = JOptionPane.showConfirmDialog(mainWindow, "This action will remove all unsaved assembly changes. Continue?", "Continue", dialogButton);
+        if (dialogResult == JOptionPane.NO_OPTION) {
+            return false;
+        } else {
+            AnnotationLayerHandler templayer = layersPanel.new2DAnnotationsLayerAction(this, getLayersPanel().getLayerBoxGUI2DAnnotations(), null);
+            if (getAssemblyLayerHandlers() != null) {
+                for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())
+                    removeLayer(annotationLayerHandler);
+                getLayersPanel().updateBothLayersPanels(this);
+                HiCGlobals.assemblyModeEnabled = false;
+                executeClearAllMZDCache();
+                repaint();
+            }
+            return true;
         }
     }
 

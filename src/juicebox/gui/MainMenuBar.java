@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,6 +67,7 @@ public class MainMenuBar extends JMenuBar {
     private static JMenu assemblyMenu;
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
+    private static JMenuItem exitAssembly;
     private static JCheckBoxMenuItem enableAssembly;
     private static JMenuItem setScale;
     private static JMenuItem importModifiedAssembly;
@@ -78,6 +79,15 @@ public class MainMenuBar extends JMenuBar {
 
     public MainMenuBar(SuperAdapter superAdapter) {
         createMenuBar(superAdapter);
+    }
+
+    public static void exitAssemblyMode() {
+        resetAssembly.setEnabled(false);
+        exportAssembly.setEnabled(false);
+        //  setScale.setEnabled(false);
+
+        importModifiedAssembly.setEnabled(false);
+        exitAssembly.setEnabled(false);
     }
 
     public boolean unsavedEditsExist() {
@@ -95,7 +105,6 @@ public class MainMenuBar extends JMenuBar {
     public void addRecentStateMenuEntry(String title, boolean status) {
         recentLocationMenu.addEntry(title, status);
     }
-
 
     private void createMenuBar(final SuperAdapter superAdapter) {
         //======== fileMenu ========
@@ -592,6 +601,17 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
+        exitAssembly = new JMenuItem("Exit assembly");
+        exitAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+                if (option == 0) {
+                    superAdapter.exitAssemblyMode();
+                }
+            }
+        });
+
         exportAssembly = new JMenuItem("Export assembly");
         exportAssembly.addActionListener(new ActionListener() {
             @Override
@@ -676,14 +696,17 @@ public class MainMenuBar extends JMenuBar {
         enableAssembly.setEnabled(enabled);
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
+        exitAssembly.setEnabled(enabled);
 
 
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
         assemblyMenu.add(resetAssembly);
+        assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
+        assemblyMenu.add(exitAssembly);
 //        assemblyMenu.add(enableAssembly);
 
 
@@ -709,12 +732,14 @@ public class MainMenuBar extends JMenuBar {
         saveLocationList.setEnabled(status);
     }
 
-    public void enableAssemblyResetAndExport() {
+    public void enableAssemblyMenuOptions() {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
         enableAssembly.setEnabled(true);
         setScale.setEnabled(true);
         importModifiedAssembly.setEnabled(true);
+        exitAssembly.setEnabled(true);
+
     }
 
     public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -302,6 +302,12 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 } else {
                     assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
                 }
+
+                AnnotationLayerHandler templayer = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null); //temp layer to allow deleting of other layers
+                if (superAdapter.getAssemblyLayerHandlers() != null) {
+                    for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
+                        superAdapter.removeLayer(annotationLayerHandler);
+                }
                 assemblyFileImporter.importAssembly();
                 // Rescale resolution slider labels
                 superAdapter.getMainViewPanel().getResolutionSlider().reset();
@@ -336,7 +342,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
 
                 //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
-                superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
+                superAdapter.getMainMenuBar().enableAssemblyMenuOptions();
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)

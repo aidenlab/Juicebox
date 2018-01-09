@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,6 @@ public class AssemblyStateTracker {
 
     public void resetState() {
         undoStack.clear();
-
         assemblyActionPerformed(initialAssemblyScaffoldHandler, true);
         superAdapter.executeClearAllMZDCache();
     }
@@ -68,9 +67,11 @@ public class AssemblyStateTracker {
     public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
         redoStack.clear();
         undoStack.push(assemblyScaffoldHandler);
+        while (undoStack.size() > 50) { //keeps stack at size of 50 or less
+            undoStack.remove(0);
+        }
         assemblyScaffoldHandler.updateAssembly(refreshMap);
         regenerateLayers(refreshMap);
-        //     System.out.println(assemblyScaffoldHandler.toString());
     }
 
 
