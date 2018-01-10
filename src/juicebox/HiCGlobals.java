@@ -92,8 +92,8 @@ public class HiCGlobals {
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
-    public static final boolean isAssemblyToolsAllowed = true;
-    public static final boolean isCustomChromosomesAllowed = true;
+    public static final boolean isAssemblyToolsAllowed = false;
+    public static final boolean isCustomChromosomesAllowed = false;
     public static Color diffGrayColor = new Color(238, 238, 238);
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
