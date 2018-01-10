@@ -261,11 +261,11 @@ class RangeSliderUI extends BasicSliderUI {
 
 
     public String getColorsAsText() {
-        String tmpStr = "";
+        StringBuilder tmpStr = new StringBuilder();
         for (int idx = 0; idx < gradientColorsPreDef.length - 1; idx++) {
-            tmpStr = tmpStr + "Color(" + gradientColorsPreDef[idx].getRed() + "," + gradientColorsPreDef[idx].getGreen() + "," + gradientColorsPreDef[idx].getBlue() + "),";
+            tmpStr.append("Color(").append(gradientColorsPreDef[idx].getRed()).append(",").append(gradientColorsPreDef[idx].getGreen()).append(",").append(gradientColorsPreDef[idx].getBlue()).append("),");
         }
-        return tmpStr;
+        return tmpStr.toString();
     }
 
     /**
@@ -515,7 +515,7 @@ class RangeSliderUI extends BasicSliderUI {
     /**
      * Listener to handle mouse movements in the slider track.
      */
-    public class RangeTrackListener extends TrackListener {
+    class RangeTrackListener extends TrackListener {
 
         @Override
         public void mousePressed(MouseEvent e) {

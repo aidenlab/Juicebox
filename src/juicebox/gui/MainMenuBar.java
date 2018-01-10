@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,8 @@ import java.io.IOException;
 /**
  * Created by muhammadsaadshamim on 8/4/15.
  */
-public class MainMenuBar {
+public class MainMenuBar extends JMenuBar {
+    private static final long serialVersionUID = 2342324643L;
     private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
     private static final String recentMapEntityNode = "hicMapRecent";
@@ -66,6 +67,7 @@ public class MainMenuBar {
     private static JMenu assemblyMenu;
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
+    private static JMenuItem exitAssembly;
     private static JCheckBoxMenuItem enableAssembly;
     private static JMenuItem setScale;
     private static JMenuItem importModifiedAssembly;
@@ -75,6 +77,18 @@ public class MainMenuBar {
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
 
+    public MainMenuBar(SuperAdapter superAdapter) {
+        createMenuBar(superAdapter);
+    }
+
+    public static void exitAssemblyMode() {
+        resetAssembly.setEnabled(false);
+        exportAssembly.setEnabled(false);
+        //  setScale.setEnabled(false);
+
+        importModifiedAssembly.setEnabled(false);
+        exitAssembly.setEnabled(false);
+    }
 
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
@@ -92,12 +106,7 @@ public class MainMenuBar {
         recentLocationMenu.addEntry(title, status);
     }
 
-
-
-    public JMenuBar createMenuBar(final SuperAdapter superAdapter) {
-
-        JMenuBar menuBar = new JMenuBar();
-
+    private void createMenuBar(final SuperAdapter superAdapter) {
         //======== fileMenu ========
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
@@ -221,9 +230,9 @@ public class MainMenuBar {
                         "</h3>" +
                         "</center>" +
                         "<p>" +
-                        "Juicebox is the Aiden Lab's software for visualizing data<br>"+
+                        "Juicebox is the Aiden Lab's software for visualizing data<br>" +
                         "from proximity ligation experiments, such as Hi-C.<br>" +
-                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>"+
+                        "Juicebox was created by Jim Robinson, Neva C. Durand,<br>" +
                         "and Erez Aiden. Ongoing development work is carried<br>" +
                         "out by " +
                         "Neva C. Durand, Muhammad S. Shamim, Ido <br>Machol, Zulkifl Gire, " +
@@ -242,7 +251,7 @@ public class MainMenuBar {
                         "<strong>Suhas S.P. Rao*, Miriam H. Huntley*, Neva C. Durand, <br>" +
                         "Elena K. Stamenova, Ivan D. Bochkov, James T. Robinson,<br>" +
                         "Adrian L. Sanborn, Ido Machol, Arina D. Omer, Eric S.<br>Lander, " +
-                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase "+
+                        "Erez Lieberman Aiden. \"A 3D Map of the<br>Human Genome at Kilobase " +
                         "Resolution Reveals<br>Principles of Chromatin Looping.\" <em>Cell</em> 159, 2014.</strong><br>" +
                         "* contributed equally" +
                         "</p></html>"));
@@ -307,7 +316,7 @@ public class MainMenuBar {
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getDescription("location");
                 if (stateDescription != null && stateDescription.length() > 0) {
-                    superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
+                    addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
                     recentLocationMenu.setEnabled(true);
                 }
             }
@@ -422,11 +431,13 @@ public class MainMenuBar {
             @Override
             public void actionPerformed(ActionEvent e) {
                 HiCGlobals.isDarkulaModeEnabled = !HiCGlobals.isDarkulaModeEnabled;
-                superAdapter.getHeatmapPanel().repaint();
+                superAdapter.getMainViewPanel().resetAllColors();
+                //superAdapter.executeClearAllMZDCache();
+                superAdapter.refresh();
             }
         });
         darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
-        //viewMenu.add(darkulaMode);
+        viewMenu.add(darkulaMode);
 
         JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
@@ -590,6 +601,17 @@ public class MainMenuBar {
             }
         });
 
+        exitAssembly = new JMenuItem("Exit assembly");
+        exitAssembly.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showConfirmDialog(null, "Are you sure you want to reset?", "warning", JOptionPane.YES_NO_OPTION);
+                if (option == 0) {
+                    superAdapter.exitAssemblyMode();
+                }
+            }
+        });
+
         exportAssembly = new JMenuItem("Export assembly");
         exportAssembly.addActionListener(new ActionListener() {
             @Override
@@ -629,6 +651,8 @@ public class MainMenuBar {
             }
         });
 
+// TODO: check total length and have automatic scaling assigned as default based on that
+
         setScale = new JMenuItem("Set scale");
         setScale.addActionListener(new ActionListener() {
             @Override
@@ -649,10 +673,14 @@ public class MainMenuBar {
                     superAdapter.getMainViewPanel().getRulerPanelX().repaint();
                     superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                    // Rescale assembly annotations
+                    // Rescale and redraw assembly annotations
                     if (superAdapter.getAssemblyStateTracker() != null) {
-                        superAdapter.getAssemblyStateTracker().regenerateLayers();
-                        superAdapter.refresh();
+                        superAdapter.getAssemblyStateTracker().resetState();
+//                        final AssemblyScaffoldHandler assemblyHandler = superAdapter.getAssemblyStateTracker().getAssemblyHandler();
+////                        assemblyHandler.updateAssembly(true);
+//////                        superAdapter.getMainLayer().getFeatureHandler().loadLoopList(assemblyHandler.getScaffoldFeature2DHandler().getAllVisibleLoops(), true);
+//////                        superAdapter.getGroupLayer().getFeatureHandler().loadLoopList(assemblyHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops(), false);
+////                        //superAdapter.repaint();
                     }
 
                 } catch (NumberFormatException t) {
@@ -661,35 +689,35 @@ public class MainMenuBar {
             }
         });
 
-        boolean enabled;
-        if (superAdapter.getAssemblyStateTracker() != null)
-            enabled = superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
-        else
-            enabled = false;
+        boolean enabled = superAdapter.getAssemblyStateTracker() != null && superAdapter.getAssemblyStateTracker().getAssemblyHandler() != null;
 
         exportAssembly.setEnabled(enabled);
         resetAssembly.setEnabled(enabled);
         enableAssembly.setEnabled(enabled);
         setScale.setEnabled(superAdapter.getHiC() != null && !superAdapter.getHiC().isWholeGenome());
         importModifiedAssembly.setEnabled(enabled);
+        exitAssembly.setEnabled(enabled);
 
-        assemblyMenu.add(enableAssembly);
-        assemblyMenu.add(resetAssembly);
+
         assemblyMenu.add(importMapAssembly);
         assemblyMenu.add(importModifiedAssembly);
         assemblyMenu.add(exportAssembly);
+        assemblyMenu.add(resetAssembly);
+        assemblyMenu.add(resetAssembly);
         setScale.setEnabled(true);
         assemblyMenu.add(setScale);
+        assemblyMenu.add(exitAssembly);
+//        assemblyMenu.add(enableAssembly);
 
-        menuBar.add(fileMenu);
-        menuBar.add(annotationsMenu);
-        menuBar.add(bookmarksMenu);
-        menuBar.add(viewMenu);
+
+        add(fileMenu);
+        add(annotationsMenu);
+        add(bookmarksMenu);
+        add(viewMenu);
         if (HiCGlobals.isAssemblyToolsAllowed) {
-            menuBar.add(assemblyMenu);
+            add(assemblyMenu);
         }
-        menuBar.add(devMenu);
-        return menuBar;
+        add(devMenu);
     }
 
     public RecentMenu getRecentLocationMenu() {
@@ -704,12 +732,14 @@ public class MainMenuBar {
         saveLocationList.setEnabled(status);
     }
 
-    public void enableAssemblyResetAndExport() {
+    public void enableAssemblyMenuOptions() {
         resetAssembly.setEnabled(true);
         exportAssembly.setEnabled(true);
         enableAssembly.setEnabled(true);
         setScale.setEnabled(true);
         importModifiedAssembly.setEnabled(true);
+        exitAssembly.setEnabled(true);
+
     }
 
     public void enableAssemblyEditsOnImport(SuperAdapter superAdapter) {

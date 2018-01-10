@@ -26,6 +26,8 @@ package juicebox.track;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.HiCGlobals;
+import juicebox.assembly.OneDimAssemblyTrackLifter;
 import juicebox.data.censoring.OneDimTrackCensoring;
 import juicebox.gui.SuperAdapter;
 import org.broad.igv.renderer.DataRange;
@@ -86,6 +88,8 @@ public class HiCDataTrack extends HiCTrack {
             data = OneDimTrackCensoring.getFilteredData(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);
 
+        } else if (HiCGlobals.assemblyModeEnabled) {
+            data = OneDimAssemblyTrackLifter.liftDataArrayFromAsm(dataSource, hic, context.getChromosome(), (int) startBin, (int) endBin + 1, gridAxis, hic.getScaleFactor(), windowFunction);
         } else {
             data = dataSource.getData(context.getChromosome(), (int) startBin, (int) endBin + 1,
                     gridAxis, hic.getScaleFactor(), windowFunction);

@@ -29,7 +29,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyFileImporter;
-import juicebox.assembly.AssemblyFragmentHandler;
+import juicebox.assembly.AssemblyScaffoldHandler;
 import juicebox.data.ChromosomeHandler;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.layers.LayersPanel;
@@ -43,10 +43,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -70,6 +67,8 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
+    private ArrayList<String> mostRecentPaths = new ArrayList<String>();
+
 
     public LoadModifiedAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
         super(superAdapter.getMainWindow(), "Select Modified Assembly annotation file(s) to open");
@@ -125,8 +124,17 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                mostRecentPaths.clear();
                 safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                 LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
+            }
+        });
+
+        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                closeWindow();
             }
         });
 
@@ -135,7 +143,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
+                closeWindow();
             }
         });
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
@@ -163,6 +171,17 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         }
 
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
+    public void closeWindow() {
+        customAddedFeatures.removeFromParent();
+        for (String path : mostRecentPaths) {
+            customAddedFeatures.remove(loadedAnnotationsMap.get(path));
+            loadedAnnotationsMap.remove(path);
+        }
+        mostRecentPaths.clear();
+        loadedAnnotationsMap.remove(customAddedFeatures);
+        LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
     }
 
     public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
@@ -211,6 +230,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 
                 loadedAnnotationsMap.put(path, treeNode);
                 customAddedFeatures.add(treeNode);
+                mostRecentPaths.add(path);
             }
             model.reload(root);
             expandTree();
@@ -249,11 +269,14 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                                          JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
         String cpropsPath = null;
         String asmPath = null;
+        String assemblyPath = null;
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                if (info.itemURL.endsWith("cprops")) {
+                if (info.itemURL.endsWith("assembly")) {
+                    assemblyPath = info.itemURL;
+                } else if (info.itemURL.endsWith("cprops")) {
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
@@ -265,11 +288,17 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
             }
         }
 
-        if (asmPath != null && cpropsPath != null) {
+        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
 //            try {
-            AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
-                AssemblyFragmentHandler modifiedAssemblyFragmentHandler = assemblyFileImporter.getAssemblyFragmentHandler();
-                superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyFragmentHandler);
+            AssemblyFileImporter assemblyFileImporter;
+            if (assemblyPath != null) {
+                assemblyFileImporter = new AssemblyFileImporter(assemblyPath, true);
+            } else {
+                assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, true);
+            }
+            assemblyFileImporter.importAssembly();
+            AssemblyScaffoldHandler modifiedAssemblyScaffoldHandler = assemblyFileImporter.getAssemblyScaffoldHandler();
+            superAdapter.getAssemblyStateTracker().assemblyActionPerformed(modifiedAssemblyScaffoldHandler, true);
                 superAdapter.clearAllMatrixZoomCache();
             superAdapter.refresh();
 
@@ -390,15 +419,15 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     }
 
     private class ItemInfo {
-        public final String itemName;
-        public final String itemURL;
+        final String itemName;
+        final String itemURL;
 
-        public ItemInfo(String itemName, String itemURL) {
+        ItemInfo(String itemName, String itemURL) {
             this.itemName = itemName.trim();
             this.itemURL = itemURL.trim();
         }
 
-        public ItemInfo(String itemName) {
+        ItemInfo(String itemName) {
             this.itemName = itemName;
             itemURL = null;
         }

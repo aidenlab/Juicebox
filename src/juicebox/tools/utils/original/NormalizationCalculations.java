@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -502,7 +502,7 @@ public class NormalizationCalculations {
             values1 = new FloatArrayList();
         }
 
-        public void set(int row, int col, float v) {
+        void set(int row, int col, float v) {
 
             if (!Float.isNaN(v)) {
                 if (rows2 == null) {

@@ -69,10 +69,18 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             }
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F2) {
+            handlersPreviouslyHidden.clear();
+            for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
+                if (!handler.getLayerVisibility()) {
+                    handlersPreviouslyHidden.add(handler);
+                }
+            }
             if (handlersPreviouslyHidden.size() > 0) {
                 for (AnnotationLayerHandler handler : handlersPreviouslyHidden) {
                     try {
                         handler.setLayerVisibility(true);
+                        superAdapter.updateMiniAnnotationsLayerPanel();
+                        superAdapter.updateMainLayersPanel();
                     } catch (Exception ee) {
                     }
                 }
@@ -82,6 +90,8 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
                 for (AnnotationLayerHandler handler : superAdapter.getAllLayers()) {
                     if (handler.getLayerVisibility()) {
                         handler.setLayerVisibility(false);
+                        superAdapter.updateMiniAnnotationsLayerPanel();
+                        superAdapter.updateMainLayersPanel();
                         handlersPreviouslyHidden.add(handler);
                     }
                 }
@@ -132,6 +142,20 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
             superAdapter.togglePanelVisible();
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && (e.getKeyCode() == KeyEvent.VK_U) && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
+            if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkUndo()) {
+                superAdapter.getAssemblyStateTracker().undo();
+                superAdapter.getHeatmapPanel().removeSelection();
+                superAdapter.refresh();
+            }
+            return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getExtendedKeyCode() == KeyEvent.VK_R && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
+            if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkRedo()) {
+                superAdapter.getAssemblyStateTracker().redo();
+                superAdapter.getHeatmapPanel().removeSelection();
+                superAdapter.refresh();
+            }
             return true;
         } else {
             return false;

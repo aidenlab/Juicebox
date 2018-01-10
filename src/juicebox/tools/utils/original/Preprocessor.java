@@ -193,8 +193,8 @@ public class Preprocessor {
         }
 
         try {
-            String stats = null;
-            String graphs = null;
+            StringBuilder stats = null;
+            StringBuilder graphs = null;
             if (fragmentFileName != null) {
                 try {
                     fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
@@ -210,10 +210,10 @@ public class Preprocessor {
                 try {
                     is = new FileInputStream(statsFileName);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-                    stats = "";
+                    stats = new StringBuilder();
                     String nextLine;
                     while ((nextLine = reader.readLine()) != null) {
-                        stats += nextLine + "\n";
+                        stats.append(nextLine).append("\n");
                     }
                 } catch (IOException e) {
                     System.err.println("Error while reading stats file: " + e);
@@ -230,10 +230,10 @@ public class Preprocessor {
                 try {
                     is = new FileInputStream(graphFileName);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
-                    graphs = "";
+                    graphs = new StringBuilder();
                     String nextLine;
                     while ((nextLine = reader.readLine()) != null) {
-                        graphs += nextLine + "\n";
+                        graphs.append(nextLine).append("\n");
                     }
                 } catch (IOException e) {
                     System.err.println("Error while reading graphs file: " + e);
@@ -280,7 +280,7 @@ public class Preprocessor {
             System.out.println("Start preprocess");
 
             System.out.println("Writing header");
-            writeHeader(stats, graphs);
+            writeHeader(stats.toString(), graphs.toString());
 
             System.out.println("Writing body");
             writeBody(inputFile);
@@ -990,7 +990,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Read enough bytes to fill the input buffer
          */
-        public void readFully(byte b[], InputStream is) throws IOException {
+        void readFully(byte b[], InputStream is) throws IOException {
             int len = b.length;
             if (len < 0)
                 throw new IndexOutOfBoundsException();
@@ -1052,17 +1052,17 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             this.contactRecordMap = new HashMap<>();
         }
 
-        public BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
+        BlockPP(int number, Map<Point, ContactCount> contactRecordMap) {
             this.number = number;
             this.contactRecordMap = contactRecordMap;
         }
 
 
-        public int getNumber() {
+        int getNumber() {
             return number;
         }
 
-        public void incrementCount(int col, int row, float score) {
+        void incrementCount(int col, int row, float score) {
             Point p = new Point(col, row);
             ContactCount rec = contactRecordMap.get(p);
             if (rec == null) {
@@ -1081,11 +1081,11 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
         */
 
-        public Map<Point, ContactCount> getContactRecordMap() {
+        Map<Point, ContactCount> getContactRecordMap() {
             return contactRecordMap;
         }
 
-        public void merge(BlockPP other) {
+        void merge(BlockPP other) {
 
             for (Map.Entry<Point, ContactCount> entry : other.getContactRecordMap().entrySet()) {
 
@@ -1103,7 +1103,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         }
     }
 
-    public static class ContactCount {
+    static class ContactCount {
         float value;
 
         ContactCount(float value) {
@@ -1114,7 +1114,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             value += increment;
         }
 
-        public float getCounts() {
+        float getCounts() {
             return value;
         }
     }
@@ -1252,7 +1252,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         private final int blockBinCount;        // block size in bins
         private final int blockColumnCount;     // number of block columns
         private final LinkedHashMap<Integer, BlockPP> blocks;
-        public long blockIndexPosition;
+        long blockIndexPosition;
         private double sum = 0;
         private double cellCount = 0;
         private double percent5;
@@ -1298,15 +1298,15 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             return sum;
         }
 
-        public double getOccupiedCellCount() {
+        double getOccupiedCellCount() {
             return cellCount;
         }
 
-        public double getPercent95() {
+        double getPercent95() {
             return percent95;
         }
 
-        public double getPercent5() {
+        double getPercent5() {
             return percent5;
         }
 
@@ -1344,7 +1344,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         /**
          * Increment the count for the bin represented by the GENOMIC position (pos1, pos2)
          */
-        public void incrementCount(int pos1, int pos2, float score) throws IOException {
+        void incrementCount(int pos1, int pos2, float score) throws IOException {
 
             sum += score;
             // Convert to proper units,  fragments or base-pairs
@@ -1533,14 +1533,14 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
 
         }
 
-        public void parsingComplete() {
+        void parsingComplete() {
             // Add the block numbers still in memory
             for (BlockPP block : blocks.values()) {
                 blockNumbers.add(block.getNumber());
             }
         }
 
-        public void updateIndexPositions(List<IndexEntry> blockIndex) throws IOException {
+        void updateIndexPositions(List<IndexEntry> blockIndex) throws IOException {
 
             // Temporarily close output stream.  Remember position
             long losPos = los.getWrittenCount();

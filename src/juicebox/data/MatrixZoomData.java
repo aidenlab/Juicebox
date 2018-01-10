@@ -28,20 +28,17 @@ package juicebox.data;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
-import juicebox.assembly.AssemblyFragmentHandler;
 import juicebox.assembly.AssemblyHeatmapHandler;
-import juicebox.mapcolorui.Feature2DHandler;
+import juicebox.assembly.AssemblyScaffoldHandler;
+import juicebox.assembly.Scaffold;
 import juicebox.matrix.BasicMatrix;
 import juicebox.tools.clt.old.Pearsons;
 import juicebox.track.HiCFixedGridAxis;
 import juicebox.track.HiCFragmentAxis;
 import juicebox.track.HiCGridAxis;
-import juicebox.track.feature.Contig2D;
-import juicebox.track.feature.Feature2D;
 import juicebox.windowui.HiCZoom;
 import juicebox.windowui.MatrixType;
 import juicebox.windowui.NormalizationType;
-import net.sf.jsi.Rectangle;
 import org.apache.commons.math.linear.Array2DRowRealMatrix;
 import org.apache.commons.math.linear.EigenDecompositionImpl;
 import org.apache.commons.math.linear.RealMatrix;
@@ -65,30 +62,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MatrixZoomData {
 
-    protected final Chromosome chr1;  // Chromosome on the X axis
-    protected final Chromosome chr2;  // Chromosome on the Y axis
-    protected final HiCZoom zoom;    // Unit and bin size
-    protected final HiCGridAxis xGridAxis;
-    protected final HiCGridAxis yGridAxis;
+    final Chromosome chr1;  // Chromosome on the X axis
+    final Chromosome chr2;  // Chromosome on the Y axis
+    final HiCZoom zoom;    // Unit and bin size
+    private final HiCGridAxis xGridAxis;
+    private final HiCGridAxis yGridAxis;
     // Observed values are organized into sub-matrices ("blocks")
-    protected final int blockBinCount;   // block size in bins
-    protected final int blockColumnCount;     // number of block columns
+    private final int blockBinCount;   // block size in bins
+    private final int blockColumnCount;     // number of block columns
     // Cache the last 20 blocks loaded
     private final LRUCache<String, Block> blockCache = new LRUCache<>(500);
     private final HashMap<NormalizationType, BasicMatrix> pearsonsMap;
     private final HashSet<NormalizationType> missingPearsonFiles;
     DatasetReader reader;
     private double averageCount = -1;
-//    private static final SuperAdapter superAdapter = new SuperAdapter();
-//    private static final Slideshow slideshow = superAdapter.getSlideshow();
-
-
-//    float sumCounts;
-//    float avgCounts;
-//    float stdDev;
-//    float percent95 = -1;
-//    float percent80 = -1;
-
 
     /**
      * Constructor, sets the grid axes.  Called when read from file.
@@ -138,14 +125,6 @@ public class MatrixZoomData {
         pearsonsMap = new HashMap<>();
         missingPearsonFiles = new HashSet<>();
     }
-
-    // IMPORTANT
-    // Only to be used for Custom Chromosome
-    //public MatrixZoomData(Chromosome chr1, HiCZoom zoom, DatasetReader reader) {
-    //    this.chr1 = chr1;
-    //    this.chr2 = chr1;
-    //    this.zoom = zoom;
-    //}
 
     public Chromosome getChr1() {
         return chr1;
@@ -259,57 +238,84 @@ public class MatrixZoomData {
             }
         }
 
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, null);
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
     private List<Block> addNormalizedBlocksToListAssembly(final List<Block> blockList, int binX1, int binY1, int binX2, int binY2,
                                                           final NormalizationType no) {
+
         Set<Integer> blocksToLoad = new HashSet<>();
-        Feature2DHandler handler = AssemblyHeatmapHandler.getSuperAdapter().getMainLayer().getAnnotationLayer().getFeatureHandler();
 
-        // enable sparse plotting options
-        boolean previousStatus = handler.getIsSparsePlottingEnabled();
+        // get aggregate scaffold handler
+        AssemblyScaffoldHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
 
-        // Get features that are both contained by and touching (nearest single neighbor)
-        // the selection rectangle
-        handler.setSparsePlottingEnabled(true);
+        final int binSize = zoom.getBinSize();
+        long actualBinSize = (long) binSize;
+        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+            actualBinSize = 1000 * actualBinSize;
+        }
 
-        // x window binNumber * binSize
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(
-                binX1 * zoom.getBinSize(),
-                binX1 * zoom.getBinSize(),
-                binX2 * zoom.getBinSize(),
-                binX2 * zoom.getBinSize());
-        List<Contig2D> xAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
+        List<Scaffold> xAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binX1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binX2 * HiCGlobals.hicMapScale));
+        List<Scaffold> yAxisAggregateScaffolds = aFragHandler.getIntersectingAggregateFeatures(
+                (long) (actualBinSize * binY1 * HiCGlobals.hicMapScale), (long) (actualBinSize * binY2 * HiCGlobals.hicMapScale));
 
+        int x1pos, x2pos, y1pos, y2pos;
 
-        // y window
-        currentWindow = new net.sf.jsi.Rectangle(
-                binY1 * zoom.getBinSize(),
-                binY1 * zoom.getBinSize(),
-                binY2 * zoom.getBinSize(),
-                binY2 * zoom.getBinSize());
-        List<Contig2D> yAxisContigs = retrieveContigsIntersectingWithWindow(handler, currentWindow);
-        // restore sparse plotting options
-        handler.setSparsePlottingEnabled(previousStatus);
+        for (Scaffold xScaffold : xAxisAggregateScaffolds) {
+            for (Scaffold yScaffold : yAxisAggregateScaffolds) {
 
-        for (Contig2D xContig : xAxisContigs) {
-            for (Contig2D yContig : yAxisContigs) {
+                x1pos = (int) (xScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
+                x2pos = (int) (xScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
+                y1pos = (int) (yScaffold.getOriginalStart() / HiCGlobals.hicMapScale);
+                y2pos = (int) (yScaffold.getOriginalEnd() / HiCGlobals.hicMapScale);
+
+                // have to case long because of thumbnail, maybe fix thumbnail instead
+
+                if (xScaffold.getCurrentStart() < actualBinSize * binX1 * HiCGlobals.hicMapScale) {
+                    if (!xScaffold.getInvertedVsInitial()) {
+                        x1pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX1 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                    } else {
+                        x2pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX1 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (yScaffold.getCurrentStart() < actualBinSize * binY1 * HiCGlobals.hicMapScale) {
+                    if (!yScaffold.getInvertedVsInitial()) {
+                        y1pos = (int) ((yScaffold.getOriginalStart() + actualBinSize * binY1 * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                    } else {
+                        y2pos = (int) ((yScaffold.getOriginalStart() - actualBinSize * binY1 * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (xScaffold.getCurrentEnd() > actualBinSize * binX2 * HiCGlobals.hicMapScale) {
+                    if (!xScaffold.getInvertedVsInitial()) {
+                        x2pos = (int) ((xScaffold.getOriginalStart() + actualBinSize * binX2 * HiCGlobals.hicMapScale - xScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                    } else {
+                        x1pos = (int) ((xScaffold.getOriginalStart() - actualBinSize * binX2 * HiCGlobals.hicMapScale + xScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                    }
+                }
+
+                if (yScaffold.getCurrentEnd() > actualBinSize * binY2 * HiCGlobals.hicMapScale) {
+                    if (!yScaffold.getInvertedVsInitial()) {
+                        y2pos = (int) ((yScaffold.getOriginalStart() + actualBinSize * binY2 * HiCGlobals.hicMapScale - yScaffold.getCurrentStart()) / HiCGlobals.hicMapScale);
+                    } else {
+                        y1pos = (int) ((yScaffold.getOriginalStart() - actualBinSize * binY2 * HiCGlobals.hicMapScale + yScaffold.getCurrentEnd()) / HiCGlobals.hicMapScale);
+                    }
+                }
+
                 int[] genomePosition = new int[]{
-                        xContig.getInitialStart(),
-                        xContig.getInitialEnd(),
-                        yContig.getInitialStart(),
-                        yContig.getInitialEnd()
+                        x1pos, x2pos, y1pos, y2pos
                 };
+
                 List<Integer> tempBlockNumbers = getBlockNumbersForRegionFromGenomePosition(genomePosition);
                 for (int blockNumber : tempBlockNumbers) {
-                    if (blocksToLoad.contains(blockNumber)) {
-                        continue;
-                    } else {
+                    if (!blocksToLoad.contains(blockNumber)) {
                         String key = getBlockKey(blockNumber, no);
                         Block b;
+                        //temp fix for AllByAll. TODO: trace this!
                         if (HiCGlobals.useCache && blockCache.containsKey(key)) {
                             b = blockCache.get(key);
                             blockList.add(b);
@@ -322,26 +328,30 @@ public class MatrixZoomData {
         }
 
         // Remove basic duplicates here
-        AssemblyFragmentHandler aFragHandler = AssemblyHeatmapHandler.getSuperAdapter().getAssemblyStateTracker().getAssemblyHandler();
-
         // Actually load new blocks
-        actuallyLoadGivenBlocks(blockList, blocksToLoad, no, aFragHandler);
+        actuallyLoadGivenBlocks(blockList, blocksToLoad, no);
 
         return new ArrayList<>(new HashSet<>(blockList));
     }
 
-    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
-        List<Feature2D> axisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
-        List<Contig2D> axisContigs = new ArrayList<>();
-        for (Feature2D feature2D : new HashSet<>(axisFeatures)) {
-            axisContigs.add(feature2D.toContig());
-        }
-        Collections.sort(axisContigs);
-        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
-    }
+//    private List<Contig2D> retrieveContigsIntersectingWithWindow(Feature2DHandler handler, Rectangle currentWindow) {
+//        List<Feature2D> xAxisFeatures;
+//        if (chr1.getIndex() == 0 && chr2.getIndex() == 0) {
+//            xAxisFeatures = handler.getIntersectingFeatures(1, 1, currentWindow, true);
+//            // helps with disappearing heatmap but doesn't fix everything
+//        } else {
+//            xAxisFeatures = handler.getIntersectingFeatures(chr1.getIndex(), chr2.getIndex(), currentWindow, true);
+//        }
+//        List<Contig2D> axisContigs = new ArrayList<>();
+//        for (Feature2D feature2D : new HashSet<>(xAxisFeatures)) {
+//            axisContigs.add(feature2D.toContig());
+//        }
+//        Collections.sort(axisContigs);
+//        return AssemblyHeatmapHandler.mergeRedundantContiguousContigs(axisContigs);
+//    }
 
     private void actuallyLoadGivenBlocks(final List<Block> blockList, Set<Integer> blocksToLoad,
-                                         final NormalizationType no, final AssemblyFragmentHandler aFragHandler) {
+                                         final NormalizationType no) {
         final AtomicInteger errorCounter = new AtomicInteger();
 
         ExecutorService service = Executors.newFixedThreadPool(200);
@@ -361,8 +371,8 @@ public class MatrixZoomData {
                             b = new Block(blockNumber, key);   // An empty block
                         }
                         //Run out of memory if do it here
-                        if (HiCGlobals.assemblyModeEnabled && aFragHandler != null) {
-                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index, aFragHandler);
+                        if (HiCGlobals.assemblyModeEnabled) {
+                            b = AssemblyHeatmapHandler.modifyBlock(b, key, binSize, chr1Index, chr2Index);
                         }
                         if (HiCGlobals.useCache) {
                             blockCache.put(key, b);
@@ -685,7 +695,7 @@ public class MatrixZoomData {
      * @param regionIndices
      * @return
      */
-    protected List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
+    List<Integer> getBlockNumbersForRegionFromGenomePosition(int[] regionIndices) {
         int resolution = zoom.getBinSize();
         int[] regionBinIndices = new int[4];
         for (int i = 0; i < regionBinIndices.length; i++) {
@@ -908,7 +918,7 @@ public class MatrixZoomData {
 
     public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, int binStartPosition,
                                               boolean isIntraChromosomal, int[] regionBinIndices,
-                                              NormalizationType norm, MatrixType matrixType) throws IOException {
+                                              NormalizationType norm, MatrixType matrixType) {
 
         if (!MatrixType.isObservedOrControl(matrixType)) {
             System.out.println("This feature is only available for Observed or Control views");
@@ -1002,7 +1012,7 @@ public class MatrixZoomData {
     /**
      * Class for iterating over the contact records
      */
-    public class ContactRecordIterator implements Iterator<ContactRecord> {
+    class ContactRecordIterator implements Iterator<ContactRecord> {
 
         final List<Integer> blockNumbers;
         int blockIdx;
@@ -1011,7 +1021,7 @@ public class MatrixZoomData {
         /**
          * Initializes the iterator
          */
-        public ContactRecordIterator() {
+        ContactRecordIterator() {
             this.blockIdx = -1;
             this.blockNumbers = reader.getBlockNumbers(MatrixZoomData.this);
         }

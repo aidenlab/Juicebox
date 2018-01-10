@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.assembly;
 
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.AnnotationLayerHandler;
 
 import java.util.Stack;
 
@@ -33,54 +32,55 @@ import java.util.Stack;
  * Created by nathanielmusial on 7/5/17.
  */
 public class AssemblyStateTracker {
-    private Stack<AssemblyFragmentHandler> undoStack;
-    private Stack<AssemblyFragmentHandler> redoStack;
-    private AnnotationLayerHandler contigLayerHandler;
-    private AnnotationLayerHandler scaffoldLayerHandler;
-    private AssemblyFragmentHandler initialAssemblyFragmentHandler;
+    private final Stack<AssemblyScaffoldHandler> undoStack;
+    private final Stack<AssemblyScaffoldHandler> redoStack;
+    private final AssemblyScaffoldHandler initialAssemblyScaffoldHandler;
+    private final SuperAdapter superAdapter;
 
-    public AssemblyStateTracker(AssemblyFragmentHandler assemblyFragmentHandler, AnnotationLayerHandler contigLayerHandler, AnnotationLayerHandler scaffoldLayerHandler) {
+    public AssemblyStateTracker(AssemblyScaffoldHandler assemblyScaffoldHandler, SuperAdapter superAdapter) {
 
         undoStack = new Stack<>();
-        undoStack.push(assemblyFragmentHandler);
-        this.contigLayerHandler = contigLayerHandler;
-        this.scaffoldLayerHandler = scaffoldLayerHandler;
+        undoStack.push(assemblyScaffoldHandler);
         redoStack = new Stack<>();
-        this.initialAssemblyFragmentHandler = assemblyFragmentHandler;
+        this.initialAssemblyScaffoldHandler = assemblyScaffoldHandler;
+        this.superAdapter = superAdapter;
     }
 
-    public AssemblyFragmentHandler getAssemblyHandler() {
+    public AssemblyScaffoldHandler getAssemblyHandler() {
         return undoStack.peek();
     }
 
-    public AssemblyFragmentHandler getNewAssemblyHandler() {
-        AssemblyFragmentHandler newAssemblyFragmentHandler = new AssemblyFragmentHandler(undoStack.peek());
-        return newAssemblyFragmentHandler;
+    public AssemblyScaffoldHandler getNewAssemblyHandler() {
+        return new AssemblyScaffoldHandler(undoStack.peek());
     }
 
     public void resetState() {
         undoStack.clear();
+        assemblyActionPerformed(initialAssemblyScaffoldHandler, true);
+        superAdapter.executeClearAllMZDCache();
+    }
+
+    public AssemblyScaffoldHandler getInitialAssemblyScaffoldHandler() {
+        return initialAssemblyScaffoldHandler;
+    }
+
+    public void assemblyActionPerformed(AssemblyScaffoldHandler assemblyScaffoldHandler, boolean refreshMap) {
         redoStack.clear();
-        undoStack.push(initialAssemblyFragmentHandler);
-        regenerateLayers();
-        executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+        undoStack.push(assemblyScaffoldHandler);
+        while (undoStack.size() > 50) { //keeps stack at size of 50 or less
+            undoStack.remove(0);
+        }
+        assemblyScaffoldHandler.updateAssembly(refreshMap);
+        regenerateLayers(refreshMap);
     }
 
-    public AssemblyFragmentHandler getInitialAssemblyFragmentHandler() {
-        return initialAssemblyFragmentHandler;
-    }
 
-    public void assemblyActionPerformed(AssemblyFragmentHandler assemblyFragmentHandler) {
-        redoStack.clear();
-        undoStack.push(assemblyFragmentHandler);
-        regenerateLayers();
-    }
-
-    public void regenerateLayers() {
-        AssemblyFragmentHandler assemblyFragmentHandler = undoStack.peek();
-        assemblyFragmentHandler.updateAssembly();
-        scaffoldLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getSuperscaffoldFeature2DList());
-        contigLayerHandler.getFeatureHandler().setLoopList(assemblyFragmentHandler.getScaffoldFeature2DList());
+    private void regenerateLayers(boolean refreshMap) {
+        AssemblyScaffoldHandler assemblyScaffoldHandler = undoStack.peek();
+        if (refreshMap) {
+            superAdapter.getMainLayer().getFeatureHandler().setLoopList(assemblyScaffoldHandler.getScaffoldFeature2DHandler().getAllVisibleLoops());
+        }
+        superAdapter.getGroupLayer().getFeatureHandler().setLoopList(assemblyScaffoldHandler.getSuperscaffoldFeature2DHandler().getAllVisibleLoops());
     }
 
     public boolean checkUndo() {
@@ -90,8 +90,10 @@ public class AssemblyStateTracker {
     public void undo() {
         if (checkUndo()) {
             redoStack.push(undoStack.pop());
-            regenerateLayers();
-            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+
+            undoStack.peek().updateAssembly(true);
+            regenerateLayers(true);
+            superAdapter.executeClearAllMZDCache();
         }
     }
 
@@ -102,19 +104,10 @@ public class AssemblyStateTracker {
     public void redo() {
         if (checkRedo()) {
             undoStack.push(redoStack.pop());
-            regenerateLayers();
-            executeClearAllMZDCache(AssemblyHeatmapHandler.getSuperAdapter());
+
+            undoStack.peek().updateAssembly(true);
+            regenerateLayers(true);
+            superAdapter.executeClearAllMZDCache();
         }
     }
-
-    public void executeClearAllMZDCache(final SuperAdapter superAdapter) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                superAdapter.clearAllMatrixZoomCache(); //split clear current zoom and put the rest in background? Seems to taking a lot of time
-                superAdapter.refresh();
-            }
-        };
-        superAdapter.executeLongRunningTask(runnable, "Assembly clear MZD cache");
-    }
-
 }

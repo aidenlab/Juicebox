@@ -203,8 +203,11 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
         if (this == obj) {
             return true;
         }
-        MotifAnchor o = (MotifAnchor) obj;
-        return chrIndex == o.chrIndex && x1 == o.x1 && x2 == o.x2;
+        if (obj instanceof MotifAnchor) {
+            MotifAnchor o = (MotifAnchor) obj;
+            return chrIndex == o.chrIndex && x1 == o.x1 && x2 == o.x2;
+        }
+        return false;
     }
 
     @Override
@@ -219,11 +222,11 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
                 if (x2 == o.x2 && sequence != null && o.sequence != null) {
                     return sequence.compareTo(o.sequence);
                 }
-                return (new Integer(x2)).compareTo(o.x2);
+                return Integer.compare(x2, o.x2);
             }
-            return (new Integer(x1)).compareTo(o.x1);
+            return Integer.compare(x1, o.x1);
         }
-        return (new Integer(chrIndex)).compareTo(o.chrIndex);
+        return Integer.compare(chrIndex, o.chrIndex);
     }
 
     public void setFIMOAttributes(double score, double pValue, double qValue, boolean strand, String sequence) {

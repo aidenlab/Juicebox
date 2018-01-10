@@ -42,7 +42,7 @@ public class SaveAnnotationsDialog extends JFileChooser {
 
     private static final long serialVersionUID = -6338086600062738308L;
     private final AnnotationLayer annotations;
-    private Feature2DList otherList = null;
+    private final Feature2DList otherList = null;
     private String mapName = "";
 
     public SaveAnnotationsDialog(AnnotationLayer annotationsLayer, String mapName) {

@@ -32,16 +32,16 @@ import java.awt.*;
 
 public class Feature2DGuiContainer {
 
-    private Rectangle rectangle;
-    private Feature2D feature2D;
-    private AnnotationLayerHandler annotationLayerHandler;
+    private final Rectangle rectangle;
+    private final Feature2D feature2D;
+    private final AnnotationLayerHandler annotationLayerHandler;
     private int index;
 
     public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler) {
         this(rectangle, feature2D, annotationLayerHandler, 0);
     }
 
-    public Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler, int index) {
+    private Feature2DGuiContainer(Rectangle rectangle, Feature2D feature2D, AnnotationLayerHandler annotationLayerHandler, int index) {
         this.rectangle = rectangle;
         this.feature2D = feature2D;
         this.annotationLayerHandler = annotationLayerHandler;

@@ -84,7 +84,7 @@ class CommandExecutor {
             }
 
         } catch (Exception e) {
-            System.err.println(e);
+            System.err.println(e.getLocalizedMessage());
             result = "Error: " + e.getMessage();
         }
         return result;

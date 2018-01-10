@@ -310,9 +310,9 @@ public class CombinedDatasetReader implements DatasetReader {
         dataset.setAttributes(attributes);
 
         Iterator<?> it = reList.iterator();
-        String newRestrictionEnzyme = "";
-        while (it.hasNext()) newRestrictionEnzyme += it.next() + " ";
-        dataset.restrictionEnzyme = newRestrictionEnzyme;
+        StringBuilder newRestrictionEnzyme = new StringBuilder();
+        while (it.hasNext()) newRestrictionEnzyme.append(it.next()).append(" ");
+        dataset.restrictionEnzyme = newRestrictionEnzyme.toString();
 
         // Set normalization types (for menu)
         LinkedHashSet<NormalizationType> normTypes = new LinkedHashSet<>();
@@ -371,7 +371,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
 
         int numberFiles = statisticsList.size();
-        String newStatistics = "";
+        StringBuilder newStatistics = new StringBuilder();
         for (String stats : statisticsList) {
             if (stats == null) return null;
             Scanner scanner = new Scanner(stats).useDelimiter("\n");
@@ -409,10 +409,10 @@ public class CombinedDatasetReader implements DatasetReader {
                     }
                     //tmp += Long.valueOf(results[i].trim());
                 }
-                if (add) newStatistics += key + ": " + decimalFormat.format(tmp) + "\n";
+                if (add) newStatistics.append(key).append(": ").append(decimalFormat.format(tmp)).append("\n");
             }
         }
-        return newStatistics;
+        return newStatistics.toString();
     }
 
     private String mergeGraphs(List<String> graphsList) {
@@ -467,17 +467,18 @@ public class CombinedDatasetReader implements DatasetReader {
                 return null;
             }
         }
-        String newGraph = "A = [\n";
-        for (int idx = 0; idx < 2000; idx++) newGraph += A[idx] + " ";
-        newGraph += "];\n";
-        newGraph += "B = [\n";
-        for (int idx = 0; idx < 201; idx++) newGraph += mapq1[idx] + " " + mapq2[idx] + " " + mapq3[idx] + "\n";
-        newGraph += "];\n";
-        newGraph += "D = [\n";
+        StringBuilder newGraph = new StringBuilder("A = [\n");
+        for (int idx = 0; idx < 2000; idx++) newGraph.append(A[idx]).append(" ");
+        newGraph.append("];\n");
+        newGraph.append("B = [\n");
+        for (int idx = 0; idx < 201; idx++)
+            newGraph.append(mapq1[idx]).append(" ").append(mapq2[idx]).append(" ").append(mapq3[idx]).append("\n");
+        newGraph.append("];\n");
+        newGraph.append("D = [\n");
         for (int idx = 0; idx < 100; idx++)
-            newGraph += inner[idx] + " " + outer[idx] + " " + right[idx] + " " + left[idx] + "\n";
-        newGraph += "];\n";
-        return newGraph;
+            newGraph.append(inner[idx]).append(" ").append(outer[idx]).append(" ").append(right[idx]).append(" ").append(left[idx]).append("\n");
+        newGraph.append("];\n");
+        return newGraph.toString();
     }
 
 

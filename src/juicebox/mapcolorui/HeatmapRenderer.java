@@ -58,7 +58,6 @@ class HeatmapRenderer {
     private final Map<String, ContinuousColorScale> observedColorScaleMap = new HashMap<>();
     private final Map<String, OEColorScale> ratioColorScaleMap = new HashMap<>();
     private final PreDefColorScale preDefColorScale;
-    private Color curHiCColor = HiCGlobals.isDarkulaModeEnabled ? Color.black : Color.white;
 
     public HeatmapRenderer() {
 
@@ -218,6 +217,7 @@ class HeatmapRenderer {
                 if (zd != null)
                     blocks = zd.getNormalizedBlocksOverlapping(x, y, maxX, maxY, normalizationType, isImportant);
             } catch (Exception ignored) {
+                System.err.println("problems with MZD");
                 if (HiCGlobals.printVerboseComments) ignored.printStackTrace();
             }
 
@@ -486,10 +486,6 @@ class HeatmapRenderer {
             }
             return oeColorScale;
         } else if (MatrixType.isSimpleType(displayOption)) {
-            if (MainWindow.hicMapColor != curHiCColor) {
-                curHiCColor = MainWindow.hicMapColor;
-                observedColorScaleMap.clear();
-            }
 
             if (MainViewPanel.preDefMapColor) {
                 return preDefColorScale;

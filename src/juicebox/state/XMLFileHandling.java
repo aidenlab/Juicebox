@@ -57,8 +57,8 @@ public class XMLFileHandling {
         String colorVals = superAdapter.getMainViewPanel().getColorRangeValues();
         double colorRangeScaleFactor = superAdapter.getMainViewPanel().getColorRangeScaleFactor();
         List<HiCTrack> currentTracks = hic.getLoadedTracks();
-        String currentTrack = "";
-        String currentTrackName = "";
+        StringBuilder currentTrack = new StringBuilder();
+        StringBuilder currentTrackName = new StringBuilder();
         String configTrackInfo = "none";
         String controlFiles = SuperAdapter.currentlyLoadedControlFiles;
         if (controlFiles == null || controlFiles.length() < 1 || controlFiles.isEmpty()) {
@@ -77,8 +77,8 @@ public class XMLFileHandling {
             for (HiCTrack track : currentTracks) {
                 //System.out.println("trackLocator: "+track.getLocator()); for debugging
                 //System.out.println("track name: " + track.getName());
-                currentTrack += track.getLocator() + ", ";
-                currentTrackName += track.getName() + ", ";
+                currentTrack.append(track.getLocator()).append(", ");
+                currentTrackName.append(track.getName()).append(", ");
                 track.getLocator().getColor();
                 try {
                     HiCDataSource source = new HiCCoverageDataSource(hic, hic.getNormalizationType(), false);
@@ -94,8 +94,8 @@ public class XMLFileHandling {
             }
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
         } else {
-            currentTrack = "none";
-            currentTrackName = "none";
+            currentTrack = new StringBuilder("none");
+            currentTrackName = new StringBuilder("none");
             textToWrite += "$$" + currentTrack + "$$" + currentTrackName + "$$" + configTrackInfo;
         }
 

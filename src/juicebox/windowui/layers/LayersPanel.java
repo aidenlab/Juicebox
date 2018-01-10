@@ -56,17 +56,16 @@ public class LayersPanel extends JDialog {
     private static LoadAction trackLoadAction;
     private static LoadEncodeAction encodeAction;
     private static Load2DAnnotationsDialog load2DAnnotationsDialog;
-    private JPanel layers2DPanel;
+    private final JPanel layers2DPanel;
     //    private JPanel assemblyAnnotationsPanel;
     private JPanel layerBoxGUI2DAnnotations;
-    private JTabbedPane tabbedPane;
-    private Border padding;
+    private final JTabbedPane tabbedPane;
 
     public LayersPanel(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Annotations Layer Panel");
         rootPane.setGlassPane(disabledGlassPane);
 
-        padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
+        Border padding = BorderFactory.createEmptyBorder(20, 20, 5, 20);
 
         JPanel annotations1DPanel = generate1DAnnotationsLayerSelectionPanel(superAdapter);
         if (annotations1DPanel != null) annotations1DPanel.setBorder(padding);
@@ -313,7 +312,7 @@ public class LayersPanel extends JDialog {
         return pane;
     }
 
-    public JScrollPane generateLayers2DScrollPane(SuperAdapter superAdapter) {
+    private JScrollPane generateLayers2DScrollPane(SuperAdapter superAdapter) {
         final JPanel layerBoxGUI = new JPanel();
         //layerBoxGUI.setLayout(new BoxLayout(layerBoxGUI, BoxLayout.PAGE_AXIS));
         layerBoxGUI.setLayout(new GridLayout(0, 1));
@@ -330,8 +329,7 @@ public class LayersPanel extends JDialog {
                 //e.printStackTrace();
             }
         }
-        final JScrollPane scrollPane = new JScrollPane(layerBoxGUI);
-        return scrollPane;
+        return new JScrollPane(layerBoxGUI);
     }
 
     public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,

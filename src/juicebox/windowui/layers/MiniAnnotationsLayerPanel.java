@@ -41,10 +41,10 @@ public class MiniAnnotationsLayerPanel extends JPanel {
 
     public static final DisabledGlassPane disabledGlassPane = new DisabledGlassPane(Cursor.WAIT_CURSOR);
     private static final long serialVersionUID = 126735123117L;
-    private int miniButtonSize = 22;
-    private int maximumVisibleLayers = 5;
-    private int dynamicHeight;
-    private int width = 210;
+    private final int miniButtonSize = 22;
+    private final int maximumVisibleLayers = 5;
+    private final int dynamicHeight;
+    private final int width = 210;
 
 
     public MiniAnnotationsLayerPanel(SuperAdapter superAdapter) {
@@ -64,7 +64,7 @@ public class MiniAnnotationsLayerPanel extends JPanel {
     }
 
 
-    public JPanel createMiniLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter) throws IOException {
+    private JPanel createMiniLayerPanel(final AnnotationLayerHandler handler, final SuperAdapter superAdapter) throws IOException {
         final JPanel parentPanel = new JPanel();
         parentPanel.setLayout(new GridLayout(1, 0));
         parentPanel.setSize(new Dimension(width, 10));

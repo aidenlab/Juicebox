@@ -29,11 +29,13 @@ import java.util.Set;
 
 public class TripleCentroid {
 
-    private Integer x1, x2, x3, chrIndex;
-
-    private Set<Integer> x1s = new HashSet<>();
-    private Set<Integer> x2s = new HashSet<>();
-    private Set<Integer> x3s = new HashSet<>();
+    private final Integer chrIndex;
+    private final Set<Integer> x1s = new HashSet<>();
+    private final Set<Integer> x2s = new HashSet<>();
+    private final Set<Integer> x3s = new HashSet<>();
+    private Integer x1;
+    private Integer x2;
+    private Integer x3;
 
     public TripleCentroid(Integer chrIndex, Integer x1, Integer x2, Integer x3) {
         this.chrIndex = chrIndex;

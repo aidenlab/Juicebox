@@ -24,20 +24,16 @@
 
 package juicebox.data.censoring;
 
-import gnu.trove.procedure.TIntProcedure;
 import juicebox.data.ChromosomeHandler;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.windowui.HiCZoom;
-import net.sf.jsi.SpatialIndex;
-import net.sf.jsi.rtree.RTree;
 import org.broad.igv.feature.Chromosome;
 import org.broad.igv.util.Pair;
 
 import java.util.*;
 
-public class RegionsRTreeHandler {
+public class CustomMZDRegionHandler {
 
-    private final Map<Integer, SpatialIndex> regionsRtree = new HashMap<>();
     private final Map<Integer, Pair<List<MotifAnchor>, List<MotifAnchor>>> allRegionsForChr = new HashMap<>();
     private final List<Integer> boundariesOfCustomChromosomeX = new ArrayList<>();
     private final List<Integer> boundariesOfCustomChromosomeY = new ArrayList<>();
@@ -53,9 +49,7 @@ public class RegionsRTreeHandler {
                     new juicebox.data.feature.FeatureFunction<MotifAnchor>() {
                         @Override
                         public void process(String chr, List<MotifAnchor> featureList) {
-                            for (MotifAnchor anchor : featureList) {
-                                allRegions.add(anchor);
-                            }
+                            allRegions.addAll(featureList);
                         }
                     });
             Collections.sort(allRegions);
@@ -82,15 +76,14 @@ public class RegionsRTreeHandler {
     /**
      * @param handler
      */
-    public void initializeRTree(Chromosome chr1, Chromosome chr2, HiCZoom zoom, ChromosomeHandler handler) {
-        regionsRtree.clear();
+    public void initialize(Chromosome chr1, Chromosome chr2, HiCZoom zoom, ChromosomeHandler handler) {
         allRegionsForChr.clear();
         boundariesOfCustomChromosomeX.clear();
         boundariesOfCustomChromosomeY.clear();
 
-        populateRTreeWithRegions(chr1, handler, boundariesOfCustomChromosomeX, zoom);
+        populateRegions(chr1, handler, boundariesOfCustomChromosomeX, zoom);
         if (chr1.getIndex() != chr2.getIndex()) {
-            populateRTreeWithRegions(chr2, handler, boundariesOfCustomChromosomeY, zoom);
+            populateRegions(chr2, handler, boundariesOfCustomChromosomeY, zoom);
         } else {
             boundariesOfCustomChromosomeY.addAll(boundariesOfCustomChromosomeX);
         }
@@ -104,46 +97,50 @@ public class RegionsRTreeHandler {
         return boundariesOfCustomChromosomeY;
     }
 
-    private void populateRTreeWithRegions(Chromosome chr, ChromosomeHandler handler, List<Integer> boundaries, HiCZoom zoom) {
+    private void populateRegions(Chromosome chr, ChromosomeHandler handler, List<Integer> boundaries, HiCZoom zoom) {
         int chrIndex = chr.getIndex();
         Pair<List<MotifAnchor>, List<MotifAnchor>> allRegionsInfo = getAllRegionsFromSubChromosomes(handler, chr);
 
         if (allRegionsInfo != null) {
             allRegionsForChr.put(chrIndex, allRegionsInfo);
-            SpatialIndex si = new RTree();
-            si.init(null);
             List<MotifAnchor> translatedRegions = allRegionsInfo.getSecond();
             for (int i = 0; i < translatedRegions.size(); i++) {
                 MotifAnchor anchor = translatedRegions.get(i);
                 boundaries.add(anchor.getX2() / zoom.getBinSize());
-                si.add(new net.sf.jsi.Rectangle((float) anchor.getX1(), (float) anchor.getX1(),
-                        (float) anchor.getX2(), (float) anchor.getX2()), i);
             }
-            regionsRtree.put(chrIndex, si);
         }
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getIntersectingFeatures(final int chrIdx, net.sf.jsi.Rectangle selectionWindow) {
-        final List<Pair<MotifAnchor, MotifAnchor>> foundFeatures = new ArrayList<>();
+    public List<Pair<MotifAnchor, MotifAnchor>> getIntersectingFeatures(int index, int gx1, int gx2) {
 
-        if (allRegionsForChr.containsKey(chrIdx) && regionsRtree.containsKey(chrIdx)) {
-            try {
-                regionsRtree.get(chrIdx).intersects(
-                        selectionWindow,
-                        new TIntProcedure() {     // a procedure whose execute() method will be called with the results
-                            public boolean execute(int i) {
-                                MotifAnchor anchor = allRegionsForChr.get(chrIdx).getFirst().get(i);
-                                MotifAnchor anchor2 = allRegionsForChr.get(chrIdx).getSecond().get(i);
-                                foundFeatures.add(new Pair<>(anchor, anchor2));
-                                return true;      // return true here to continue receiving results
-                            }
-                        }
-                );
-            } catch (Exception e) {
-                System.err.println("Error encountered getting intersecting anchors for custom chr " + e.getLocalizedMessage());
-            }
+        int idx1 = OneDimSearchUtils.indexedBinaryNearestSearch(
+                allRegionsForChr.get(index).getSecond(), new MotifAnchor(index, gx1, gx1), true);
+        int idx2 = OneDimSearchUtils.indexedBinaryNearestSearch(
+                allRegionsForChr.get(index).getSecond(), new MotifAnchor(index, gx2, gx2), false);
+
+        final List<Pair<MotifAnchor, MotifAnchor>> foundFeatures = new ArrayList<>();
+        for (int i = idx1; i <= idx2; i++) {
+            foundFeatures.add(new Pair<>(
+                    allRegionsForChr.get(index).getFirst().get(i),
+                    allRegionsForChr.get(index).getSecond().get(i)));
         }
+
         return foundFeatures;
     }
 
+    public List<Pair<MotifAnchor, MotifAnchor>> getIntersectingFeatures(int index, int gx1) {
+        int idx1 = OneDimSearchUtils.indexedBinaryNearestSearch(
+                allRegionsForChr.get(index).getSecond(), new MotifAnchor(index, gx1, gx1), true);
+
+        final List<Pair<MotifAnchor, MotifAnchor>> foundFeatures = new ArrayList<>();
+        if (idx1 > 0) {
+            foundFeatures.add(new Pair<>(
+                    allRegionsForChr.get(index).getFirst().get(idx1),
+                    allRegionsForChr.get(index).getSecond().get(idx1)));
+        }
+
+        return foundFeatures;
+    }
 }
+
+

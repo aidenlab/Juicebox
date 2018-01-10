@@ -65,7 +65,6 @@ public class TrackPanel extends JPanel {
         this.orientation = orientation;
         setAutoscrolls(true);
         trackRectangles = new ArrayList<>();
-        //setBackground(new Color(238, 238, 238));
         if (HiCGlobals.isDarkulaModeEnabled) {
             setBackground(Color.black);
         } else {
@@ -361,7 +360,7 @@ public class TrackPanel extends JPanel {
                 }
             }
         } else {
-            String toolTipText = "";
+            StringBuilder toolTipText = new StringBuilder();
 
             if (orientation == Orientation.X) {
                 for (Pair<Rectangle, HiCTrack> p : trackRectangles) {
@@ -369,7 +368,7 @@ public class TrackPanel extends JPanel {
                     int y = r.y + r.height / 2;
                     if (r.contains(mx, y)) {
                         String tempText = p.getSecond().getToolTipText(mx, y, orientation);
-                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                        if (tempText.length() > 0) toolTipText.append("<br>").append(tempText);
                     }
                 }
             } else {
@@ -378,7 +377,7 @@ public class TrackPanel extends JPanel {
                     int x = r.x + r.width / 2;
                     if (r.contains(x, my)) {
                         String tempText = p.getSecond().getToolTipText(my, x, orientation);
-                        if (tempText.length() > 0) toolTipText += "<br>" + tempText;
+                        if (tempText.length() > 0) toolTipText.append("<br>").append(tempText);
                     }
                 }
             }

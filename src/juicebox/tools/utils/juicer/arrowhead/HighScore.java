@@ -54,10 +54,6 @@ public class HighScore implements Comparable<HighScore> {
         this.loSign = loSign;
     }
 
-    private static int compare(double x, double y) {
-        return (x < y) ? -1 : ((x == y) ? 0 : 1);
-    }
-
     public String toString() {
         return "" + i + "\t" + j + "\t" + score + "\t" + uVarScore + "\t" + lVarScore + "\t" + upSign + "\t" + loSign;
     }
@@ -129,7 +125,7 @@ public class HighScore implements Comparable<HighScore> {
 
     @Override
     public int compareTo(HighScore o) {
-        return compare(this.sortValue(), o.sortValue());
+        return Double.compare(this.sortValue(), o.sortValue());
     }
 
     private double sortValue() {

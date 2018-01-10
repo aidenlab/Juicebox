@@ -76,7 +76,7 @@ public class Dump extends JuiceboxCLT {
 
     }
 
-    private void dumpGenomeWideData() throws IOException {
+    private void dumpGenomeWideData() {
 
         if (unit == HiC.Unit.FRAG) {
             System.err.println("All versus All currently not supported on fragment resolution");
@@ -178,7 +178,7 @@ public class Dump extends JuiceboxCLT {
         pw.close();
     }
 
-    private void dumpGeneralVector() throws IOException {
+    private void dumpGeneralVector() {
 
         Chromosome chromosome = chromosomeHandler.getChromosomeFromName(chr1);
 

@@ -50,11 +50,11 @@ public class OneDimTrackCensoring {
 
         // x window
         int binSize = zoom.getBinSize();
-        float gx1 = startBin * binSize;
-        float gx2 = endBin * binSize;
+        int gx1 = startBin * binSize;
+        int gx2 = endBin * binSize;
 
-        net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
-        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getIndex(), currentWindow);
+        //net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(gx1, gx1, gx2, gx2);
+        List<Pair<MotifAnchor, MotifAnchor>> axisRegions = hic.getRTreeHandlerIntersectingFeatures(chromosome.getIndex(), gx1, gx2);
 
         List<HiCDataPoint[]> dataPointArrays = new ArrayList<>();
         for (Pair<MotifAnchor, MotifAnchor> regionPair : axisRegions) {

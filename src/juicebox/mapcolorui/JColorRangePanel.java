@@ -130,11 +130,9 @@ public class JColorRangePanel extends JPanel {
             }
         });
 
-        JPanel colorLabelPanel = new JPanel();
+        JPanel colorLabelPanel = new JPanel(new BorderLayout());
         colorLabelPanel.setBackground(HiCGlobals.backgroundColor); //set color to gray
-        colorLabelPanel.setLayout(new BorderLayout());
         colorLabelPanel.add(colorRangeLabel, BorderLayout.CENTER);
-
         add(colorLabelPanel, BorderLayout.PAGE_START);
 
         //---- colorRangeSlider ----
@@ -239,6 +237,9 @@ public class JColorRangePanel extends JPanel {
     }
 
     public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
+        if (max == 0) {
+            max = 1;
+        } // map going into zero state?
         double scaleFactor = 100.0 / max;
         updateColorSlider(hic, min, lower, upper, max, scaleFactor);
     }

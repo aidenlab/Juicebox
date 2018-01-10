@@ -34,9 +34,6 @@ import java.io.IOException;
 public class PlottingStyleButton extends JButton {
 
     private static final long serialVersionUID = 123823723L;
-    private final String url1 = "/images/layer/full_clicked.png";
-    private final String url2 = "/images/layer/ll_clicked.png";
-    private final String url3 = "/images/layer/ur_clicked.png";
     private final ImageIcon iconActive1, iconTransition1, iconInactive1,
             iconActive2, iconTransition2, iconInactive2, iconActive3, iconTransition3, iconInactive3;
 
@@ -44,18 +41,21 @@ public class PlottingStyleButton extends JButton {
         super();
 
         // full
+        String url1 = "/images/layer/full_clicked.png";
         BufferedImage imageActive1 = ImageIO.read(getClass().getResource(url1));
         iconActive1 = new ImageIcon(imageActive1);
         iconTransition1 = new ImageIcon(LayerPanelButtons.translucentImage(imageActive1, 0.6f));
         iconInactive1 = new ImageIcon(LayerPanelButtons.translucentImage(imageActive1, 0.2f));
 
         // ll
+        String url2 = "/images/layer/ll_clicked.png";
         BufferedImage imageActive2 = ImageIO.read(getClass().getResource(url2));
         iconActive2 = new ImageIcon(imageActive2);
         iconTransition2 = new ImageIcon(LayerPanelButtons.translucentImage(imageActive2, 0.6f));
         iconInactive2 = new ImageIcon(LayerPanelButtons.translucentImage(imageActive2, 0.2f));
 
         // ur
+        String url3 = "/images/layer/ur_clicked.png";
         BufferedImage imageActive3 = ImageIO.read(getClass().getResource(url3));
         iconActive3 = new ImageIcon(imageActive3);
         iconTransition3 = new ImageIcon(LayerPanelButtons.translucentImage(imageActive3, 0.6f));

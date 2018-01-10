@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,10 +46,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -73,6 +70,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
+    private ArrayList<String> mostRecentPaths = new ArrayList<String>();
 
     public LoadAssemblyAnnotationsDialog(final LayersPanel layersPanel, final SuperAdapter superAdapter, final JPanel layerBoxGUI) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
@@ -128,17 +126,26 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         openAssemblyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                mostRecentPaths.clear();
                 safeLoadAssemblyFiles(tree.getSelectionPaths(), layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                 LoadAssemblyAnnotationsDialog.this.setVisible(false);
             }
         });
 
 
+        setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                closeWindow();
+            }
+        });
+
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                LoadAssemblyAnnotationsDialog.this.setVisible(false);
+                closeWindow();
             }
         });
         cancelButton.setPreferredSize(new Dimension((int) cancelButton.getPreferredSize().getWidth(),
@@ -166,6 +173,17 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         }
 
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
+    }
+
+    public void closeWindow() {
+        customAddedFeatures.removeFromParent();
+        for (String path : mostRecentPaths) {
+            customAddedFeatures.remove(loadedAnnotationsMap.get(path));
+            loadedAnnotationsMap.remove(path);
+        }
+        mostRecentPaths.clear();
+        loadedAnnotationsMap.remove(customAddedFeatures);
+        LoadAssemblyAnnotationsDialog.this.setVisible(false);
     }
 
     public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
@@ -214,6 +232,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
                 loadedAnnotationsMap.put(path, treeNode);
                 customAddedFeatures.add(treeNode);
+                mostRecentPaths.add(path);
             }
             model.reload(root);
             expandTree();
@@ -250,13 +269,19 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
     private void unsafeLoadAssemblyFiles(TreePath[] paths, LayersPanel layersPanel, SuperAdapter superAdapter,
                                          JPanel layerBoxGUI, ChromosomeHandler chromosomeHandler) {
+        // two-file format
         String cpropsPath = null;
         String asmPath = null;
+        // single-file format
+        String assemblyPath = null;
+
         for (TreePath path : paths) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
-                if (info.itemURL.endsWith("cprops")) {
+                if (info.itemURL.endsWith("assembly")) {
+                    assemblyPath = info.itemURL;
+                } else if (info.itemURL.endsWith("cprops")) {
                     cpropsPath = info.itemURL;
                 } else if (info.itemURL.endsWith("asm")) {
                     asmPath = info.itemURL;
@@ -268,49 +293,71 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
             }
         }
 
-        if (asmPath != null && cpropsPath != null) {
+        if ((asmPath != null && cpropsPath != null) || assemblyPath != null) {
+
             try {
-                //AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath);
+                AssemblyFileImporter assemblyFileImporter;
+                if (assemblyPath != null) {
+                    assemblyFileImporter = new AssemblyFileImporter(assemblyPath, false);
+                } else {
+                    assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                }
 
-                AssemblyFileImporter assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
+                AnnotationLayerHandler templayer = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null); //temp layer to allow deleting of other layers
+                if (superAdapter.getAssemblyLayerHandlers() != null) {
+                    for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
+                        superAdapter.removeLayer(annotationLayerHandler);
+                }
+                assemblyFileImporter.importAssembly();
+                // Rescale resolution slider labels
+                superAdapter.getMainViewPanel().getResolutionSlider().reset();
 
-                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getScaffolds());
-                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.GROUP);
-                AnnotationLayer contigLayer = new AnnotationLayer(assemblyFileImporter.getContigs());
-                contigLayer.setLayerType(AnnotationLayer.LayerType.MAIN);
+                // Rescale axis tick labels
+                superAdapter.getMainViewPanel().getRulerPanelX().repaint();
+                superAdapter.getMainViewPanel().getRulerPanelY().repaint();
+
+                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getScaffoldFeature2DHandler().getFeatureList());
+                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.SCAFFOLD);
+
+                AnnotationLayer superscaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler().getFeatureList());
+                superscaffoldLayer.setLayerType(AnnotationLayer.LayerType.SUPERSCAFFOLD);
 
                 AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Group");
-                scaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
+                scaffoldLayerHandler.setLayerNameAndField("Scaffolds");
+                scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
 
-                AnnotationLayerHandler contigLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                contigLayerHandler.setAnnotationLayer(contigLayer);
-                contigLayerHandler.setLayerNameAndField("Main");
-                contigLayerHandler.setColorOfAllAnnotations(Color.green);
+                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
+                superscaffoldLayerHandler.setLayerNameAndField("Supersaffolds");
+                superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
 
-                AnnotationLayerHandler editHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
-                editHandler.setColorOfAllAnnotations(Color.yellow);
-                editHandler.setLayerNameAndField("Edit");
-                editHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
-                editHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
+                AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
+                editLayerHandler.setColorOfAllAnnotations(Color.yellow);
+                editLayerHandler.setLayerNameAndField("Edit");
+                editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
+                editLayerHandler.getAnnotationLayer().setLayerType(AnnotationLayer.LayerType.EDIT);
 
-                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyFragmentHandler(), contigLayerHandler, scaffoldLayerHandler);
+                AssemblyStateTracker assemblyStateTracker = new AssemblyStateTracker(assemblyFileImporter.getAssemblyScaffoldHandler(), superAdapter);
                 superAdapter.setAssemblyStateTracker(assemblyStateTracker);
-//                superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
-                superAdapter.getMainMenuBar().enableAssemblyResetAndExport();
+
+                //superAdapter.getLayersPanel().updateAssemblyAnnotationsPanel(superAdapter);
+                superAdapter.getMainMenuBar().enableAssemblyMenuOptions();
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
                     if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
                         superAdapter.removeLayer(annotationLayerHandler);
-                    superAdapter.setActiveLayerHandler(contigLayerHandler);
+                    superAdapter.setActiveLayerHandler(scaffoldLayerHandler);
                     superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);
                 }
 
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
 //                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
-//                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
+                if (assemblyPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(assemblyPath));
+                if (cpropsPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
+                if (asmPath != null)
+                    customAddedFeatures.remove(loadedAnnotationsMap.get(asmPath)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
             }
         } else {
             System.err.println("Invalid files...");
@@ -424,15 +471,15 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     }
 
     private class ItemInfo {
-        public final String itemName;
-        public final String itemURL;
+        final String itemName;
+        final String itemURL;
 
-        public ItemInfo(String itemName, String itemURL) {
+        ItemInfo(String itemName, String itemURL) {
             this.itemName = itemName.trim();
             this.itemURL = itemURL.trim();
         }
 
-        public ItemInfo(String itemName) {
+        ItemInfo(String itemName) {
             this.itemName = itemName;
             itemURL = null;
         }

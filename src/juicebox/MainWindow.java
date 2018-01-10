@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox;
 
 
-import juicebox.gui.MainMenuBar;
 import juicebox.gui.MainViewPanel;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.DisabledGlassPane;
@@ -72,12 +71,12 @@ public class MainWindow extends JFrame {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         HiCGlobals.guiIsCurrentlyActive = true;
         hic = new HiC(superAdapter);
-        MainMenuBar mainMenuBar = new MainMenuBar();
         MainViewPanel mainViewPanel = new MainViewPanel();
-        superAdapter.setAdapters(this, hic, mainMenuBar, mainViewPanel);
+        superAdapter.setAdapters(this, hic, mainViewPanel);
 
         initComponents();
         createCursors();
+      setExtendedState(JFrame.MAXIMIZED_BOTH);
         pack();
         DropTarget target = new DropTarget(this, new FileDropTargetListener(superAdapter));
         setDropTarget(target);
@@ -123,20 +122,26 @@ public class MainWindow extends JFrame {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String latestVersion = reader.readLine();
             String[] latest = latestVersion.split("\\.");
-            String[] current = new String(HiCGlobals.versionNum).split("\\.");
+            String[] current = HiCGlobals.versionNum.split("\\.");
             boolean isOutdated = false;
-            if (Integer.valueOf(current[0]) < Integer.valueOf(latest[0])) {
-                isOutdated = true;
-            } else if (Integer.valueOf(current[0]) == Integer.valueOf(latest[0])) {
-                if (Integer.valueOf(current[1]) < Integer.valueOf(latest[1])) {
-                    isOutdated = true;
-                } else if (Integer.valueOf(current[1]) == Integer.valueOf(latest[1])) {
-                    if (Integer.valueOf(current[2]) < Integer.valueOf(latest[2])) {
-                        isOutdated = true;
-                    }
 
+            int iC = Integer.valueOf(current[0]);
+            int iL = Integer.valueOf(latest[0]);
+
+            if (iC < iL) {
+                isOutdated = true;
+            } else if (iC == iL) {
+                int jC = Integer.valueOf(current[1]);
+                int jL = Integer.valueOf(latest[1]);
+                int kC = Integer.valueOf(current[2]);
+                int kL = Integer.valueOf(latest[2]);
+                if (jC < jL) {
+                    isOutdated = true;
+                } else if (jC == jL && kC < kL) {
+                    isOutdated = true;
                 }
             }
+
             if (isOutdated) {
                 JPanel textPanel = new JPanel(new GridLayout(0, 1));
                 JLabel label = new JLabel("<html><p> You are using Juicebox " + HiCGlobals.versionNum + "<br>The lastest version is "

@@ -42,7 +42,7 @@ public class IntraChromTriple extends Feature implements Comparable<IntraChromTr
         this.x3 = x3;
     }
 
-    IntraChromTriple(int chrIndex, List<Integer> ints) {
+    private IntraChromTriple(int chrIndex, List<Integer> ints) {
         this.chrIndex = chrIndex;
         Collections.sort(ints);
         x1 = ints.get(0);

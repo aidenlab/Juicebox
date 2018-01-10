@@ -24,13 +24,13 @@
 
 package juicebox.assembly;
 
+import juicebox.HiCGlobals;
 import juicebox.data.Block;
 import juicebox.data.ContactRecord;
 import juicebox.gui.SuperAdapter;
-import juicebox.track.feature.Contig2D;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,39 +39,13 @@ import java.util.List;
 public class AssemblyHeatmapHandler {
 
     private static SuperAdapter superAdapter;
+    private static List<Scaffold> listOfOSortedAggregateScaffolds = new ArrayList<>();
+//    Does not seem to offer any speedup.
+//    private static Scaffold guessScaffold = null;
 
-    /**
-     * if neighboring contigs are not inverted, share original continuity
-     * and share current continuity, they can essentially be merged
-     * this will reduce the number of contigs, and improve speed
-     *
-     * @param currentContigs
-     * @return mergedContigs
-     */
-    public static List<Contig2D> mergeRedundantContiguousContigs(List<Contig2D> currentContigs) {
-
-        List<Contig2D> mergedContigs = new ArrayList<>();
-        Contig2D growingContig = null;
-
-        for (Contig2D contig : currentContigs) {
-            if (growingContig == null) {
-                growingContig = contig.deepCopy().toContig();
-                continue;
-            } else {
-                Contig2D result = growingContig.mergeContigs(contig);
-                if (result == null) {
-                    // cannot be merged
-                    if (growingContig != null) mergedContigs.add(growingContig);
-                    growingContig = contig.deepCopy().toContig();
-                    continue;
-                } else {
-                    growingContig = result;
-                }
-            }
-        }
-        if (growingContig != null) mergedContigs.add(growingContig);
-
-        return new ArrayList<>(new HashSet<>(mergedContigs));
+    public static void setListOfOSortedAggregateScaffolds(List<Scaffold> listOfAggregateScaffolds) {
+        AssemblyHeatmapHandler.listOfOSortedAggregateScaffolds = new ArrayList<>(listOfAggregateScaffolds);
+        Collections.sort(listOfOSortedAggregateScaffolds, Scaffold.originalStateComparator);
     }
 
     public static SuperAdapter getSuperAdapter() {
@@ -82,13 +56,17 @@ public class AssemblyHeatmapHandler {
         AssemblyHeatmapHandler.superAdapter = superAdapter;
     }
 
-    public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx, AssemblyFragmentHandler aFragHandler) {
-        //TODO: do some filtering here
+    public static Block modifyBlock(Block block, String key, int binSize, int chr1Idx, int chr2Idx) {
+        //temp fix for AllByAll. TODO: trace this!
+        if (chr1Idx == 0 && chr2Idx == 0) {
+            binSize = 1000 * binSize; // AllByAll is measured in kb
+        }
+
         List<ContactRecord> alteredContacts = new ArrayList<>();
         for (ContactRecord record : block.getContactRecords()) {
 
-            int alteredAsmBinX = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinX(), binSize, aFragHandler);
-            int alteredAsmBinY = getAlteredAsmBin(chr1Idx, chr2Idx, record.getBinY(), binSize, aFragHandler);
+            int alteredAsmBinX = getAlteredAsmBin(record.getBinX(), binSize);
+            int alteredAsmBinY = getAlteredAsmBin(record.getBinY(), binSize);
 
             if (alteredAsmBinX == -1 || alteredAsmBinY == -1) {
                 alteredContacts.add(record);
@@ -108,17 +86,39 @@ public class AssemblyHeatmapHandler {
         return block;
     }
 
-    private static int getAlteredAsmBin(int chr1Idx, int chr2Idx, int binValue, int binSize, AssemblyFragmentHandler aFragHandler) {
-        int genomicCoordinate = binValue * binSize + binSize / 2;
-        Contig2D contig2D = aFragHandler.lookupContigForBinValue(chr1Idx, chr2Idx, genomicCoordinate, binSize);
-        if (contig2D != null) {
-            //System.err.println("fine so far...2");
-            int fragCoordinate = aFragHandler.liftOriginalAsmCoordinateToFragmentCoordinate(contig2D, genomicCoordinate);
-            int currentBinCenterCoordinate = aFragHandler.liftFragmentCoordinateToAsmCoordinate(contig2D, fragCoordinate);
-            return (currentBinCenterCoordinate - binSize / 2) / binSize;
-        } else {
-            //System.err.println("contig is null..2?");
+
+
+    private static int getAlteredAsmBin(int binValue, int binSize) {
+
+        long originalFirstNucleotide = (long) (binValue * HiCGlobals.hicMapScale * binSize + 1);
+        long currentFirstNucleotide;
+        Scaffold aggregateScaffold = lookUpOriginalAggregateScaffold(originalFirstNucleotide);
+
+        if (aggregateScaffold != null) {
+            if (!aggregateScaffold.getInvertedVsInitial()) {
+                currentFirstNucleotide = (aggregateScaffold.getCurrentStart() + originalFirstNucleotide - aggregateScaffold.getOriginalStart());
+            } else {
+                currentFirstNucleotide = (aggregateScaffold.getCurrentEnd() - originalFirstNucleotide + 1 - (long) (HiCGlobals.hicMapScale * binSize) + aggregateScaffold.getOriginalStart());
+            }
+
+            return (int) (currentFirstNucleotide / (HiCGlobals.hicMapScale * binSize) - 1);
         }
         return -1;
+    }
+
+    private static Scaffold lookUpOriginalAggregateScaffold(long genomicPos) {
+//        Does not seem to offer much advantage
+//        if (guessScaffold!=null && guessScaffold.getOriginalStart()<genomicPos && guessScaffold.getOriginalEnd()>=genomicPos){
+//            return guessScaffold;
+//        }
+        Scaffold tmp = new Scaffold("tmp", 1, 1);
+        tmp.setOriginalStart(genomicPos);
+        int idx = Collections.binarySearch(listOfOSortedAggregateScaffolds, tmp, Scaffold.originalStateComparator);
+        if (-idx - 2 >= 0) {
+            return listOfOSortedAggregateScaffolds.get(-idx - 2);
+        }
+        else
+            return null;
+
     }
 }

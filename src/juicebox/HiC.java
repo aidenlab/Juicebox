@@ -89,7 +89,7 @@ public class HiC {
     private boolean m_normalizationTypeChanged;
     private Feature2D highlightedFeature;
     private boolean showFeatureHighlight;
-    private ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
+    private final ZoomActionTracker zoomActionTracker = new ZoomActionTracker();
 
     public HiC(SuperAdapter superAdapter) {
         this.superAdapter = superAdapter;
@@ -182,7 +182,7 @@ public class HiC {
         return scaleFactor;
     }
 
-    public void setScaleFactor(double scaleFactor) {
+    private void setScaleFactor(double scaleFactor) {
         this.scaleFactor = Math.max(Math.min(50, scaleFactor), 1e-10);
     }
 
@@ -1208,14 +1208,17 @@ public class HiC {
         }
     }
 
-    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, net.sf.jsi.Rectangle currentWindow) {
+    public List<Pair<MotifAnchor, MotifAnchor>> getRTreeHandlerIntersectingFeatures(int chrIndex, int g1, int g2) {
         try {
-            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, currentWindow);
+            return ((CustomMatrixZoomData) getZd()).getRTreeHandlerIntersectingFeatures(chrIndex, g1, g2);
         } catch (Exception ignored) {
             return new ArrayList<>();
         }
     }
 
+    public SuperAdapter getSuperAdaptor() {
+        return superAdapter;
+    }
     // use REVERSE for only undoing and redoing zoom actions
     public enum ZoomCallType {
         STANDARD, DRAG, DIRECT, INITIAL, REVERSE

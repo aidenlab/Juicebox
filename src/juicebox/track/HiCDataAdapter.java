@@ -164,7 +164,7 @@ public abstract class HiCDataAdapter implements HiCDataSource {
 
     public static class DataAccumulator implements HiCDataPoint {
 
-        public final double binNumber;
+        final double binNumber;
         public double width = 1;
         public int nPts = 0;
         public double weightedSum = 0;
