@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 import juicebox.assembly.AssemblyStateTracker;
+import juicebox.assembly.UnsavedAssemblyWarning;
 import juicebox.data.*;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.mapcolorui.HeatmapPanel;
@@ -198,8 +199,10 @@ public class SuperAdapter {
     }
 
     public void loadFromListActionPerformed(boolean control) {
-        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
-        if (unsaved.checkAndDelete()) {
+        UnsavedAnnotationWarning unsavedAnnotations = new UnsavedAnnotationWarning(this);
+        UnsavedAssemblyWarning unsavedAssembly = new UnsavedAssemblyWarning(this);
+        if (unsavedAnnotations.checkAndDelete()) {
+            //&& unsavedAssembly.checkAndDelete()
             HiCFileLoader.loadFromListActionPerformed(this, control);
         }
     }
@@ -526,6 +529,11 @@ public class SuperAdapter {
     public void unsafeLoadWithTitleFix(List<String> files, boolean control, String title, boolean restore) {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
+
+        getHeatmapPanel().disableAssemblyEditing();
+        resetAnnotationLayers();
+        HiCGlobals.hicMapScale = (double) 1;
+//        refresh();
 
         ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
@@ -871,16 +879,6 @@ public class SuperAdapter {
         return null;
     }
 
-    public AnnotationLayerHandler getContigLayer() { //todo checkbox/ or something to specify assembly track
-//        return annotationLayerHandlers.get(0);
-//        List<AnnotationLayerHandler> handlers = new ArrayList<>();
-//        for(AnnotationLayerHandler annotationLayerHandler : annotationLayerHandlers){
-        if (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SCAFFOLD || (getActiveLayerHandler().getAnnotationLayerType() == AnnotationLayer.LayerType.SUPERSCAFFOLD)) {
-            return getActiveLayerHandler();
-        } else
-            return annotationLayerHandlers.get(0);
-    }
-
     public AnnotationLayerHandler getMainLayer() {
         return getAssemblyLayerHandler(AnnotationLayer.LayerType.SCAFFOLD);
     }
@@ -919,6 +917,15 @@ public class SuperAdapter {
         }
         updateLayerDeleteStatus();
         return returnCode;
+    }
+
+    public void resetAnnotationLayers() {
+        annotationLayerHandlers.clear();
+        // currently must have at least 1 layer
+        createNewLayer();
+        getActiveLayerHandler().getAnnotationLayer().resetCounter();
+        updateMiniAnnotationsLayerPanel();
+        updateMainLayersPanel();
     }
 
     public void updateLayerDeleteStatus() {

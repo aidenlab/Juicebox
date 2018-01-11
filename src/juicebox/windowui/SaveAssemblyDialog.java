@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ public class SaveAssemblyDialog extends JFileChooser {
     }
 
     private void menuOptions() {
-        setSelectedFile(new File(mapName));
+        setSelectedFile(new File(mapName + ".review"));
         if (HiCGlobals.guiIsCurrentlyActive) {
             int actionDialog = showSaveDialog(MainWindow.getInstance());
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
