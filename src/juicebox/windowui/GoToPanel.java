@@ -142,7 +142,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
     private void parsePositionText() {
 
-        if (HiCGlobals.assemblyModeEnabled) {
+        if (SuperAdapter.assemblyModeCurrentlyActive) {
             goToScaffoldName(positionChrLeft.getText(), positionChrTop.getText());
             return;
         }

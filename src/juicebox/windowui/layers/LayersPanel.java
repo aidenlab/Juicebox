@@ -423,7 +423,7 @@ public class LayersPanel extends JDialog {
                 colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyleButton, toggleSparseButton,
                 undoButton, clearButton, exportLayerButton, copyButton, upButton, downButton, deleteButton};
 
-        if (HiCGlobals.isCustomChromosomesAllowed) {
+        if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
             JButton censorButton = LayerPanelButtons.createCensorButton(this, superAdapter, handler);
             allComponents = new Component[]{writeButton, toggleVisibleButton,
                     colorChooserPanel, toggleTransparentButton, toggleEnlargeButton, togglePlottingStyleButton, toggleSparseButton,

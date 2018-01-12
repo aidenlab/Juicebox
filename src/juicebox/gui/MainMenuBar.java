@@ -445,7 +445,7 @@ public class MainMenuBar extends JMenuBar {
                 superAdapter.createCustomChromosomesFromBED();
             }
         });
-        if (HiCGlobals.isCustomChromosomesAllowed) {
+        if (HiCGlobals.isDevCustomChromosomesAllowedPublic) {
             viewMenu.add(addCustomChromosome);
         }
 
@@ -520,7 +520,7 @@ public class MainMenuBar extends JMenuBar {
             }
         });
         displayTiles.setSelected(HiCGlobals.displayTiles);
-        if (HiCGlobals.isAssemblyToolsAllowed) {
+        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
             devMenu.add(displayTiles);
         }
 
@@ -716,7 +716,7 @@ public class MainMenuBar extends JMenuBar {
         //add(annotationsMenu);
         add(viewMenu);
         add(bookmarksMenu);
-        if (HiCGlobals.isAssemblyToolsAllowed) {
+        if (HiCGlobals.isDevAssemblyToolsAllowedPublic) {
             add(assemblyMenu);
         }
         add(devMenu);

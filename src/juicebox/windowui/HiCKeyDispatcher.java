@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -144,14 +144,14 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
             superAdapter.togglePanelVisible();
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && (e.getKeyCode() == KeyEvent.VK_U) && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
-            if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkUndo()) {
+            if (SuperAdapter.assemblyModeCurrentlyActive && superAdapter.getAssemblyStateTracker().checkUndo()) {
                 superAdapter.getAssemblyStateTracker().undo();
                 superAdapter.getHeatmapPanel().removeSelection();
                 superAdapter.refresh();
             }
             return true;
         } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getExtendedKeyCode() == KeyEvent.VK_R && ((e.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
-            if (HiCGlobals.assemblyModeEnabled && superAdapter.getAssemblyStateTracker().checkRedo()) {
+            if (SuperAdapter.assemblyModeCurrentlyActive && superAdapter.getAssemblyStateTracker().checkRedo()) {
                 superAdapter.getAssemblyStateTracker().redo();
                 superAdapter.getHeatmapPanel().removeSelection();
                 superAdapter.refresh();

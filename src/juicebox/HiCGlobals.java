@@ -83,7 +83,6 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-    public static boolean assemblyModeEnabled = true;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
@@ -93,8 +92,8 @@ public class HiCGlobals {
     // whether instance was linked before mouse press or not
     public static boolean wasLinkedBeforeMousePress = false;
     public static boolean isLegacyOutputPrintingEnabled = false;
-    public static final boolean isAssemblyToolsAllowed = true;
-    public static final boolean isCustomChromosomesAllowed = true;
+    public static final boolean isDevAssemblyToolsAllowedPublic = true;
+    public static final boolean isDevCustomChromosomesAllowedPublic = true;
     public static Color diffGrayColor = new Color(238, 238, 238);
 
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
