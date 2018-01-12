@@ -32,7 +32,6 @@ import juicebox.windowui.FileDropTargetListener;
 import juicebox.windowui.layers.LayersPanel;
 import org.broad.igv.Globals;
 import org.broad.igv.ui.util.IconFactory;
-import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -104,7 +103,7 @@ public class MainWindow extends JFrame {
         return theInstance;
     }
 
-    public static void main(String[] args) throws IOException, InvocationTargetException, InterruptedException {
+    public static void main(String[] args) throws InvocationTargetException, InterruptedException {
         initApplication();
         Runnable runnable = new Runnable() {
             public void run() {
@@ -178,7 +177,7 @@ public class MainWindow extends JFrame {
         } catch (Exception e) {
             System.err.println(e.getLocalizedMessage());
             if (HiCGlobals.guiIsCurrentlyActive) {
-                MessageUtils.showErrorMessage("Error with state file", e);
+                SuperAdapter.showMessageDialog("Error with state file\n" + e.getLocalizedMessage());
             }
         }
 
@@ -198,7 +197,7 @@ public class MainWindow extends JFrame {
         }
 
         // first annotation layer must get created
-        MainWindow.superAdapter.createNewLayer();
+        MainWindow.superAdapter.createNewLayer(null);
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -316,7 +315,7 @@ public class MainWindow extends JFrame {
             System.out.println("long_execute " + caller);
         }
         Callable<Object> wrapper = new Callable<Object>() {
-            public Object call() throws Exception {
+            public Object call() {
                 MainWindow.this.showDisabledGlassPane(caller, message);
                 try {
                     runnable.run();

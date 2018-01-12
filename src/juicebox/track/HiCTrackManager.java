@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.tools.dev.Private;
 import juicebox.windowui.NormalizationType;
-import org.apache.log4j.Level;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
 import org.broad.igv.feature.genome.Genome;
@@ -36,7 +35,6 @@ import org.broad.igv.feature.genome.GenomeManager;
 import org.broad.igv.feature.tribble.FeatureFileHeader;
 import org.broad.igv.feature.tribble.TribbleIndexNotFoundException;
 import org.broad.igv.track.*;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -95,7 +93,7 @@ public class HiCTrackManager {
             try {
                 unsafeLoadTrackDirect(locator);
             } catch (Exception e) {
-                MessageUtils.showMessage("Could not load resource:<br>" + e.getMessage());
+                SuperAdapter.showMessageDialog("Could not load resource:<br>" + e.getMessage());
                 System.out.println("Removing " + locator.getName());
                 hic.removeTrack(locator);
             }
@@ -116,7 +114,7 @@ public class HiCTrackManager {
         int index = path.lastIndexOf('.');
 
         if (index < 0) {
-            MessageUtils.showMessage(Level.ERROR, "File is missing extension");
+            SuperAdapter.showMessageDialog("File is missing extension");
             return;
         }
 
@@ -133,7 +131,7 @@ public class HiCTrackManager {
             }
         } else {
             if (extension.equals(".txt") || extension.equals(".zip")) {
-                MessageUtils.showMessage(Level.INFO, ".txt files are not a currently supported 1D track. " +
+                SuperAdapter.showMessageDialog(".txt files are not a currently supported 1D track. " +
                         "If you are trying to use refGene, make sure it is in the .txt.gz format. " +
                         "If you are trying to load loops/domains, use the 2D Annotations panel.");
                 return;

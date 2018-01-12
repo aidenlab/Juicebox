@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.Load2DAnnotationsDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -102,7 +101,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                             try {
                                 safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                             } catch (Exception e) {
-                                MessageUtils.showErrorMessage("Unable to load file", e);
+                                SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
                             LoadModifiedAssemblyAnnotationsDialog.this.setVisible(false);
                         }
@@ -304,7 +303,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
 
 //            } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-//                MessageUtils.showMessage("Could not load loop Modified Assembly: " + ee.getMessage());
+//                SuperAdapter.showMessageDialog("Could not load loop Modified Assembly: " + ee.getMessage());
 //                customAddedFeatures.remove(loadedAnnotationsMap.get(info.itemURL)); //Todo needs to be a warning when trying to add annotations from a different genomeloadedAnnotationsMap.remove(path);
 //            }
         } else {

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,13 @@ public class AnnotationLayerHandler {
     public AnnotationLayerHandler() {
         featureType = Feature2D.FeatureType.NONE;
         this.annotationLayer = new AnnotationLayer();
+        resetSelection();
+        layerName = "Layer " + annotationLayer.getId();
+    }
+
+    public AnnotationLayerHandler(Feature2DList feature2DList) {
+        featureType = Feature2D.FeatureType.NONE;
+        this.annotationLayer = new AnnotationLayer(feature2DList);
         resetSelection();
         layerName = "Layer " + annotationLayer.getId();
     }
@@ -444,23 +451,12 @@ public class AnnotationLayerHandler {
         annotationLayer.clearAnnotations();
     }
 
-    public void deleteTempFile() {
-        annotationLayer.deleteTempFile();
-    }
-
     public AnnotationLayer getAnnotationLayer() {
         return annotationLayer;
     }
 
     public void setAnnotationLayer(AnnotationLayer annotationLayer) {
         this.annotationLayer = annotationLayer;
-    }
-
-    public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,
-                                             int numberOfLoopsToFind, double binOriginX,
-                                             double binOriginY, double scaleFactor) {
-        return annotationLayer.getNearbyFeatures(zd, chr1Idx, chr2Idx, centerX, centerY, numberOfLoopsToFind,
-                binOriginX, binOriginY, scaleFactor, false);
     }
 
     public List<Feature2D> getNearbyFeatures(MatrixZoomData zd, int chr1Idx, int chr2Idx, int centerX, int centerY,

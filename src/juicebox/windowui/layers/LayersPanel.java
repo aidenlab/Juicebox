@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -334,7 +334,7 @@ public class LayersPanel extends JDialog {
 
     public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, JPanel layerBoxGUI,
                                                               AnnotationLayerHandler sourceHandler) {
-        AnnotationLayerHandler handler = superAdapter.createNewLayer();
+        AnnotationLayerHandler handler = superAdapter.createNewLayer(null);
         if (sourceHandler != null) handler.duplicateDetailsFrom(sourceHandler);
         try {
             JPanel panel = createLayerPanel(handler, superAdapter, layerBoxGUI);
@@ -359,7 +359,7 @@ public class LayersPanel extends JDialog {
             }
         }
 
-        AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer();
+        AnnotationLayerHandler mergedHandler = superAdapter.createNewLayer(null);
         mergedHandler.mergeDetailsFrom(visibleLayers);
         try {
             JPanel panel = createLayerPanel(mergedHandler, superAdapter, layerBoxGUI);

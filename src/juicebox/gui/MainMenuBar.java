@@ -51,7 +51,7 @@ public class MainMenuBar extends JMenuBar {
     private static final String recentLocationEntityNode = "hicLocationRecent";
     private static final String recentStateEntityNode = "hicStateRecent";
 
-    private static JMenuItem loadLastMI;
+    //private static JMenuItem loadOldAnnotationsMI;
     private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
@@ -61,9 +61,8 @@ public class MainMenuBar extends JMenuBar {
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static JMenuItem showStats, showControlStats;
-    private static File temp;
-    private static boolean unsavedEdits;
-    private static JMenu annotationsMenu;
+    //private static JMenu annotationsMenu;
+    private static JMenu viewMenu;
     private static JMenu assemblyMenu;
     private static JMenuItem exportAssembly;
     private static JMenuItem resetAssembly;
@@ -91,10 +90,8 @@ public class MainMenuBar extends JMenuBar {
     }
 
     public boolean unsavedEditsExist() {
-        String tempPath = "/unsaved-hiC-annotations1";
-        temp = new File(DirectoryManager.getHiCDirectory(), tempPath + ".txt");
-        unsavedEdits = temp.exists();
-        return unsavedEdits;
+        File unsavedSampleFile = new File(DirectoryManager.getHiCDirectory(), HiCGlobals.BACKUP_FILE_STEM + "0.bedpe");
+        return unsavedSampleFile.exists();
     }
 
     public void addRecentMapMenuEntry(String title, boolean status) {
@@ -276,36 +273,25 @@ public class MainMenuBar extends JMenuBar {
         fileMenu.add(exit);
 
         // "Annotations" menu items
-        annotationsMenu = new JMenu("Annotations");
-        annotationsMenu.setEnabled(false);
+        //annotationsMenu = new JMenu("Annotations");
+        //annotationsMenu.setEnabled(false);
+        //annotationsMenu.add(layersItem);
 
-        layersItem.addActionListener(new ActionListener() {
+        /*
+        loadOldAnnotationsMI = new JMenuItem("Load Last Session's Hand Annotations ");
+        loadOldAnnotationsMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (layersItem.isSelected()) {
-                    superAdapter.setLayersPanelVisible(true);
-                } else {
-                    superAdapter.setLayersPanelVisible(false);
-                }
-
-            }
-        });
-        annotationsMenu.add(layersItem);
-
-        loadLastMI = new JMenuItem("Load Last Session's Hand Annotations ");
-        loadLastMI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.generateNewCustomAnnotation(temp);
-                temp.delete();
-                loadLastMI.setEnabled(false);
+                superAdapter.loadAllOldSavedAnnotations();
+                loadOldAnnotationsMI.setEnabled(false);
                 superAdapter.getActiveLayerHandler().setExportAbility(true);
             }
         });
         if (unsavedEditsExist()) {
-            loadLastMI.setEnabled(true);
-            annotationsMenu.add(loadLastMI);
+            loadOldAnnotationsMI.setEnabled(true);
+            annotationsMenu.add(loadOldAnnotationsMI);
         }
+        */
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
@@ -424,7 +410,21 @@ public class MainMenuBar extends JMenuBar {
         bookmarksMenu.add(importMapAsFile);
 
         //---View Menu-----
-        JMenu viewMenu = new JMenu("View");
+        viewMenu = new JMenu("View");
+
+        layersItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (layersItem.isSelected()) {
+                    superAdapter.setLayersPanelVisible(true);
+                } else {
+                    superAdapter.setLayersPanelVisible(false);
+                }
+
+            }
+        });
+        viewMenu.add(layersItem);
+        viewMenu.setEnabled(false);
 
         final JCheckBoxMenuItem darkulaMode = new JCheckBoxMenuItem("Darkula Mode");
         darkulaMode.addActionListener(new ActionListener() {
@@ -448,6 +448,8 @@ public class MainMenuBar extends JMenuBar {
         if (HiCGlobals.isCustomChromosomesAllowed) {
             viewMenu.add(addCustomChromosome);
         }
+
+        viewMenu.addSeparator();
 
         //---Axis Layout mode-----
         final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
@@ -711,9 +713,9 @@ public class MainMenuBar extends JMenuBar {
 
 
         add(fileMenu);
-        add(annotationsMenu);
-        add(bookmarksMenu);
+        //add(annotationsMenu);
         add(viewMenu);
+        add(bookmarksMenu);
         if (HiCGlobals.isAssemblyToolsAllowed) {
             add(assemblyMenu);
         }
@@ -725,7 +727,8 @@ public class MainMenuBar extends JMenuBar {
     }
 
     public void setEnableForAllElements(boolean status) {
-        annotationsMenu.setEnabled(status);
+        //annotationsMenu.setEnabled(status);
+        viewMenu.setEnabled(status);
         assemblyMenu.setEnabled(status);
         saveLocationList.setEnabled(status);
         saveStateForReload.setEnabled(status);

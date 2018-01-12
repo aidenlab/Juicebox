@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,6 @@ import org.broad.igv.util.ResourceLocator;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -961,7 +960,7 @@ public class HiC {
     public void generateTrackFromLocation(int mousePos, boolean isHorizontal) {
 
         if (!MatrixType.isObservedOrControl(displayOption)) {
-            MessageUtils.showMessage("This feature is only available for Observed or Control views");
+            SuperAdapter.showMessageDialog("This feature is only available for Observed or Control views");
             return;
         }
 
@@ -981,7 +980,7 @@ public class HiC {
             return;
 
         File outputWigFile = new File(DirectoryManager.getHiCDirectory(), filename + ".wig");
-        MessageUtils.showMessage("Data will be saved to " + outputWigFile.getAbsolutePath());
+        SuperAdapter.showMessageDialog("Data will be saved to " + outputWigFile.getAbsolutePath());
 
         Chromosome chromosomeForPosition = getXContext().getChromosome();
         if (isHorizontal) chromosomeForPosition = getYContext().getChromosome();
@@ -1052,7 +1051,7 @@ public class HiC {
     }
 
     private void unsafeSave1DTrackToWigFile(Chromosome chromosomeForPosition, PrintWriter printWriter,
-                                            int binStartPosition) throws IOException {
+                                            int binStartPosition) {
         // todo could crash with custom chromosomes - so make sure this doesn't get called on those chromosomes
         int resolution = getZoom().getBinSize();
         for (Chromosome chromosome : chromosomeHandler.getChromosomeArrayWithoutAllByAll()) {
