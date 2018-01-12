@@ -84,14 +84,6 @@ public class SuperAdapter {
         return datasetTitle;
     }
 
-    public static void setDatasetTitle(String newDatasetTitle) {
-        datasetTitle = newDatasetTitle;
-    }
-
-    public HiCZoom getInitialZoom() {
-        return initialZoom;
-    }
-
     public void setAdapters(MainWindow mainWindow, HiC hic, MainViewPanel mainViewPanel) {
         this.mainWindow = mainWindow;
         this.hic = hic;
@@ -187,17 +179,14 @@ public class SuperAdapter {
         mainViewPanel.updatePrevStateNameFromImport(path);
     }
 
-    public void loadFromListActionPerformed(boolean control) {
-        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
-        if (unsaved.checkAndDelete()) {
-            HiCFileLoader.loadFromListActionPerformed(this, control);
-        }
+    public static void showMessageDialog(String message) {
+        JOptionPane.showMessageDialog(MainWindow.getInstance(), message);
     }
 
-    public void loadFromRecentActionPerformed(String url, String title, boolean control) {
+    public void loadFromListActionPerformed(boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
-        if (unsaved.checkAndDelete()) {
-            HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
+        if (unsaved.checkAndDelete(datasetTitle.length() > 0)) {
+            HiCFileLoader.loadFromListActionPerformed(this, control);
         }
     }
 
@@ -209,16 +198,11 @@ public class SuperAdapter {
         new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".svg");
     }
 
-    public void exitActionPerformed() {
+    public void loadFromRecentActionPerformed(String url, String title, boolean control) {
         UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
-        if (unsaved.checkAndDelete()) {
-            mainWindow.exitActionPerformed();
+        if (unsaved.checkAndDelete(datasetTitle.length() > 0)) {
+            HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
         }
-    }
-
-    public void generateNewCustomAnnotation(File temp) {
-        getActiveLayerHandler().setAnnotationLayer(
-                new AnnotationLayer(Feature2DParser.loadFeatures(temp.getAbsolutePath(), hic.getChromosomeHandler(), true, null, false)));
     }
 
     public int clearCustomAnnotationDialog() {
@@ -733,10 +717,6 @@ public class SuperAdapter {
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + "<" + fileVersions + ">: " + newTitle);
     }
 
-    private String getMapName() {
-        return datasetTitle.split(" ")[0];
-    }
-
     public void launchGenericMessageDialog(String message, String error, int errorMessage) {
         JOptionPane.showMessageDialog(mainWindow, message, error, errorMessage);
     }
@@ -805,10 +785,6 @@ public class SuperAdapter {
         mainViewPanel.getChromosomeFigPanelY().setContext(hic.getYContext(), HiCChromosomeFigPanel.Orientation.VERTICAL);
 
         unsafeSetInitialZoom();
-    }
-
-    public void deleteUnsavedEdits() {
-        getActiveLayerHandler().deleteTempFile();
     }
 
     public void setShowChromosomeFig(boolean status) {
@@ -888,11 +864,11 @@ public class SuperAdapter {
         return getAssemblyLayerHandler(AnnotationLayer.LayerType.EDIT);
     }
 
-    public AnnotationLayerHandler createNewLayer() {
-        activeLayer = new AnnotationLayerHandler();
-        annotationLayerHandlers.add(activeLayer);
-        setActiveLayerHandler(activeLayer); // call this anyways because other layers need to fix button settings
-        return activeLayer;
+    public void exitActionPerformed() {
+        UnsavedAnnotationWarning unsaved = new UnsavedAnnotationWarning(this);
+        if (unsaved.checkAndDelete(true)) {
+            mainWindow.exitActionPerformed();
+        }
     }
 
     public void printNumFeatures() {
@@ -901,9 +877,34 @@ public class SuperAdapter {
         }
     }
 
+    /**
+     * @param temp file, otherwise just pass null
+     * @return active AnnotationLayerHandler
+     */
+    public AnnotationLayerHandler createNewLayer(File temp) {
+        if (temp != null) {
+            activeLayer = new AnnotationLayerHandler(Feature2DParser.loadFeatures(
+                    temp.getAbsolutePath(), hic.getChromosomeHandler(),
+                    true, null, false));
+        } else {
+            activeLayer = new AnnotationLayerHandler();
+        }
+
+        annotationLayerHandlers.add(activeLayer);
+        setActiveLayerHandler(activeLayer); // call this anyways because other layers need to fix button settings
+        return activeLayer;
+    }
+
+    public void updateLayerDeleteStatus() {
+        boolean isDeleteAllowed = annotationLayerHandlers.size() > 1;
+        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
+            handler.setDeleteLayerButtonStatus(isDeleteAllowed);
+        }
+    }
+
     public int removeLayer(AnnotationLayerHandler handler) {
         int returnCode = -1;
-        if (annotationLayerHandlers.size() > 1) {
+        if (annotationLayerHandlers != null && annotationLayerHandlers.size() > 1) {
             // must have at least 1 layer
             returnCode = annotationLayerHandlers.size() - 1 - annotationLayerHandlers.indexOf(handler);
             annotationLayerHandlers.remove(handler);
@@ -914,33 +915,6 @@ public class SuperAdapter {
         }
         updateLayerDeleteStatus();
         return returnCode;
-    }
-
-    public void updateLayerDeleteStatus() {
-        boolean isDeleteAllowed = annotationLayerHandlers.size() > 1;
-        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
-            handler.setDeleteLayerButtonStatus(isDeleteAllowed);
-        }
-    }
-
-    public boolean exitAssemblyMode() {
-        MainMenuBar.exitAssemblyMode();
-        int dialogButton = JOptionPane.YES_NO_OPTION;
-        int dialogResult = JOptionPane.showConfirmDialog(mainWindow, "This action will remove all unsaved assembly changes. Continue?", "Continue", dialogButton);
-        if (dialogResult == JOptionPane.NO_OPTION) {
-            return false;
-        } else {
-            AnnotationLayerHandler templayer = layersPanel.new2DAnnotationsLayerAction(this, getLayersPanel().getLayerBoxGUI2DAnnotations(), null);
-            if (getAssemblyLayerHandlers() != null) {
-                for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())
-                    removeLayer(annotationLayerHandler);
-                getLayersPanel().updateBothLayersPanels(this);
-                HiCGlobals.assemblyModeEnabled = false;
-                executeClearAllMZDCache();
-                repaint();
-            }
-            return true;
-        }
     }
 
     public int moveDownIndex(AnnotationLayerHandler handler) {
@@ -1067,5 +1041,27 @@ public class SuperAdapter {
             }
         };
         executeLongRunningTask(runnable, "Assembly clear MZD cache");
+    }
+
+    public boolean exitAssemblyMode() {
+        MainMenuBar.exitAssemblyMode();
+        int dialogButton = JOptionPane.YES_NO_OPTION;
+        int dialogResult = JOptionPane.showConfirmDialog(mainWindow, "This action will remove all unsaved assembly changes. Continue?", "Continue", dialogButton);
+        if (dialogResult == JOptionPane.NO_OPTION) {
+            return false;
+        } else {
+            if (layersPanel != null) {
+                layersPanel.new2DAnnotationsLayerAction(this, layersPanel.getLayerBoxGUI2DAnnotations(), null);
+            }
+            if (getAssemblyLayerHandlers() != null) {
+                for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())
+                    removeLayer(annotationLayerHandler);
+                getLayersPanel().updateBothLayersPanels(this);
+                HiCGlobals.assemblyModeEnabled = false;
+                executeClearAllMZDCache();
+                repaint();
+            }
+            return true;
+        }
     }
 }

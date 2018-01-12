@@ -38,7 +38,6 @@ import juicebox.track.feature.AnnotationLayerHandler;
 import juicebox.windowui.layers.LayersPanel;
 import juicebox.windowui.layers.Load2DAnnotationsDialog;
 import org.broad.igv.ui.util.FileDialogUtils;
-import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
@@ -104,7 +103,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                             try {
                                 safeLoadAssemblyFiles(paths, layersPanel, superAdapter, layerBoxGUI, chromosomeHandler);
                             } catch (Exception e) {
-                                MessageUtils.showErrorMessage("Unable to load file", e);
+                                SuperAdapter.showMessageDialog("Unable to load file\n" + e.getLocalizedMessage());
                             }
                             LoadAssemblyAnnotationsDialog.this.setVisible(false);
                         }
@@ -303,7 +302,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     assemblyFileImporter = new AssemblyFileImporter(cpropsPath, asmPath, false);
                 }
 
-                AnnotationLayerHandler templayer = layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null); //temp layer to allow deleting of other layers
+                //temp layer to allow deleting of other layers
+                layersPanel.new2DAnnotationsLayerAction(superAdapter, layerBoxGUI, null);
                 if (superAdapter.getAssemblyLayerHandlers() != null) {
                     for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
                         superAdapter.removeLayer(annotationLayerHandler);
@@ -353,7 +353,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
 
             } catch (Exception ee) {
 //                System.err.println("Could not load selected annotation: " + info.itemName + " - " + info.itemURL);
-//                MessageUtils.showMessage("Could not load loop selection: " + ee.getMessage());
+//                SuperAdapter.showMessageDialog("Could not load loop selection: " + ee.getMessage());
                 if (assemblyPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(assemblyPath));
                 if (cpropsPath != null) customAddedFeatures.remove(loadedAnnotationsMap.get(cpropsPath));
                 if (asmPath != null)

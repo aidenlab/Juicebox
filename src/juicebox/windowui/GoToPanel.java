@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import juicebox.gui.SuperAdapter;
 import juicebox.tools.utils.juicer.GeneTools;
 import oracle.net.jdbc.nl.UninitializedObjectException;
 import org.broad.igv.feature.Chromosome;
-import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -337,7 +336,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             };
             superAdapter.executeLongRunningTask(runnable, "Initialize Gene Hash Map");
         } else {
-            MessageUtils.showErrorMessage("Cannot find genes for " + genomeID, null);
+            SuperAdapter.showMessageDialog("Cannot find genes for " + genomeID);
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
         }
@@ -350,7 +349,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         try {
             reader = GeneTools.getStreamToGeneFile(genomeID);
         } catch (Exception error) {
-            MessageUtils.showErrorMessage("Failed to read gene database", error);
+            SuperAdapter.showMessageDialog("Failed to read gene database");
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
             return;
@@ -360,7 +359,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             ChromosomeHandler handler = hic.getChromosomeHandler();
             geneLocationHashMap = GeneTools.getLocationMap(reader, handler);
         } catch (Exception error) {
-            MessageUtils.showErrorMessage("Failed to parse gene database", error);
+            SuperAdapter.showMessageDialog("Failed to parse gene database");
             positionChrTop.setBackground(Color.yellow);
             geneLocationHashMap = null;
         }
@@ -399,12 +398,12 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim().toLowerCase());
         if (location1 == null) {
             positionChrTop.setBackground(Color.yellow);
-            MessageUtils.showMessage("Gene location map doesn't contain " + positionChrTop.getText().trim());
+            SuperAdapter.showMessageDialog("Gene location map doesn't contain " + positionChrTop.getText().trim());
             return;
         }
         if (location2 == null) {
             positionChrLeft.setBackground(Color.yellow);
-            MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
+            SuperAdapter.showMessageDialog("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
         // Note that the global BP resolutions might not be what's stored in the file
