@@ -1056,7 +1056,9 @@ public class SuperAdapter {
             if (getAssemblyLayerHandlers() != null) {
                 for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())
                     removeLayer(annotationLayerHandler);
-                getLayersPanel().updateBothLayersPanels(this);
+                if (layersPanel != null) {
+                    layersPanel.updateBothLayersPanels(this);
+                }
                 HiCGlobals.assemblyModeEnabled = false;
                 executeClearAllMZDCache();
                 repaint();

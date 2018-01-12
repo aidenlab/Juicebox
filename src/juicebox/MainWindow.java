@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,19 +106,21 @@ public class MainWindow extends JFrame {
 
     public static void main(String[] args) throws InvocationTargetException, InterruptedException {
         initApplication();
-        Runnable runnable = new Runnable() {
-            public void run() {
+
+     //   Runnable runnable = new Runnable() {
+          //  public void run() {
                 theInstance = getInstance();
                 theInstance.setVisible(true);
                 theInstance.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
                 CommandListener.start(theInstance.hic);
-            }
-        };
-        SwingUtilities.invokeAndWait(runnable);
-        URL url;
+        //    }
+       // };
+       // SwingUtilities.invokeAndWait(runnable);
+      /*  URL url;
         try {
             url = new URL("https://s3.amazonaws.com/hicfiles.tc4ga.com/juicebox.version");
-            InputStream is = url.openConnection().getInputStream();
+            URLConnection next = url.openConnection();
+            InputStream is = next.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String latestVersion = reader.readLine();
             String[] latest = latestVersion.split("\\.");
@@ -163,7 +166,7 @@ public class MainWindow extends JFrame {
             }
 
         } catch (Exception e) {
-        }
+        }        */
 
     }
 

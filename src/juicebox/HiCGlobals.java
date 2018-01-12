@@ -70,7 +70,7 @@ public class HiCGlobals {
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
     // Juicebox version (for display and header purposes only)
     // Note: please follow "X.X.X" format, where "X" is a single digit; otherwise md5sums for hic files messed up.
-    public static final String versionNum = "1.7.7";//"1.8.6"; // 
+    public static final String versionNum = "1.8.7"; //
     // Juicebox title
     // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
@@ -83,7 +83,7 @@ public class HiCGlobals {
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
-    public static boolean assemblyModeEnabled = false;
+    public static boolean assemblyModeEnabled = true;
     public static boolean splitModeEnabled = false;
     public static boolean translationInProgress = false;
     public static boolean displayTiles = false;
