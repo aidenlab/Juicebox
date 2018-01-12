@@ -79,6 +79,7 @@ public class SuperAdapter {
     private HiCColorScale pearsonColorScale;
     private LayersPanel layersPanel;
     private boolean layerPanelIsVisible = false;
+    public static boolean assemblyModeCurrentlyActive = false;
 
     public static String getDatasetTitle() {
         return datasetTitle;
@@ -421,7 +422,7 @@ public class SuperAdapter {
                 return false;
             }
 
-            if (HiCGlobals.assemblyModeEnabled) {
+            if (assemblyModeCurrentlyActive) {
                 if (!exitAssemblyMode()) {
                     return false; //if user does not exit assembly mode then do not load new map
                 }
@@ -1059,7 +1060,7 @@ public class SuperAdapter {
                 if (layersPanel != null) {
                     layersPanel.updateBothLayersPanels(this);
                 }
-                HiCGlobals.assemblyModeEnabled = false;
+                assemblyModeCurrentlyActive = false;
                 executeClearAllMZDCache();
                 repaint();
             }
