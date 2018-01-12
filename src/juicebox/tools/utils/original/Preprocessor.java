@@ -180,6 +180,9 @@ public class Preprocessor {
                 }
                 bpBinSizes = bps;
             }
+            else {
+                bpBinSizes = new int[0];
+            }
             if (!resolutionsSet) {
                 System.err.println("No valid resolutions sent in");
                 System.exit(1);
