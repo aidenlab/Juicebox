@@ -354,7 +354,8 @@
                 mainclassname="juicebox.MainWindow">
       <classpath file="${artifact.output.juicebox:jar}/Juicebox.jar" />
       <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
-        <option value="-Xmx10g"/>
+      <option value="-Xms5g"/>
+      <option value="-Xmx10g"/>
       <option value="-d64"/>
     </jarbundler>
     <delete dir="${artifacts.temp.dir}"/>
@@ -369,7 +370,8 @@
                 mainclassname="juicebox.MainWindow">
       <classpath file="${artifact.output.juicebox:jar}/Juicebox.jar" />
       <!--	       <runtime dir="${env.JAVA_HOME}" /> -->
-        <option value="-Xmx10g"/>
+      <option value="-Xms5g"/>
+      <option value="-Xmx10g"/>
       <option value="-d64"/>
       <option value="-Djnlp.loadMenu=http://adam.bcma.bcm.edu/hicInternalMenu.properties"/>
     </jarbundler>
