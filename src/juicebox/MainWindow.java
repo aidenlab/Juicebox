@@ -36,9 +36,18 @@ import org.broad.igv.ui.util.IconFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,21 +110,20 @@ public class MainWindow extends JFrame {
     public static void main(String[] args) {
         initApplication();
 
-     //   Runnable runnable = new Runnable() {
-          //  public void run() {
-                theInstance = getInstance();
-                theInstance.setVisible(true);
-                theInstance.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                CommandListener.start(theInstance.hic);
+        //   Runnable runnable = new Runnable() {
+        //  public void run() {
+        theInstance = getInstance();
+        theInstance.setVisible(true);
+        theInstance.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        CommandListener.start(theInstance.hic);
         //    }
-       // };
-       // SwingUtilities.invokeAndWait(runnable);
-      /*  URL url;
+        // };
+        // SwingUtilities.invokeAndWait(runnable);
+
         try {
-            url = new URL("https://s3.amazonaws.com/hicfiles.tc4ga.com/juicebox.version");
+            URL url = new URL("https://s3.amazonaws.com/hicfiles.tc4ga.com/juicebox.version");
             URLConnection next = url.openConnection();
-            InputStream is = next.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(next.getInputStream()));
             String latestVersion = reader.readLine();
             String[] latest = latestVersion.split("\\.");
             String[] current = HiCGlobals.versionNum.split("\\.");
@@ -160,7 +168,7 @@ public class MainWindow extends JFrame {
             }
 
         } catch (Exception e) {
-        }        */
+        }
 
     }
 
