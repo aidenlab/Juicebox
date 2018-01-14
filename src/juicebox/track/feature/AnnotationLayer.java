@@ -138,7 +138,7 @@ public class AnnotationLayer {
         }
     }
 
-    public void deleteTempFile() {
+    private void deleteTempFile() {
         if (tempWriter != null) {
             tempWriter.close();
         }

@@ -62,7 +62,7 @@ public class MainViewPanel {
     public static boolean preDefMapColor = false;
     private static JComboBox<Chromosome> chrBox1;
     private static JComboBox<Chromosome> chrBox2;
-    private static JideButton refreshButton = new JideButton();
+    private static final JideButton refreshButton = new JideButton();
     private static JComboBox<String> normalizationComboBox;
     private static JComboBox<MatrixType> displayOptionComboBox;
     private static JColorRangePanel colorRangePanel;
@@ -76,12 +76,12 @@ public class MainViewPanel {
     private static ThumbnailPanel thumbnailPanel;
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
-    private static JPanel hiCPanel = new JPanel(new HiCLayout());
+    private static final JPanel hiCPanel = new JPanel(new HiCLayout());
     private static HiCChromosomeFigPanel chromosomePanelX;
     private static HiCChromosomeFigPanel chromosomePanelY;
-    private static JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
-    private static JPanel chrSidePanel = new JPanel(new BorderLayout());
-    private static JPanel chrSidePanel3 = new JPanel(new BorderLayout());
+    private static final JPanel bottomChromosomeFigPanel = new JPanel(new BorderLayout());
+    private static final JPanel chrSidePanel = new JPanel(new BorderLayout());
+    private static final JPanel chrSidePanel3 = new JPanel(new BorderLayout());
     private static MainMenuBar menuBar;
     private final JToggleButton annotationsPanelToggleButton = new JToggleButton("Show Annotation Panel");
     private final JPanel annotationsPanel = new JPanel(new BorderLayout());
@@ -107,10 +107,9 @@ public class MainViewPanel {
     private final JLabel normalizationLabel = new JLabel("Normalization");
     private final JLabel displayOptionLabel = new JLabel("Show");
     private MiniAnnotationsLayerPanel miniAnnotationsLayerPanel;
-    private JScrollPane tooltipScroller;
     private boolean tooltipAllowedToUpdated = true;
     private boolean ignoreUpdateThumbnail = false;
-    private JPanel tooltipPanel = new JPanel(new BorderLayout());
+    private final JPanel tooltipPanel = new JPanel(new BorderLayout());
 
     public void setIgnoreUpdateThumbnail(boolean flag) {
         ignoreUpdateThumbnail = flag;
@@ -407,7 +406,7 @@ public class MainViewPanel {
         mouseHoverTextPanel.setPreferredSize(prefTextPanelSize);
         tooltipPanel.setPreferredSize(prefTextPanelSize);
 
-        tooltipScroller = new JScrollPane(mouseHoverTextPanel,
+        JScrollPane tooltipScroller = new JScrollPane(mouseHoverTextPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tooltipScroller.setBorder(null);
@@ -633,7 +632,7 @@ public class MainViewPanel {
             text = trackPanelY.tooltipText(x, y, false);
             if (text != null) trackToolTip += "<span style='color:" + HiCGlobals.leftChromosomeColor +
                     "; font-family: arial; font-size: 12pt; '>" + text + "</span>";
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return trackToolTip;
     }

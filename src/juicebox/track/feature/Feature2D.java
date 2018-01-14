@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -389,12 +389,7 @@ public class Feature2D implements Comparable<Feature2D> {
         int midOther1 = otherFeature.getMidPt1();
         int midOther2 = otherFeature.getMidPt2();
 
-        if (midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1)) {
-            if (midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2)) {
-                return true;
-            }
-        }
-        return false;
+        return midOther1 >= (this.start1 - window1) && midOther1 <= (this.end1 + window1) && midOther2 >= (this.start2 - window2) && midOther2 <= (this.end2 + window2);
     }
 
     @Override
@@ -470,9 +465,7 @@ public class Feature2D implements Comparable<Feature2D> {
                 if (Math.abs(start1 - other.start1) <= tolerance) {
                     if (Math.abs(start2 - other.start2) <= tolerance) {
                         if (Math.abs(end1 - other.end1) <= tolerance) {
-                            if (Math.abs(end2 - other.end2) <= tolerance) {
-                                return true;
-                            }
+                            return Math.abs(end2 - other.end2) <= tolerance;
                         }
                     }
                 }
@@ -492,10 +485,6 @@ public class Feature2D implements Comparable<Feature2D> {
 
     public void doTest() {
         test = true;
-    }
-
-    public boolean getTest() {
-        return test;
     }
 
     public void clearAttributes() {

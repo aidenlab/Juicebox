@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -273,18 +273,24 @@ public class NormalizationCalculations {
 
     public double[] getNorm(NormalizationType normOption) {
         double[] norm;
-        if (normOption == NormalizationType.KR || normOption == NormalizationType.GW_KR || normOption == NormalizationType.INTER_KR) {
-            norm = computeKR();
-        } else if (normOption == NormalizationType.VC || normOption == NormalizationType.GW_VC || normOption == NormalizationType.INTER_VC) {
-            norm = computeVC();
-        } else if (normOption == NormalizationType.NONE) {
-            norm = new double[totSize];
-            Arrays.fill(norm, 1);
-            return norm;
-        }
-        else {
-            System.err.println("Not supported for normalization " + normOption);
-            return null;
+        switch (normOption) {
+            case KR:
+            case GW_KR:
+            case INTER_KR:
+                norm = computeKR();
+                break;
+            case VC:
+            case GW_VC:
+            case INTER_VC:
+                norm = computeVC();
+                break;
+            case NONE:
+                norm = new double[totSize];
+                Arrays.fill(norm, 1);
+                return norm;
+            default:
+                System.err.println("Not supported for normalization " + normOption);
+                return null;
         }
 
         double factor = getSumFactor(norm);

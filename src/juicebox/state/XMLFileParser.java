@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -88,15 +87,15 @@ class XMLFileParser {
     }
 
     private static class SimpleErrorHandler implements ErrorHandler {
-        public void warning(SAXParseException e) throws SAXException {
+        public void warning(SAXParseException e) {
             System.err.println(e.getMessage());
         }
 
-        public void error(SAXParseException e) throws SAXException {
+        public void error(SAXParseException e) {
             System.err.println(e.getMessage());
         }
 
-        public void fatalError(SAXParseException e) throws SAXException {
+        public void fatalError(SAXParseException e) {
             System.err.println(e.getMessage());
         }
     }

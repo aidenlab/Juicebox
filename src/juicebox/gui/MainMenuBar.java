@@ -74,7 +74,6 @@ public class MainMenuBar extends JMenuBar {
     private final JCheckBoxMenuItem layersItem = new JCheckBoxMenuItem("Show Annotation Panel");
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
-    private File currentStates = new File("testStates");
 
     public MainMenuBar(SuperAdapter superAdapter) {
         createMenuBar(superAdapter);
@@ -99,7 +98,7 @@ public class MainMenuBar extends JMenuBar {
         recentControlMapMenu.addEntry(title, status);
     }
 
-    public void addRecentStateMenuEntry(String title, boolean status) {
+    private void addRecentStateMenuEntry(String title, boolean status) {
         recentLocationMenu.addEntry(title, status);
     }
 
@@ -295,7 +294,7 @@ public class MainMenuBar extends JMenuBar {
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
-        saveLocationList = new JMenuItem("Save current location");
+        saveLocationList = new JMenuItem("Save Current Location");
         saveLocationList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
@@ -311,7 +310,7 @@ public class MainMenuBar extends JMenuBar {
         saveLocationList.setEnabled(false);
         //---Save State test-----
         saveStateForReload = new JMenuItem();
-        saveStateForReload.setText("Save current state");
+        saveStateForReload.setText("Save Current State");
         saveStateForReload.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent e) {
@@ -336,7 +335,7 @@ public class MainMenuBar extends JMenuBar {
         saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
+        recentLocationMenu = new RecentMenu("Restore Saved Location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
             private static final long serialVersionUID = 4204L;
 
@@ -364,7 +363,7 @@ public class MainMenuBar extends JMenuBar {
         });
 
         // restore recent saved states
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
+        previousStates = new RecentMenu("Restore Previous States", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
 
             private static final long serialVersionUID = 4205L;
 
@@ -439,7 +438,7 @@ public class MainMenuBar extends JMenuBar {
         darkulaMode.setSelected(HiCGlobals.isDarkulaModeEnabled);
         viewMenu.add(darkulaMode);
 
-        JMenuItem addCustomChromosome = new JMenuItem("Make custom chromosome (from .bed)...");
+        JMenuItem addCustomChromosome = new JMenuItem("Make Custom Chromosome (from .bed)...");
         addCustomChromosome.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.createCustomChromosomesFromBED();
@@ -533,7 +532,7 @@ public class MainMenuBar extends JMenuBar {
         });
         devMenu.add(editPearsonsColorItem);
 
-        JMenuItem mapSubset = new JMenuItem("Select map subset...");
+        JMenuItem mapSubset = new JMenuItem("Select Map Subset...");
         mapSubset.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -643,7 +642,7 @@ public class MainMenuBar extends JMenuBar {
             }
         });
 
-        setScale = new JMenuItem("Set scale");
+        setScale = new JMenuItem("Set Scale");
         setScale.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

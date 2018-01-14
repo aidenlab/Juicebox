@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@ import java.util.Stack;
 public class ZoomActionTracker {
     private final int stackSizeLimit = 100;
     private ZoomAction currentZoomAction;
-    private Stack<ZoomAction> undoZoomActions = new Stack<>();
-    private Stack<ZoomAction> redoZoomActions = new Stack<>();
+    private final Stack<ZoomAction> undoZoomActions = new Stack<>();
+    private final Stack<ZoomAction> redoZoomActions = new Stack<>();
 
     public void undoZoom() {
         if (validateUndoZoom()) {
@@ -77,9 +77,7 @@ public class ZoomActionTracker {
         if (other != null) {
             if (this.undoZoomActions.equals(other.getUndoZoomActions())) {
                 if (this.redoZoomActions.equals(other.getRedoZoomActions())) {
-                    if (this.currentZoomAction.equals(other.getCurrentZoomAction())) {
-                        return true;
-                    }
+                    return this.currentZoomAction.equals(other.getCurrentZoomAction());
                 }
             }
         }

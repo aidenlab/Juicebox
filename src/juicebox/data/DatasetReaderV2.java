@@ -672,51 +672,54 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
 
                     byte type = dis.readByte();
 
-                    if (type == 1) {
-                        // List-of-rows representation
-                        int rowCount = dis.readShort();
+                    switch (type) {
+                        case 1:
+                            // List-of-rows representation
+                            int rowCount = dis.readShort();
 
-                        for (int i = 0; i < rowCount; i++) {
+                            for (int i = 0; i < rowCount; i++) {
 
-                            int binY = binYOffset + dis.readShort();
-                            int colCount = dis.readShort();
+                                int binY = binYOffset + dis.readShort();
+                                int colCount = dis.readShort();
 
-                            for (int j = 0; j < colCount; j++) {
+                                for (int j = 0; j < colCount; j++) {
 
-                                int binX = binXOffset + dis.readShort();
-                                float counts = useShort ? dis.readShort() : dis.readFloat();
-                                records.add(new ContactRecord(binX, binY, counts));
-                            }
-                        }
-                    } else if (type == 2) {
-
-                        int nPts = dis.readInt();
-                        int w = dis.readShort();
-
-                        for (int i = 0; i < nPts; i++) {
-                            //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                            int row = i / w;
-                            int col = i - row * w;
-                            int bin1 = binXOffset + col;
-                            int bin2 = binYOffset + row;
-
-                            if (useShort) {
-                                short counts = dis.readShort();
-                                if (counts != Short.MIN_VALUE) {
-                                    records.add(new ContactRecord(bin1, bin2, counts));
-                                }
-                            } else {
-                                float counts = dis.readFloat();
-                                if (!Float.isNaN(counts)) {
-                                    records.add(new ContactRecord(bin1, bin2, counts));
+                                    int binX = binXOffset + dis.readShort();
+                                    float counts = useShort ? dis.readShort() : dis.readFloat();
+                                    records.add(new ContactRecord(binX, binY, counts));
                                 }
                             }
+                            break;
+                        case 2:
+
+                            int nPts = dis.readInt();
+                            int w = dis.readShort();
+
+                            for (int i = 0; i < nPts; i++) {
+                                //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
+                                int row = i / w;
+                                int col = i - row * w;
+                                int bin1 = binXOffset + col;
+                                int bin2 = binYOffset + row;
+
+                                if (useShort) {
+                                    short counts = dis.readShort();
+                                    if (counts != Short.MIN_VALUE) {
+                                        records.add(new ContactRecord(bin1, bin2, counts));
+                                    }
+                                } else {
+                                    float counts = dis.readFloat();
+                                    if (!Float.isNaN(counts)) {
+                                        records.add(new ContactRecord(bin1, bin2, counts));
+                                    }
+                                }
 
 
-                        }
+                            }
 
-                    } else {
-                        throw new RuntimeException("Unknown block type: " + type);
+                            break;
+                        default:
+                            throw new RuntimeException("Unknown block type: " + type);
                     }
                 }
                 b = new Block(blockNumber, records, zd.getBlockKey(blockNumber, NormalizationType.NONE));

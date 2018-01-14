@@ -68,7 +68,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
-    private ArrayList<String> mostRecentPaths = new ArrayList<String>();
+    private final ArrayList<String> mostRecentPaths = new ArrayList<>();
 
     public LoadAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
         super(superAdapter.getMainWindow(), "Select Assembly annotation file(s) to open");
@@ -174,7 +174,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
-    public void closeWindow() {
+    private void closeWindow() {
         customAddedFeatures.removeFromParent();
         for (String path : mostRecentPaths) {
             customAddedFeatures.remove(loadedAnnotationsMap.get(path));
@@ -185,7 +185,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
         LoadAssemblyAnnotationsDialog.this.setVisible(false);
     }
 
-    public void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
+    private void addLocalButtonActionPerformed(final SuperAdapter superAdapter) {
         // Get the main window
         final MainWindow window = superAdapter.getMainWindow();
 
@@ -439,7 +439,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                     subParent.add(node);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         if (customAddedFeatures != null) {

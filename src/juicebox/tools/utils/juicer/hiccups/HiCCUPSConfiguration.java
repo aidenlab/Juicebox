@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,14 +73,19 @@ public class HiCCUPSConfiguration {
 
         Map<Integer, HiCCUPSConfiguration> configurationMap = new HashMap<>();
         for (int res : resolutions) {
-            if (res == 5000) {
-                configurationMap.put(res, getDefaultConfigFor5K());
-            } else if (res == 10000) {
-                configurationMap.put(res, getDefaultConfigFor10K());
-            } else if (res == 25000) {
-                configurationMap.put(res, getDefaultConfigFor25K());
-            } else {
-                configurationMap.put(res, getDefaultBlankConfig(res));
+            switch (res) {
+                case 5000:
+                    configurationMap.put(res, getDefaultConfigFor5K());
+                    break;
+                case 10000:
+                    configurationMap.put(res, getDefaultConfigFor10K());
+                    break;
+                case 25000:
+                    configurationMap.put(res, getDefaultConfigFor25K());
+                    break;
+                default:
+                    configurationMap.put(res, getDefaultBlankConfig(res));
+                    break;
             }
         }
 

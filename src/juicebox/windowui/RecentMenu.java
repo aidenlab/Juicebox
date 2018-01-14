@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -272,14 +272,15 @@ public abstract class RecentMenu extends JMenu {
                 suitableNameNotFound = true;
                 int option = JOptionPane.showConfirmDialog(null, "State name: \n" + savedName + "\n" +
                         "already exists. Do you want to overwrite it?", "Confirm", JOptionPane.YES_NO_OPTION);
-                if (option == JOptionPane.YES_OPTION) {
-                    return savedName;
-                } else if (option == JOptionPane.NO_OPTION) {
-                    savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
-                    return savedName;
-                } else if (option == JOptionPane.CLOSED_OPTION) {
-                    savedName = "";
-                    return savedName;
+                switch (option) {
+                    case JOptionPane.YES_OPTION:
+                        return savedName;
+                    case JOptionPane.NO_OPTION:
+                        savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
+                        return savedName;
+                    case JOptionPane.CLOSED_OPTION:
+                        savedName = "";
+                        return savedName;
                 }
             }
         }

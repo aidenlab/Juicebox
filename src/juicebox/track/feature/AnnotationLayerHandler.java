@@ -50,8 +50,6 @@ import java.util.List;
 public class AnnotationLayerHandler {
 
     private static boolean importAnnotationsEnabled = false;
-    // displacement in terms of gene pos
-    private final int peakDisplacement = 3;
     private Rectangle selectionRegion;
     private Feature2D.FeatureType featureType = Feature2D.FeatureType.NONE;
     private Feature2D lastResizeLoop = null;
@@ -88,18 +86,6 @@ public class AnnotationLayerHandler {
         selectionRegion = null;
         //selectionPoint = null;
         featureType = Feature2D.FeatureType.NONE;
-    }
-
-    public boolean isEnabled() {
-        return featureType != Feature2D.FeatureType.NONE;
-    }
-
-    public boolean isPeak() {
-        return featureType == Feature2D.FeatureType.PEAK;
-    }
-
-    public void doGeneric() {
-        featureType = Feature2D.FeatureType.GENERIC;
     }
 
     public void doPeak() {
@@ -454,7 +440,7 @@ public class AnnotationLayerHandler {
         return annotationLayer;
     }
 
-    public void setAnnotationLayer(AnnotationLayer annotationLayer) {
+    private void setAnnotationLayer(AnnotationLayer annotationLayer) {
         this.annotationLayer = annotationLayer;
     }
 
@@ -623,10 +609,6 @@ public class AnnotationLayerHandler {
 
     public void exportAnnotations() {
         new SaveAnnotationsDialog(getAnnotationLayer(), getLayerName());
-    }
-
-    public void setImportAnnotationButton(JButton importAnnotationsButton) {
-        this.importAnnotationsButton = importAnnotationsButton;
     }
 
     private boolean getImportAnnotationsEnabled() {

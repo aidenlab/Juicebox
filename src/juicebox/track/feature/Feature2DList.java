@@ -59,13 +59,6 @@ public class Feature2DList {
         add(list);
     }
 
-    public Feature2DList(Feature2DList list, List<String> featureKeys) {
-        add(list);
-        for (String attribute : featureKeys) {
-            defaultAttributes.put(attribute, "null");
-        }
-    }
-
     /**
      * Helper method to get the key, lowest ordinal chromosome first
      *
@@ -256,9 +249,6 @@ public class Feature2DList {
     private void putFeature(String key, List<Feature2D> loops) {
         featureList.put(key, loops);
     }
-    public void setWithKey(String key, List<Feature2D> features) {
-        featureList.put(key, features);
-    }
 
     /**
      * Export feature list to given file path
@@ -287,14 +277,18 @@ public class Feature2DList {
                 if (formattedOutput) {
                     StringBuilder header = new StringBuilder(Feature2D.genericHeader);
                     final ArrayList<String> outputKeys = new ArrayList<>();
-                    if (listFormat == ListFormat.ENRICHED) {
-                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
-                                "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
-                    } else if (listFormat == ListFormat.FINAL) {
-                        outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
-                                "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
-                    } else if (listFormat == ListFormat.ARROWHEAD) {
-                        outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
+                    switch (listFormat) {
+                        case ENRICHED:
+                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                    "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
+                            break;
+                        case FINAL:
+                            outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
+                                    "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
+                            break;
+                        case ARROWHEAD:
+                            outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
+                            break;
                     }
                     for (String key : outputKeys) {
                         header.append("\t").append(key);
@@ -405,8 +399,7 @@ public class Feature2DList {
             if (featureList.containsKey(inputKey)) {
                 featureList.get(inputKey).addAll(inputFeatures);
             } else {
-                List<Feature2D> features = new ArrayList<>();
-                features.addAll(inputFeatures);
+                List<Feature2D> features = new ArrayList<>(inputFeatures);
                 putFeature(inputKey, features);
             }
         }
@@ -431,8 +424,7 @@ public class Feature2DList {
                 //features.addAll(inputFeatures);
                 addAllUnique(inputFeatures, featureList.get(inputKey));
             } else {
-                List<Feature2D> features = new ArrayList<>();
-                features.addAll(inputFeatures);
+                List<Feature2D> features = new ArrayList<>(inputFeatures);
                 // featureList.put(inputKey, features);
                 putFeature(inputKey, features);
             }

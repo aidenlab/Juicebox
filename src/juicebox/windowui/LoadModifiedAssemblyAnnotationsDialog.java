@@ -65,7 +65,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
     private final JButton openAssemblyButton;
     private final Map<String, MutableTreeNode> loadedAnnotationsMap = new HashMap<>();
     private File openAnnotationPath = DirectoryManager.getUserDirectory();
-    private ArrayList<String> mostRecentPaths = new ArrayList<String>();
+    private final ArrayList<String> mostRecentPaths = new ArrayList<>();
 
 
     public LoadModifiedAssemblyAnnotationsDialog(final SuperAdapter superAdapter) {
@@ -172,7 +172,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
         return nodes.isEmpty() ? null : new TreePath(nodes.toArray());
     }
 
-    public void closeWindow() {
+    private void closeWindow() {
         customAddedFeatures.removeFromParent();
         for (String path : mostRecentPaths) {
             customAddedFeatures.remove(loadedAnnotationsMap.get(path));
@@ -382,7 +382,7 @@ public class LoadModifiedAssemblyAnnotationsDialog extends JDialog implements Tr
                     subParent.add(node);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         if (customAddedFeatures != null) {

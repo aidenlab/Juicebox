@@ -68,7 +68,7 @@ public class SuperAdapter {
     public static String currentlyLoadedControlFiles = "";
     private static String datasetTitle = "";
     private static String controlTitle;
-    private static List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
+    private static final List<Feature2D> previousTempSelectedGroup = new ArrayList<>();
     private final List<AnnotationLayerHandler> annotationLayerHandlers = new ArrayList<>();
     private MainWindow mainWindow;
     private HiC hic;
@@ -569,7 +569,7 @@ public class SuperAdapter {
     void safeNormalizationComboBoxActionPerformed(final ActionEvent e) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeNormalizationComboBoxActionPerformed(e);
+                unsafeNormalizationComboBoxActionPerformed();
             }
         };
         mainWindow.executeLongRunningTask(runnable, "Normalization ComboBox");
@@ -714,14 +714,14 @@ public class SuperAdapter {
         String fileVersions = "";
         try {
             fileVersions += hic.getDataset().getVersion() + "";
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         if (controlTitle != null && controlTitle.length() > 0) {
             newTitle += "  (control=" + controlTitle + ")";
             try {
                 fileVersions += "/" + hic.getControlDataset().getVersion();
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + "<" + fileVersions + ">: " + newTitle);
@@ -739,7 +739,7 @@ public class SuperAdapter {
         mainViewPanel.updateTrackPanel(hic.getLoadedTracks().size() > 0);
     }
 
-    private void unsafeNormalizationComboBoxActionPerformed(ActionEvent e) {
+    private void unsafeNormalizationComboBoxActionPerformed() {
         String value = (String) mainViewPanel.getNormalizationComboBox().getSelectedItem();
         NormalizationType chosen = null;
         for (NormalizationType type : NormalizationType.values()) {
@@ -821,10 +821,6 @@ public class SuperAdapter {
         activeLayer.setActiveLayerButtonStatus(true);
     }
 
-    public AnnotationLayer.LayerType getActiveLayerType() {
-        return activeLayer.getAnnotationLayer().getLayerType();
-    }
-
     public List<AnnotationLayerHandler> getAllLayers() {
         return annotationLayerHandlers;
     }
@@ -871,12 +867,6 @@ public class SuperAdapter {
         }
     }
 
-    public void printNumFeatures() {
-        for (AnnotationLayerHandler handler : annotationLayerHandlers) {
-            System.out.println(handler.getLayerName() + " " + handler.getNumberOfFeatures());
-        }
-    }
-
     /**
      * @param temp file, otherwise just pass null
      * @return active AnnotationLayerHandler
@@ -917,7 +907,7 @@ public class SuperAdapter {
         return returnCode;
     }
 
-    public void resetAnnotationLayers() {
+    private void resetAnnotationLayers() {
         annotationLayerHandlers.clear();
         // currently must have at least 1 layer
         getActiveLayerHandler().getAnnotationLayer().resetCounter();
@@ -1032,10 +1022,6 @@ public class SuperAdapter {
             getLayersPanel().updateLayers2DPanel(this);
         } catch (Exception ignored) {
         }
-    }
-
-    public List<Feature2D> getPreviousTempSelectedGroup() {
-        return previousTempSelectedGroup;
     }
 
     public void updatePreviousTempSelectedGroups(Feature2D tempSelectedGroup) {

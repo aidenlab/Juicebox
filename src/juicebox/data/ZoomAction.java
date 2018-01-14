@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,17 +55,7 @@ public class ZoomAction {
     }
 
     public boolean equals(ZoomAction other) {
-        if (this == other) return true;
-        return other != null
-                && chromosomeX.equals(other.getChromosomeX())
-                && chromosomeY.equals(other.getChromosomeY())
-                && hiCZoom.equals(other.getHiCZoom())
-                && genomeX == other.getGenomeX()
-                && genomeY == other.getGenomeY()
-                && scaleFactor == other.getScaleFactor()
-                && resetZoom == other.getResetZoom()
-                && zoomCallType == other.getZoomCallType()
-                && resolutionLocked == other.getResolutionLocked();
+        return this == other || other != null && chromosomeX.equals(other.getChromosomeX()) && chromosomeY.equals(other.getChromosomeY()) && hiCZoom.equals(other.getHiCZoom()) && genomeX == other.getGenomeX() && genomeY == other.getGenomeY() && scaleFactor == other.getScaleFactor() && resetZoom == other.getResetZoom() && zoomCallType == other.getZoomCallType() && resolutionLocked == other.getResolutionLocked();
     }
 
     public String getChromosomeX() {

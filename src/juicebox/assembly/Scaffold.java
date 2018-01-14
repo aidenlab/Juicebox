@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +60,8 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
     private final int chrIndex = 1;
     //invariant properties
     public String name;
-    public int indexId;
-    private Color defaultColor = new Color(0, 255, 0);
+    private final Color defaultColor = new Color(0, 255, 0);
+    private int indexId;
     //initial state
     private long originalStart;
     private boolean isOriginallyInverted;
@@ -264,9 +264,7 @@ public class Scaffold extends Feature implements Comparable<Scaffold> {
         if (new Integer(chrIndex).equals(o.chrIndex)) {
 
             if (length == o.length) {
-                if (currentStart == o.currentStart) {
-                    return true;
-                }
+                return currentStart == o.currentStart;
             }
         }
         return false;

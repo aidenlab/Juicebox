@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -125,91 +125,100 @@ public class AsciiPairIterator implements PairIterator {
                 }
 
                 if (format == null) {
-                    if (nTokens == 8) {
-                        format = Format.SHORT;
-                    } else if (nTokens == 9) {
-                        format = Format.SHORT_WITH_SCORE;
-                    }
-                    else if (nTokens == 16) {
-                        format = Format.LONG;
-                    } else if (nTokens == 11) {
-                        format = Format.MEDIUM;
-                    } else {
-                        throw new IOException("Unexpected column count.  Check file format");
+                    switch (nTokens) {
+                        case 8:
+                            format = Format.SHORT;
+                            break;
+                        case 9:
+                            format = Format.SHORT_WITH_SCORE;
+                            break;
+                        case 16:
+                            format = Format.LONG;
+                            break;
+                        case 11:
+                            format = Format.MEDIUM;
+                            break;
+                        default:
+                            throw new IOException("Unexpected column count.  Check file format");
                     }
                 }
-                if (format == Format.MEDIUM) {
-                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(2)));
-                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(6)));
-                    // some contigs will not be present in the chrom.sizes file
-                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
-                        int chr1 = chromosomeOrdinals.get(chrom1);
-                        int chr2 = chromosomeOrdinals.get(chrom2);
-                        int pos1 = Integer.parseInt(tokens.get(3));
-                        int pos2 = Integer.parseInt(tokens.get(7));
-                        int frag1 = Integer.parseInt(tokens.get(4));
-                        int frag2 = Integer.parseInt(tokens.get(8));
-                        int mapq1 = Integer.parseInt(tokens.get(9));
-                        int mapq2 = Integer.parseInt(tokens.get(10));
+                switch (format) {
+                    case MEDIUM: {
+                        String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(2)));
+                        String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(6)));
+                        // some contigs will not be present in the chrom.sizes file
+                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                            int chr1 = chromosomeOrdinals.get(chrom1);
+                            int chr2 = chromosomeOrdinals.get(chrom2);
+                            int pos1 = Integer.parseInt(tokens.get(3));
+                            int pos2 = Integer.parseInt(tokens.get(7));
+                            int frag1 = Integer.parseInt(tokens.get(4));
+                            int frag2 = Integer.parseInt(tokens.get(8));
+                            int mapq1 = Integer.parseInt(tokens.get(9));
+                            int mapq2 = Integer.parseInt(tokens.get(10));
 
-                        boolean strand1 = Integer.parseInt(tokens.get(1)) == 0;
-                        boolean strand2 = Integer.parseInt(tokens.get(5)) == 0;
-                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-                    }
-                    else {
-                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
-                    }
-
-                } else if (format == Format.DCIC) {
-                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
-                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(3)));
-                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
-                        int chr1 = chromosomeOrdinals.get(chrom1);
-                        int chr2 = chromosomeOrdinals.get(chrom2);
-                        int pos1 = Integer.parseInt(tokens.get(2));
-                        int pos2 = Integer.parseInt(tokens.get(4));
-                        boolean strand1 = tokens.get(5).equals("+");
-                        boolean strand2 = tokens.get(6).equals("+");
-                        int frag1=0;
-                        int frag2=1;
-                        if (dcicFragIndex1 != -1 && dcicFragIndex2 != -1) {
-                            frag1 = Integer.parseInt(tokens.get(dcicFragIndex1));
-                            frag2 = Integer.parseInt(tokens.get(dcicFragIndex2));
+                            boolean strand1 = Integer.parseInt(tokens.get(1)) == 0;
+                            boolean strand2 = Integer.parseInt(tokens.get(5)) == 0;
+                            nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
+                        } else {
+                            nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
                         }
-                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, 1000, strand2, chr2, pos2, frag2, 1000);
 
+                        break;
                     }
-                    else {
-                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                    case DCIC: {
+                        String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
+                        String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(3)));
+                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                            int chr1 = chromosomeOrdinals.get(chrom1);
+                            int chr2 = chromosomeOrdinals.get(chrom2);
+                            int pos1 = Integer.parseInt(tokens.get(2));
+                            int pos2 = Integer.parseInt(tokens.get(4));
+                            boolean strand1 = tokens.get(5).equals("+");
+                            boolean strand2 = tokens.get(6).equals("+");
+                            int frag1 = 0;
+                            int frag2 = 1;
+                            if (dcicFragIndex1 != -1 && dcicFragIndex2 != -1) {
+                                frag1 = Integer.parseInt(tokens.get(dcicFragIndex1));
+                                frag2 = Integer.parseInt(tokens.get(dcicFragIndex2));
+                            }
+                            nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, 1000, strand2, chr2, pos2, frag2, 1000);
+
+                        } else {
+                            nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                        }
+                        break;
                     }
-                } else {
-                    // this should be strand, chromosome, position, fragment.
+                    default: {
+                        // this should be strand, chromosome, position, fragment.
 
-                    String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
-                    String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(5)));
-                    // some contigs will not be present in the chrom.sizes file
-                    if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
-                        int chr1 = chromosomeOrdinals.get(chrom1);
-                        int chr2 = chromosomeOrdinals.get(chrom2);
-                        int pos1 = Integer.parseInt(tokens.get(2));
-                        int pos2 = Integer.parseInt(tokens.get(6));
-                        int frag1 = Integer.parseInt(tokens.get(3));
-                        int frag2 = Integer.parseInt(tokens.get(7));
-                        int mapq1 = 1000;
-                        int mapq2 = 1000;
+                        String chrom1 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(1)));
+                        String chrom2 = ChromosomeHandler.cleanUpName(getInternedString(tokens.get(5)));
+                        // some contigs will not be present in the chrom.sizes file
+                        if (chromosomeOrdinals.containsKey(chrom1) && chromosomeOrdinals.containsKey(chrom2)) {
+                            int chr1 = chromosomeOrdinals.get(chrom1);
+                            int chr2 = chromosomeOrdinals.get(chrom2);
+                            int pos1 = Integer.parseInt(tokens.get(2));
+                            int pos2 = Integer.parseInt(tokens.get(6));
+                            int frag1 = Integer.parseInt(tokens.get(3));
+                            int frag2 = Integer.parseInt(tokens.get(7));
+                            int mapq1 = 1000;
+                            int mapq2 = 1000;
 
-                        if (format == Format.LONG) {
-                            mapq1 = Integer.parseInt(tokens.get(8));
-                            mapq2 = Integer.parseInt(tokens.get(11));
+                            if (format == Format.LONG) {
+                                mapq1 = Integer.parseInt(tokens.get(8));
+                                mapq2 = Integer.parseInt(tokens.get(11));
+                            }
+                            boolean strand1 = Integer.parseInt(tokens.get(0)) == 0;
+                            boolean strand2 = Integer.parseInt(tokens.get(4)) == 0;
+                            nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
+                            if (format == Format.SHORT_WITH_SCORE) {
+                                nextPair.setScore(Float.parseFloat(tokens.get(8)));
+                            }
+                        } else {
+                            nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
                         }
-                        boolean strand1 = Integer.parseInt(tokens.get(0)) == 0;
-                        boolean strand2 = Integer.parseInt(tokens.get(4)) == 0;
-                        nextPair = new AlignmentPair(strand1, chr1, pos1, frag1, mapq1, strand2, chr2, pos2, frag2, mapq2);
-                        if (format == Format.SHORT_WITH_SCORE) {
-                            nextPair.setScore(Float.parseFloat(tokens.get(8)));
-                        }
-                    } else {
-                        nextPair = new AlignmentPair(); // sets dummy values, sets isContigPair
+                        break;
                     }
                 }
                 return;

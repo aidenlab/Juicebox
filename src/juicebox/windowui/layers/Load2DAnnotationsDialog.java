@@ -404,7 +404,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
                     subParent.add(node);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
         if (customAddedFeatures != null) {

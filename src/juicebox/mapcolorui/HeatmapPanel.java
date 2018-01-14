@@ -78,7 +78,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
      * Image tile width in pixels
      */
     private static final int imageTileWidth = 500;
-    public final int RESIZE_SNAP = 5;
+    private final int RESIZE_SNAP = 5;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final MainWindow mainWindow;
     private final HiC hic;
@@ -146,7 +146,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
         this.firstAnnotation = true;
         try {
             heatmapMouseBot = new Robot();
-        } catch (AWTException exception) {
+        } catch (AWTException ignored) {
         }
     }
 
@@ -1771,7 +1771,7 @@ public class HeatmapPanel extends JComponent implements Serializable {
                         if (selectedFeatures.size() == 1 && selectedFeatures.get(0).equals(newSelectedFeatures.get(0))) {
                             HiCGlobals.splitModeEnabled = true;
                         }
-                    } catch (Exception ee) {
+                    } catch (Exception ignored) {
                     }
                 } else if (adjustAnnotation != AdjustAnnotation.NONE) {
                     dragMode = DragMode.RESIZE;

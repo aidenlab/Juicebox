@@ -136,12 +136,16 @@ public class HiC {
     public void clearTracksForReloadState() {
         ArrayList<HiCTrack> tracksToRemove = new ArrayList<>(trackManager.getLoadedTracks());
         for (HiCTrack trackToRemove : tracksToRemove) {
-            if (trackToRemove.getName().equals(eigString)) {
-                eigenvectorTrack = null;
-            } else if (trackToRemove.getName().equals(ctrlEigString)) {
-                controlEigenvectorTrack = null;
-            } else {
-                trackManager.removeTrack(trackToRemove);
+            switch (trackToRemove.getName()) {
+                case eigString:
+                    eigenvectorTrack = null;
+                    break;
+                case ctrlEigString:
+                    controlEigenvectorTrack = null;
+                    break;
+                default:
+                    trackManager.removeTrack(trackToRemove);
+                    break;
             }
         }
         clearFeatures();
@@ -1159,7 +1163,7 @@ public class HiC {
                 default:
                     return getZd().getColorScaleKey(displayOption);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return null;
     }

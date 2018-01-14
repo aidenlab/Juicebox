@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -104,8 +104,7 @@ public class CustomMZDRegionHandler {
         if (allRegionsInfo != null) {
             allRegionsForChr.put(chrIndex, allRegionsInfo);
             List<MotifAnchor> translatedRegions = allRegionsInfo.getSecond();
-            for (int i = 0; i < translatedRegions.size(); i++) {
-                MotifAnchor anchor = translatedRegions.get(i);
+            for (MotifAnchor anchor : translatedRegions) {
                 boundaries.add(anchor.getX2() / zoom.getBinSize());
             }
         }

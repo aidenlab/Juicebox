@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,11 +55,6 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
         loopList.addDefaultAttribute(key, aNull);
     }
 
-    public void add(Feature2DList newAnnotations) {
-        loopList.add(newAnnotations);
-        remakeRTree(); // adding lots of annotations, safer to remake rtree
-    }
-
     /**
      * Export feature list to given file path
      *
@@ -100,8 +95,7 @@ class CustomAnnotationRTree2DHandler extends Feature2DHandler {
 
     public List<Feature2D> get(int chrIdx1, int chrIdx2) {
 
-        List<Feature2D> features = new ArrayList<>();
-        features.addAll(loopList.get(chrIdx1, chrIdx2));
+        List<Feature2D> features = new ArrayList<>(loopList.get(chrIdx1, chrIdx2));
         return features;
     }
 

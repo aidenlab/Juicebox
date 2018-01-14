@@ -81,7 +81,7 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
                         handler.setLayerVisibility(true);
                         superAdapter.updateMiniAnnotationsLayerPanel();
                         superAdapter.updateMainLayersPanel();
-                    } catch (Exception ee) {
+                    } catch (Exception ignored) {
                     }
                 }
                 superAdapter.repaint();

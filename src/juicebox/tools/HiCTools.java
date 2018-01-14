@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,6 @@ import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuiceboxCLT;
 import org.broad.igv.Globals;
 
-import java.io.IOException;
-
 
 /**
  * Command line tool handling through factory model
@@ -43,7 +41,7 @@ import java.io.IOException;
  */
 public class HiCTools {
 
-    public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
+    public static void main(String[] argv) throws CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
 
         if (argv.length == 0 || argv[0].equals("-h") || argv[0].equals("--help") || argv[0].equals("-V") || argv[0].equals("--version")) {

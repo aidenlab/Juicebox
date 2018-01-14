@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,8 +70,7 @@ public class Feature2DTools {
         return peaks;
     }
 
-    public static Feature2DList extractPeaksNotNearCentroids(final Feature2DList featureList, final Feature2DList centroids,
-                                                             final String errorMessage) {
+    public static Feature2DList extractPeaksNotNearCentroids(final Feature2DList featureList, final Feature2DList centroids) {
         final Feature2DList peaks = new Feature2DList();
 
         featureList.processLists(new FeatureFunction() {
@@ -161,13 +160,13 @@ public class Feature2DTools {
                     List<Feature2D> base1FeatureList = firstFeatureList.getFeatureList(chr);
                     for (Feature2D f2 : secondFeature2DList) {
                         double lowestDistance = -1;
-                        Feature2D overlap = null;
+                        //Feature2D overlap = null;
                         for (Feature2D f1 : base1FeatureList) {
                             int dx = f1.getStart1() - f2.getStart1();
                             int dy = f1.getStart2() - f2.getStart2();
                             double d = HiCCUPSUtils.hypotenuse(dx, dy);
                             if (d < lowestDistance || lowestDistance == -1) {
-                                overlap = f1;
+                                //overlap = f1;
                                 lowestDistance = d;
                             }
                         }

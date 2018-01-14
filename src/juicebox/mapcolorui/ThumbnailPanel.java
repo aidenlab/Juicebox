@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -121,7 +121,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             g.drawImage(image, 0, 0, null);
             try {
                 renderVisibleWindow((Graphics2D) g);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
     }

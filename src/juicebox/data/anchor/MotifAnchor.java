@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -259,41 +259,45 @@ public class MotifAnchor extends Feature implements Comparable<MotifAnchor> {
     public void updateOriginalFeatures(boolean uniqueStatus, int specificStatus) {
         if ((originalFeatures1.size() > 0 || originalFeatures2.size() > 0)) {
             if (fimoAttributesHaveBeenInitialized) {
-                if (specificStatus == 1) {
-                    for (Feature2D feature : originalFeatures1) {
-                        if (feature instanceof Feature2DWithMotif) {
-                            if (strand || uniqueStatus) {
-                                posCount++;
-                                ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                switch (specificStatus) {
+                    case 1:
+                        for (Feature2D feature : originalFeatures1) {
+                            if (feature instanceof Feature2DWithMotif) {
+                                if (strand || uniqueStatus) {
+                                    posCount++;
+                                    ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                                }
                             }
                         }
-                    }
-                } else if (specificStatus == -1) {
-                    for (Feature2D feature : originalFeatures2) {
-                        if (feature instanceof Feature2DWithMotif) {
-                            if (!strand || uniqueStatus) {
-                                negCount++;
-                                ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                        break;
+                    case -1:
+                        for (Feature2D feature : originalFeatures2) {
+                            if (feature instanceof Feature2DWithMotif) {
+                                if (!strand || uniqueStatus) {
+                                    negCount++;
+                                    ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                                }
                             }
                         }
-                    }
-                } else {
-                    for (Feature2D feature : originalFeatures1) {
-                        if (feature instanceof Feature2DWithMotif) {
-                            if (strand || uniqueStatus) {
-                                posCount++;
-                                ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                        break;
+                    default:
+                        for (Feature2D feature : originalFeatures1) {
+                            if (feature instanceof Feature2DWithMotif) {
+                                if (strand || uniqueStatus) {
+                                    posCount++;
+                                    ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, true, score);
+                                }
                             }
                         }
-                    }
-                    for (Feature2D feature : originalFeatures2) {
-                        if (feature instanceof Feature2DWithMotif) {
-                            if (!strand || uniqueStatus) {
-                                negCount++;
-                                ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                        for (Feature2D feature : originalFeatures2) {
+                            if (feature instanceof Feature2DWithMotif) {
+                                if (!strand || uniqueStatus) {
+                                    negCount++;
+                                    ((Feature2DWithMotif) feature).updateMotifData(strand, uniqueStatus, sequence, x1, x2, false, score);
+                                }
                             }
                         }
-                    }
+                        break;
                 }
 
             } else {

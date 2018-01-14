@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,15 +65,20 @@ public class BigWig extends JuiceboxCLT {
     @Override
     public void run() {
         try {
-            if (version == 0)
-                BigWigUtils.computeBins(path, windowSize);
-            else if (version == 1)
-                BigWigUtils.computeBins(path, chr, 0, Integer.MAX_VALUE, windowSize);
-            else if (version == 2)
-                BigWigUtils.computeBins(path, chr, start, end, windowSize);
-            else {
-                System.err.println("Invalid Option Setup");
-                printUsageAndExit();
+            switch (version) {
+                case 0:
+                    BigWigUtils.computeBins(path, windowSize);
+                    break;
+                case 1:
+                    BigWigUtils.computeBins(path, chr, 0, Integer.MAX_VALUE, windowSize);
+                    break;
+                case 2:
+                    BigWigUtils.computeBins(path, chr, start, end, windowSize);
+                    break;
+                default:
+                    System.err.println("Invalid Option Setup");
+                    printUsageAndExit();
+                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();

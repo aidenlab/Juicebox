@@ -68,20 +68,22 @@ public class UnsavedAnnotationWarning {
                 options,  //the titles of buttons
                 options[0]); //default button title
 
-        if (response == JOptionPane.NO_OPTION) {
-            System.out.println("Deleting annotations");
-            if (isCurrentSession) {
-                superAdapter.getActiveLayerHandler().clearAnnotations();
-            }
-            removeAllOldAnnotationFiles();
-            return true;
-        } else if (response == JOptionPane.CANCEL_OPTION || response == JOptionPane.CLOSED_OPTION) {
-            System.out.println("Cancel");
-            return false;
-        } else if (response == JOptionPane.YES_OPTION) {
-            String prefix = moveOldAnnotationFiles();
-            SuperAdapter.showMessageDialog("Files have been saved with prefix: " + prefix + "*\nin " + DirectoryManager.getHiCDirectory());
-            return true;
+        switch (response) {
+            case JOptionPane.NO_OPTION:
+                System.out.println("Deleting annotations");
+                if (isCurrentSession) {
+                    superAdapter.getActiveLayerHandler().clearAnnotations();
+                }
+                removeAllOldAnnotationFiles();
+                return true;
+            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CLOSED_OPTION:
+                System.out.println("Cancel");
+                return false;
+            case JOptionPane.YES_OPTION:
+                String prefix = moveOldAnnotationFiles();
+                SuperAdapter.showMessageDialog("Files have been saved with prefix: " + prefix + "*\nin " + DirectoryManager.getHiCDirectory());
+                return true;
         }
         return false;
     }

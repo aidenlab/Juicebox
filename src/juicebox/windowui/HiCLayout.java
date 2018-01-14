@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -152,20 +152,27 @@ public class HiCLayout implements LayoutManager2,
 
             /* Assign the component to one of the known regions of the layout.
             */
-            if (CENTER.equals(name)) {
-                center = comp;
-            } else if (NORTH.equals(name)) {
-                north = comp;
-            } else if (SOUTH.equals(name)) {
-                south = comp;
-            } else if (EAST.equals(name)) {
-                east = comp;
-            } else if (WEST.equals(name)) {
-                west = comp;
-            } else if (NORTH_WEST.equals(name)) {
-                northwest = comp;
-            } else {
-                throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
+            switch (name) {
+                case CENTER:
+                    center = comp;
+                    break;
+                case NORTH:
+                    north = comp;
+                    break;
+                case SOUTH:
+                    south = comp;
+                    break;
+                case EAST:
+                    east = comp;
+                    break;
+                case WEST:
+                    west = comp;
+                    break;
+                case NORTH_WEST:
+                    northwest = comp;
+                    break;
+                default:
+                    throw new IllegalArgumentException("cannot add to layout: unknown constraint: " + name);
             }
         }
     }

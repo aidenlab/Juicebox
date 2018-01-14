@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -439,7 +439,7 @@ public class HiCCUPSUtils {
     private static void handleExistingMergerWithTwentyFiveKB(Feature2DList mergedList, Feature2DList twentyFiveKBList) {
         // add peaks unique to 25 kB
         Feature2DList centroidsTwentyFiveKB = Feature2DTools.extractReproducibleCentroids(mergedList, twentyFiveKBList, 2 * 25000);
-        Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB, "25->centroids");
+        Feature2DList distant25 = Feature2DTools.extractPeaksNotNearCentroids(twentyFiveKBList, centroidsTwentyFiveKB);
         mergedList.add(distant25);
     }
 
@@ -450,7 +450,7 @@ public class HiCCUPSUtils {
 
         // add peaks unique to 10 kB
         Feature2DList centroidsTenKB = Feature2DTools.extractReproducibleCentroids(fiveKBList, tenKBList, 2 * 10000);
-        Feature2DList distant10 = Feature2DTools.extractPeaksNotNearCentroids(tenKBList, centroidsTenKB, "10->centroids");
+        Feature2DList distant10 = Feature2DTools.extractPeaksNotNearCentroids(tenKBList, centroidsTenKB);
         mergedList.add(distant10);
 
         // add peaks close to diagonal in 5kB
