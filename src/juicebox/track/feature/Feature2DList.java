@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2018 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,18 +50,13 @@ public class Feature2DList {
      */
     private final Map<String, List<Feature2D>> featureList = new HashMap<>();
 
-    private Map<String, String> defaultAttributes;
+    private Map<String, String> defaultAttributes = new HashMap<>();
 
-    /**
-     * Initialized hashtable
-     */
     public Feature2DList() {
-        defaultAttributes = null;
     }
 
     public Feature2DList(Feature2DList list) {
         add(list);
-        defaultAttributes = null;
     }
 
     public Feature2DList(Feature2DList list, List<String> featureKeys) {
@@ -462,43 +457,16 @@ public class Feature2DList {
         return output;
     }
 
-
-//    public void convertFeaturesToContigs(String key) {
-//        List<Feature2D> contigs = new ArrayList<>();
-//        for (Feature2D entry : this.get(key)) {
-//            // Only proceed if not instance of Contig2D
-//            if (entry instanceof Contig2D) {
-//                contigs.add(entry);
-//            } else {
-//                contigs.add(entry.toContig());
-//            }
-//        }
-//        Collections.sort(contigs);
-//        this.setWithKey(key, contigs);
-//    }
-
-    public Map<String, String> getDefaultAtributes() {
-        return defaultAttributes;
-    }
-
     public void setDefaultAttributes(Map<String, String> defaultAttributes) {
         this.defaultAttributes = defaultAttributes;
     }
 
-    public void addDefaultAttribute(String attribute) {
-        addDefaultAttribute(attribute, null);
-    }
 
     public void addDefaultAttribute(String attribute, String value) {
         defaultAttributes.put(attribute, value);
         addAttributeFieldToAll(attribute, value);
     }
-    /*
 
-    public void addAttributeFieldToAll(String newAttributeName){
-        addAttributeFieldToAll(newAttributeName,null);
-    }
-    */
 
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
         processLists(new FeatureFunction() {

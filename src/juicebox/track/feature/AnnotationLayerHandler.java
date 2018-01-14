@@ -815,4 +815,10 @@ public class AnnotationLayerHandler {
     public void setMiniNameLabelField(JLabel miniNameLabel) {
         this.miniNameLabel = miniNameLabel;
     }
+
+    public void setProperties(AnnotationLayer scaffoldLayer, String name, Color color) {
+        setAnnotationLayer(scaffoldLayer);
+        setLayerNameAndField(name);
+        setColorOfAllAnnotations(color);
+    }
 }

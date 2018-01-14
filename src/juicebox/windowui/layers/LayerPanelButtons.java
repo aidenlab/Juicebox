@@ -138,7 +138,7 @@ class LayerPanelButtons {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //AnnotationLayerHandler handlerDup =
-                lp.new2DAnnotationsLayerAction(superAdapter, handler);
+                lp.createNewLayerAndAddItToPanels(superAdapter, handler);
             }
         });
         copyButton.setToolTipText("Duplicate this layer");

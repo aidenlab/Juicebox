@@ -303,7 +303,7 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 }
 
                 //temp layer to allow deleting of other layers
-                layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
+                layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 if (superAdapter.getAssemblyLayerHandlers() != null) {
                     for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAssemblyLayerHandlers())
                         superAdapter.removeLayer(annotationLayerHandler);
@@ -316,23 +316,19 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.getMainViewPanel().getRulerPanelX().repaint();
                 superAdapter.getMainViewPanel().getRulerPanelY().repaint();
 
-                AnnotationLayer scaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getScaffoldFeature2DHandler().getFeatureList());
-                scaffoldLayer.setLayerType(AnnotationLayer.LayerType.SCAFFOLD);
+                // read in scaffold data
+                AnnotationLayer scaffoldLayer = new AnnotationLayer(
+                        assemblyFileImporter.getAssemblyScaffoldHandler().getScaffoldFeature2DHandler(), AnnotationLayer.LayerType.SCAFFOLD);
+                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
+                scaffoldLayerHandler.setProperties(scaffoldLayer, "Scaf", Color.green);
 
-                AnnotationLayer superscaffoldLayer = new AnnotationLayer(assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler().getFeatureList());
-                superscaffoldLayer.setLayerType(AnnotationLayer.LayerType.SUPERSCAFFOLD);
+                // read in superscaffold data
+                AnnotationLayer superscaffoldLayer = new AnnotationLayer(
+                        assemblyFileImporter.getAssemblyScaffoldHandler().getSuperscaffoldFeature2DHandler(), AnnotationLayer.LayerType.SUPERSCAFFOLD);
+                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
+                superscaffoldLayerHandler.setProperties(superscaffoldLayer, "Chr", Color.blue);
 
-                AnnotationLayerHandler scaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
-                scaffoldLayerHandler.setAnnotationLayer(scaffoldLayer);
-                scaffoldLayerHandler.setLayerNameAndField("Scaf");
-                scaffoldLayerHandler.setColorOfAllAnnotations(Color.green);
-
-                AnnotationLayerHandler superscaffoldLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
-                superscaffoldLayerHandler.setAnnotationLayer(superscaffoldLayer);
-                superscaffoldLayerHandler.setLayerNameAndField("Chr");
-                superscaffoldLayerHandler.setColorOfAllAnnotations(Color.blue);
-
-                AnnotationLayerHandler editLayerHandler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
+                AnnotationLayerHandler editLayerHandler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                 editLayerHandler.setColorOfAllAnnotations(Color.yellow);
                 editLayerHandler.setLayerNameAndField("Edit");
                 editLayerHandler.setLineStyle(FeatureRenderer.LineStyle.DASHED);
@@ -345,7 +341,8 @@ public class LoadAssemblyAnnotationsDialog extends JDialog implements TreeSelect
                 superAdapter.getMainMenuBar().enableAssemblyMenuOptions();
                 superAdapter.getMainMenuBar().enableAssemblyEditsOnImport(superAdapter);
                 for (AnnotationLayerHandler annotationLayerHandler : superAdapter.getAllLayers()) {
-                    if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
+                    if (annotationLayerHandler.getAnnotationLayerType() != AnnotationLayer.LayerType.EDIT
+                            && annotationLayerHandler.getAnnotationLayer().getFeatureList().getNumTotalFeatures() == 0)
                         superAdapter.removeLayer(annotationLayerHandler);
                     superAdapter.setActiveLayerHandler(scaffoldLayerHandler);
                     superAdapter.getLayersPanel().updateBothLayersPanels(superAdapter);

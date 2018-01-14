@@ -318,7 +318,7 @@ public class Load2DAnnotationsDialog extends JDialog implements TreeSelectionLis
             if (node != null && node.isLeaf()) {
                 ItemInfo info = (ItemInfo) node.getUserObject();
                 try {
-                    AnnotationLayerHandler handler = layersPanel.new2DAnnotationsLayerAction(superAdapter, null);
+                    AnnotationLayerHandler handler = layersPanel.createNewLayerAndAddItToPanels(superAdapter, null);
                     handler.setLayerNameAndField(info.itemName);
                     handler.loadLoopList(info.itemURL, chromosomeHandler);
                 } catch (Exception ee) {

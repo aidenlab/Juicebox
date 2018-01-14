@@ -1060,7 +1060,7 @@ public class SuperAdapter {
             return false;
         } else {
             if (layersPanel != null) {
-                layersPanel.new2DAnnotationsLayerAction(this, null);
+                layersPanel.createNewLayerAndAddItToPanels(this, null);
             }
             if (getAssemblyLayerHandlers() != null) {
                 for (AnnotationLayerHandler annotationLayerHandler : getAssemblyLayerHandlers())

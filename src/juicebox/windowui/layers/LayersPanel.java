@@ -294,7 +294,7 @@ public class LayersPanel extends JDialog {
         newLayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new2DAnnotationsLayerAction(superAdapter, null);
+                createNewLayerAndAddItToPanels(superAdapter, null);
             }
         });
 
@@ -330,7 +330,7 @@ public class LayersPanel extends JDialog {
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     }
 
-    public AnnotationLayerHandler new2DAnnotationsLayerAction(SuperAdapter superAdapter, AnnotationLayerHandler sourceHandler) {
+    public AnnotationLayerHandler createNewLayerAndAddItToPanels(SuperAdapter superAdapter, AnnotationLayerHandler sourceHandler) {
         AnnotationLayerHandler handler = superAdapter.createNewLayer(null);
         if (sourceHandler != null) handler.duplicateDetailsFrom(sourceHandler);
         try {

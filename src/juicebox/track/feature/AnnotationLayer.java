@@ -66,6 +66,11 @@ public class AnnotationLayer {
         this.customAnnotationRTreeHandler = new CustomAnnotationRTree2DHandler(inputList);
     }
 
+    public AnnotationLayer(Feature2DHandler feature2DHandler, LayerType layerType) {
+        this(feature2DHandler.getFeatureList());
+        setLayerType(layerType);
+    }
+
     // Clear all annotations
     private void reset() {
         nothingSavedYet = true;
